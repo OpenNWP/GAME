@@ -8,7 +8,6 @@ This file manages the RKHEVI time stepping.
 */
 
 #include <stdlib.h>
-#include <geos95.h>
 #include "../game_types.h"
 #include "../spatial_operators/spatial_operators.h"
 #include "time_stepping.h"

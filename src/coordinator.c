@@ -11,7 +11,6 @@ The main organizes the model, manages the time stepping, calls model output, col
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <geos95.h>
 #include "game_types.h"
 #include "game_constants.h"
 #include "io/io.h"

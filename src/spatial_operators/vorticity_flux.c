@@ -9,7 +9,6 @@ In this file, the vorticity flux term of the Lamb tansformation gets computed.
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <geos95.h>
 #include "../game_types.h"
 #include "../constituents/constituents.h"
 

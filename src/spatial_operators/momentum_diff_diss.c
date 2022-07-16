@@ -10,7 +10,6 @@ The momentum diffusion acceleration is computed here (apart from the diffusion c
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <geos95.h>
 #include "../game_types.h"
 #include "../game_constants.h"
 #include "spatial_operators.h"

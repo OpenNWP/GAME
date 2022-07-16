@@ -10,7 +10,6 @@ This file contains functions for reading the grid properties as well as setting 
 #include <stdlib.h>
 #include <stdio.h>
 #include <netcdf.h>
-#include <geos95.h>
 #include "../game_types.h"
 #include "../game_constants.h"
 #include "../spatial_operators/spatial_operators.h"

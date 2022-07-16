@@ -9,7 +9,6 @@ Here, vorticities are calculated. The word "vorticity" hereby refers to both ver
 
 #include <stdio.h>
 #include "../game_types.h"
-#include "geos95.h"
 #include "../constituents/constituents.h"
 #include "spatial_operators.h"
 

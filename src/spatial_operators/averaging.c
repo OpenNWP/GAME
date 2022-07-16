@@ -8,8 +8,8 @@ This file contains functions that perform averagings.
 */
 
 #include <stdio.h>
-#include <geos95.h>
 #include "../game_types.h"
+#include "../../grid_generator/src/grid_generator.h"
 
 int remap_verpri2horpri_vector(Vector_field vector_field, int layer_index, int h_index, double *component, Grid *grid)
 {
