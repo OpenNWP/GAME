@@ -1,0 +1,28 @@
+These are the coding standards that are important to me and that I insist on:
+
+Geophysical principles
+
+1. reliability
+2. accuracy
+3. performance
+
+Structure
+
+1. Several files are better than to put everything into one file.
+2. Sort your files into meaningful directories.
+
+Blank spaces
+
+1. Never use more than one blank line.
+2. Use blank spaces behind commas.
+
+Names
+
+1. Use underscores: new_variable.
+2. Do not use capitals inside names: ThisIsForbidden.
+3. Use long names that explain what this thing does and why it exists in order to avoid comments.
+
+Comments
+
+Explain only those things that somebody who is reading your code for the first time would need to know. Otherwise, do not use them much.
+

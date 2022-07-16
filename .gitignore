@@ -1,0 +1,10 @@
+build
+*.pyc
+*.nc
+*.mod
+*.png
+grid_generator/grid_generator
+output
+figs
+nwp_init
+grid_generator/statistics/*.txt
