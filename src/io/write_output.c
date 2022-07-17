@@ -24,10 +24,6 @@ In addition to that, some postprocessing diagnostics are also calculated here.
 #define ECCERR(e) {printf("Error: Eccodes failed with error code %d. See http://download.ecmwf.int/test-data/eccodes/html/group__errors.html for meaning of the error codes.\n", e); exit(ERRCODE);}
 #define NCERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(2);}
 
-int set_basic_props2grib(codes_handle *, long, long, long, long, long, long);
-double global_scalar_integrator(Scalar_field, Grid *);
-double pseudopotential_temperature(State *, Diagnostics *, Grid *, int);
-
 // the number of pressure levels for the pressure level output
 const int NO_OF_PRESSURE_LEVELS = 6;
 
@@ -46,6 +42,231 @@ int get_pressure_levels(double pressure_levels[])
 	pressure_levels[4] = 85000;
 	pressure_levels[5] = 92500;
 	return 0;
+}
+
+double global_scalar_integrator(Scalar_field density_gen, Grid *grid)
+{
+    double result = 0.0;
+    for (int i = 0; i < NO_OF_SCALARS; ++i)
+    {
+        result += density_gen[i]*grid -> volume[i];
+    }
+    
+    return result;
+}
+
+int write_out_integral(State *state_write_out, double time_since_init, Grid *grid, Dualgrid *dualgrid, Diagnostics *diagnostics, int integral_id)
+{
+	/*
+	integral_id:
+	0: dry mass
+	1: entropy
+	2: energy
+	*/
+    double global_integral = 0;
+    FILE *global_integral_file;
+    int INTEGRAL_FILE_LENGTH = 200;
+    char *INTEGRAL_FILE_PRE = malloc((INTEGRAL_FILE_LENGTH + 1)*sizeof(char));
+    if (integral_id == 0)
+   		sprintf(INTEGRAL_FILE_PRE, "%s", "masses");
+    if (integral_id == 1)
+   		sprintf(INTEGRAL_FILE_PRE, "%s", "potential_temperature_density");
+    if (integral_id == 2)
+   		sprintf(INTEGRAL_FILE_PRE, "%s", "energy");
+    INTEGRAL_FILE_LENGTH = strlen(INTEGRAL_FILE_PRE);
+    char *INTEGRAL_FILE = malloc((INTEGRAL_FILE_LENGTH + 1)*sizeof(char));
+    sprintf(INTEGRAL_FILE, "%s", INTEGRAL_FILE_PRE);
+    free(INTEGRAL_FILE_PRE);
+    if (integral_id == 0)
+    {
+    	// masses
+    	global_integral_file = fopen(INTEGRAL_FILE, "a");
+		fprintf(global_integral_file, "%lf\t", time_since_init);
+    	for (int const_id = 0; const_id < NO_OF_CONSTITUENTS; ++const_id)
+    	{
+			#pragma omp parallel for
+			for (int i = 0; i < NO_OF_SCALARS; ++i)
+			{
+				diagnostics -> scalar_field_placeholder[i] = state_write_out -> rho[const_id*NO_OF_SCALARS + i];
+			}
+			global_integral = global_scalar_integrator(diagnostics -> scalar_field_placeholder, grid);
+			if (const_id == NO_OF_CONSTITUENTS - 1)
+			{
+				fprintf(global_integral_file, "%lf\n", global_integral);
+    		}
+    		else
+    		{
+    			fprintf(global_integral_file, "%lf\t", global_integral);
+    		}
+    	}
+    	fclose(global_integral_file);
+    }
+    if (integral_id == 1)
+    {
+    	// density times virtual potential temperature
+    	global_integral_file = fopen(INTEGRAL_FILE, "a");
+    	global_integral = global_scalar_integrator(state_write_out -> rhotheta_v, grid);
+    	fprintf(global_integral_file, "%lf\t%lf\n", time_since_init, global_integral);
+    	fclose(global_integral_file);
+    }
+    if (integral_id == 2)
+    {
+    	double kinetic_integral, potential_integral, internal_integral;
+    	global_integral_file = fopen(INTEGRAL_FILE, "a");
+    	Scalar_field *e_kin_density = malloc(sizeof(Scalar_field));
+    	inner_product(state_write_out -> wind, state_write_out -> wind, *e_kin_density, grid);
+		#pragma omp parallel for
+		for (int i = 0; i < NO_OF_SCALARS; ++i)
+
+		{
+			diagnostics -> scalar_field_placeholder[i] = state_write_out -> rho[NO_OF_CONDENSED_CONSTITUENTS*NO_OF_SCALARS + i];
+		}
+    	scalar_times_scalar(diagnostics -> scalar_field_placeholder, *e_kin_density, *e_kin_density);
+    	kinetic_integral = global_scalar_integrator(*e_kin_density, grid);
+    	free(e_kin_density);
+    	Scalar_field *pot_energy_density = malloc(sizeof(Scalar_field));
+    	scalar_times_scalar(diagnostics -> scalar_field_placeholder, grid -> gravity_potential, *pot_energy_density);
+    	potential_integral = global_scalar_integrator(*pot_energy_density, grid);
+    	free(pot_energy_density);
+    	Scalar_field *int_energy_density = malloc(sizeof(Scalar_field));
+    	scalar_times_scalar(diagnostics -> scalar_field_placeholder, diagnostics -> temperature, *int_energy_density);
+    	internal_integral = global_scalar_integrator(*int_energy_density, grid);
+    	fprintf(global_integral_file, "%lf\t%lf\t%lf\t%lf\n", time_since_init, 0.5*kinetic_integral, potential_integral, C_D_V*internal_integral);
+    	free(int_energy_density);
+    	fclose(global_integral_file);
+    }
+    free(INTEGRAL_FILE);
+	return 0;
+}
+
+int set_basic_props2grib(codes_handle *handle, long data_date, long data_time, long t_write, long t_init, long parameter_category, long parameter_number)
+{
+	/*
+	This function sets the basic properties of a grib message.
+
+	*/
+	int retval;
+    if ((retval = codes_set_long(handle, "parameterCategory", parameter_category)))
+        ECCERR(retval);
+    if ((retval = codes_set_long(handle, "parameterNumber", parameter_number)))
+        ECCERR(retval);
+	if ((retval = codes_set_long(handle, "dataDate", data_date)))
+		ECCERR(retval);
+	if ((retval = codes_set_long(handle, "dataTime", data_time)))
+		ECCERR(retval);
+	if ((retval = codes_set_long(handle, "forecastTime", t_write - t_init)))
+		ECCERR(retval);
+	if ((retval = codes_set_long(handle, "stepRange", t_write - t_init)))
+		ECCERR(retval);
+	if ((retval = codes_set_long(handle, "typeOfGeneratingProcess", 1)))
+		ECCERR(retval);
+	if ((retval = codes_set_long(handle, "discipline", 0)))
+		ECCERR(retval);
+	if ((retval = codes_set_long(handle, "gridDefinitionTemplateNumber", 0)))
+	    ECCERR(retval);
+	if ((retval = codes_set_long(handle, "Ni", NO_OF_LON_IO_POINTS)))
+	    ECCERR(retval);
+	if ((retval = codes_set_long(handle, "Nj", NO_OF_LAT_IO_POINTS)))
+	    ECCERR(retval);
+	if ((retval = codes_set_long(handle, "iScansNegatively", 0)))
+	    ECCERR(retval);
+	if ((retval = codes_set_long(handle, "jScansPositively", 0)))
+	    ECCERR(retval);
+	if ((retval = codes_set_double(handle, "latitudeOfFirstGridPointInDegrees", rad2deg(M_PI/2 - 0.5*M_PI/NO_OF_LAT_IO_POINTS))))
+	    ECCERR(retval);
+	if ((retval = codes_set_double(handle, "longitudeOfFirstGridPointInDegrees", 0)))
+	    ECCERR(retval);
+	if ((retval = codes_set_double(handle, "latitudeOfLastGridPointInDegrees", -rad2deg(M_PI/2 - 0.5*M_PI/NO_OF_LAT_IO_POINTS))))
+	    ECCERR(retval);
+	if ((retval = codes_set_double(handle, "longitudeOfLastGridPointInDegrees", rad2deg(-2*M_PI/NO_OF_LON_IO_POINTS))))
+	    ECCERR(retval);
+	if ((retval = codes_set_double(handle, "iDirectionIncrementInDegrees", rad2deg(2*M_PI/NO_OF_LON_IO_POINTS))))
+	    ECCERR(retval);
+	if ((retval = codes_set_double(handle, "jDirectionIncrementInDegrees", rad2deg(M_PI/NO_OF_LAT_IO_POINTS))))
+	    ECCERR(retval);
+    if ((retval = codes_set_long(handle, "discipline", 0)))
+        ECCERR(retval);
+    if ((retval = codes_set_long(handle, "centre", 255)))
+        ECCERR(retval);
+    if ((retval = codes_set_long(handle, "significanceOfReferenceTime", 1)))
+        ECCERR(retval);
+    if ((retval = codes_set_long(handle, "productionStatusOfProcessedData", 1)))
+        ECCERR(retval);
+    if ((retval = codes_set_long(handle, "typeOfProcessedData", 1)))
+        ECCERR(retval);
+    if ((retval = codes_set_long(handle, "indicatorOfUnitOfTimeRange", 13)))
+        ECCERR(retval);
+    if ((retval = codes_set_long(handle, "stepUnits", 13)))
+        ECCERR(retval);
+	return 0;
+}
+
+int interpolation_t(State *state_0, State *state_p1, State *state_write, double t_0, double t_p1, double t_write, Grid *grid)
+{
+    double weight_0, weight_p1;
+    weight_p1 = (t_write - t_0)/(t_p1 - t_0);
+    weight_0 = 1.0 - weight_p1;
+    linear_combine_two_states(state_0, state_p1, state_write, weight_0, weight_p1, grid);
+    return 0;
+}
+
+
+double pseudopotential_temperature(State *state, Diagnostics *diagnostics, Grid *grid, int scalar_index)
+{
+	/*
+	This function returns the pseudopotential temperature, which is needed for diagnozing CAPE.
+	*/
+	
+	double result = 0.0;
+	// the dry case
+	if (MOISTURE_ON == 0)
+	{
+		result = grid -> theta_v_bg[scalar_index] + state -> theta_v_pert[scalar_index];
+	}
+	// This is the moist case, based on
+	// Bolton, D. (1980). The Computation of Equivalent Potential Temperature, Monthly Weather Review, 108(7), 1046-1053.
+	else
+	{
+		// some parameters we need to compute
+		double alpha_1, alpha_2, alpha_3, r, pressure, t_lcl;
+		// some helper variables
+		double vapour_pressure, saturation_pressure, rel_hum;
+		
+		// the mixing ratio
+		r = state -> rho[(NO_OF_CONDENSED_CONSTITUENTS + 1)*NO_OF_SCALARS + scalar_index]
+		/(state -> rho[NO_OF_CONDENSED_CONSTITUENTS*NO_OF_SCALARS + scalar_index]
+		- state -> rho[(NO_OF_CONDENSED_CONSTITUENTS + 1)*NO_OF_SCALARS + scalar_index]);
+		
+		// now, the first two required parameters can already be computed
+		alpha_1 = 0.2854*(1.0 - 0.28e-3*r);
+		alpha_3 = r*(1.0 + 0.81e-3*r);
+		
+		// calculating the pressure
+		pressure = P_0*pow(grid -> exner_bg[scalar_index] + state -> exner_pert[scalar_index], C_D_P/R_D);
+		
+		// computing the temperature t_lcl of the air parcel after raising it to the lifted condensation level (LCL)
+		// therefore we firstly compute the saturation pressure, the vapour pressure and the relative humidity
+		if (diagnostics -> temperature[scalar_index] >= T_0)
+		{
+			saturation_pressure = saturation_pressure_over_water(diagnostics -> temperature[scalar_index]);
+		}
+		else
+		{
+			saturation_pressure = saturation_pressure_over_ice(diagnostics -> temperature[scalar_index]);
+		}
+		vapour_pressure = state -> rho[(NO_OF_CONDENSED_CONSTITUENTS + 1)*NO_OF_SCALARS + scalar_index]*R_V*diagnostics -> temperature[scalar_index];
+		rel_hum = vapour_pressure/saturation_pressure;
+		// we compute t_lcl using Eq. (22) of Bolton (1980)
+		t_lcl = 1.0/(1.0/(diagnostics -> temperature[scalar_index] - 55.0) - log(rel_hum)/2840.0) + 55.0;
+		
+		// the last remaining parameter can be computed now
+		alpha_2 = 3.376/t_lcl - 0.00254;
+		
+		// the final formula by Bolton
+		result = diagnostics -> temperature[scalar_index]*pow(P_0/pressure, alpha_1)*exp(alpha_2*alpha_3);
+	}
+	
+	return result;
 }
 
 int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int min_no_of_output_steps, double t_init, double t_write, Diagnostics *diagnostics, Forcings *forcings, Grid *grid, Dualgrid *dualgrid, Config_io *config_io, Config *config, Irreversible_quantities *irrev)
@@ -1510,229 +1731,6 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	free(pressure);
 	printf("Output written.\n");
 	return 0;
-}
-
-int write_out_integral(State *state_write_out, double time_since_init, Grid *grid, Dualgrid *dualgrid, Diagnostics *diagnostics, int integral_id)
-{
-	/*
-	integral_id:
-	0: dry mass
-	1: entropy
-	2: energy
-	*/
-    double global_integral = 0;
-    FILE *global_integral_file;
-    int INTEGRAL_FILE_LENGTH = 200;
-    char *INTEGRAL_FILE_PRE = malloc((INTEGRAL_FILE_LENGTH + 1)*sizeof(char));
-    if (integral_id == 0)
-   		sprintf(INTEGRAL_FILE_PRE, "%s", "masses");
-    if (integral_id == 1)
-   		sprintf(INTEGRAL_FILE_PRE, "%s", "potential_temperature_density");
-    if (integral_id == 2)
-   		sprintf(INTEGRAL_FILE_PRE, "%s", "energy");
-    INTEGRAL_FILE_LENGTH = strlen(INTEGRAL_FILE_PRE);
-    char *INTEGRAL_FILE = malloc((INTEGRAL_FILE_LENGTH + 1)*sizeof(char));
-    sprintf(INTEGRAL_FILE, "%s", INTEGRAL_FILE_PRE);
-    free(INTEGRAL_FILE_PRE);
-    if (integral_id == 0)
-    {
-    	// masses
-    	global_integral_file = fopen(INTEGRAL_FILE, "a");
-		fprintf(global_integral_file, "%lf\t", time_since_init);
-    	for (int const_id = 0; const_id < NO_OF_CONSTITUENTS; ++const_id)
-    	{
-			#pragma omp parallel for
-			for (int i = 0; i < NO_OF_SCALARS; ++i)
-			{
-				diagnostics -> scalar_field_placeholder[i] = state_write_out -> rho[const_id*NO_OF_SCALARS + i];
-			}
-			global_integral = global_scalar_integrator(diagnostics -> scalar_field_placeholder, grid);
-			if (const_id == NO_OF_CONSTITUENTS - 1)
-			{
-				fprintf(global_integral_file, "%lf\n", global_integral);
-    		}
-    		else
-    		{
-    			fprintf(global_integral_file, "%lf\t", global_integral);
-    		}
-    	}
-    	fclose(global_integral_file);
-    }
-    if (integral_id == 1)
-    {
-    	// density times virtual potential temperature
-    	global_integral_file = fopen(INTEGRAL_FILE, "a");
-    	global_integral = global_scalar_integrator(state_write_out -> rhotheta_v, grid);
-    	fprintf(global_integral_file, "%lf\t%lf\n", time_since_init, global_integral);
-    	fclose(global_integral_file);
-    }
-    if (integral_id == 2)
-    {
-    	double kinetic_integral, potential_integral, internal_integral;
-    	global_integral_file = fopen(INTEGRAL_FILE, "a");
-    	Scalar_field *e_kin_density = malloc(sizeof(Scalar_field));
-    	inner_product(state_write_out -> wind, state_write_out -> wind, *e_kin_density, grid);
-		#pragma omp parallel for
-		for (int i = 0; i < NO_OF_SCALARS; ++i)
-		{
-			diagnostics -> scalar_field_placeholder[i] = state_write_out -> rho[NO_OF_CONDENSED_CONSTITUENTS*NO_OF_SCALARS + i];
-		}
-    	scalar_times_scalar(diagnostics -> scalar_field_placeholder, *e_kin_density, *e_kin_density);
-    	kinetic_integral = global_scalar_integrator(*e_kin_density, grid);
-    	free(e_kin_density);
-    	Scalar_field *pot_energy_density = malloc(sizeof(Scalar_field));
-    	scalar_times_scalar(diagnostics -> scalar_field_placeholder, grid -> gravity_potential, *pot_energy_density);
-    	potential_integral = global_scalar_integrator(*pot_energy_density, grid);
-    	free(pot_energy_density);
-    	Scalar_field *int_energy_density = malloc(sizeof(Scalar_field));
-    	scalar_times_scalar(diagnostics -> scalar_field_placeholder, diagnostics -> temperature, *int_energy_density);
-    	internal_integral = global_scalar_integrator(*int_energy_density, grid);
-    	fprintf(global_integral_file, "%lf\t%lf\t%lf\t%lf\n", time_since_init, 0.5*kinetic_integral, potential_integral, C_D_V*internal_integral);
-    	free(int_energy_density);
-    	fclose(global_integral_file);
-    }
-    free(INTEGRAL_FILE);
-	return 0;
-}
-
-int set_basic_props2grib(codes_handle *handle, long data_date, long data_time, long t_write, long t_init, long parameter_category, long parameter_number)
-{
-	/*
-	This function sets the basic properties of a grib message.
-	*/
-	int retval;
-    if ((retval = codes_set_long(handle, "parameterCategory", parameter_category)))
-        ECCERR(retval);
-    if ((retval = codes_set_long(handle, "parameterNumber", parameter_number)))
-        ECCERR(retval);
-	if ((retval = codes_set_long(handle, "dataDate", data_date)))
-		ECCERR(retval);
-	if ((retval = codes_set_long(handle, "dataTime", data_time)))
-		ECCERR(retval);
-	if ((retval = codes_set_long(handle, "forecastTime", t_write - t_init)))
-		ECCERR(retval);
-	if ((retval = codes_set_long(handle, "stepRange", t_write - t_init)))
-		ECCERR(retval);
-	if ((retval = codes_set_long(handle, "typeOfGeneratingProcess", 1)))
-		ECCERR(retval);
-	if ((retval = codes_set_long(handle, "discipline", 0)))
-		ECCERR(retval);
-	if ((retval = codes_set_long(handle, "gridDefinitionTemplateNumber", 0)))
-	    ECCERR(retval);
-	if ((retval = codes_set_long(handle, "Ni", NO_OF_LON_IO_POINTS)))
-	    ECCERR(retval);
-	if ((retval = codes_set_long(handle, "Nj", NO_OF_LAT_IO_POINTS)))
-	    ECCERR(retval);
-	if ((retval = codes_set_long(handle, "iScansNegatively", 0)))
-	    ECCERR(retval);
-	if ((retval = codes_set_long(handle, "jScansPositively", 0)))
-	    ECCERR(retval);
-	if ((retval = codes_set_double(handle, "latitudeOfFirstGridPointInDegrees", rad2deg(M_PI/2 - 0.5*M_PI/NO_OF_LAT_IO_POINTS))))
-	    ECCERR(retval);
-	if ((retval = codes_set_double(handle, "longitudeOfFirstGridPointInDegrees", 0)))
-	    ECCERR(retval);
-	if ((retval = codes_set_double(handle, "latitudeOfLastGridPointInDegrees", -rad2deg(M_PI/2 - 0.5*M_PI/NO_OF_LAT_IO_POINTS))))
-	    ECCERR(retval);
-	if ((retval = codes_set_double(handle, "longitudeOfLastGridPointInDegrees", rad2deg(-2*M_PI/NO_OF_LON_IO_POINTS))))
-	    ECCERR(retval);
-	if ((retval = codes_set_double(handle, "iDirectionIncrementInDegrees", rad2deg(2*M_PI/NO_OF_LON_IO_POINTS))))
-	    ECCERR(retval);
-	if ((retval = codes_set_double(handle, "jDirectionIncrementInDegrees", rad2deg(M_PI/NO_OF_LAT_IO_POINTS))))
-	    ECCERR(retval);
-    if ((retval = codes_set_long(handle, "discipline", 0)))
-        ECCERR(retval);
-    if ((retval = codes_set_long(handle, "centre", 255)))
-        ECCERR(retval);
-    if ((retval = codes_set_long(handle, "significanceOfReferenceTime", 1)))
-        ECCERR(retval);
-    if ((retval = codes_set_long(handle, "productionStatusOfProcessedData", 1)))
-        ECCERR(retval);
-    if ((retval = codes_set_long(handle, "typeOfProcessedData", 1)))
-        ECCERR(retval);
-    if ((retval = codes_set_long(handle, "indicatorOfUnitOfTimeRange", 13)))
-        ECCERR(retval);
-    if ((retval = codes_set_long(handle, "stepUnits", 13)))
-        ECCERR(retval);
-	return 0;
-}
-
-double global_scalar_integrator(Scalar_field density_gen, Grid *grid)
-{
-    double result = 0.0;
-    for (int i = 0; i < NO_OF_SCALARS; ++i)
-    {
-        result += density_gen[i]*grid -> volume[i];
-    }
-    
-    return result;
-}
-
-int interpolation_t(State *state_0, State *state_p1, State *state_write, double t_0, double t_p1, double t_write, Grid *grid)
-{
-    double weight_0, weight_p1;
-    weight_p1 = (t_write - t_0)/(t_p1 - t_0);
-    weight_0 = 1.0 - weight_p1;
-    linear_combine_two_states(state_0, state_p1, state_write, weight_0, weight_p1, grid);
-    return 0;
-}
-
-
-double pseudopotential_temperature(State *state, Diagnostics *diagnostics, Grid *grid, int scalar_index)
-{
-	/*
-	This function returns the pseudopotential temperature, which is needed for diagnozing CAPE.
-	*/
-	
-	double result = 0.0;
-	// the dry case
-	if (MOISTURE_ON == 0)
-	{
-		result = grid -> theta_v_bg[scalar_index] + state -> theta_v_pert[scalar_index];
-	}
-	// This is the moist case, based on
-	// Bolton, D. (1980). The Computation of Equivalent Potential Temperature, Monthly Weather Review, 108(7), 1046-1053.
-	else
-	{
-		// some parameters we need to compute
-		double alpha_1, alpha_2, alpha_3, r, pressure, t_lcl;
-		// some helper variables
-		double vapour_pressure, saturation_pressure, rel_hum;
-		
-		// the mixing ratio
-		r = state -> rho[(NO_OF_CONDENSED_CONSTITUENTS + 1)*NO_OF_SCALARS + scalar_index]
-		/(state -> rho[NO_OF_CONDENSED_CONSTITUENTS*NO_OF_SCALARS + scalar_index]
-		- state -> rho[(NO_OF_CONDENSED_CONSTITUENTS + 1)*NO_OF_SCALARS + scalar_index]);
-		
-		// now, the first two required parameters can already be computed
-		alpha_1 = 0.2854*(1.0 - 0.28e-3*r);
-		alpha_3 = r*(1.0 + 0.81e-3*r);
-		
-		// calculating the pressure
-		pressure = P_0*pow(grid -> exner_bg[scalar_index] + state -> exner_pert[scalar_index], C_D_P/R_D);
-		
-		// computing the temperature t_lcl of the air parcel after raising it to the lifted condensation level (LCL)
-		// therefore we firstly compute the saturation pressure, the vapour pressure and the relative humidity
-		if (diagnostics -> temperature[scalar_index] >= T_0)
-		{
-			saturation_pressure = saturation_pressure_over_water(diagnostics -> temperature[scalar_index]);
-		}
-		else
-		{
-			saturation_pressure = saturation_pressure_over_ice(diagnostics -> temperature[scalar_index]);
-		}
-		vapour_pressure = state -> rho[(NO_OF_CONDENSED_CONSTITUENTS + 1)*NO_OF_SCALARS + scalar_index]*R_V*diagnostics -> temperature[scalar_index];
-		rel_hum = vapour_pressure/saturation_pressure;
-		// we compute t_lcl using Eq. (22) of Bolton (1980)
-		t_lcl = 1.0/(1.0/(diagnostics -> temperature[scalar_index] - 55.0) - log(rel_hum)/2840.0) + 55.0;
-		
-		// the last remaining parameter can be computed now
-		alpha_2 = 3.376/t_lcl - 0.00254;
-		
-		// the final formula by Bolton
-		result = diagnostics -> temperature[scalar_index]*pow(P_0/pressure, alpha_1)*exp(alpha_2*alpha_3);
-	}
-	
-	return result;
 }
 
 
