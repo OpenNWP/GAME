@@ -4,15 +4,14 @@ Github repository: https://github.com/OpenNWP/GAME
 */
 
 /*
-Here, the output is written to grib and/or netcdf files and integrals are written to text files if configured that way.
+Here, the output is written to netcdf files and integrals are written to text files if configured that way.
 In addition to that, some postprocessing diagnostics are also calculated here.
 */
 
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <netcdf.h>
-#include <eccodes.h>
+#include <netcdf.h>cc
 #include "../game_types.h"
 #include "../game_constants.h"
 #include "io.h"
@@ -20,8 +19,6 @@ In addition to that, some postprocessing diagnostics are also calculated here.
 #include "../spatial_operators/spatial_operators.h"
 #include "../constituents/constituents.h"
 #include "../../grid_generator/src/grid_generator.h"
-#define ERRCODE 3
-#define ECCERR(e) {printf("Error: Eccodes failed with error code %d. See http://download.ecmwf.int/test-data/eccodes/html/group__errors.html for meaning of the error codes.\n", e); exit(ERRCODE);}
 #define NCERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(2);}
 
 // the number of pressure levels for the pressure level output
@@ -139,68 +136,6 @@ int write_out_integral(State *state_write_out, double time_since_init, Grid *gri
 	return 0;
 }
 
-int set_basic_props2grib(codes_handle *handle, long data_date, long data_time, long t_write, long t_init, long parameter_category, long parameter_number)
-{
-	/*
-	This function sets the basic properties of a grib message.
-
-	*/
-	int retval;
-    if ((retval = codes_set_long(handle, "parameterCategory", parameter_category)))
-        ECCERR(retval);
-    if ((retval = codes_set_long(handle, "parameterNumber", parameter_number)))
-        ECCERR(retval);
-	if ((retval = codes_set_long(handle, "dataDate", data_date)))
-		ECCERR(retval);
-	if ((retval = codes_set_long(handle, "dataTime", data_time)))
-		ECCERR(retval);
-	if ((retval = codes_set_long(handle, "forecastTime", t_write - t_init)))
-		ECCERR(retval);
-	if ((retval = codes_set_long(handle, "stepRange", t_write - t_init)))
-		ECCERR(retval);
-	if ((retval = codes_set_long(handle, "typeOfGeneratingProcess", 1)))
-		ECCERR(retval);
-	if ((retval = codes_set_long(handle, "discipline", 0)))
-		ECCERR(retval);
-	if ((retval = codes_set_long(handle, "gridDefinitionTemplateNumber", 0)))
-	    ECCERR(retval);
-	if ((retval = codes_set_long(handle, "Ni", NO_OF_LON_IO_POINTS)))
-	    ECCERR(retval);
-	if ((retval = codes_set_long(handle, "Nj", NO_OF_LAT_IO_POINTS)))
-	    ECCERR(retval);
-	if ((retval = codes_set_long(handle, "iScansNegatively", 0)))
-	    ECCERR(retval);
-	if ((retval = codes_set_long(handle, "jScansPositively", 0)))
-	    ECCERR(retval);
-	if ((retval = codes_set_double(handle, "latitudeOfFirstGridPointInDegrees", rad2deg(M_PI/2 - 0.5*M_PI/NO_OF_LAT_IO_POINTS))))
-	    ECCERR(retval);
-	if ((retval = codes_set_double(handle, "longitudeOfFirstGridPointInDegrees", 0)))
-	    ECCERR(retval);
-	if ((retval = codes_set_double(handle, "latitudeOfLastGridPointInDegrees", -rad2deg(M_PI/2 - 0.5*M_PI/NO_OF_LAT_IO_POINTS))))
-	    ECCERR(retval);
-	if ((retval = codes_set_double(handle, "longitudeOfLastGridPointInDegrees", rad2deg(-2*M_PI/NO_OF_LON_IO_POINTS))))
-	    ECCERR(retval);
-	if ((retval = codes_set_double(handle, "iDirectionIncrementInDegrees", rad2deg(2*M_PI/NO_OF_LON_IO_POINTS))))
-	    ECCERR(retval);
-	if ((retval = codes_set_double(handle, "jDirectionIncrementInDegrees", rad2deg(M_PI/NO_OF_LAT_IO_POINTS))))
-	    ECCERR(retval);
-    if ((retval = codes_set_long(handle, "discipline", 0)))
-        ECCERR(retval);
-    if ((retval = codes_set_long(handle, "centre", 255)))
-        ECCERR(retval);
-    if ((retval = codes_set_long(handle, "significanceOfReferenceTime", 1)))
-        ECCERR(retval);
-    if ((retval = codes_set_long(handle, "productionStatusOfProcessedData", 1)))
-        ECCERR(retval);
-    if ((retval = codes_set_long(handle, "typeOfProcessedData", 1)))
-        ECCERR(retval);
-    if ((retval = codes_set_long(handle, "indicatorOfUnitOfTimeRange", 13)))
-        ECCERR(retval);
-    if ((retval = codes_set_long(handle, "stepUnits", 13)))
-        ECCERR(retval);
-	return 0;
-}
-
 int interpolation_t(State *state_0, State *state_p1, State *state_write, double t_0, double t_p1, double t_write, Grid *grid)
 {
     double weight_0, weight_p1;
@@ -300,7 +235,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	double cloud_water_content;
 	double vector_to_minimize[NO_OF_LAYERS];
 	
-	double *grib_output_field = malloc(NO_OF_LATLON_IO_POINTS*sizeof(double));
+	double *lat_lon_output_field = malloc(NO_OF_LATLON_IO_POINTS*sizeof(double));
 	
 	// diagnosing the temperature
 	temperature_diagnostics(state_write_out, grid, diagnostics);
@@ -662,267 +597,24 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				NCERR(retval);
 		}
 		
-		// Grib output.
+		// Lat-lon output.
 		if (config_io -> grib_output_switch == 1)
 		{
-			long unsigned tcc_string_length = 4;
-			long unsigned cape_string_length = 5;
 			char OUTPUT_FILE_PRE[300];
-			sprintf(OUTPUT_FILE_PRE, "%s+%ds_surface.grb2", config_io -> run_id, (int) (t_write - t_init));
+			sprintf(OUTPUT_FILE_PRE, "%s+%ds_surface.nc", config_io -> run_id, (int) (t_write - t_init));
 			char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
-			sprintf(OUTPUT_FILE, "%s+%ds_surface.grb2", config_io -> run_id, (int) (t_write - t_init));
-			char *SAMPLE_FILENAME = "../../src/io/grib_template.grb2";
-			FILE *SAMPLE_FILE;
-			if (t_init < 0)
-				exit(1);
-			FILE *OUT_GRIB;
-			OUT_GRIB = fopen(OUTPUT_FILE, "w+");
-			codes_handle *handle_wind_u_10m_mean = NULL;
-			codes_handle *handle_wind_v_10m_mean = NULL;
-			codes_handle *handle_mslp = NULL;
-			codes_handle *handle_surface_p = NULL;
-			codes_handle *handle_t2 = NULL;
-			codes_handle *handle_tcdc = NULL;
-			codes_handle *handle_rprate = NULL;
-			codes_handle *handle_sprate = NULL;
-			codes_handle *handle_wind_10m_gusts = NULL;
-			codes_handle *handle_cape = NULL;
-			codes_handle *handle_sfc_sw_down = NULL;
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_surface_p = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_surface_p, data_date, data_time, t_write, t_init, 3, 0);
-		    if ((retval = codes_set_long(handle_surface_p, "typeOfFirstFixedSurface", 1)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_surface_p, "scaledValueOfFirstFixedSurface", 0)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_surface_p, "scaleFactorOfFirstFixedSurface", 1)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_surface_p, "level", 0)))
-		        ECCERR(retval);
-		    interpolate_to_ll(surface_p, grib_output_field, grid);
-		    if ((retval = codes_set_double_array(handle_surface_p, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-		        ECCERR(retval);
-		    if ((retval = codes_write_message(handle_surface_p, OUTPUT_FILE, "w")))
-		        ECCERR(retval);
-			codes_handle_delete(handle_surface_p);
-			
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_mslp = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_mslp, data_date, data_time, t_write, t_init, 3, 1);
-		    if ((retval = codes_set_long(handle_mslp, "typeOfFirstFixedSurface", 102)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_mslp, "scaledValueOfFirstFixedSurface", 0)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_mslp, "scaleFactorOfFirstFixedSurface", 1)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_mslp, "level", 0)))
-		        ECCERR(retval);
-		    interpolate_to_ll(mslp, grib_output_field, grid);
-		    if ((retval = codes_set_double_array(handle_mslp, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-		        ECCERR(retval);
-		    if ((retval = codes_write_message(handle_mslp, OUTPUT_FILE, "a")))
-		        ECCERR(retval);
-			codes_handle_delete(handle_mslp);
-			
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_t2 = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_t2, data_date, data_time, t_write, t_init, 0, 0);
-		    if ((retval = codes_set_long(handle_t2, "typeOfFirstFixedSurface", 103)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_t2, "scaledValueOfFirstFixedSurface", 2)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_t2, "scaleFactorOfFirstFixedSurface", 1)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_t2, "level", 2)))
-		        ECCERR(retval);
-		    interpolate_to_ll(t2, grib_output_field, grid);
-		    if ((retval = codes_set_double_array(handle_t2, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-		        ECCERR(retval);
-		    if ((retval = codes_write_message(handle_t2, OUTPUT_FILE, "a")))
-		        ECCERR(retval);
-			codes_handle_delete(handle_t2);
-			
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_rprate = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_rprate, data_date, data_time, t_write, t_init, 1, 65);
-		    if ((retval = codes_set_long(handle_rprate, "typeOfFirstFixedSurface", 103)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_rprate, "scaledValueOfFirstFixedSurface", 0)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_rprate, "scaleFactorOfFirstFixedSurface", 1)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_rprate, "level", 0)))
-		        ECCERR(retval);
-		    interpolate_to_ll(rprate, grib_output_field, grid);
-		    if ((retval = codes_set_double_array(handle_rprate, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-		        ECCERR(retval);
-		    if ((retval = codes_write_message(handle_rprate, OUTPUT_FILE, "a")))
-		        ECCERR(retval);
-			codes_handle_delete(handle_rprate);
-			
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_cape = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_cape, data_date, data_time, t_write, t_init, 7, 6);
-		    if ((retval = codes_set_long(handle_cape, "typeOfFirstFixedSurface", 103)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_cape, "scaledValueOfFirstFixedSurface", 0)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_cape, "scaleFactorOfFirstFixedSurface", 1)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_string(handle_cape, "shortName", "cape", &cape_string_length)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_cape, "level", 0)))
-		        ECCERR(retval);
-		    interpolate_to_ll(cape, grib_output_field, grid);
-		    if ((retval = codes_set_double_array(handle_cape, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-		        ECCERR(retval);
-		    if ((retval = codes_write_message(handle_cape, OUTPUT_FILE, "a")))
-		        ECCERR(retval);
-			codes_handle_delete(handle_cape);
-			
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_sfc_sw_down = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_sfc_sw_down, data_date, data_time, t_write, t_init, 4, 7);
-		    if ((retval = codes_set_long(handle_sfc_sw_down, "typeOfFirstFixedSurface", 103)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_sfc_sw_down, "scaledValueOfFirstFixedSurface", 0)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_sfc_sw_down, "scaleFactorOfFirstFixedSurface", 1)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_sfc_sw_down, "level", 0)))
-		        ECCERR(retval);
-		    interpolate_to_ll(sfc_sw_down, grib_output_field, grid);
-		    if ((retval = codes_set_double_array(handle_sfc_sw_down, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-		        ECCERR(retval);
-		    if ((retval = codes_write_message(handle_sfc_sw_down, OUTPUT_FILE, "a")))
-		        ECCERR(retval);
-			codes_handle_delete(handle_sfc_sw_down);
-			
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_sprate = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_sprate, data_date, data_time, t_write, t_init, 1, 66);
-		    if ((retval = codes_set_long(handle_sprate, "typeOfFirstFixedSurface", 103)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_sprate, "scaledValueOfFirstFixedSurface", 0)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_sprate, "scaleFactorOfFirstFixedSurface", 1)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_sprate, "level", 0)))
-		        ECCERR(retval);
-		    interpolate_to_ll(sprate, grib_output_field, grid);
-		    if ((retval = codes_set_double_array(handle_sprate, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-		        ECCERR(retval);
-		    if ((retval = codes_write_message(handle_sprate, OUTPUT_FILE, "a")))
-		        ECCERR(retval);
-			codes_handle_delete(handle_sprate);
-			
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_tcdc = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_tcdc, data_date, data_time, t_write, t_init, 6, 1);
-		    if ((retval = codes_set_long(handle_tcdc, "typeOfFirstFixedSurface", 103)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_tcdc, "scaledValueOfFirstFixedSurface", 0)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_tcdc, "scaleFactorOfFirstFixedSurface", 1)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_long(handle_tcdc, "level", 0)))
-		        ECCERR(retval);
-		    if ((retval = codes_set_string(handle_tcdc, "shortName", "tcc", &tcc_string_length)))
-		        ECCERR(retval);
-		    interpolate_to_ll(tcdc, grib_output_field, grid);
-		    if ((retval = codes_set_double_array(handle_tcdc, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-		        ECCERR(retval);
-		    if ((retval = codes_write_message(handle_tcdc, OUTPUT_FILE, "a")))
-		        ECCERR(retval);
-			codes_handle_delete(handle_tcdc);
-			
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_wind_u_10m_mean = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_wind_u_10m_mean, data_date, data_time, t_write, t_init, 2, 2);
-			if ((retval = codes_set_long(handle_wind_u_10m_mean, "typeOfFirstFixedSurface", 103)))
-				ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_u_10m_mean, "scaledValueOfFirstFixedSurface", 10)))
-				ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_u_10m_mean, "scaleFactorOfFirstFixedSurface", 1)))
-				ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_u_10m_mean, "level", 10)))
-				ECCERR(retval);
-		    interpolate_to_ll(wind_10_m_mean_u_at_cell, grib_output_field, grid);
-			if ((retval = codes_set_double_array(handle_wind_u_10m_mean, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-				ECCERR(retval);
-			if ((retval = codes_write_message(handle_wind_u_10m_mean, OUTPUT_FILE, "a")))
-				ECCERR(retval);
-			codes_handle_delete(handle_wind_u_10m_mean);
-			
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_wind_v_10m_mean = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_wind_v_10m_mean, data_date, data_time, t_write, t_init, 2, 3);
-			if ((retval = codes_set_long(handle_wind_v_10m_mean, "typeOfFirstFixedSurface", 103)))
-				ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_v_10m_mean, "scaledValueOfFirstFixedSurface", 10)))
-				ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_v_10m_mean, "scaleFactorOfFirstFixedSurface", 1)))
-				ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_v_10m_mean, "level", 10)))
-				ECCERR(retval);
-		    interpolate_to_ll(wind_10_m_mean_v_at_cell, grib_output_field, grid);
-			if ((retval = codes_set_double_array(handle_wind_v_10m_mean, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-				ECCERR(retval);
-			if ((retval = codes_write_message(handle_wind_v_10m_mean, OUTPUT_FILE, "a")))
-				ECCERR(retval);
-			codes_handle_delete(handle_wind_v_10m_mean);
-			
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_wind_10m_gusts = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_wind_10m_gusts, data_date, data_time, t_write, t_init, 2, 22);
-			if ((retval = codes_set_long(handle_wind_10m_gusts, "typeOfFirstFixedSurface", 103)))
-				ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_10m_gusts, "scaledValueOfFirstFixedSurface", 10)))
-				ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_10m_gusts, "scaleFactorOfFirstFixedSurface", 1)))
-				ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_10m_gusts, "level", 10)))
-				ECCERR(retval);
-		    interpolate_to_ll(wind_10_m_gusts_speed_at_cell, grib_output_field, grid);
-			if ((retval = codes_set_double_array(handle_wind_10m_gusts, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-				ECCERR(retval);
-			if ((retval = codes_write_message(handle_wind_10m_gusts, OUTPUT_FILE, "a")))
-				ECCERR(retval);
-			codes_handle_delete(handle_wind_10m_gusts);
-			fclose(OUT_GRIB);
+			sprintf(OUTPUT_FILE, "%s+%ds_surface.nc", config_io -> run_id, (int) (t_write - t_init));
+		    interpolate_to_ll(surface_p, lat_lon_output_field, grid);
+		    interpolate_to_ll(mslp, lat_lon_output_field, grid);
+		    interpolate_to_ll(t2, lat_lon_output_field, grid);
+		    interpolate_to_ll(rprate, lat_lon_output_field, grid);
+		    interpolate_to_ll(cape, lat_lon_output_field, grid);
+		    interpolate_to_ll(sfc_sw_down, lat_lon_output_field, grid);
+		    interpolate_to_ll(sprate, lat_lon_output_field, grid);
+		    interpolate_to_ll(tcdc, lat_lon_output_field, grid);
+		    interpolate_to_ll(wind_10_m_mean_u_at_cell, lat_lon_output_field, grid);
+		    interpolate_to_ll(wind_10_m_mean_v_at_cell, lat_lon_output_field, grid);
+		    interpolate_to_ll(wind_10_m_gusts_speed_at_cell, lat_lon_output_field, grid);
 		}
 		
 		free(wind_10_m_mean_u_at_cell);
@@ -1128,20 +820,16 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				NCERR(retval);
 		}
 		
-		// Grib output.
+		// Lat-lon output.
 		if (config_io -> grib_output_switch == 1)
 		{
-			char *SAMPLE_FILENAME = "../../src/io/grib_template.grb2";
-			FILE *SAMPLE_FILE;
 			int OUTPUT_FILE_PRESSURE_LEVEL_LENGTH = 300;
 			char *OUTPUT_FILE_PRESSURE_LEVEL_PRE = malloc((OUTPUT_FILE_PRESSURE_LEVEL_LENGTH + 1)*sizeof(char));
-			sprintf(OUTPUT_FILE_PRESSURE_LEVEL_PRE, "%s+%ds_pressure_levels.grb2", config_io -> run_id, (int) (t_write - t_init));
+			sprintf(OUTPUT_FILE_PRESSURE_LEVEL_PRE, "%s+%ds_pressure_levels.nc", config_io -> run_id, (int) (t_write - t_init));
 			OUTPUT_FILE_PRESSURE_LEVEL_LENGTH = strlen(OUTPUT_FILE_PRESSURE_LEVEL_PRE);
 			free(OUTPUT_FILE_PRESSURE_LEVEL_PRE);
 			char *OUTPUT_FILE_PRESSURE_LEVEL = malloc((OUTPUT_FILE_PRESSURE_LEVEL_LENGTH + 1)*sizeof(char));
-			sprintf(OUTPUT_FILE_PRESSURE_LEVEL, "%s+%ds_pressure_levels.grb2", config_io -> run_id, (int) (t_write - t_init));
-			FILE *OUT_GRIB;
-			OUT_GRIB = fopen(OUTPUT_FILE_PRESSURE_LEVEL, "w+");
+			sprintf(OUTPUT_FILE_PRESSURE_LEVEL, "%s+%ds_pressure_levels.nc", config_io -> run_id, (int) (t_write - t_init));
 			double *geopotential_height_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
 			double *temperature_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
 			double *rh_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
@@ -1149,14 +837,6 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			double *wind_u_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
 			double *wind_v_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
 			double *rel_vort_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
-			
-			codes_handle *handle_geopotential_height_pressure_level = NULL;
-			codes_handle *handle_temperature_pressure_level = NULL;
-			codes_handle *handle_rh_pressure_level = NULL;
-			codes_handle *handle_epv_pressure_level = NULL;
-			codes_handle *handle_wind_u_pressure_level = NULL;
-			codes_handle *handle_wind_v_pressure_level = NULL;
-			codes_handle *handle_rel_vort_pressure_level = NULL;
 			
 			for (int i = 0; i < NO_OF_PRESSURE_LEVELS; ++i)
 			{
@@ -1196,188 +876,13 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 					rel_vort_pressure_level[j] = rel_vort_on_pressure_levels[j][i];
 				}
 				
-				SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-				handle_geopotential_height_pressure_level = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-				if (err != 0)
-					ECCERR(err);
-				fclose(SAMPLE_FILE);
-				set_basic_props2grib(handle_geopotential_height_pressure_level, data_date, data_time, t_write, t_init, 3, 5);
-			    if ((retval = codes_set_double(handle_geopotential_height_pressure_level, "missingValue", 9999)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_geopotential_height_pressure_level, "bitmapPresent", 1)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_geopotential_height_pressure_level, "typeOfFirstFixedSurface", 100)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_geopotential_height_pressure_level, "scaledValueOfFirstFixedSurface", (int) pressure_levels[i])))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_geopotential_height_pressure_level, "scaleFactorOfFirstFixedSurface", 1)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_geopotential_height_pressure_level, "level", 0.01*pressure_levels[i])))
-			        ECCERR(retval);
-		    	interpolate_to_ll(geopotential_height_pressure_level, grib_output_field, grid);
-			    if ((retval = codes_set_double_array(handle_geopotential_height_pressure_level, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-			        ECCERR(retval);
-				if (i == 0)
-				{
-					if ((retval = codes_write_message(handle_geopotential_height_pressure_level, OUTPUT_FILE_PRESSURE_LEVEL, "w")))
-					    ECCERR(retval);
-				}
-				else
-				{
-					if ((retval = codes_write_message(handle_geopotential_height_pressure_level, OUTPUT_FILE_PRESSURE_LEVEL, "a")))
-					    ECCERR(retval);
-				}
-				codes_handle_delete(handle_geopotential_height_pressure_level);
-
-				SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-				handle_temperature_pressure_level = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-				if (err != 0)
-					ECCERR(err);
-				fclose(SAMPLE_FILE);
-				set_basic_props2grib(handle_temperature_pressure_level, data_date, data_time, t_write, t_init, 0, 0);
-			    if ((retval = codes_set_double(handle_temperature_pressure_level, "missingValue", 9999)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_temperature_pressure_level, "bitmapPresent", 1)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_temperature_pressure_level, "typeOfFirstFixedSurface", 100)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_temperature_pressure_level, "scaledValueOfFirstFixedSurface", (int) pressure_levels[i])))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_temperature_pressure_level, "scaleFactorOfFirstFixedSurface", 1)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_temperature_pressure_level, "level", 0.01*pressure_levels[i])))
-			        ECCERR(retval);
-		    	interpolate_to_ll(temperature_pressure_level, grib_output_field, grid);
-			    if ((retval = codes_set_double_array(handle_temperature_pressure_level, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-			        ECCERR(retval);
-			    if ((retval = codes_write_message(handle_temperature_pressure_level, OUTPUT_FILE_PRESSURE_LEVEL, "a")))
-			        ECCERR(retval);
-				codes_handle_delete(handle_temperature_pressure_level);
-				
-				SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-				handle_rh_pressure_level = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-				if (err != 0)
-					ECCERR(err);
-				fclose(SAMPLE_FILE);
-				set_basic_props2grib(handle_rh_pressure_level, data_date, data_time, t_write, t_init, 1, 1);
-			    if ((retval = codes_set_double(handle_rh_pressure_level, "missingValue", 9999)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_rh_pressure_level, "bitmapPresent", 1)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_rh_pressure_level, "typeOfFirstFixedSurface", 100)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_rh_pressure_level, "scaledValueOfFirstFixedSurface", (int) pressure_levels[i])))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_rh_pressure_level, "scaleFactorOfFirstFixedSurface", 1)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_rh_pressure_level, "level", 0.01*pressure_levels[i])))
-			        ECCERR(retval);
-		    	interpolate_to_ll(rh_pressure_level, grib_output_field, grid);
-			    if ((retval = codes_set_double_array(handle_rh_pressure_level, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-			        ECCERR(retval);
-			    if ((retval = codes_write_message(handle_rh_pressure_level, OUTPUT_FILE_PRESSURE_LEVEL, "a")))
-			        ECCERR(retval);
-				codes_handle_delete(handle_rh_pressure_level);
-
-				SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-				handle_rel_vort_pressure_level = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-				if (err != 0)
-					ECCERR(err);
-				fclose(SAMPLE_FILE);
-				set_basic_props2grib(handle_rel_vort_pressure_level, data_date, data_time, t_write, t_init, 2, 12);
-			    if ((retval = codes_set_double(handle_rel_vort_pressure_level, "missingValue", 9999)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_rel_vort_pressure_level, "bitmapPresent", 1)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_rel_vort_pressure_level, "typeOfFirstFixedSurface", 100)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_rel_vort_pressure_level, "scaledValueOfFirstFixedSurface", (int) pressure_levels[i])))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_rel_vort_pressure_level, "scaleFactorOfFirstFixedSurface", 1)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_rel_vort_pressure_level, "level", 0.01*pressure_levels[i])))
-			        ECCERR(retval);
-		    	interpolate_to_ll(rel_vort_pressure_level, grib_output_field, grid);
-			    if ((retval = codes_set_double_array(handle_rel_vort_pressure_level, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-			        ECCERR(retval);
-			    if ((retval = codes_write_message(handle_rel_vort_pressure_level, OUTPUT_FILE_PRESSURE_LEVEL, "a")))
-			        ECCERR(retval);
-				codes_handle_delete(handle_rel_vort_pressure_level);
-				
-				SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-				handle_epv_pressure_level = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-				if (err != 0)
-					ECCERR(err);
-				fclose(SAMPLE_FILE);
-				set_basic_props2grib(handle_epv_pressure_level, data_date, data_time, t_write, t_init, 2, 14);
-			    if ((retval = codes_set_double(handle_epv_pressure_level, "missingValue", 9999)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_epv_pressure_level, "bitmapPresent", 1)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_epv_pressure_level, "typeOfFirstFixedSurface", 100)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_epv_pressure_level, "scaledValueOfFirstFixedSurface", (int) pressure_levels[i])))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_epv_pressure_level, "scaleFactorOfFirstFixedSurface", 1)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_epv_pressure_level, "level", 0.01*pressure_levels[i])))
-			        ECCERR(retval);
-		    	interpolate_to_ll(epv_pressure_level, grib_output_field, grid);
-			    if ((retval = codes_set_double_array(handle_epv_pressure_level, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-			        ECCERR(retval);
-			    if ((retval = codes_write_message(handle_epv_pressure_level, OUTPUT_FILE_PRESSURE_LEVEL, "a")))
-			        ECCERR(retval);
-				codes_handle_delete(handle_epv_pressure_level);
-				
-				SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-				handle_wind_u_pressure_level = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-				if (err != 0)
-					ECCERR(err);
-				fclose(SAMPLE_FILE);
-				set_basic_props2grib(handle_wind_u_pressure_level, data_date, data_time, t_write, t_init, 2, 2);
-			    if ((retval = codes_set_double(handle_wind_u_pressure_level, "missingValue", 9999)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_wind_u_pressure_level, "bitmapPresent", 1)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_wind_u_pressure_level, "typeOfFirstFixedSurface", 100)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_wind_u_pressure_level, "scaledValueOfFirstFixedSurface", (int) pressure_levels[i])))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_wind_u_pressure_level, "scaleFactorOfFirstFixedSurface", 1)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_wind_u_pressure_level, "level", 0.01*pressure_levels[i])))
-			        ECCERR(retval);
-		    	interpolate_to_ll(wind_u_pressure_level, grib_output_field, grid);
-			    if ((retval = codes_set_double_array(handle_wind_u_pressure_level, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-			        ECCERR(retval);
-			    if ((retval = codes_write_message(handle_wind_u_pressure_level, OUTPUT_FILE_PRESSURE_LEVEL, "a")))
-			        ECCERR(retval);
-				codes_handle_delete(handle_wind_u_pressure_level);
-				
-				SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-				handle_wind_v_pressure_level = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-				if (err != 0)
-					ECCERR(err);
-				fclose(SAMPLE_FILE);
-				set_basic_props2grib(handle_wind_v_pressure_level, data_date, data_time, t_write, t_init, 2, 3);
-			    if ((retval = codes_set_double(handle_wind_v_pressure_level, "missingValue", 9999)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_wind_v_pressure_level, "bitmapPresent", 1)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_wind_v_pressure_level, "typeOfFirstFixedSurface", 100)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_wind_v_pressure_level, "scaledValueOfFirstFixedSurface", (int) pressure_levels[i])))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_wind_v_pressure_level, "scaleFactorOfFirstFixedSurface", 1)))
-			        ECCERR(retval);
-			    if ((retval = codes_set_long(handle_wind_v_pressure_level, "level", 0.01*pressure_levels[i])))
-			        ECCERR(retval);
-		    	interpolate_to_ll(wind_v_pressure_level, grib_output_field, grid);
-			    if ((retval = codes_set_double_array(handle_wind_v_pressure_level, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-			        ECCERR(retval);
-			    if ((retval = codes_write_message(handle_wind_v_pressure_level, OUTPUT_FILE_PRESSURE_LEVEL, "a")))
-			        ECCERR(retval);
-				codes_handle_delete(handle_wind_v_pressure_level);
+		    	interpolate_to_ll(geopotential_height_pressure_level, lat_lon_output_field, grid);
+		    	interpolate_to_ll(temperature_pressure_level, lat_lon_output_field, grid);
+		    	interpolate_to_ll(rh_pressure_level, lat_lon_output_field, grid);
+		    	interpolate_to_ll(rel_vort_pressure_level, lat_lon_output_field, grid);
+		    	interpolate_to_ll(epv_pressure_level, lat_lon_output_field, grid);
+		    	interpolate_to_ll(wind_u_pressure_level, lat_lon_output_field, grid);
+		    	interpolate_to_ll(wind_v_pressure_level, lat_lon_output_field, grid);
 			}
 			
 			free(geopotential_height_pressure_level);
@@ -1388,8 +893,6 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			free(wind_v_pressure_level);
 			free(rel_vort_pressure_level);
 			free(OUTPUT_FILE_PRESSURE_LEVEL);
-			
-			fclose(OUT_GRIB);
 		}
     	free(geopotential_height);
     	free(t_on_pressure_levels);
@@ -1400,10 +903,9 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
     	free(pressure_levels);
     }
 
-	// Grib output.
+	// Lat-lon output.
 	if (config_io -> model_level_output_switch == 1 && config_io -> grib_output_switch == 1)
 	{
-		// Grib requires everything to be on horizontal levels.
 		double *temperature_h = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *pressure_h = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *rh_h = malloc(NO_OF_SCALARS_H*sizeof(double));
@@ -1413,23 +915,10 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		double *divv_h = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *wind_w_h = malloc(NO_OF_SCALARS_H*sizeof(double));
 		char OUTPUT_FILE_PRE[300];
-		sprintf(OUTPUT_FILE_PRE, "%s+%ds.grb2", config_io -> run_id, (int) (t_write - t_init));
+		sprintf(OUTPUT_FILE_PRE, "%s+%ds.nc", config_io -> run_id, (int) (t_write - t_init));
 		char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
-		sprintf(OUTPUT_FILE, "%s+%ds.grb2", config_io -> run_id, (int) (t_write - t_init));
-		char *SAMPLE_FILENAME = "../../src/io/grib_template.grb2";
-		FILE *SAMPLE_FILE;
-		if (t_init < 0)
-			exit(1);
-		FILE *OUT_GRIB;
-		OUT_GRIB = fopen(OUTPUT_FILE, "w+");
-		codes_handle *handle_temperature_h = NULL;
-		codes_handle *handle_pressure_h = NULL;
-		codes_handle *handle_wind_u_h = NULL;
-		codes_handle *handle_wind_v_h = NULL;
-		codes_handle *handle_wind_w_h = NULL;
-		codes_handle *handle_rel_vort = NULL;
-		codes_handle *handle_rh = NULL;
-		codes_handle *handle_divv_h = NULL;
+		sprintf(OUTPUT_FILE, "%s+%ds.nc", config_io -> run_id, (int) (t_write - t_init));
+		
 		for (int i = 0; i < NO_OF_LAYERS; ++i)
 		{
 			#pragma omp parallel for
@@ -1439,164 +928,13 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				pressure_h[j] = (*pressure)[i*NO_OF_SCALARS_H + j];
 				rh_h[j] = (*rh)[i*NO_OF_SCALARS_H + j];
 			}
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_temperature_h = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_temperature_h, data_date, data_time, t_write, t_init, 0, 0);
-			if ((retval = codes_set_long(handle_temperature_h, "typeOfFirstFixedSurface", 26)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_temperature_h, "scaledValueOfFirstFixedSurface", i)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_temperature_h, "scaleFactorOfFirstFixedSurface", 1)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_temperature_h, "level", i)))
-			    ECCERR(retval);
-	    	interpolate_to_ll(temperature_h, grib_output_field, grid);
-			if ((retval = codes_set_double_array(handle_temperature_h, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-			    ECCERR(retval);
-			if (i == 0)
-			{
-			    if ((retval = codes_write_message(handle_temperature_h, OUTPUT_FILE, "w")))
-			        ECCERR(retval);
-			}
-			else
-			{
-			    if ((retval = codes_write_message(handle_temperature_h, OUTPUT_FILE, "a")))
-			        ECCERR(retval);
-			}
-			codes_handle_delete(handle_temperature_h);
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_pressure_h = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_pressure_h, data_date, data_time, t_write, t_init, 0, 0);
-			if ((retval = codes_set_long(handle_pressure_h, "typeOfFirstFixedSurface", 26)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_pressure_h, "scaledValueOfFirstFixedSurface", i)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_pressure_h, "scaleFactorOfFirstFixedSurface", 1)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_pressure_h, "level", i)))
-			    ECCERR(retval);
-	    	interpolate_to_ll(pressure_h, grib_output_field, grid);
-			if ((retval = codes_set_double_array(handle_pressure_h, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-			    ECCERR(retval);
-			if ((retval = codes_write_message(handle_pressure_h, OUTPUT_FILE, "a")))
-			    ECCERR(retval);
-			codes_handle_delete(handle_pressure_h);
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_rh = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_rh, data_date, data_time, t_write, t_init, 0, 1);
-			if ((retval = codes_set_long(handle_rh, "typeOfFirstFixedSurface", 26)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_rh, "scaledValueOfFirstFixedSurface", i)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_rh, "scaleFactorOfFirstFixedSurface", 1)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_rh, "level", i)))
-			    ECCERR(retval);
-	    	interpolate_to_ll(rh_h, grib_output_field, grid);
-			if ((retval = codes_set_double_array(handle_rh, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-			    ECCERR(retval);
-			if ((retval = codes_write_message(handle_rh, OUTPUT_FILE, "a")))
-			    ECCERR(retval);
-			codes_handle_delete(handle_rh);
-			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-			{
-			    wind_u_h[j] = diagnostics -> u_at_cell[i*NO_OF_SCALARS_H + j];
-			    wind_v_h[j] = diagnostics -> v_at_cell[i*NO_OF_SCALARS_H + j];
-			    rel_vort_h[j] = (*rel_vort)[i*NO_OF_SCALARS_H + j];
-			}
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_wind_u_h = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_wind_u_h, data_date, data_time, t_write, t_init, 2, 2);
-			if ((retval = codes_set_long(handle_wind_u_h, "typeOfFirstFixedSurface", 26)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_u_h, "scaledValueOfFirstFixedSurface", i)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_u_h, "scaleFactorOfFirstFixedSurface", 1)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_u_h, "level", i)))
-			    ECCERR(retval);
-	    	interpolate_to_ll(wind_u_h, grib_output_field, grid);
-			if ((retval = codes_set_double_array(handle_wind_u_h, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-			    ECCERR(retval);
-			if ((retval = codes_write_message(handle_wind_u_h, OUTPUT_FILE, "a")))
-			    ECCERR(retval);
-			codes_handle_delete(handle_wind_u_h);
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_wind_v_h = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_wind_v_h, data_date, data_time, t_write, t_init, 2, 3);
-			if ((retval = codes_set_long(handle_wind_v_h, "typeOfFirstFixedSurface", 26)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_v_h, "scaledValueOfFirstFixedSurface", i)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_v_h, "scaleFactorOfFirstFixedSurface", 1)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_v_h, "level", i)))
-			    ECCERR(retval);
-	    	interpolate_to_ll(wind_v_h, grib_output_field, grid);
-			if ((retval = codes_set_double_array(handle_wind_v_h, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-			    ECCERR(retval);
-			if ((retval = codes_write_message(handle_wind_v_h, OUTPUT_FILE, "a")))
-			    ECCERR(retval);
-			codes_handle_delete(handle_wind_v_h);
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_rel_vort = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_rel_vort, data_date, data_time, t_write, t_init, 2, 12);
-			if ((retval = codes_set_long(handle_rel_vort, "typeOfFirstFixedSurface", 26)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_rel_vort, "scaledValueOfFirstFixedSurface", i)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_rel_vort, "scaleFactorOfFirstFixedSurface", 1)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_rel_vort, "level", i)))
-			    ECCERR(retval);
-	    	interpolate_to_ll(rel_vort_h, grib_output_field, grid);
-			if ((retval = codes_set_double_array(handle_rel_vort, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-			    ECCERR(retval);
-			if ((retval = codes_write_message(handle_rel_vort, OUTPUT_FILE, "a")))
-			    ECCERR(retval);
-			codes_handle_delete(handle_rel_vort);
-			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-			{
-				divv_h[j] = (*divv_h_all_layers)[i*NO_OF_SCALARS_H + j];
-			}
-			SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-			handle_divv_h = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-			if (err != 0)
-				ECCERR(err);
-			fclose(SAMPLE_FILE);
-			set_basic_props2grib(handle_divv_h, data_date, data_time, t_write, t_init, 2, 13);
-			if ((retval = codes_set_long(handle_divv_h, "typeOfFirstFixedSurface", 26)))
-				ECCERR(retval);
-			if ((retval = codes_set_long(handle_divv_h, "scaledValueOfFirstFixedSurface", i)))
-				ECCERR(retval);
-			if ((retval = codes_set_long(handle_divv_h, "scaleFactorOfFirstFixedSurface", 1)))
-				ECCERR(retval);
-			if ((retval = codes_set_long(handle_divv_h, "level", i)))
-				ECCERR(retval);
-    		interpolate_to_ll(divv_h, grib_output_field, grid);
-			if ((retval = codes_set_double_array(handle_divv_h, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-				ECCERR(retval);
-			if ((retval = codes_write_message(handle_divv_h, OUTPUT_FILE, "a")))
-				ECCERR(retval);
-			codes_handle_delete(handle_divv_h);
+	    	interpolate_to_ll(temperature_h, lat_lon_output_field, grid);
+	    	interpolate_to_ll(pressure_h, lat_lon_output_field, grid);
+	    	interpolate_to_ll(rh_h, lat_lon_output_field, grid);
+	    	interpolate_to_ll(wind_u_h, lat_lon_output_field, grid);
+	    	interpolate_to_ll(wind_v_h, lat_lon_output_field, grid);
+	    	interpolate_to_ll(rel_vort_h, lat_lon_output_field, grid);
+    		interpolate_to_ll(divv_h, lat_lon_output_field, grid);
 		}
 		free(wind_u_h);
 		free(wind_v_h);
@@ -1605,35 +943,15 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		free(temperature_h);
 		free(pressure_h);
 		free(rh_h);
-		SAMPLE_FILE = fopen(SAMPLE_FILENAME, "r");
-		handle_wind_w_h = codes_handle_new_from_file(NULL, SAMPLE_FILE, PRODUCT_GRIB, &err);
-		if (err != 0)
-			ECCERR(err);
-		fclose(SAMPLE_FILE);
 		for (int i = 0; i < NO_OF_LEVELS; ++i)
 		{
 			for (int j = 0; j < NO_OF_SCALARS_H; j++)
 			{
 			    wind_w_h[j] = state_write_out -> wind[j + i*NO_OF_VECTORS_PER_LAYER];
 			}
-			set_basic_props2grib(handle_wind_w_h, data_date, data_time, t_write, t_init, 2, 9);
-			if ((retval = codes_set_long(handle_wind_w_h, "typeOfFirstFixedSurface", 26)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_w_h, "scaleFactorOfFirstFixedSurface", 1)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_w_h, "scaledValueOfFirstFixedSurface", i)))
-			    ECCERR(retval);
-			if ((retval = codes_set_long(handle_wind_w_h, "level", i)))
-			    ECCERR(retval);
-	    	interpolate_to_ll(wind_w_h, grib_output_field, grid);
-			if ((retval = codes_set_double_array(handle_wind_w_h, "values", grib_output_field, NO_OF_LATLON_IO_POINTS)))
-			    ECCERR(retval);
-			if ((retval = codes_write_message(handle_wind_w_h, OUTPUT_FILE, "a")))
-			    ECCERR(retval);
+	    	interpolate_to_ll(wind_w_h, lat_lon_output_field, grid);
 		}
-		codes_handle_delete(handle_wind_w_h);
 		free(wind_w_h);
-		fclose(OUT_GRIB);
 	}
 	
 	// Netcdf output.
@@ -1725,7 +1043,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		if ((retval = nc_close(ncid)))
 			NCERR(retval);
 	}
-	free(grib_output_field);
+	free(lat_lon_output_field);
 	free(divv_h_all_layers);
 	free(rel_vort);
 	free(rh);
