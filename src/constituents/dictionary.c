@@ -12,11 +12,6 @@ This file contains look-up functions for properties of the atmosphere.
 #include "../game_types.h"
 #include "constituents.h"
 
-double enthalpy_evaporation(double);
-double enthalpy_sublimation(double);
-double c_p_ice(double);
-double c_p_water(double);
-
 double molar_fraction_in_dry_air(int gas_constituent_id)
 {
 
@@ -189,36 +184,6 @@ double c_p_cond(int const_id, double temperature)
 	return result;
 }
 
-double phase_trans_heat(int direction, double temperature)
-{
-	/*
-	This function calculates the phase transition heat.
-	*/
-	
-    /*
-    directions:
-    0: gas to liquid
-    1: gas to solid
-    2: liquid to solid
-    */
-    
-    double result = 0.0;
-    if (direction == 0)
-    {
-    	result = enthalpy_evaporation(temperature);
-	}
-    if (direction == 1)
-    {
-        result = enthalpy_sublimation(temperature);
-	}
-    if (direction == 2)
-    {
-        result = enthalpy_sublimation(temperature) - enthalpy_evaporation(temperature);
-	}
-	
-    return result;
-}
-
 double enthalpy_evaporation(double temperature)
 {
 	/*
@@ -282,6 +247,36 @@ double enthalpy_sublimation(double temperature)
 	result = result/M_V;
 	
 	return result;
+}
+
+double phase_trans_heat(int direction, double temperature)
+{
+	/*
+	This function calculates the phase transition heat.
+	*/
+	
+    /*
+    directions:
+    0: gas to liquid
+    1: gas to solid
+    2: liquid to solid
+    */
+    
+    double result = 0.0;
+    if (direction == 0)
+    {
+    	result = enthalpy_evaporation(temperature);
+	}
+    if (direction == 1)
+    {
+        result = enthalpy_sublimation(temperature);
+	}
+    if (direction == 2)
+    {
+        result = enthalpy_sublimation(temperature) - enthalpy_evaporation(temperature);
+	}
+	
+    return result;
 }
 
 double saturation_pressure_over_water(double temperature)

@@ -17,9 +17,21 @@ With this program, orographies can be produced.
 #include "grid_generator.h"
 #define ERRCODE 2
 #define ERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(ERRCODE);}
-#define P_0 100000.0
 
-double vegetation_height_ideal(double, double);
+double vegetation_height_ideal(double latitude, double oro)
+{
+	/*
+	calculating a latitude- and height-dependant idealized vegetation height
+	*/
+	
+	double vegetation_height_equator = 20.0;
+	
+	double result;
+	
+	result = vegetation_height_equator*cos(latitude)*exp(-oro/1500.0);
+	
+	return result;
+}
 
 int set_sfc_properties(double latitude_scalar[], double longitude_scalar[], double roughness_length[], double sfc_albedo[],
 double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int oro_id, int no_of_avg_points)
@@ -199,21 +211,6 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 	}
 	
 	return 0;
-}
-
-double vegetation_height_ideal(double latitude, double oro)
-{
-	/*
-	calculating a latitude- and height-dependant idealized vegetation height
-	*/
-	
-	double vegetation_height_equator = 20.0;
-	
-	double result;
-	
-	result = vegetation_height_equator*cos(latitude)*exp(-oro/1500.0);
-	
-	return result;
 }
 
 

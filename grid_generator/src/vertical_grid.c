@@ -17,12 +17,12 @@ This file contains functions that compute properties of the vertical grid.
 #include "../../src/constituents/constituents.h"
 
 // constants that are specific to the ICAO standard atmosphere
-const double T_SFC = 273.15 + 15;
-const double TEMP_GRADIENT = -0.65/100;
-const double P_0_STANDARD = 101325;
+const double T_SFC = 273.15 + 15.0;
+const double TEMP_GRADIENT = -0.65/100.0;
+const double P_0_STANDARD = 101325.0;
 const double TROPO_HEIGHT_STANDARD = 11e3;
 const double INVERSE_HEIGHT_STANDARD = 20e3;
-const double TEMP_GRADIENT_INV_STANDARD = 0.1/100;
+const double TEMP_GRADIENT_INV_STANDARD = 0.1/100.0;
 
 int set_z_scalar(double z_scalar[], double oro[], int NO_OF_ORO_LAYERS, double toa, double stretching_parameter)
 {

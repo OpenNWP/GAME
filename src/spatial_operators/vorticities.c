@@ -12,7 +12,62 @@ Here, vorticities are calculated. The word "vorticity" hereby refers to both ver
 #include "../constituents/constituents.h"
 #include "spatial_operators.h"
 
-int calc_rel_vort_on_triangles(Vector_field, double [], Grid *, Dualgrid *);
+int calc_rel_vort_on_triangles(Vector_field velocity_field, double result[], Grid *grid, Dualgrid * dualgrid)
+{
+	/*
+	This function calculates the vertical relative vorticity on triangles.
+	*/
+	
+	int layer_index, h_index, vector_index, index_for_vertical_gradient;
+	double velocity_value, length_rescale_factor, vertical_gradient, delta_z;
+	// loop over all triangles
+	#pragma omp parallel for private(layer_index, h_index, velocity_value, length_rescale_factor, vector_index, index_for_vertical_gradient, vertical_gradient, delta_z)
+	for (int i = 0; i < NO_OF_DUAL_V_VECTORS; ++i)
+	{
+		layer_index = i/NO_OF_DUAL_SCALARS_H;
+		h_index = i - layer_index*NO_OF_DUAL_SCALARS_H;
+		// clearing what has previously been here
+		result[i] = 0.0;
+		// loop over the three edges of the triangle at hand
+		for (int j = 0; j < 3; ++j)
+		{
+			vector_index = NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + dualgrid -> vorticity_indices_triangles[3*h_index + j];
+	    	velocity_value = velocity_field[vector_index];
+	    	// this corrects for terrain following coordinates
+	    	length_rescale_factor = 1;
+	        if (layer_index >= NO_OF_LAYERS - grid -> no_of_oro_layers)
+	        {
+        		length_rescale_factor = (grid -> radius + dualgrid -> z_vector[NO_OF_VECTORS_H + layer_index*NO_OF_DUAL_VECTORS_PER_LAYER + h_index])
+        		/(grid -> radius + grid -> z_vector[vector_index]);
+	        	delta_z = dualgrid -> z_vector[NO_OF_VECTORS_H + layer_index*NO_OF_DUAL_VECTORS_PER_LAYER + h_index] - grid -> z_vector[vector_index];
+	        	if (delta_z > 0)
+	        	{
+	        		index_for_vertical_gradient = vector_index - NO_OF_VECTORS_PER_LAYER;
+        		}
+	        	else
+	        	{
+	        		if (layer_index == NO_OF_LAYERS - 1)
+	        		{
+	        			index_for_vertical_gradient = vector_index - NO_OF_VECTORS_PER_LAYER;
+        			}
+
+	        		else
+	        		{
+	        			index_for_vertical_gradient = vector_index + NO_OF_VECTORS_PER_LAYER;
+        			}
+	        	}
+	        	vertical_gradient = (velocity_field[vector_index] - velocity_field[index_for_vertical_gradient])/(grid -> z_vector[vector_index] - grid -> z_vector[index_for_vertical_gradient]);
+	        	// Here, the vertical interpolation is made.
+	        	velocity_value += delta_z*vertical_gradient;
+			}
+			result[i] += length_rescale_factor*grid -> normal_distance[vector_index]*dualgrid -> vorticity_signs_triangles[3*h_index + j]*velocity_value;
+		}
+		// dividing by the area (Stokes' Theorem)
+    	result[i] = result[i]/dualgrid -> area[NO_OF_VECTORS_H + layer_index*NO_OF_DUAL_VECTORS_PER_LAYER + h_index];
+	}
+	
+	return 0;
+}
 
 int calc_pot_vort(Vector_field velocity_field, Scalar_field density_field, Diagnostics *diagnostics, Grid *grid, Dualgrid *dualgrid)
 {
@@ -163,62 +218,6 @@ int calc_rel_vort(Vector_field velocity_field, Diagnostics *diagnostics, Grid *g
     return 0;
 }
 
-int calc_rel_vort_on_triangles(Vector_field velocity_field, double result[], Grid *grid, Dualgrid * dualgrid)
-{
-	/*
-	This function calculates the vertical relative vorticity on triangles.
-	*/
-	
-	int layer_index, h_index, vector_index, index_for_vertical_gradient;
-	double velocity_value, length_rescale_factor, vertical_gradient, delta_z;
-	// loop over all triangles
-	#pragma omp parallel for private(layer_index, h_index, velocity_value, length_rescale_factor, vector_index, index_for_vertical_gradient, vertical_gradient, delta_z)
-	for (int i = 0; i < NO_OF_DUAL_V_VECTORS; ++i)
-	{
-		layer_index = i/NO_OF_DUAL_SCALARS_H;
-		h_index = i - layer_index*NO_OF_DUAL_SCALARS_H;
-		// clearing what has previously been here
-		result[i] = 0;
-		// loop over the three edges of the triangle at hand
-		for (int j = 0; j < 3; ++j)
-		{
-			vector_index = NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + dualgrid -> vorticity_indices_triangles[3*h_index + j];
-	    	velocity_value = velocity_field[vector_index];
-	    	// this corrects for terrain following coordinates
-	    	length_rescale_factor = 1;
-	        if (layer_index >= NO_OF_LAYERS - grid -> no_of_oro_layers)
-	        {
-        		length_rescale_factor = (grid -> radius + dualgrid -> z_vector[NO_OF_VECTORS_H + layer_index*NO_OF_DUAL_VECTORS_PER_LAYER + h_index])
-        		/(grid -> radius + grid -> z_vector[vector_index]);
-	        	delta_z = dualgrid -> z_vector[NO_OF_VECTORS_H + layer_index*NO_OF_DUAL_VECTORS_PER_LAYER + h_index] - grid -> z_vector[vector_index];
-	        	if (delta_z > 0)
-	        	{
-	        		index_for_vertical_gradient = vector_index - NO_OF_VECTORS_PER_LAYER;
-        		}
-	        	else
-	        	{
-	        		if (layer_index == NO_OF_LAYERS - 1)
-	        		{
-	        			index_for_vertical_gradient = vector_index - NO_OF_VECTORS_PER_LAYER;
-        			}
-
-	        		else
-	        		{
-	        			index_for_vertical_gradient = vector_index + NO_OF_VECTORS_PER_LAYER;
-        			}
-	        	}
-	        	vertical_gradient = (velocity_field[vector_index] - velocity_field[index_for_vertical_gradient])/(grid -> z_vector[vector_index] - grid -> z_vector[index_for_vertical_gradient]);
-	        	// Here, the vertical interpolation is made.
-	        	velocity_value += delta_z*vertical_gradient;
-			}
-			result[i] += length_rescale_factor*grid -> normal_distance[vector_index]*dualgrid -> vorticity_signs_triangles[3*h_index + j]*velocity_value;
-		}
-		// dividing by the area (Stokes' Theorem)
-    	result[i] = result[i]/dualgrid -> area[NO_OF_VECTORS_H + layer_index*NO_OF_DUAL_VECTORS_PER_LAYER + h_index];
-	}
-	
-	return 0;
-}
 
 
 

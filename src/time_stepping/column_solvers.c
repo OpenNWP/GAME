@@ -14,7 +14,35 @@ This file contains the implicit vertical solvers.
 #include "../constituents/constituents.h"
 #include "../subgrid_scale/subgrid_scale.h"
 
-int thomas_algorithm(double [], double [], double [], double [], double [], int);
+int thomas_algorithm(double c_vector[], double d_vector[], double e_vector[], double r_vector[], double solution_vector[], int solution_length)
+{
+	/*
+	This function solves a system of linear equations with a three-band matrix.
+	*/
+	
+	double e_prime_vector[solution_length - 1];
+	double r_prime_vector[solution_length];
+	// downward sweep (matrix)
+	e_prime_vector[0] = e_vector[0]/d_vector[0];
+	for (int j = 1; j < solution_length - 1; ++j)
+	{
+		e_prime_vector[j] = e_vector[j]/(d_vector[j] - e_prime_vector[j - 1]*c_vector[j - 1]);
+	}
+	// downward sweep (right-hand side)
+	r_prime_vector[0] = r_vector[0]/d_vector[0];
+	for (int j = 1; j < solution_length; ++j)
+	{
+		r_prime_vector[j] = (r_vector[j] - r_prime_vector[j - 1]*c_vector[j - 1])/(d_vector[j] - e_prime_vector[j - 1]*c_vector[j - 1]);
+	}
+	
+	// upward sweep (final solution)
+	solution_vector[solution_length - 1] = r_prime_vector[solution_length - 1];
+	for (int j = solution_length - 2; j >= 0; --j)
+	{
+		solution_vector[j] = r_prime_vector[j] - e_prime_vector[j]*solution_vector[j + 1];
+	}
+	return 0;
+}
 
 int three_band_solver_ver_waves(State *state_old, State *state_new, State *state_tendency, Diagnostics *diagnostics, Forcings *forcings,
 Config *config, double delta_t, Grid *grid, int rk_step)
@@ -635,36 +663,6 @@ int three_band_solver_gen_densities(State *state_old, State *state_new, State *s
 			} // horizontal index
 		}
 	} // constituent
-	return 0;
-}
-
-int thomas_algorithm(double c_vector[], double d_vector[], double e_vector[], double r_vector[], double solution_vector[], int solution_length)
-{
-	/*
-	This function solves a system of linear equations with a three-band matrix.
-	*/
-	
-	double e_prime_vector[solution_length - 1];
-	double r_prime_vector[solution_length];
-	// downward sweep (matrix)
-	e_prime_vector[0] = e_vector[0]/d_vector[0];
-	for (int j = 1; j < solution_length - 1; ++j)
-	{
-		e_prime_vector[j] = e_vector[j]/(d_vector[j] - e_prime_vector[j - 1]*c_vector[j - 1]);
-	}
-	// downward sweep (right-hand side)
-	r_prime_vector[0] = r_vector[0]/d_vector[0];
-	for (int j = 1; j < solution_length; ++j)
-	{
-		r_prime_vector[j] = (r_vector[j] - r_prime_vector[j - 1]*c_vector[j - 1])/(d_vector[j] - e_prime_vector[j - 1]*c_vector[j - 1]);
-	}
-	
-	// upward sweep (final solution)
-	solution_vector[solution_length - 1] = r_prime_vector[solution_length - 1];
-	for (int j = solution_length - 2; j >= 0; --j)
-	{
-		solution_vector[j] = r_prime_vector[j] - e_prime_vector[j]*solution_vector[j + 1];
-	}
 	return 0;
 }
 

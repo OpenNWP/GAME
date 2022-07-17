@@ -12,7 +12,36 @@ In this file, those spatial operators are collected which are only needed for th
 #include "../game_types.h"
 #include "../spatial_operators/spatial_operators.h"
 
-int inner_product_tangential(Vector_field, Vector_field, Scalar_field, Grid *, Dualgrid *);
+int inner_product_tangential(Vector_field in_field_0, Vector_field in_field_1, Scalar_field out_field, Grid *grid, Dualgrid *dualgrid)
+{
+    /*
+    This function computes the inner product of the two vector fields in_field_0 and in_field_1.
+    The difference to the normal inner product is, that in_field_0 is given in tangential components.
+    */
+    
+    int layer_index, h_index;
+    double tangential_wind_value;
+    #pragma omp parallel for private (layer_index, h_index, tangential_wind_value)
+	for (int i = 0; i < NO_OF_SCALARS; ++i)
+	{
+	    layer_index = i/NO_OF_SCALARS_H;
+	    h_index = i - layer_index*NO_OF_SCALARS_H;
+	    out_field[i] = 0;
+	    for (int j = 0; j < 6; ++j)
+	    {
+			tangential_wind(in_field_1, layer_index, grid -> adjacent_vector_indices_h[6*h_index + j], &tangential_wind_value, grid);
+	        out_field[i] +=
+	        grid -> inner_product_weights[8*i + j]
+	        *in_field_0[NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + grid -> adjacent_vector_indices_h[6*h_index + j]]
+	        *tangential_wind_value;
+	    }
+	    out_field[i] += grid -> inner_product_weights[8*i + 6]*in_field_0[h_index + layer_index*NO_OF_VECTORS_PER_LAYER]*in_field_1[h_index + layer_index*NO_OF_VECTORS_PER_LAYER];
+	    out_field[i] += grid -> inner_product_weights[8*i + 7]*in_field_0[h_index + (layer_index + 1)*NO_OF_VECTORS_PER_LAYER]*in_field_1[h_index + (layer_index + 1)*NO_OF_VECTORS_PER_LAYER];
+	}
+	
+	// returning 0 indicating success
+    return 0;
+}
 
 int epv_diagnostics(Curl_field pot_vort, State *state, Scalar_field epv, Grid *grid, Dualgrid *dualgrid)
 {
@@ -132,37 +161,6 @@ int epv_diagnostics(Curl_field pot_vort, State *state, Scalar_field epv, Grid *g
 	
 	// returning 0 indicating success
 	return 0;
-}
-
-int inner_product_tangential(Vector_field in_field_0, Vector_field in_field_1, Scalar_field out_field, Grid *grid, Dualgrid *dualgrid)
-{
-    /*
-    This function computes the inner product of the two vector fields in_field_0 and in_field_1.
-    The difference to the normal inner product is, that in_field_0 is given in tangential components.
-    */
-    
-    int layer_index, h_index;
-    double tangential_wind_value;
-    #pragma omp parallel for private (layer_index, h_index, tangential_wind_value)
-	for (int i = 0; i < NO_OF_SCALARS; ++i)
-	{
-	    layer_index = i/NO_OF_SCALARS_H;
-	    h_index = i - layer_index*NO_OF_SCALARS_H;
-	    out_field[i] = 0;
-	    for (int j = 0; j < 6; ++j)
-	    {
-			tangential_wind(in_field_1, layer_index, grid -> adjacent_vector_indices_h[6*h_index + j], &tangential_wind_value, grid);
-	        out_field[i] +=
-	        grid -> inner_product_weights[8*i + j]
-	        *in_field_0[NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + grid -> adjacent_vector_indices_h[6*h_index + j]]
-	        *tangential_wind_value;
-	    }
-	    out_field[i] += grid -> inner_product_weights[8*i + 6]*in_field_0[h_index + layer_index*NO_OF_VECTORS_PER_LAYER]*in_field_1[h_index + layer_index*NO_OF_VECTORS_PER_LAYER];
-	    out_field[i] += grid -> inner_product_weights[8*i + 7]*in_field_0[h_index + (layer_index + 1)*NO_OF_VECTORS_PER_LAYER]*in_field_1[h_index + (layer_index + 1)*NO_OF_VECTORS_PER_LAYER];
-	}
-	
-	// returning 0 indicating success
-    return 0;
 }
 
 int interpolate_to_ll(double in_field[], double out_field[], Grid *grid)

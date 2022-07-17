@@ -16,7 +16,94 @@ The momentum diffusion acceleration is computed here (apart from the diffusion c
 #include "../subgrid_scale/subgrid_scale.h"
 #include "../constituents/constituents.h"
 
-int hor_calc_curl_of_vorticity(Curl_field, Vector_field, double [], Grid *, Dualgrid *);
+int hor_calc_curl_of_vorticity(Curl_field vorticity, double rel_vort_on_triangles[], Vector_field out_field, Grid *grid, Dualgrid *dualgrid)
+{
+	/*
+	This function calculates the curl of the vertical vorticity.
+	*/
+	
+	int layer_index, h_index, vector_index, upper_index_z, lower_index_z, upper_index_zeta, lower_index_zeta, base_index;
+	double delta_z, delta_x, tangential_slope, delta_zeta, dzeta_dz, checkerboard_damping_weight;
+	#pragma omp parallel for private(layer_index, h_index, vector_index, delta_z, delta_x, tangential_slope, dzeta_dz, upper_index_z, lower_index_z, upper_index_zeta, lower_index_zeta, checkerboard_damping_weight, base_index)
+	for (int i = 0; i < NO_OF_H_VECTORS; ++i)
+	{
+		// Remember: (curl(zeta))*e_x = dzeta_z/dy - dzeta_y/dz = (dz*dzeta_z - dy*dzeta_y)/(dy*dz) = (dz*dzeta_z - dy*dzeta_y)/area (Stokes' Theorem, which is used here)
+		layer_index = i/NO_OF_VECTORS_H;
+		h_index = i - layer_index*NO_OF_VECTORS_H;
+		vector_index = NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + h_index;
+		out_field[vector_index] = 0.0;
+		delta_z = 0.0;
+		checkerboard_damping_weight =
+		fabs(rel_vort_on_triangles[layer_index*NO_OF_DUAL_SCALARS_H + dualgrid -> to_index[h_index]]
+		- rel_vort_on_triangles[layer_index*NO_OF_DUAL_SCALARS_H + dualgrid -> from_index[h_index]])
+		/(fabs(rel_vort_on_triangles[layer_index*NO_OF_DUAL_SCALARS_H + dualgrid -> to_index[h_index]])
+		+ fabs(rel_vort_on_triangles[layer_index*NO_OF_DUAL_SCALARS_H + dualgrid -> from_index[h_index]]) + EPSILON_SECURITY);
+		base_index = NO_OF_VECTORS_H + layer_index*NO_OF_DUAL_VECTORS_PER_LAYER;
+		// horizontal difference of vertical vorticity (dzeta_z*dz)
+		// An averaging over three rhombi must be done.
+		for (int j = 0; j < 3; ++j)
+		{
+			out_field[vector_index] +=
+			// This prefactor accounts for the fact that we average over three rhombi and the weighting of the triangle voritcities.
+			+ 1.0/3.0*(1.0 - checkerboard_damping_weight)*(
+			// vertical length at the to_index_dual point
+			dualgrid -> normal_distance[base_index + dualgrid -> to_index[h_index]]
+			// vorticity at the to_index_dual point
+			*vorticity[NO_OF_VECTORS_H + layer_index*2*NO_OF_VECTORS_H + dualgrid -> vorticity_indices_triangles[3*dualgrid -> to_index[h_index] + j]]
+			// vertical length at the from_index_dual point
+			- dualgrid -> normal_distance[base_index + dualgrid -> from_index[h_index]]
+			// vorticity at the from_index_dual point
+			*vorticity[NO_OF_VECTORS_H + layer_index*2*NO_OF_VECTORS_H + dualgrid -> vorticity_indices_triangles[3*dualgrid -> from_index[h_index] + j]]);
+			// preparation of the tangential slope
+			delta_z += 1.0/3.0*(
+			grid -> z_vector[NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + dualgrid -> vorticity_indices_triangles[3*dualgrid -> to_index[h_index] + j]]
+			- grid -> z_vector[NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + dualgrid -> vorticity_indices_triangles[3*dualgrid -> from_index[h_index] + j]]);
+		}
+		// adding the term damping the checkerboard pattern
+		out_field[vector_index] +=
+		checkerboard_damping_weight*(rel_vort_on_triangles[layer_index*NO_OF_DUAL_SCALARS_H + dualgrid -> to_index[h_index]]
+		*dualgrid -> normal_distance[base_index + dualgrid -> to_index[h_index]]
+		- rel_vort_on_triangles[layer_index*NO_OF_DUAL_SCALARS_H + dualgrid -> from_index[h_index]]
+		*dualgrid -> normal_distance[base_index + dualgrid -> from_index[h_index]]);
+		// dividing by the area
+		out_field[vector_index] = out_field[vector_index]/grid -> area[vector_index];
+		
+		/*
+		terrain-following correction
+		*/
+		if (layer_index >= NO_OF_LAYERS - grid -> no_of_oro_layers)
+		{
+			// calculating the tangential slope
+			delta_x = dualgrid -> normal_distance[NO_OF_DUAL_VECTORS - NO_OF_VECTORS_H + h_index];
+			delta_x = delta_x*(grid -> radius + grid -> z_vector[vector_index])/grid -> radius;
+			tangential_slope = delta_z/delta_x;
+			
+			// calculating the vertical gradient of the vertical vorticity
+			upper_index_z = NO_OF_SCALARS_H + (layer_index - 1)*NO_OF_VECTORS_PER_LAYER + h_index;
+			lower_index_z = NO_OF_SCALARS_H + (layer_index + 1)*NO_OF_VECTORS_PER_LAYER + h_index;
+			upper_index_zeta = NO_OF_VECTORS_H + (layer_index - 1)*2*NO_OF_VECTORS_H + h_index;
+			lower_index_zeta = NO_OF_VECTORS_H + (layer_index + 1)*2*NO_OF_VECTORS_H + h_index;
+			if (layer_index == 0)
+			{
+				upper_index_z = NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + h_index;
+				upper_index_zeta = NO_OF_VECTORS_H + layer_index*2*NO_OF_VECTORS_H + h_index;
+			}
+			if (layer_index == NO_OF_LAYERS - 1)
+			{
+				lower_index_z = NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + h_index;
+				lower_index_zeta = NO_OF_VECTORS_H + layer_index*2*NO_OF_VECTORS_H + h_index;
+			}
+			
+			delta_zeta = vorticity[upper_index_zeta] - vorticity[lower_index_zeta];
+			delta_z = grid -> z_vector[upper_index_z] - grid -> z_vector[lower_index_z];
+			
+			// the result
+			dzeta_dz = delta_zeta/delta_z;
+			out_field[vector_index] -= tangential_slope*dzeta_dz;
+		}
+	}
+	return 0;
+}
 
 int hor_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible_quantities *irrev, Config *config, Grid *grid, Dualgrid *dualgrid)
 {
@@ -200,95 +287,6 @@ int vert_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible
 		/(0.5*(density_total(state, h_index + layer_index*NO_OF_SCALARS_H) + density_total(state, h_index + (layer_index + 1)*NO_OF_SCALARS_H)));
 	}
 	
-	return 0;
-}
-
-int hor_calc_curl_of_vorticity(Curl_field vorticity, double rel_vort_on_triangles[], Vector_field out_field, Grid *grid, Dualgrid *dualgrid)
-{
-	/*
-	This function calculates the curl of the vertical vorticity.
-	*/
-	
-	int layer_index, h_index, vector_index, upper_index_z, lower_index_z, upper_index_zeta, lower_index_zeta, base_index;
-	double delta_z, delta_x, tangential_slope, delta_zeta, dzeta_dz, checkerboard_damping_weight;
-	#pragma omp parallel for private(layer_index, h_index, vector_index, delta_z, delta_x, tangential_slope, dzeta_dz, upper_index_z, lower_index_z, upper_index_zeta, lower_index_zeta, checkerboard_damping_weight, base_index)
-	for (int i = 0; i < NO_OF_H_VECTORS; ++i)
-	{
-		// Remember: (curl(zeta))*e_x = dzeta_z/dy - dzeta_y/dz = (dz*dzeta_z - dy*dzeta_y)/(dy*dz) = (dz*dzeta_z - dy*dzeta_y)/area (Stokes' Theorem, which is used here)
-		layer_index = i/NO_OF_VECTORS_H;
-		h_index = i - layer_index*NO_OF_VECTORS_H;
-		vector_index = NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + h_index;
-		out_field[vector_index] = 0.0;
-		delta_z = 0.0;
-		checkerboard_damping_weight =
-		fabs(rel_vort_on_triangles[layer_index*NO_OF_DUAL_SCALARS_H + dualgrid -> to_index[h_index]]
-		- rel_vort_on_triangles[layer_index*NO_OF_DUAL_SCALARS_H + dualgrid -> from_index[h_index]])
-		/(fabs(rel_vort_on_triangles[layer_index*NO_OF_DUAL_SCALARS_H + dualgrid -> to_index[h_index]])
-		+ fabs(rel_vort_on_triangles[layer_index*NO_OF_DUAL_SCALARS_H + dualgrid -> from_index[h_index]]) + EPSILON_SECURITY);
-		base_index = NO_OF_VECTORS_H + layer_index*NO_OF_DUAL_VECTORS_PER_LAYER;
-		// horizontal difference of vertical vorticity (dzeta_z*dz)
-		// An averaging over three rhombi must be done.
-		for (int j = 0; j < 3; ++j)
-		{
-			out_field[vector_index] +=
-			// This prefactor accounts for the fact that we average over three rhombi and the weighting of the triangle voritcities.
-			+ 1.0/3.0*(1.0 - checkerboard_damping_weight)*(
-			// vertical length at the to_index_dual point
-			dualgrid -> normal_distance[base_index + dualgrid -> to_index[h_index]]
-			// vorticity at the to_index_dual point
-			*vorticity[NO_OF_VECTORS_H + layer_index*2*NO_OF_VECTORS_H + dualgrid -> vorticity_indices_triangles[3*dualgrid -> to_index[h_index] + j]]
-			// vertical length at the from_index_dual point
-			- dualgrid -> normal_distance[base_index + dualgrid -> from_index[h_index]]
-			// vorticity at the from_index_dual point
-			*vorticity[NO_OF_VECTORS_H + layer_index*2*NO_OF_VECTORS_H + dualgrid -> vorticity_indices_triangles[3*dualgrid -> from_index[h_index] + j]]);
-			// preparation of the tangential slope
-			delta_z += 1.0/3.0*(
-			grid -> z_vector[NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + dualgrid -> vorticity_indices_triangles[3*dualgrid -> to_index[h_index] + j]]
-			- grid -> z_vector[NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + dualgrid -> vorticity_indices_triangles[3*dualgrid -> from_index[h_index] + j]]);
-		}
-		// adding the term damping the checkerboard pattern
-		out_field[vector_index] +=
-		checkerboard_damping_weight*(rel_vort_on_triangles[layer_index*NO_OF_DUAL_SCALARS_H + dualgrid -> to_index[h_index]]
-		*dualgrid -> normal_distance[base_index + dualgrid -> to_index[h_index]]
-		- rel_vort_on_triangles[layer_index*NO_OF_DUAL_SCALARS_H + dualgrid -> from_index[h_index]]
-		*dualgrid -> normal_distance[base_index + dualgrid -> from_index[h_index]]);
-		// dividing by the area
-		out_field[vector_index] = out_field[vector_index]/grid -> area[vector_index];
-		
-		/*
-		terrain-following correction
-		*/
-		if (layer_index >= NO_OF_LAYERS - grid -> no_of_oro_layers)
-		{
-			// calculating the tangential slope
-			delta_x = dualgrid -> normal_distance[NO_OF_DUAL_VECTORS - NO_OF_VECTORS_H + h_index];
-			delta_x = delta_x*(grid -> radius + grid -> z_vector[vector_index])/grid -> radius;
-			tangential_slope = delta_z/delta_x;
-			
-			// calculating the vertical gradient of the vertical vorticity
-			upper_index_z = NO_OF_SCALARS_H + (layer_index - 1)*NO_OF_VECTORS_PER_LAYER + h_index;
-			lower_index_z = NO_OF_SCALARS_H + (layer_index + 1)*NO_OF_VECTORS_PER_LAYER + h_index;
-			upper_index_zeta = NO_OF_VECTORS_H + (layer_index - 1)*2*NO_OF_VECTORS_H + h_index;
-			lower_index_zeta = NO_OF_VECTORS_H + (layer_index + 1)*2*NO_OF_VECTORS_H + h_index;
-			if (layer_index == 0)
-			{
-				upper_index_z = NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + h_index;
-				upper_index_zeta = NO_OF_VECTORS_H + layer_index*2*NO_OF_VECTORS_H + h_index;
-			}
-			if (layer_index == NO_OF_LAYERS - 1)
-			{
-				lower_index_z = NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + h_index;
-				lower_index_zeta = NO_OF_VECTORS_H + layer_index*2*NO_OF_VECTORS_H + h_index;
-			}
-			
-			delta_zeta = vorticity[upper_index_zeta] - vorticity[lower_index_zeta];
-			delta_z = grid -> z_vector[upper_index_z] - grid -> z_vector[lower_index_z];
-			
-			// the result
-			dzeta_dz = delta_zeta/delta_z;
-			out_field[vector_index] -= tangential_slope*dzeta_dz;
-		}
-	}
 	return 0;
 }
 

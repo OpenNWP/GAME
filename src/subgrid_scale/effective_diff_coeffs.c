@@ -13,8 +13,35 @@ In this file, diffusion coefficients, including eddy viscosities, are computed.
 #include "../constituents/constituents.h"
 #include "subgrid_scale.h"
 
-double tke2hor_diff_coeff(double, double);
-double tke2vert_diff_coeff(double, double, double);
+double tke2hor_diff_coeff(double tke, double effective_resolution)
+{
+	/*
+	This function returns the horizontal kinematic eddy viscosity as a function of the specific TKE.
+	*/
+	
+	double mean_velocity = pow(2.0*tke, 0.5);
+	double mean_free_path = effective_resolution/6.0;
+	double result = 1.0/6.0*mean_free_path*mean_velocity;
+	return result;
+}
+
+double tke2vert_diff_coeff(double tke, double n_squared, double layer_thickness)
+{
+	/*
+	This function returns the vertical kinematic eddy viscosity as a function of the specific TKE and the Brunt-Väisälä frequency.
+	*/
+	
+	// vertical component of the turbulent kinetic energy
+	double tke_vert = 3.0*1e-3*tke;
+	
+	double mean_velocity = pow(2.0*tke_vert, 0.5);
+	// used Brunt-Väisälä frequency
+	double n_used = pow(fmax(n_squared, 1e-4), 0.5);
+	double mean_free_path = pow(2.0*tke_vert, 0.5)/n_used;
+	mean_free_path = fmin(mean_free_path, layer_thickness);
+	double result = 1.0/6.0*mean_free_path*mean_velocity;
+	return result;
+}
 
 int hor_viscosity(State *state, Irreversible_quantities *irrev, Grid *grid, Dualgrid *dualgrid, Diagnostics *diagnostics, Config *config)
 {
@@ -289,37 +316,6 @@ int update_n_squared(State *state, Diagnostics *diagnostics, Grid *grid)
     
 	return 0;
 }
-
-double tke2hor_diff_coeff(double tke, double effective_resolution)
-{
-	/*
-	This function returns the horizontal kinematic eddy viscosity as a function of the specific TKE.
-	*/
-	
-	double mean_velocity = pow(2.0*tke, 0.5);
-	double mean_free_path = effective_resolution/6.0;
-	double result = 1.0/6.0*mean_free_path*mean_velocity;
-	return result;
-}
-
-double tke2vert_diff_coeff(double tke, double n_squared, double layer_thickness)
-{
-	/*
-	This function returns the vertical kinematic eddy viscosity as a function of the specific TKE and the Brunt-Väisälä frequency.
-	*/
-	
-	// vertical component of the turbulent kinetic energy
-	double tke_vert = 3.0*1e-3*tke;
-	
-	double mean_velocity = pow(2.0*tke_vert, 0.5);
-	// used Brunt-Väisälä frequency
-	double n_used = pow(fmax(n_squared, 1e-4), 0.5);
-	double mean_free_path = pow(2.0*tke_vert, 0.5)/n_used;
-	mean_free_path = fmin(mean_free_path, layer_thickness);
-	double result = 1.0/6.0*mean_free_path*mean_velocity;
-	return result;
-}
-
 
 
 
