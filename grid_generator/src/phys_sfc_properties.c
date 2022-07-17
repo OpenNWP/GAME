@@ -108,8 +108,8 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 		{
 			lon_distance_vector[j] = fabs(deg2rad(longitude_input[j]) - longitude_scalar[i]);
 		}
-		lat_index = find_min_index(lat_distance_vector, no_of_lat_points);
-		lon_index = find_min_index(lon_distance_vector, no_of_lon_points);
+		lat_index = find_min_index(lat_distance_vector, &no_of_lat_points);
+		lon_index = find_min_index(lon_distance_vector, &no_of_lon_points);
 		oro_unfiltered[i] = z_input[lat_index][lon_index];
 		
 		// over the sea there is no orography

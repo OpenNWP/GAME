@@ -133,7 +133,8 @@ double longitude_scalar[], int from_index[], int to_index[], double toa, double 
         }
     }
 	double max_thick, min_thick, thick_rel;
-	min_thick = lowest_thicknesses[find_min_index(lowest_thicknesses, NO_OF_SCALARS_H)];
+	int no_of_scalars_h = NO_OF_SCALARS_H;
+	min_thick = lowest_thicknesses[find_min_index(lowest_thicknesses, &no_of_scalars_h)];
 	max_thick = z_vector[0] - z_vector[NO_OF_VECTORS_PER_LAYER];
 	thick_rel = max_thick/min_thick;
 	printf("ratio of maximum to minimum layer thickness (including orography): %lf\n", thick_rel);

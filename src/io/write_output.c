@@ -273,6 +273,8 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 {
 	printf("Writing output ...\n");
 	
+	int no_of_layers = NO_OF_LAYERS;
+				
 	// Time stuff.
     time_t t_init_t = (time_t) t_init;
     // t_init is in UTC
@@ -346,7 +348,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			{
 				vector_to_minimize[j] = fabs(grid -> z_vector[NO_OF_LAYERS*NO_OF_VECTORS_PER_LAYER + i] + 2 - grid -> z_scalar[i + j*NO_OF_SCALARS_H]);
 			}
-			closest_index = find_min_index(vector_to_minimize, NO_OF_LAYERS);
+			closest_index = find_min_index(vector_to_minimize, &no_of_layers);
 		    temp_closest = diagnostics -> temperature[closest_index*NO_OF_SCALARS_H + i];
 			delta_z_temp = grid -> z_vector[NO_OF_LAYERS*NO_OF_VECTORS_PER_LAYER + i] + 2 - grid -> z_scalar[i + closest_index*NO_OF_SCALARS_H];
 		    // real radiation
@@ -532,7 +534,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				{
 					vector_to_minimize[j] = fabs(grid -> z_scalar[j*NO_OF_SCALARS_H + i] - (grid -> z_vector[NO_OF_VECTORS - NO_OF_SCALARS_H + i] + u_850_proxy_height));
 				}
-				closest_index = find_min_index(vector_to_minimize, NO_OF_LAYERS);
+				closest_index = find_min_index(vector_to_minimize, &no_of_layers);
 				second_closest_index = closest_index - 1;
 				if (closest_index < NO_OF_LAYERS - 1
 				&& grid -> z_scalar[closest_index*NO_OF_SCALARS_H + i] - grid -> z_vector[NO_OF_VECTORS - NO_OF_SCALARS_H + i] > u_850_proxy_height)
@@ -548,7 +550,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				{
 					vector_to_minimize[j] = fabs(grid -> z_scalar[j*NO_OF_SCALARS_H + i] - (grid -> z_vector[NO_OF_VECTORS - NO_OF_SCALARS_H + i] + u_950_proxy_height));
 				}
-				closest_index = find_min_index(vector_to_minimize, NO_OF_LAYERS);
+				closest_index = find_min_index(vector_to_minimize, &no_of_layers);
 				second_closest_index = closest_index - 1;
 				if (closest_index < NO_OF_LAYERS - 1
 				&& grid -> z_scalar[closest_index*NO_OF_SCALARS_H + i] - grid -> z_vector[NO_OF_VECTORS - NO_OF_SCALARS_H + i] > u_950_proxy_height)
@@ -1000,7 +1002,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 					vector_to_minimize[k] = fabs(log(pressure_levels[j]/(*pressure)[k*NO_OF_SCALARS_H + i]));
 				}
 				// Finding the model layer that is the closest to the desired pressure level.
-				closest_index = find_min_index(vector_to_minimize, NO_OF_LAYERS);
+				closest_index = find_min_index(vector_to_minimize, &no_of_layers);
 				// first guess for the other layer that will be used for the interpolation
 				second_closest_index = closest_index + 1;
 				// in this case, the layer above the closest layer will be used for the interpolation

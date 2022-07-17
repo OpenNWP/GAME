@@ -380,7 +380,7 @@ int find_min_dist_rel_on_line(double lat_0, double lon_0, double lat_1, double l
         find_geodetic(lat_0, lon_0, lat_1, lon_1, parameter, &lat, &lon);
         dist_vector[i] = calculate_distance_cart(lat_point, lon_point, lat, lon, 1, 1);
     }
-    int min_index = find_min_index(dist_vector, number_of_points);
+    int min_index = find_min_index(dist_vector, &number_of_points);
     free(dist_vector);
     *rel_on_line = (min_index + 0.0)/(number_of_points + 1.0);
     return 0;
@@ -417,7 +417,7 @@ int sort_edge_indices(double lat_points[], double lon_points[], int number_of_ed
         counter = 0;
         for (int j = 0; j < number_of_edges; ++j)
         {
-            distance_candidate = calculate_distance_cart(lat_points[i], lon_points[i], lat_points[j], lon_points[j], 1, 1);
+            distance_candidate = calculate_distance_cart(lat_points[i], lon_points[i], lat_points[j], lon_points[j], 1.0, 1.0);
             if (distance_candidate != 0)
             {
                 index_array[counter] = j;
@@ -425,9 +425,10 @@ int sort_edge_indices(double lat_points[], double lon_points[], int number_of_ed
                 ++counter;
             }
         }
-        neighbour[2*i + 0] = index_array[(int) find_min_index(distance_array, number_of_edges - 1)];
-        distance_array[find_min_index(distance_array, number_of_edges - 1)] = 2.1;
-        neighbour[2*i + 1] = index_array[(int) find_min_index(distance_array, number_of_edges - 1)];
+        int n_edges_m1 = number_of_edges - 1;
+        neighbour[2*i + 0] = index_array[find_min_index(distance_array, &n_edges_m1)];
+        distance_array[find_min_index(distance_array, &n_edges_m1)] = 2.1;
+        neighbour[2*i + 1] = index_array[find_min_index(distance_array, &n_edges_m1)];
     }
     for (int i = 1; i < number_of_edges; ++i)
     {

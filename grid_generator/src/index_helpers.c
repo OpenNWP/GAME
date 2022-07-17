@@ -10,24 +10,6 @@ This file contains helper functions concerned with simple algebraic operations o
 #include <math.h>
 #include "grid_generator.h"
 
-int find_min_index(double vector[], int vector_length)
-{
-	/*
-	This function returns the index where a vector has its minimum.
-	*/
-    int result = 0;
-    double current_min = vector[0];
-    for (int i = 1; i < vector_length; ++i)
-    {
-        if (vector[i] < current_min)
-        {
-            current_min = vector[i];
-            result = i;
-        }
-    }
-    return result;
-}
-
 int find_max_index(double vector[], int vector_length)
 {
 	/*
@@ -65,22 +47,6 @@ int find_min_index_exclude(double vector[], int vector_length, int exclude_indic
         }
     }
     return result;
-}
-
-int find_n_between_points(double vector[], int n_values, double min_value, double max_value)
-{
-	/*
-	This function counts the elements of a vector that are between two given values.
-	*/
-    int n_points_between = 0;
-    for (int i = 0; i < n_values; ++i)
-    {
-        if (vector[i] > min_value && vector[i] < max_value)
-        {
-            n_points_between = n_points_between + 1;
-    	}
-    }
-    return n_points_between;
 }
 
 int freverse_int(int vector_in[], int vector_length, int vector_out[])

@@ -68,9 +68,9 @@ int find_cell_cgs(double latitude_scalar[], double longitude_scalar[], double la
 		{
 			vertex_indices_resorted[j] = vertex_indices[indices_resorted[j]];
 		}
-		x_res = 0;
-		y_res = 0;
-		z_res = 0;
+		x_res = 0.0;
+		y_res = 0.0;
+		z_res = 0.0;
 		for (int j = 0; j < no_of_edges; ++j)
 		{
 			lat_0 = latitude_scalar[i];
