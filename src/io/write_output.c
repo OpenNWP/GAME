@@ -9,9 +9,10 @@ In addition to that, some postprocessing diagnostics are also calculated here.
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <netcdf.h>cc
+#include <netcdf.h>
 #include "../game_types.h"
 #include "../game_constants.h"
 #include "io.h"
