@@ -55,12 +55,12 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 		// Now the diffusive temperature flux density can be obtained.
 	    scalar_times_vector_h(irrev -> temp_diffusion_coeff_numerical_h, diagnostics -> vector_field_placeholder, diagnostics -> flux_density, grid);
 	    // The divergence of the diffusive temperature flux density is the diffusive temperature heating.
-	    divv_h(diagnostics -> flux_density, irrev -> temperature_diffusion_heating, grid);
+	    div_h(diagnostics -> flux_density, irrev -> temperature_diffusion_heating, grid);
     	// vertical temperature diffusion
 	    if (config -> temperature_diff_v == 1)
 	    {
 	    	scalar_times_vector_v(irrev -> temp_diffusion_coeff_numerical_v, diagnostics -> vector_field_placeholder, diagnostics -> flux_density, grid);
-	    	add_vertical_divv(diagnostics -> flux_density, irrev -> temperature_diffusion_heating, grid);
+	    	add_vertical_div(diagnostics -> flux_density, irrev -> temperature_diffusion_heating, grid);
 		}
 	}
 	
@@ -77,12 +77,12 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 			// Now the diffusive mass flux density can be obtained.
 			scalar_times_vector_h(irrev -> mass_diffusion_coeff_numerical_h, diagnostics -> vector_field_placeholder, diagnostics -> vector_field_placeholder, grid);
 	    	// The divergence of the diffusive mass flux density is the diffusive mass source rate.
-			divv_h(diagnostics -> vector_field_placeholder, &irrev -> mass_diff_tendency[scalar_shift_index], grid);
+			div_h(diagnostics -> vector_field_placeholder, &irrev -> mass_diff_tendency[scalar_shift_index], grid);
 			// vertical mass diffusion
 			if (config -> mass_diff_v == 1)
 			{
 				scalar_times_vector_v(irrev -> mass_diffusion_coeff_numerical_v, diagnostics -> vector_field_placeholder, diagnostics -> vector_field_placeholder, grid);
-				add_vertical_divv(diagnostics -> vector_field_placeholder, &irrev -> mass_diff_tendency[scalar_shift_index], grid);
+				add_vertical_div(diagnostics -> vector_field_placeholder, &irrev -> mass_diff_tendency[scalar_shift_index], grid);
 			}
 		}
 	}
@@ -107,13 +107,13 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 		if (i == NO_OF_CONDENSED_CONSTITUENTS)
 		{
 			scalar_times_vector_h(&state -> rho[scalar_shift_index], state -> wind, diagnostics -> flux_density, grid);
-    		divv_h(diagnostics -> flux_density, diagnostics -> flux_density_divv, grid);
+    		div_h(diagnostics -> flux_density, diagnostics -> flux_density_div, grid);
 		}
 		// all other constituents
 		else
 		{
 			scalar_times_vector_h_upstream(&state -> rho[scalar_shift_index], state -> wind, diagnostics -> flux_density, grid);
-    		divv_h_tracer(diagnostics -> flux_density, &state -> rho[scalar_shift_index], state -> wind, diagnostics -> flux_density_divv, grid);
+    		div_h_tracer(diagnostics -> flux_density, &state -> rho[scalar_shift_index], state -> wind, diagnostics -> flux_density_div, grid);
 		}
 		
 		// adding the tendencies in all grid boxes
@@ -125,7 +125,7 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 			= old_weight[i]*state_tendency -> rho[scalar_index]
 			+ new_weight[i]*(
 			// the advection
-			-diagnostics -> flux_density_divv[j]
+			-diagnostics -> flux_density_div[j]
 			// the diffusion
 			+ irrev -> mass_diff_tendency[scalar_shift_index + j]
 			// phase transitions
@@ -145,7 +145,7 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 				diagnostics -> scalar_field_placeholder[j] = state -> rhotheta_v[j]/state -> rho[scalar_shift_index + j];
 			}
 			scalar_times_vector_h(diagnostics -> scalar_field_placeholder, diagnostics -> flux_density, diagnostics -> flux_density, grid);
-			divv_h(diagnostics -> flux_density, diagnostics -> flux_density_divv, grid);
+			div_h(diagnostics -> flux_density, diagnostics -> flux_density_div, grid);
 			// adding the tendencies in all grid boxes
 			#pragma omp parallel for
 			for (int j = 0; j < NO_OF_SCALARS; ++j)
@@ -154,7 +154,7 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 				= old_weight[i]*state_tendency -> rhotheta_v[j]
 				+ new_weight[i]*(
 				// the advection (resolved transport)
-				-diagnostics -> flux_density_divv[j]
+				-diagnostics -> flux_density_div[j]
 				// the diabatic forcings
 				// weighting factor accounting for condensates
 				+ C_D_V*state -> rho[scalar_shift_index + j]/c_v_mass_weighted_air(state, diagnostics, j)*(

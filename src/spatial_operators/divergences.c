@@ -11,7 +11,7 @@ In this file, divergences get computed.
 #include "../game_types.h"
 #include "spatial_operators.h"
 
-int divv_h(Vector_field in_field, Scalar_field out_field, Grid *grid)
+int div_h(Vector_field in_field, Scalar_field out_field, Grid *grid)
 {
 	/*
 	This function computes the divergence of a horizontal vector field.
@@ -63,7 +63,7 @@ int divv_h(Vector_field in_field, Scalar_field out_field, Grid *grid)
     return 0;
 }
 
-int divv_h_tracer(Vector_field in_field, Scalar_field density_field, Vector_field wind_field, Scalar_field out_field, Grid *grid)
+int div_h_tracer(Vector_field in_field, Scalar_field density_field, Vector_field wind_field, Scalar_field out_field, Grid *grid)
 {
 	/*
 	This function computes the divergence of a horizontal tracer flux density field.
@@ -147,7 +147,7 @@ int divv_h_tracer(Vector_field in_field, Scalar_field density_field, Vector_fiel
     return 0;
 }
 
-int add_vertical_divv(Vector_field in_field, Scalar_field out_field, Grid *grid)
+int add_vertical_div(Vector_field in_field, Scalar_field out_field, Grid *grid)
 {
 	/*
 	This adds the divergence of the vertical component of a vector field to the input scalar field.	

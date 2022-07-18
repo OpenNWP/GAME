@@ -137,14 +137,14 @@ double temperature_soil[NO_OF_SOIL_LAYERS*NO_OF_SCALARS_H];
 // Collects diagnostic quantities. Note: in fact, forcings are also diagnostic quantities.
 typedef struct diagnostics {
 Vector_field flux_density;
-Scalar_field flux_density_divv;
+Scalar_field flux_density_div;
 double rel_vort_on_triangles[NO_OF_DUAL_V_VECTORS];
 Curl_field rel_vort;
 Curl_field pot_vort;
 Scalar_field temperature;
 Scalar_field c_g_p_field;
 Scalar_field v_squared;
-Scalar_field wind_divv;
+Scalar_field wind_div;
 Vector_field curl_of_vorticity;
 Scalar_field scalar_field_placeholder;
 Vector_field vector_field_placeholder;

@@ -112,7 +112,7 @@ int hor_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible_
 	*/
     
     // calculating the divergence of the wind field
-    divv_h(state -> wind, diagnostics -> wind_divv, grid);
+    div_h(state -> wind, diagnostics -> wind_div, grid);
     // calculating the relative vorticity of the wind field
 	calc_rel_vort(state -> wind, diagnostics, grid, dualgrid);
     
@@ -122,8 +122,8 @@ int hor_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible_
 	/*
 	diagonal component
 	*/
-	scalar_times_scalar(irrev -> viscosity, diagnostics -> wind_divv, diagnostics -> wind_divv);
-	grad_hor(diagnostics -> wind_divv, diagnostics -> vector_field_placeholder, grid);
+	scalar_times_scalar(irrev -> viscosity, diagnostics -> wind_div, diagnostics -> wind_div);
+	grad_hor(diagnostics -> wind_div, diagnostics -> vector_field_placeholder, grid);
     
     /*
     off-diagonal component
@@ -233,7 +233,7 @@ int vert_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible
 		diagnostics -> scalar_field_placeholder[i] = 0.0;
 	}
 	// computing something like dw/dz
-	add_vertical_divv(state -> wind, diagnostics -> scalar_field_placeholder, grid);
+	add_vertical_div(state -> wind, diagnostics -> scalar_field_placeholder, grid);
 	// computing and multiplying by the respective diffusion coefficient
 	vert_vert_mom_viscosity(state, grid, diagnostics, irrev, delta_t);
 	// taking the second derivative to compute the diffusive tendency
@@ -270,7 +270,7 @@ int vert_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible
 		}
 	}
 	// the divergence of the diffusive flux density results in the diffusive acceleration
-	divv_h(diagnostics -> vector_field_placeholder, diagnostics -> scalar_field_placeholder, grid);
+	div_h(diagnostics -> vector_field_placeholder, diagnostics -> scalar_field_placeholder, grid);
 	// vertically averaging the divergence to half levels and dividing by the density
 	#pragma omp parallel for private(layer_index, h_index, vector_index)
 	for (int i = 0; i < NO_OF_V_VECTORS - 2*NO_OF_SCALARS_H; ++i)
