@@ -22,7 +22,7 @@ int interpolate_ll(double latitude_scalar[], double longitude_scalar[], int inte
 	// latitude resolution of the grid
 	double delta_latitude = M_PI/NO_OF_LAT_IO_POINTS;
 	// longitude resolution of the grid
-	double delta_longitude = 2*M_PI/NO_OF_LON_IO_POINTS;
+	double delta_longitude = 2.0*M_PI/NO_OF_LON_IO_POINTS;
 	// the vector containing distances to the horizontal points of the native model grid
 	double distance_vector[NO_OF_SCALARS_H];
 	int min_indices_vector[5];
@@ -34,8 +34,8 @@ int interpolate_ll(double latitude_scalar[], double longitude_scalar[], int inte
 	{
 		lat_index = i/NO_OF_LON_IO_POINTS;
 		lon_index = i - lat_index*NO_OF_LON_IO_POINTS;
-		lat_value = M_PI/2 - 0.5*delta_latitude - lat_index*delta_latitude;
-		if (lat_value < -M_PI/2 || lat_value > M_PI/2)
+		lat_value = M_PI/2.0 - 0.5*delta_latitude - lat_index*delta_latitude;
+		if (lat_value < -M_PI/2.0 || lat_value > M_PI/2.0)
 		{
 			printf("An error occured during the interpolation to the lat lon grid, position 0.\n");
 			exit(1);

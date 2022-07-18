@@ -210,7 +210,23 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	printf("Writing output ...\n");
 	
 	int no_of_layers = NO_OF_LAYERS;
-				
+	
+	// latitude resolution of the grid
+	double delta_latitude = M_PI/NO_OF_LAT_IO_POINTS;
+	// longitude resolution of the grid
+	double delta_longitude = 2.0*M_PI/NO_OF_LON_IO_POINTS;
+	
+	double lat_vector[NO_OF_LAT_IO_POINTS];
+	for (int i = 0; i < NO_OF_LAT_IO_POINTS; ++i)
+	{
+		lat_vector[i] = M_PI/2.0 - 0.5*delta_latitude - i*delta_latitude;
+	}
+	double lon_vector[NO_OF_LON_IO_POINTS];
+	for (int i = 0; i < NO_OF_LON_IO_POINTS; ++i)
+	{
+		lon_vector[i] = i*delta_longitude;
+	}
+	
 	// Time stuff.
     time_t t_init_t = (time_t) t_init;
     // t_init is in UTC
@@ -251,36 +267,36 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	
 	if (config_io -> surface_output_switch == 1)
 	{
-		double *mslp = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double *surface_p = malloc(NO_OF_SCALARS_H*sizeof(double));
+		double *prmsl = malloc(NO_OF_SCALARS_H*sizeof(double));
+		double *sp = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *t2 = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *tcdc = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *rprate = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *sprate = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *cape = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *sfc_sw_down = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double temp_lowest_layer, pressure_value, mslp_factor, surface_p_factor, temp_mslp, temp_surface, z_height, theta_v,
+		double temp_lowest_layer, pressure_value, prmsl_factor, sp_factor, temp_prmsl, temp_surface, z_height, theta_v,
 		cape_integrand, delta_z, temp_closest, temp_second_closest, delta_z_temp, temperature_gradient, theta_e;
 		double z_tropopause = 12e3;
 		double standard_vert_lapse_rate = 0.0065;
-		#pragma omp parallel for private(temp_lowest_layer, pressure_value, mslp_factor, surface_p_factor, temp_mslp, temp_surface, z_height, theta_v, cape_integrand, delta_z, temp_closest, temp_second_closest, delta_z_temp, temperature_gradient, theta_e, layer_index, closest_index, second_closest_index, cloud_water_content, vector_to_minimize)
+		#pragma omp parallel for private(temp_lowest_layer, pressure_value, prmsl_factor, sp_factor, temp_prmsl, temp_surface, z_height, theta_v, cape_integrand, delta_z, temp_closest, temp_second_closest, delta_z_temp, temperature_gradient, theta_e, layer_index, closest_index, second_closest_index, cloud_water_content, vector_to_minimize)
 		for (int i = 0; i < NO_OF_SCALARS_H; ++i)
 		{
-			// Now the aim is to determine the value of the MSLP.
+			// Now the aim is to determine the value of the prmsl.
 		    temp_lowest_layer = diagnostics -> temperature[(NO_OF_LAYERS - 1)*NO_OF_SCALARS_H + i];
 		    pressure_value = state_write_out -> rho[NO_OF_CONDENSED_CONSTITUENTS*NO_OF_SCALARS + (NO_OF_LAYERS - 1)*NO_OF_SCALARS_H + i]
 		    *gas_constant_diagnostics(state_write_out, (NO_OF_LAYERS - 1)*NO_OF_SCALARS_H + i, config)
 		    *temp_lowest_layer;
-		    temp_mslp = temp_lowest_layer + standard_vert_lapse_rate*grid -> z_scalar[i + (NO_OF_LAYERS - 1)*NO_OF_SCALARS_H];
-		    mslp_factor = pow(1 - (temp_mslp - temp_lowest_layer)/temp_mslp, grid -> gravity_m[(NO_OF_LAYERS - 1)*NO_OF_VECTORS_PER_LAYER + i]/
+		    temp_prmsl = temp_lowest_layer + standard_vert_lapse_rate*grid -> z_scalar[i + (NO_OF_LAYERS - 1)*NO_OF_SCALARS_H];
+		    prmsl_factor = pow(1 - (temp_prmsl - temp_lowest_layer)/temp_prmsl, grid -> gravity_m[(NO_OF_LAYERS - 1)*NO_OF_VECTORS_PER_LAYER + i]/
 		    (gas_constant_diagnostics(state_write_out, (NO_OF_LAYERS - 1)*NO_OF_SCALARS_H + i, config)*standard_vert_lapse_rate));
-		    mslp[i] = pressure_value/mslp_factor;
+		    prmsl[i] = pressure_value/prmsl_factor;
 		    
 			// Now the aim is to determine the value of the surface pressure.
 			temp_surface = temp_lowest_layer + standard_vert_lapse_rate*(grid -> z_scalar[i + (NO_OF_LAYERS - 1)*NO_OF_SCALARS_H] - grid -> z_vector[NO_OF_VECTORS - NO_OF_SCALARS_H + i]);
-		    surface_p_factor = pow(1.0 - (temp_surface - temp_lowest_layer)/temp_surface, grid -> gravity_m[(NO_OF_LAYERS - 1)*NO_OF_VECTORS_PER_LAYER + i]/
+		    sp_factor = pow(1.0 - (temp_surface - temp_lowest_layer)/temp_surface, grid -> gravity_m[(NO_OF_LAYERS - 1)*NO_OF_VECTORS_PER_LAYER + i]/
 		    (gas_constant_diagnostics(state_write_out, (NO_OF_LAYERS - 1)*NO_OF_SCALARS_H + i, config)*standard_vert_lapse_rate));
-			surface_p[i] = pressure_value/surface_p_factor;
+			sp[i] = pressure_value/sp_factor;
 			
 			// Now the aim is to calculate the 2 m temperature.
 			for (int j = 0; j < NO_OF_LAYERS; ++j)
@@ -518,7 +534,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			sprintf(OUTPUT_FILE_PRE, "%s+%dmin_hex_surface.nc", config_io -> run_id, time_since_init_min);
 			char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
 			sprintf(OUTPUT_FILE, "%s+%dmin_hex_surface.nc", config_io -> run_id, time_since_init_min);
-			int scalar_h_dimid, mslp_id, ncid, retval, surface_p_id, rprate_id, sprate_id, cape_id, tcdc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id;
+			int scalar_h_dimid, prmsl_id, ncid, retval, sp_id, rprate_id, sprate_id, cape_id, tcdc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id;
 			
 			if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
 				NCERR(retval);
@@ -526,13 +542,13 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				NCERR(retval);
 			
 			// Defining the variables.
-			if ((retval = nc_def_var(ncid, "mslp", NC_DOUBLE, 1, &scalar_h_dimid, &mslp_id)))
+			if ((retval = nc_def_var(ncid, "prmsl", NC_DOUBLE, 1, &scalar_h_dimid, &prmsl_id)))
 				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, mslp_id, "units", strlen("Pa"), "Pa")))
+			if ((retval = nc_put_att_text(ncid, prmsl_id, "units", strlen("Pa"), "Pa")))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "surface_p", NC_DOUBLE, 1, &scalar_h_dimid, &surface_p_id)))
+			if ((retval = nc_def_var(ncid, "sp", NC_DOUBLE, 1, &scalar_h_dimid, &sp_id)))
 				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, surface_p_id, "units", strlen("Pa"), "Pa")))
+			if ((retval = nc_put_att_text(ncid, sp_id, "units", strlen("Pa"), "Pa")))
 				NCERR(retval);
 			if ((retval = nc_def_var(ncid, "t2", NC_DOUBLE, 1, &scalar_h_dimid, &t2_id)))
 				NCERR(retval);
@@ -573,9 +589,9 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			if ((retval = nc_enddef(ncid)))
 				NCERR(retval);
 			
-			if ((retval = nc_put_var_double(ncid, mslp_id, &mslp[0])))
+			if ((retval = nc_put_var_double(ncid, prmsl_id, &prmsl[0])))
 				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, surface_p_id, &surface_p[0])))
+			if ((retval = nc_put_var_double(ncid, sp_id, &sp[0])))
 				NCERR(retval);
 			if ((retval = nc_put_var_double(ncid, t2_id, &t2[0])))
 				NCERR(retval);
@@ -608,7 +624,8 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			sprintf(OUTPUT_FILE_PRE, "%s+%dmin_surface.nc", config_io -> run_id, time_since_init_min);
 			char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
 			sprintf(OUTPUT_FILE, "%s+%dmin_surface.nc", config_io -> run_id, time_since_init_min);
-			int lat_dimid, lon_dimid, mslp_id, ncid, retval, surface_p_id, rprate_id, sprate_id, cape_id, tcdc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id;
+			int lat_dimid, lon_dimid, lat_id, lon_id, prmsl_id, ncid, retval, sp_id, rprate_id, sprate_id,
+			cape_id, tcdc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id;
 			
 			if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
 				NCERR(retval);
@@ -622,13 +639,17 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			lat_lon_dimids[1] = lon_dimid;
 			
 			// Defining the variables.
-			if ((retval = nc_def_var(ncid, "mslp", NC_DOUBLE, 2, lat_lon_dimids, &mslp_id)))
+			if ((retval = nc_def_var(ncid, "lat", NC_DOUBLE, 1, &lat_dimid, &lat_id)))
 				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, mslp_id, "units", strlen("Pa"), "Pa")))
+			if ((retval = nc_def_var(ncid, "lon", NC_DOUBLE, 1, &lon_dimid, &lon_id)))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "surface_p", NC_DOUBLE, 2, lat_lon_dimids, &surface_p_id)))
+			if ((retval = nc_def_var(ncid, "prmsl", NC_DOUBLE, 2, lat_lon_dimids, &prmsl_id)))
 				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, surface_p_id, "units", strlen("Pa"), "Pa")))
+			if ((retval = nc_put_att_text(ncid, prmsl_id, "units", strlen("Pa"), "Pa")))
+				NCERR(retval);
+			if ((retval = nc_def_var(ncid, "sp", NC_DOUBLE, 2, lat_lon_dimids, &sp_id)))
+				NCERR(retval);
+			if ((retval = nc_put_att_text(ncid, sp_id, "units", strlen("Pa"), "Pa")))
 				NCERR(retval);
 			if ((retval = nc_def_var(ncid, "t2", NC_DOUBLE, 2, lat_lon_dimids, &t2_id)))
 				NCERR(retval);
@@ -669,11 +690,15 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			if ((retval = nc_enddef(ncid)))
 				NCERR(retval);
 		    
-		    interpolate_to_ll(surface_p, lat_lon_output_field, grid);
-			if ((retval = nc_put_var_double(ncid, mslp_id, &lat_lon_output_field[0][0])))
+			if ((retval = nc_put_var_double(ncid, lat_id, &lat_vector[0])))
 				NCERR(retval);
-		    interpolate_to_ll(mslp, lat_lon_output_field, grid);
-			if ((retval = nc_put_var_double(ncid, surface_p_id, &lat_lon_output_field[0][0])))
+			if ((retval = nc_put_var_double(ncid, lon_id, &lon_vector[0])))
+				NCERR(retval);
+		    interpolate_to_ll(sp, lat_lon_output_field, grid);
+			if ((retval = nc_put_var_double(ncid, prmsl_id, &lat_lon_output_field[0][0])))
+				NCERR(retval);
+		    interpolate_to_ll(prmsl, lat_lon_output_field, grid);
+			if ((retval = nc_put_var_double(ncid, sp_id, &lat_lon_output_field[0][0])))
 				NCERR(retval);
 		    interpolate_to_ll(t2, lat_lon_output_field, grid);
 			if ((retval = nc_put_var_double(ncid, t2_id, &lat_lon_output_field[0][0])))
@@ -712,8 +737,8 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		free(wind_10_m_mean_v_at_cell);
 		free(wind_10_m_gusts_speed_at_cell);
 		free(t2);
-		free(mslp);
-		free(surface_p);
+		free(prmsl);
+		free(sp);
 		free(rprate);
 		free(sprate);
 		free(tcdc);

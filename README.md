@@ -46,7 +46,7 @@ Everything is easy and quick to install.
 
 * Clone the DCMIP2016 repository: `git clone https://github.com/ClimateGlobalChange/DCMIP2016`
 * Clone our fork of the RTE+RRTMGP repository: `git clone https://github.com/OpenNWP/rte-rrtmgp`
-* `pip3 install global-land-mask`
+* `pip3 install global-land-mask netCDF4`
 
 #### For using the plotting routines
 
