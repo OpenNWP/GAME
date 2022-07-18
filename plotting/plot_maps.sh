@@ -15,8 +15,8 @@ disp_level_list=(
 0) # levels according to grib as an array
 on_pressure_level_list=(
 0) # set this to 1 for each plot individually if the variable resides on pressure levels
-plot_intervals_list=(
-86400) # every how many seconds you want to plot each variable
+plot_intervals_list_min=(
+1440) # every how many minutes you want to plot each variable
 uniform_colormap_list=(
 1) # set this to 1 for each plot individually if you want to enforce a uniform colormap for all the time steps
 scope_list=(

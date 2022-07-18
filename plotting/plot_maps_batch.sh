@@ -8,7 +8,7 @@ run_id=${BASH_ARGV[1]} # the run id which you want to plot
 run_span=${BASH_ARGV[0]} # the length of the run
 output_dir=$game_home_dir/output/$run_id # the directory where the grib files are stored
 fig_save_path=${BASH_ARGV[3]} # the path to which the figures will be saved
-plot_interval=${BASH_ARGV[4]} # the interval between plots in seconds
+plot_interval_min=${BASH_ARGV[4]} # the interval between plots in minutes
 start_time_since_init=${BASH_ARGV[5]} # when to begin plotting reative to the model initialization
 omp_num_threads=${BASH_ARGV[6]} # relevant only for OMP
 disp_shortname_list=(
@@ -20,9 +20,9 @@ disp_level_list=(
 on_pressure_level_list=(
 0 0 0 0 0
 ) # set this to 1 for each plot individually if the variable resides on pressure levels
-plot_intervals_list=(
-$plot_interval $plot_interval $plot_interval $plot_interval $plot_interval
-) # every how many seconds you want to plot each variable
+plot_intervals_list_min=(
+$plot_interval_min $plot_interval_min $plot_interval_min $plot_interval_min $plot_interval_min
+) # every how many minutes you want to plot each variable
 uniform_colormap_list=(
 0 0 0 0 0
 ) # set this to 1 for each plot individually if you want to enforce a uniform colormap for all the time steps
