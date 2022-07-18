@@ -21,7 +21,7 @@ import iris.coord_systems as cs
 import iris.plot as iplt
 import math
 run_span = int(sys.argv[1])
-plot_interval = int(sys.argv[2])
+plot_interval_min = int(sys.argv[2])
 level = int(sys.argv[3])
 short_name = sys.argv[4]
 save_directory = sys.argv[5]
@@ -32,7 +32,7 @@ uniform_range = int(sys.argv[9])
 scope = sys.argv[10]
 on_pressure_bool = int(sys.argv[11])
 synoptical_time_mode = int(sys.argv[12])
-start_time_since_init = int(sys.argv[13])
+start_time_since_init_min = int(sys.argv[13])
 
 # default values
 shift = 0
@@ -166,7 +166,7 @@ if unit_string == "kn":
     unit_string_for_iris = "kts"
 
 disp_time_in_hr = 0
-time_unit_string = "s"
+time_unit_string = "min"
 
 if run_span > 24*3600 or synoptical_time_mode == 1:
     disp_time_in_hr = 1
@@ -180,11 +180,11 @@ if surface_bool == 1:
 
 if on_pressure_bool == 0:
 	if surface_bool == 1:
-		input_file = grib_dir_name + "/" + run_id + "+" + str(start_time_since_init) + "s_surface.grb2"
+		input_file = grib_dir_name + "/" + run_id + "+" + str(start_time_since_init_min) + "min_surface.nc"
 	else:
-		input_file = grib_dir_name + "/" + run_id + "+" + str(start_time_since_init) + "s.grb2"
+		input_file = grib_dir_name + "/" + run_id + "+" + str(start_time_since_init_min) + "s.nc"
 else:
-	input_file = grib_dir_name + "/" + run_id + "+" + str(start_time_since_init) + "s_pressure_levels.grb2"
+	input_file = grib_dir_name + "/" + run_id + "+" + str(start_time_since_init_min) + "min_pressure_levels.nc"
 
 # finiding the analysis time
 init_year, init_month, init_day, init_hour = rmo.return_analysis_time(input_file)
@@ -194,41 +194,41 @@ init_day = int(init_day)
 start_timestamp = tcs.find_time_coord(int(init_year), int(init_month), int(init_day), init_hour, 0, 0, 0)
 
 if short_name == "surface_wind":
-	lat, lon, values_pre = rmo.fetch_model_output(input_file, start_time_since_init, "gust", level)
-	lat, lon, values_pre_10u = rmo.fetch_model_output(input_file, start_time_since_init, "10u", level)
-	lat, lon, values_pre_10v = rmo.fetch_model_output(input_file, start_time_since_init, "10v", level)
+	lat, lon, values_pre = rmo.fetch_model_output(input_file, start_time_since_init_min, "gust", level)
+	lat, lon, values_pre_10u = rmo.fetch_model_output(input_file, start_time_since_init_min, "10u", level)
+	lat, lon, values_pre_10v = rmo.fetch_model_output(input_file, start_time_since_init_min, "10v", level)
 else:
-	lat, lon, values_pre = rmo.fetch_model_output(input_file, start_time_since_init, short_name, level)
+	lat, lon, values_pre = rmo.fetch_model_output(input_file, start_time_since_init_min, short_name, level)
 
 if short_name == "tcc":
 	values_pre[np.where(values_pre > 100.0)] = 100.0
 
-values = np.zeros([len(lat), len(lon), int((run_span - start_time_since_init)/plot_interval) + 1])
+values = np.zeros([len(lat), len(lon), int((run_span - start_time_since_init_min)/plot_interval_min) + 1])
 values[:, :, 0] = rescale*values_pre + shift
 if short_name == "surface_wind":
-	values_10u = np.zeros([len(lat), len(lon), int((run_span - start_time_since_init)/plot_interval) + 1])
+	values_10u = np.zeros([len(lat), len(lon), int((run_span - start_time_since_init_min)/plot_interval_min) + 1])
 	values_10u[:, :, 0] = rescale*values_pre_10u + shift
-	values_10v = np.zeros([len(lat), len(lon), int((run_span - start_time_since_init)/plot_interval) + 1])
+	values_10v = np.zeros([len(lat), len(lon), int((run_span - start_time_since_init_min)/plot_interval_min) + 1])
 	values_10v[:, :, 0] = rescale*values_pre_10v + shift
 
-for i in np.arange(1, int((run_span - start_time_since_init)/plot_interval) + 1):
-	time_after_init = start_time_since_init + i*plot_interval
+for i in np.arange(1, int((run_span - start_time_since_init_min)/plot_interval_min) + 1):
+	time_after_init_min = start_time_since_init_min + i*plot_interval_min
 	if on_pressure_bool == 0:
 		if surface_bool == 1:
-			input_file = grib_dir_name + "/" + run_id + "+" + str(time_after_init) + "s_surface.grb2"
+			input_file = grib_dir_name + "/" + run_id + "+" + str(time_after_init_min) + "min_surface.nc"
 		else:
-			input_file = grib_dir_name + "/" + run_id + "+" + str(time_after_init) + "s.grb2"
+			input_file = grib_dir_name + "/" + run_id + "+" + str(time_after_init_min) + "min.nc"
 	else:
-		input_file = grib_dir_name + "/" + run_id + "+" + str(time_after_init) + "s_pressure_levels.grb2"
+		input_file = grib_dir_name + "/" + run_id + "+" + str(time_after_init_min) + "min_pressure_levels.nc"
 	if short_name == "surface_wind":
-		lat, lon, values[:, :, i] = rmo.fetch_model_output(input_file, time_after_init, "gust", level)
+		lat, lon, values[:, :, i] = rmo.fetch_model_output(input_file, time_after_init_min, "gust", level)
 		values[:, :, i] = rescale*values[:, :, i] + shift
-		lat, lon, values_10u[:, :, i] = rmo.fetch_model_output(input_file, time_after_init, "10u", level)
+		lat, lon, values_10u[:, :, i] = rmo.fetch_model_output(input_file, time_after_init_min, "10u", level)
 		values_10u[:, :, i] = rescale*values_10u[:, :, i] + shift
-		lat, lon, values_10v[:, :, i] = rmo.fetch_model_output(input_file, time_after_init, "10v", level)
+		lat, lon, values_10v[:, :, i] = rmo.fetch_model_output(input_file, time_after_init_min, "10v", level)
 		values_10v[:, :, i] = rescale*values_10v[:, :, i] + shift
 	else:
-		lat, lon, values[:, :, i] = rmo.fetch_model_output(input_file, time_after_init, short_name, level)
+		lat, lon, values[:, :, i] = rmo.fetch_model_output(input_file, time_after_init_min, short_name, level)
 		values[:, :, i] = rescale*values[:, :, i] + shift
 
 # correcting the problem when plotting across lon = 0
@@ -291,7 +291,7 @@ if uniform_range == 1:
 	cmap = plt.get_cmap(colormap)
 
 fig_size = 7
-for i in range(int((run_span - start_time_since_init)/plot_interval) + 1):
+for i in range(int((run_span - start_time_since_init_min)/plot_interval_min) + 1):
 	if uniform_range == 0:
 		if projection == "Gnomonic":
 			total_min = np.nanmin(values[scope_bool_array, i])
@@ -313,11 +313,11 @@ for i in range(int((run_span - start_time_since_init)/plot_interval) + 1):
 		bounds = np.arange(total_min, total_max + color_plot_dist, color_plot_dist)
 		color_bar_dist = values_range_for_plot/10
 		cmap = plt.get_cmap(colormap)
-	time_after_init =  start_time_since_init + i*plot_interval
+	time_after_init_min =  start_time_since_init_min + i*plot_interval_min
 	if surface_bool == 0:
-		print("plotting " + short_name + " at level " + str(level) + " for t - t_init = " + str(time_after_init) + " s ...")
+		print("plotting " + short_name + " at level " + str(level) + " for t - t_init = " + str(time_after_init_min) + " s ...")
 	if surface_bool == 1:
-		print("plotting " + short_name + " for t - t_init = " + str(time_after_init) + " s ...")
+		print("plotting " + short_name + " for t - t_init = " + str(time_after_init_min) + " s ...")
 	if (projection == "Orthographic"):
 		fig = plt.figure(figsize = (fig_size, fig_size))
 		coord_sys = cs.GeogCS(6371229)
@@ -392,17 +392,17 @@ for i in range(int((run_span - start_time_since_init)/plot_interval) + 1):
 	ax.add_feature(cfeature.OCEAN)
 	countries = cfeature.NaturalEarthFeature(category = "cultural", name = "admin_0_countries", scale = "10m", facecolor = "none")
 	ax.add_feature(countries, edgecolor = "gray")
-	time_after_init_title = time_after_init
+	time_after_init_min_title = time_after_init_min
 	if disp_time_in_hr == 1:
-		time_after_init_title = int(time_after_init/3600)
+		time_after_init_min_title = int(time_after_init_min/60.0)
 	implementation_name = "GAME"
 	if synoptical_time_mode == 0:
-		time_string = "init + " + str(time_after_init_title) + " " + time_unit_string
+		time_string = "init + " + str(time_after_init_min_title) + " " + time_unit_string
 	if synoptical_time_mode == 1:
 		implementation_name = "EFS"
 		time_string = "init: " + str(init_year) + "-" + str(init_month) + "-" + str(init_day) + ", " + str(init_hour) + " UTC\n"
-		valid_year, valid_month, valid_day, valid_hour, dump, dump, dump = tcs.return_date(start_timestamp + time_after_init)
-		time_string = time_string + "valid: " + str(valid_year) + "-" + str(valid_month) + "-" + str(valid_day) + ", " + str(valid_hour) + " UTC (+ " + str(time_after_init_title) + " hrs)"
+		valid_year, valid_month, valid_day, valid_hour, dump, dump, dump = tcs.return_date(start_timestamp + time_after_init_min)
+		time_string = time_string + "valid: " + str(valid_year) + "-" + str(valid_month) + "-" + str(valid_day) + ", " + str(valid_hour) + " UTC (+ " + str(time_after_init_min_title) + " hrs)"
 	if show_level_on == 1:
 		if on_pressure_bool == 1:
 			if contourf_plot == 0:
@@ -417,7 +417,7 @@ for i in range(int((run_span - start_time_since_init)/plot_interval) + 1):
 		textstr = variable_name + " (" + implementation_name + ")\n" + time_string
 	ob = offsetbox.AnchoredText(textstr, loc = 3)
 	ax.add_artist(ob)
-	fig.savefig(save_directory + "/" + savename + "+" + str(time_after_init_title) + time_unit_string + ".png", dpi = 200, bbox_inches = "tight")
+	fig.savefig(save_directory + "/" + savename + "+" + str(time_after_init_min_title) + time_unit_string + ".png", dpi = 200, bbox_inches = "tight")
 	plt.close("all")
 	print("done")
 
