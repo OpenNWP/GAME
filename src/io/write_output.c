@@ -267,30 +267,30 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	
 	if (config_io -> surface_output_switch == 1)
 	{
-		double *prmsl = malloc(NO_OF_SCALARS_H*sizeof(double));
+		double *mslp = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *sp = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *t2 = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double *tcdc = malloc(NO_OF_SCALARS_H*sizeof(double));
+		double *tcc = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *rprate = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *sprate = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *cape = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *sfc_sw_down = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double temp_lowest_layer, pressure_value, prmsl_factor, sp_factor, temp_prmsl, temp_surface, z_height, theta_v,
+		double temp_lowest_layer, pressure_value, mslp_factor, sp_factor, temp_mslp, temp_surface, z_height, theta_v,
 		cape_integrand, delta_z, temp_closest, temp_second_closest, delta_z_temp, temperature_gradient, theta_e;
 		double z_tropopause = 12e3;
 		double standard_vert_lapse_rate = 0.0065;
-		#pragma omp parallel for private(temp_lowest_layer, pressure_value, prmsl_factor, sp_factor, temp_prmsl, temp_surface, z_height, theta_v, cape_integrand, delta_z, temp_closest, temp_second_closest, delta_z_temp, temperature_gradient, theta_e, layer_index, closest_index, second_closest_index, cloud_water_content, vector_to_minimize)
+		#pragma omp parallel for private(temp_lowest_layer, pressure_value, mslp_factor, sp_factor, temp_mslp, temp_surface, z_height, theta_v, cape_integrand, delta_z, temp_closest, temp_second_closest, delta_z_temp, temperature_gradient, theta_e, layer_index, closest_index, second_closest_index, cloud_water_content, vector_to_minimize)
 		for (int i = 0; i < NO_OF_SCALARS_H; ++i)
 		{
-			// Now the aim is to determine the value of the prmsl.
+			// Now the aim is to determine the value of the mslp.
 		    temp_lowest_layer = diagnostics -> temperature[(NO_OF_LAYERS - 1)*NO_OF_SCALARS_H + i];
 		    pressure_value = state_write_out -> rho[NO_OF_CONDENSED_CONSTITUENTS*NO_OF_SCALARS + (NO_OF_LAYERS - 1)*NO_OF_SCALARS_H + i]
 		    *gas_constant_diagnostics(state_write_out, (NO_OF_LAYERS - 1)*NO_OF_SCALARS_H + i, config)
 		    *temp_lowest_layer;
-		    temp_prmsl = temp_lowest_layer + standard_vert_lapse_rate*grid -> z_scalar[i + (NO_OF_LAYERS - 1)*NO_OF_SCALARS_H];
-		    prmsl_factor = pow(1 - (temp_prmsl - temp_lowest_layer)/temp_prmsl, grid -> gravity_m[(NO_OF_LAYERS - 1)*NO_OF_VECTORS_PER_LAYER + i]/
+		    temp_mslp = temp_lowest_layer + standard_vert_lapse_rate*grid -> z_scalar[i + (NO_OF_LAYERS - 1)*NO_OF_SCALARS_H];
+		    mslp_factor = pow(1 - (temp_mslp - temp_lowest_layer)/temp_mslp, grid -> gravity_m[(NO_OF_LAYERS - 1)*NO_OF_VECTORS_PER_LAYER + i]/
 		    (gas_constant_diagnostics(state_write_out, (NO_OF_LAYERS - 1)*NO_OF_SCALARS_H + i, config)*standard_vert_lapse_rate));
-		    prmsl[i] = pressure_value/prmsl_factor;
+		    mslp[i] = pressure_value/mslp_factor;
 		    
 			// Now the aim is to determine the value of the surface pressure.
 			temp_surface = temp_lowest_layer + standard_vert_lapse_rate*(grid -> z_scalar[i + (NO_OF_LAYERS - 1)*NO_OF_SCALARS_H] - grid -> z_vector[NO_OF_VECTORS - NO_OF_SCALARS_H + i]);
@@ -370,18 +370,18 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			    	}
 			    }
 			    // some heuristic ansatz for the total cloud cover
-            	tcdc[i] = fmin(cloud_water2cloudiness*cloud_water_content, 1.0);
+            	tcc[i] = fmin(cloud_water2cloudiness*cloud_water_content, 1.0);
             	// conversion of the total cloud cover into a percentage
-            	tcdc[i] = 100.0*tcdc[i];
+            	tcc[i] = 100.0*tcc[i];
             	// setting too small values to zero to not confuse users
-            	if (tcdc[i] < 0.5)
+            	if (tcc[i] < 0.5)
             	{
-            		tcdc[i] = 0.0;
+            		tcc[i] = 0.0;
             	}
             }
             else
             {
-            	tcdc[i] = 0.0;
+            	tcc[i] = 0.0;
             }
             // solid precipitation rate
 		    sprate[i] = 0.0;
@@ -534,7 +534,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			sprintf(OUTPUT_FILE_PRE, "%s+%dmin_hex_surface.nc", config_io -> run_id, time_since_init_min);
 			char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
 			sprintf(OUTPUT_FILE, "%s+%dmin_hex_surface.nc", config_io -> run_id, time_since_init_min);
-			int scalar_h_dimid, prmsl_id, ncid, retval, sp_id, rprate_id, sprate_id, cape_id, tcdc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id;
+			int scalar_h_dimid, mslp_id, ncid, retval, sp_id, rprate_id, sprate_id, cape_id, tcc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id;
 			
 			if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
 				NCERR(retval);
@@ -542,9 +542,9 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				NCERR(retval);
 			
 			// Defining the variables.
-			if ((retval = nc_def_var(ncid, "prmsl", NC_DOUBLE, 1, &scalar_h_dimid, &prmsl_id)))
+			if ((retval = nc_def_var(ncid, "mslp", NC_DOUBLE, 1, &scalar_h_dimid, &mslp_id)))
 				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, prmsl_id, "units", strlen("Pa"), "Pa")))
+			if ((retval = nc_put_att_text(ncid, mslp_id, "units", strlen("Pa"), "Pa")))
 				NCERR(retval);
 			if ((retval = nc_def_var(ncid, "sp", NC_DOUBLE, 1, &scalar_h_dimid, &sp_id)))
 				NCERR(retval);
@@ -554,9 +554,9 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				NCERR(retval);
 			if ((retval = nc_put_att_text(ncid, t2_id, "units", strlen("K"), "K")))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "tcdc", NC_DOUBLE, 1, &scalar_h_dimid, &tcdc_id)))
+			if ((retval = nc_def_var(ncid, "tcc", NC_DOUBLE, 1, &scalar_h_dimid, &tcc_id)))
 				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, tcdc_id, "units", strlen("%"), "%")))
+			if ((retval = nc_put_att_text(ncid, tcc_id, "units", strlen("%"), "%")))
 				NCERR(retval);
 			if ((retval = nc_def_var(ncid, "rprate", NC_DOUBLE, 1, &scalar_h_dimid, &rprate_id)))
 				NCERR(retval);
@@ -574,28 +574,28 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				NCERR(retval);
 			if ((retval = nc_put_att_text(ncid, sfc_sw_down_id, "units", strlen("W/m^2"), "W/m^2")))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "10u", NC_DOUBLE, 1, &scalar_h_dimid, &u10_id)))
+			if ((retval = nc_def_var(ncid, "u10", NC_DOUBLE, 1, &scalar_h_dimid, &u10_id)))
 				NCERR(retval);
 			if ((retval = nc_put_att_text(ncid, u10_id, "units", strlen("m/s"), "m/s")))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "10v", NC_DOUBLE, 1, &scalar_h_dimid, &v10_id)))
+			if ((retval = nc_def_var(ncid, "v10", NC_DOUBLE, 1, &scalar_h_dimid, &v10_id)))
 				NCERR(retval);
 			if ((retval = nc_put_att_text(ncid, v10_id, "units", strlen("m/s"), "m/s")))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "10gusts", NC_DOUBLE, 1, &scalar_h_dimid, &gusts_id)))
+			if ((retval = nc_def_var(ncid, "gusts10", NC_DOUBLE, 1, &scalar_h_dimid, &gusts_id)))
 				NCERR(retval);
 			if ((retval = nc_put_att_text(ncid, gusts_id, "units", strlen("m/s"), "m/s")))
 				NCERR(retval);
 			if ((retval = nc_enddef(ncid)))
 				NCERR(retval);
 			
-			if ((retval = nc_put_var_double(ncid, prmsl_id, &prmsl[0])))
+			if ((retval = nc_put_var_double(ncid, mslp_id, &mslp[0])))
 				NCERR(retval);
 			if ((retval = nc_put_var_double(ncid, sp_id, &sp[0])))
 				NCERR(retval);
 			if ((retval = nc_put_var_double(ncid, t2_id, &t2[0])))
 				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, tcdc_id, &tcdc[0])))
+			if ((retval = nc_put_var_double(ncid, tcc_id, &tcc[0])))
 				NCERR(retval);
 			if ((retval = nc_put_var_double(ncid, rprate_id, &rprate[0])))
 				NCERR(retval);
@@ -624,8 +624,8 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			sprintf(OUTPUT_FILE_PRE, "%s+%dmin_surface.nc", config_io -> run_id, time_since_init_min);
 			char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
 			sprintf(OUTPUT_FILE, "%s+%dmin_surface.nc", config_io -> run_id, time_since_init_min);
-			int lat_dimid, lon_dimid, lat_id, lon_id, prmsl_id, ncid, retval, sp_id, rprate_id, sprate_id,
-			cape_id, tcdc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id;
+			int lat_dimid, lon_dimid, lat_id, lon_id, mslp_id, ncid, retval, sp_id, rprate_id, sprate_id,
+			cape_id, tcc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id;
 			
 			if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
 				NCERR(retval);
@@ -643,9 +643,9 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				NCERR(retval);
 			if ((retval = nc_def_var(ncid, "lon", NC_DOUBLE, 1, &lon_dimid, &lon_id)))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "prmsl", NC_DOUBLE, 2, lat_lon_dimids, &prmsl_id)))
+			if ((retval = nc_def_var(ncid, "mslp", NC_DOUBLE, 2, lat_lon_dimids, &mslp_id)))
 				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, prmsl_id, "units", strlen("Pa"), "Pa")))
+			if ((retval = nc_put_att_text(ncid, mslp_id, "units", strlen("Pa"), "Pa")))
 				NCERR(retval);
 			if ((retval = nc_def_var(ncid, "sp", NC_DOUBLE, 2, lat_lon_dimids, &sp_id)))
 				NCERR(retval);
@@ -655,9 +655,9 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				NCERR(retval);
 			if ((retval = nc_put_att_text(ncid, t2_id, "units", strlen("K"), "K")))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "tcdc", NC_DOUBLE, 2, lat_lon_dimids, &tcdc_id)))
+			if ((retval = nc_def_var(ncid, "tcc", NC_DOUBLE, 2, lat_lon_dimids, &tcc_id)))
 				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, tcdc_id, "units", strlen("%"), "%")))
+			if ((retval = nc_put_att_text(ncid, tcc_id, "units", strlen("%"), "%")))
 				NCERR(retval);
 			if ((retval = nc_def_var(ncid, "rprate", NC_DOUBLE, 2, lat_lon_dimids, &rprate_id)))
 				NCERR(retval);
@@ -675,15 +675,15 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				NCERR(retval);
 			if ((retval = nc_put_att_text(ncid, sfc_sw_down_id, "units", strlen("W/m^2"), "W/m^2")))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "10u", NC_DOUBLE, 2, lat_lon_dimids, &u10_id)))
+			if ((retval = nc_def_var(ncid, "u10", NC_DOUBLE, 2, lat_lon_dimids, &u10_id)))
 				NCERR(retval);
 			if ((retval = nc_put_att_text(ncid, u10_id, "units", strlen("m/s"), "m/s")))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "10v", NC_DOUBLE, 2, lat_lon_dimids, &v10_id)))
+			if ((retval = nc_def_var(ncid, "v10", NC_DOUBLE, 2, lat_lon_dimids, &v10_id)))
 				NCERR(retval);
 			if ((retval = nc_put_att_text(ncid, v10_id, "units", strlen("m/s"), "m/s")))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "10gusts", NC_DOUBLE, 2, lat_lon_dimids, &gusts_id)))
+			if ((retval = nc_def_var(ncid, "gusts10", NC_DOUBLE, 2, lat_lon_dimids, &gusts_id)))
 				NCERR(retval);
 			if ((retval = nc_put_att_text(ncid, gusts_id, "units", strlen("m/s"), "m/s")))
 				NCERR(retval);
@@ -695,16 +695,16 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			if ((retval = nc_put_var_double(ncid, lon_id, &lon_vector[0])))
 				NCERR(retval);
 		    interpolate_to_ll(sp, lat_lon_output_field, grid);
-			if ((retval = nc_put_var_double(ncid, prmsl_id, &lat_lon_output_field[0][0])))
+			if ((retval = nc_put_var_double(ncid, mslp_id, &lat_lon_output_field[0][0])))
 				NCERR(retval);
-		    interpolate_to_ll(prmsl, lat_lon_output_field, grid);
+		    interpolate_to_ll(mslp, lat_lon_output_field, grid);
 			if ((retval = nc_put_var_double(ncid, sp_id, &lat_lon_output_field[0][0])))
 				NCERR(retval);
 		    interpolate_to_ll(t2, lat_lon_output_field, grid);
 			if ((retval = nc_put_var_double(ncid, t2_id, &lat_lon_output_field[0][0])))
 				NCERR(retval);
-		    interpolate_to_ll(tcdc, lat_lon_output_field, grid);
-			if ((retval = nc_put_var_double(ncid, tcdc_id, &lat_lon_output_field[0][0])))
+		    interpolate_to_ll(tcc, lat_lon_output_field, grid);
+			if ((retval = nc_put_var_double(ncid, tcc_id, &lat_lon_output_field[0][0])))
 				NCERR(retval);
 		    interpolate_to_ll(rprate, lat_lon_output_field, grid);
 			if ((retval = nc_put_var_double(ncid, rprate_id, &lat_lon_output_field[0][0])))
@@ -737,18 +737,18 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		free(wind_10_m_mean_v_at_cell);
 		free(wind_10_m_gusts_speed_at_cell);
 		free(t2);
-		free(prmsl);
+		free(mslp);
 		free(sp);
 		free(rprate);
 		free(sprate);
-		free(tcdc);
+		free(tcc);
 		free(cape);
 		free(sfc_sw_down);
 	}
     
     // Diagnostics of quantities that are not surface-specific.    
-    Scalar_field *divv_h_all_layers = calloc(1, sizeof(Scalar_field));
-	divv_h(state_write_out -> wind, *divv_h_all_layers, grid);
+    Scalar_field *div_h_all_layers = calloc(1, sizeof(Scalar_field));
+	divv_h(state_write_out -> wind, *div_h_all_layers, grid);
 	calc_rel_vort(state_write_out -> wind, diagnostics, grid, dualgrid);
     Scalar_field *rel_vort = calloc(1, sizeof(Scalar_field));
 	curl_field_to_cells(diagnostics -> rel_vort, *rel_vort, grid);
@@ -1028,7 +1028,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		double *wind_u_h = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *wind_v_h = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *rel_vort_h = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double *divv_h = malloc(NO_OF_SCALARS_H*sizeof(double));
+		double *div_h = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *wind_w_h = malloc(NO_OF_SCALARS_H*sizeof(double));
 		char OUTPUT_FILE_PRE[300];
 		sprintf(OUTPUT_FILE_PRE, "%s+%ds.nc", config_io -> run_id, time_since_init_min);
@@ -1050,12 +1050,12 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	    	interpolate_to_ll(wind_u_h, lat_lon_output_field, grid);
 	    	interpolate_to_ll(wind_v_h, lat_lon_output_field, grid);
 	    	interpolate_to_ll(rel_vort_h, lat_lon_output_field, grid);
-    		interpolate_to_ll(divv_h, lat_lon_output_field, grid);
+    		interpolate_to_ll(div_h, lat_lon_output_field, grid);
 		}
 		free(wind_u_h);
 		free(wind_v_h);
 		free(rel_vort_h);
-		free(divv_h);
+		free(div_h);
 		free(temperature_h);
 		free(pressure_h);
 		free(rh_h);
@@ -1079,7 +1079,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
 		sprintf(OUTPUT_FILE, "%s+%ds.nc", config_io -> run_id, time_since_init_min);
 		int ncid, retval, scalar_dimid, soil_dimid, vector_h_dimid, vector_v_dimid, vector_dimid, densities_dimid,
-		curl_field_dimid, single_double_dimid, densities_id, temperature_id, wind_id, rh_id, divv_h_all_layers_id, rel_vort_id,
+		curl_field_dimid, single_double_dimid, densities_id, temperature_id, wind_id, rh_id, div_h_all_layers_id, rel_vort_id,
 		tke_id, soil_id;
 		
 		if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
@@ -1122,9 +1122,9 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			NCERR(retval);
 		if ((retval = nc_put_att_text(ncid, rel_vort_id, "units", strlen("1/s"), "1/s")))
 			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "divv_h_all_layers", NC_DOUBLE, 1, &scalar_dimid, &divv_h_all_layers_id)))
+		if ((retval = nc_def_var(ncid, "div_h", NC_DOUBLE, 1, &scalar_dimid, &div_h_all_layers_id)))
 			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, divv_h_all_layers_id, "units", strlen("1/s"), "1/s")))
+		if ((retval = nc_put_att_text(ncid, div_h_all_layers_id, "units", strlen("1/s"), "1/s")))
 			NCERR(retval);
 		if ((retval = nc_def_var(ncid, "tke", NC_DOUBLE, 1, &scalar_dimid, &tke_id)))
 			NCERR(retval);
@@ -1148,7 +1148,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			NCERR(retval);
 		if ((retval = nc_put_var_double(ncid, rel_vort_id, &(*rel_vort)[0])))
 			NCERR(retval);
-		if ((retval = nc_put_var_double(ncid, divv_h_all_layers_id, &(*divv_h_all_layers)[0])))
+		if ((retval = nc_put_var_double(ncid, div_h_all_layers_id, &(*div_h_all_layers)[0])))
 			NCERR(retval);
 		if ((retval = nc_put_var_double(ncid, tke_id, &irrev -> tke[0])))
 			NCERR(retval);
@@ -1160,7 +1160,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			NCERR(retval);
 	}
 	free(lat_lon_output_field);
-	free(divv_h_all_layers);
+	free(div_h_all_layers);
 	free(rel_vort);
 	free(rh);
 	free(epv);
