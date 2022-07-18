@@ -163,7 +163,7 @@ int epv_diagnostics(Curl_field pot_vort, State *state, Scalar_field epv, Grid *g
 	return 0;
 }
 
-int interpolate_to_ll(double in_field[], double out_field[], Grid *grid)
+int interpolate_to_ll(double in_field[], double out_field[][NO_OF_LON_IO_POINTS], Grid *grid)
 {
 	/*
 	This function interpolates a single-layer scalar field to a lat-lon grid.
@@ -171,21 +171,24 @@ int interpolate_to_ll(double in_field[], double out_field[], Grid *grid)
 	
 	// loop over all output points
 	#pragma omp parallel for
-	for (int i = 0; i < NO_OF_LATLON_IO_POINTS; ++i)
+	for (int i = 0; i < NO_OF_LAT_IO_POINTS; ++i)
 	{
-		// initializing the result with zero
-		out_field[i] = 0;
-		// 1/r-average
-		for (int j = 0; j < 5; ++j)
+		for (int j = 0; j < NO_OF_LON_IO_POINTS; ++j)
 		{
-			if (in_field[grid -> latlon_interpol_indices[5*i + j]] != 9999)
+			// initializing the result with zero
+			out_field[i][j] = 0.0;
+			// 1/r-average
+			for (int k = 0; k < 5; ++k)
 			{
-				out_field[i] += grid -> latlon_interpol_weights[5*i + j]*in_field[grid -> latlon_interpol_indices[5*i + j]];
-			}
-			else
-			{
-				out_field[i] = 9999;
-				break;
+				if (in_field[grid -> latlon_interpol_indices[5*(j + NO_OF_LON_IO_POINTS*i) + k]] != 9999)
+				{
+					out_field[i][j] += grid -> latlon_interpol_weights[5*(j + NO_OF_LON_IO_POINTS*i) + k]*in_field[grid -> latlon_interpol_indices[5*(j + NO_OF_LON_IO_POINTS*i) + k]];
+				}
+				else
+				{
+					out_field[i][j] = 9999;
+					break;
+				}
 			}
 		}
 	}

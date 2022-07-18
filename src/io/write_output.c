@@ -33,12 +33,12 @@ int get_pressure_levels(double pressure_levels[])
 	Remember to adjust NO_OF_PRESSURE_LEVELS adequately.
 	*/
 	
-	pressure_levels[0] = 20000;
-	pressure_levels[1] = 30000;
-	pressure_levels[2] = 50000;
-	pressure_levels[3] = 70000;
-	pressure_levels[4] = 85000;
-	pressure_levels[5] = 92500;
+	pressure_levels[0] = 20000.0;
+	pressure_levels[1] = 30000.0;
+	pressure_levels[2] = 50000.0;
+	pressure_levels[3] = 70000.0;
+	pressure_levels[4] = 85000.0;
+	pressure_levels[5] = 92500.0;
 	return 0;
 }
 
@@ -236,7 +236,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	double cloud_water_content;
 	double vector_to_minimize[NO_OF_LAYERS];
 	
-	double *lat_lon_output_field = malloc(NO_OF_LATLON_IO_POINTS*sizeof(double));
+	double (*lat_lon_output_field)[NO_OF_LON_IO_POINTS] = malloc(sizeof(double[NO_OF_LAT_IO_POINTS][NO_OF_LON_IO_POINTS]));
 	
 	// diagnosing the temperature
 	temperature_diagnostics(state_write_out, grid, diagnostics);
@@ -508,13 +508,13 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			}
 		}
 		
-		// Netcdf output.
+		// hexagonal grid output
 		if (config_io -> hex_output_switch == 1)
 		{
 			char OUTPUT_FILE_PRE[300];
-			sprintf(OUTPUT_FILE_PRE, "%s+%ds_surface.nc", config_io -> run_id, (int) (t_write - t_init));
+			sprintf(OUTPUT_FILE_PRE, "%s+%ds_hex_surface.nc", config_io -> run_id, (int) (t_write - t_init));
 			char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
-			sprintf(OUTPUT_FILE, "%s+%ds_surface.nc", config_io -> run_id, (int) (t_write - t_init));
+			sprintf(OUTPUT_FILE, "%s+%ds_hex_surface.nc", config_io -> run_id, (int) (t_write - t_init));
 			int scalar_h_dimid, mslp_id, ncid, retval, surface_p_id, rprate_id, sprate_id, cape_id, tcdc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id;
 			
 			if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
@@ -598,24 +598,111 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				NCERR(retval);
 		}
 		
-		// Lat-lon output.
+		// lat-lon output
 		if (config_io -> latlon_output_switch == 1)
 		{
 			char OUTPUT_FILE_PRE[300];
 			sprintf(OUTPUT_FILE_PRE, "%s+%ds_surface.nc", config_io -> run_id, (int) (t_write - t_init));
 			char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
 			sprintf(OUTPUT_FILE, "%s+%ds_surface.nc", config_io -> run_id, (int) (t_write - t_init));
+			int lat_dimid, lon_dimid, mslp_id, ncid, retval, surface_p_id, rprate_id, sprate_id, cape_id, tcdc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id;
+			
+			if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
+				NCERR(retval);
+			if ((retval = nc_def_dim(ncid, "lat_index", NO_OF_LAT_IO_POINTS, &lat_dimid)))
+				NCERR(retval);
+			if ((retval = nc_def_dim(ncid, "lon_index", NO_OF_LON_IO_POINTS, &lon_dimid)))
+				NCERR(retval);
+				
+			int lat_lon_dimids[2];
+			lat_lon_dimids[0] = lat_dimid;
+			lat_lon_dimids[1] = lon_dimid;
+			
+			// Defining the variables.
+			if ((retval = nc_def_var(ncid, "mslp", NC_DOUBLE, 2, lat_lon_dimids, &mslp_id)))
+				NCERR(retval);
+			if ((retval = nc_put_att_text(ncid, mslp_id, "units", strlen("Pa"), "Pa")))
+				NCERR(retval);
+			if ((retval = nc_def_var(ncid, "surface_p", NC_DOUBLE, 2, lat_lon_dimids, &surface_p_id)))
+				NCERR(retval);
+			if ((retval = nc_put_att_text(ncid, surface_p_id, "units", strlen("Pa"), "Pa")))
+				NCERR(retval);
+			if ((retval = nc_def_var(ncid, "t2", NC_DOUBLE, 2, lat_lon_dimids, &t2_id)))
+				NCERR(retval);
+			if ((retval = nc_put_att_text(ncid, t2_id, "units", strlen("K"), "K")))
+				NCERR(retval);
+			if ((retval = nc_def_var(ncid, "tcdc", NC_DOUBLE, 2, lat_lon_dimids, &tcdc_id)))
+				NCERR(retval);
+			if ((retval = nc_put_att_text(ncid, tcdc_id, "units", strlen("%"), "%")))
+				NCERR(retval);
+			if ((retval = nc_def_var(ncid, "rprate", NC_DOUBLE, 2, lat_lon_dimids, &rprate_id)))
+				NCERR(retval);
+			if ((retval = nc_put_att_text(ncid, rprate_id, "units", strlen("kg/(m^2s)"), "kg/(m^2s)")))
+				NCERR(retval);
+			if ((retval = nc_def_var(ncid, "sprate", NC_DOUBLE, 2, lat_lon_dimids, &sprate_id)))
+				NCERR(retval);
+			if ((retval = nc_put_att_text(ncid, sprate_id, "units", strlen("kg/(m^2s)"), "kg/(m^2s)")))
+				NCERR(retval);
+			if ((retval = nc_def_var(ncid, "cape", NC_DOUBLE, 2, lat_lon_dimids, &cape_id)))
+				NCERR(retval);
+			if ((retval = nc_put_att_text(ncid, cape_id, "units", strlen("J/kg"), "J/kg")))
+				NCERR(retval);
+			if ((retval = nc_def_var(ncid, "sfc_sw_down", NC_DOUBLE, 2, lat_lon_dimids, &sfc_sw_down_id)))
+				NCERR(retval);
+			if ((retval = nc_put_att_text(ncid, sfc_sw_down_id, "units", strlen("W/m^2"), "W/m^2")))
+				NCERR(retval);
+			if ((retval = nc_def_var(ncid, "10u", NC_DOUBLE, 2, lat_lon_dimids, &u10_id)))
+				NCERR(retval);
+			if ((retval = nc_put_att_text(ncid, u10_id, "units", strlen("m/s"), "m/s")))
+				NCERR(retval);
+			if ((retval = nc_def_var(ncid, "10v", NC_DOUBLE, 2, lat_lon_dimids, &v10_id)))
+				NCERR(retval);
+			if ((retval = nc_put_att_text(ncid, v10_id, "units", strlen("m/s"), "m/s")))
+				NCERR(retval);
+			if ((retval = nc_def_var(ncid, "10gusts", NC_DOUBLE, 2, lat_lon_dimids, &gusts_id)))
+				NCERR(retval);
+			if ((retval = nc_put_att_text(ncid, gusts_id, "units", strlen("m/s"), "m/s")))
+				NCERR(retval);
+			if ((retval = nc_enddef(ncid)))
+				NCERR(retval);
+		    
 		    interpolate_to_ll(surface_p, lat_lon_output_field, grid);
+			if ((retval = nc_put_var_double(ncid, mslp_id, &lat_lon_output_field[0][0])))
+				NCERR(retval);
 		    interpolate_to_ll(mslp, lat_lon_output_field, grid);
+			if ((retval = nc_put_var_double(ncid, surface_p_id, &lat_lon_output_field[0][0])))
+				NCERR(retval);
 		    interpolate_to_ll(t2, lat_lon_output_field, grid);
-		    interpolate_to_ll(rprate, lat_lon_output_field, grid);
-		    interpolate_to_ll(cape, lat_lon_output_field, grid);
-		    interpolate_to_ll(sfc_sw_down, lat_lon_output_field, grid);
-		    interpolate_to_ll(sprate, lat_lon_output_field, grid);
+			if ((retval = nc_put_var_double(ncid, t2_id, &lat_lon_output_field[0][0])))
+				NCERR(retval);
 		    interpolate_to_ll(tcdc, lat_lon_output_field, grid);
+			if ((retval = nc_put_var_double(ncid, tcdc_id, &lat_lon_output_field[0][0])))
+				NCERR(retval);
+		    interpolate_to_ll(rprate, lat_lon_output_field, grid);
+			if ((retval = nc_put_var_double(ncid, rprate_id, &lat_lon_output_field[0][0])))
+				NCERR(retval);
+		    interpolate_to_ll(sprate, lat_lon_output_field, grid);
+			if ((retval = nc_put_var_double(ncid, sprate_id, &lat_lon_output_field[0][0])))
+				NCERR(retval);
+		    interpolate_to_ll(cape, lat_lon_output_field, grid);
+			if ((retval = nc_put_var_double(ncid, cape_id, &lat_lon_output_field[0][0])))
+				NCERR(retval);
+		    interpolate_to_ll(sfc_sw_down, lat_lon_output_field, grid);
+			if ((retval = nc_put_var_double(ncid, sfc_sw_down_id, &lat_lon_output_field[0][0])))
+				NCERR(retval);
 		    interpolate_to_ll(wind_10_m_mean_u_at_cell, lat_lon_output_field, grid);
+			if ((retval = nc_put_var_double(ncid, u10_id, &lat_lon_output_field[0][0])))
+				NCERR(retval);
 		    interpolate_to_ll(wind_10_m_mean_v_at_cell, lat_lon_output_field, grid);
+			if ((retval = nc_put_var_double(ncid, v10_id, &lat_lon_output_field[0][0])))
+				NCERR(retval);
 		    interpolate_to_ll(wind_10_m_gusts_speed_at_cell, lat_lon_output_field, grid);
+			if ((retval = nc_put_var_double(ncid, gusts_id, &lat_lon_output_field[0][0])))
+				NCERR(retval);
+			
+			// Closing the netcdf file.
+			if ((retval = nc_close(ncid)))
+				NCERR(retval);
 		}
 		
 		free(wind_10_m_mean_u_at_cell);
@@ -741,7 +828,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			}
 		}
     	
-		// Netcdf output.
+		// hexagonal grid output
 		if (config_io -> hex_output_switch == 1)
 		{
 			int OUTPUT_FILE_PRESSURE_LEVEL_LENGTH = 300;
@@ -821,7 +908,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				NCERR(retval);
 		}
 		
-		// Lat-lon output.
+		// lat-lon output
 		if (config_io -> latlon_output_switch == 1)
 		{
 			int OUTPUT_FILE_PRESSURE_LEVEL_LENGTH = 300;
@@ -904,7 +991,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
     	free(pressure_levels);
     }
 
-	// Lat-lon output.
+	// lat-lon output
 	if (config_io -> model_level_output_switch == 1 && config_io -> latlon_output_switch == 1)
 	{
 		double *temperature_h = malloc(NO_OF_SCALARS_H*sizeof(double));
@@ -955,7 +1042,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		free(wind_w_h);
 	}
 	
-	// Netcdf output.
+	// Output of the whole model state.
 	if ((config_io -> model_level_output_switch == 1 && config_io -> hex_output_switch == 1)
 	|| (config_io -> ideal_input_id == -1 && (int) (t_write - t_init) == config -> time_to_next_analysis))
 	{
