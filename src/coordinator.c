@@ -97,15 +97,15 @@ int sanity_checker(Config *config, Config_io *config_io, Grid *grid)
     	printf("Aborting.\n");
 		exit(1);
 	}
-	if (config_io -> grib_output_switch != 0 && config_io -> grib_output_switch != 1)
+	if (config_io -> latlon_output_switch != 0 && config_io -> latlon_output_switch != 1)
 	{
-		printf("grib_output_switch must be either 0 or 1.\n");
+		printf("latlon_output_switch must be either 0 or 1.\n");
     	printf("Aborting.\n");
 		exit(1);
 	}
-	if (config_io -> netcdf_output_switch != 0 && config_io -> netcdf_output_switch != 1)
+	if (config_io -> hex_output_switch != 0 && config_io -> hex_output_switch != 1)
 	{
-		printf("netcdf_output_switch must be either 0 or 1.\n");
+		printf("hex_output_switch must be either 0 or 1.\n");
     	printf("Aborting.\n");
 		exit(1);
 	}
@@ -127,9 +127,9 @@ int sanity_checker(Config *config, Config_io *config_io, Grid *grid)
     	printf("Aborting.\n");
 		exit(1);
 	}
-	if (config_io -> grib_output_switch == 0 && config_io -> netcdf_output_switch == 0)
+	if (config_io -> latlon_output_switch == 0 && config_io -> hex_output_switch == 0)
 	{
-		printf("Either grib_output_switch or netcdf_output_switch must be set to 1.\n");
+		printf("Either latlon_output_switch or hex_output_switch must be set to 1.\n");
     	printf("Aborting.\n");
 		exit(1);
 	}
@@ -219,9 +219,9 @@ int read_argv(int argc, char *argv[], Config *config, Config_io *config_io, Grid
     argv++;
     config_io -> ideal_input_id = strtod(argv[agv_counter], NULL);
     argv++;
-	config_io -> grib_output_switch = strtod(argv[agv_counter], NULL);
+	config_io -> latlon_output_switch = strtod(argv[agv_counter], NULL);
     argv++;
-	config_io -> netcdf_output_switch = strtod(argv[agv_counter], NULL);
+	config_io -> hex_output_switch = strtod(argv[agv_counter], NULL);
     argv++;
 	config_io -> pressure_level_output_switch = strtod(argv[agv_counter], NULL);
     argv++;
@@ -393,7 +393,7 @@ int readback_config(Config *config, Config_io *config_io, Grid *grid, char grid_
 	printf("%s", stars);
 	printf("I/O configuration:\n");
 	printf("Output written in intervals of %d s\n", config_io -> write_out_interval);
-	if (config_io -> grib_output_switch == 0)
+	if (config_io -> latlon_output_switch == 0)
 	{
 		printf("Grib output is turned off.\n");
 	}
@@ -401,7 +401,7 @@ int readback_config(Config *config, Config_io *config_io, Grid *grid, char grid_
 	{
 		printf("Grib output is turned on.\n");
 	}
-	if (config_io -> netcdf_output_switch == 0)
+	if (config_io -> hex_output_switch == 0)
 	{
 		printf("Netcdf output is turned off.\n");
 	}

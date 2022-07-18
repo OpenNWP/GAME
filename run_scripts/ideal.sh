@@ -47,8 +47,8 @@ write_out_integrals=1 # If set to 1, fundamental integrals of the atmosphere wil
 model_level_output_switch=0 # If set to 1, variables will be written out on model levels.
 pressure_level_output_switch=1 # If set to 1, additional output on pressure levels will be created. The pressure levels can be set in the file src/io/write_output.c.
 surface_output_switch=1 # If set to 1, surface variables will be diagnozed and writing to separate files.
-grib_output_switch=1 # If set to 1, output will be written to grib files on a lat-lon grid.
-netcdf_output_switch=0 # If set to 1, output will be written to netcdf files on the hexagonal (and pentagonal) cell centers.
+latlon_output_switch=1 # If set to 1, output will be written to netcdf files on a lat-lon grid.
+hex_output_switch=0 # If set to 1, output will be written to netcdf files on the hexagonal (and pentagonal) cell centers.
 time_to_next_analysis=-1 # the time between this model run and the next analysis, only relevant in NWP runs for data assimilation
 
 # parallelization

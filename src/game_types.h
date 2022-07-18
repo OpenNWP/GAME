@@ -239,8 +239,8 @@ Scalar_field tke;
 
 // Info on input and output is collected here.
 typedef struct config_io {
-int grib_output_switch;
-int netcdf_output_switch;
+int latlon_output_switch;
+int hex_output_switch;
 int pressure_level_output_switch;
 int model_level_output_switch;
 int surface_output_switch;

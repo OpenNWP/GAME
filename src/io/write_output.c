@@ -509,7 +509,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		}
 		
 		// Netcdf output.
-		if (config_io -> netcdf_output_switch == 1)
+		if (config_io -> hex_output_switch == 1)
 		{
 			char OUTPUT_FILE_PRE[300];
 			sprintf(OUTPUT_FILE_PRE, "%s+%ds_surface.nc", config_io -> run_id, (int) (t_write - t_init));
@@ -599,7 +599,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		}
 		
 		// Lat-lon output.
-		if (config_io -> grib_output_switch == 1)
+		if (config_io -> latlon_output_switch == 1)
 		{
 			char OUTPUT_FILE_PRE[300];
 			sprintf(OUTPUT_FILE_PRE, "%s+%ds_surface.nc", config_io -> run_id, (int) (t_write - t_init));
@@ -742,7 +742,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		}
     	
 		// Netcdf output.
-		if (config_io -> netcdf_output_switch == 1)
+		if (config_io -> hex_output_switch == 1)
 		{
 			int OUTPUT_FILE_PRESSURE_LEVEL_LENGTH = 300;
 			char *OUTPUT_FILE_PRESSURE_LEVEL_PRE = malloc((OUTPUT_FILE_PRESSURE_LEVEL_LENGTH + 1)*sizeof(char));
@@ -822,7 +822,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		}
 		
 		// Lat-lon output.
-		if (config_io -> grib_output_switch == 1)
+		if (config_io -> latlon_output_switch == 1)
 		{
 			int OUTPUT_FILE_PRESSURE_LEVEL_LENGTH = 300;
 			char *OUTPUT_FILE_PRESSURE_LEVEL_PRE = malloc((OUTPUT_FILE_PRESSURE_LEVEL_LENGTH + 1)*sizeof(char));
@@ -905,7 +905,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
     }
 
 	// Lat-lon output.
-	if (config_io -> model_level_output_switch == 1 && config_io -> grib_output_switch == 1)
+	if (config_io -> model_level_output_switch == 1 && config_io -> latlon_output_switch == 1)
 	{
 		double *temperature_h = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *pressure_h = malloc(NO_OF_SCALARS_H*sizeof(double));
@@ -956,7 +956,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	}
 	
 	// Netcdf output.
-	if ((config_io -> model_level_output_switch == 1 && config_io -> netcdf_output_switch == 1)
+	if ((config_io -> model_level_output_switch == 1 && config_io -> hex_output_switch == 1)
 	|| (config_io -> ideal_input_id == -1 && (int) (t_write - t_init) == config -> time_to_next_analysis))
 	{
 		char OUTPUT_FILE_PRE[300];
