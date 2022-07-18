@@ -203,7 +203,7 @@ int prog_soil_temp;
 int sfc_phase_trans;
 int sfc_sensible_heat_flux;
 int rad_update;
-int time_to_next_analysis;
+int time_to_next_analysis_min;
 int pbl_scheme;
 int total_run_span;
 double damping_start_height_over_toa;

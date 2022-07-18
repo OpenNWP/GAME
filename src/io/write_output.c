@@ -1047,7 +1047,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	
 	// Output of the whole model state.
 	if ((config_io -> model_level_output_switch == 1 && config_io -> hex_output_switch == 1)
-	|| (config_io -> ideal_input_id == -1 && time_since_init_min == config -> time_to_next_analysis))
+	|| (config_io -> ideal_input_id == -1 && time_since_init_min == config -> time_to_next_analysis_min))
 	{
 		char OUTPUT_FILE_PRE[300];
 		sprintf(OUTPUT_FILE_PRE, "%s+%ds.nc", config_io -> run_id, time_since_init_min);

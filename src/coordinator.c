@@ -229,7 +229,7 @@ int read_argv(int argc, char *argv[], Config *config, Config_io *config_io, Grid
     argv++;
 	config_io -> surface_output_switch = strtod(argv[agv_counter], NULL);
     argv++;
-	config -> time_to_next_analysis = strtod(argv[agv_counter], NULL);
+	config -> time_to_next_analysis_min = strtod(argv[agv_counter], NULL);
     argv++;
 	config -> pbl_scheme = strtod(argv[agv_counter], NULL);
     argv++;
