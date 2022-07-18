@@ -30,6 +30,8 @@ int set_z_scalar(double z_scalar[], double oro[], int NO_OF_ORO_LAYERS, double t
 	This function sets the z coordinates of the scalar data points.
 	*/
 	
+	int no_of_scalars_h = NO_OF_SCALARS_H;
+	
 	double z_vertical_vector_pre[NO_OF_LAYERS + 1];
 	// the heights are defined according to z_k = A_k + B_k*oro with A_0 = toa, A_{NO_OF_LEVELS} = 0, B_0 = 0, B_{NO_OF_LEVELS} = 1
 	double A, B, sigma_z, z_rel, max_oro;
@@ -57,7 +59,7 @@ int set_z_scalar(double z_scalar[], double oro[], int NO_OF_ORO_LAYERS, double t
 		// doing a check
 		if (h_index == 0)
 		{
-			max_oro = oro[find_max_index(oro, NO_OF_SCALARS_H)];
+			max_oro = oro[find_max_index(oro, &no_of_scalars_h)];
 			if (max_oro >= z_vertical_vector_pre[NO_OF_LAYERS - NO_OF_ORO_LAYERS])
 			{
 				printf("Maximum of orography larger or equal to the height of the lowest flat level.\n");

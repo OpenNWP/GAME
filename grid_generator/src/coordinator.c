@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
     printf(".\n");
     int no_of_scalars_h = NO_OF_SCALARS_H;
 	printf("minimum orography: %lf m\n", oro[find_min_index(oro, &no_of_scalars_h)]);
-	printf("maximum orography: %lf m\n", oro[find_max_index(oro, NO_OF_SCALARS_H)]);
+	printf("maximum orography: %lf m\n", oro[find_max_index(oro, &no_of_scalars_h)]);
 	
 	/*
 	6.) setting the explicit property of the vertical grid

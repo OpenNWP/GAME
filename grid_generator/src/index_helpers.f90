@@ -10,6 +10,7 @@ module index_helpers
   implicit none
   
   public :: find_min_index
+  public :: find_max_index
   
   contains
 
@@ -39,6 +40,33 @@ module index_helpers
     find_min_index = find_min_index - 1
     
   end function find_min_index
+
+  function find_max_index(vector,vector_length) &
+  bind(c,name = "find_max_index")
+  
+    ! This function returns the index where a vector has its maximum.
+    
+    real(c_double), intent(in) :: vector(vector_length)
+    integer, intent(in)        :: vector_length
+    integer                    :: find_max_index
+    
+    ! local variables
+    integer        :: ji
+    real(c_double) :: current_min
+    
+    find_max_index = 1
+    current_min = vector(1)
+    
+    do ji=2,vector_length
+      if (vector(ji)>current_min) then
+        current_min = vector(ji) 
+        find_max_index = ji
+      endif
+    enddo
+    
+    find_max_index = find_max_index - 1
+    
+  end function find_max_index
 
 end module index_helpers
 

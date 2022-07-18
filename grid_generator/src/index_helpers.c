@@ -10,24 +10,6 @@ This file contains helper functions concerned with simple algebraic operations o
 #include <math.h>
 #include "grid_generator.h"
 
-int find_max_index(double vector[], int vector_length)
-{
-	/*
-	This function returns the index where a vector has its maximum.
-	*/
-    int result = 0;
-    double current_max = vector[0];
-    for (int i = 1; i < vector_length; i++)
-    {
-        if(vector[i] > current_max)
-        {
-            current_max = vector[i];
-            result = i;
-        }
-    }
-    return result;
-}
-
 int find_min_index_exclude(double vector[], int vector_length, int exclude_indices_vector[], int exclude_indices_vector_length)
 {
 	/*

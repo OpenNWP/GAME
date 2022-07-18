@@ -101,7 +101,7 @@ int no_of_lloyd_iterations, char grid_name[], char statistics_file_name[])
 	
     double area_max, area_min, normal_distance_h_min, normal_distance_h_max, normal_distance_dual_h_min, normal_distance_dual_h_max;
     area_min = pent_hex_face_unity_sphere[find_min_index(pent_hex_face_unity_sphere, &no_of_scalars_h)];
-    area_max = pent_hex_face_unity_sphere[find_max_index(pent_hex_face_unity_sphere, NO_OF_SCALARS_H)];
+    area_max = pent_hex_face_unity_sphere[find_max_index(pent_hex_face_unity_sphere, &no_of_scalars_h)];
     double *horizontal_distance = malloc(NO_OF_VECTORS_H*sizeof(double));
     #pragma omp parallel for
     for (int i = 0; i < NO_OF_VECTORS_H; ++i)
@@ -109,7 +109,7 @@ int no_of_lloyd_iterations, char grid_name[], char statistics_file_name[])
     	horizontal_distance[i] = normal_distance[NO_OF_SCALARS_H + i];
     }
     normal_distance_h_min = horizontal_distance[find_min_index(horizontal_distance, &no_of_vectors_h)];
-    normal_distance_h_max = horizontal_distance[find_max_index(horizontal_distance, NO_OF_VECTORS_H)];
+    normal_distance_h_max = horizontal_distance[find_max_index(horizontal_distance, &no_of_vectors_h)];
     double *horizontal_distance_dual = malloc(NO_OF_VECTORS_H*sizeof(double));
     #pragma omp parallel for
     for (int i = 0; i < NO_OF_VECTORS_H; ++i)
@@ -117,7 +117,7 @@ int no_of_lloyd_iterations, char grid_name[], char statistics_file_name[])
     	horizontal_distance_dual[i] = normal_distance_dual[i];
     }
     normal_distance_dual_h_min = horizontal_distance_dual[find_min_index(horizontal_distance_dual, &no_of_vectors_h)];
-    normal_distance_dual_h_max = horizontal_distance_dual[find_max_index(horizontal_distance_dual, NO_OF_VECTORS_H)];
+    normal_distance_dual_h_max = horizontal_distance_dual[find_max_index(horizontal_distance_dual, &no_of_vectors_h)];
     FILE *statistics_file = fopen(statistics_file_name, "w");
     fprintf(statistics_file, "Statistical properties of grid %s:\n\n", grid_name);
     fprintf(statistics_file, "Number of Lloyd iterations: %d\n", no_of_lloyd_iterations);
