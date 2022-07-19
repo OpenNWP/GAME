@@ -1031,9 +1031,9 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		double *div_h = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *wind_w_h = malloc(NO_OF_SCALARS_H*sizeof(double));
 		char OUTPUT_FILE_PRE[300];
-		sprintf(OUTPUT_FILE_PRE, "%s+%ds.nc", config_io -> run_id, time_since_init_min);
+		sprintf(OUTPUT_FILE_PRE, "%s+%dmin.nc", config_io -> run_id, time_since_init_min);
 		char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
-		sprintf(OUTPUT_FILE, "%s+%ds.nc", config_io -> run_id, time_since_init_min);
+		sprintf(OUTPUT_FILE, "%s+%dmin.nc", config_io -> run_id, time_since_init_min);
 		
 		for (int i = 0; i < NO_OF_LAYERS; ++i)
 		{
@@ -1075,9 +1075,9 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	|| (config_io -> ideal_input_id == -1 && time_since_init_min == config -> time_to_next_analysis_min))
 	{
 		char OUTPUT_FILE_PRE[300];
-		sprintf(OUTPUT_FILE_PRE, "%s+%ds.nc", config_io -> run_id, time_since_init_min);
+		sprintf(OUTPUT_FILE_PRE, "%s+%dmin.nc", config_io -> run_id, time_since_init_min);
 		char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
-		sprintf(OUTPUT_FILE, "%s+%ds.nc", config_io -> run_id, time_since_init_min);
+		sprintf(OUTPUT_FILE, "%s+%dmin.nc", config_io -> run_id, time_since_init_min);
 		int ncid, retval, scalar_dimid, soil_dimid, vector_h_dimid, vector_v_dimid, vector_dimid, densities_dimid,
 		curl_field_dimid, single_double_dimid, densities_id, temperature_id, wind_id, rh_id, div_h_all_layers_id, rel_vort_id,
 		tke_id, soil_id;
