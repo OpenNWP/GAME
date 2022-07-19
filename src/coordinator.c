@@ -31,9 +31,9 @@ int sanity_checker(Config *config, Config_io *config_io, Grid *grid)
     	printf("Aborting.\n");
     	exit(1);
     }
-    if (config_io -> write_out_interval < 900)
+    if (config_io -> write_out_interval_min < 15)
     {
-    	printf("It is write_out_interval < 900.\n");
+    	printf("It is write_out_interval_min < 15.\n");
     	printf("Aborting.\n");
     	exit(1);
     }
@@ -184,9 +184,9 @@ int read_argv(int argc, char *argv[], Config *config, Config_io *config_io, Grid
 	This function reads the command-line arguments.
 	*/
     int agv_counter = 1;
-    config -> total_run_span = strtod(argv[agv_counter], NULL);
+    config -> total_run_span_min = strtod(argv[agv_counter], NULL);
     argv++;
-    config_io -> write_out_interval = strtod(argv[agv_counter], NULL);
+    config_io -> write_out_interval_min = strtod(argv[agv_counter], NULL);
     argv++;
     config -> momentum_diff_h = strtod(argv[agv_counter], NULL);
     argv++;
@@ -392,7 +392,7 @@ int readback_config(Config *config, Config_io *config_io, Grid *grid, char grid_
 	
 	printf("%s", stars);
 	printf("I/O configuration:\n");
-	printf("Output written in intervals of %d s\n", config_io -> write_out_interval);
+	printf("Output written in intervals of %d min\n", config_io -> write_out_interval_min);
 	if (config_io -> latlon_output_switch == 0)
 	{
 		printf("Grib output is turned off.\n");
@@ -533,7 +533,7 @@ int main(int argc, char *argv[])
     printf("%s", stars);
 	printf("What you want to do:\n");
 	printf("Run_id:\t\t\t\t\t%s\n", config_io -> run_id);
-	printf("Run time span:\t\t\t\t%d days\n", config -> total_run_span/86400);
+	printf("Run time span:\t\t\t\t%d days\n", config -> total_run_span_min/(24*60));
 	printf("Grid properties file:\t\t\t%s\n", grid_file);
 	
     // reading the grid
@@ -543,8 +543,8 @@ int main(int argc, char *argv[])
     
     // rescaling times for small Earth experiments
     double radius_rescale = grid -> radius/RADIUS;
-    config -> total_run_span = radius_rescale*config -> total_run_span;
-    config_io -> write_out_interval = radius_rescale*config_io -> write_out_interval;
+    config -> total_run_span_min = radius_rescale*config -> total_run_span_min;
+    config_io -> write_out_interval_min = radius_rescale*config_io -> write_out_interval_min;
     
     /*
     Giving the user some additional information on the run to about to be executed.
@@ -686,7 +686,7 @@ int main(int argc, char *argv[])
     write_out(state_old, wind_h_lowest_layer, min_no_of_10m_wind_avg_steps, t_init, t_write,
     diagnostics, forcings, grid, dualgrid, config_io, config, irrev);
     
-    t_write += config_io -> write_out_interval;
+    t_write += 60*config_io -> write_out_interval_min;
     printf("Run progress: %f h\n", (t_init - t_init)/3600);
     int time_step_counter = 0;
     clock_t first_time, second_time;
@@ -713,7 +713,7 @@ int main(int argc, char *argv[])
     config -> totally_first_step_bool = 1;
     // this is to store the speed of the model integration
     double speed;
-    while (t_0 < t_init + config -> total_run_span + radius_rescale*300)
+    while (t_0 < t_init + 60*config -> total_run_span_min + radius_rescale*300)
     {
     	// copying the new state into the old state
     	linear_combine_two_states(state_new, state_old, state_old, 1, 0, grid);
@@ -779,11 +779,11 @@ int main(int argc, char *argv[])
             write_out(state_write, wind_h_lowest_layer, min_no_of_10m_wind_avg_steps, t_init, t_write, diagnostics, forcings,
             grid, dualgrid, config_io, config, irrev);
             // setting the next output time
-            t_write += config_io -> write_out_interval;
+            t_write += 60*config_io -> write_out_interval_min;
             
             // Calculating the speed of the model.
             second_time = clock();
-        	speed = CLOCKS_PER_SEC*config_io -> write_out_interval/((double) second_time - first_time);
+        	speed = CLOCKS_PER_SEC*60*config_io -> write_out_interval_min/((double) second_time - first_time);
             printf("Current speed: %lf\n", speed);
             first_time = clock();
             printf("Run progress: %f h\n", (t_0 + delta_t - t_init)/3600);
@@ -820,7 +820,7 @@ int main(int argc, char *argv[])
     printf("%s", stars);
     free(stars);
     clock_t end = clock();
-    speed = CLOCKS_PER_SEC*(config -> total_run_span + 300)/((double) end - begin);
+    speed = CLOCKS_PER_SEC*(60*config -> total_run_span_min + 300)/((double) end - begin);
     free(config);
     printf("Average speed: %lf\n", speed);
     printf("GAME over.\n");
