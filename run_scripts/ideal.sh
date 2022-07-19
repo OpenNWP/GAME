@@ -42,7 +42,7 @@ sfc_sensible_heat_flux=1 # switch for sensible heat flux at the surface
 pbl_scheme=1 # planetary boundary layer scheme: 0: off, 1: NWP, 2: Held-Suarez
 
 # I/O
-write_out_interval_min=86400 # every how many minutes an output file will be created; for small Earth experiments this will be rescaled proportional to the radius
+write_out_interval_min=1440 # every how many minutes an output file will be created; for small Earth experiments this will be rescaled proportional to the radius
 write_out_integrals=1 # If set to 1, fundamental integrals of the atmosphere will be written out at every time step.
 model_level_output_switch=0 # If set to 1, variables will be written out on model levels.
 pressure_level_output_switch=1 # If set to 1, additional output on pressure levels will be created. The pressure levels can be set in the file src/io/write_output.c.
