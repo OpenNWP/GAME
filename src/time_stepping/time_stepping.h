@@ -3,7 +3,7 @@ This source file is part of the Geophysical Fluids Modeling Framework (GAME), wh
 Github repository: https://github.com/OpenNWP/GAME
 */
 
-int manage_rkhevi(State *, State *, Grid *, Dualgrid *, State *, Diagnostics *, Forcings *, Irreversible_quantities *, Config *, double, double);
+int manage_pchevi(State *, State *, Grid *, Dualgrid *, State *, Diagnostics *, Forcings *, Irreversible_quantities *, Config *, double, double);
 int manage_pressure_gradient(State *, Grid *, Dualgrid *, Diagnostics *, Forcings *,  Irreversible_quantities *, Config *);
 int calc_pressure_grad_condensates_v(State *, Grid *, Forcings *, Irreversible_quantities *);
 int vector_tendencies_expl(State *, State *, Grid *, Dualgrid *, Diagnostics *, Forcings *, Irreversible_quantities *, Config *, int, double);

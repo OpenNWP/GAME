@@ -4,7 +4,7 @@ Github repository: https://github.com/OpenNWP/GAME
 */
 
 /*
-This file manages the RKHEVI time stepping.
+This file manages the predictor-corrector HEVI time stepping.
 */
 
 #include <stdlib.h>
@@ -16,7 +16,7 @@ This file manages the RKHEVI time stepping.
 #include "../subgrid_scale/subgrid_scale.h"
 #include "../io/io.h"
 
-int manage_rkhevi(State *state_old, State *state_new, Grid *grid, Dualgrid *dualgrid, State *state_tendency, Diagnostics *diagnostics, Forcings *forcings,
+int manage_pchevi(State *state_old, State *state_new, Grid *grid, Dualgrid *dualgrid, State *state_tendency, Diagnostics *diagnostics, Forcings *forcings,
 Irreversible_quantities *irrev, Config *config, double delta_t, double time_coordinate)
 {
 	/*

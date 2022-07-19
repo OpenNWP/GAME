@@ -733,7 +733,7 @@ int main(int argc, char *argv[])
     	}
     	
     	// Time step integration.
-    	manage_rkhevi(state_old, state_new, grid, dualgrid, state_tendency, diagnostics, forcings, irrev, config, delta_t, t_0);
+    	manage_pchevi(state_old, state_new, grid, dualgrid, state_tendency, diagnostics, forcings, irrev, config, delta_t, t_0);
     	// This switch can be set to zero now and remains there.
     	config -> totally_first_step_bool = 0;
 		time_step_counter += 1;	
