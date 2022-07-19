@@ -31,18 +31,6 @@ int find_min_index_exclude(double vector[], int vector_length, int exclude_indic
     return result;
 }
 
-int freverse_int(int vector_in[], int vector_length, int vector_out[])
-{
-	/*
-	This function reverses a vector of integers.
-	*/
-	for (int i = 0; i < vector_length; ++i)
-	{
-		vector_out[i] = vector_in[((int) vector_length) - 1 - i];
-	}
-	return 0;
-}
-
 double double_sum_gen(double vector[], int vector_length, int first_index, int second_index)
 {
 	/*

@@ -74,7 +74,6 @@ double deg2rad(double);
 double rad2deg(double);
 int find_min_index_exclude(double [], int, int [], int);
 int in_bool_calculator(int, int [], int);
-int freverse_int(int[], int, int[]);
 double double_sum_gen(double[], int, int, int);
 
 

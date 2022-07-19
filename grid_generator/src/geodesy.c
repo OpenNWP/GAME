@@ -485,7 +485,10 @@ int sort_edge_indices(double lat_points[], double lon_points[], int number_of_ed
 	}
 	if (needs_to_be_reversed == 1)
 	{
-		freverse_int(indices_resorted, (int) number_of_edges, indices_resorted_w_dir);
+		for (int i = 0; i < number_of_edges; ++i)
+		{
+			indices_resorted_w_dir[i] = indices_resorted[number_of_edges - 1 - i];
+		}
 		for (int i = 0; i < number_of_edges; ++i)
 		{
 			indices_resorted[i] = indices_resorted_w_dir[i];

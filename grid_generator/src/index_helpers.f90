@@ -9,6 +9,8 @@ module index_helpers
   
   implicit none
   
+  private
+  
   public :: find_min_index
   public :: find_max_index
   
