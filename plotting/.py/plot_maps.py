@@ -313,9 +313,9 @@ for i in range(int((run_span - start_time_since_init_min)/plot_interval_min) + 1
 		cmap = plt.get_cmap(colormap)
 	time_after_init_min =  start_time_since_init_min + i*plot_interval_min
 	if surface_bool == 0:
-		print("plotting " + var_id + " at level " + str(level) + " for t - t_init = " + str(time_after_init_min) + " s ...")
+		print("plotting " + var_id + " at level " + str(level) + " for t - t_init = " + str(time_after_init_min) + " min ...")
 	if surface_bool == 1:
-		print("plotting " + var_id + " for t - t_init = " + str(time_after_init_min) + " s ...")
+		print("plotting " + var_id + " for t - t_init = " + str(time_after_init_min) + " min ...")
 	if (projection == "Orthographic"):
 		fig = plt.figure(figsize = (fig_size, fig_size))
 		coord_sys = cs.GeogCS(6371229)
