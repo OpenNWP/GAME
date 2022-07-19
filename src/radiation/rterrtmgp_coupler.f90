@@ -32,9 +32,6 @@ module radiation
   integer, parameter :: no_of_sw_bands = 14
   ! the number of bands in the long wave region
   integer, parameter :: no_of_lw_bands = 16
-  ! used for C interoperability
-  integer            :: zero = 0
-  integer            :: one = 1
   
   ! specific gas constants
   real(wp)           :: R_D = 287.057811_wp
