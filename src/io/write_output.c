@@ -235,8 +235,8 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
     int init_month = p_init_time -> tm_mon;
     int init_day = p_init_time -> tm_mday;
     int init_hour = p_init_time -> tm_hour;
-    long data_date = 10000*(init_year + 1900) + 100*(init_month + 1) + init_day;
-    long data_time = 100*init_hour;
+    int init_date = 10000*(init_year + 1900) + 100*(init_month + 1) + init_day;
+    int init_time = 100*init_hour;
 	
 	// precipitation rates smaller than this value are set to zero to not confuse users
 	double min_precip_rate_mmh = 0.01;
@@ -246,7 +246,6 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	
 	// Needed for netcdf.
     int retval;
-	int err = 0;
 	
 	int layer_index, closest_index, second_closest_index;
 	double cloud_water_content;
@@ -534,14 +533,21 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			sprintf(OUTPUT_FILE_PRE, "%s+%dmin_hex_surface.nc", config_io -> run_id, time_since_init_min);
 			char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
 			sprintf(OUTPUT_FILE, "%s+%dmin_hex_surface.nc", config_io -> run_id, time_since_init_min);
-			int scalar_h_dimid, mslp_id, ncid, retval, sp_id, rprate_id, sprate_id, cape_id, tcc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id;
+			int scalar_h_dimid, mslp_id, ncid, retval, sp_id, rprate_id, sprate_id, cape_id, tcc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id,
+			single_int_dimid, analysis_date_id, analysis_time_id;;
 			
 			if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
+				NCERR(retval);
+			if ((retval = nc_def_dim(ncid, "single_int_index", 1, &single_int_dimid)))
 				NCERR(retval);
 			if ((retval = nc_def_dim(ncid, "scalar_index_h", NO_OF_SCALARS_H, &scalar_h_dimid)))
 				NCERR(retval);
 			
 			// Defining the variables.
+			if ((retval = nc_def_var(ncid, "analysis_date", NC_INT, 1, &single_int_dimid, &analysis_date_id)))
+				NCERR(retval);
+			if ((retval = nc_def_var(ncid, "analysis_time", NC_INT, 1, &single_int_dimid, &analysis_time_id)))
+				NCERR(retval);
 			if ((retval = nc_def_var(ncid, "mslp", NC_DOUBLE, 1, &scalar_h_dimid, &mslp_id)))
 				NCERR(retval);
 			if ((retval = nc_put_att_text(ncid, mslp_id, "units", strlen("Pa"), "Pa")))
@@ -588,7 +594,11 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				NCERR(retval);
 			if ((retval = nc_enddef(ncid)))
 				NCERR(retval);
-			
+		    
+			if ((retval = nc_put_var_int(ncid, analysis_date_id, &init_date)))
+				NCERR(retval);
+			if ((retval = nc_put_var_int(ncid, analysis_time_id, &init_time)))
+				NCERR(retval);
 			if ((retval = nc_put_var_double(ncid, mslp_id, &mslp[0])))
 				NCERR(retval);
 			if ((retval = nc_put_var_double(ncid, sp_id, &sp[0])))
@@ -625,9 +635,11 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
 			sprintf(OUTPUT_FILE, "%s+%dmin_surface.nc", config_io -> run_id, time_since_init_min);
 			int lat_dimid, lon_dimid, lat_id, lon_id, mslp_id, ncid, retval, sp_id, rprate_id, sprate_id,
-			cape_id, tcc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id;
+			cape_id, tcc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id, single_int_dimid, analysis_date_id, analysis_time_id;
 			
 			if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
+				NCERR(retval);
+			if ((retval = nc_def_dim(ncid, "single_int_index", 1, &single_int_dimid)))
 				NCERR(retval);
 			if ((retval = nc_def_dim(ncid, "lat_index", NO_OF_LAT_IO_POINTS, &lat_dimid)))
 				NCERR(retval);
@@ -639,6 +651,10 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			lat_lon_dimids[1] = lon_dimid;
 			
 			// Defining the variables.
+			if ((retval = nc_def_var(ncid, "analysis_date", NC_INT, 1, &single_int_dimid, &analysis_date_id)))
+				NCERR(retval);
+			if ((retval = nc_def_var(ncid, "analysis_time", NC_INT, 1, &single_int_dimid, &analysis_time_id)))
+				NCERR(retval);
 			if ((retval = nc_def_var(ncid, "lat", NC_DOUBLE, 1, &lat_dimid, &lat_id)))
 				NCERR(retval);
 			if ((retval = nc_def_var(ncid, "lon", NC_DOUBLE, 1, &lon_dimid, &lon_id)))
@@ -690,6 +706,10 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			if ((retval = nc_enddef(ncid)))
 				NCERR(retval);
 		    
+			if ((retval = nc_put_var_int(ncid, analysis_date_id, &init_date)))
+				NCERR(retval);
+			if ((retval = nc_put_var_int(ncid, analysis_time_id, &init_time)))
+				NCERR(retval);
 			if ((retval = nc_put_var_double(ncid, lat_id, &lat_vector[0])))
 				NCERR(retval);
 			if ((retval = nc_put_var_double(ncid, lon_id, &lon_vector[0])))
@@ -838,20 +858,20 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 					closest_weight = 1 - vector_to_minimize[closest_index]/
 					(fabs(log((*pressure)[closest_index*NO_OF_SCALARS_H + i]/(*pressure)[second_closest_index*NO_OF_SCALARS_H + i])) + EPSILON_SECURITY);
 					geopotential_height[i][j] = closest_weight*grid -> gravity_potential[closest_index*NO_OF_SCALARS_H + i]
-					+ (1 - closest_weight)*grid -> gravity_potential[second_closest_index*NO_OF_SCALARS_H + i];
+					+ (1.0 - closest_weight)*grid -> gravity_potential[second_closest_index*NO_OF_SCALARS_H + i];
 					geopotential_height[i][j] = geopotential_height[i][j]/G_MEAN_SFC_ABS;
 					t_on_pressure_levels[i][j] = closest_weight*diagnostics -> temperature[closest_index*NO_OF_SCALARS_H + i]
-					+ (1 - closest_weight)*diagnostics -> temperature[second_closest_index*NO_OF_SCALARS_H + i];
+					+ (1.0 - closest_weight)*diagnostics -> temperature[second_closest_index*NO_OF_SCALARS_H + i];
 					rh_on_pressure_levels[i][j] = closest_weight*(*rh)[closest_index*NO_OF_SCALARS_H + i]
-					+ (1 - closest_weight)*(*rh)[second_closest_index*NO_OF_SCALARS_H + i];
+					+ (1.0 - closest_weight)*(*rh)[second_closest_index*NO_OF_SCALARS_H + i];
 					epv_on_pressure_levels[i][j] = closest_weight*(*epv)[closest_index*NO_OF_SCALARS_H + i]
-					+ (1 - closest_weight)*(*epv)[second_closest_index*NO_OF_SCALARS_H + i];
+					+ (1.0 - closest_weight)*(*epv)[second_closest_index*NO_OF_SCALARS_H + i];
 					rel_vort_on_pressure_levels[i][j] = closest_weight*(*rel_vort)[closest_index*NO_OF_SCALARS_H + i]
-					+ (1 - closest_weight)*(*rel_vort)[second_closest_index*NO_OF_SCALARS_H + i];
+					+ (1.0 - closest_weight)*(*rel_vort)[second_closest_index*NO_OF_SCALARS_H + i];
 					u_on_pressure_levels[i][j] = closest_weight*diagnostics-> u_at_cell[closest_index*NO_OF_SCALARS_H + i]
-					+ (1 - closest_weight)*diagnostics-> u_at_cell[second_closest_index*NO_OF_SCALARS_H + i];
+					+ (1.0 - closest_weight)*diagnostics-> u_at_cell[second_closest_index*NO_OF_SCALARS_H + i];
 					v_on_pressure_levels[i][j] = closest_weight*diagnostics-> v_at_cell[closest_index*NO_OF_SCALARS_H + i]
-					+ (1 - closest_weight)*diagnostics-> v_at_cell[second_closest_index*NO_OF_SCALARS_H + i];
+					+ (1.0 - closest_weight)*diagnostics-> v_at_cell[second_closest_index*NO_OF_SCALARS_H + i];
 				}
 			}
 		}
@@ -870,6 +890,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			if ((retval = nc_create(OUTPUT_FILE_PRESSURE_LEVEL, NC_CLOBBER, &ncid_pressure_level)))
 				NCERR(retval);
 			free(OUTPUT_FILE_PRESSURE_LEVEL);
+			
 			if ((retval = nc_def_dim(ncid_pressure_level, "scalar_index_h", NO_OF_SCALARS_H, &scalar_h_dimid)))
 				NCERR(retval);
 			if ((retval = nc_def_dim(ncid_pressure_level, "level_index", NO_OF_PRESSURE_LEVELS, &level_dimid)))
@@ -877,6 +898,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			int dimids_pressure_level_scalar[2];
 			dimids_pressure_level_scalar[0] = scalar_h_dimid;
 			dimids_pressure_level_scalar[1] = level_dimid;
+			
 			// Defining the variables.
 			if ((retval = nc_def_var(ncid_pressure_level, "pressure_levels", NC_DOUBLE, 1, &level_dimid, &pressure_levels_id)))
 				NCERR(retval);

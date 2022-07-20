@@ -21,7 +21,7 @@ import iris.coord_systems as cs
 import iris.plot as iplt
 import math
 
-run_span = int(sys.argv[1])
+run_span_min = int(sys.argv[1])
 plot_interval_min = int(sys.argv[2])
 level = int(sys.argv[3])
 var_id = sys.argv[4]
@@ -166,7 +166,7 @@ if unit_string == "kn":
 disp_time_in_hr = 0
 time_unit_string = "min"
 
-if run_span > 24*3600 or synoptical_time_mode == 1:
+if run_span_min > 24*3600 or synoptical_time_mode == 1:
     disp_time_in_hr = 1
     time_unit_string = "hr"
 
@@ -186,10 +186,7 @@ else:
 
 # finiding the analysis time
 init_year, init_month, init_day, init_hour = rmo.return_analysis_time(input_file)
-init_year = int(init_year)
-init_month = int(init_month)
-init_day = int(init_day)
-start_timestamp = tcs.find_time_coord(int(init_year), int(init_month), int(init_day), init_hour, 0, 0, 0)
+start_timestamp = tcs.find_time_coord(init_year, init_month, init_day, init_hour, 0, 0, 0)
 
 if var_id == "surface_wind":
 	lat, lon, values_pre = rmo.fetch_model_output(input_file, start_time_since_init_min, "gust")
@@ -201,15 +198,15 @@ else:
 if var_id == "tcc":
 	values_pre[np.where(values_pre > 100.0)] = 100.0
 
-values = np.zeros([len(lat), len(lon), int((run_span - start_time_since_init_min)/plot_interval_min) + 1])
+values = np.zeros([len(lat), len(lon), int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1])
 values[:, :, 0] = rescale*values_pre + shift
 if var_id == "surface_wind":
-	values_10u = np.zeros([len(lat), len(lon), int((run_span - start_time_since_init_min)/plot_interval_min) + 1])
+	values_10u = np.zeros([len(lat), len(lon), int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1])
 	values_10u[:, :, 0] = rescale*values_pre_10u + shift
-	values_v10 = np.zeros([len(lat), len(lon), int((run_span - start_time_since_init_min)/plot_interval_min) + 1])
+	values_v10 = np.zeros([len(lat), len(lon), int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1])
 	values_v10[:, :, 0] = rescale*values_pre_v10 + shift
 
-for i in np.arange(1, int((run_span - start_time_since_init_min)/plot_interval_min) + 1):
+for i in np.arange(1, int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1):
 	time_after_init_min = start_time_since_init_min + i*plot_interval_min
 	if on_pressure_bool == 0:
 		if surface_bool == 1:
@@ -289,7 +286,7 @@ if uniform_range == 1:
 	cmap = plt.get_cmap(colormap)
 
 fig_size = 7
-for i in range(int((run_span - start_time_since_init_min)/plot_interval_min) + 1):
+for i in range(int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1):
 	if uniform_range == 0:
 		if projection == "Gnomonic":
 			total_min = np.nanmin(values[scope_bool_array, i])

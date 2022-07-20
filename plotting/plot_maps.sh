@@ -5,7 +5,7 @@
 
 game_home_dir=~/code/GAME # the home directory of GAME
 run_id=ideal # the run id which you want to plot
-run_span=$((0*24*3600)) # the length of the run
+run_span_min=$((100*24*60)) # the length of the run
 output_dir=$game_home_dir/output/$run_id # the directory where the grib files are stored
 fig_save_path=$game_home_dir/figs # the directory in which the figures will be saved
 start_time_since_init=0 # when to begin plotting reative to the model initialization
