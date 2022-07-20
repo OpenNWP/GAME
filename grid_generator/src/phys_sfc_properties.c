@@ -130,6 +130,7 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 	// smoothing the real orography
 	int min_indices_vector[no_of_avg_points];
 	double distance_vector[NO_OF_SCALARS_H];
+	int no_of_scalars_h = NO_OF_SCALARS_H;
 	if (oro_id == 1)
 	{
 		#pragma omp parallel for private(min_indices_vector, distance_vector)
@@ -146,7 +147,7 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 			}
 			for (int j = 0; j < no_of_avg_points; ++j)
 			{
-				min_indices_vector[j] = find_min_index_exclude(distance_vector, NO_OF_SCALARS_H, min_indices_vector, no_of_avg_points);
+				min_indices_vector[j] = find_min_index_exclude(distance_vector, &no_of_scalars_h, min_indices_vector, &no_of_avg_points);
 			}
 			oro[i] = 0.0;
 			for (int j = 0; j < no_of_avg_points; ++j)

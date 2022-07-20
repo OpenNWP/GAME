@@ -13,6 +13,7 @@ module index_helpers
   
   public :: find_min_index
   public :: find_max_index
+  public :: find_min_index_exclude
   public :: in_bool_calculator
   
   contains
@@ -43,6 +44,42 @@ module index_helpers
     find_min_index = find_min_index - 1
     
   end function find_min_index
+  
+  function find_min_index_exclude(vector,vector_length,exclude_indices_vector,exclude_indices_vector_length) &
+  bind(c,name = "find_min_index_exclude")
+  
+    ! This function finds the index where a vector has its minimum, excluding the elements of another vector.
+    
+    real(c_double), intent(in) :: vector(vector_length)
+    integer, intent(in)        :: vector_length
+    integer, intent(in)        :: exclude_indices_vector(exclude_indices_vector_length)
+    integer, intent(in)        :: exclude_indices_vector_length
+    integer                    :: find_min_index_exclude
+    
+    ! local variables
+    integer        :: ji
+    real(c_double) :: current_min
+    
+    current_min = maxval(vector) + 1.0
+    find_min_index_exclude = 0
+    
+    do ji=1,vector_length
+      if (vector(ji)<current_min) then
+        if (in_bool_calculator(ji,exclude_indices_vector,exclude_indices_vector_length)==0) then
+          current_min = vector(ji)
+          find_min_index_exclude = ji
+        endif
+      endif
+    enddo
+    
+    find_min_index_exclude = find_min_index_exclude - 1
+    
+    if (find_min_index_exclude==-1) then
+      write(*,*) "Function find_min_index_exclude failed."
+      call exit(1)
+    endif
+    
+  end function find_min_index_exclude
 
   function find_max_index(vector,vector_length) &
   bind(c,name = "find_max_index")

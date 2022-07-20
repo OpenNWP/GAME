@@ -22,7 +22,6 @@ src/coriolis.c
 src/discrete_coordinate_trafos.c
 src/interpolate_ll.c
 src/phys_sfc_properties.c
-src/index_helpers.c
 src/index_helpers.f90
 src/horizontal_generation.c
 src/vertical_grid.c

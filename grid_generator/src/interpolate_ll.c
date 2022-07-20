@@ -56,9 +56,11 @@ int interpolate_ll(double latitude_scalar[], double longitude_scalar[], int inte
 			min_indices_vector[j] = -1;
 		}
 		weights_sum = 0;
+		int no_of_scalars_h = NO_OF_SCALARS_H;
+		int five = 5;
 		for (int j = 0; j < 5; ++j)
 		{
-			min_indices_vector[j] = find_min_index_exclude(distance_vector, NO_OF_SCALARS_H, min_indices_vector, 5);
+			min_indices_vector[j] = find_min_index_exclude(distance_vector, &no_of_scalars_h, min_indices_vector, &five);
 			weights_vector[j] = 1/(pow(distance_vector[min_indices_vector[j]], 2 + EPSILON_SECURITY) + EPSILON_SECURITY);
 			weights_sum += weights_vector[j];
 		}

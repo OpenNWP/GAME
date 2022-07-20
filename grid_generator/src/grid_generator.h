@@ -72,7 +72,6 @@ int sort_edge_indices(double[], double[], int, int[]);
 double find_turn_angle(double, double);
 double deg2rad(double);
 double rad2deg(double);
-int find_min_index_exclude(double [], int, int [], int);
 double double_sum_gen(double[], int, int, int);
 
 

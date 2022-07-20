@@ -204,8 +204,26 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 						first_index = (l + 1)%no_of_edges;
 					}
 				}
-				sum_of_weights = double_sum_gen(vector_of_areas, no_of_edges, first_index, last_index);
-				
+				sum_of_weights = 0.0;
+				if (first_index <= last_index)
+				{
+					for (int l = first_index; l <= last_index; ++l)
+					{
+						sum_of_weights += vector_of_areas[l];
+					}
+				}
+				else
+				{
+					for (int l = first_index; l < no_of_edges; ++l)
+					{
+						sum_of_weights += vector_of_areas[l];
+					}
+					for (int l = 0; l <= last_index; ++l)
+					{
+						sum_of_weights += vector_of_areas[l];
+					}	
+				}
+							
 				// dividing by the cell area
 				sum_of_weights = sum_of_weights/(rescale_for_z_offset_2d*area[from_or_to_index[i]]);
 				// checking for reliability
