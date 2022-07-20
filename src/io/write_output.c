@@ -534,7 +534,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
 			sprintf(OUTPUT_FILE, "%s+%dmin_hex_surface.nc", config_io -> run_id, time_since_init_min);
 			int scalar_h_dimid, mslp_id, ncid, retval, sp_id, rprate_id, sprate_id, cape_id, tcc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id,
-			single_int_dimid, analysis_date_id, analysis_time_id;;
+			single_int_dimid, start_day_id, start_hour_id;;
 			
 			if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
 				NCERR(retval);
@@ -544,9 +544,9 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				NCERR(retval);
 			
 			// Defining the variables.
-			if ((retval = nc_def_var(ncid, "analysis_date", NC_INT, 1, &single_int_dimid, &analysis_date_id)))
+			if ((retval = nc_def_var(ncid, "start_day", NC_INT, 1, &single_int_dimid, &start_day_id)))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "analysis_time", NC_INT, 1, &single_int_dimid, &analysis_time_id)))
+			if ((retval = nc_def_var(ncid, "start_hour", NC_INT, 1, &single_int_dimid, &start_hour_id)))
 				NCERR(retval);
 			if ((retval = nc_def_var(ncid, "mslp", NC_DOUBLE, 1, &scalar_h_dimid, &mslp_id)))
 				NCERR(retval);
@@ -595,9 +595,9 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			if ((retval = nc_enddef(ncid)))
 				NCERR(retval);
 		    
-			if ((retval = nc_put_var_int(ncid, analysis_date_id, &init_date)))
+			if ((retval = nc_put_var_int(ncid, start_day_id, &init_date)))
 				NCERR(retval);
-			if ((retval = nc_put_var_int(ncid, analysis_time_id, &init_time)))
+			if ((retval = nc_put_var_int(ncid, start_hour_id, &init_time)))
 				NCERR(retval);
 			if ((retval = nc_put_var_double(ncid, mslp_id, &mslp[0])))
 				NCERR(retval);
@@ -635,7 +635,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
 			sprintf(OUTPUT_FILE, "%s+%dmin_surface.nc", config_io -> run_id, time_since_init_min);
 			int lat_dimid, lon_dimid, lat_id, lon_id, mslp_id, ncid, retval, sp_id, rprate_id, sprate_id,
-			cape_id, tcc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id, single_int_dimid, analysis_date_id, analysis_time_id;
+			cape_id, tcc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id, single_int_dimid, start_day_id, start_hour_id;
 			
 			if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
 				NCERR(retval);
@@ -651,9 +651,9 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			lat_lon_dimids[1] = lon_dimid;
 			
 			// Defining the variables.
-			if ((retval = nc_def_var(ncid, "analysis_date", NC_INT, 1, &single_int_dimid, &analysis_date_id)))
+			if ((retval = nc_def_var(ncid, "start_day", NC_INT, 1, &single_int_dimid, &start_day_id)))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "analysis_time", NC_INT, 1, &single_int_dimid, &analysis_time_id)))
+			if ((retval = nc_def_var(ncid, "start_hour", NC_INT, 1, &single_int_dimid, &start_hour_id)))
 				NCERR(retval);
 			if ((retval = nc_def_var(ncid, "lat", NC_DOUBLE, 1, &lat_dimid, &lat_id)))
 				NCERR(retval);
@@ -706,9 +706,9 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			if ((retval = nc_enddef(ncid)))
 				NCERR(retval);
 		    
-			if ((retval = nc_put_var_int(ncid, analysis_date_id, &init_date)))
+			if ((retval = nc_put_var_int(ncid, start_day_id, &init_date)))
 				NCERR(retval);
-			if ((retval = nc_put_var_int(ncid, analysis_time_id, &init_time)))
+			if ((retval = nc_put_var_int(ncid, start_hour_id, &init_time)))
 				NCERR(retval);
 			if ((retval = nc_put_var_double(ncid, lat_id, &lat_vector[0])))
 				NCERR(retval);
@@ -805,7 +805,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
     {
     	double *pressure_levels = malloc(sizeof(double)*NO_OF_PRESSURE_LEVELS);
     	get_pressure_levels(pressure_levels);
-    	// Allocating memory for the variables on pressure levels.
+    	// allocating memory for the variables on pressure levels
     	double (*geopotential_height)[NO_OF_PRESSURE_LEVELS] = malloc(sizeof(double[NO_OF_SCALARS_H][NO_OF_PRESSURE_LEVELS]));
     	double (*t_on_pressure_levels)[NO_OF_PRESSURE_LEVELS] = malloc(sizeof(double[NO_OF_SCALARS_H][NO_OF_PRESSURE_LEVELS]));
     	double (*rh_on_pressure_levels)[NO_OF_PRESSURE_LEVELS] = malloc(sizeof(double[NO_OF_SCALARS_H][NO_OF_PRESSURE_LEVELS]));
@@ -829,7 +829,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 					*/
 					vector_to_minimize[k] = fabs(log(pressure_levels[j]/(*pressure)[k*NO_OF_SCALARS_H + i]));
 				}
-				// Finding the model layer that is the closest to the desired pressure level.
+				// finding the model layer that is the closest to the desired pressure level
 				closest_index = find_min_index(vector_to_minimize, &no_of_layers);
 				// first guess for the other layer that will be used for the interpolation
 				second_closest_index = closest_index + 1;
@@ -886,75 +886,85 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			free(OUTPUT_FILE_PRESSURE_LEVEL_PRE);
 			char *OUTPUT_FILE_PRESSURE_LEVEL = malloc((OUTPUT_FILE_PRESSURE_LEVEL_LENGTH + 1)*sizeof(char));
 			sprintf(OUTPUT_FILE_PRESSURE_LEVEL, "%s+%dmin_pressure_levels.nc", config_io -> run_id, time_since_init_min);
-			int ncid_pressure_level, scalar_h_dimid, level_dimid, geopot_height_id, temp_pressure_level_id, rh_pressure_level_id, wind_u_pressure_level_id, wind_v_pressure_level_id, pressure_levels_id, epv_pressure_level_id, rel_vort_pressure_level_id;
-			if ((retval = nc_create(OUTPUT_FILE_PRESSURE_LEVEL, NC_CLOBBER, &ncid_pressure_level)))
+			int ncid, scalar_h_dimid, level_dimid, geopot_height_id, temp_pressure_level_id, rh_pressure_level_id, wind_u_pressure_level_id, wind_v_pressure_level_id, pressure_levels_id, epv_pressure_level_id, rel_vort_pressure_level_id, single_int_dimid, start_day_id, start_hour_id;
+			if ((retval = nc_create(OUTPUT_FILE_PRESSURE_LEVEL, NC_CLOBBER, &ncid)))
 				NCERR(retval);
 			free(OUTPUT_FILE_PRESSURE_LEVEL);
 			
-			if ((retval = nc_def_dim(ncid_pressure_level, "scalar_index_h", NO_OF_SCALARS_H, &scalar_h_dimid)))
+			if ((retval = nc_def_dim(ncid, "single_int_index", 1, &single_int_dimid)))
 				NCERR(retval);
-			if ((retval = nc_def_dim(ncid_pressure_level, "level_index", NO_OF_PRESSURE_LEVELS, &level_dimid)))
+			if ((retval = nc_def_dim(ncid, "scalar_index_h", NO_OF_SCALARS_H, &scalar_h_dimid)))
+				NCERR(retval);
+			if ((retval = nc_def_dim(ncid, "level_index", NO_OF_PRESSURE_LEVELS, &level_dimid)))
 				NCERR(retval);
 			int dimids_pressure_level_scalar[2];
 			dimids_pressure_level_scalar[0] = scalar_h_dimid;
 			dimids_pressure_level_scalar[1] = level_dimid;
 			
-			// Defining the variables.
-			if ((retval = nc_def_var(ncid_pressure_level, "pressure_levels", NC_DOUBLE, 1, &level_dimid, &pressure_levels_id)))
+			// defining the variables
+			if ((retval = nc_def_var(ncid, "start_day", NC_INT, 1, &single_int_dimid, &start_day_id)))
 				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid_pressure_level, pressure_levels_id, "units", strlen("Pa"), "Pa")))
+			if ((retval = nc_def_var(ncid, "start_hour", NC_INT, 1, &single_int_dimid, &start_hour_id)))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid_pressure_level, "geopotential_height", NC_DOUBLE, 2, dimids_pressure_level_scalar, &geopot_height_id)))
+			if ((retval = nc_def_var(ncid, "pressure_levels", NC_DOUBLE, 1, &level_dimid, &pressure_levels_id)))
 				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid_pressure_level, geopot_height_id, "units", strlen("gpm"), "gpm")))
+			if ((retval = nc_put_att_text(ncid, pressure_levels_id, "units", strlen("Pa"), "Pa")))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid_pressure_level, "temperature", NC_DOUBLE, 2, dimids_pressure_level_scalar, &temp_pressure_level_id)))
+			if ((retval = nc_def_var(ncid, "geopotential_height", NC_DOUBLE, 2, dimids_pressure_level_scalar, &geopot_height_id)))
 				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid_pressure_level, temp_pressure_level_id, "units", strlen("K"), "K")))
+			if ((retval = nc_put_att_text(ncid, geopot_height_id, "units", strlen("gpm"), "gpm")))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid_pressure_level, "relative_humidity", NC_DOUBLE, 2, dimids_pressure_level_scalar, &rh_pressure_level_id)))
+			if ((retval = nc_def_var(ncid, "temperature", NC_DOUBLE, 2, dimids_pressure_level_scalar, &temp_pressure_level_id)))
 				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid_pressure_level, rh_pressure_level_id, "units", strlen("%"), "%")))
+			if ((retval = nc_put_att_text(ncid, temp_pressure_level_id, "units", strlen("K"), "K")))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid_pressure_level, "ertels_potential_vorticity", NC_DOUBLE, 2, dimids_pressure_level_scalar, &epv_pressure_level_id)))
+			if ((retval = nc_def_var(ncid, "relative_humidity", NC_DOUBLE, 2, dimids_pressure_level_scalar, &rh_pressure_level_id)))
 				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid_pressure_level, epv_pressure_level_id, "units", strlen("Km^2/(kgs)"), "Km^2/(kgs)")))
+			if ((retval = nc_put_att_text(ncid, rh_pressure_level_id, "units", strlen("%"), "%")))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid_pressure_level, "wind_u", NC_DOUBLE, 2, dimids_pressure_level_scalar, &wind_u_pressure_level_id)))
+			if ((retval = nc_def_var(ncid, "ertels_potential_vorticity", NC_DOUBLE, 2, dimids_pressure_level_scalar, &epv_pressure_level_id)))
 				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid_pressure_level, wind_u_pressure_level_id, "units", strlen("m/s"), "m/s")))
+			if ((retval = nc_put_att_text(ncid, epv_pressure_level_id, "units", strlen("Km^2/(kgs)"), "Km^2/(kgs)")))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid_pressure_level, "wind_v", NC_DOUBLE, 2, dimids_pressure_level_scalar, &wind_v_pressure_level_id)))
+			if ((retval = nc_def_var(ncid, "wind_u", NC_DOUBLE, 2, dimids_pressure_level_scalar, &wind_u_pressure_level_id)))
 				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid_pressure_level, wind_v_pressure_level_id, "units", strlen("m/s"), "m/s")))
+			if ((retval = nc_put_att_text(ncid, wind_u_pressure_level_id, "units", strlen("m/s"), "m/s")))
 				NCERR(retval);
-			if ((retval = nc_def_var(ncid_pressure_level, "relative_vorticity", NC_DOUBLE, 2, dimids_pressure_level_scalar, &rel_vort_pressure_level_id)))
+			if ((retval = nc_def_var(ncid, "wind_v", NC_DOUBLE, 2, dimids_pressure_level_scalar, &wind_v_pressure_level_id)))
 				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid_pressure_level, rel_vort_pressure_level_id, "units", strlen("1/s"), "1/s")))
+			if ((retval = nc_put_att_text(ncid, wind_v_pressure_level_id, "units", strlen("m/s"), "m/s")))
 				NCERR(retval);
-			if ((retval = nc_enddef(ncid_pressure_level)))
+			if ((retval = nc_def_var(ncid, "relative_vorticity", NC_DOUBLE, 2, dimids_pressure_level_scalar, &rel_vort_pressure_level_id)))
 				NCERR(retval);
-			
-			// Writing the arrays.
-			if ((retval = nc_put_var_double(ncid_pressure_level, pressure_levels_id, &pressure_levels[0])))
+			if ((retval = nc_put_att_text(ncid, rel_vort_pressure_level_id, "units", strlen("1/s"), "1/s")))
 				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid_pressure_level, geopot_height_id, &geopotential_height[0][0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid_pressure_level, temp_pressure_level_id, &t_on_pressure_levels[0][0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid_pressure_level, epv_pressure_level_id, &epv_on_pressure_levels[0][0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid_pressure_level, rh_pressure_level_id, &rh_on_pressure_levels[0][0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid_pressure_level, wind_u_pressure_level_id, &u_on_pressure_levels[0][0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid_pressure_level, wind_v_pressure_level_id, &v_on_pressure_levels[0][0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid_pressure_level, rel_vort_pressure_level_id, &rel_vort_on_pressure_levels[0][0])))
+			if ((retval = nc_enddef(ncid)))
 				NCERR(retval);
 			
-			// Closing the netcdf file.
-			if ((retval = nc_close(ncid_pressure_level)))
+			// writing the variables
+			if ((retval = nc_put_var_int(ncid, start_day_id, &init_date)))
+				NCERR(retval);
+			if ((retval = nc_put_var_int(ncid, start_hour_id, &init_time)))
+				NCERR(retval);
+			if ((retval = nc_put_var_double(ncid, pressure_levels_id, &pressure_levels[0])))
+				NCERR(retval);
+			if ((retval = nc_put_var_double(ncid, geopot_height_id, &geopotential_height[0][0])))
+				NCERR(retval);
+			if ((retval = nc_put_var_double(ncid, temp_pressure_level_id, &t_on_pressure_levels[0][0])))
+				NCERR(retval);
+			if ((retval = nc_put_var_double(ncid, epv_pressure_level_id, &epv_on_pressure_levels[0][0])))
+				NCERR(retval);
+			if ((retval = nc_put_var_double(ncid, rh_pressure_level_id, &rh_on_pressure_levels[0][0])))
+				NCERR(retval);
+			if ((retval = nc_put_var_double(ncid, wind_u_pressure_level_id, &u_on_pressure_levels[0][0])))
+				NCERR(retval);
+			if ((retval = nc_put_var_double(ncid, wind_v_pressure_level_id, &v_on_pressure_levels[0][0])))
+				NCERR(retval);
+			if ((retval = nc_put_var_double(ncid, rel_vort_pressure_level_id, &rel_vort_on_pressure_levels[0][0])))
+				NCERR(retval);
+			
+			// closing the netcdf file
+			if ((retval = nc_close(ncid)))
 				NCERR(retval);
 		}
 		
@@ -1102,9 +1112,11 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		sprintf(OUTPUT_FILE, "%s+%dmin.nc", config_io -> run_id, time_since_init_min);
 		int ncid, retval, scalar_dimid, soil_dimid, vector_h_dimid, vector_v_dimid, vector_dimid, densities_dimid,
 		curl_field_dimid, single_double_dimid, densities_id, temperature_id, wind_id, rh_id, div_h_all_layers_id, rel_vort_id,
-		tke_id, soil_id;
+		tke_id, soil_id, single_int_dimid, start_day_id, start_hour_id;
 		
 		if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
+			NCERR(retval);
+		if ((retval = nc_def_dim(ncid, "single_int_index", 1, &single_int_dimid)))
 			NCERR(retval);
 		if ((retval = nc_def_dim(ncid, "scalar_index", NO_OF_SCALARS, &scalar_dimid)))
 			NCERR(retval);
@@ -1124,6 +1136,10 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			NCERR(retval);
 		
 		// Defining the variables.
+		if ((retval = nc_def_var(ncid, "start_day", NC_INT, 1, &single_int_dimid, &start_day_id)))
+			NCERR(retval);
+		if ((retval = nc_def_var(ncid, "start_hour", NC_INT, 1, &single_int_dimid, &start_hour_id)))
+			NCERR(retval);
 		if ((retval = nc_def_var(ncid, "densities", NC_DOUBLE, 1, &densities_dimid, &densities_id)))
 			NCERR(retval);
 		if ((retval = nc_put_att_text(ncid, densities_id, "units", strlen("kg/m^3"), "kg/m^3")))
@@ -1160,6 +1176,10 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			NCERR(retval);
 		
 		// setting the variables
+		if ((retval = nc_put_var_int(ncid, start_day_id, &init_date)))
+			NCERR(retval);
+		if ((retval = nc_put_var_int(ncid, start_hour_id, &init_time)))
+			NCERR(retval);
 		if ((retval = nc_put_var_double(ncid, densities_id, &state_write_out -> rho[0])))
 			NCERR(retval);
 		if ((retval = nc_put_var_double(ncid, temperature_id, &diagnostics -> temperature[0])))

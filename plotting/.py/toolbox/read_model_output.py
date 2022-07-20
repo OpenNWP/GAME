@@ -16,8 +16,8 @@ def fetch_model_output(input_filename, varname):
 def return_analysis_time(input_filename):
 	ds = nc.Dataset(input_filename, "r", format = "NETCDF4")
 	# reading the variables
-	analysis_date = str(ds["analysis_date"][:][0])
-	analysis_time = int(ds["analysis_time"][:][0]/100.0)
+	analysis_date = str(ds["start_day"][:][0])
+	analysis_time = int(ds["start_hour"][:][0]/100.0)
 	ds.close()
 	start_year = int(analysis_date[0:4])
 	start_month = int(analysis_date[4:6])
