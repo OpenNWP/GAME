@@ -79,16 +79,17 @@ int rhombus_averaging(int vorticity_indices_triangles[], int vorticity_signs_tri
 			density_to_rhombus_indices_pre[j] = -1;
 		}
 		check_counter = 0;
+		int four = 4;
 		for (int j = 0; j < 4; ++j)
 		{
 			density_to_rhombus_index_candidate = from_index[vorticity_indices_rhombi[4*i + j]];
-			if (in_bool_calculator(density_to_rhombus_index_candidate, density_to_rhombus_indices_pre, 4) == 0)
+			if (in_bool_calculator(&density_to_rhombus_index_candidate, density_to_rhombus_indices_pre, &four) == 0)
 			{
 				density_to_rhombus_indices_pre[check_counter] = density_to_rhombus_index_candidate;
 				++check_counter;
 			}
 			density_to_rhombus_index_candidate = to_index[vorticity_indices_rhombi[4*i + j]];
-			if (in_bool_calculator(density_to_rhombus_index_candidate, density_to_rhombus_indices_pre, 4) == 0)
+			if (in_bool_calculator(&density_to_rhombus_index_candidate, density_to_rhombus_indices_pre, &four) == 0)
 			{
 				density_to_rhombus_indices_pre[check_counter] = density_to_rhombus_index_candidate;
 				++check_counter;

@@ -115,7 +115,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 				{
 					vertex_index_candidate_0 = from_index_dual[adjacent_vector_indices_h[6*from_or_to_index[i] + l]];
 					vertex_index_candidate_1 = to_index_dual[adjacent_vector_indices_h[6*from_or_to_index[i] + l]];
-					check_result = in_bool_calculator(vertex_index_candidate_0, vertex_indices, no_of_edges);						
+					check_result = in_bool_calculator(&vertex_index_candidate_0, vertex_indices, &no_of_edges);						
 					if (check_result == 0)
 					{
 						vertex_indices[counter] = vertex_index_candidate_0;
@@ -123,7 +123,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 						longitude_vertices[counter] = longitude_scalar_dual[vertex_indices[counter]];
 						++counter;
 					}
-					check_result = in_bool_calculator(vertex_index_candidate_1, vertex_indices, no_of_edges);						
+					check_result = in_bool_calculator(&vertex_index_candidate_1, vertex_indices, &no_of_edges);						
 					if (check_result == 0)
 					{
 						vertex_indices[counter] = vertex_index_candidate_1;
@@ -229,6 +229,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 		{
 			no_of_edges = 5;
 		}
+		int n_edges_m1 = no_of_edges - 1;
 		int trsk_indices_pre[10];
 		double trsk_weights_pre[10];
 		for (int j = 0; j < 10; ++j)
@@ -251,7 +252,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
             for (int k = 0; k < no_of_edges - 1; ++k)
             {
             	if ((from_index_dual[trsk_indices_pre[k]] == next_vertex_index || to_index_dual[trsk_indices_pre[k]] == next_vertex_index)
-            	&& 0 == in_bool_calculator(k, indices_used, no_of_edges - 1)
+            	&& 0 == in_bool_calculator(&k, indices_used, &n_edges_m1)
             	&& value_written == 0)
             	{
 					trsk_indices[10*i + j] = trsk_indices_pre[k];
@@ -284,6 +285,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 		{
 			no_of_edges = 5;
 		}
+		n_edges_m1 = no_of_edges - 1;
 		next_vertex_index = from_index_dual[i];
         indices_used_counter = 0;
 		for (int j = 0; j < no_of_edges - 1; ++j)
@@ -296,7 +298,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
             for (int k = 0; k < no_of_edges - 1; ++k)
             {
             	if ((from_index_dual[trsk_indices_pre[5 + k]] == next_vertex_index || to_index_dual[trsk_indices_pre[5 + k]] == next_vertex_index)
-            	&& 0 == in_bool_calculator(k, indices_used, no_of_edges - 1)
+            	&& 0 == in_bool_calculator(&k, indices_used, &n_edges_m1)
             	&& value_written == 0)
             	{
 					trsk_indices[10*i + 5 + j] = trsk_indices_pre[5 + k];

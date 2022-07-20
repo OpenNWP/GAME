@@ -13,6 +13,7 @@ module index_helpers
   
   public :: find_min_index
   public :: find_max_index
+  public :: in_bool_calculator
   
   contains
 
@@ -69,6 +70,31 @@ module index_helpers
     find_max_index = find_max_index - 1
     
   end function find_max_index
+
+
+  function in_bool_calculator(value,vector,vector_length) &
+  bind(c,name = "in_bool_calculator")
+
+    ! This function checks if a vector of integers contains a certain value.
+    
+    integer, intent(in) :: value
+    integer, intent(in) :: vector(vector_length)
+    integer, intent(in) :: vector_length
+    integer             :: in_bool_calculator
+    
+    ! local variables
+    integer :: ji
+    
+    in_bool_calculator = 0
+
+    do ji=1,vector_length
+      if(vector(ji)==value) then
+        in_bool_calculator = 1
+        exit
+      endif
+    enddo
+
+  end function in_bool_calculator
 
 end module index_helpers
 

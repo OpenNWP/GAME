@@ -448,7 +448,7 @@ int sort_edge_indices(double lat_points[], double lon_points[], int number_of_ed
                 counter++;
             }
         }
-        check = in_bool_calculator(index_candidates[0], indices_resorted, number_of_edges);
+        check = in_bool_calculator(&index_candidates[0], indices_resorted, &number_of_edges);
         if (check == 1)
 		{
 			indices_resorted[i] = index_candidates[1];

@@ -453,15 +453,16 @@ int find_v_vector_indices_for_dual_scalar_z(int from_index[], int to_index[], in
 	index_vector_for_dual_scalar_z[0] = -1;
 	index_vector_for_dual_scalar_z[1] = -1;
 	index_vector_for_dual_scalar_z[2] = -1;
+	int three = 3;
 	for (int k = 0; k < 3; ++k)
 	{
-		check_result = in_bool_calculator(from_index[vorticity_indices_triangles[3*dual_scalar_h_index + k]], index_vector_for_dual_scalar_z, 3);
+		check_result = in_bool_calculator(&from_index[vorticity_indices_triangles[3*dual_scalar_h_index + k]], index_vector_for_dual_scalar_z, &three);
 		if (check_result == 0)
 		{
 			index_vector_for_dual_scalar_z[counter] = from_index[vorticity_indices_triangles[3*dual_scalar_h_index + k]];
 			counter++;
 		}
-		check_result = in_bool_calculator(to_index[vorticity_indices_triangles[3*dual_scalar_h_index + k]], index_vector_for_dual_scalar_z, 3);
+		check_result = in_bool_calculator(&to_index[vorticity_indices_triangles[3*dual_scalar_h_index + k]], index_vector_for_dual_scalar_z, &three);
 		if (check_result == 0)
 		{
 			index_vector_for_dual_scalar_z[counter] = to_index[vorticity_indices_triangles[3*dual_scalar_h_index + k]];

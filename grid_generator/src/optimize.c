@@ -42,7 +42,7 @@ int find_cell_cgs(double latitude_scalar[], double longitude_scalar[], double la
 		{
 			vertex_index_candidate_0 = from_index_dual[adjacent_vector_indices_h[6*i + j]];
 			vertex_index_candidate_1 = to_index_dual[adjacent_vector_indices_h[6*i + j]];
-			check_result = in_bool_calculator(vertex_index_candidate_0, vertex_indices, no_of_edges);						
+			check_result = in_bool_calculator(&vertex_index_candidate_0, vertex_indices, &no_of_edges);						
 			if (check_result == 0)
 			{
 				vertex_indices[counter] = vertex_index_candidate_0;
@@ -50,7 +50,7 @@ int find_cell_cgs(double latitude_scalar[], double longitude_scalar[], double la
 				longitude_vertices[counter] = longitude_scalar_dual[vertex_indices[counter]];
 				++counter;
 			}
-			check_result = in_bool_calculator(vertex_index_candidate_1, vertex_indices, no_of_edges);						
+			check_result = in_bool_calculator(&vertex_index_candidate_1, vertex_indices, &no_of_edges);						
 			if (check_result == 0)
 			{
 				vertex_indices[counter] = vertex_index_candidate_1;

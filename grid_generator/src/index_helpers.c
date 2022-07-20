@@ -21,7 +21,7 @@ int find_min_index_exclude(double vector[], int vector_length, int exclude_indic
     {
         if (vector[i] < current_min)
         {
-        	if (in_bool_calculator(i, exclude_indices_vector, exclude_indices_vector_length) == 0)
+        	if (in_bool_calculator(&i, exclude_indices_vector, &exclude_indices_vector_length) == 0)
         	{
             	current_min = vector[i];
             	result = i;
@@ -56,23 +56,6 @@ double double_sum_gen(double vector[], int vector_length, int first_index, int s
 		}	
 	}
 	return result;
-}
-
-int in_bool_calculator(int value, int check_array[], int array_length)
-{
-	/*
-	This function checks if a vector of integers contains a certain value.
-	*/
-    int result = 0;
-    for (int i = 0; i < array_length; i++)
-    {
-        if(check_array[i] == value)
-        {
-            result = 1;
-            break;
-    	}
-    }
-    return result;
 }
 
 
