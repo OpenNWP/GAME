@@ -126,7 +126,7 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 	free(z_input);
 	free(latitude_input);
 	free(longitude_input);
-	
+	printf("%d\n", no_of_avg_points);
 	// smoothing the real orography
 	int min_indices_vector[no_of_avg_points];
 	double distance_vector[NO_OF_SCALARS_H];

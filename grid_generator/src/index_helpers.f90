@@ -65,7 +65,7 @@ module index_helpers
     
     do ji=1,vector_length
       if (vector(ji)<current_min) then
-        if (in_bool_calculator(ji,exclude_indices_vector,exclude_indices_vector_length)==0) then
+        if (in_bool_calculator(ji-1,exclude_indices_vector,exclude_indices_vector_length)==0) then
           current_min = vector(ji)
           find_min_index_exclude = ji
         endif
