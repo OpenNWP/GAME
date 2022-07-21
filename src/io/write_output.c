@@ -858,7 +858,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		free(wind_w_h);
 	}
 	
-	// Output of the whole model state for data assimilation.
+	// output of the whole model state for data assimilation
 	if (config_io -> ideal_input_id == -1 && time_since_init_min == config -> time_to_next_analysis_min)
 	{
 		char OUTPUT_FILE_PRE[300];
@@ -899,7 +899,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		NCCHECK(nc_put_var_double(ncid, tke_id, &irrev -> tke[0]));
 		NCCHECK(nc_put_var_double(ncid, soil_id, &state_write_out -> temperature_soil[0]));
 		
-		// Closing the netcdf file.
+		// closing the netcdf file
 		NCCHECK(nc_close(ncid));
 	}
 	free(lat_lon_output_field);
