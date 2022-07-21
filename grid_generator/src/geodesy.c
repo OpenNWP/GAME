@@ -193,16 +193,6 @@ int find_voronoi_center_sphere(double lat_0_in, double lon_0_in, double lat_1_in
     return 0;
 }
 
-double find_volume(double area_1, double radius_1, double radius_2)
-{
-	/*
-	This function returns the volume of a grid box.
-	*/
-    double volume;
-    volume = area_1/(3.0*pow(radius_1, 2))*(pow(radius_2, 3) - pow(radius_1, 3));
-    return volume;
-}
-
 int active_turn(double u_in, double v_in, double turn_angle, double *u_out, double *v_out)
 {
 	/*

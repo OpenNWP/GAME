@@ -184,7 +184,7 @@ int set_volume(double volume[], double z_vector[], double area[], int from_index
         base_area = area[h_index + (layer_index + 1)*NO_OF_VECTORS_PER_LAYER];
         radius_0 = radius + z_vector[h_index + (layer_index + 1)*NO_OF_VECTORS_PER_LAYER];
         radius_1 = radius + z_vector[h_index + layer_index*NO_OF_VECTORS_PER_LAYER];
-        volume[i] = find_volume(base_area, radius_0, radius_1);
+        volume[i] = base_area/(3.0*pow(radius_0, 2))*(pow(radius_1, 3) - pow(radius_0, 3));
     }
 	return 0;
 }

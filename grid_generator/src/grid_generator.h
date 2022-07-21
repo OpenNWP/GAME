@@ -59,7 +59,6 @@ double scalar_product_elementary(double[], double[]);
 double scalar_product_elementary_2d(double[], double[]);
 double calculate_vertical_area(double, double, double);
 int find_voronoi_center_sphere(double, double, double, double, double, double, double *, double *);
-double find_volume(double, double, double);
 int active_turn(double, double, double, double *, double *);
 int passive_turn(double, double, double, double *, double *);
 int normalize_cartesian(double, double, double, double *, double *, double *);
