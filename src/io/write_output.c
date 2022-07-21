@@ -865,8 +865,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		sprintf(OUTPUT_FILE_PRE, "%s+%dmin_hex.nc", config_io -> run_id, time_since_init_min);
 		char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
 		sprintf(OUTPUT_FILE, "%s+%dmin_hex.nc", config_io -> run_id, time_since_init_min);
-		int ncid, scalar_dimid, soil_dimid, vector_h_dimid, vector_v_dimid, vector_dimid, densities_dimid,
-		single_double_dimid, densities_id, temperature_id, wind_id,
+		int ncid, scalar_dimid, soil_dimid, vector_dimid, densities_dimid, densities_id, temperature_id, wind_id,
 		tke_id, soil_id, single_int_dimid, start_day_id, start_hour_id;
 		
 		NCCHECK(nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid));
@@ -875,9 +874,6 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		NCCHECK(nc_def_dim(ncid, "soil_index", NO_OF_SOIL_LAYERS*NO_OF_SCALARS_H, &soil_dimid));
 		NCCHECK(nc_def_dim(ncid, "vector_index", NO_OF_VECTORS, &vector_dimid));
 		NCCHECK(nc_def_dim(ncid, "densities_index", NO_OF_CONSTITUENTS*NO_OF_SCALARS, &densities_dimid));
-		NCCHECK(nc_def_dim(ncid, "vector_index_h", NO_OF_H_VECTORS, &vector_h_dimid));
-		NCCHECK(nc_def_dim(ncid, "vector_index_v", NO_OF_V_VECTORS, &vector_v_dimid));
-		NCCHECK(nc_def_dim(ncid, "single_double_dimid_index", 1, &single_double_dimid));
 		
 		// Defining the variables.
 		NCCHECK(nc_def_var(ncid, "start_day", NC_INT, 1, &single_int_dimid, &start_day_id));
