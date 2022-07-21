@@ -866,7 +866,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
 		sprintf(OUTPUT_FILE, "%s+%dmin_hex.nc", config_io -> run_id, time_since_init_min);
 		int ncid, scalar_dimid, soil_dimid, vector_h_dimid, vector_v_dimid, vector_dimid, densities_dimid,
-		curl_field_dimid, single_double_dimid, densities_id, temperature_id, wind_id, rh_id, div_h_all_layers_id, rel_vort_id,
+		single_double_dimid, densities_id, temperature_id, wind_id,
 		tke_id, soil_id, single_int_dimid, start_day_id, start_hour_id;
 		
 		NCCHECK(nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid));
@@ -877,7 +877,6 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		NCCHECK(nc_def_dim(ncid, "densities_index", NO_OF_CONSTITUENTS*NO_OF_SCALARS, &densities_dimid));
 		NCCHECK(nc_def_dim(ncid, "vector_index_h", NO_OF_H_VECTORS, &vector_h_dimid));
 		NCCHECK(nc_def_dim(ncid, "vector_index_v", NO_OF_V_VECTORS, &vector_v_dimid));
-		NCCHECK(nc_def_dim(ncid, "curl_point_index", NO_OF_LAYERS*2*NO_OF_VECTORS_H + NO_OF_VECTORS_H, &curl_field_dimid));
 		NCCHECK(nc_def_dim(ncid, "single_double_dimid_index", 1, &single_double_dimid));
 		
 		// Defining the variables.
@@ -889,12 +888,6 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		NCCHECK(nc_put_att_text(ncid, temperature_id, "units", strlen("K"), "K"));
 		NCCHECK(nc_def_var(ncid, "wind", NC_DOUBLE, 1, &vector_dimid, &wind_id));
 		NCCHECK(nc_put_att_text(ncid, wind_id, "units", strlen("m/s"), "m/s"));
-		NCCHECK(nc_def_var(ncid, "rh", NC_DOUBLE, 1, &scalar_dimid, &rh_id));
-		NCCHECK(nc_put_att_text(ncid, rh_id, "units", strlen("%"), "%"));
-		NCCHECK(nc_def_var(ncid, "rel_vort", NC_DOUBLE, 1, &scalar_dimid, &rel_vort_id));
-		NCCHECK(nc_put_att_text(ncid, rel_vort_id, "units", strlen("1/s"), "1/s"));
-		NCCHECK(nc_def_var(ncid, "div_h", NC_DOUBLE, 1, &scalar_dimid, &div_h_all_layers_id));
-		NCCHECK(nc_put_att_text(ncid, div_h_all_layers_id, "units", strlen("1/s"), "1/s"));
 		NCCHECK(nc_def_var(ncid, "tke", NC_DOUBLE, 1, &scalar_dimid, &tke_id));
 		NCCHECK(nc_put_att_text(ncid, tke_id, "units", strlen("J/kg"), "J/kg"));
 		NCCHECK(nc_def_var(ncid, "t_soil", NC_DOUBLE, 1, &soil_dimid, &soil_id));
@@ -907,9 +900,6 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		NCCHECK(nc_put_var_double(ncid, densities_id, &state_write_out -> rho[0]));
 		NCCHECK(nc_put_var_double(ncid, temperature_id, &diagnostics -> temperature[0]));
 		NCCHECK(nc_put_var_double(ncid, wind_id, &state_write_out -> wind[0]));
-		NCCHECK(nc_put_var_double(ncid, rh_id, &(*rh)[0]));
-		NCCHECK(nc_put_var_double(ncid, rel_vort_id, &(*rel_vort)[0]));
-		NCCHECK(nc_put_var_double(ncid, div_h_all_layers_id, &(*div_h_all_layers)[0]));
 		NCCHECK(nc_put_var_double(ncid, tke_id, &irrev -> tke[0]));
 		NCCHECK(nc_put_var_double(ncid, soil_id, &state_write_out -> temperature_soil[0]));
 		
