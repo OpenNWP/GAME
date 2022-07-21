@@ -514,15 +514,6 @@ double find_turn_angle(double angle_0, double angle_1)
 	return result;
 }
 
-double deg2rad(double input)
-{
-	/*
-	This function converts an angle in degrees to an angle in radians.
-	*/
-    double output = input*2.0*M_PI/360.0;
-    return output;
-}
-
 
 
 

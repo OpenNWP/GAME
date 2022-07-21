@@ -12,6 +12,7 @@ module geodesy
   private
   
   public :: rad2deg
+  public :: deg2rad
   
   contains
 
@@ -31,6 +32,23 @@ module geodesy
     rad2deg = input*360.0/(2.0*M_PI)
     
   end function rad2deg
+
+  function deg2rad(input) &
+  bind(c,name = "deg2rad")
+  
+    ! This function converts an angle in degrees to an angle in radians.
+    
+    real(c_double), intent(in)  :: input
+    real(c_double)              :: deg2rad
+    
+    ! local variables
+    real(c_double) :: M_PI
+    
+    M_PI = 4.0*atan(1.0)
+    
+    deg2rad = input*2.0*M_PI/360.0
+    
+  end function deg2rad
 
 end module geodesy
 
