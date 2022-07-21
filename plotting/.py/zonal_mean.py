@@ -43,7 +43,7 @@ for i in range(no_of_layers):
 
 def input_filename(time_step):
 	# returns the file name as a function of the time step (averaging interval only)
-	file_name = game_output_dir + "/" + run_id + "/" + run_id + "+" + str(begin_since_init + time_step*dt_data) + "s.grb2"
+	file_name = game_output_dir + "/" + run_id + "/" + run_id + "+" + str(begin_since_init + time_step*dt_data) + "s.nc"
 	return file_name
 
 # 2.) reading the model output

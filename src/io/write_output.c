@@ -526,232 +526,127 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 			}
 		}
 		
-		// hexagonal grid output
-		if (config_io -> hex_output_switch == 1)
-		{
-			char OUTPUT_FILE_PRE[300];
-			sprintf(OUTPUT_FILE_PRE, "%s+%dmin_hex_surface.nc", config_io -> run_id, time_since_init_min);
-			char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
-			sprintf(OUTPUT_FILE, "%s+%dmin_hex_surface.nc", config_io -> run_id, time_since_init_min);
-			int scalar_h_dimid, mslp_id, ncid, retval, sp_id, rprate_id, sprate_id, cape_id, tcc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id,
-			single_int_dimid, start_day_id, start_hour_id;;
-			
-			if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
-				NCERR(retval);
-			if ((retval = nc_def_dim(ncid, "single_int_index", 1, &single_int_dimid)))
-				NCERR(retval);
-			if ((retval = nc_def_dim(ncid, "scalar_index_h", NO_OF_SCALARS_H, &scalar_h_dimid)))
-				NCERR(retval);
-			
-			// Defining the variables.
-			if ((retval = nc_def_var(ncid, "start_day", NC_INT, 1, &single_int_dimid, &start_day_id)))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "start_hour", NC_INT, 1, &single_int_dimid, &start_hour_id)))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "mslp", NC_DOUBLE, 1, &scalar_h_dimid, &mslp_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, mslp_id, "units", strlen("Pa"), "Pa")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "sp", NC_DOUBLE, 1, &scalar_h_dimid, &sp_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, sp_id, "units", strlen("Pa"), "Pa")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "t2", NC_DOUBLE, 1, &scalar_h_dimid, &t2_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, t2_id, "units", strlen("K"), "K")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "tcc", NC_DOUBLE, 1, &scalar_h_dimid, &tcc_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, tcc_id, "units", strlen("%"), "%")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "rprate", NC_DOUBLE, 1, &scalar_h_dimid, &rprate_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, rprate_id, "units", strlen("kg/(m^2s)"), "kg/(m^2s)")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "sprate", NC_DOUBLE, 1, &scalar_h_dimid, &sprate_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, sprate_id, "units", strlen("kg/(m^2s)"), "kg/(m^2s)")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "cape", NC_DOUBLE, 1, &scalar_h_dimid, &cape_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, cape_id, "units", strlen("J/kg"), "J/kg")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "sfc_sw_down", NC_DOUBLE, 1, &scalar_h_dimid, &sfc_sw_down_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, sfc_sw_down_id, "units", strlen("W/m^2"), "W/m^2")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "u10", NC_DOUBLE, 1, &scalar_h_dimid, &u10_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, u10_id, "units", strlen("m/s"), "m/s")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "v10", NC_DOUBLE, 1, &scalar_h_dimid, &v10_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, v10_id, "units", strlen("m/s"), "m/s")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "gusts10", NC_DOUBLE, 1, &scalar_h_dimid, &gusts_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, gusts_id, "units", strlen("m/s"), "m/s")))
-				NCERR(retval);
-			if ((retval = nc_enddef(ncid)))
-				NCERR(retval);
-		    
-			if ((retval = nc_put_var_int(ncid, start_day_id, &init_date)))
-				NCERR(retval);
-			if ((retval = nc_put_var_int(ncid, start_hour_id, &init_time)))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, mslp_id, &mslp[0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, sp_id, &sp[0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, t2_id, &t2[0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, tcc_id, &tcc[0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, rprate_id, &rprate[0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, sprate_id, &sprate[0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, cape_id, &cape[0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, sfc_sw_down_id, &sfc_sw_down[0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, u10_id, &wind_10_m_mean_u_at_cell[0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, v10_id, &wind_10_m_mean_v_at_cell[0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, gusts_id, &wind_10_m_gusts_speed_at_cell[0])))
-				NCERR(retval);
-			
-			// Closing the netcdf file.
-			if ((retval = nc_close(ncid)))
-				NCERR(retval);
-		}
+		char OUTPUT_FILE_PRE[300];
+		sprintf(OUTPUT_FILE_PRE, "%s+%dmin_surface.nc", config_io -> run_id, time_since_init_min);
+		char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
+		sprintf(OUTPUT_FILE, "%s+%dmin_surface.nc", config_io -> run_id, time_since_init_min);
+		int lat_dimid, lon_dimid, lat_id, lon_id, mslp_id, ncid, sp_id, rprate_id, sprate_id,
+		cape_id, tcc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id, single_int_dimid, start_day_id, start_hour_id;
 		
-		// lat-lon output
-		if (config_io -> latlon_output_switch == 1)
-		{
-			char OUTPUT_FILE_PRE[300];
-			sprintf(OUTPUT_FILE_PRE, "%s+%dmin_surface.nc", config_io -> run_id, time_since_init_min);
-			char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
-			sprintf(OUTPUT_FILE, "%s+%dmin_surface.nc", config_io -> run_id, time_since_init_min);
-			int lat_dimid, lon_dimid, lat_id, lon_id, mslp_id, ncid, retval, sp_id, rprate_id, sprate_id,
-			cape_id, tcc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id, single_int_dimid, start_day_id, start_hour_id;
+		if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
+			NCERR(retval);
+		if ((retval = nc_def_dim(ncid, "single_int_index", 1, &single_int_dimid)))
+			NCERR(retval);
+		if ((retval = nc_def_dim(ncid, "lat_index", NO_OF_LAT_IO_POINTS, &lat_dimid)))
+			NCERR(retval);
+		if ((retval = nc_def_dim(ncid, "lon_index", NO_OF_LON_IO_POINTS, &lon_dimid)))
+			NCERR(retval);
 			
-			if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
-				NCERR(retval);
-			if ((retval = nc_def_dim(ncid, "single_int_index", 1, &single_int_dimid)))
-				NCERR(retval);
-			if ((retval = nc_def_dim(ncid, "lat_index", NO_OF_LAT_IO_POINTS, &lat_dimid)))
-				NCERR(retval);
-			if ((retval = nc_def_dim(ncid, "lon_index", NO_OF_LON_IO_POINTS, &lon_dimid)))
-				NCERR(retval);
-				
-			int lat_lon_dimids[2];
-			lat_lon_dimids[0] = lat_dimid;
-			lat_lon_dimids[1] = lon_dimid;
-			
-			// Defining the variables.
-			if ((retval = nc_def_var(ncid, "start_day", NC_INT, 1, &single_int_dimid, &start_day_id)))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "start_hour", NC_INT, 1, &single_int_dimid, &start_hour_id)))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "lat", NC_DOUBLE, 1, &lat_dimid, &lat_id)))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "lon", NC_DOUBLE, 1, &lon_dimid, &lon_id)))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "mslp", NC_DOUBLE, 2, lat_lon_dimids, &mslp_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, mslp_id, "units", strlen("Pa"), "Pa")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "sp", NC_DOUBLE, 2, lat_lon_dimids, &sp_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, sp_id, "units", strlen("Pa"), "Pa")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "t2", NC_DOUBLE, 2, lat_lon_dimids, &t2_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, t2_id, "units", strlen("K"), "K")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "tcc", NC_DOUBLE, 2, lat_lon_dimids, &tcc_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, tcc_id, "units", strlen("%"), "%")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "rprate", NC_DOUBLE, 2, lat_lon_dimids, &rprate_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, rprate_id, "units", strlen("kg/(m^2s)"), "kg/(m^2s)")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "sprate", NC_DOUBLE, 2, lat_lon_dimids, &sprate_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, sprate_id, "units", strlen("kg/(m^2s)"), "kg/(m^2s)")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "cape", NC_DOUBLE, 2, lat_lon_dimids, &cape_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, cape_id, "units", strlen("J/kg"), "J/kg")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "sfc_sw_down", NC_DOUBLE, 2, lat_lon_dimids, &sfc_sw_down_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, sfc_sw_down_id, "units", strlen("W/m^2"), "W/m^2")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "u10", NC_DOUBLE, 2, lat_lon_dimids, &u10_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, u10_id, "units", strlen("m/s"), "m/s")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "v10", NC_DOUBLE, 2, lat_lon_dimids, &v10_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, v10_id, "units", strlen("m/s"), "m/s")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "gusts10", NC_DOUBLE, 2, lat_lon_dimids, &gusts_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, gusts_id, "units", strlen("m/s"), "m/s")))
-				NCERR(retval);
-			if ((retval = nc_enddef(ncid)))
-				NCERR(retval);
-		    
-			if ((retval = nc_put_var_int(ncid, start_day_id, &init_date)))
-				NCERR(retval);
-			if ((retval = nc_put_var_int(ncid, start_hour_id, &init_time)))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, lat_id, &lat_vector[0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, lon_id, &lon_vector[0])))
-				NCERR(retval);
-		    interpolate_to_ll(sp, lat_lon_output_field, grid);
-			if ((retval = nc_put_var_double(ncid, mslp_id, &lat_lon_output_field[0][0])))
-				NCERR(retval);
-		    interpolate_to_ll(mslp, lat_lon_output_field, grid);
-			if ((retval = nc_put_var_double(ncid, sp_id, &lat_lon_output_field[0][0])))
-				NCERR(retval);
-		    interpolate_to_ll(t2, lat_lon_output_field, grid);
-			if ((retval = nc_put_var_double(ncid, t2_id, &lat_lon_output_field[0][0])))
-				NCERR(retval);
-		    interpolate_to_ll(tcc, lat_lon_output_field, grid);
-			if ((retval = nc_put_var_double(ncid, tcc_id, &lat_lon_output_field[0][0])))
-				NCERR(retval);
-		    interpolate_to_ll(rprate, lat_lon_output_field, grid);
-			if ((retval = nc_put_var_double(ncid, rprate_id, &lat_lon_output_field[0][0])))
-				NCERR(retval);
-		    interpolate_to_ll(sprate, lat_lon_output_field, grid);
-			if ((retval = nc_put_var_double(ncid, sprate_id, &lat_lon_output_field[0][0])))
-				NCERR(retval);
-		    interpolate_to_ll(cape, lat_lon_output_field, grid);
-			if ((retval = nc_put_var_double(ncid, cape_id, &lat_lon_output_field[0][0])))
-				NCERR(retval);
-		    interpolate_to_ll(sfc_sw_down, lat_lon_output_field, grid);
-			if ((retval = nc_put_var_double(ncid, sfc_sw_down_id, &lat_lon_output_field[0][0])))
-				NCERR(retval);
-		    interpolate_to_ll(wind_10_m_mean_u_at_cell, lat_lon_output_field, grid);
-			if ((retval = nc_put_var_double(ncid, u10_id, &lat_lon_output_field[0][0])))
-				NCERR(retval);
-		    interpolate_to_ll(wind_10_m_mean_v_at_cell, lat_lon_output_field, grid);
-			if ((retval = nc_put_var_double(ncid, v10_id, &lat_lon_output_field[0][0])))
-				NCERR(retval);
-		    interpolate_to_ll(wind_10_m_gusts_speed_at_cell, lat_lon_output_field, grid);
-			if ((retval = nc_put_var_double(ncid, gusts_id, &lat_lon_output_field[0][0])))
-				NCERR(retval);
-			
-			// Closing the netcdf file.
-			if ((retval = nc_close(ncid)))
-				NCERR(retval);
-		}
+		int lat_lon_dimids[2];
+		lat_lon_dimids[0] = lat_dimid;
+		lat_lon_dimids[1] = lon_dimid;
+		
+		// Defining the variables.
+		if ((retval = nc_def_var(ncid, "start_day", NC_INT, 1, &single_int_dimid, &start_day_id)))
+			NCERR(retval);
+		if ((retval = nc_def_var(ncid, "start_hour", NC_INT, 1, &single_int_dimid, &start_hour_id)))
+			NCERR(retval);
+		if ((retval = nc_def_var(ncid, "lat", NC_DOUBLE, 1, &lat_dimid, &lat_id)))
+			NCERR(retval);
+		if ((retval = nc_def_var(ncid, "lon", NC_DOUBLE, 1, &lon_dimid, &lon_id)))
+			NCERR(retval);
+		if ((retval = nc_def_var(ncid, "mslp", NC_DOUBLE, 2, lat_lon_dimids, &mslp_id)))
+			NCERR(retval);
+		if ((retval = nc_put_att_text(ncid, mslp_id, "units", strlen("Pa"), "Pa")))
+			NCERR(retval);
+		if ((retval = nc_def_var(ncid, "sp", NC_DOUBLE, 2, lat_lon_dimids, &sp_id)))
+			NCERR(retval);
+		if ((retval = nc_put_att_text(ncid, sp_id, "units", strlen("Pa"), "Pa")))
+			NCERR(retval);
+		if ((retval = nc_def_var(ncid, "t2", NC_DOUBLE, 2, lat_lon_dimids, &t2_id)))
+			NCERR(retval);
+		if ((retval = nc_put_att_text(ncid, t2_id, "units", strlen("K"), "K")))
+			NCERR(retval);
+		if ((retval = nc_def_var(ncid, "tcc", NC_DOUBLE, 2, lat_lon_dimids, &tcc_id)))
+			NCERR(retval);
+		if ((retval = nc_put_att_text(ncid, tcc_id, "units", strlen("%"), "%")))
+			NCERR(retval);
+		if ((retval = nc_def_var(ncid, "rprate", NC_DOUBLE, 2, lat_lon_dimids, &rprate_id)))
+			NCERR(retval);
+		if ((retval = nc_put_att_text(ncid, rprate_id, "units", strlen("kg/(m^2s)"), "kg/(m^2s)")))
+			NCERR(retval);
+		if ((retval = nc_def_var(ncid, "sprate", NC_DOUBLE, 2, lat_lon_dimids, &sprate_id)))
+			NCERR(retval);
+		if ((retval = nc_put_att_text(ncid, sprate_id, "units", strlen("kg/(m^2s)"), "kg/(m^2s)")))
+			NCERR(retval);
+		if ((retval = nc_def_var(ncid, "cape", NC_DOUBLE, 2, lat_lon_dimids, &cape_id)))
+			NCERR(retval);
+		if ((retval = nc_put_att_text(ncid, cape_id, "units", strlen("J/kg"), "J/kg")))
+			NCERR(retval);
+		if ((retval = nc_def_var(ncid, "sfc_sw_down", NC_DOUBLE, 2, lat_lon_dimids, &sfc_sw_down_id)))
+			NCERR(retval);
+		if ((retval = nc_put_att_text(ncid, sfc_sw_down_id, "units", strlen("W/m^2"), "W/m^2")))
+			NCERR(retval);
+		if ((retval = nc_def_var(ncid, "u10", NC_DOUBLE, 2, lat_lon_dimids, &u10_id)))
+			NCERR(retval);
+		if ((retval = nc_put_att_text(ncid, u10_id, "units", strlen("m/s"), "m/s")))
+			NCERR(retval);
+		if ((retval = nc_def_var(ncid, "v10", NC_DOUBLE, 2, lat_lon_dimids, &v10_id)))
+			NCERR(retval);
+		if ((retval = nc_put_att_text(ncid, v10_id, "units", strlen("m/s"), "m/s")))
+			NCERR(retval);
+		if ((retval = nc_def_var(ncid, "gusts10", NC_DOUBLE, 2, lat_lon_dimids, &gusts_id)))
+			NCERR(retval);
+		if ((retval = nc_put_att_text(ncid, gusts_id, "units", strlen("m/s"), "m/s")))
+			NCERR(retval);
+		if ((retval = nc_enddef(ncid)))
+			NCERR(retval);
+	    
+		if ((retval = nc_put_var_int(ncid, start_day_id, &init_date)))
+			NCERR(retval);
+		if ((retval = nc_put_var_int(ncid, start_hour_id, &init_time)))
+			NCERR(retval);
+		if ((retval = nc_put_var_double(ncid, lat_id, &lat_vector[0])))
+			NCERR(retval);
+		if ((retval = nc_put_var_double(ncid, lon_id, &lon_vector[0])))
+			NCERR(retval);
+	    interpolate_to_ll(sp, lat_lon_output_field, grid);
+		if ((retval = nc_put_var_double(ncid, mslp_id, &lat_lon_output_field[0][0])))
+			NCERR(retval);
+	    interpolate_to_ll(mslp, lat_lon_output_field, grid);
+		if ((retval = nc_put_var_double(ncid, sp_id, &lat_lon_output_field[0][0])))
+			NCERR(retval);
+	    interpolate_to_ll(t2, lat_lon_output_field, grid);
+		if ((retval = nc_put_var_double(ncid, t2_id, &lat_lon_output_field[0][0])))
+			NCERR(retval);
+	    interpolate_to_ll(tcc, lat_lon_output_field, grid);
+		if ((retval = nc_put_var_double(ncid, tcc_id, &lat_lon_output_field[0][0])))
+			NCERR(retval);
+	    interpolate_to_ll(rprate, lat_lon_output_field, grid);
+		if ((retval = nc_put_var_double(ncid, rprate_id, &lat_lon_output_field[0][0])))
+			NCERR(retval);
+	    interpolate_to_ll(sprate, lat_lon_output_field, grid);
+		if ((retval = nc_put_var_double(ncid, sprate_id, &lat_lon_output_field[0][0])))
+			NCERR(retval);
+	    interpolate_to_ll(cape, lat_lon_output_field, grid);
+		if ((retval = nc_put_var_double(ncid, cape_id, &lat_lon_output_field[0][0])))
+			NCERR(retval);
+	    interpolate_to_ll(sfc_sw_down, lat_lon_output_field, grid);
+		if ((retval = nc_put_var_double(ncid, sfc_sw_down_id, &lat_lon_output_field[0][0])))
+			NCERR(retval);
+	    interpolate_to_ll(wind_10_m_mean_u_at_cell, lat_lon_output_field, grid);
+		if ((retval = nc_put_var_double(ncid, u10_id, &lat_lon_output_field[0][0])))
+			NCERR(retval);
+	    interpolate_to_ll(wind_10_m_mean_v_at_cell, lat_lon_output_field, grid);
+		if ((retval = nc_put_var_double(ncid, v10_id, &lat_lon_output_field[0][0])))
+			NCERR(retval);
+	    interpolate_to_ll(wind_10_m_gusts_speed_at_cell, lat_lon_output_field, grid);
+		if ((retval = nc_put_var_double(ncid, gusts_id, &lat_lon_output_field[0][0])))
+			NCERR(retval);
+		
+		// Closing the netcdf file.
+		if ((retval = nc_close(ncid)))
+			NCERR(retval);
 		
 		free(wind_10_m_mean_u_at_cell);
 		free(wind_10_m_mean_v_at_cell);
@@ -875,173 +770,77 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				}
 			}
 		}
-    	
-		// hexagonal grid output
-		if (config_io -> hex_output_switch == 1)
-		{
-			int OUTPUT_FILE_PRESSURE_LEVEL_LENGTH = 300;
-			char *OUTPUT_FILE_PRESSURE_LEVEL_PRE = malloc((OUTPUT_FILE_PRESSURE_LEVEL_LENGTH + 1)*sizeof(char));
-			sprintf(OUTPUT_FILE_PRESSURE_LEVEL_PRE, "%s+%dmin_pressure_levels.nc", config_io -> run_id, time_since_init_min);
-			OUTPUT_FILE_PRESSURE_LEVEL_LENGTH = strlen(OUTPUT_FILE_PRESSURE_LEVEL_PRE);
-			free(OUTPUT_FILE_PRESSURE_LEVEL_PRE);
-			char *OUTPUT_FILE_PRESSURE_LEVEL = malloc((OUTPUT_FILE_PRESSURE_LEVEL_LENGTH + 1)*sizeof(char));
-			sprintf(OUTPUT_FILE_PRESSURE_LEVEL, "%s+%dmin_pressure_levels.nc", config_io -> run_id, time_since_init_min);
-			int ncid, scalar_h_dimid, level_dimid, geopot_height_id, temp_pressure_level_id, rh_pressure_level_id, wind_u_pressure_level_id, wind_v_pressure_level_id, pressure_levels_id, epv_pressure_level_id, rel_vort_pressure_level_id, single_int_dimid, start_day_id, start_hour_id;
-			if ((retval = nc_create(OUTPUT_FILE_PRESSURE_LEVEL, NC_CLOBBER, &ncid)))
-				NCERR(retval);
-			free(OUTPUT_FILE_PRESSURE_LEVEL);
-			
-			if ((retval = nc_def_dim(ncid, "single_int_index", 1, &single_int_dimid)))
-				NCERR(retval);
-			if ((retval = nc_def_dim(ncid, "scalar_index_h", NO_OF_SCALARS_H, &scalar_h_dimid)))
-				NCERR(retval);
-			if ((retval = nc_def_dim(ncid, "level_index", NO_OF_PRESSURE_LEVELS, &level_dimid)))
-				NCERR(retval);
-			int dimids_pressure_level_scalar[2];
-			dimids_pressure_level_scalar[0] = scalar_h_dimid;
-			dimids_pressure_level_scalar[1] = level_dimid;
-			
-			// defining the variables
-			if ((retval = nc_def_var(ncid, "start_day", NC_INT, 1, &single_int_dimid, &start_day_id)))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "start_hour", NC_INT, 1, &single_int_dimid, &start_hour_id)))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "pressure_levels", NC_DOUBLE, 1, &level_dimid, &pressure_levels_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, pressure_levels_id, "units", strlen("Pa"), "Pa")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "geopotential_height", NC_DOUBLE, 2, dimids_pressure_level_scalar, &geopot_height_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, geopot_height_id, "units", strlen("gpm"), "gpm")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "temperature", NC_DOUBLE, 2, dimids_pressure_level_scalar, &temp_pressure_level_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, temp_pressure_level_id, "units", strlen("K"), "K")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "relative_humidity", NC_DOUBLE, 2, dimids_pressure_level_scalar, &rh_pressure_level_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, rh_pressure_level_id, "units", strlen("%"), "%")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "ertels_potential_vorticity", NC_DOUBLE, 2, dimids_pressure_level_scalar, &epv_pressure_level_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, epv_pressure_level_id, "units", strlen("Km^2/(kgs)"), "Km^2/(kgs)")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "wind_u", NC_DOUBLE, 2, dimids_pressure_level_scalar, &wind_u_pressure_level_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, wind_u_pressure_level_id, "units", strlen("m/s"), "m/s")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "wind_v", NC_DOUBLE, 2, dimids_pressure_level_scalar, &wind_v_pressure_level_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, wind_v_pressure_level_id, "units", strlen("m/s"), "m/s")))
-				NCERR(retval);
-			if ((retval = nc_def_var(ncid, "relative_vorticity", NC_DOUBLE, 2, dimids_pressure_level_scalar, &rel_vort_pressure_level_id)))
-				NCERR(retval);
-			if ((retval = nc_put_att_text(ncid, rel_vort_pressure_level_id, "units", strlen("1/s"), "1/s")))
-				NCERR(retval);
-			if ((retval = nc_enddef(ncid)))
-				NCERR(retval);
-			
-			// writing the variables
-			if ((retval = nc_put_var_int(ncid, start_day_id, &init_date)))
-				NCERR(retval);
-			if ((retval = nc_put_var_int(ncid, start_hour_id, &init_time)))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, pressure_levels_id, &pressure_levels[0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, geopot_height_id, &geopotential_height[0][0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, temp_pressure_level_id, &t_on_pressure_levels[0][0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, epv_pressure_level_id, &epv_on_pressure_levels[0][0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, rh_pressure_level_id, &rh_on_pressure_levels[0][0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, wind_u_pressure_level_id, &u_on_pressure_levels[0][0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, wind_v_pressure_level_id, &v_on_pressure_levels[0][0])))
-				NCERR(retval);
-			if ((retval = nc_put_var_double(ncid, rel_vort_pressure_level_id, &rel_vort_on_pressure_levels[0][0])))
-				NCERR(retval);
-			
-			// closing the netcdf file
-			if ((retval = nc_close(ncid)))
-				NCERR(retval);
-		}
 		
-		// lat-lon output
-		if (config_io -> latlon_output_switch == 1)
+		int OUTPUT_FILE_PRESSURE_LEVEL_LENGTH = 300;
+		char *OUTPUT_FILE_PRESSURE_LEVEL_PRE = malloc((OUTPUT_FILE_PRESSURE_LEVEL_LENGTH + 1)*sizeof(char));
+		sprintf(OUTPUT_FILE_PRESSURE_LEVEL_PRE, "%s+%dmin_pressure_levels.nc", config_io -> run_id, time_since_init_min);
+		OUTPUT_FILE_PRESSURE_LEVEL_LENGTH = strlen(OUTPUT_FILE_PRESSURE_LEVEL_PRE);
+		free(OUTPUT_FILE_PRESSURE_LEVEL_PRE);
+		char *OUTPUT_FILE_PRESSURE_LEVEL = malloc((OUTPUT_FILE_PRESSURE_LEVEL_LENGTH + 1)*sizeof(char));
+		sprintf(OUTPUT_FILE_PRESSURE_LEVEL, "%s+%dmin_pressure_levels.nc", config_io -> run_id, time_since_init_min);
+		double *geopotential_height_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
+		double *temperature_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
+		double *rh_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
+		double *epv_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
+		double *wind_u_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
+		double *wind_v_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
+		double *rel_vort_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
+		
+		for (int i = 0; i < NO_OF_PRESSURE_LEVELS; ++i)
 		{
-			int OUTPUT_FILE_PRESSURE_LEVEL_LENGTH = 300;
-			char *OUTPUT_FILE_PRESSURE_LEVEL_PRE = malloc((OUTPUT_FILE_PRESSURE_LEVEL_LENGTH + 1)*sizeof(char));
-			sprintf(OUTPUT_FILE_PRESSURE_LEVEL_PRE, "%s+%dmin_pressure_levels.nc", config_io -> run_id, time_since_init_min);
-			OUTPUT_FILE_PRESSURE_LEVEL_LENGTH = strlen(OUTPUT_FILE_PRESSURE_LEVEL_PRE);
-			free(OUTPUT_FILE_PRESSURE_LEVEL_PRE);
-			char *OUTPUT_FILE_PRESSURE_LEVEL = malloc((OUTPUT_FILE_PRESSURE_LEVEL_LENGTH + 1)*sizeof(char));
-			sprintf(OUTPUT_FILE_PRESSURE_LEVEL, "%s+%dmin_pressure_levels.nc", config_io -> run_id, time_since_init_min);
-			double *geopotential_height_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
-			double *temperature_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
-			double *rh_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
-			double *epv_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
-			double *wind_u_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
-			double *wind_v_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
-			double *rel_vort_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
-			
-			for (int i = 0; i < NO_OF_PRESSURE_LEVELS; ++i)
+			#pragma omp parallel for
+			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
 			{
-				#pragma omp parallel for
-				for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-				{
-					geopotential_height_pressure_level[j] = geopotential_height[j][i];
-				}
-				#pragma omp parallel for
-				for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-				{
-					temperature_pressure_level[j] = t_on_pressure_levels[j][i];
-				}
-				#pragma omp parallel for
-				for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-				{
-					rh_pressure_level[j] = rh_on_pressure_levels[j][i];
-				}
-				#pragma omp parallel for
-				for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-				{
-					epv_pressure_level[j] = epv_on_pressure_levels[j][i];
-				}
-				#pragma omp parallel for
-				for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-				{
-					wind_u_pressure_level[j] = u_on_pressure_levels[j][i];
-				}
-				#pragma omp parallel for
-				for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-				{
-					wind_v_pressure_level[j] = v_on_pressure_levels[j][i];
-				}
-				#pragma omp parallel for
-				for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-				{
-					rel_vort_pressure_level[j] = rel_vort_on_pressure_levels[j][i];
-				}
-				
-		    	interpolate_to_ll(geopotential_height_pressure_level, lat_lon_output_field, grid);
-		    	interpolate_to_ll(temperature_pressure_level, lat_lon_output_field, grid);
-		    	interpolate_to_ll(rh_pressure_level, lat_lon_output_field, grid);
-		    	interpolate_to_ll(rel_vort_pressure_level, lat_lon_output_field, grid);
-		    	interpolate_to_ll(epv_pressure_level, lat_lon_output_field, grid);
-		    	interpolate_to_ll(wind_u_pressure_level, lat_lon_output_field, grid);
-		    	interpolate_to_ll(wind_v_pressure_level, lat_lon_output_field, grid);
+				geopotential_height_pressure_level[j] = geopotential_height[j][i];
+			}
+			#pragma omp parallel for
+			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
+			{
+				temperature_pressure_level[j] = t_on_pressure_levels[j][i];
+			}
+			#pragma omp parallel for
+			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
+			{
+				rh_pressure_level[j] = rh_on_pressure_levels[j][i];
+			}
+			#pragma omp parallel for
+			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
+			{
+				epv_pressure_level[j] = epv_on_pressure_levels[j][i];
+			}
+			#pragma omp parallel for
+			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
+			{
+				wind_u_pressure_level[j] = u_on_pressure_levels[j][i];
+			}
+			#pragma omp parallel for
+			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
+			{
+				wind_v_pressure_level[j] = v_on_pressure_levels[j][i];
+			}
+			#pragma omp parallel for
+			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
+			{
+				rel_vort_pressure_level[j] = rel_vort_on_pressure_levels[j][i];
 			}
 			
-			free(geopotential_height_pressure_level);
-			free(temperature_pressure_level);
-			free(epv_pressure_level);
-			free(rh_pressure_level);
-			free(wind_u_pressure_level);
-			free(wind_v_pressure_level);
-			free(rel_vort_pressure_level);
-			free(OUTPUT_FILE_PRESSURE_LEVEL);
+	    	interpolate_to_ll(geopotential_height_pressure_level, lat_lon_output_field, grid);
+	    	interpolate_to_ll(temperature_pressure_level, lat_lon_output_field, grid);
+	    	interpolate_to_ll(rh_pressure_level, lat_lon_output_field, grid);
+	    	interpolate_to_ll(rel_vort_pressure_level, lat_lon_output_field, grid);
+	    	interpolate_to_ll(epv_pressure_level, lat_lon_output_field, grid);
+	    	interpolate_to_ll(wind_u_pressure_level, lat_lon_output_field, grid);
+	    	interpolate_to_ll(wind_v_pressure_level, lat_lon_output_field, grid);
 		}
+		
+		free(geopotential_height_pressure_level);
+		free(temperature_pressure_level);
+		free(epv_pressure_level);
+		free(rh_pressure_level);
+		free(wind_u_pressure_level);
+		free(wind_v_pressure_level);
+		free(rel_vort_pressure_level);
+		free(OUTPUT_FILE_PRESSURE_LEVEL);
     	free(geopotential_height);
     	free(t_on_pressure_levels);
     	free(rh_on_pressure_levels);
@@ -1052,7 +851,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
     }
 
 	// lat-lon output
-	if (config_io -> model_level_output_switch == 1 && config_io -> latlon_output_switch == 1)
+	if (config_io -> model_level_output_switch == 1)
 	{
 		double *temperature_h = malloc(NO_OF_SCALARS_H*sizeof(double));
 		double *pressure_h = malloc(NO_OF_SCALARS_H*sizeof(double));
@@ -1102,15 +901,14 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		free(wind_w_h);
 	}
 	
-	// Output of the whole model state.
-	if ((config_io -> model_level_output_switch == 1 && config_io -> hex_output_switch == 1)
-	|| (config_io -> ideal_input_id == -1 && time_since_init_min == config -> time_to_next_analysis_min))
+	// Output of the whole model state for data assimilation.
+	if (config_io -> ideal_input_id == -1 && time_since_init_min == config -> time_to_next_analysis_min)
 	{
 		char OUTPUT_FILE_PRE[300];
 		sprintf(OUTPUT_FILE_PRE, "%s+%dmin.nc", config_io -> run_id, time_since_init_min);
 		char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
 		sprintf(OUTPUT_FILE, "%s+%dmin.nc", config_io -> run_id, time_since_init_min);
-		int ncid, retval, scalar_dimid, soil_dimid, vector_h_dimid, vector_v_dimid, vector_dimid, densities_dimid,
+		int ncid, scalar_dimid, soil_dimid, vector_h_dimid, vector_v_dimid, vector_dimid, densities_dimid,
 		curl_field_dimid, single_double_dimid, densities_id, temperature_id, wind_id, rh_id, div_h_all_layers_id, rel_vort_id,
 		tke_id, soil_id, single_int_dimid, start_day_id, start_hour_id;
 		
