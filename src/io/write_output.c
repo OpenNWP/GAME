@@ -21,6 +21,7 @@ In addition to that, some postprocessing diagnostics are also calculated here.
 #include "../constituents/constituents.h"
 #include "../../grid_generator/src/grid_generator.h"
 #define NCERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(2);}
+#define NCCHECK(e) {if(e != 0) NCERR(e)}
 
 // the number of pressure levels for the pressure level output
 const int NO_OF_PRESSURE_LEVELS = 6;
@@ -249,9 +250,6 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	double min_precip_rate = min_precip_rate_mmh/(1000.0*3600.0/1024.0);
 	// this heuristic coefficient converts the cloud water content to cloud cover
 	double cloud_water2cloudiness = 10.0;
-	
-	// Needed for netcdf.
-    int retval;
 	
 	int layer_index, closest_index, second_closest_index;
 	double cloud_water_content;
@@ -539,120 +537,73 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		int lat_dimid, lon_dimid, lat_id, lon_id, mslp_id, ncid, sp_id, rprate_id, sprate_id,
 		cape_id, tcc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id, single_int_dimid, start_day_id, start_hour_id;
 		
-		if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
-			NCERR(retval);
-		if ((retval = nc_def_dim(ncid, "single_int_index", 1, &single_int_dimid)))
-			NCERR(retval);
-		if ((retval = nc_def_dim(ncid, "lat_index", NO_OF_LAT_IO_POINTS, &lat_dimid)))
-			NCERR(retval);
-		if ((retval = nc_def_dim(ncid, "lon_index", NO_OF_LON_IO_POINTS, &lon_dimid)))
-			NCERR(retval);
+		NCCHECK(nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid));
+		NCCHECK(nc_def_dim(ncid, "single_int_index", 1, &single_int_dimid));
+		NCCHECK(nc_def_dim(ncid, "lat_index", NO_OF_LAT_IO_POINTS, &lat_dimid));
+		NCCHECK(nc_def_dim(ncid, "lon_index", NO_OF_LON_IO_POINTS, &lon_dimid));
 			
 		int lat_lon_dimids[2];
 		lat_lon_dimids[0] = lat_dimid;
 		lat_lon_dimids[1] = lon_dimid;
 		
 		// Defining the variables.
-		if ((retval = nc_def_var(ncid, "start_day", NC_INT, 1, &single_int_dimid, &start_day_id)))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "start_hour", NC_INT, 1, &single_int_dimid, &start_hour_id)))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "lat", NC_DOUBLE, 1, &lat_dimid, &lat_id)))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "lon", NC_DOUBLE, 1, &lon_dimid, &lon_id)))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "mslp", NC_DOUBLE, 2, lat_lon_dimids, &mslp_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, mslp_id, "units", strlen("Pa"), "Pa")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "sp", NC_DOUBLE, 2, lat_lon_dimids, &sp_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, sp_id, "units", strlen("Pa"), "Pa")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "t2", NC_DOUBLE, 2, lat_lon_dimids, &t2_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, t2_id, "units", strlen("K"), "K")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "tcc", NC_DOUBLE, 2, lat_lon_dimids, &tcc_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, tcc_id, "units", strlen("%"), "%")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "rprate", NC_DOUBLE, 2, lat_lon_dimids, &rprate_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, rprate_id, "units", strlen("kg/(m^2s)"), "kg/(m^2s)")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "sprate", NC_DOUBLE, 2, lat_lon_dimids, &sprate_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, sprate_id, "units", strlen("kg/(m^2s)"), "kg/(m^2s)")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "cape", NC_DOUBLE, 2, lat_lon_dimids, &cape_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, cape_id, "units", strlen("J/kg"), "J/kg")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "sfc_sw_down", NC_DOUBLE, 2, lat_lon_dimids, &sfc_sw_down_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, sfc_sw_down_id, "units", strlen("W/m^2"), "W/m^2")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "u10", NC_DOUBLE, 2, lat_lon_dimids, &u10_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, u10_id, "units", strlen("m/s"), "m/s")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "v10", NC_DOUBLE, 2, lat_lon_dimids, &v10_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, v10_id, "units", strlen("m/s"), "m/s")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "gusts10", NC_DOUBLE, 2, lat_lon_dimids, &gusts_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, gusts_id, "units", strlen("m/s"), "m/s")))
-			NCERR(retval);
-		if ((retval = nc_enddef(ncid)))
-			NCERR(retval);
+		NCCHECK(nc_def_var(ncid, "start_day", NC_INT, 1, &single_int_dimid, &start_day_id));
+		NCCHECK(nc_def_var(ncid, "start_hour", NC_INT, 1, &single_int_dimid, &start_hour_id));
+		NCCHECK(nc_def_var(ncid, "lat", NC_DOUBLE, 1, &lat_dimid, &lat_id));
+		NCCHECK(nc_def_var(ncid, "lon", NC_DOUBLE, 1, &lon_dimid, &lon_id));
+		NCCHECK(nc_def_var(ncid, "mslp", NC_DOUBLE, 2, lat_lon_dimids, &mslp_id));
+		NCCHECK(nc_put_att_text(ncid, mslp_id, "units", strlen("Pa"), "Pa"));
+		NCCHECK(nc_def_var(ncid, "sp", NC_DOUBLE, 2, lat_lon_dimids, &sp_id));
+		NCCHECK(nc_put_att_text(ncid, sp_id, "units", strlen("Pa"), "Pa"));
+		NCCHECK(nc_def_var(ncid, "t2", NC_DOUBLE, 2, lat_lon_dimids, &t2_id));
+		NCCHECK(nc_put_att_text(ncid, t2_id, "units", strlen("K"), "K"));
+		NCCHECK(nc_def_var(ncid, "tcc", NC_DOUBLE, 2, lat_lon_dimids, &tcc_id));
+		NCCHECK(nc_put_att_text(ncid, tcc_id, "units", strlen("%"), "%"));
+		NCCHECK(nc_def_var(ncid, "rprate", NC_DOUBLE, 2, lat_lon_dimids, &rprate_id));
+		NCCHECK(nc_put_att_text(ncid, rprate_id, "units", strlen("kg/(m^2s)"), "kg/(m^2s)"));
+		NCCHECK(nc_def_var(ncid, "sprate", NC_DOUBLE, 2, lat_lon_dimids, &sprate_id));
+		NCCHECK(nc_put_att_text(ncid, sprate_id, "units", strlen("kg/(m^2s)"), "kg/(m^2s)"));
+		NCCHECK(nc_def_var(ncid, "cape", NC_DOUBLE, 2, lat_lon_dimids, &cape_id));
+		NCCHECK(nc_put_att_text(ncid, cape_id, "units", strlen("J/kg"), "J/kg"));
+		NCCHECK(nc_def_var(ncid, "sfc_sw_down", NC_DOUBLE, 2, lat_lon_dimids, &sfc_sw_down_id));
+		NCCHECK(nc_put_att_text(ncid, sfc_sw_down_id, "units", strlen("W/m^2"), "W/m^2"));
+		NCCHECK(nc_def_var(ncid, "u10", NC_DOUBLE, 2, lat_lon_dimids, &u10_id));
+		NCCHECK(nc_put_att_text(ncid, u10_id, "units", strlen("m/s"), "m/s"));
+		NCCHECK(nc_def_var(ncid, "v10", NC_DOUBLE, 2, lat_lon_dimids, &v10_id));
+		NCCHECK(nc_put_att_text(ncid, v10_id, "units", strlen("m/s"), "m/s"));
+		NCCHECK(nc_def_var(ncid, "gusts10", NC_DOUBLE, 2, lat_lon_dimids, &gusts_id));
+		NCCHECK(nc_put_att_text(ncid, gusts_id, "units", strlen("m/s"), "m/s"));
+		NCCHECK(nc_enddef(ncid));
 	    
-		if ((retval = nc_put_var_int(ncid, start_day_id, &init_date)))
-			NCERR(retval);
-		if ((retval = nc_put_var_int(ncid, start_hour_id, &init_time)))
-			NCERR(retval);
-		if ((retval = nc_put_var_double(ncid, lat_id, &lat_vector[0])))
-			NCERR(retval);
-		if ((retval = nc_put_var_double(ncid, lon_id, &lon_vector[0])))
-			NCERR(retval);
+		NCCHECK(nc_put_var_int(ncid, start_day_id, &init_date));
+		NCCHECK(nc_put_var_int(ncid, start_hour_id, &init_time));
+		NCCHECK(nc_put_var_double(ncid, lat_id, &lat_vector[0]));
+		NCCHECK(nc_put_var_double(ncid, lon_id, &lon_vector[0]));
 	    interpolate_to_ll(sp, lat_lon_output_field, grid);
-		if ((retval = nc_put_var_double(ncid, mslp_id, &lat_lon_output_field[0][0])))
-			NCERR(retval);
+		NCCHECK(nc_put_var_double(ncid, mslp_id, &lat_lon_output_field[0][0]));
 	    interpolate_to_ll(mslp, lat_lon_output_field, grid);
-		if ((retval = nc_put_var_double(ncid, sp_id, &lat_lon_output_field[0][0])))
-			NCERR(retval);
+		NCCHECK(nc_put_var_double(ncid, sp_id, &lat_lon_output_field[0][0]));
 	    interpolate_to_ll(t2, lat_lon_output_field, grid);
-		if ((retval = nc_put_var_double(ncid, t2_id, &lat_lon_output_field[0][0])))
-			NCERR(retval);
+		NCCHECK(nc_put_var_double(ncid, t2_id, &lat_lon_output_field[0][0]));
 	    interpolate_to_ll(tcc, lat_lon_output_field, grid);
-		if ((retval = nc_put_var_double(ncid, tcc_id, &lat_lon_output_field[0][0])))
-			NCERR(retval);
+		NCCHECK(nc_put_var_double(ncid, tcc_id, &lat_lon_output_field[0][0]));
 	    interpolate_to_ll(rprate, lat_lon_output_field, grid);
-		if ((retval = nc_put_var_double(ncid, rprate_id, &lat_lon_output_field[0][0])))
-			NCERR(retval);
+		NCCHECK(nc_put_var_double(ncid, rprate_id, &lat_lon_output_field[0][0]));
 	    interpolate_to_ll(sprate, lat_lon_output_field, grid);
-		if ((retval = nc_put_var_double(ncid, sprate_id, &lat_lon_output_field[0][0])))
-			NCERR(retval);
+		NCCHECK(nc_put_var_double(ncid, sprate_id, &lat_lon_output_field[0][0]));
 	    interpolate_to_ll(cape, lat_lon_output_field, grid);
-		if ((retval = nc_put_var_double(ncid, cape_id, &lat_lon_output_field[0][0])))
-			NCERR(retval);
+		NCCHECK(nc_put_var_double(ncid, cape_id, &lat_lon_output_field[0][0]));
 	    interpolate_to_ll(sfc_sw_down, lat_lon_output_field, grid);
-		if ((retval = nc_put_var_double(ncid, sfc_sw_down_id, &lat_lon_output_field[0][0])))
-			NCERR(retval);
+		NCCHECK(nc_put_var_double(ncid, sfc_sw_down_id, &lat_lon_output_field[0][0]));
 	    interpolate_to_ll(wind_10_m_mean_u_at_cell, lat_lon_output_field, grid);
-		if ((retval = nc_put_var_double(ncid, u10_id, &lat_lon_output_field[0][0])))
-			NCERR(retval);
+		NCCHECK(nc_put_var_double(ncid, u10_id, &lat_lon_output_field[0][0]));
 	    interpolate_to_ll(wind_10_m_mean_v_at_cell, lat_lon_output_field, grid);
-		if ((retval = nc_put_var_double(ncid, v10_id, &lat_lon_output_field[0][0])))
-			NCERR(retval);
+		NCCHECK(nc_put_var_double(ncid, v10_id, &lat_lon_output_field[0][0]));
 	    interpolate_to_ll(wind_10_m_gusts_speed_at_cell, lat_lon_output_field, grid);
-		if ((retval = nc_put_var_double(ncid, gusts_id, &lat_lon_output_field[0][0])))
-			NCERR(retval);
+		NCCHECK(nc_put_var_double(ncid, gusts_id, &lat_lon_output_field[0][0]));
 		
 		// Closing the netcdf file.
-		if ((retval = nc_close(ncid)))
-			NCERR(retval);
+		NCCHECK(nc_close(ncid));
 		
 		free(wind_10_m_mean_u_at_cell);
 		free(wind_10_m_mean_v_at_cell);
@@ -918,92 +869,52 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		curl_field_dimid, single_double_dimid, densities_id, temperature_id, wind_id, rh_id, div_h_all_layers_id, rel_vort_id,
 		tke_id, soil_id, single_int_dimid, start_day_id, start_hour_id;
 		
-		if ((retval = nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid)))
-			NCERR(retval);
-		if ((retval = nc_def_dim(ncid, "single_int_index", 1, &single_int_dimid)))
-			NCERR(retval);
-		if ((retval = nc_def_dim(ncid, "scalar_index", NO_OF_SCALARS, &scalar_dimid)))
-			NCERR(retval);
-		if ((retval = nc_def_dim(ncid, "soil_index", NO_OF_SOIL_LAYERS*NO_OF_SCALARS_H, &soil_dimid)))
-			NCERR(retval);
-		if ((retval = nc_def_dim(ncid, "vector_index", NO_OF_VECTORS, &vector_dimid)))
-			NCERR(retval);
-		if ((retval = nc_def_dim(ncid, "densities_index", NO_OF_CONSTITUENTS*NO_OF_SCALARS, &densities_dimid)))
-			NCERR(retval);
-		if ((retval = nc_def_dim(ncid, "vector_index_h", NO_OF_H_VECTORS, &vector_h_dimid)))
-			NCERR(retval);
-		if ((retval = nc_def_dim(ncid, "vector_index_v", NO_OF_V_VECTORS, &vector_v_dimid)))
-			NCERR(retval);
-		if ((retval = nc_def_dim(ncid, "curl_point_index", NO_OF_LAYERS*2*NO_OF_VECTORS_H + NO_OF_VECTORS_H, &curl_field_dimid)))
-			NCERR(retval);
-		if ((retval = nc_def_dim(ncid, "single_double_dimid_index", 1, &single_double_dimid)))
-			NCERR(retval);
+		NCCHECK(nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid));
+		NCCHECK(nc_def_dim(ncid, "single_int_index", 1, &single_int_dimid));
+		NCCHECK(nc_def_dim(ncid, "scalar_index", NO_OF_SCALARS, &scalar_dimid));
+		NCCHECK(nc_def_dim(ncid, "soil_index", NO_OF_SOIL_LAYERS*NO_OF_SCALARS_H, &soil_dimid));
+		NCCHECK(nc_def_dim(ncid, "vector_index", NO_OF_VECTORS, &vector_dimid));
+		NCCHECK(nc_def_dim(ncid, "densities_index", NO_OF_CONSTITUENTS*NO_OF_SCALARS, &densities_dimid));
+		NCCHECK(nc_def_dim(ncid, "vector_index_h", NO_OF_H_VECTORS, &vector_h_dimid));
+		NCCHECK(nc_def_dim(ncid, "vector_index_v", NO_OF_V_VECTORS, &vector_v_dimid));
+		NCCHECK(nc_def_dim(ncid, "curl_point_index", NO_OF_LAYERS*2*NO_OF_VECTORS_H + NO_OF_VECTORS_H, &curl_field_dimid));
+		NCCHECK(nc_def_dim(ncid, "single_double_dimid_index", 1, &single_double_dimid));
 		
 		// Defining the variables.
-		if ((retval = nc_def_var(ncid, "start_day", NC_INT, 1, &single_int_dimid, &start_day_id)))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "start_hour", NC_INT, 1, &single_int_dimid, &start_hour_id)))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "densities", NC_DOUBLE, 1, &densities_dimid, &densities_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, densities_id, "units", strlen("kg/m^3"), "kg/m^3")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "temperature", NC_DOUBLE, 1, &scalar_dimid, &temperature_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, temperature_id, "units", strlen("K"), "K")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "wind", NC_DOUBLE, 1, &vector_dimid, &wind_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, wind_id, "units", strlen("m/s"), "m/s")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "rh", NC_DOUBLE, 1, &scalar_dimid, &rh_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, rh_id, "units", strlen("%"), "%")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "rel_vort", NC_DOUBLE, 1, &scalar_dimid, &rel_vort_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, rel_vort_id, "units", strlen("1/s"), "1/s")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "div_h", NC_DOUBLE, 1, &scalar_dimid, &div_h_all_layers_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, div_h_all_layers_id, "units", strlen("1/s"), "1/s")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "tke", NC_DOUBLE, 1, &scalar_dimid, &tke_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, tke_id, "units", strlen("J/kg"), "J/kg")))
-			NCERR(retval);
-		if ((retval = nc_def_var(ncid, "t_soil", NC_DOUBLE, 1, &soil_dimid, &soil_id)))
-			NCERR(retval);
-		if ((retval = nc_put_att_text(ncid, soil_id, "units", strlen("K"), "K")))
-			NCERR(retval);
-		if ((retval = nc_enddef(ncid)))
-			NCERR(retval);
+		NCCHECK(nc_def_var(ncid, "start_day", NC_INT, 1, &single_int_dimid, &start_day_id));
+		NCCHECK(nc_def_var(ncid, "start_hour", NC_INT, 1, &single_int_dimid, &start_hour_id));
+		NCCHECK(nc_def_var(ncid, "densities", NC_DOUBLE, 1, &densities_dimid, &densities_id));
+		NCCHECK(nc_put_att_text(ncid, densities_id, "units", strlen("kg/m^3"), "kg/m^3"));
+		NCCHECK(nc_def_var(ncid, "temperature", NC_DOUBLE, 1, &scalar_dimid, &temperature_id));
+		NCCHECK(nc_put_att_text(ncid, temperature_id, "units", strlen("K"), "K"));
+		NCCHECK(nc_def_var(ncid, "wind", NC_DOUBLE, 1, &vector_dimid, &wind_id));
+		NCCHECK(nc_put_att_text(ncid, wind_id, "units", strlen("m/s"), "m/s"));
+		NCCHECK(nc_def_var(ncid, "rh", NC_DOUBLE, 1, &scalar_dimid, &rh_id));
+		NCCHECK(nc_put_att_text(ncid, rh_id, "units", strlen("%"), "%"));
+		NCCHECK(nc_def_var(ncid, "rel_vort", NC_DOUBLE, 1, &scalar_dimid, &rel_vort_id));
+		NCCHECK(nc_put_att_text(ncid, rel_vort_id, "units", strlen("1/s"), "1/s"));
+		NCCHECK(nc_def_var(ncid, "div_h", NC_DOUBLE, 1, &scalar_dimid, &div_h_all_layers_id));
+		NCCHECK(nc_put_att_text(ncid, div_h_all_layers_id, "units", strlen("1/s"), "1/s"));
+		NCCHECK(nc_def_var(ncid, "tke", NC_DOUBLE, 1, &scalar_dimid, &tke_id));
+		NCCHECK(nc_put_att_text(ncid, tke_id, "units", strlen("J/kg"), "J/kg"));
+		NCCHECK(nc_def_var(ncid, "t_soil", NC_DOUBLE, 1, &soil_dimid, &soil_id));
+		NCCHECK(nc_put_att_text(ncid, soil_id, "units", strlen("K"), "K"));
+		NCCHECK(nc_enddef(ncid));
 		
 		// setting the variables
-		if ((retval = nc_put_var_int(ncid, start_day_id, &init_date)))
-			NCERR(retval);
-		if ((retval = nc_put_var_int(ncid, start_hour_id, &init_time)))
-			NCERR(retval);
-		if ((retval = nc_put_var_double(ncid, densities_id, &state_write_out -> rho[0])))
-			NCERR(retval);
-		if ((retval = nc_put_var_double(ncid, temperature_id, &diagnostics -> temperature[0])))
-			NCERR(retval);
-		if ((retval = nc_put_var_double(ncid, wind_id, &state_write_out -> wind[0])))
-			NCERR(retval);
-		if ((retval = nc_put_var_double(ncid, rh_id, &(*rh)[0])))
-			NCERR(retval);
-		if ((retval = nc_put_var_double(ncid, rel_vort_id, &(*rel_vort)[0])))
-			NCERR(retval);
-		if ((retval = nc_put_var_double(ncid, div_h_all_layers_id, &(*div_h_all_layers)[0])))
-			NCERR(retval);
-		if ((retval = nc_put_var_double(ncid, tke_id, &irrev -> tke[0])))
-			NCERR(retval);
-		if ((retval = nc_put_var_double(ncid, soil_id, &state_write_out -> temperature_soil[0])))
-			NCERR(retval);
+		NCCHECK(nc_put_var_int(ncid, start_day_id, &init_date));
+		NCCHECK(nc_put_var_int(ncid, start_hour_id, &init_time));
+		NCCHECK(nc_put_var_double(ncid, densities_id, &state_write_out -> rho[0]));
+		NCCHECK(nc_put_var_double(ncid, temperature_id, &diagnostics -> temperature[0]));
+		NCCHECK(nc_put_var_double(ncid, wind_id, &state_write_out -> wind[0]));
+		NCCHECK(nc_put_var_double(ncid, rh_id, &(*rh)[0]));
+		NCCHECK(nc_put_var_double(ncid, rel_vort_id, &(*rel_vort)[0]));
+		NCCHECK(nc_put_var_double(ncid, div_h_all_layers_id, &(*div_h_all_layers)[0]));
+		NCCHECK(nc_put_var_double(ncid, tke_id, &irrev -> tke[0]));
+		NCCHECK(nc_put_var_double(ncid, soil_id, &state_write_out -> temperature_soil[0]));
 		
 		// Closing the netcdf file.
-		if ((retval = nc_close(ncid)))
-			NCERR(retval);
+		NCCHECK(nc_close(ncid));
 	}
 	free(lat_lon_output_field);
 	free(div_h_all_layers);
