@@ -198,7 +198,7 @@ int vert_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible
 			- grid -> z_vector[vector_index + NO_OF_VECTORS_PER_LAYER]);
 		}
 		// the second derivative is assumed to vanish at the TOA
-		else if (layer_index == 1)
+		if (layer_index == 1)
 		{
 			diagnostics -> dv_hdz[i - NO_OF_VECTORS_H] = diagnostics -> dv_hdz[i];
 		}
