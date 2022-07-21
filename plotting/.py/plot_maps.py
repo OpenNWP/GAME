@@ -396,7 +396,7 @@ for i in range(int((run_span_min - start_time_since_init_min)/plot_interval_min)
 	if synoptical_time_mode == 1:
 		implementation_name = "EFS"
 		time_string = "init: " + str(init_year) + "-" + str(init_month) + "-" + str(init_day) + ", " + str(init_hour) + " UTC\n"
-		valid_year, valid_month, valid_day, valid_hour, dump, dump, dump = tcs.return_date(start_timestamp + time_after_init_min)
+		valid_year, valid_month, valid_day, valid_hour, dump, dump, dump = tcs.return_date(start_timestamp + 60*time_after_init_min)
 		time_string = time_string + "valid: " + str(valid_year) + "-" + str(valid_month) + "-" + str(valid_day) + ", " + str(valid_hour) + " UTC (+ " + str(time_after_init_min_title) + " hrs)"
 	if show_level_on == 1:
 		if on_pressure_bool == 1:
