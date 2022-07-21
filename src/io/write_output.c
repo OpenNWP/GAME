@@ -66,11 +66,17 @@ int write_out_integral(State *state_write_out, double time_since_init, Grid *gri
     int INTEGRAL_FILE_LENGTH = 200;
     char *INTEGRAL_FILE_PRE = malloc((INTEGRAL_FILE_LENGTH + 1)*sizeof(char));
     if (integral_id == 0)
+    {
    		sprintf(INTEGRAL_FILE_PRE, "%s", "masses");
+    }
     if (integral_id == 1)
+   	{
    		sprintf(INTEGRAL_FILE_PRE, "%s", "potential_temperature_density");
+    }
     if (integral_id == 2)
+   	{
    		sprintf(INTEGRAL_FILE_PRE, "%s", "energy");
+    }
     INTEGRAL_FILE_LENGTH = strlen(INTEGRAL_FILE_PRE);
     char *INTEGRAL_FILE = malloc((INTEGRAL_FILE_LENGTH + 1)*sizeof(char));
     sprintf(INTEGRAL_FILE, "%s", INTEGRAL_FILE_PRE);
@@ -905,9 +911,9 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	if (config_io -> ideal_input_id == -1 && time_since_init_min == config -> time_to_next_analysis_min)
 	{
 		char OUTPUT_FILE_PRE[300];
-		sprintf(OUTPUT_FILE_PRE, "%s+%dmin.nc", config_io -> run_id, time_since_init_min);
+		sprintf(OUTPUT_FILE_PRE, "%s+%dmin_hex.nc", config_io -> run_id, time_since_init_min);
 		char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
-		sprintf(OUTPUT_FILE, "%s+%dmin.nc", config_io -> run_id, time_since_init_min);
+		sprintf(OUTPUT_FILE, "%s+%dmin_hex.nc", config_io -> run_id, time_since_init_min);
 		int ncid, scalar_dimid, soil_dimid, vector_h_dimid, vector_v_dimid, vector_dimid, densities_dimid,
 		curl_field_dimid, single_double_dimid, densities_id, temperature_id, wind_id, rh_id, div_h_all_layers_id, rel_vort_id,
 		tke_id, soil_id, single_int_dimid, start_day_id, start_hour_id;
