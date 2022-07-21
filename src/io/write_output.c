@@ -20,7 +20,7 @@ In addition to that, some postprocessing diagnostics are also calculated here.
 #include "../spatial_operators/spatial_operators.h"
 #include "../constituents/constituents.h"
 #include "../../grid_generator/src/grid_generator.h"
-#define NCERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(2);}
+#define NCERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(1);}
 #define NCCHECK(e) {if(e != 0) NCERR(e)}
 
 // the number of pressure levels for the pressure level output

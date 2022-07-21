@@ -15,8 +15,8 @@ With this program, orographies can be produced.
 #include "../../src/game_types.h"
 #include "../../src/game_constants.h"
 #include "grid_generator.h"
-#define ERRCODE 2
-#define ERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(ERRCODE);}
+#define NCERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(1);}
+#define NCCHECK(e) {if(e != 0) NCERR(e)}
 
 double vegetation_height_ideal(double latitude, double oro)
 {
@@ -45,21 +45,17 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 	*/
 	double *oro_unfiltered = malloc(NO_OF_SCALARS_H*sizeof(double));
 	
-	int ncid, retval, is_land_id;
+	int ncid, is_land_id;
 	if (oro_id == 1)
 	{
 		char is_land_file_pre[200];
 		sprintf(is_land_file_pre, "phys_quantities/B%d_is_land.nc", RES_ID);
 		char is_land_file[strlen(is_land_file_pre) + 1];
 		strcpy(is_land_file, is_land_file_pre);
-		if ((retval = nc_open(is_land_file, NC_NOWRITE, &ncid)))
-			ERR(retval);
-		if ((retval = nc_inq_varid(ncid, "is_land", &is_land_id)))
-			ERR(retval);
-		if ((retval = nc_get_var_int(ncid, is_land_id, &is_land[0])))
-			ERR(retval);
-		if ((retval = nc_close(ncid)))
-		  ERR(retval);
+		NCCHECK(nc_open(is_land_file, NC_NOWRITE, &ncid));
+		NCCHECK(nc_inq_varid(ncid, "is_land", &is_land_id));
+		NCCHECK(nc_get_var_int(ncid, is_land_id, &is_land[0]));
+		NCCHECK(nc_close(ncid));
 	}
   
   	// reading the ETOPO orography
@@ -71,22 +67,14 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 	int (*z_input)[no_of_lon_points] = malloc(sizeof(int[no_of_lat_points][no_of_lon_points]));
 	if (oro_id == 1)
 	{
-		if ((retval = nc_open("phys_quantities/etopo.nc", NC_NOWRITE, &ncid)))
-			ERR(retval);
-		if ((retval = nc_inq_varid(ncid, "y", &lat_in_id)))
-			ERR(retval);
-		if ((retval = nc_inq_varid(ncid, "x", &lon_in_id)))
-			ERR(retval);
-		if ((retval = nc_inq_varid(ncid, "z", &z_in_id)))
-			ERR(retval);
-		if ((retval = nc_get_var_double(ncid, lat_in_id, &latitude_input[0])))
-			ERR(retval);
-		if ((retval = nc_get_var_double(ncid, lon_in_id, &longitude_input[0])))
-			ERR(retval);
-		if ((retval = nc_get_var_int(ncid, z_in_id, &z_input[0][0])))
-			ERR(retval);
-		if ((retval = nc_close(ncid)))
-		  ERR(retval);
+		NCCHECK(nc_open("phys_quantities/etopo.nc", NC_NOWRITE, &ncid));
+		NCCHECK(nc_inq_varid(ncid, "y", &lat_in_id));
+		NCCHECK(nc_inq_varid(ncid, "x", &lon_in_id));
+		NCCHECK(nc_inq_varid(ncid, "z", &z_in_id));
+		NCCHECK(nc_get_var_double(ncid, lat_in_id, &latitude_input[0]));
+		NCCHECK(nc_get_var_double(ncid, lon_in_id, &longitude_input[0]));
+		NCCHECK(nc_get_var_int(ncid, z_in_id, &z_input[0][0]));
+		NCCHECK(nc_close(ncid));
 	}
 	
     // setting the unfiltered orography

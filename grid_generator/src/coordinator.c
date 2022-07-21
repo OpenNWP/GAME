@@ -15,8 +15,8 @@ The grid generation procedure is manged from this file. Memory allocation and IO
 #include "../../src/game_types.h"
 #include "../../src/game_constants.h"
 #include "grid_generator.h"
-#define ERRCODE 2
-#define ERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(ERRCODE);}
+#define NCERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(1);}
+#define NCCHECK(e) {if(e != 0) NCERR(e)}
 #define RESET "\033[0m"
 #define BLACK "\033[30m"
 #define RED "\033[31m"
@@ -341,7 +341,7 @@ int main(int argc, char *argv[])
 	/*
 	writing the result to a netcdf file
     */
-    int retval, latitude_scalar_id, longitude_scalar_id, direction_id, latitude_vector_id, longitude_vector_id, latitude_scalar_dual_id, longitude_scalar_dual_id,
+    int latitude_scalar_id, longitude_scalar_id, direction_id, latitude_vector_id, longitude_vector_id, latitude_scalar_dual_id, longitude_scalar_dual_id,
     z_scalar_id, z_vector_id, normal_distance_id, volume_id, area_id, trsk_weights_id, z_vector_dual_id, normal_distance_dual_id, area_dual_id, f_vec_id, to_index_id,
     from_index_id, to_index_dual_id, from_index_dual_id, adjacent_vector_indices_h_id, trsk_indices_id, trsk_modified_curl_indices_id, adjacent_signs_h_id,
     vorticity_signs_triangles_id, f_vec_dimid, scalar_dimid, scalar_h_dimid, scalar_dual_h_dimid, vector_dimid, latlon_dimid_5, scalar_h_dimid_6, vector_h_dimid,
@@ -352,262 +352,134 @@ int main(int argc, char *argv[])
     toa_id, radius_id;
     
     printf("Starting to write to output file ... ");
-    if ((retval = nc_create(output_file, NC_CLOBBER, &ncid_g_prop)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "scalar_index", NO_OF_SCALARS, &scalar_dimid)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "scalar_8_index", 8*NO_OF_SCALARS, &scalar_8_dimid)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "scalar_2_index", 2*NO_OF_SCALARS, &scalar_2_dimid)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "scalar_h_index", NO_OF_SCALARS_H, &scalar_h_dimid)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "scalar_dual_h_index", NO_OF_DUAL_SCALARS_H, &scalar_dual_h_dimid)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "scalar_dual_h_3_index", 3*NO_OF_DUAL_SCALARS_H, &scalar_dual_h_dimid_3)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "vector_index", NO_OF_VECTORS, &vector_dimid)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "vector_h_index", NO_OF_VECTORS_H, &vector_h_dimid)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "latlon_3_index", 5*NO_OF_LATLON_IO_POINTS, &latlon_dimid_5)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "scalar_h_6_index", 6*NO_OF_SCALARS_H, &scalar_h_dimid_6)))
-        ERR(retval);
-	if ((retval = nc_def_dim(ncid_g_prop, "vector_h_10_index", 10*NO_OF_VECTORS_H, &vector_h_dimid_10)))
-	    ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "vector_h_4_index", 4*NO_OF_VECTORS_H, &vector_h_dimid_4)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "vector_v_6_index", 6*NO_OF_LEVELS*NO_OF_SCALARS_H, &vector_v_dimid_6)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "f_vec_index", 2*NO_OF_VECTORS_H, &f_vec_dimid)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "vector_index_dual", NO_OF_DUAL_VECTORS, &vector_dual_dimid)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "vector_index_dual_area", NO_OF_DUAL_H_VECTORS + NO_OF_H_VECTORS, &vector_dual_area_dimid)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "vector_index_h_2_dual", 2*NO_OF_DUAL_H_VECTORS, &vector_h_dual_dimid_2)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "single_double_dimid_index", 1, &single_double_dimid)))
-        ERR(retval);
-    if ((retval = nc_def_dim(ncid_g_prop, "single_int_dimid_index", 1, &single_int_dimid)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "no_of_lloyd_iterations", NC_INT, 1, &single_int_dimid, &no_of_lloyd_iterations_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "no_of_oro_layers", NC_INT, 1, &single_int_dimid, &no_of_oro_layers_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "stretching_parameter", NC_DOUBLE, 1, &single_double_dimid, &stretching_parameter_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "toa", NC_DOUBLE, 1, &single_double_dimid, &toa_id)))
-        ERR(retval);
-    if ((retval = nc_put_att_text(ncid_g_prop, toa_id, "units", strlen("m"), "m")))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "radius", NC_DOUBLE, 1, &single_double_dimid, &radius_id)))
-        ERR(retval);
-    if ((retval = nc_put_att_text(ncid_g_prop, radius_id, "units", strlen("m"), "m")))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "latitude_scalar", NC_DOUBLE, 1, &scalar_h_dimid, &latitude_scalar_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "longitude_scalar", NC_DOUBLE, 1, &scalar_h_dimid, &longitude_scalar_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "latitude_scalar_dual", NC_DOUBLE, 1, &scalar_dual_h_dimid, &latitude_scalar_dual_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "longitude_scalar_dual", NC_DOUBLE, 1, &scalar_dual_h_dimid, &longitude_scalar_dual_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "z_scalar", NC_DOUBLE, 1, &scalar_dimid, &z_scalar_id)))
-        ERR(retval);
-    if ((retval = nc_put_att_text(ncid_g_prop, z_scalar_id, "units", strlen("m"), "m")))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "theta_v_bg", NC_DOUBLE, 1, &scalar_dimid, &theta_v_bg_id)))
-        ERR(retval);
-    if ((retval = nc_put_att_text(ncid_g_prop, theta_v_bg_id, "units", strlen("K"), "K")))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "exner_bg", NC_DOUBLE, 1, &scalar_dimid, &exner_bg_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "gravity_potential", NC_DOUBLE, 1, &scalar_dimid, &gravity_potential_id)))
-        ERR(retval);
-    if ((retval = nc_put_att_text(ncid_g_prop, gravity_potential_id, "units", strlen("m^2/s^2"), "m^2/s^2")))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "z_vector", NC_DOUBLE, 1, &vector_dimid, &z_vector_id)))
-        ERR(retval);
-    if ((retval = nc_put_att_text(ncid_g_prop, z_vector_id, "units", strlen("m"), "m")))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "normal_distance", NC_DOUBLE, 1, &vector_dimid, &normal_distance_id)))
-        ERR(retval);
-    if ((retval = nc_put_att_text(ncid_g_prop, normal_distance_id, "units", strlen("m"), "m")))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "volume", NC_DOUBLE, 1, &scalar_dimid, &volume_id)))
-        ERR(retval);
-    if ((retval = nc_put_att_text(ncid_g_prop, volume_id, "units", strlen("m^3"), "m^3")))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "area", NC_DOUBLE, 1, &vector_dimid, &area_id)))
-        ERR(retval);
-    if ((retval = nc_put_att_text(ncid_g_prop, area_id, "units", strlen("m^2"), "m^2")))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "trsk_weights", NC_DOUBLE, 1, &vector_h_dimid_10, &trsk_weights_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "z_vector_dual", NC_DOUBLE, 1, &vector_dual_dimid, &z_vector_dual_id)))
-        ERR(retval);
-    if ((retval = nc_put_att_text(ncid_g_prop, z_vector_dual_id, "units", strlen("m"), "m")))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "normal_distance_dual", NC_DOUBLE, 1, &vector_dual_dimid, &normal_distance_dual_id)))
-        ERR(retval);
-    if ((retval = nc_put_att_text(ncid_g_prop, normal_distance_dual_id, "units", strlen("m"), "m")))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "area_dual", NC_DOUBLE, 1, &vector_dual_dimid, &area_dual_id)))
-        ERR(retval);
-    if ((retval = nc_put_att_text(ncid_g_prop, area_dual_id, "units", strlen("m^2"), "m^2")))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "f_vec", NC_DOUBLE, 1, &f_vec_dimid, &f_vec_id)))
-        ERR(retval);
-    if ((retval = nc_put_att_text(ncid_g_prop, f_vec_id, "units", strlen("1/s"), "1/s")))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "direction", NC_DOUBLE, 1, &vector_h_dimid, &direction_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "latitude_vector", NC_DOUBLE, 1, &vector_h_dimid, &latitude_vector_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "longitude_vector", NC_DOUBLE, 1, &vector_h_dimid, &longitude_vector_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "inner_product_weights", NC_DOUBLE, 1, &scalar_8_dimid, &inner_product_weights_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "density_to_rhombi_weights", NC_DOUBLE, 1, &vector_h_dimid_4, &density_to_rhombi_weights_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "interpol_weights", NC_DOUBLE, 1, &latlon_dimid_5, &interpol_weights_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "from_index", NC_INT, 1, &vector_h_dimid, &from_index_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "to_index", NC_INT, 1, &vector_h_dimid, &to_index_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "from_index_dual", NC_INT, 1, &vector_h_dimid, &from_index_dual_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "to_index_dual", NC_INT, 1, &vector_h_dimid, &to_index_dual_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "adjacent_vector_indices_h", NC_INT, 1, &scalar_h_dimid_6, &adjacent_vector_indices_h_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "interpol_indices", NC_INT, 1, &latlon_dimid_5, &interpol_indices_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "trsk_indices", NC_INT, 1, &vector_h_dimid_10, &trsk_indices_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "trsk_modified_curl_indices", NC_INT, 1, &vector_h_dimid_10, &trsk_modified_curl_indices_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "adjacent_signs_h", NC_INT, 1, &scalar_h_dimid_6, &adjacent_signs_h_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "vorticity_signs_triangles", NC_INT, 1, &scalar_dual_h_dimid_3, &vorticity_signs_triangles_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "vorticity_indices_triangles", NC_INT, 1, &scalar_dual_h_dimid_3, &vorticity_indices_triangles_id)))
-        ERR(retval);
-    if ((retval = nc_def_var(ncid_g_prop, "density_to_rhombi_indices", NC_INT, 1, &vector_h_dimid_4, &density_to_rhombi_indices_id)))
-        ERR(retval);
-	if ((retval = nc_def_var(ncid_g_prop, "sfc_albedo", NC_DOUBLE, 1, &scalar_h_dimid, &sfc_albedo_id)))
-	  	ERR(retval);
-	if ((retval = nc_def_var(ncid_g_prop, "sfc_rho_c", NC_DOUBLE, 1, &scalar_h_dimid, &sfc_rho_c_id)))
-	  	ERR(retval);
-	if ((retval = nc_put_att_text(ncid_g_prop, sfc_rho_c_id, "units", strlen("J/(K*m**3)"), "J/(K*m**3)")))
-	  	ERR(retval);
-	if ((retval = nc_def_var(ncid_g_prop, "is_land", NC_INT, 1, &scalar_h_dimid, &is_land_id)))
-	  	ERR(retval);
-	if ((retval = nc_def_var(ncid_g_prop, "t_conductivity", NC_DOUBLE, 1, &scalar_h_dimid, &t_conductivity_id)))
-	  	ERR(retval);
-	if ((retval = nc_put_att_text(ncid_g_prop, t_conductivity_id, "units", strlen("m^2/2"), "m^2/2")))
-	  	ERR(retval);
-	if ((retval = nc_def_var(ncid_g_prop, "roughness_length", NC_DOUBLE, 1, &scalar_h_dimid, &roughness_length_id)))
-	  	ERR(retval);
-	if ((retval = nc_put_att_text(ncid_g_prop, roughness_length_id, "units", strlen("m"), "m")))
-	  	ERR(retval);
-    if ((retval = nc_enddef(ncid_g_prop)))
-        ERR(retval);
-    if ((retval = nc_put_var_int(ncid_g_prop, no_of_oro_layers_id, &no_of_oro_layers)))
-        ERR(retval);
-    if ((retval = nc_put_var_int(ncid_g_prop, no_of_lloyd_iterations_id, &no_of_lloyd_iterations)))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, stretching_parameter_id, &stretching_parameter)))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, toa_id, &toa)))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, radius_id, &radius)))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, latitude_scalar_id, &latitude_scalar[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, longitude_scalar_id, &longitude_scalar[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, latitude_scalar_dual_id, &latitude_scalar_dual[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, longitude_scalar_dual_id, &longitude_scalar_dual[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, z_scalar_id, &z_scalar[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, theta_v_bg_id, &theta_v_bg[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, exner_bg_id, &exner_bg[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, gravity_potential_id, &gravity_potential[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, z_vector_id, &z_vector[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, normal_distance_id, &normal_distance[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, volume_id, &volume[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, area_id, &area[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, inner_product_weights_id, &inner_product_weights[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, trsk_weights_id, &trsk_weights[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, z_vector_dual_id, &z_vector_dual[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, normal_distance_dual_id, &normal_distance_dual[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, area_dual_id, &area_dual[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, f_vec_id, &f_vec[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, direction_id, &direction[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, latitude_vector_id, &latitude_vector[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, longitude_vector_id, &longitude_vector[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, density_to_rhombi_weights_id, &density_to_rhombi_weights[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_double(ncid_g_prop, interpol_weights_id, &interpol_weights[0])))
-        ERR(retval);
-	if ((retval = nc_put_var_double(ncid_g_prop, sfc_albedo_id, &sfc_albedo[0])))
-	  	ERR(retval);
-	if ((retval = nc_put_var_double(ncid_g_prop, sfc_rho_c_id, &sfc_rho_c[0])))
-	  	ERR(retval);
-	if ((retval = nc_put_var_double(ncid_g_prop, t_conductivity_id, &t_conductivity[0])))
-	  	ERR(retval);
-	if ((retval = nc_put_var_double(ncid_g_prop, roughness_length_id, &roughness_length[0])))
-	  	ERR(retval);
-    if ((retval = nc_put_var_int(ncid_g_prop, from_index_id, &from_index[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_int(ncid_g_prop, to_index_id, &to_index[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_int(ncid_g_prop, from_index_dual_id, &from_index_dual[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_int(ncid_g_prop, to_index_dual_id, &to_index_dual[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_int(ncid_g_prop, adjacent_vector_indices_h_id, &adjacent_vector_indices_h[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_int(ncid_g_prop, trsk_indices_id, &trsk_indices[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_int(ncid_g_prop, trsk_modified_curl_indices_id, &trsk_modified_curl_indices[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_int(ncid_g_prop, adjacent_signs_h_id, &adjacent_signs_h[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_int(ncid_g_prop, vorticity_signs_triangles_id, &vorticity_signs_triangles[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_int(ncid_g_prop, vorticity_indices_triangles_id, &vorticity_indices_triangles[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_int(ncid_g_prop, density_to_rhombi_indices_id, &density_to_rhombi_indices[0])))
-        ERR(retval);
-    if ((retval = nc_put_var_int(ncid_g_prop, interpol_indices_id, &interpol_indices[0])))
-        ERR(retval);
-	if ((retval = nc_put_var_int(ncid_g_prop, is_land_id, &is_land[0])))
-	  	ERR(retval);
-    if ((retval = nc_close(ncid_g_prop)))
-        ERR(retval);
+    NCCHECK(nc_create(output_file, NC_CLOBBER, &ncid_g_prop));
+    NCCHECK(nc_def_dim(ncid_g_prop, "scalar_index", NO_OF_SCALARS, &scalar_dimid));
+    NCCHECK(nc_def_dim(ncid_g_prop, "scalar_8_index", 8*NO_OF_SCALARS, &scalar_8_dimid));
+    NCCHECK(nc_def_dim(ncid_g_prop, "scalar_2_index", 2*NO_OF_SCALARS, &scalar_2_dimid));
+    NCCHECK(nc_def_dim(ncid_g_prop, "scalar_h_index", NO_OF_SCALARS_H, &scalar_h_dimid));
+    NCCHECK(nc_def_dim(ncid_g_prop, "scalar_dual_h_index", NO_OF_DUAL_SCALARS_H, &scalar_dual_h_dimid));
+    NCCHECK(nc_def_dim(ncid_g_prop, "scalar_dual_h_3_index", 3*NO_OF_DUAL_SCALARS_H, &scalar_dual_h_dimid_3));
+    NCCHECK(nc_def_dim(ncid_g_prop, "vector_index", NO_OF_VECTORS, &vector_dimid));
+    NCCHECK(nc_def_dim(ncid_g_prop, "vector_h_index", NO_OF_VECTORS_H, &vector_h_dimid));
+    NCCHECK(nc_def_dim(ncid_g_prop, "latlon_3_index", 5*NO_OF_LATLON_IO_POINTS, &latlon_dimid_5));
+    NCCHECK(nc_def_dim(ncid_g_prop, "scalar_h_6_index", 6*NO_OF_SCALARS_H, &scalar_h_dimid_6));
+	NCCHECK(nc_def_dim(ncid_g_prop, "vector_h_10_index", 10*NO_OF_VECTORS_H, &vector_h_dimid_10));
+    NCCHECK(nc_def_dim(ncid_g_prop, "vector_h_4_index", 4*NO_OF_VECTORS_H, &vector_h_dimid_4));
+    NCCHECK(nc_def_dim(ncid_g_prop, "vector_v_6_index", 6*NO_OF_LEVELS*NO_OF_SCALARS_H, &vector_v_dimid_6));
+    NCCHECK(nc_def_dim(ncid_g_prop, "f_vec_index", 2*NO_OF_VECTORS_H, &f_vec_dimid));
+    NCCHECK(nc_def_dim(ncid_g_prop, "vector_index_dual", NO_OF_DUAL_VECTORS, &vector_dual_dimid));
+    NCCHECK(nc_def_dim(ncid_g_prop, "vector_index_dual_area", NO_OF_DUAL_H_VECTORS + NO_OF_H_VECTORS, &vector_dual_area_dimid));
+    NCCHECK(nc_def_dim(ncid_g_prop, "vector_index_h_2_dual", 2*NO_OF_DUAL_H_VECTORS, &vector_h_dual_dimid_2));
+    NCCHECK(nc_def_dim(ncid_g_prop, "single_double_dimid_index", 1, &single_double_dimid));
+    NCCHECK(nc_def_dim(ncid_g_prop, "single_int_dimid_index", 1, &single_int_dimid));
+    NCCHECK(nc_def_var(ncid_g_prop, "no_of_lloyd_iterations", NC_INT, 1, &single_int_dimid, &no_of_lloyd_iterations_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "no_of_oro_layers", NC_INT, 1, &single_int_dimid, &no_of_oro_layers_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "stretching_parameter", NC_DOUBLE, 1, &single_double_dimid, &stretching_parameter_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "toa", NC_DOUBLE, 1, &single_double_dimid, &toa_id));
+    NCCHECK(nc_put_att_text(ncid_g_prop, toa_id, "units", strlen("m"), "m"));
+    NCCHECK(nc_def_var(ncid_g_prop, "radius", NC_DOUBLE, 1, &single_double_dimid, &radius_id));
+    NCCHECK(nc_put_att_text(ncid_g_prop, radius_id, "units", strlen("m"), "m"));
+    NCCHECK(nc_def_var(ncid_g_prop, "latitude_scalar", NC_DOUBLE, 1, &scalar_h_dimid, &latitude_scalar_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "longitude_scalar", NC_DOUBLE, 1, &scalar_h_dimid, &longitude_scalar_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "latitude_scalar_dual", NC_DOUBLE, 1, &scalar_dual_h_dimid, &latitude_scalar_dual_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "longitude_scalar_dual", NC_DOUBLE, 1, &scalar_dual_h_dimid, &longitude_scalar_dual_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "z_scalar", NC_DOUBLE, 1, &scalar_dimid, &z_scalar_id));
+    NCCHECK(nc_put_att_text(ncid_g_prop, z_scalar_id, "units", strlen("m"), "m"));
+    NCCHECK(nc_def_var(ncid_g_prop, "theta_v_bg", NC_DOUBLE, 1, &scalar_dimid, &theta_v_bg_id));
+    NCCHECK(nc_put_att_text(ncid_g_prop, theta_v_bg_id, "units", strlen("K"), "K"));
+    NCCHECK(nc_def_var(ncid_g_prop, "exner_bg", NC_DOUBLE, 1, &scalar_dimid, &exner_bg_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "gravity_potential", NC_DOUBLE, 1, &scalar_dimid, &gravity_potential_id));
+    NCCHECK(nc_put_att_text(ncid_g_prop, gravity_potential_id, "units", strlen("m^2/s^2"), "m^2/s^2"));
+    NCCHECK(nc_def_var(ncid_g_prop, "z_vector", NC_DOUBLE, 1, &vector_dimid, &z_vector_id));
+    NCCHECK(nc_put_att_text(ncid_g_prop, z_vector_id, "units", strlen("m"), "m"));
+    NCCHECK(nc_def_var(ncid_g_prop, "normal_distance", NC_DOUBLE, 1, &vector_dimid, &normal_distance_id));
+    NCCHECK(nc_put_att_text(ncid_g_prop, normal_distance_id, "units", strlen("m"), "m"));
+    NCCHECK(nc_def_var(ncid_g_prop, "volume", NC_DOUBLE, 1, &scalar_dimid, &volume_id));
+    NCCHECK(nc_put_att_text(ncid_g_prop, volume_id, "units", strlen("m^3"), "m^3"));
+    NCCHECK(nc_def_var(ncid_g_prop, "area", NC_DOUBLE, 1, &vector_dimid, &area_id));
+    NCCHECK(nc_put_att_text(ncid_g_prop, area_id, "units", strlen("m^2"), "m^2"));
+    NCCHECK(nc_def_var(ncid_g_prop, "trsk_weights", NC_DOUBLE, 1, &vector_h_dimid_10, &trsk_weights_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "z_vector_dual", NC_DOUBLE, 1, &vector_dual_dimid, &z_vector_dual_id));
+    NCCHECK(nc_put_att_text(ncid_g_prop, z_vector_dual_id, "units", strlen("m"), "m"));
+    NCCHECK(nc_def_var(ncid_g_prop, "normal_distance_dual", NC_DOUBLE, 1, &vector_dual_dimid, &normal_distance_dual_id));
+    NCCHECK(nc_put_att_text(ncid_g_prop, normal_distance_dual_id, "units", strlen("m"), "m"));
+    NCCHECK(nc_def_var(ncid_g_prop, "area_dual", NC_DOUBLE, 1, &vector_dual_dimid, &area_dual_id));
+    NCCHECK(nc_put_att_text(ncid_g_prop, area_dual_id, "units", strlen("m^2"), "m^2"));
+    NCCHECK(nc_def_var(ncid_g_prop, "f_vec", NC_DOUBLE, 1, &f_vec_dimid, &f_vec_id));
+    NCCHECK(nc_put_att_text(ncid_g_prop, f_vec_id, "units", strlen("1/s"), "1/s"));
+    NCCHECK(nc_def_var(ncid_g_prop, "direction", NC_DOUBLE, 1, &vector_h_dimid, &direction_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "latitude_vector", NC_DOUBLE, 1, &vector_h_dimid, &latitude_vector_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "longitude_vector", NC_DOUBLE, 1, &vector_h_dimid, &longitude_vector_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "inner_product_weights", NC_DOUBLE, 1, &scalar_8_dimid, &inner_product_weights_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "density_to_rhombi_weights", NC_DOUBLE, 1, &vector_h_dimid_4, &density_to_rhombi_weights_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "interpol_weights", NC_DOUBLE, 1, &latlon_dimid_5, &interpol_weights_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "from_index", NC_INT, 1, &vector_h_dimid, &from_index_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "to_index", NC_INT, 1, &vector_h_dimid, &to_index_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "from_index_dual", NC_INT, 1, &vector_h_dimid, &from_index_dual_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "to_index_dual", NC_INT, 1, &vector_h_dimid, &to_index_dual_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "adjacent_vector_indices_h", NC_INT, 1, &scalar_h_dimid_6, &adjacent_vector_indices_h_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "interpol_indices", NC_INT, 1, &latlon_dimid_5, &interpol_indices_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "trsk_indices", NC_INT, 1, &vector_h_dimid_10, &trsk_indices_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "trsk_modified_curl_indices", NC_INT, 1, &vector_h_dimid_10, &trsk_modified_curl_indices_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "adjacent_signs_h", NC_INT, 1, &scalar_h_dimid_6, &adjacent_signs_h_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "vorticity_signs_triangles", NC_INT, 1, &scalar_dual_h_dimid_3, &vorticity_signs_triangles_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "vorticity_indices_triangles", NC_INT, 1, &scalar_dual_h_dimid_3, &vorticity_indices_triangles_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "density_to_rhombi_indices", NC_INT, 1, &vector_h_dimid_4, &density_to_rhombi_indices_id));
+	NCCHECK(nc_def_var(ncid_g_prop, "sfc_albedo", NC_DOUBLE, 1, &scalar_h_dimid, &sfc_albedo_id));
+	NCCHECK(nc_def_var(ncid_g_prop, "sfc_rho_c", NC_DOUBLE, 1, &scalar_h_dimid, &sfc_rho_c_id));
+	NCCHECK(nc_put_att_text(ncid_g_prop, sfc_rho_c_id, "units", strlen("J/(K*m**3)"), "J/(K*m**3)"));
+	NCCHECK(nc_def_var(ncid_g_prop, "is_land", NC_INT, 1, &scalar_h_dimid, &is_land_id));
+	NCCHECK(nc_def_var(ncid_g_prop, "t_conductivity", NC_DOUBLE, 1, &scalar_h_dimid, &t_conductivity_id));
+	NCCHECK(nc_put_att_text(ncid_g_prop, t_conductivity_id, "units", strlen("m^2/2"), "m^2/2"));
+	NCCHECK(nc_def_var(ncid_g_prop, "roughness_length", NC_DOUBLE, 1, &scalar_h_dimid, &roughness_length_id));
+	NCCHECK(nc_put_att_text(ncid_g_prop, roughness_length_id, "units", strlen("m"), "m"));
+    NCCHECK(nc_enddef(ncid_g_prop));
+    NCCHECK(nc_put_var_int(ncid_g_prop, no_of_oro_layers_id, &no_of_oro_layers));
+    NCCHECK(nc_put_var_int(ncid_g_prop, no_of_lloyd_iterations_id, &no_of_lloyd_iterations));
+    NCCHECK(nc_put_var_double(ncid_g_prop, stretching_parameter_id, &stretching_parameter));
+    NCCHECK(nc_put_var_double(ncid_g_prop, toa_id, &toa));
+    NCCHECK(nc_put_var_double(ncid_g_prop, radius_id, &radius));
+    NCCHECK(nc_put_var_double(ncid_g_prop, latitude_scalar_id, &latitude_scalar[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, longitude_scalar_id, &longitude_scalar[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, latitude_scalar_dual_id, &latitude_scalar_dual[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, longitude_scalar_dual_id, &longitude_scalar_dual[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, z_scalar_id, &z_scalar[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, theta_v_bg_id, &theta_v_bg[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, exner_bg_id, &exner_bg[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, gravity_potential_id, &gravity_potential[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, z_vector_id, &z_vector[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, normal_distance_id, &normal_distance[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, volume_id, &volume[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, area_id, &area[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, inner_product_weights_id, &inner_product_weights[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, trsk_weights_id, &trsk_weights[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, z_vector_dual_id, &z_vector_dual[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, normal_distance_dual_id, &normal_distance_dual[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, area_dual_id, &area_dual[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, f_vec_id, &f_vec[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, direction_id, &direction[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, latitude_vector_id, &latitude_vector[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, longitude_vector_id, &longitude_vector[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, density_to_rhombi_weights_id, &density_to_rhombi_weights[0]));
+    NCCHECK(nc_put_var_double(ncid_g_prop, interpol_weights_id, &interpol_weights[0]));
+	NCCHECK(nc_put_var_double(ncid_g_prop, sfc_albedo_id, &sfc_albedo[0]));
+	NCCHECK(nc_put_var_double(ncid_g_prop, sfc_rho_c_id, &sfc_rho_c[0]));
+	NCCHECK(nc_put_var_double(ncid_g_prop, t_conductivity_id, &t_conductivity[0]));
+	NCCHECK(nc_put_var_double(ncid_g_prop, roughness_length_id, &roughness_length[0]));
+    NCCHECK(nc_put_var_int(ncid_g_prop, from_index_id, &from_index[0]));
+    NCCHECK(nc_put_var_int(ncid_g_prop, to_index_id, &to_index[0]));
+    NCCHECK(nc_put_var_int(ncid_g_prop, from_index_dual_id, &from_index_dual[0]));
+    NCCHECK(nc_put_var_int(ncid_g_prop, to_index_dual_id, &to_index_dual[0]));
+    NCCHECK(nc_put_var_int(ncid_g_prop, adjacent_vector_indices_h_id, &adjacent_vector_indices_h[0]));
+    NCCHECK(nc_put_var_int(ncid_g_prop, trsk_indices_id, &trsk_indices[0]));
+    NCCHECK(nc_put_var_int(ncid_g_prop, trsk_modified_curl_indices_id, &trsk_modified_curl_indices[0]));
+    NCCHECK(nc_put_var_int(ncid_g_prop, adjacent_signs_h_id, &adjacent_signs_h[0]));
+    NCCHECK(nc_put_var_int(ncid_g_prop, vorticity_signs_triangles_id, &vorticity_signs_triangles[0]));
+    NCCHECK(nc_put_var_int(ncid_g_prop, vorticity_indices_triangles_id, &vorticity_indices_triangles[0]));
+    NCCHECK(nc_put_var_int(ncid_g_prop, density_to_rhombi_indices_id, &density_to_rhombi_indices[0]));
+    NCCHECK(nc_put_var_int(ncid_g_prop, interpol_indices_id, &interpol_indices[0]));
+	NCCHECK(nc_put_var_int(ncid_g_prop, is_land_id, &is_land[0]));
+    NCCHECK(nc_close(ncid_g_prop));
     printf(GREEN "finished" RESET);
     printf(".\n");
     
