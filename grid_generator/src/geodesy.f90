@@ -6,6 +6,7 @@ module geodesy
   ! This file contains functions calculating geodesic operations.
 
   use iso_c_binding
+  use constants,    only : M_PI
   
   implicit none
   
@@ -24,11 +25,6 @@ module geodesy
     real(c_double), intent(in)  :: input
     real(c_double)              :: rad2deg
     
-    ! local variables
-    real(c_double) :: M_PI
-    
-    M_PI = 4.0*atan(1.0)
-    
     rad2deg = input*360.0/(2.0*M_PI)
     
   end function rad2deg
@@ -40,11 +36,6 @@ module geodesy
     
     real(c_double), intent(in)  :: input
     real(c_double)              :: deg2rad
-    
-    ! local variables
-    real(c_double) :: M_PI
-    
-    M_PI = 4.0*atan(1.0)
     
     deg2rad = input*2.0*M_PI/360.0
     

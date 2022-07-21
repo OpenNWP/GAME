@@ -10,6 +10,7 @@ project(game VERSION ${version})
 enable_language(Fortran)
 add_executable(
 grid_generator
+../src/constants.f90
 src/rhombus_averaging.c
 src/inner_product.c
 src/optimize.c
