@@ -18,6 +18,8 @@ In this file, the initial state of the simulation is set.
 #include "../../grid_generator/src/standard.h"
 #define NCERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(2);}
 
+extern int baroclinic_wave_test();
+
 int set_soil_temp(Grid *grid, State *state, double temperature[], char init_state_file[])
 {
 	/*

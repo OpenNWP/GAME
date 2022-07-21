@@ -61,7 +61,7 @@ int write_out_integral(State *state_write_out, double time_since_init, Grid *gri
 	1: entropy
 	2: energy
 	*/
-    double global_integral = 0;
+    double global_integral = 0.0;
     FILE *global_integral_file;
     int INTEGRAL_FILE_LENGTH = 200;
     char *INTEGRAL_FILE_PRE = malloc((INTEGRAL_FILE_LENGTH + 1)*sizeof(char));
@@ -856,7 +856,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
     	free(pressure_levels);
     }
 
-	// lat-lon output
+	// model level output
 	if (config_io -> model_level_output_switch == 1)
 	{
 		double *temperature_h = malloc(NO_OF_SCALARS_H*sizeof(double));
