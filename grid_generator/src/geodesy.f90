@@ -15,6 +15,8 @@ module geodesy
   public :: rad2deg
   public :: deg2rad
   public :: calculate_vertical_area
+  public :: scalar_product_elementary
+  public :: scalar_product_elementary_2d
   
   contains
 
@@ -45,7 +47,7 @@ module geodesy
   function calculate_vertical_area(base_distance,r_1,r_2) &
   bind(c,name = "calculate_vertical_area")
   
-    ! his function calculates the area of a vertical face (side face of a gridbox).
+    ! This function calculates the area of a vertical face (side face of a gridbox).
     
     real(c_double), intent(in)  :: base_distance,r_1,r_2
     real(c_double)              :: calculate_vertical_area
@@ -53,6 +55,44 @@ module geodesy
     calculate_vertical_area = base_distance*(0.5*r_2**2/r_1 - 0.5*r_1)
     
   end function calculate_vertical_area
+
+  function scalar_product_elementary(vector_a,vector_b) &
+  bind(c,name = "scalar_product_elementary")
+  
+    ! This function returns the scalar product of two three-dimensional vectors.
+    
+    real(c_double), intent(in)  :: vector_a(3),vector_b(3)
+    real(c_double)              :: scalar_product_elementary
+    
+    ! local variables
+    integer :: ji
+    
+    scalar_product_elementary = 0.0
+    
+    do ji=1,3
+      scalar_product_elementary = scalar_product_elementary + vector_a(ji)*vector_b(ji)
+    enddo
+    
+  end function scalar_product_elementary
+
+  function scalar_product_elementary_2d(vector_a,vector_b) &
+  bind(c,name = "scalar_product_elementary_2d")
+  
+    ! This function returns the scalar product of two two-dimensional vectors.
+    
+    real(c_double), intent(in)  :: vector_a(2),vector_b(2)
+    real(c_double)              :: scalar_product_elementary_2d
+    
+    ! local variables
+    integer :: ji
+    
+    scalar_product_elementary_2d = 0.0
+    
+    do ji=1,2
+      scalar_product_elementary_2d = scalar_product_elementary_2d + vector_a(ji)*vector_b(ji)
+    enddo
+    
+  end function scalar_product_elementary_2d
 
 end module geodesy
 

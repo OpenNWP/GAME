@@ -91,32 +91,6 @@ double find_geodetic_direction(double lat_1_in, double lon_1_in, double lat_2_in
     return direction;
 }
 
-double scalar_product_elementary(double vector_a[], double vector_b[])
-{
-	/*
-	This function returns the scalar product of two three-dimensional vectors.
-	*/
-    double answer = 0;
-    for (int i = 0; i < 3; ++i)
-    {
-        answer = answer + vector_a[i]*vector_b[i];
-    }
-    return answer;
-}
-
-double scalar_product_elementary_2d(double vector_a[], double vector_b[])
-{
-	/*
-	This function returns the scalar product of two two-dimensional vectors.
-	*/
-    double answer = 0;
-    for (int i = 0; i < 2; ++i)
-    {
-        answer = answer + vector_a[i]*vector_b[i];
-    }
-    return answer;
-}
-
 int calc_local_i(double lat, double lon, double result_vec[])
 {
 	/*
