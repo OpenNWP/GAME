@@ -57,7 +57,6 @@ int find_geos(double, double, double, double *, double *);
 int find_global_normal(double, double, double *, double *, double *);
 double scalar_product_elementary(double[], double[]);
 double scalar_product_elementary_2d(double[], double[]);
-double calculate_vertical_area(double, double, double);
 int find_voronoi_center_sphere(double, double, double, double, double, double, double *, double *);
 int active_turn(double, double, double, double *, double *);
 int passive_turn(double, double, double, double *, double *);
@@ -76,7 +75,7 @@ extern int find_min_index();
 extern int find_max_index();
 extern int find_min_index_exclude();
 extern int in_bool_checker();
-
+extern double calculate_vertical_area();
 
 
 

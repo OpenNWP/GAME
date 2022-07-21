@@ -14,6 +14,7 @@ module geodesy
   
   public :: rad2deg
   public :: deg2rad
+  public :: calculate_vertical_area
   
   contains
 
@@ -40,6 +41,18 @@ module geodesy
     deg2rad = input*2.0*M_PI/360.0
     
   end function deg2rad
+
+  function calculate_vertical_area(base_distance,r_1,r_2) &
+  bind(c,name = "calculate_vertical_area")
+  
+    ! his function calculates the area of a vertical face (side face of a gridbox).
+    
+    real(c_double), intent(in)  :: base_distance,r_1,r_2
+    real(c_double)              :: calculate_vertical_area
+    
+    calculate_vertical_area = base_distance*(0.5*r_2**2/r_1 - 0.5*r_1)
+    
+  end function calculate_vertical_area
 
 end module geodesy
 

@@ -160,16 +160,6 @@ int find_global_normal(double lat, double lon, double *x, double *y, double *z)
     return 0;
 }
 
-double calculate_vertical_area(double base_distance, double r_1, double r_2)
-{
-	/*
-	This function calculates the area of a vertical face (side face of a gridbox).
-	*/
-    double area;
-    area = base_distance*(0.5*pow(r_2, 2)/r_1 - 0.5*r_1);
-    return area;
-}
-
 int find_voronoi_center_sphere(double lat_0_in, double lon_0_in, double lat_1_in, double lon_1_in, double lat_2_in, double lon_2_in, double *lat_out, double *lon_out)
 {
 	/*

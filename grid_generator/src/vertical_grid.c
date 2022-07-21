@@ -230,7 +230,7 @@ int to_index[], double triangle_face_unit_sphere[], double toa, double radius)
 		        radius_1 = radius + z_vector[primal_vector_index - NO_OF_VECTORS_PER_LAYER];
 		        base_distance = normal_distance[primal_vector_index];
         	}
-            area_dual[i] = calculate_vertical_area(base_distance, radius_0, radius_1);
+            area_dual[i] = calculate_vertical_area(&base_distance, &radius_0, &radius_1);
         }
     }
     return 0;
@@ -259,7 +259,7 @@ int set_area(double area[], double z_vector[], double z_vector_dual[], double no
             radius_0 = radius + z_vector_dual[dual_vector_index];
             radius_1 = radius + z_vector_dual[dual_vector_index - NO_OF_DUAL_VECTORS_PER_LAYER];
             base_distance = normal_distance_dual[dual_vector_index];
-            area[i] = calculate_vertical_area(base_distance, radius_0, radius_1);
+            area[i] = calculate_vertical_area(&base_distance, &radius_0, &radius_1);
         }
     }
     
