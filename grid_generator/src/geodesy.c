@@ -523,16 +523,6 @@ double deg2rad(double input)
     return output;
 }
 
-double rad2deg(double input)
-{
-	/*
-	This function converts an angle in radians to an angle in degrees.
-	*/
-    double output = input*360.0/(2.0*M_PI);
-    return output;
-}
-
-
 
 
 

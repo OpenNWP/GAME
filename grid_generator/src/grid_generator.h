@@ -71,9 +71,12 @@ int find_min_dist_rel_on_line(double, double, double, double, double, double, do
 int sort_edge_indices(double[], double[], int, int[]);
 double find_turn_angle(double, double);
 double deg2rad(double);
-double rad2deg(double);
 double double_sum_gen(double[], int, int, int);
-
+extern double rad2deg();
+extern int find_min_index();
+extern int find_max_index();
+extern int find_min_index_exclude();
+extern int in_bool_checker();
 
 
 
