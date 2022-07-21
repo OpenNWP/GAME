@@ -11,6 +11,7 @@ enable_language(Fortran)
 add_executable(
 game
 src/coordinator.c
+src/constants.f90
 src/time_stepping/manage_pchevi.c
 src/time_stepping/manage_pressure_gradient.c
 src/time_stepping/vector_tendencies_expl.c
@@ -39,6 +40,7 @@ src/constituents/phase_trans.c
 src/constituents/dictionary.c
 src/constituents/derived_quantities.c
 grid_generator/src/vertical_grid.c
+grid_generator/src/geodesy.f90
 grid_generator/src/geodesy.c
 grid_generator/src/index_helpers.f90
 ../rte-rrtmgp/rrtmgp/mo_gas_optics.F90
