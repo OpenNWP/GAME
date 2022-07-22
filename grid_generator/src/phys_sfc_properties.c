@@ -126,7 +126,8 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 			// finding the distance to the other grid points
 			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
 			{
-				distance_vector[j] = calculate_distance_h(latitude_scalar[i], longitude_scalar[i], latitude_scalar[j], longitude_scalar[j], 1);
+				double one = 1.0;
+				distance_vector[j] = calculate_distance_h(&latitude_scalar[i], &longitude_scalar[i], &latitude_scalar[j], &longitude_scalar[j], &one);
 			}
 			for (int j = 0; j < no_of_avg_points; ++j)
 			{

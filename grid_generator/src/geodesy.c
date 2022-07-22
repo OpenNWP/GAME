@@ -39,15 +39,6 @@ int find_between_point(double x_0, double y_0, double z_0, double x_1, double y_
     return 0;
 }
 
-double calculate_distance_h(double latitude_a, double longitude_a, double latitude_b, double longitude_b, double radius)
-{
-	/*
-	This function returns the geodetic distance of two points given their geographical coordinates.
-	*/
-    double dist = 2.0*radius*asin(sqrt(0.5 - 0.5*(cos(latitude_a)*cos(latitude_b)*cos(longitude_b - longitude_a) + sin(latitude_a)*sin(latitude_b))));
-    return dist;
-}
-
 double calculate_distance_cart(double lat_1_in, double lon_1_in, double lat_2_in, double lon_2_in, double radius_1, double radius_2)
 {
 	/*

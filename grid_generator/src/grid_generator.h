@@ -48,7 +48,6 @@ int set_background_state(double [], double [], double [], double []);
 int set_sfc_properties(double [], double [], double [], double [], double [], double [], double [], int [], int, int);
 int find_geodetic(double, double, double, double, double, double *, double *);
 int find_between_point(double, double, double, double, double, double, double, double *, double *, double *);
-double calculate_distance_h(double, double, double, double, double);
 double calculate_distance_cart(double, double, double, double, double, double);
 double find_geodetic_direction(double, double, double, double, double);
 int calc_local_i(double, double, double[]);
@@ -76,6 +75,7 @@ extern double calculate_vertical_area();
 extern double scalar_product_elementary();
 extern double scalar_product_elementary_2d();
 extern double find_turn_angle();
+extern double calculate_distance_h();
 
 
 

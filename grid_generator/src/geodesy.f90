@@ -12,6 +12,7 @@ module geodesy
   
   private
   
+  public :: calculate_distance_h
   public :: rad2deg
   public :: deg2rad
   public :: calculate_vertical_area
@@ -20,14 +21,27 @@ module geodesy
   public :: find_turn_angle
   
   contains
+  
+  function calculate_distance_h(latitude_a,longitude_a,latitude_b,longitude_b,radius) &
+  bind(c,name = "calculate_distance_h")
+  
+    ! This function returns the geodetic distance of two points given their geographical coordinates.
+    
+    real(c_double), intent(in) :: latitude_a,longitude_a,latitude_b,longitude_b,radius
+    real(c_double)             :: calculate_distance_h
+    
+    calculate_distance_h = 2.0*radius*asin(sqrt(0.5-0.5*(cos(latitude_a)*cos(latitude_b) &
+    *cos(longitude_b-longitude_a)+sin(latitude_a)*sin(latitude_b))))
+    
+  end function calculate_distance_h
 
   function rad2deg(input) &
   bind(c,name = "rad2deg")
   
     ! This function converts an angle in radians to an angle in degrees.
     
-    real(c_double), intent(in)  :: input
-    real(c_double)              :: rad2deg
+    real(c_double), intent(in) :: input
+    real(c_double)             :: rad2deg
     
     rad2deg = input*360.0/(2.0*M_PI)
     
@@ -38,8 +52,8 @@ module geodesy
   
     ! This function converts an angle in degrees to an angle in radians.
     
-    real(c_double), intent(in)  :: input
-    real(c_double)              :: deg2rad
+    real(c_double), intent(in) :: input
+    real(c_double)             :: deg2rad
     
     deg2rad = input*2.0*M_PI/360.0
     
@@ -50,8 +64,8 @@ module geodesy
   
     ! This function calculates the area of a vertical face (side face of a gridbox).
     
-    real(c_double), intent(in)  :: base_distance,r_1,r_2
-    real(c_double)              :: calculate_vertical_area
+    real(c_double), intent(in) :: base_distance,r_1,r_2
+    real(c_double)             :: calculate_vertical_area
     
     calculate_vertical_area = base_distance*(0.5*r_2**2/r_1 - 0.5*r_1)
     
@@ -62,8 +76,8 @@ module geodesy
   
     ! This function returns the scalar product of two three-dimensional vectors.
     
-    real(c_double), intent(in)  :: vector_a(3),vector_b(3)
-    real(c_double)              :: scalar_product_elementary
+    real(c_double), intent(in) :: vector_a(3),vector_b(3)
+    real(c_double)             :: scalar_product_elementary
     
     ! local variables
     integer :: ji
@@ -81,8 +95,8 @@ module geodesy
   
     ! This function returns the scalar product of two two-dimensional vectors.
     
-    real(c_double), intent(in)  :: vector_a(2),vector_b(2)
-    real(c_double)              :: scalar_product_elementary_2d
+    real(c_double), intent(in) :: vector_a(2),vector_b(2)
+    real(c_double)             :: scalar_product_elementary_2d
     
     ! local variables
     integer :: ji
@@ -100,8 +114,8 @@ module geodesy
   
     ! This function returns the turn angle between two angles.
     
-    real(c_double), intent(in)  :: angle_0,angle_1
-    real(c_double)              :: find_turn_angle
+    real(c_double), intent(in) :: angle_0,angle_1
+    real(c_double)             :: find_turn_angle
     
     find_turn_angle = angle_1 - angle_0
     

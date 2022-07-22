@@ -49,7 +49,8 @@ int interpolate_ll(double latitude_scalar[], double longitude_scalar[], int inte
 		// finding the three closest points of the native model grid	
 		for (int j = 0; j < NO_OF_SCALARS_H; ++j)
 		{
-			distance_vector[j] = calculate_distance_h(lat_value, lon_value, latitude_scalar[j], longitude_scalar[j], 1);
+			double one = 1.0;
+			distance_vector[j] = calculate_distance_h(&lat_value, &lon_value, &latitude_scalar[j], &longitude_scalar[j], &one);
 		}
 		for (int j = 0; j < 5; ++j)
 		{

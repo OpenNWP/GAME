@@ -100,13 +100,11 @@ double longitude_scalar[], int from_index[], int to_index[], double toa, double 
             = 0.5*(z_scalar[layer_index*NO_OF_SCALARS_H + from_index[h_index - NO_OF_SCALARS_H]]
             + z_scalar[layer_index*NO_OF_SCALARS_H + to_index[h_index - NO_OF_SCALARS_H]]);
             // calculating the horizontal distance
+            double r_value = radius + z_vector[i];
             normal_distance[i]
             = calculate_distance_h(
-            latitude_scalar[from_index[h_index - NO_OF_SCALARS_H]],
-            longitude_scalar[from_index[h_index - NO_OF_SCALARS_H]],
-            latitude_scalar[to_index[h_index - NO_OF_SCALARS_H]],
-            longitude_scalar[to_index[h_index - NO_OF_SCALARS_H]],
-            radius + z_vector[i]);
+            &latitude_scalar[from_index[h_index - NO_OF_SCALARS_H]], &longitude_scalar[from_index[h_index - NO_OF_SCALARS_H]],
+			&latitude_scalar[to_index[h_index - NO_OF_SCALARS_H]], &longitude_scalar[to_index[h_index - NO_OF_SCALARS_H]], &r_value);
         }
         else
         {
@@ -303,9 +301,9 @@ double longitude_scalar_dual[], int vorticity_indices_triangles[], double radius
 			{
 				z_vector_dual[i] = 0.5*(z_vector[NO_OF_SCALARS_H + h_index + (layer_index - 1)*NO_OF_VECTORS_PER_LAYER] + z_vector[NO_OF_SCALARS_H + h_index + layer_index*NO_OF_VECTORS_PER_LAYER]);
 			}
-            normal_distance_dual[i] = calculate_distance_h(latitude_scalar_dual[from_index_dual[h_index]], longitude_scalar_dual[from_index_dual[h_index]],
-            latitude_scalar_dual[to_index_dual[h_index]], longitude_scalar_dual[to_index_dual[h_index]],
-            radius + z_vector_dual[i]);
+			double r_value = radius + z_vector_dual[i];
+            normal_distance_dual[i] = calculate_distance_h(&latitude_scalar_dual[from_index_dual[h_index]], &longitude_scalar_dual[from_index_dual[h_index]],
+            &latitude_scalar_dual[to_index_dual[h_index]], &longitude_scalar_dual[to_index_dual[h_index]], &r_value);
         }
     }
 	return 0;
