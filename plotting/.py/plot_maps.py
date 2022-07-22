@@ -193,7 +193,10 @@ if var_id == "surface_wind":
 	lat, lon, values_pre_u10 = rmo.fetch_model_output(input_file, start_time_since_init_min, "u10")
 	lat, lon, values_pre_v10 = rmo.fetch_model_output(input_file, start_time_since_init_min, "v10")
 else:
-	lat, lon, values_pre = rmo.fetch_model_output(input_file, var_id)
+	if surface_bool == 1:
+		lat, lon, values_pre = rmo.fetch_model_output(input_file, var_id)
+	else:
+		lat, lon, values_pre = rmo.fetch_model_output(input_file, var_id + "_layer_" + str(level))
 
 if var_id == "tcc":
 	values_pre[np.where(values_pre > 100.0)] = 100.0
@@ -223,7 +226,10 @@ for i in np.arange(1, int((run_span_min - start_time_since_init_min)/plot_interv
 		lat, lon, values_v10[:, :, i] = rmo.fetch_model_output(input_file, "v10")
 		values_v10[:, :, i] = rescale*values_v10[:, :, i] + shift
 	else:
-		lat, lon, values[:, :, i] = rmo.fetch_model_output(input_file, var_id)
+		if surface_bool == 1:
+			lat, lon, values[:, :, i] = rmo.fetch_model_output(input_file, var_id)
+		else:
+			lat, lon, values[:, :, i] = rmo.fetch_model_output(input_file, var_id + "_layer_" + str(level))
 		values[:, :, i] = rescale*values[:, :, i] + shift
 
 # correcting the problem when plotting across lon = 0

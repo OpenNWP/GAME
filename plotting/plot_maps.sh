@@ -6,13 +6,13 @@
 game_home_dir=~/code/GAME # the home directory of GAME
 run_id=ideal # the run id which you want to plot
 run_span_min=$((100*24*60)) # the length of the run
-output_dir=$game_home_dir/output/$run_id # the directory where the grib files are stored
+output_dir=$game_home_dir/output/$run_id # the directory where the netcdf files are stored
 fig_save_path=$game_home_dir/figs # the directory in which the figures will be saved
 start_time_since_init=0 # when to begin plotting reative to the model initialization
 disp_shortname_list=(
-sp) # short names according to grib as an array 
+sp) # netcdf variable names to bet plotted
 disp_level_list=(
-0) # levels according to grib as an array
+0) # levels from which to plot the variables (irrelevant for surface quantities)
 on_pressure_level_list=(
 0) # set this to 1 for each plot individually if the variable resides on pressure levels
 plot_intervals_list_min=(
