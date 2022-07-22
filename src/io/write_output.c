@@ -583,9 +583,9 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		NCCHECK(nc_put_var_int(ncid, start_hour_id, &init_time));
 		NCCHECK(nc_put_var_double(ncid, lat_id, &lat_vector[0]));
 		NCCHECK(nc_put_var_double(ncid, lon_id, &lon_vector[0]));
-	    interpolate_to_ll(sp, lat_lon_output_field, grid);
-		NCCHECK(nc_put_var_double(ncid, mslp_id, &lat_lon_output_field[0][0]));
 	    interpolate_to_ll(mslp, lat_lon_output_field, grid);
+		NCCHECK(nc_put_var_double(ncid, mslp_id, &lat_lon_output_field[0][0]));
+	    interpolate_to_ll(sp, lat_lon_output_field, grid);
 		NCCHECK(nc_put_var_double(ncid, sp_id, &lat_lon_output_field[0][0]));
 	    interpolate_to_ll(t2, lat_lon_output_field, grid);
 		NCCHECK(nc_put_var_double(ncid, t2_id, &lat_lon_output_field[0][0]));
