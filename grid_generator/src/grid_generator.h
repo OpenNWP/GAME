@@ -50,8 +50,6 @@ int find_geodetic(double, double, double, double, double, double *, double *);
 int find_between_point(double, double, double, double, double, double, double, double *, double *, double *);
 double calculate_distance_cart(double, double, double, double, double, double);
 double find_geodetic_direction(double, double, double, double, double);
-int calc_local_i(double, double, double[]);
-int calc_local_j(double, double, double[]);
 int find_geos(double, double, double, double *, double *);
 int find_global_normal(double, double, double *, double *, double *);
 int find_voronoi_center_sphere(double, double, double, double, double, double, double *, double *);
@@ -60,7 +58,6 @@ int passive_turn(double, double, double, double *, double *);
 int normalize_cartesian(double, double, double, double *, double *, double *);
 int cross_product_elementary(double[], double[], double[]);
 double calc_triangle_area(double, double, double, double, double, double);
-int active_turn_x(double, double[], double[]);
 double calc_spherical_polygon_area(double[], double[], int);
 int find_min_dist_rel_on_line(double, double, double, double, double, double, double *);
 int sort_edge_indices(double[], double[], int, int[]);
@@ -76,7 +73,9 @@ extern double scalar_product_elementary();
 extern double scalar_product_elementary_2d();
 extern double find_turn_angle();
 extern double calculate_distance_h();
-
+extern int calc_local_i();
+extern int calc_local_j();
+extern int active_turn_x();
 
 
 

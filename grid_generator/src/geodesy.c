@@ -74,34 +74,12 @@ double find_geodetic_direction(double lat_1_in, double lon_1_in, double lat_2_in
     rel_vec[2] = sin(lat_2_in) - sin(lat_1_in);
     double lat, lon = 0;
     find_geodetic(lat_1_in, lon_1_in, lat_2_in, lon_2_in, parameter, &lat, &lon);
-    calc_local_i(lat, lon, local_i);
-    calc_local_j(lat, lon, local_j);
+    calc_local_i(&lon, local_i);
+    calc_local_j(&lat, &lon, local_j);
     double x_comp = scalar_product_elementary(local_i, rel_vec);
     double y_comp = scalar_product_elementary(local_j, rel_vec);
     double direction = atan2(y_comp, x_comp);
     return direction;
-}
-
-int calc_local_i(double lat, double lon, double result_vec[])
-{
-	/*
-	This function calculates the local eastward basis vector.
-	*/
-    result_vec[0] = -sin(lon);
-    result_vec[1] = cos(lon);
-    result_vec[2] = 0;
-    return 0;
-}
-
-int calc_local_j(double lat, double lon, double result_vec[])
-{
-	/*
-	This function calculates the local northward basis vector.
-	*/
-    result_vec[0] = -sin(lat)*cos(lon);
-    result_vec[1] = -sin(lat)*sin(lon);
-    result_vec[2] = cos(lat);
-    return 0;
 }
 
 int find_geos(double x, double y, double z, double *lat_out, double *lon_out)
@@ -190,17 +168,6 @@ int cross_product_elementary(double a[], double b[], double result[])
     return 0;
 }
 
-int active_turn_x(double angle, double vector_in[], double vector_out[])
-{
-	/*
-	This function turns a vector in R^3 around the x-axis.
-	*/
-    vector_out[0] = vector_in[0];
-    vector_out[1] = cos(angle)*vector_in[1] + -sin(angle)*vector_in[2];
-    vector_out[2] = sin(angle)*vector_in[1] + cos(angle)*vector_in[2];
-    return 0;
-}
-
 double calc_triangle_area(double lat_0, double lon_0, double lat_1, double lon_1, double lat_2, double lon_2)
 {
 	/*
@@ -219,21 +186,21 @@ double calc_triangle_area(double lat_0, double lon_0, double lat_1, double lon_1
         vector_in[0] = x_0;
         vector_in[1] = y_0;
         vector_in[2] = z_0;
-        active_turn_x(average_latitude, vector_in, vector_out);
+        active_turn_x(&average_latitude, vector_in, vector_out);
         x_0 = vector_out[0];
         y_0 = vector_out[1];
         z_0 = vector_out[2];
         vector_in[0] = x_1;
         vector_in[1] = y_1;
         vector_in[2] = z_1;
-        active_turn_x(average_latitude, vector_in, vector_out);
+        active_turn_x(&average_latitude, vector_in, vector_out);
         x_1 = vector_out[0];
         y_1 = vector_out[1];
         z_1 = vector_out[2];
         vector_in[0] = x_2;
         vector_in[1] = y_2;
         vector_in[2] = z_2;
-        active_turn_x(average_latitude, vector_in, vector_out);
+        active_turn_x(&average_latitude, vector_in, vector_out);
         x_2 = vector_out[0];
         y_2 = vector_out[1];
         z_2 = vector_out[2];

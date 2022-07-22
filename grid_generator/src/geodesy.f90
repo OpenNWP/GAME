@@ -16,6 +16,7 @@ module geodesy
   public :: rad2deg
   public :: deg2rad
   public :: calculate_vertical_area
+  public :: active_turn_x
   public :: scalar_product_elementary
   public :: scalar_product_elementary_2d
   public :: find_turn_angle
@@ -34,6 +35,49 @@ module geodesy
     *cos(longitude_b-longitude_a)+sin(latitude_a)*sin(latitude_b))))
     
   end function calculate_distance_h
+
+  subroutine calc_local_i(lon,result_vec) &
+  bind(c,name = "calc_local_i")
+  
+    ! This subroutinee calculates the local eastward basis vector.
+    
+    real(c_double), intent(in)  :: lon
+    real(c_double), intent(out) :: result_vec(3)
+    
+    result_vec(1) = -sin(lon)
+    result_vec(2) = cos(lon)
+    result_vec(3) = 0.0
+    
+  end subroutine calc_local_i
+
+  subroutine calc_local_j(lat,lon,result_vec) &
+  bind(c,name = "calc_local_j")
+  
+    ! This subroutinee calculates the local northward basis vector.
+    
+    real(c_double), intent(in)  :: lat,lon
+    real(c_double), intent(out) :: result_vec(3)
+    
+    result_vec(1) = -sin(lat)*cos(lon)
+    result_vec(2) = -sin(lat)*sin(lon)
+    result_vec(3) = cos(lat)
+    
+  end subroutine calc_local_j
+
+  subroutine active_turn_x(angle,vector_in,vector_out) &
+  bind(c,name = "active_turn_x")
+  
+    ! This subroutinee turns a vector in R^3 around the x-axis.
+    
+    real(c_double), intent(in)  :: angle
+    real(c_double), intent(in)  :: vector_in(3)
+    real(c_double), intent(out) :: vector_out(3)
+    
+    vector_out(1) = vector_in(1)
+    vector_out(2) = cos(angle)*vector_in(2) - sin(angle)*vector_in(3)
+    vector_out(3) = sin(angle)*vector_in(2) + cos(angle)*vector_in(3)
+    
+  end subroutine active_turn_x
 
   function rad2deg(input) &
   bind(c,name = "rad2deg")
