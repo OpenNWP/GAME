@@ -44,7 +44,7 @@ contourf_plot = 1
 gravity_mean = 9.80616
 
 surface_bool = 0
-if var_id == "geopotential_height":
+if var_id == "geopot":
 	variable_name = "Geopotential height"
 	unit_string = "gpdam"
 	rescale = 1/gravity_mean
@@ -79,7 +79,7 @@ if var_id == "dswrf":
 if var_id == "pres":
 	variable_name = "Pressure"
 	unit_string = "Pa"
-if var_id == "r":
+if var_id == "rel_hum":
 	variable_name = "Relative humidity"
 	unit_string = "%"
 	colormap = "Blues"
@@ -95,11 +95,11 @@ if var_id == "t2":
 	shift = -conv.c2k(0)
 	show_level_on = 0
 	surface_bool = 1
-if var_id == "relative_vorticity":
+if var_id == "rel_vort":
 	variable_name = "Relative vorticity"
 	unit_string = "10^-5/s"
 	rescale = 1e5
-if var_id == "ertels_potential_vorticity":
+if var_id == "epv":
 	variable_name = "Potential vorticity"
 	unit_string = "PVU"
 	rescale = 1e6
@@ -158,7 +158,7 @@ if var_id == "surface_wind":
 	surface_bool = 1
 
 unit_string_for_iris = unit_string
-if var_id == "gh":
+if var_id == "geopot":
     unit_string_for_iris = "dam"
 if unit_string == "kn":
     unit_string_for_iris = "kts"
@@ -180,7 +180,7 @@ if on_pressure_bool == 0:
 	if surface_bool == 1:
 		input_file = grib_dir_name + "/" + run_id + "+" + str(start_time_since_init_min) + "min_surface.nc"
 	else:
-		input_file = grib_dir_name + "/" + run_id + "+" + str(start_time_since_init_min) + "s.nc"
+		input_file = grib_dir_name + "/" + run_id + "+" + str(start_time_since_init_min) + "min.nc"
 else:
 	input_file = grib_dir_name + "/" + run_id + "+" + str(start_time_since_init_min) + "min_pressure_levels.nc"
 
@@ -190,7 +190,7 @@ start_timestamp = tcs.find_time_coord(init_year, init_month, init_day, init_hour
 
 if var_id == "surface_wind":
 	lat, lon, values_pre = rmo.fetch_model_output(input_file, start_time_since_init_min, "gust")
-	lat, lon, values_pre_10u = rmo.fetch_model_output(input_file, start_time_since_init_min, "10u")
+	lat, lon, values_pre_u10 = rmo.fetch_model_output(input_file, start_time_since_init_min, "u10")
 	lat, lon, values_pre_v10 = rmo.fetch_model_output(input_file, start_time_since_init_min, "v10")
 else:
 	lat, lon, values_pre = rmo.fetch_model_output(input_file, var_id)
@@ -201,8 +201,8 @@ if var_id == "tcc":
 values = np.zeros([len(lat), len(lon), int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1])
 values[:, :, 0] = rescale*values_pre + shift
 if var_id == "surface_wind":
-	values_10u = np.zeros([len(lat), len(lon), int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1])
-	values_10u[:, :, 0] = rescale*values_pre_10u + shift
+	values_u10 = np.zeros([len(lat), len(lon), int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1])
+	values_u10[:, :, 0] = rescale*values_pre_u10 + shift
 	values_v10 = np.zeros([len(lat), len(lon), int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1])
 	values_v10[:, :, 0] = rescale*values_pre_v10 + shift
 
@@ -218,8 +218,8 @@ for i in np.arange(1, int((run_span_min - start_time_since_init_min)/plot_interv
 	if var_id == "surface_wind":
 		lat, lon, values[:, :, i] = rmo.fetch_model_output(input_file, "gust")
 		values[:, :, i] = rescale*values[:, :, i] + shift
-		lat, lon, values_10u[:, :, i] = rmo.fetch_model_output(input_file, "10u")
-		values_10u[:, :, i] = rescale*values_10u[:, :, i] + shift
+		lat, lon, values_u10[:, :, i] = rmo.fetch_model_output(input_file, "u10")
+		values_u10[:, :, i] = rescale*values_u10[:, :, i] + shift
 		lat, lon, values_v10[:, :, i] = rmo.fetch_model_output(input_file, "v10")
 		values_v10[:, :, i] = rescale*values_v10[:, :, i] + shift
 	else:
@@ -239,20 +239,20 @@ lon_plot_deg_new = lon_plot_deg.copy()
 lon_new = lon.copy()
 values_new = values.copy()
 if var_id == "surface_wind":
-	values_10u_new = values_10u.copy()
-	values_v10_new = values_10u.copy()
+	values_u10_new = values_u10.copy()
+	values_v10_new = values_u10.copy()
 for j in range(len(lon_plot_deg)):
 	lon_plot_deg_new[j] = lon_plot_deg[(j + shift_index)%len(lon_plot_deg)]
 	lon_new[j] = lon[(j + shift_index)%len(lon_plot_deg)]
 	values_new[:, j, :] = values[:, (j + shift_index)%len(lon_plot_deg), :]
 	if var_id == "surface_wind":
-		values_10u_new[:, j, :] = values_10u[:, (j + shift_index)%len(lon_plot_deg), :]
+		values_u10_new[:, j, :] = values_u10[:, (j + shift_index)%len(lon_plot_deg), :]
 		values_v10_new[:, j, :] = values_v10[:, (j + shift_index)%len(lon_plot_deg), :]
 lon_plot_deg = lon_plot_deg_new.copy()
 lon = lon_new.copy()
 values = values_new.copy()
 if var_id == "surface_wind":
-	values_10u = values_10u_new.copy()
+	values_u10 = values_u10_new.copy()
 	values_v10 = values_v10_new.copy()
 
 scope_bool_array = np.zeros([len(values[:, 0]), len(values[0, :])], dtype = bool)
@@ -279,7 +279,7 @@ if uniform_range == 1:
 		values_range_for_plot = values_range_for_plot + np.mod(100 - np.mod(values_range_for_plot, 100), 100)
 		total_max = total_max + np.mod(100 - np.mod(total_max - total_min, 100), 100)
 	color_plot_dist = values_range_for_plot/10
-	if var_id == "2t":
+	if var_id == "t2":
 		color_plot_dist = values_range_for_plot/20
 	bounds = np.arange(total_min, total_max + color_plot_dist, color_plot_dist)
 	color_bar_dist = values_range_for_plot/10
@@ -303,7 +303,7 @@ for i in range(int((run_span_min - start_time_since_init_min)/plot_interval_min)
 			values_range_for_plot = values_range_for_plot + np.mod(100 - np.mod(values_range_for_plot, 100), 100)
 			total_max = total_max + np.mod(100 - np.mod(total_max - total_min, 100), 100)
 		color_plot_dist = values_range_for_plot/10
-		if var_id == "2t":
+		if var_id == "t2":
 			color_plot_dist = values_range_for_plot/20
 		bounds = np.arange(total_min, total_max + color_plot_dist, color_plot_dist)
 		color_bar_dist = values_range_for_plot/10
@@ -371,7 +371,7 @@ for i in range(int((run_span_min - start_time_since_init_min)/plot_interval_min)
 		cbar.ax.tick_params(labelsize = 12)
 		cbar.set_label(unit_string, fontsize = 16)
 	else:
-		if var_id == "gh":
+		if var_id == "geopot":
 			levels_vector = np.arange(100, 2055, 8)
 		else:
 			levels_vector = np.arange(100, 2055, 4)
@@ -382,7 +382,7 @@ for i in range(int((run_span_min - start_time_since_init_min)/plot_interval_min)
 		c = iplt.contour(new_cube, levels_vector, linewidths = linewidths_vector, colors = "black")
 		plt.clabel(c, inline = True, fmt = "%1.0f", fontsize = 12, colors = "k")
 	if var_id == "surface_wind":
-		ax.barbs(lon_plot_deg, lat_plot_deg, values_10u[:, :, i], values_v10[:, :, i], length = 6, sizes = dict(emptybarb = 0.3, spacing = 0.2, height = 0.5), linewidth = 1.1, transform = ccrs.PlateCarree())
+		ax.barbs(lon_plot_deg, lat_plot_deg, values_u10[:, :, i], values_v10[:, :, i], length = 6, sizes = dict(emptybarb = 0.3, spacing = 0.2, height = 0.5), linewidth = 1.1, transform = ccrs.PlateCarree())
 	ax.add_feature(cfeature.LAND)
 	ax.add_feature(cfeature.OCEAN)
 	countries = cfeature.NaturalEarthFeature(category = "cultural", name = "admin_0_countries", scale = "10m", facecolor = "none")

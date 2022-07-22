@@ -65,7 +65,6 @@ int active_turn_x(double, double[], double[]);
 double calc_spherical_polygon_area(double[], double[], int);
 int find_min_dist_rel_on_line(double, double, double, double, double, double, double *);
 int sort_edge_indices(double[], double[], int, int[]);
-double find_turn_angle(double, double);
 double double_sum_gen(double[], int, int, int);
 extern double rad2deg();
 extern double deg2rad();
@@ -76,6 +75,7 @@ extern int in_bool_checker();
 extern double calculate_vertical_area();
 extern double scalar_product_elementary();
 extern double scalar_product_elementary_2d();
+extern double find_turn_angle();
 
 
 

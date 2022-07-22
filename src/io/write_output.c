@@ -263,6 +263,9 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	int time_since_init_min = (int) (t_write - t_init);
 	time_since_init_min = time_since_init_min/60.0;
 	
+	// needed for netcdf
+	int ncid, single_int_dimid, lat_dimid, lon_dimid, start_day_id, start_hour_id, lat_id, lon_id;
+	
 	/*
 	Surface output including diagnostics.
 	-------------------------------------
@@ -534,8 +537,8 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		sprintf(OUTPUT_FILE_PRE, "%s+%dmin_surface.nc", config_io -> run_id, time_since_init_min);
 		char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
 		sprintf(OUTPUT_FILE, "%s+%dmin_surface.nc", config_io -> run_id, time_since_init_min);
-		int lat_dimid, lon_dimid, lat_id, lon_id, mslp_id, ncid, sp_id, rprate_id, sprate_id,
-		cape_id, tcc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id, single_int_dimid, start_day_id, start_hour_id;
+		int mslp_id, sp_id, rprate_id, sprate_id,
+		cape_id, tcc_id, t2_id, u10_id, v10_id, gusts_id, sfc_sw_down_id, start_day_id, start_hour_id;
 		
 		NCCHECK(nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid));
 		NCCHECK(nc_def_dim(ncid, "single_int_index", 1, &single_int_dimid));
@@ -546,7 +549,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		lat_lon_dimids[0] = lat_dimid;
 		lat_lon_dimids[1] = lon_dimid;
 		
-		// Defining the variables.
+		// defining the variables
 		NCCHECK(nc_def_var(ncid, "start_day", NC_INT, 1, &single_int_dimid, &start_day_id));
 		NCCHECK(nc_def_var(ncid, "start_hour", NC_INT, 1, &single_int_dimid, &start_hour_id));
 		NCCHECK(nc_def_var(ncid, "lat", NC_DOUBLE, 1, &lat_dimid, &lat_id));
@@ -575,6 +578,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		NCCHECK(nc_put_att_text(ncid, gusts_id, "units", strlen("m/s"), "m/s"));
 		NCCHECK(nc_enddef(ncid));
 	    
+	    // writing the variables
 		NCCHECK(nc_put_var_int(ncid, start_day_id, &init_date));
 		NCCHECK(nc_put_var_int(ncid, start_hour_id, &init_time));
 		NCCHECK(nc_put_var_double(ncid, lat_id, &lat_vector[0]));
@@ -602,7 +606,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	    interpolate_to_ll(wind_10_m_gusts_speed_at_cell, lat_lon_output_field, grid);
 		NCCHECK(nc_put_var_double(ncid, gusts_id, &lat_lon_output_field[0][0]));
 		
-		// Closing the netcdf file.
+		// closing the netcdf file
 		NCCHECK(nc_close(ncid));
 		
 		free(wind_10_m_mean_u_at_cell);
@@ -658,19 +662,19 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
     	double *pressure_levels = malloc(sizeof(double)*NO_OF_PRESSURE_LEVELS);
     	get_pressure_levels(pressure_levels);
     	// allocating memory for the variables on pressure levels
-    	double (*geopotential_height)[NO_OF_PRESSURE_LEVELS] = malloc(sizeof(double[NO_OF_SCALARS_H][NO_OF_PRESSURE_LEVELS]));
-    	double (*t_on_pressure_levels)[NO_OF_PRESSURE_LEVELS] = malloc(sizeof(double[NO_OF_SCALARS_H][NO_OF_PRESSURE_LEVELS]));
-    	double (*rh_on_pressure_levels)[NO_OF_PRESSURE_LEVELS] = malloc(sizeof(double[NO_OF_SCALARS_H][NO_OF_PRESSURE_LEVELS]));
-    	double (*epv_on_pressure_levels)[NO_OF_PRESSURE_LEVELS] = malloc(sizeof(double[NO_OF_SCALARS_H][NO_OF_PRESSURE_LEVELS]));
-    	double (*u_on_pressure_levels)[NO_OF_PRESSURE_LEVELS] = malloc(sizeof(double[NO_OF_SCALARS_H][NO_OF_PRESSURE_LEVELS]));
-    	double (*v_on_pressure_levels)[NO_OF_PRESSURE_LEVELS] = malloc(sizeof(double[NO_OF_SCALARS_H][NO_OF_PRESSURE_LEVELS]));
-    	double (*rel_vort_on_pressure_levels)[NO_OF_PRESSURE_LEVELS] = malloc(sizeof(double[NO_OF_SCALARS_H][NO_OF_PRESSURE_LEVELS]));
+    	double (*geopotential_height)[NO_OF_SCALARS_H] = malloc(sizeof(double[NO_OF_PRESSURE_LEVELS][NO_OF_SCALARS_H]));
+    	double (*t_on_pressure_levels)[NO_OF_SCALARS_H] = malloc(sizeof(double[NO_OF_PRESSURE_LEVELS][NO_OF_SCALARS_H]));
+    	double (*rh_on_pressure_levels)[NO_OF_SCALARS_H] = malloc(sizeof(double[NO_OF_PRESSURE_LEVELS][NO_OF_SCALARS_H]));
+    	double (*epv_on_pressure_levels)[NO_OF_SCALARS_H] = malloc(sizeof(double[NO_OF_PRESSURE_LEVELS][NO_OF_SCALARS_H]));
+    	double (*u_on_pressure_levels)[NO_OF_SCALARS_H] = malloc(sizeof(double[NO_OF_PRESSURE_LEVELS][NO_OF_SCALARS_H]));
+    	double (*v_on_pressure_levels)[NO_OF_SCALARS_H] = malloc(sizeof(double[NO_OF_PRESSURE_LEVELS][NO_OF_SCALARS_H]));
+    	double (*rel_vort_on_pressure_levels)[NO_OF_SCALARS_H] = malloc(sizeof(double[NO_OF_PRESSURE_LEVELS][NO_OF_SCALARS_H]));
     	
     	// Vertical interpolation to the pressure levels.
     	#pragma omp parallel for private(vector_to_minimize, closest_index, second_closest_index, closest_weight)
-		for (int i = 0; i < NO_OF_SCALARS_H; ++i)
+		for (int j = 0; j < NO_OF_PRESSURE_LEVELS; ++j)
 		{
-    		for (int j = 0; j < NO_OF_PRESSURE_LEVELS; ++j)
+			for (int i = 0; i < NO_OF_SCALARS_H; ++i)
 			{
 				for (int k = 0; k < NO_OF_LAYERS; ++k)
 				{
@@ -693,13 +697,13 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				// in this case, a missing value will be written
 				if ((closest_index == NO_OF_LAYERS - 1 && second_closest_index == NO_OF_LAYERS) || (closest_index < 0 || second_closest_index < 0))
 				{
-					geopotential_height[i][j] = 9999;
-					t_on_pressure_levels[i][j] = 9999;
-					rh_on_pressure_levels[i][j] = 9999;
-					epv_on_pressure_levels[i][j] = 9999;
-					rel_vort_on_pressure_levels[i][j] = 9999;
-					u_on_pressure_levels[i][j] = 9999;
-					v_on_pressure_levels[i][j] = 9999;
+					geopotential_height[j][i] = 9999;
+					t_on_pressure_levels[j][i] = 9999;
+					rh_on_pressure_levels[j][i] = 9999;
+					epv_on_pressure_levels[j][i] = 9999;
+					rel_vort_on_pressure_levels[j][i] = 9999;
+					u_on_pressure_levels[j][i] = 9999;
+					v_on_pressure_levels[j][i] = 9999;
 				}
 				else
 				{
@@ -707,22 +711,22 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 					this is the interpolation weight:
 					closest_weight = 1 - fabs((delta z)_{closest})/(fabs(z_{closest} - z_{other}))
 					*/
-					closest_weight = 1 - vector_to_minimize[closest_index]/
+					closest_weight = 1.0 - vector_to_minimize[closest_index]/
 					(fabs(log((*pressure)[closest_index*NO_OF_SCALARS_H + i]/(*pressure)[second_closest_index*NO_OF_SCALARS_H + i])) + EPSILON_SECURITY);
-					geopotential_height[i][j] = closest_weight*grid -> gravity_potential[closest_index*NO_OF_SCALARS_H + i]
+					geopotential_height[j][i] = closest_weight*grid -> gravity_potential[closest_index*NO_OF_SCALARS_H + i]
 					+ (1.0 - closest_weight)*grid -> gravity_potential[second_closest_index*NO_OF_SCALARS_H + i];
-					geopotential_height[i][j] = geopotential_height[i][j]/G_MEAN_SFC_ABS;
-					t_on_pressure_levels[i][j] = closest_weight*diagnostics -> temperature[closest_index*NO_OF_SCALARS_H + i]
+					geopotential_height[j][i] = geopotential_height[j][i]/G_MEAN_SFC_ABS;
+					t_on_pressure_levels[j][i] = closest_weight*diagnostics -> temperature[closest_index*NO_OF_SCALARS_H + i]
 					+ (1.0 - closest_weight)*diagnostics -> temperature[second_closest_index*NO_OF_SCALARS_H + i];
-					rh_on_pressure_levels[i][j] = closest_weight*(*rh)[closest_index*NO_OF_SCALARS_H + i]
+					rh_on_pressure_levels[j][i] = closest_weight*(*rh)[closest_index*NO_OF_SCALARS_H + i]
 					+ (1.0 - closest_weight)*(*rh)[second_closest_index*NO_OF_SCALARS_H + i];
-					epv_on_pressure_levels[i][j] = closest_weight*(*epv)[closest_index*NO_OF_SCALARS_H + i]
+					epv_on_pressure_levels[j][i] = closest_weight*(*epv)[closest_index*NO_OF_SCALARS_H + i]
 					+ (1.0 - closest_weight)*(*epv)[second_closest_index*NO_OF_SCALARS_H + i];
-					rel_vort_on_pressure_levels[i][j] = closest_weight*(*rel_vort)[closest_index*NO_OF_SCALARS_H + i]
+					rel_vort_on_pressure_levels[j][i] = closest_weight*(*rel_vort)[closest_index*NO_OF_SCALARS_H + i]
 					+ (1.0 - closest_weight)*(*rel_vort)[second_closest_index*NO_OF_SCALARS_H + i];
-					u_on_pressure_levels[i][j] = closest_weight*diagnostics-> u_at_cell[closest_index*NO_OF_SCALARS_H + i]
+					u_on_pressure_levels[j][i] = closest_weight*diagnostics-> u_at_cell[closest_index*NO_OF_SCALARS_H + i]
 					+ (1.0 - closest_weight)*diagnostics-> u_at_cell[second_closest_index*NO_OF_SCALARS_H + i];
-					v_on_pressure_levels[i][j] = closest_weight*diagnostics-> v_at_cell[closest_index*NO_OF_SCALARS_H + i]
+					v_on_pressure_levels[j][i] = closest_weight*diagnostics-> v_at_cell[closest_index*NO_OF_SCALARS_H + i]
 					+ (1.0 - closest_weight)*diagnostics-> v_at_cell[second_closest_index*NO_OF_SCALARS_H + i];
 				}
 			}
@@ -735,68 +739,78 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		free(OUTPUT_FILE_PRESSURE_LEVEL_PRE);
 		char *OUTPUT_FILE_PRESSURE_LEVEL = malloc((OUTPUT_FILE_PRESSURE_LEVEL_LENGTH + 1)*sizeof(char));
 		sprintf(OUTPUT_FILE_PRESSURE_LEVEL, "%s+%dmin_pressure_levels.nc", config_io -> run_id, time_since_init_min);
-		double *geopotential_height_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double *temperature_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double *rh_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double *epv_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double *wind_u_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double *wind_v_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double *rel_vort_pressure_level = malloc(NO_OF_SCALARS_H*sizeof(double));
 		
+		int gh_ids[NO_OF_PRESSURE_LEVELS], temp_p_ids[NO_OF_PRESSURE_LEVELS], rh_p_ids[NO_OF_PRESSURE_LEVELS],
+		wind_u_p_ids[NO_OF_PRESSURE_LEVELS], wind_v_p_ids[NO_OF_PRESSURE_LEVELS],
+		epv_p_ids[NO_OF_PRESSURE_LEVELS], rel_vort_p_ids[NO_OF_PRESSURE_LEVELS];
+		
+		
+		NCCHECK(nc_create(OUTPUT_FILE_PRESSURE_LEVEL, NC_CLOBBER, &ncid));
+		NCCHECK(nc_def_dim(ncid, "single_int_index", 1, &single_int_dimid));
+		NCCHECK(nc_def_dim(ncid, "lat_index", NO_OF_LAT_IO_POINTS, &lat_dimid));
+		NCCHECK(nc_def_dim(ncid, "lon_index", NO_OF_LON_IO_POINTS, &lon_dimid));
+			
+		int lat_lon_dimids[2];
+		lat_lon_dimids[0] = lat_dimid;
+		lat_lon_dimids[1] = lon_dimid;
+		
+		// defining the variables
+		NCCHECK(nc_def_var(ncid, "start_day", NC_INT, 1, &single_int_dimid, &start_day_id));
+		NCCHECK(nc_def_var(ncid, "start_hour", NC_INT, 1, &single_int_dimid, &start_hour_id));
+		NCCHECK(nc_def_var(ncid, "lat", NC_DOUBLE, 1, &lat_dimid, &lat_id));
+		NCCHECK(nc_def_var(ncid, "lon", NC_DOUBLE, 1, &lon_dimid, &lon_id));
+		
+		char varname[100];
 		for (int i = 0; i < NO_OF_PRESSURE_LEVELS; ++i)
 		{
-			#pragma omp parallel for
-			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-			{
-				geopotential_height_pressure_level[j] = geopotential_height[j][i];
-			}
-			#pragma omp parallel for
-			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-			{
-				temperature_pressure_level[j] = t_on_pressure_levels[j][i];
-			}
-			#pragma omp parallel for
-			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-			{
-				rh_pressure_level[j] = rh_on_pressure_levels[j][i];
-			}
-			#pragma omp parallel for
-			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-			{
-				epv_pressure_level[j] = epv_on_pressure_levels[j][i];
-			}
-			#pragma omp parallel for
-			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-			{
-				wind_u_pressure_level[j] = u_on_pressure_levels[j][i];
-			}
-			#pragma omp parallel for
-			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-			{
-				wind_v_pressure_level[j] = v_on_pressure_levels[j][i];
-			}
-			#pragma omp parallel for
-			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-			{
-				rel_vort_pressure_level[j] = rel_vort_on_pressure_levels[j][i];
-			}
-			
-	    	interpolate_to_ll(geopotential_height_pressure_level, lat_lon_output_field, grid);
-	    	interpolate_to_ll(temperature_pressure_level, lat_lon_output_field, grid);
-	    	interpolate_to_ll(rh_pressure_level, lat_lon_output_field, grid);
-	    	interpolate_to_ll(rel_vort_pressure_level, lat_lon_output_field, grid);
-	    	interpolate_to_ll(epv_pressure_level, lat_lon_output_field, grid);
-	    	interpolate_to_ll(wind_u_pressure_level, lat_lon_output_field, grid);
-	    	interpolate_to_ll(wind_v_pressure_level, lat_lon_output_field, grid);
+			sprintf(varname, "geopot_layer_%d", i);
+			NCCHECK(nc_def_var(ncid, varname, NC_DOUBLE, 2, lat_lon_dimids, &gh_ids[i]));
+			NCCHECK(nc_put_att_text(ncid, gh_ids[i], "units", strlen("gpm"), "gpm"));
+			sprintf(varname, "temperature_layer_%d", i);
+			NCCHECK(nc_def_var(ncid, varname, NC_DOUBLE, 2, lat_lon_dimids, &temp_p_ids[i]));
+			NCCHECK(nc_put_att_text(ncid, temp_p_ids[i], "units", strlen("K"), "K"));
+			sprintf(varname, "rel_hum_layer_%d", i);
+			NCCHECK(nc_def_var(ncid, varname, NC_DOUBLE, 2, lat_lon_dimids, &rh_p_ids[i]));
+			NCCHECK(nc_put_att_text(ncid, rh_p_ids[i], "units", strlen("%"), "%"));
+			sprintf(varname, "wind_u_layer_%d", i);
+			NCCHECK(nc_def_var(ncid, varname, NC_DOUBLE, 2, lat_lon_dimids, &wind_u_p_ids[i]));
+			NCCHECK(nc_put_att_text(ncid, wind_u_p_ids[i], "units", strlen("m/s"), "m/s"));
+			sprintf(varname, "wind_v_layer_%d", i);
+			NCCHECK(nc_def_var(ncid, varname, NC_DOUBLE, 2, lat_lon_dimids, &wind_v_p_ids[i]));
+			NCCHECK(nc_put_att_text(ncid, wind_v_p_ids[i], "units", strlen("m/s"), "m/s"));
+			sprintf(varname, "rel_vort_layer_%d", i);
+			NCCHECK(nc_def_var(ncid, varname, NC_DOUBLE, 2, lat_lon_dimids, &epv_p_ids[i]));
+			NCCHECK(nc_put_att_text(ncid, epv_p_ids[i], "units", strlen("PVU"), "PVU"));
+			sprintf(varname, "epv_layer_%d", i);
+			NCCHECK(nc_def_var(ncid, varname, NC_DOUBLE, 2, lat_lon_dimids, &rel_vort_p_ids[i]));
+			NCCHECK(nc_put_att_text(ncid, rel_vort_p_ids[i], "units", strlen("K*m^2/(ks*s)"), "K*m^2/(ks*s)"));
 		}
 		
-		free(geopotential_height_pressure_level);
-		free(temperature_pressure_level);
-		free(epv_pressure_level);
-		free(rh_pressure_level);
-		free(wind_u_pressure_level);
-		free(wind_v_pressure_level);
-		free(rel_vort_pressure_level);
+		NCCHECK(nc_enddef(ncid));
+		
+		// setting the variables
+		for (int i = 0; i < NO_OF_PRESSURE_LEVELS; ++i)
+		{
+			
+	    	interpolate_to_ll(&geopotential_height[i][0], lat_lon_output_field, grid);
+			NCCHECK(nc_put_var_double(ncid, gh_ids[i], &lat_lon_output_field[0][0]));
+	    	interpolate_to_ll(&t_on_pressure_levels[i][0], lat_lon_output_field, grid);
+			NCCHECK(nc_put_var_double(ncid, temp_p_ids[i], &lat_lon_output_field[0][0]));
+	    	interpolate_to_ll(&rh_on_pressure_levels[i][0], lat_lon_output_field, grid);
+			NCCHECK(nc_put_var_double(ncid, rh_p_ids[i], &lat_lon_output_field[0][0]));
+	    	interpolate_to_ll(&u_on_pressure_levels[i][0], lat_lon_output_field, grid);
+			NCCHECK(nc_put_var_double(ncid, wind_u_p_ids[i], &lat_lon_output_field[0][0]));
+	    	interpolate_to_ll(&v_on_pressure_levels[i][0], lat_lon_output_field, grid);
+			NCCHECK(nc_put_var_double(ncid, wind_v_p_ids[i], &lat_lon_output_field[0][0]));
+	    	interpolate_to_ll(&epv_on_pressure_levels[i][0], lat_lon_output_field, grid);
+			NCCHECK(nc_put_var_double(ncid, epv_p_ids[i], &lat_lon_output_field[0][0]));
+	    	interpolate_to_ll(&rel_vort_on_pressure_levels[i][0], lat_lon_output_field, grid);
+			NCCHECK(nc_put_var_double(ncid, rel_vort_p_ids[i], &lat_lon_output_field[0][0]));
+		}
+		
+		// closing the netcdf file
+		NCCHECK(nc_close(ncid));
+		
 		free(OUTPUT_FILE_PRESSURE_LEVEL);
     	free(geopotential_height);
     	free(t_on_pressure_levels);
@@ -810,52 +824,94 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	// model level output
 	if (config_io -> model_level_output_switch == 1)
 	{
-		double *temperature_h = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double *pressure_h = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double *rh_h = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double *wind_u_h = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double *wind_v_h = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double *rel_vort_h = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double *div_h = malloc(NO_OF_SCALARS_H*sizeof(double));
-		double *wind_w_h = malloc(NO_OF_SCALARS_H*sizeof(double));
 		char OUTPUT_FILE_PRE[300];
 		sprintf(OUTPUT_FILE_PRE, "%s+%dmin.nc", config_io -> run_id, time_since_init_min);
 		char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
 		sprintf(OUTPUT_FILE, "%s+%dmin.nc", config_io -> run_id, time_since_init_min);
 		
+		int temperature_ids[NO_OF_LAYERS], pressure_ids[NO_OF_LAYERS], rel_hum_ids[NO_OF_LAYERS],
+		wind_u_ids[NO_OF_LAYERS], wind_v_ids[NO_OF_LAYERS],
+		rel_vort_ids[NO_OF_LAYERS], div_h_ids[NO_OF_LAYERS], wind_w_ids[NO_OF_LEVELS];
+		
+		NCCHECK(nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid));
+		NCCHECK(nc_def_dim(ncid, "single_int_index", 1, &single_int_dimid));
+		NCCHECK(nc_def_dim(ncid, "lat_index", NO_OF_LAT_IO_POINTS, &lat_dimid));
+		NCCHECK(nc_def_dim(ncid, "lon_index", NO_OF_LON_IO_POINTS, &lon_dimid));
+			
+		int lat_lon_dimids[2];
+		lat_lon_dimids[0] = lat_dimid;
+		lat_lon_dimids[1] = lon_dimid;
+		
+		// defining the variables
+		NCCHECK(nc_def_var(ncid, "start_day", NC_INT, 1, &single_int_dimid, &start_day_id));
+		NCCHECK(nc_def_var(ncid, "start_hour", NC_INT, 1, &single_int_dimid, &start_hour_id));
+		NCCHECK(nc_def_var(ncid, "lat", NC_DOUBLE, 1, &lat_dimid, &lat_id));
+		NCCHECK(nc_def_var(ncid, "lon", NC_DOUBLE, 1, &lon_dimid, &lon_id));
+		
+		char varname[100];
 		for (int i = 0; i < NO_OF_LAYERS; ++i)
 		{
-			#pragma omp parallel for
-			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
-			{
-				temperature_h[j] = diagnostics -> temperature[i*NO_OF_SCALARS_H + j];
-				pressure_h[j] = (*pressure)[i*NO_OF_SCALARS_H + j];
-				rh_h[j] = (*rh)[i*NO_OF_SCALARS_H + j];
-			}
-	    	interpolate_to_ll(temperature_h, lat_lon_output_field, grid);
-	    	interpolate_to_ll(pressure_h, lat_lon_output_field, grid);
-	    	interpolate_to_ll(rh_h, lat_lon_output_field, grid);
-	    	interpolate_to_ll(wind_u_h, lat_lon_output_field, grid);
-	    	interpolate_to_ll(wind_v_h, lat_lon_output_field, grid);
-	    	interpolate_to_ll(rel_vort_h, lat_lon_output_field, grid);
-    		interpolate_to_ll(div_h, lat_lon_output_field, grid);
+			sprintf(varname, "temperature_layer_%d", i);
+			NCCHECK(nc_def_var(ncid, varname, NC_DOUBLE, 2, lat_lon_dimids, &temperature_ids[i]));
+			NCCHECK(nc_put_att_text(ncid, temperature_ids[i], "units", strlen("K"), "K"));
+			sprintf(varname, "pressure_layer_%d", i);
+			NCCHECK(nc_def_var(ncid, varname, NC_DOUBLE, 2, lat_lon_dimids, &pressure_ids[i]));
+			NCCHECK(nc_put_att_text(ncid, temperature_ids[i], "units", strlen("Pa"), "Pa"));
+			sprintf(varname, "rel_hum_layer_%d", i);
+			NCCHECK(nc_def_var(ncid, varname, NC_DOUBLE, 2, lat_lon_dimids, &rel_hum_ids[i]));
+			NCCHECK(nc_put_att_text(ncid, temperature_ids[i], "units", strlen("%"), "%"));
+			sprintf(varname, "wind_u_layer_%d", i);
+			NCCHECK(nc_def_var(ncid, varname, NC_DOUBLE, 2, lat_lon_dimids, &wind_u_ids[i]));
+			NCCHECK(nc_put_att_text(ncid, wind_u_ids[i], "units", strlen("m/s"), "m/s"));
+			sprintf(varname, "wind_v_layer_%d", i);
+			NCCHECK(nc_def_var(ncid, varname, NC_DOUBLE, 2, lat_lon_dimids, &wind_v_ids[i]));
+			NCCHECK(nc_put_att_text(ncid, wind_v_ids[i], "units", strlen("m/s"), "m/s"));
+			sprintf(varname, "rel_vort_layer_%d", i);
+			NCCHECK(nc_def_var(ncid, varname, NC_DOUBLE, 2, lat_lon_dimids, &rel_vort_ids[i]));
+			NCCHECK(nc_put_att_text(ncid, rel_vort_ids[i], "units", strlen("1/s"), "1/s"))
+			sprintf(varname, "div_h_layer_%d", i);
+			NCCHECK(nc_def_var(ncid, varname, NC_DOUBLE, 2, lat_lon_dimids, &div_h_ids[i]));
+			NCCHECK(nc_put_att_text(ncid, div_h_ids[i], "units", strlen("1/s"), "1/s"));
 		}
-		free(wind_u_h);
-		free(wind_v_h);
-		free(rel_vort_h);
-		free(div_h);
-		free(temperature_h);
-		free(pressure_h);
-		free(rh_h);
 		for (int i = 0; i < NO_OF_LEVELS; ++i)
 		{
-			for (int j = 0; j < NO_OF_SCALARS_H; j++)
-			{
-			    wind_w_h[j] = state_write_out -> wind[j + i*NO_OF_VECTORS_PER_LAYER];
-			}
-	    	interpolate_to_ll(wind_w_h, lat_lon_output_field, grid);
+			sprintf(varname, "wind_w_level_%d", i);
+			NCCHECK(nc_def_var(ncid, varname, NC_DOUBLE, 2, lat_lon_dimids, &wind_w_ids[i]));
+			NCCHECK(nc_put_att_text(ncid, wind_w_ids[i], "units", strlen("m/s"), "m/s"));
 		}
-		free(wind_w_h);
+		NCCHECK(nc_enddef(ncid));
+		
+	    // writing the variables
+		NCCHECK(nc_put_var_int(ncid, start_day_id, &init_date));
+		NCCHECK(nc_put_var_int(ncid, start_hour_id, &init_time));
+		NCCHECK(nc_put_var_double(ncid, lat_id, &lat_vector[0]));
+		NCCHECK(nc_put_var_double(ncid, lon_id, &lon_vector[0]));
+		for (int i = 0; i < NO_OF_LAYERS; ++i)
+		{
+	    	interpolate_to_ll(&diagnostics -> temperature[i*NO_OF_SCALARS_H], lat_lon_output_field, grid);
+			NCCHECK(nc_put_var_double(ncid, temperature_ids[i], &lat_lon_output_field[0][0]));
+	    	interpolate_to_ll(&(*pressure)[i*NO_OF_SCALARS_H], lat_lon_output_field, grid);
+			NCCHECK(nc_put_var_double(ncid, pressure_ids[i], &lat_lon_output_field[0][0]));
+	    	interpolate_to_ll(&(*rh)[i*NO_OF_SCALARS_H], lat_lon_output_field, grid);
+			NCCHECK(nc_put_var_double(ncid, rel_hum_ids[i], &lat_lon_output_field[0][0]));
+	    	interpolate_to_ll(&diagnostics-> u_at_cell[i*NO_OF_SCALARS_H], lat_lon_output_field, grid);
+			NCCHECK(nc_put_var_double(ncid, wind_u_ids[i], &lat_lon_output_field[0][0]));
+	    	interpolate_to_ll(&diagnostics-> v_at_cell[i*NO_OF_SCALARS_H], lat_lon_output_field, grid);
+			NCCHECK(nc_put_var_double(ncid, wind_v_ids[i], &lat_lon_output_field[0][0]));
+	    	interpolate_to_ll(&(*rel_vort)[i*NO_OF_SCALARS_H], lat_lon_output_field, grid);
+			NCCHECK(nc_put_var_double(ncid, rel_vort_ids[i], &lat_lon_output_field[0][0]));
+    		interpolate_to_ll(&(*div_h_all_layers)[i*NO_OF_SCALARS_H], lat_lon_output_field, grid);
+			NCCHECK(nc_put_var_double(ncid, div_h_ids[i], &lat_lon_output_field[0][0]));
+		}
+		
+		for (int i = 0; i < NO_OF_LEVELS; ++i)
+		{
+	    	interpolate_to_ll(&state_write_out -> wind[i*NO_OF_VECTORS_PER_LAYER], lat_lon_output_field, grid);
+			NCCHECK(nc_put_var_double(ncid, wind_w_ids[i], &lat_lon_output_field[0][0]));
+		}
+		
+		// closing the netcdf file
+		NCCHECK(nc_close(ncid));
 	}
 	
 	// output of the whole model state for data assimilation
@@ -865,8 +921,8 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		sprintf(OUTPUT_FILE_PRE, "%s+%dmin_hex.nc", config_io -> run_id, time_since_init_min);
 		char OUTPUT_FILE[strlen(OUTPUT_FILE_PRE) + 1];
 		sprintf(OUTPUT_FILE, "%s+%dmin_hex.nc", config_io -> run_id, time_since_init_min);
-		int ncid, scalar_dimid, soil_dimid, vector_dimid, densities_dimid, densities_id, temperature_id, wind_id,
-		tke_id, soil_id, single_int_dimid, start_day_id, start_hour_id;
+		int scalar_dimid, soil_dimid, vector_dimid, densities_dimid, densities_id, temperature_id, wind_id,
+		tke_id, soil_id, single_int_dimid;
 		
 		NCCHECK(nc_create(OUTPUT_FILE, NC_CLOBBER, &ncid));
 		NCCHECK(nc_def_dim(ncid, "single_int_index", 1, &single_int_dimid));

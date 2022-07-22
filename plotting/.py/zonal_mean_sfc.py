@@ -12,11 +12,11 @@ import math as mat
 game_output_dir = "/home/max/code/GAME/output"
 run_id = "held_suar"
 save_directory = "/home/max/code/GAME/figs"
-short_name = "10u"
+short_name = "u10"
 no_of_layers = 26
-run_span = 1200*86400 # run length
-dt_data = 86400 # output time step
-begin_since_init = 200*86400 #  when to begin computing the zonal average
+run_span_min = 1200*1440 # run length in minutes
+dt_data_min = 1440 # output time step in minutes
+begin_since_init_min = 200*1440 #  when to begin computing the zonal average in minutes
 stretching_parameter = 1.3 # stretching parameter of the vertical grid
 toa = 41152 # top of atmosphere
 
@@ -24,20 +24,16 @@ toa = 41152 # top of atmosphere
 
 # 1.) bureaucracy
 
-if short_name == "10u":
+if short_name == "u10":
 	unit = "m/s"
-	height = 10
-if short_name == "10v":
+if short_name == "v10":
 	unit = "m/s"
-	height = 10
 if short_name == "gust":
 	unit = "m/s"
-	height = 10
-if short_name == "2t":
+if short_name == "t2":
 	unit = "°C"
-	height = 2
 	
-no_of_steps = 1 + int((run_span - begin_since_init)/dt_data)
+no_of_steps = 1 + int((run_span_min - begin_since_init_min)/dt_data_min)
 
 # setting the vertical grid
 height_vector = np.zeros([no_of_layers])
@@ -51,13 +47,13 @@ for i in range(no_of_layers):
 
 def input_filename(time_step):
 	# returns the file name as a function of the time step (averaging interval only)
-	file_name = game_output_dir + "/" + run_id + "/" + run_id + "+" + str(begin_since_init + time_step*dt_data) + "s_surface.grb2"
+	file_name = game_output_dir + "/" + run_id + "/" + run_id + "+" + str(begin_since_init_min + time_step*dt_data_min) + "s_surface.nc"
 	return file_name
 
 # 2.) reading the model output
 
 # detecting the size of the fields
-latitudes_vector, longitudes_vector, dump = rmo.fetch_model_output(input_filename(0), begin_since_init, short_name, height)
+latitudes_vector, longitudes_vector, dump = rmo.fetch_model_output(input_filename(0), short_name)
 
 # this array will contain the whole model output
 values = np.zeros([len(latitudes_vector), len(longitudes_vector), no_of_steps])
@@ -65,7 +61,7 @@ values = np.zeros([len(latitudes_vector), len(longitudes_vector), no_of_steps])
 # loop over all time steps and levels
 for i in range(no_of_steps):
 	# average over all time steps and longitudes
-	dump, dump, values[:, :, i] = rmo.fetch_model_output(input_filename(i), begin_since_init + i*dt_data, short_name, height)
+	dump, dump, values[:, :, i] = rmo.fetch_model_output(input_filename(i), short_name)
 
 # 3.) computing the zonal average
 
@@ -76,7 +72,7 @@ for i in range(len(latitudes_vector)):
 	result_vector[i] = np.mean(values[i, :, :])
 
 # unit conversion for plotting
-if short_name == "2t":
+if short_name == "t2":
 	result_vector = result_vector - conv.c2k(0)
 
 # 4.) plotting

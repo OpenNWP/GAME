@@ -426,7 +426,7 @@ int sort_edge_indices(double lat_points[], double lon_points[], int number_of_ed
 		lat_points[indices_resorted[second_index]], lon_points[indices_resorted[second_index]], 1.0);
 		direction_1 = find_geodetic_direction(lat_points[indices_resorted[second_index]], lon_points[indices_resorted[second_index]],
 		lat_points[indices_resorted[third_index]], lon_points[indices_resorted[third_index]], 0.0);
-		new_direction = find_turn_angle(direction_0, direction_1);
+		new_direction = find_turn_angle(&direction_0, &direction_1);
 		angle_sum += new_direction;
 	}
 	if (angle_sum < -0.9*2.0*M_PI)
@@ -449,23 +449,6 @@ int sort_edge_indices(double lat_points[], double lon_points[], int number_of_ed
 		}
 	}
 	return 0;
-}
-
-double find_turn_angle(double angle_0, double angle_1)
-{
-	/*
-	This function returns the turn angle between two angles.
-	*/
-	double result = angle_1 - angle_0;
-	if (result > M_PI)
-	{
-		result -= 2.0*M_PI;
-	}
-	if (result < -M_PI)
-	{
-		result += 2.0*M_PI;
-	}
-	return result;
 }
 
 

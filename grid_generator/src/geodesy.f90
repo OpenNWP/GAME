@@ -17,6 +17,7 @@ module geodesy
   public :: calculate_vertical_area
   public :: scalar_product_elementary
   public :: scalar_product_elementary_2d
+  public :: find_turn_angle
   
   contains
 
@@ -93,6 +94,25 @@ module geodesy
     enddo
     
   end function scalar_product_elementary_2d
+
+  function find_turn_angle(angle_0,angle_1) &
+  bind(c,name = "find_turn_angle")
+  
+    ! This function returns the turn angle between two angles.
+    
+    real(c_double), intent(in)  :: angle_0,angle_1
+    real(c_double)              :: find_turn_angle
+    
+    find_turn_angle = angle_1 - angle_0
+    
+    if (find_turn_angle>M_PI) then
+      find_turn_angle = find_turn_angle - 2.0*M_PI
+    endif
+    if (find_turn_angle<-M_PI) then
+      find_turn_angle = find_turn_angle + 2.0*M_PI
+    endif
+    
+  end function find_turn_angle
 
 end module geodesy
 
