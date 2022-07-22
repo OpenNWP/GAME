@@ -920,7 +920,8 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	}
 	
 	// output of the whole model state for data assimilation
-	if (config_io -> ideal_input_id == -1 && time_since_init_min == config -> time_to_next_analysis_min)
+	if ((config_io -> ideal_input_id == -1 || config -> totally_first_step_bool == 1)
+	&& time_since_init_min == config -> time_to_next_analysis_min)
 	{
 		char OUTPUT_FILE_PRE[300];
 		sprintf(OUTPUT_FILE_PRE, "%s+%dmin_hex.nc", config_io -> run_id, time_since_init_min);

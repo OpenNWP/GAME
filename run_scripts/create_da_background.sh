@@ -47,7 +47,7 @@ write_out_integrals=0 # If set to 1, fundamental integrals of the atmosphere wil
 model_level_output_switch=1 # If set to 1, variables will be written out on model levels.
 pressure_level_output_switch=0 # If set to 1, additional output on pressure levels will be created. The pressure levels can be set in the file src/io/write_output.c.
 surface_output_switch=0 # If set to 1, surface variables will be diagnozed and writing to separate files.
-time_to_next_analysis=-1 # the time between this model run and the next analysis, only relevant in NWP runs for data assimilation
+time_to_next_analysis=0 # the time between this model run and the next analysis, only relevant in NWP runs for data assimilation
 
 # parallelization
 export OMP_NUM_THREADS=4 # relevant for OMP
@@ -56,7 +56,7 @@ export OMP_NUM_THREADS=4 # relevant for OMP
 source $game_home_dir/run_scripts/.sh/root_script.sh
 
 # moving the output to the nwp_init directory
-mv output/$run_id/${run_id}+0min.nc nwp_init/${run_id}.nc 
+mv output/$run_id/${run_id}+0min_hex.nc nwp_init/${run_id}.nc 
 
 # clean-up
 rm -r output/$run_id

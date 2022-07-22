@@ -644,6 +644,9 @@ int main(int argc, char *argv[])
     	t_rad_update += config -> radiation_delta_t;
     }
     
+    // This is necessary because at the very first step of the model integration, some things are handled differently
+    // in the time stepping and in writing the output.
+    config -> totally_first_step_bool = 1;
     // writing out the initial state of the model run
     write_out(state_old, wind_h_lowest_layer, min_no_of_10m_wind_avg_steps, t_init, t_write,
     diagnostics, forcings, grid, dualgrid, config_io, config, irrev);
@@ -671,8 +674,6 @@ int main(int argc, char *argv[])
     This is the loop over the time steps.
     -------------------------------------
     */
-    // This is necessary because at the very first step of the model integration, some things are handled differently in the time stepping.
-    config -> totally_first_step_bool = 1;
     // this is to store the speed of the model integration
     double speed;
     while (t_0 < t_init + 60*config -> total_run_span_min + radius_rescale*300)
