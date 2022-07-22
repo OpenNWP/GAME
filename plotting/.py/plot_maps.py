@@ -26,7 +26,7 @@ plot_interval_min = int(sys.argv[2])
 level = int(sys.argv[3])
 var_id = sys.argv[4]
 save_directory = sys.argv[5]
-grib_dir_name = sys.argv[6]
+netcdf_dir = sys.argv[6]
 projection = sys.argv[7]
 run_id = sys.argv[8]
 uniform_range = int(sys.argv[9])
@@ -178,11 +178,11 @@ if surface_bool == 1:
 
 if on_pressure_bool == 0:
 	if surface_bool == 1:
-		input_file = grib_dir_name + "/" + run_id + "+" + str(start_time_since_init_min) + "min_surface.nc"
+		input_file = netcdf_dir + "/" + run_id + "+" + str(start_time_since_init_min) + "min_surface.nc"
 	else:
-		input_file = grib_dir_name + "/" + run_id + "+" + str(start_time_since_init_min) + "min.nc"
+		input_file = netcdf_dir + "/" + run_id + "+" + str(start_time_since_init_min) + "min.nc"
 else:
-	input_file = grib_dir_name + "/" + run_id + "+" + str(start_time_since_init_min) + "min_pressure_levels.nc"
+	input_file = netcdf_dir + "/" + run_id + "+" + str(start_time_since_init_min) + "min_pressure_levels.nc"
 
 # finiding the analysis time
 init_year, init_month, init_day, init_hour = rmo.return_analysis_time(input_file)
@@ -198,9 +198,6 @@ else:
 	else:
 		lat, lon, values_pre = rmo.fetch_model_output(input_file, var_id + "_layer_" + str(level))
 
-if var_id == "tcc":
-	values_pre[np.where(values_pre > 100.0)] = 100.0
-
 values = np.zeros([len(lat), len(lon), int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1])
 values[:, :, 0] = rescale*values_pre + shift
 if var_id == "surface_wind":
@@ -213,11 +210,11 @@ for i in np.arange(1, int((run_span_min - start_time_since_init_min)/plot_interv
 	time_after_init_min = start_time_since_init_min + i*plot_interval_min
 	if on_pressure_bool == 0:
 		if surface_bool == 1:
-			input_file = grib_dir_name + "/" + run_id + "+" + str(time_after_init_min) + "min_surface.nc"
+			input_file = netcdf_dir + "/" + run_id + "+" + str(time_after_init_min) + "min_surface.nc"
 		else:
-			input_file = grib_dir_name + "/" + run_id + "+" + str(time_after_init_min) + "min.nc"
+			input_file = netcdf_dir + "/" + run_id + "+" + str(time_after_init_min) + "min.nc"
 	else:
-		input_file = grib_dir_name + "/" + run_id + "+" + str(time_after_init_min) + "min_pressure_levels.nc"
+		input_file = netcdf_dir + "/" + run_id + "+" + str(time_after_init_min) + "min_pressure_levels.nc"
 	if var_id == "surface_wind":
 		lat, lon, values[:, :, i] = rmo.fetch_model_output(input_file, "gust")
 		values[:, :, i] = rescale*values[:, :, i] + shift
@@ -301,6 +298,8 @@ for i in range(int((run_span_min - start_time_since_init_min)/plot_interval_min)
 			total_min = np.nanmin(values[:, :, i])
 			total_max = np.nanmax(values[:, :, i])
 		total_min, total_max = mp.modify_value_boundaries(total_min, total_max, var_id)
+		if var_id == "tcc" or var_id == "rel_hum":
+			values[:, :, i] = np.clip(values[:, :, i], total_min, total_max)
 		values_range_for_plot = total_max - total_min
 		if var_id == "sp" or var_id == "prmsl":
 			values_range_for_plot = values_range_for_plot + np.mod(10 - np.mod(values_range_for_plot, 10), 10)
