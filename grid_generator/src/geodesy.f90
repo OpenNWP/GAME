@@ -187,6 +187,24 @@ module geodesy
     
   end subroutine cross_product_elementary
 
+  subroutine normalize_cartesian(x_in,y_in,z_in,x_out,y_out,z_out) &
+  bind(c,name = "normalize_cartesian")
+  
+    ! This subroutine normalizes a Cartesian vector.
+    
+    real(c_double), intent(in)  :: x_in,y_in,z_in
+    real(c_double), intent(out) :: x_out,y_out,z_out
+
+    ! local variables
+    real(c_double) :: length
+
+    length = sqrt(x_in**2 + y_in**2 + z_in**2)
+    x_out = x_in/length
+    y_out = y_in/length
+    z_out = z_in/length
+    
+  end subroutine normalize_cartesian
+
 end module geodesy
 
 

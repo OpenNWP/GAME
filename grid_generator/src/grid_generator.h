@@ -55,7 +55,6 @@ int find_global_normal(double, double, double *, double *, double *);
 int find_voronoi_center_sphere(double, double, double, double, double, double, double *, double *);
 int active_turn(double, double, double, double *, double *);
 int passive_turn(double, double, double, double *, double *);
-int normalize_cartesian(double, double, double, double *, double *, double *);
 int cross_product_elementary(double[], double[], double[]);
 double calc_triangle_area(double, double, double, double, double, double);
 double calc_spherical_polygon_area(double[], double[], int);
@@ -76,7 +75,7 @@ extern double calculate_distance_h();
 extern int calc_local_i();
 extern int calc_local_j();
 extern int active_turn_x();
-
+extern int normalize_cartesian();
 
 
 

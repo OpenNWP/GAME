@@ -145,18 +145,6 @@ int passive_turn(double u_in, double v_in, double turn_angle, double *u_out, dou
     return 0;
 }
 
-int normalize_cartesian(double x_in, double y_in, double z_in, double *x_out, double *y_out, double *z_out)
-{
-	/*
-	This function normalizes a Cartesian vector.
-	*/
-    double length = sqrt(pow(x_in, 2) + pow(y_in, 2) + pow(z_in, 2));
-    *x_out = x_in/length;
-    *y_out = y_in/length;
-    *z_out = z_in/length;
-    return 0;
-}
-
 double calc_triangle_area(double lat_0, double lon_0, double lat_1, double lon_1, double lat_2, double lon_2)
 {
 	/*
