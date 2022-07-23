@@ -157,17 +157,6 @@ int normalize_cartesian(double x_in, double y_in, double z_in, double *x_out, do
     return 0;
 }
 
-int cross_product_elementary(double a[], double b[], double result[])
-{
-	/*
-	This function computes the cross product in Cartesion coordinates.
-	*/
-    result[0] = a[1]*b[2] - a[2]*b[1];
-    result[1] = a[2]*b[0] - a[0]*b[2];
-    result[2] = a[0]*b[1] - a[1]*b[0];
-    return 0;
-}
-
 double calc_triangle_area(double lat_0, double lon_0, double lat_1, double lon_1, double lat_2, double lon_2)
 {
 	/*

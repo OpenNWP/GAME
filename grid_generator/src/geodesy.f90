@@ -20,6 +20,7 @@ module geodesy
   public :: scalar_product_elementary
   public :: scalar_product_elementary_2d
   public :: find_turn_angle
+  public :: cross_product_elementary
   
   contains
   
@@ -39,7 +40,7 @@ module geodesy
   subroutine calc_local_i(lon,result_vec) &
   bind(c,name = "calc_local_i")
   
-    ! This subroutinee calculates the local eastward basis vector.
+    ! This subroutine calculates the local eastward basis vector.
     
     real(c_double), intent(in)  :: lon
     real(c_double), intent(out) :: result_vec(3)
@@ -53,7 +54,7 @@ module geodesy
   subroutine calc_local_j(lat,lon,result_vec) &
   bind(c,name = "calc_local_j")
   
-    ! This subroutinee calculates the local northward basis vector.
+    ! This subroutine calculates the local northward basis vector.
     
     real(c_double), intent(in)  :: lat,lon
     real(c_double), intent(out) :: result_vec(3)
@@ -67,7 +68,7 @@ module geodesy
   subroutine active_turn_x(angle,vector_in,vector_out) &
   bind(c,name = "active_turn_x")
   
-    ! This subroutinee turns a vector in R^3 around the x-axis.
+    ! This subroutine turns a vector in R^3 around the x-axis.
     
     real(c_double), intent(in)  :: angle
     real(c_double), intent(in)  :: vector_in(3)
@@ -171,6 +172,20 @@ module geodesy
     endif
     
   end function find_turn_angle
+
+  subroutine cross_product_elementary(a_vector,b_vector,result_vector) &
+  bind(c,name = "cross_product_elementary")
+  
+    ! This subroutine computes the cross product in Cartesian coordinates.
+    
+    real(c_double), intent(in)  :: a_vector(3),b_vector(3)
+    real(c_double), intent(out) :: result_vector(3) 
+
+    result_vector(1) = a_vector(2)*b_vector(3) - a_vector(3)*b_vector(2)
+    result_vector(2) = a_vector(3)*b_vector(1) - a_vector(1)*b_vector(3)
+    result_vector(3) = a_vector(1)*b_vector(2) - a_vector(2)*b_vector(1)
+    
+  end subroutine cross_product_elementary
 
 end module geodesy
 
