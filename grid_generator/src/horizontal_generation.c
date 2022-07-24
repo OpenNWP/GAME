@@ -36,7 +36,7 @@ int generate_horizontal_generators(double latitude_ico[], double longitude_ico[]
 	{
 	    latitude_scalar[i] = latitude_ico[i];
 	    longitude_scalar[i] = longitude_ico[i];
-	    find_global_normal(latitude_ico[i], longitude_ico[i], &x_res, &y_res, &z_res);
+	    find_global_normal(&latitude_ico[i], &longitude_ico[i], &x_res, &y_res, &z_res);
 	    x_unity[i] = x_res;
 	    y_unity[i] = y_res;
 	    z_unity[i] = z_res;
@@ -248,10 +248,10 @@ int set_vector_h_doubles(int from_index[], int to_index[], double latitude_scala
 	#pragma omp parallel for private(x_point_0, y_point_0, z_point_0, x_point_1, y_point_1, z_point_1, x_res, y_res, z_res, lat_res, lon_res)
     for (int i = 0; i < NO_OF_VECTORS_H; ++i)
     {
-        find_global_normal(latitude_scalar[from_index[i]], longitude_scalar[from_index[i]], &x_point_0, &y_point_0, &z_point_0);
-        find_global_normal(latitude_scalar[to_index[i]], longitude_scalar[to_index[i]], &x_point_1, &y_point_1, &z_point_1);
+        find_global_normal(&latitude_scalar[from_index[i]], &longitude_scalar[from_index[i]], &x_point_0, &y_point_0, &z_point_0);
+        find_global_normal(&latitude_scalar[to_index[i]], &longitude_scalar[to_index[i]], &x_point_1, &y_point_1, &z_point_1);
         find_between_point(x_point_0, y_point_0, z_point_0, x_point_1, y_point_1, z_point_1, 0.5, &x_res, &y_res, &z_res);
-        find_geos(x_res, y_res, z_res, &lat_res, &lon_res);
+        find_geos(&x_res, &y_res, &z_res, &lat_res, &lon_res);
         latitude_vector[i] = lat_res;
         longitude_vector[i] = lon_res;
         direction[i] = find_geodetic_direction(latitude_scalar[from_index[i]], longitude_scalar[from_index[i]], latitude_scalar[to_index[i]], longitude_scalar[to_index[i]], 0.5);

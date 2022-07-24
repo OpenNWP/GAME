@@ -50,8 +50,6 @@ int find_geodetic(double, double, double, double, double, double *, double *);
 int find_between_point(double, double, double, double, double, double, double, double *, double *, double *);
 double calculate_distance_cart(double, double, double, double, double, double);
 double find_geodetic_direction(double, double, double, double, double);
-int find_geos(double, double, double, double *, double *);
-int find_global_normal(double, double, double *, double *, double *);
 int find_voronoi_center_sphere(double, double, double, double, double, double, double *, double *);
 int active_turn(double, double, double, double *, double *);
 int passive_turn(double, double, double, double *, double *);
@@ -76,6 +74,8 @@ extern int calc_local_i();
 extern int calc_local_j();
 extern int active_turn_x();
 extern int normalize_cartesian();
+extern int find_geos();
+extern int find_global_normal();
 
 
 

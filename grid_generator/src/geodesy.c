@@ -50,8 +50,8 @@ double calculate_distance_cart(double lat_1_in, double lon_1_in, double lat_2_in
     }
     double distance;
     double x_1, y_1, z_1, x_2, y_2, z_2;
-    find_global_normal(lat_1_in, lon_1_in, &x_1, &y_1, &z_1);
-    find_global_normal(lat_2_in, lon_2_in, &x_2, &y_2, &z_2);
+    find_global_normal(&lat_1_in, &lon_1_in, &x_1, &y_1, &z_1);
+    find_global_normal(&lat_2_in, &lon_2_in, &x_2, &y_2, &z_2);
     x_1 = radius_1*x_1;
     y_1 = radius_1*y_1;
     z_1 = radius_1*z_1;
@@ -82,36 +82,15 @@ double find_geodetic_direction(double lat_1_in, double lon_1_in, double lat_2_in
     return direction;
 }
 
-int find_geos(double x, double y, double z, double *lat_out, double *lon_out)
-{
-	/*
-	This function calculates the geographical coordinates of a point given its Cartesian coordinates
-	*/
-    *lat_out = asin(z/sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2)));
-    *lon_out = atan2(y, x);
-    return 0;
-}
-
-int find_global_normal(double lat, double lon, double *x, double *y, double *z)
-{
-	/*
-	This function calculates the Cartesian normal vector of a point given its geographical coordinates.
-	*/
-    *x = cos(lat)*cos(lon);
-    *y = cos(lat)*sin(lon);
-    *z = sin(lat);
-    return 0;
-}
-
 int find_voronoi_center_sphere(double lat_0_in, double lon_0_in, double lat_1_in, double lon_1_in, double lat_2_in, double lon_2_in, double *lat_out, double *lon_out)
 {
 	/*
 	This function calculates the Voronoi center of three points given their geographical coordinates.
 	*/
     double x_0, y_0, z_0, x_1, y_1, z_1, x_2, y_2, z_2;
-    find_global_normal(lat_0_in, lon_0_in, &x_0, &y_0, &z_0);
-    find_global_normal(lat_1_in, lon_1_in, &x_1, &y_1, &z_1);
-    find_global_normal(lat_2_in, lon_2_in, &x_2, &y_2, &z_2);
+    find_global_normal(&lat_0_in, &lon_0_in, &x_0, &y_0, &z_0);
+    find_global_normal(&lat_1_in, &lon_1_in, &x_1, &y_1, &z_1);
+    find_global_normal(&lat_2_in, &lon_2_in, &x_2, &y_2, &z_2);
     double rel_vector_0[3];
     double rel_vector_1[3];
     rel_vector_0[0] = x_1 - x_0;
@@ -122,7 +101,7 @@ int find_voronoi_center_sphere(double lat_0_in, double lon_0_in, double lat_1_in
     rel_vector_1[2] = z_2 - z_0;
     double cross_product_result[3];
     cross_product_elementary(rel_vector_0, rel_vector_1, cross_product_result);
-    find_geos(cross_product_result[0], cross_product_result[1], cross_product_result[2], lat_out, lon_out);
+    find_geos(&cross_product_result[0], &cross_product_result[1], &cross_product_result[2], lat_out, lon_out);
     return 0;
 }
 
@@ -155,9 +134,9 @@ double calc_triangle_area(double lat_0, double lon_0, double lat_1, double lon_1
     dir_12, dir_20, dir_21, vector_01[2], vector_02[2], vector_10[2], vector_12[2], vector_20[2], vector_21[2];
     if (fabs(average_latitude) > 0.9*M_PI/2)
     {   
-        find_global_normal(lat_0, lon_0, &x_0, &y_0, &z_0);
-        find_global_normal(lat_1, lon_1, &x_1, &y_1, &z_1);
-        find_global_normal(lat_2, lon_2, &x_2, &y_2, &z_2);
+        find_global_normal(&lat_0, &lon_0, &x_0, &y_0, &z_0);
+        find_global_normal(&lat_1, &lon_1, &x_1, &y_1, &z_1);
+        find_global_normal(&lat_2, &lon_2, &x_2, &y_2, &z_2);
         double vector_in[3];
         double vector_out[3];
         vector_in[0] = x_0;
@@ -181,9 +160,9 @@ double calc_triangle_area(double lat_0, double lon_0, double lat_1, double lon_1
         x_2 = vector_out[0];
         y_2 = vector_out[1];
         z_2 = vector_out[2];
-        find_geos(x_0, y_0, z_0, &lat_0, &lon_0);
-        find_geos(x_1, y_1, z_1, &lat_1, &lon_1);
-        find_geos(x_2, y_2, z_2, &lat_2, &lon_2);
+        find_geos(&x_0, &y_0, &z_0, &lat_0, &lon_0);
+        find_geos(&x_1, &y_1, &z_1, &lat_1, &lon_1);
+        find_geos(&x_2, &y_2, &z_2, &lat_2, &lon_2);
     }
     dir_01 = find_geodetic_direction(lat_0, lon_0, lat_1, lon_1, 0);
     dir_02 = find_geodetic_direction(lat_0, lon_0, lat_2, lon_2, 0);
@@ -218,7 +197,7 @@ double calc_spherical_polygon_area(double lat_points[], double lon_points[], int
     double x_points[number_of_edges], y_points[number_of_edges], z_points[number_of_edges];
     for (int i = 0; i < number_of_edges; ++i)
     {
-        find_global_normal(lat_points[i], lon_points[i], &x_points[i], &y_points[i], &z_points[i]);
+        find_global_normal(&lat_points[i], &lon_points[i], &x_points[i], &y_points[i], &z_points[i]);
     }
     double x_center, y_center, z_center;
     x_center = 0;
@@ -231,7 +210,7 @@ double calc_spherical_polygon_area(double lat_points[], double lon_points[], int
         z_center += 1.0/number_of_edges*z_points[i];
     }
     double lat_center, lon_center;
-    find_geos(x_center, y_center, z_center, &lat_center, &lon_center);
+    find_geos(&x_center, &y_center, &z_center, &lat_center, &lon_center);
     double triangle_surfaces[number_of_edges];
 	int indices_resorted[number_of_edges];
     sort_edge_indices(lat_points, lon_points, number_of_edges, indices_resorted);
@@ -283,7 +262,7 @@ int sort_edge_indices(double lat_points[], double lon_points[], int number_of_ed
 	double x_points[number_of_edges], y_points[number_of_edges], z_points[number_of_edges];
     for (int i = 0; i < number_of_edges; ++i)
     {
-        find_global_normal(lat_points[i], lon_points[i], &x_points[i], &y_points[i], &z_points[i]);
+        find_global_normal(&lat_points[i], &lon_points[i], &x_points[i], &y_points[i], &z_points[i]);
     }
     double x_center, y_center, z_center;
     x_center = 0;
@@ -296,7 +275,7 @@ int sort_edge_indices(double lat_points[], double lon_points[], int number_of_ed
         z_center += 1.0/number_of_edges*z_points[i];
     }
     double lat_center, lon_center;
-    find_geos(x_center, y_center, z_center, &lat_center, &lon_center);
+    find_geos(&x_center, &y_center, &z_center, &lat_center, &lon_center);
     double distance_array[number_of_edges - 1];
     int index_array[number_of_edges - 1];
     double distance_candidate;

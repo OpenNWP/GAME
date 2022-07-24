@@ -376,7 +376,7 @@ int write_scalar_coordinates(int edgepoint_0, int edgepoint_1, int edgepoint_2, 
         y_unity[point_1] = y_res;
         z_unity[point_1] = z_res;
     }
-    find_geos(x_res, y_res, z_res, &lat_res, &lon_res);
+    find_geos(&x_res, &y_res, &z_res, &lat_res, &lon_res);
     if (points_upwards == 1)
     {
         latitude_scalar[point_0] = lat_res;
@@ -402,7 +402,7 @@ int write_scalar_coordinates(int edgepoint_0, int edgepoint_1, int edgepoint_2, 
         y_unity[point_2] = y_res;
         z_unity[point_2] = z_res;
     }
-    find_geos(x_res, y_res, z_res, &lat_res, &lon_res);
+    find_geos(&x_res, &y_res, &z_res, &lat_res, &lon_res);
     if (points_upwards == 1)
     {
         latitude_scalar[point_1] = lat_res;
@@ -428,7 +428,7 @@ int write_scalar_coordinates(int edgepoint_0, int edgepoint_1, int edgepoint_2, 
         y_unity[point_0] = y_res;
         z_unity[point_0] = z_res;
     }
-    find_geos(x_res, y_res, z_res, &lat_res, &lon_res);
+    find_geos(&x_res, &y_res, &z_res, &lat_res, &lon_res);
     if (points_upwards == 1)
     {
         latitude_scalar[point_2] = lat_res;

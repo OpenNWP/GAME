@@ -65,6 +65,33 @@ module geodesy
     
   end subroutine calc_local_j
 
+  subroutine find_geos(x,y,z,lat_out,lon_out) &
+  bind(c,name = "find_geos")
+  
+    ! This subroutine calculates the geographical coordinates of a point given its Cartesian coordinates
+    
+    real(c_double), intent(in)  :: x,y,z
+    real(c_double), intent(out) :: lat_out,lon_out
+
+    lat_out = asin(z/sqrt(x**2+y**2+z**2))
+    lon_out = atan2(y,x)
+    
+  end subroutine find_geos
+  
+  subroutine find_global_normal(lat,lon,x,y,z) &
+  bind(c,name = "find_global_normal")
+  
+    ! This subroutine calculates the Cartesian normal vector of a point given its geographical coordinates.
+    
+    real(c_double), intent(in)  :: lat,lon
+    real(c_double), intent(out) :: x,y,z
+
+    x = cos(lat)*cos(lon)
+    y = cos(lat)*sin(lon)
+    z = sin(lat)
+    
+  end subroutine find_global_normal
+
   subroutine active_turn_x(angle,vector_in,vector_out) &
   bind(c,name = "active_turn_x")
   
