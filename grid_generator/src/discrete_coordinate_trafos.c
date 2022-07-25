@@ -362,7 +362,8 @@ int write_scalar_coordinates(int edgepoint_0, int edgepoint_1, int edgepoint_2, 
 	
     double x_res, y_res, z_res, lat_res, lon_res;
     // first point
-    find_between_point(x_unity[edgepoint_0], y_unity[edgepoint_0], z_unity[edgepoint_0], x_unity[edgepoint_1], y_unity[edgepoint_1], z_unity[edgepoint_1], 0.5, &x_res, &y_res, &z_res);
+    double half = 0.5;
+    find_between_point(&x_unity[edgepoint_0], &y_unity[edgepoint_0], &z_unity[edgepoint_0], &x_unity[edgepoint_1], &y_unity[edgepoint_1], &z_unity[edgepoint_1], &half, &x_res, &y_res, &z_res);
     normalize_cartesian(&x_res, &y_res, &z_res, &x_res, &y_res, &z_res);
     if (points_upwards == 1)
     {
@@ -388,7 +389,7 @@ int write_scalar_coordinates(int edgepoint_0, int edgepoint_1, int edgepoint_2, 
         longitude_scalar[point_1] = lon_res;
     }
     // second point
-    find_between_point(x_unity[edgepoint_1], y_unity[edgepoint_1], z_unity[edgepoint_1], x_unity[edgepoint_2], y_unity[edgepoint_2], z_unity[edgepoint_2], 0.5, &x_res, &y_res, &z_res);
+    find_between_point(&x_unity[edgepoint_1], &y_unity[edgepoint_1], &z_unity[edgepoint_1], &x_unity[edgepoint_2], &y_unity[edgepoint_2], &z_unity[edgepoint_2], &half, &x_res, &y_res, &z_res);
     normalize_cartesian(&x_res, &y_res, &z_res, &x_res, &y_res, &z_res);
     if (points_upwards == 1)
     {
@@ -414,7 +415,7 @@ int write_scalar_coordinates(int edgepoint_0, int edgepoint_1, int edgepoint_2, 
         longitude_scalar[point_2] = lon_res;
     }
     // third point
-    find_between_point(x_unity[edgepoint_2], y_unity[edgepoint_2], z_unity[edgepoint_2], x_unity[edgepoint_0], y_unity[edgepoint_0], z_unity[edgepoint_0], 0.5, &x_res, &y_res, &z_res);
+    find_between_point(&x_unity[edgepoint_2], &y_unity[edgepoint_2], &z_unity[edgepoint_2], &x_unity[edgepoint_0], &y_unity[edgepoint_0], &z_unity[edgepoint_0], &half, &x_res, &y_res, &z_res);
     normalize_cartesian(&x_res, &y_res, &z_res, &x_res, &y_res, &z_res);
     if (points_upwards == 1)
     {

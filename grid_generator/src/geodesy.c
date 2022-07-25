@@ -28,17 +28,6 @@ int find_geodetic(double lat_1_in, double lon_1_in, double lat_2_in, double lon_
     return 0;
 }
 
-int find_between_point(double x_0, double y_0, double z_0, double x_1, double y_1, double z_1, double rel_on_line, double *x_out, double *y_out, double *z_out)
-{
-	/*
-	This function calculates the coordinates of a point on a straight line between two other points.
-	*/
-    *x_out = x_0 + rel_on_line*(x_1 - x_0);
-    *y_out = y_0 + rel_on_line*(y_1 - y_0);
-    *z_out = z_0 + rel_on_line*(z_1 - z_0);
-    return 0;
-}
-
 double calculate_distance_cart(double lat_1_in, double lon_1_in, double lat_2_in, double lon_2_in, double radius_1, double radius_2)
 {
 	/*
@@ -105,22 +94,13 @@ int find_voronoi_center_sphere(double lat_0_in, double lon_0_in, double lat_1_in
     return 0;
 }
 
-int active_turn(double u_in, double v_in, double turn_angle, double *u_out, double *v_out)
-{
-	/*
-	This function turns a vector in R^2 around the z-axis.
-	*/
-    *u_out = cos(turn_angle)*u_in - sin(turn_angle)*v_in;
-    *v_out = sin(turn_angle)*u_in + cos(turn_angle)*v_in;
-    return 0;
-}
-
 int passive_turn(double u_in, double v_in, double turn_angle, double *u_out, double *v_out)
 {
 	/*
 	This function calculates the components of a vector in R^2 after a turn of the coordinate system around the z-axis.
 	*/
-    active_turn(u_in, v_in, -turn_angle, u_out, v_out);
+	double m_turn_angle = -turn_angle;
+    active_turn(&u_in, &v_in, &m_turn_angle, u_out, v_out);
     return 0;
 }
 

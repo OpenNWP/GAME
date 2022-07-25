@@ -13,6 +13,8 @@ module geodesy
   private
   
   public :: calculate_distance_h
+  public :: active_turn
+  public :: find_between_point
   public :: rad2deg
   public :: deg2rad
   public :: calculate_vertical_area
@@ -50,6 +52,33 @@ module geodesy
     result_vec(3) = 0.0
     
   end subroutine calc_local_i
+
+  subroutine active_turn(x_in,y_in,turn_angle,x_out,y_out) &
+  bind(c,name = "active_turn")
+  
+    ! This function turns a vector in R^2 around the z-axis.
+    
+    real(c_double), intent(in)  :: x_in,y_in,turn_angle
+    real(c_double), intent(out) :: x_out,y_out
+    
+    x_out = cos(turn_angle)*x_in-sin(turn_angle)*y_in
+    y_out = sin(turn_angle)*x_in+cos(turn_angle)*y_in
+  
+  end subroutine active_turn
+
+  subroutine find_between_point(x_0,y_0,z_0,x_1,y_1,z_1,rel_on_line,x_out,y_out,z_out) &
+  bind(c,name = "find_between_point")
+  
+	! This function calculates the coordinates of a point on a straight line between two other points.
+	
+    real(c_double), intent(in)  :: x_0,y_0,z_0,x_1,y_1,z_1,rel_on_line
+    real(c_double), intent(out) :: x_out,y_out,z_out
+	
+    x_out = x_0+rel_on_line*(x_1-x_0)
+    y_out = y_0+rel_on_line*(y_1-y_0)
+    z_out = z_0+rel_on_line*(z_1-z_0)
+  
+  end subroutine find_between_point
 
   subroutine calc_local_j(lat,lon,result_vec) &
   bind(c,name = "calc_local_j")

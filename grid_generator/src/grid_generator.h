@@ -47,11 +47,9 @@ int interpolate_ll(double [], double [], int [], double []);
 int set_background_state(double [], double [], double [], double []);
 int set_sfc_properties(double [], double [], double [], double [], double [], double [], double [], int [], int, int);
 int find_geodetic(double, double, double, double, double, double *, double *);
-int find_between_point(double, double, double, double, double, double, double, double *, double *, double *);
 double calculate_distance_cart(double, double, double, double, double, double);
 double find_geodetic_direction(double, double, double, double, double);
 int find_voronoi_center_sphere(double, double, double, double, double, double, double *, double *);
-int active_turn(double, double, double, double *, double *);
 int passive_turn(double, double, double, double *, double *);
 int cross_product_elementary(double[], double[], double[]);
 double calc_triangle_area(double, double, double, double, double, double);
@@ -70,12 +68,14 @@ extern double scalar_product_elementary();
 extern double scalar_product_elementary_2d();
 extern double find_turn_angle();
 extern double calculate_distance_h();
+extern int active_turn();
 extern int calc_local_i();
 extern int calc_local_j();
 extern int active_turn_x();
 extern int normalize_cartesian();
 extern int find_geos();
 extern int find_global_normal();
+extern int find_between_point();
 
 
 
