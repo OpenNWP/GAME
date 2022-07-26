@@ -46,7 +46,6 @@ int direct_tangential_unity(double [], double [], double [], double [], int [], 
 int interpolate_ll(double [], double [], int [], double []);
 int set_background_state(double [], double [], double [], double []);
 int set_sfc_properties(double [], double [], double [], double [], double [], double [], double [], int [], int, int);
-double find_geodetic_direction(double, double, double, double, double);
 int find_voronoi_center_sphere(double, double, double, double, double, double, double *, double *);
 int cross_product_elementary(double[], double[], double[]);
 double calc_triangle_area(double, double, double, double, double, double);
@@ -76,6 +75,7 @@ extern int find_geos();
 extern int find_global_normal();
 extern int find_between_point();
 extern int find_geodetic();
+extern double find_geodetic_direction();
 
 
 

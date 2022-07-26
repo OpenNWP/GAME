@@ -255,7 +255,7 @@ int set_vector_h_doubles(int from_index[], int to_index[], double latitude_scala
         find_geos(&x_res, &y_res, &z_res, &lat_res, &lon_res);
         latitude_vector[i] = lat_res;
         longitude_vector[i] = lon_res;
-        direction[i] = find_geodetic_direction(latitude_scalar[from_index[i]], longitude_scalar[from_index[i]], latitude_scalar[to_index[i]], longitude_scalar[to_index[i]], 0.5);
+        direction[i] = find_geodetic_direction(&latitude_scalar[from_index[i]], &longitude_scalar[from_index[i]], &latitude_scalar[to_index[i]], &longitude_scalar[to_index[i]], &half);
     }
 	return 0;
 }
@@ -534,8 +534,8 @@ int set_dual_vector_h_doubles(double latitude_scalar_dual[], double latitude_vec
         {
             printf("Bisection warning.\n");
         }
-        direction_dual[i] = find_geodetic_direction(latitude_scalar_dual[from_index_dual[i]], longitude_scalar_dual[from_index_dual[i]],
-        latitude_scalar_dual[to_index_dual[i]], longitude_scalar_dual[to_index_dual[i]], rel_on_line_dual[i]);
+        direction_dual[i] = find_geodetic_direction(&latitude_scalar_dual[from_index_dual[i]], &longitude_scalar_dual[from_index_dual[i]],
+        &latitude_scalar_dual[to_index_dual[i]], &longitude_scalar_dual[to_index_dual[i]], &rel_on_line_dual[i]);
     }
     return 0;
 }
@@ -559,7 +559,8 @@ int direct_tangential_unity(double latitude_scalar_dual[], double longitude_scal
 	        from_index_dual[i] = to_index_dual[i];
 	        to_index_dual[i] = temp_index;
 	        rel_on_line_dual[i] = 1 - rel_on_line_dual[i];
-        	direction_dual[i] = find_geodetic_direction(latitude_scalar_dual[from_index_dual[i]], longitude_scalar_dual[from_index_dual[i]], latitude_scalar_dual[to_index_dual[i]], longitude_scalar_dual[to_index_dual[i]], rel_on_line_dual[i]);
+        	direction_dual[i] = find_geodetic_direction(&latitude_scalar_dual[from_index_dual[i]], &longitude_scalar_dual[from_index_dual[i]],
+        	&latitude_scalar_dual[to_index_dual[i]], &longitude_scalar_dual[to_index_dual[i]], &rel_on_line_dual[i]);
 	    }
     }
 

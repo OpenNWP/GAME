@@ -92,6 +92,30 @@ module geodesy
     lon_out = atan2(y,x)
   
   end subroutine find_geodetic
+  
+  function find_geodetic_direction(lat_1_in,lon_1_in,lat_2_in,lon_2_in,tau) &
+  bind(c,name = "find_geodetic_direction")
+  
+    ! This function calculates the geodetic direction between two points given their geographical coordinates at a certain point
+    ! (defined by the parameter tau) between them.
+    
+    real(c_double) :: lat_1_in,lon_1_in,lat_2_in,lon_2_in,tau
+    real(c_double) :: find_geodetic_direction
+    
+    ! local variables
+    real(c_double) :: rel_vec(3),local_i(3),local_j(3),lat,lon,x_comp,y_comp
+    
+    rel_vec(1) = cos(lat_2_in)*cos(lon_2_in) - cos(lat_1_in)*cos(lon_1_in)
+    rel_vec(2) = cos(lat_2_in)*sin(lon_2_in) - cos(lat_1_in)*sin(lon_1_in)
+    rel_vec(3) = sin(lat_2_in) - sin(lat_1_in)
+    call find_geodetic(lat_1_in,lon_1_in,lat_2_in,lon_2_in,tau,lat,lon)
+    call calc_local_i(lon,local_i)
+    call calc_local_j(lat,lon,local_j)
+    x_comp = scalar_product_elementary(local_i,rel_vec)
+    y_comp = scalar_product_elementary(local_j,rel_vec)
+    find_geodetic_direction = atan2(y_comp,x_comp)
+  
+  end function find_geodetic_direction
 
   subroutine calc_local_i(lon,result_vec) &
   bind(c,name = "calc_local_i")

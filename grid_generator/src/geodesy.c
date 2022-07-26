@@ -12,26 +12,6 @@ Github repository: https://github.com/OpenNWP/GAME
 This file contains functions calculating geodesic operations.
 */
 
-double find_geodetic_direction(double lat_1_in, double lon_1_in, double lat_2_in, double lon_2_in, double parameter)
-{
-	/*
-	This function calculates and returns the geodetic direction between two points given their geographical coordinates at a certain point
-	(defined by the parameter) between them.
-	*/
-    double rel_vec[3], local_i[3], local_j[3];
-    rel_vec[0] = cos(lat_2_in)*cos(lon_2_in) - cos(lat_1_in)*cos(lon_1_in);
-    rel_vec[1] = cos(lat_2_in)*sin(lon_2_in) - cos(lat_1_in)*sin(lon_1_in);
-    rel_vec[2] = sin(lat_2_in) - sin(lat_1_in);
-    double lat, lon = 0;
-    find_geodetic(&lat_1_in, &lon_1_in, &lat_2_in, &lon_2_in, &parameter, &lat, &lon);
-    calc_local_i(&lon, local_i);
-    calc_local_j(&lat, &lon, local_j);
-    double x_comp = scalar_product_elementary(local_i, rel_vec);
-    double y_comp = scalar_product_elementary(local_j, rel_vec);
-    double direction = atan2(y_comp, x_comp);
-    return direction;
-}
-
 int find_voronoi_center_sphere(double lat_0_in, double lon_0_in, double lat_1_in, double lon_1_in, double lat_2_in, double lon_2_in, double *lat_out, double *lon_out)
 {
 	/*
@@ -95,12 +75,13 @@ double calc_triangle_area(double lat_0, double lon_0, double lat_1, double lon_1
         find_geos(&x_1, &y_1, &z_1, &lat_1, &lon_1);
         find_geos(&x_2, &y_2, &z_2, &lat_2, &lon_2);
     }
-    dir_01 = find_geodetic_direction(lat_0, lon_0, lat_1, lon_1, 0);
-    dir_02 = find_geodetic_direction(lat_0, lon_0, lat_2, lon_2, 0);
-    dir_10 = find_geodetic_direction(lat_1, lon_1, lat_0, lon_0, 0);
-    dir_12 = find_geodetic_direction(lat_1, lon_1, lat_2, lon_2, 0);
-    dir_20 = find_geodetic_direction(lat_2, lon_2, lat_0, lon_0, 0);
-    dir_21 = find_geodetic_direction(lat_2, lon_2, lat_1, lon_1, 0);
+    double zero = 0.0;
+    dir_01 = find_geodetic_direction(&lat_0, &lon_0, &lat_1, &lon_1, &zero);
+    dir_02 = find_geodetic_direction(&lat_0, &lon_0, &lat_2, &lon_2, &zero);
+    dir_10 = find_geodetic_direction(&lat_1, &lon_1, &lat_0, &lon_0, &zero);
+    dir_12 = find_geodetic_direction(&lat_1, &lon_1, &lat_2, &lon_2, &zero);
+    dir_20 = find_geodetic_direction(&lat_2, &lon_2, &lat_0, &lon_0, &zero);
+    dir_21 = find_geodetic_direction(&lat_2, &lon_2, &lat_1, &lon_1, &zero);
     vector_01[0] = cos(dir_01);
     vector_01[1] = sin(dir_01);
     vector_02[0] = cos(dir_02);
@@ -269,10 +250,12 @@ int sort_edge_indices(double lat_points[], double lon_points[], int number_of_ed
 		first_index = i;
 		second_index = (i + 1)%number_of_edges;
 		third_index = (i + 2)%number_of_edges;
-		direction_0 = find_geodetic_direction(lat_points[indices_resorted[first_index]], lon_points[indices_resorted[first_index]],
-		lat_points[indices_resorted[second_index]], lon_points[indices_resorted[second_index]], 1.0);
-		direction_1 = find_geodetic_direction(lat_points[indices_resorted[second_index]], lon_points[indices_resorted[second_index]],
-		lat_points[indices_resorted[third_index]], lon_points[indices_resorted[third_index]], 0.0);
+		double zero = 0.0;
+		double one = 1.0;
+		direction_0 = find_geodetic_direction(&lat_points[indices_resorted[first_index]], &lon_points[indices_resorted[first_index]],
+		&lat_points[indices_resorted[second_index]], &lon_points[indices_resorted[second_index]], &one);
+		direction_1 = find_geodetic_direction(&lat_points[indices_resorted[second_index]], &lon_points[indices_resorted[second_index]],
+		&lat_points[indices_resorted[third_index]], &lon_points[indices_resorted[third_index]], &zero);
 		new_direction = find_turn_angle(&direction_0, &direction_1);
 		angle_sum += new_direction;
 	}
