@@ -441,7 +441,8 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				wind_10_m_mean_v[h_index] += 1.0/min_no_of_output_steps*wind_tangential;
 			}
 			// passive turn to obtain the u- and v-components of the wind
-			passive_turn(wind_10_m_mean_u[h_index], wind_10_m_mean_v[h_index], -grid -> direction[h_index], &wind_u_value, &wind_v_value);
+			double m_direction = -grid -> direction[h_index];
+			passive_turn(&wind_10_m_mean_u[h_index], &wind_10_m_mean_v[h_index], &m_direction, &wind_u_value, &wind_v_value);
 			wind_10_m_mean_u[h_index] = wind_u_value;
 			wind_10_m_mean_v[h_index] = wind_v_value;
 		}

@@ -12,8 +12,10 @@ module geodesy
   
   private
   
+  public :: calculate_distance_cart
   public :: calculate_distance_h
   public :: active_turn
+  public :: passive_turn
   public :: find_between_point
   public :: rad2deg
   public :: deg2rad
@@ -26,13 +28,43 @@ module geodesy
   
   contains
   
+  function calculate_distance_cart(lat_1_in,lon_1_in,lat_2_in,lon_2_in,radius_1,radius_2) &
+  bind(c,name = "calculate_distance_cart")
+  
+    ! This function returns the Euclidian distance of two points.
+    
+    real(c_double) :: lat_1_in,lon_1_in,lat_2_in,lon_2_in,radius_1,radius_2
+    real(c_double) :: calculate_distance_cart
+    
+    ! local variables
+    real(c_double) :: x_1,y_1,z_1,x_2,y_2,z_2
+    
+    calculate_distance_cart = 0.0
+    
+    if (lat_1_in==lat_2_in.and.lon_1_in==lon_2_in) then
+      calculate_distance_cart = 0.0
+      return
+    endif
+    
+    call find_global_normal(lat_1_in,lon_1_in,x_1,y_1,z_1)
+    call find_global_normal(lat_2_in,lon_2_in,x_2,y_2,z_2)
+    x_1 = radius_1*x_1
+    y_1 = radius_1*y_1
+    z_1 = radius_1*z_1
+    x_2 = radius_2*x_2
+    y_2 = radius_2*y_2
+    z_2 = radius_2*z_2
+    calculate_distance_cart = sqrt((x_2-x_1)**2 + (y_2-y_1)**2 + (z_2-z_1)**2)
+  
+  end function calculate_distance_cart
+  
   function calculate_distance_h(latitude_a,longitude_a,latitude_b,longitude_b,radius) &
   bind(c,name = "calculate_distance_h")
   
     ! This function returns the geodetic distance of two points given their geographical coordinates.
     
-    real(c_double), intent(in) :: latitude_a,longitude_a,latitude_b,longitude_b,radius
-    real(c_double)             :: calculate_distance_h
+    real(c_double) :: latitude_a,longitude_a,latitude_b,longitude_b,radius
+    real(c_double) :: calculate_distance_h
     
     calculate_distance_h = 2.0*radius*asin(sqrt(0.5-0.5*(cos(latitude_a)*cos(latitude_b) &
     *cos(longitude_b-longitude_a)+sin(latitude_a)*sin(latitude_b))))
@@ -65,6 +97,18 @@ module geodesy
     y_out = sin(turn_angle)*x_in+cos(turn_angle)*y_in
   
   end subroutine active_turn
+
+  subroutine passive_turn(x_in,y_in,turn_angle,x_out,y_out) &
+  bind(c,name = "passive_turn")
+  
+    ! This function turns a vector in R^2 around the z-axis.
+    
+    real(c_double), intent(in)  :: x_in,y_in,turn_angle
+    real(c_double), intent(out) :: x_out,y_out
+    
+    call active_turn(x_in,y_in,-turn_angle,x_out,y_out)
+  
+  end subroutine passive_turn
 
   subroutine find_between_point(x_0,y_0,z_0,x_1,y_1,z_1,rel_on_line,x_out,y_out,z_out) &
   bind(c,name = "find_between_point")

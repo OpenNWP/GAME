@@ -166,7 +166,8 @@ int calc_uv_at_edge(Vector_field in_field, Vector_field out_field_u, Vector_fiel
 		// finding the tangential component
 		tangential_wind(in_field, layer_index, h_index, &wind_1, grid);
 		// turning the Cartesian coordinate system to obtain u and v
-		passive_turn(wind_0, wind_1, -grid -> direction[h_index],
+		double m_direction = -grid -> direction[h_index];
+		passive_turn(&wind_0, &wind_1, &m_direction,
 		&out_field_u[NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + h_index],
 		&out_field_v[NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + h_index]);
     }

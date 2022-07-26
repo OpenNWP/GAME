@@ -17,7 +17,8 @@ int find_geodetic(double lat_1_in, double lon_1_in, double lat_2_in, double lon_
 	/*
 	This function calculates the geographical coordinates of a point on a geodetic between two points.
 	*/
-    double d = calculate_distance_cart(lat_1_in , lon_1_in, lat_2_in, lon_2_in, 1.0, 1.0);
+	double one = 1.0;
+    double d = calculate_distance_cart(&lat_1_in, &lon_1_in, &lat_2_in, &lon_2_in, &one, &one);
     double theta = 2.0*asin(d/2.0);
     double tau_dash = 0.5 + sqrt(1.0/pow(d, 2) - 0.25)*tan(theta*(parameter - 0.5));
     double z = tau_dash*sin(lat_2_in) + (1.0- tau_dash)*sin(lat_1_in);
@@ -26,29 +27,6 @@ int find_geodetic(double lat_1_in, double lon_1_in, double lat_2_in, double lon_
     *lat_out = asin(z/sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2)));
     *lon_out = atan2(y, x);
     return 0;
-}
-
-double calculate_distance_cart(double lat_1_in, double lon_1_in, double lat_2_in, double lon_2_in, double radius_1, double radius_2)
-{
-	/*
-	This function returns the Euclidian distance of two points.
-	*/
-    if (lat_1_in == lat_2_in && lon_1_in == lon_2_in)
-    {
-        return 0;
-    }
-    double distance;
-    double x_1, y_1, z_1, x_2, y_2, z_2;
-    find_global_normal(&lat_1_in, &lon_1_in, &x_1, &y_1, &z_1);
-    find_global_normal(&lat_2_in, &lon_2_in, &x_2, &y_2, &z_2);
-    x_1 = radius_1*x_1;
-    y_1 = radius_1*y_1;
-    z_1 = radius_1*z_1;
-    x_2 = radius_2*x_2;
-    y_2 = radius_2*y_2;
-    z_2 = radius_2*z_2;
-    distance = sqrt(pow(x_2 - x_1, 2) + pow(y_2 - y_1, 2) + pow(z_2 - z_1, 2));
-    return distance;
 }
 
 double find_geodetic_direction(double lat_1_in, double lon_1_in, double lat_2_in, double lon_2_in, double parameter)
@@ -91,16 +69,6 @@ int find_voronoi_center_sphere(double lat_0_in, double lon_0_in, double lat_1_in
     double cross_product_result[3];
     cross_product_elementary(rel_vector_0, rel_vector_1, cross_product_result);
     find_geos(&cross_product_result[0], &cross_product_result[1], &cross_product_result[2], lat_out, lon_out);
-    return 0;
-}
-
-int passive_turn(double u_in, double v_in, double turn_angle, double *u_out, double *v_out)
-{
-	/*
-	This function calculates the components of a vector in R^2 after a turn of the coordinate system around the z-axis.
-	*/
-	double m_turn_angle = -turn_angle;
-    active_turn(&u_in, &v_in, &m_turn_angle, u_out, v_out);
     return 0;
 }
 
@@ -226,7 +194,8 @@ int find_min_dist_rel_on_line(double lat_0, double lon_0, double lat_1, double l
     {
         parameter = (i + 0.0)/(number_of_points + 1.0);
         find_geodetic(lat_0, lon_0, lat_1, lon_1, parameter, &lat, &lon);
-        dist_vector[i] = calculate_distance_cart(lat_point, lon_point, lat, lon, 1, 1);
+        double one = 1.0;
+        dist_vector[i] = calculate_distance_cart(&lat_point, &lon_point, &lat, &lon, &one, &one);
     }
     int min_index = find_min_index(dist_vector, &number_of_points);
     free(dist_vector);
@@ -265,7 +234,8 @@ int sort_edge_indices(double lat_points[], double lon_points[], int number_of_ed
         counter = 0;
         for (int j = 0; j < number_of_edges; ++j)
         {
-            distance_candidate = calculate_distance_cart(lat_points[i], lon_points[i], lat_points[j], lon_points[j], 1.0, 1.0);
+        	double one = 1.0;
+            distance_candidate = calculate_distance_cart(&lat_points[i], &lon_points[i], &lat_points[j], &lon_points[j], &one, &one);
             if (distance_candidate != 0)
             {
                 index_array[counter] = j;
