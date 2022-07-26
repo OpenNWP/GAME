@@ -60,7 +60,7 @@ module index_helpers
     integer        :: ji
     real(c_double) :: current_min
     
-    current_min = maxval(vector) + 1.0
+    current_min = maxval(vector) + 1._c_double
     find_min_index_exclude = 0
     
     do ji=1,vector_length

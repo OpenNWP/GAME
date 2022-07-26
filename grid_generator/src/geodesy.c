@@ -12,23 +12,6 @@ Github repository: https://github.com/OpenNWP/GAME
 This file contains functions calculating geodesic operations.
 */
 
-int find_geodetic(double lat_1_in, double lon_1_in, double lat_2_in, double lon_2_in, double parameter, double *lat_out, double *lon_out)
-{
-	/*
-	This function calculates the geographical coordinates of a point on a geodetic between two points.
-	*/
-	double one = 1.0;
-    double d = calculate_distance_cart(&lat_1_in, &lon_1_in, &lat_2_in, &lon_2_in, &one, &one);
-    double theta = 2.0*asin(d/2.0);
-    double tau_dash = 0.5 + sqrt(1.0/pow(d, 2) - 0.25)*tan(theta*(parameter - 0.5));
-    double z = tau_dash*sin(lat_2_in) + (1.0- tau_dash)*sin(lat_1_in);
-    double x = tau_dash*cos(lat_2_in)*cos(lon_2_in) + (1.0 - tau_dash)*cos(lat_1_in)*cos(lon_1_in);
-    double y = tau_dash*cos(lat_2_in)*sin(lon_2_in) + (1.0 - tau_dash)*cos(lat_1_in)*sin(lon_1_in);
-    *lat_out = asin(z/sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2)));
-    *lon_out = atan2(y, x);
-    return 0;
-}
-
 double find_geodetic_direction(double lat_1_in, double lon_1_in, double lat_2_in, double lon_2_in, double parameter)
 {
 	/*
@@ -40,7 +23,7 @@ double find_geodetic_direction(double lat_1_in, double lon_1_in, double lat_2_in
     rel_vec[1] = cos(lat_2_in)*sin(lon_2_in) - cos(lat_1_in)*sin(lon_1_in);
     rel_vec[2] = sin(lat_2_in) - sin(lat_1_in);
     double lat, lon = 0;
-    find_geodetic(lat_1_in, lon_1_in, lat_2_in, lon_2_in, parameter, &lat, &lon);
+    find_geodetic(&lat_1_in, &lon_1_in, &lat_2_in, &lon_2_in, &parameter, &lat, &lon);
     calc_local_i(&lon, local_i);
     calc_local_j(&lat, &lon, local_j);
     double x_comp = scalar_product_elementary(local_i, rel_vec);
@@ -193,7 +176,7 @@ int find_min_dist_rel_on_line(double lat_0, double lon_0, double lat_1, double l
     for (int i = 0; i < number_of_points; ++i)
     {
         parameter = (i + 0.0)/(number_of_points + 1.0);
-        find_geodetic(lat_0, lon_0, lat_1, lon_1, parameter, &lat, &lon);
+        find_geodetic(&lat_0, &lon_0, &lat_1, &lon_1, &parameter, &lat, &lon);
         double one = 1.0;
         dist_vector[i] = calculate_distance_cart(&lat_point, &lon_point, &lat, &lon, &one, &one);
     }

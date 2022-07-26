@@ -39,10 +39,10 @@ module geodesy
     ! local variables
     real(c_double) :: x_1,y_1,z_1,x_2,y_2,z_2
     
-    calculate_distance_cart = 0.0
+    calculate_distance_cart = 0._c_double
     
     if (lat_1_in==lat_2_in.and.lon_1_in==lon_2_in) then
-      calculate_distance_cart = 0.0
+      calculate_distance_cart = 0._c_double
       return
     endif
     
@@ -66,10 +66,32 @@ module geodesy
     real(c_double) :: latitude_a,longitude_a,latitude_b,longitude_b,radius
     real(c_double) :: calculate_distance_h
     
-    calculate_distance_h = 2.0*radius*asin(sqrt(0.5-0.5*(cos(latitude_a)*cos(latitude_b) &
+    calculate_distance_h = 2._c_double*radius*asin(sqrt(0.5-0.5*(cos(latitude_a)*cos(latitude_b) &
     *cos(longitude_b-longitude_a)+sin(latitude_a)*sin(latitude_b))))
     
   end function calculate_distance_h
+
+  subroutine find_geodetic(lat_1_in,lon_1_in,lat_2_in,lon_2_in,tau,lat_out,lon_out) &
+  bind(c,name = "find_geodetic")
+
+    ! This subroutine calculates the geographical coordinates of a point on a geodetic between two points.
+    
+    real(c_double), intent(in)  :: lat_1_in,lon_1_in,lat_2_in,lon_2_in,tau
+    real(c_double), intent(out) :: lat_out,lon_out
+    
+    ! local variables
+    real(c_double) :: d,theta,tau_dash,x,y,z
+    
+    d = calculate_distance_cart(lat_1_in,lon_1_in,lat_2_in,lon_2_in,1._c_double,1._c_double)
+    theta = 2._c_double*asin(d/2._c_double)
+    tau_dash = 0.5 + sqrt(1._c_double/d**2 - 0.25_c_double)*tan(theta*(tau - 0.5))
+    x = tau_dash*cos(lat_2_in)*cos(lon_2_in) + (1._c_double - tau_dash)*cos(lat_1_in)*cos(lon_1_in)
+    y = tau_dash*cos(lat_2_in)*sin(lon_2_in) + (1._c_double - tau_dash)*cos(lat_1_in)*sin(lon_1_in)
+    z = tau_dash*sin(lat_2_in) + (1._c_double- tau_dash)*sin(lat_1_in)
+    lat_out = asin(z/sqrt(x**2 + y**2 + z**2))
+    lon_out = atan2(y,x)
+  
+  end subroutine find_geodetic
 
   subroutine calc_local_i(lon,result_vec) &
   bind(c,name = "calc_local_i")
@@ -81,7 +103,7 @@ module geodesy
     
     result_vec(1) = -sin(lon)
     result_vec(2) = cos(lon)
-    result_vec(3) = 0.0
+    result_vec(3) = 0._c_double
     
   end subroutine calc_local_i
 
@@ -188,7 +210,7 @@ module geodesy
     real(c_double), intent(in) :: input
     real(c_double)             :: rad2deg
     
-    rad2deg = input*360.0/(2.0*M_PI)
+    rad2deg = input*360._c_double/(2._c_double*M_PI)
     
   end function rad2deg
 
@@ -200,7 +222,7 @@ module geodesy
     real(c_double), intent(in) :: input
     real(c_double)             :: deg2rad
     
-    deg2rad = input*2.0*M_PI/360.0
+    deg2rad = input*2._c_double*M_PI/360._c_double
     
   end function deg2rad
 
@@ -227,7 +249,7 @@ module geodesy
     ! local variables
     integer :: ji
     
-    scalar_product_elementary = 0.0
+    scalar_product_elementary = 0._c_double
     
     do ji=1,3
       scalar_product_elementary = scalar_product_elementary + vector_a(ji)*vector_b(ji)
@@ -246,7 +268,7 @@ module geodesy
     ! local variables
     integer :: ji
     
-    scalar_product_elementary_2d = 0.0
+    scalar_product_elementary_2d = 0._c_double
     
     do ji=1,2
       scalar_product_elementary_2d = scalar_product_elementary_2d + vector_a(ji)*vector_b(ji)
@@ -265,10 +287,10 @@ module geodesy
     find_turn_angle = angle_1 - angle_0
     
     if (find_turn_angle>M_PI) then
-      find_turn_angle = find_turn_angle - 2.0*M_PI
+      find_turn_angle = find_turn_angle - 2._c_double*M_PI
     endif
     if (find_turn_angle<-M_PI) then
-      find_turn_angle = find_turn_angle + 2.0*M_PI
+      find_turn_angle = find_turn_angle + 2._c_double*M_PI
     endif
     
   end function find_turn_angle
