@@ -172,16 +172,16 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 				{
 					if (l == 0)
 					{
-						triangle_0 = calc_triangle_area(latitude_scalar[from_or_to_index[i]], longitude_scalar[from_or_to_index[i]], latitude_vertices[indices_resorted[l]],
-						longitude_vertices[indices_resorted[l]], latitude_edges[no_of_edges - 1], longitude_edges[no_of_edges - 1]);
+						triangle_0 = calc_triangle_area(&latitude_scalar[from_or_to_index[i]], &longitude_scalar[from_or_to_index[i]], &latitude_vertices[indices_resorted[l]],
+						&longitude_vertices[indices_resorted[l]], &latitude_edges[no_of_edges - 1], &longitude_edges[no_of_edges - 1]);
 					}
 					else
 					{
-						triangle_0 = calc_triangle_area(latitude_scalar[from_or_to_index[i]], longitude_scalar[from_or_to_index[i]],
-						latitude_vertices[indices_resorted[l]], longitude_vertices[indices_resorted[l]], latitude_edges[l - 1], longitude_edges[l - 1]);
+						triangle_0 = calc_triangle_area(&latitude_scalar[from_or_to_index[i]], &longitude_scalar[from_or_to_index[i]],
+						&latitude_vertices[indices_resorted[l]], &longitude_vertices[indices_resorted[l]], &latitude_edges[l - 1], &longitude_edges[l - 1]);
 					}
-					triangle_1 = calc_triangle_area(latitude_scalar[from_or_to_index[i]], longitude_scalar[from_or_to_index[i]],
-					latitude_vertices[indices_resorted[l]], longitude_vertices[indices_resorted[l]], latitude_edges[l], longitude_edges[l]);
+					triangle_1 = calc_triangle_area(&latitude_scalar[from_or_to_index[i]], &longitude_scalar[from_or_to_index[i]],
+					&latitude_vertices[indices_resorted[l]], &longitude_vertices[indices_resorted[l]], &latitude_edges[l], &longitude_edges[l]);
 					vector_of_areas[l] = pow(radius + z_vector[NO_OF_SCALARS_H + i], 2)*(triangle_0 + triangle_1);
 					check_sum += vector_of_areas[l];
 				}

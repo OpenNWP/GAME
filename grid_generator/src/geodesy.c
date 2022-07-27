@@ -12,95 +12,6 @@ Github repository: https://github.com/OpenNWP/GAME
 This file contains functions calculating geodesic operations.
 */
 
-int find_voronoi_center_sphere(double lat_0_in, double lon_0_in, double lat_1_in, double lon_1_in, double lat_2_in, double lon_2_in, double *lat_out, double *lon_out)
-{
-	/*
-	This function calculates the Voronoi center of three points given their geographical coordinates.
-	*/
-    double x_0, y_0, z_0, x_1, y_1, z_1, x_2, y_2, z_2;
-    find_global_normal(&lat_0_in, &lon_0_in, &x_0, &y_0, &z_0);
-    find_global_normal(&lat_1_in, &lon_1_in, &x_1, &y_1, &z_1);
-    find_global_normal(&lat_2_in, &lon_2_in, &x_2, &y_2, &z_2);
-    double rel_vector_0[3];
-    double rel_vector_1[3];
-    rel_vector_0[0] = x_1 - x_0;
-    rel_vector_0[1] = y_1 - y_0;
-    rel_vector_0[2] = z_1 - z_0;
-    rel_vector_1[0] = x_2 - x_0;
-    rel_vector_1[1] = y_2 - y_0;
-    rel_vector_1[2] = z_2 - z_0;
-    double cross_product_result[3];
-    cross_product_elementary(rel_vector_0, rel_vector_1, cross_product_result);
-    find_geos(&cross_product_result[0], &cross_product_result[1], &cross_product_result[2], lat_out, lon_out);
-    return 0;
-}
-
-double calc_triangle_area(double lat_0, double lon_0, double lat_1, double lon_1, double lat_2, double lon_2)
-{
-	/*
-	This function calculates the area of a spherical triangle.
-	*/
-    double average_latitude = (lat_0 + lat_1 + lat_2)/3.0;
-    double x_0, y_0, z_0, x_1, y_1, z_1, x_2, y_2, z_2, angle_0, angle_1, angle_2, dir_01, dir_02, dir_10,
-    dir_12, dir_20, dir_21, vector_01[2], vector_02[2], vector_10[2], vector_12[2], vector_20[2], vector_21[2];
-    if (fabs(average_latitude) > 0.9*M_PI/2)
-    {   
-        find_global_normal(&lat_0, &lon_0, &x_0, &y_0, &z_0);
-        find_global_normal(&lat_1, &lon_1, &x_1, &y_1, &z_1);
-        find_global_normal(&lat_2, &lon_2, &x_2, &y_2, &z_2);
-        double vector_in[3];
-        double vector_out[3];
-        vector_in[0] = x_0;
-        vector_in[1] = y_0;
-        vector_in[2] = z_0;
-        active_turn_x(&average_latitude, vector_in, vector_out);
-        x_0 = vector_out[0];
-        y_0 = vector_out[1];
-        z_0 = vector_out[2];
-        vector_in[0] = x_1;
-        vector_in[1] = y_1;
-        vector_in[2] = z_1;
-        active_turn_x(&average_latitude, vector_in, vector_out);
-        x_1 = vector_out[0];
-        y_1 = vector_out[1];
-        z_1 = vector_out[2];
-        vector_in[0] = x_2;
-        vector_in[1] = y_2;
-        vector_in[2] = z_2;
-        active_turn_x(&average_latitude, vector_in, vector_out);
-        x_2 = vector_out[0];
-        y_2 = vector_out[1];
-        z_2 = vector_out[2];
-        find_geos(&x_0, &y_0, &z_0, &lat_0, &lon_0);
-        find_geos(&x_1, &y_1, &z_1, &lat_1, &lon_1);
-        find_geos(&x_2, &y_2, &z_2, &lat_2, &lon_2);
-    }
-    double zero = 0.0;
-    dir_01 = find_geodetic_direction(&lat_0, &lon_0, &lat_1, &lon_1, &zero);
-    dir_02 = find_geodetic_direction(&lat_0, &lon_0, &lat_2, &lon_2, &zero);
-    dir_10 = find_geodetic_direction(&lat_1, &lon_1, &lat_0, &lon_0, &zero);
-    dir_12 = find_geodetic_direction(&lat_1, &lon_1, &lat_2, &lon_2, &zero);
-    dir_20 = find_geodetic_direction(&lat_2, &lon_2, &lat_0, &lon_0, &zero);
-    dir_21 = find_geodetic_direction(&lat_2, &lon_2, &lat_1, &lon_1, &zero);
-    vector_01[0] = cos(dir_01);
-    vector_01[1] = sin(dir_01);
-    vector_02[0] = cos(dir_02);
-    vector_02[1] = sin(dir_02);
-    vector_10[0] = cos(dir_10);
-    vector_10[1] = sin(dir_10);
-    vector_12[0] = cos(dir_12);
-    vector_12[1] = sin(dir_12);
-    vector_20[0] = cos(dir_20);
-    vector_20[1] = sin(dir_20);
-    vector_21[0] = cos(dir_21);
-    vector_21[1] = sin(dir_21);
-    angle_0 = acos(scalar_product_elementary_2d(vector_01, vector_02));
-    angle_1 = acos(scalar_product_elementary_2d(vector_10, vector_12));
-    angle_2 = acos(scalar_product_elementary_2d(vector_20, vector_21));
-    double triangle_face = angle_0 + angle_1 + angle_2 - M_PI;
-    return triangle_face;
-}
-
 double calc_spherical_polygon_area(double lat_points[], double lon_points[], int number_of_edges)
 {
 	/*
@@ -135,8 +46,8 @@ double calc_spherical_polygon_area(double lat_points[], double lon_points[], int
 	}
     for (int i = 0; i < number_of_edges; ++i)
     {
-        triangle_surfaces[i] = calc_triangle_area(lat_center, lon_center, lat_points_sorted[i], lon_points_sorted[i],
-        lat_points_sorted[(i + 1)%number_of_edges], lon_points_sorted[(i + 1)%number_of_edges]);
+        triangle_surfaces[i] = calc_triangle_area(&lat_center, &lon_center, &lat_points_sorted[i], &lon_points_sorted[i],
+        &lat_points_sorted[(i + 1)%number_of_edges], &lon_points_sorted[(i + 1)%number_of_edges]);
     }
     double area = 0;
     for (int i = 0; i < number_of_edges; ++i)

@@ -194,44 +194,45 @@ int face_edges_reverse[][3], int face_vertices[][3])
             triangle_on_face_index = on_face_index/3;
             find_coords_from_triangle_on_face_index(triangle_on_face_index, RES_ID, &coord_0, &coord_1, &coord_0_points_amount);
             dual_scalar_index = dual_scalar_on_face_index + face_index*NO_OF_TRIANGLES/NO_OF_BASIC_TRIANGLES;
-            triangle_face = calc_triangle_area(latitude_scalar[point_0], longitude_scalar[point_0], latitude_scalar[point_1], longitude_scalar[point_1],
-            latitude_scalar[point_2], longitude_scalar[point_2]);
+            triangle_face = calc_triangle_area(&latitude_scalar[point_0], &longitude_scalar[point_0], &latitude_scalar[point_1], &longitude_scalar[point_1],
+            &latitude_scalar[point_2], &longitude_scalar[point_2]);
             triangle_face_unit_sphere[dual_scalar_index] = triangle_face;
-            triangle_face = calc_triangle_area(latitude_scalar[point_3], longitude_scalar[point_3], latitude_scalar[point_0], longitude_scalar[point_0],
-            latitude_scalar[point_2], longitude_scalar[point_2]);
+            triangle_face = calc_triangle_area(&latitude_scalar[point_3], &longitude_scalar[point_3], &latitude_scalar[point_0], &longitude_scalar[point_0],
+            &latitude_scalar[point_2], &longitude_scalar[point_2]);
             triangle_face_unit_sphere[dual_scalar_index - 1] = triangle_face;
             if (coord_0 == coord_0_points_amount - 1)
             {
-                triangle_face = calc_triangle_area(latitude_scalar[point_0], longitude_scalar[point_0], latitude_scalar[point_4], longitude_scalar[point_4],
-                latitude_scalar[point_1], longitude_scalar[point_1]);
+                triangle_face = calc_triangle_area(&latitude_scalar[point_0], &longitude_scalar[point_0], &latitude_scalar[point_4], &longitude_scalar[point_4],
+                &latitude_scalar[point_1], &longitude_scalar[point_1]);
                 triangle_face_unit_sphere[dual_scalar_index + 1] = triangle_face;
                 if (coord_1 == POINTS_PER_EDGE - 1)
                 {
-                    triangle_face = calc_triangle_area(latitude_scalar[point_2], longitude_scalar[point_2], latitude_scalar[point_1], longitude_scalar[point_1],
-                    latitude_scalar[point_5], longitude_scalar[point_5]);
+                    triangle_face = calc_triangle_area(&latitude_scalar[point_2], &longitude_scalar[point_2], &latitude_scalar[point_1], &longitude_scalar[point_1],
+                    &latitude_scalar[point_5], &longitude_scalar[point_5]);
                     triangle_face_unit_sphere[dual_scalar_index + 2] = triangle_face;
                 }
             }
         }
     }
-    double triangle_sum_unit_sphere = 0;
-    double triangle_avg_unit_sphere_ideal = 4*M_PI/NO_OF_TRIANGLES;
+    double triangle_sum_unit_sphere = 0.0;
+    double triangle_avg_unit_sphere_ideal = 4.0*M_PI/NO_OF_TRIANGLES;
     for (int i = 0; i < NO_OF_DUAL_SCALARS_H; ++i)
     {
         triangle_sum_unit_sphere += triangle_face_unit_sphere[i];
-        if (triangle_face_unit_sphere[i] <= 0)
+        if (triangle_face_unit_sphere[i] <= 0.0)
 		{
             printf("triangle_face_unit_sphere contains a non-positive value.\n");
 			exit(1);
 		}
-        if (fabs(triangle_face_unit_sphere[i]/triangle_avg_unit_sphere_ideal - 1) > 0.4)
+        if (fabs(triangle_face_unit_sphere[i]/triangle_avg_unit_sphere_ideal - 1.0) > 0.4)
 		{
             printf("Triangles on unit sphere have significantly different surfaces.\n");
 			exit(1);
 		}
     }
-    if (fabs(triangle_sum_unit_sphere/(4*M_PI) - 1) > EPSILON_SECURITY)
+    if (fabs(triangle_sum_unit_sphere/(4.0*M_PI) - 1.0) > EPSILON_SECURITY)
 	{
+		printf("%lf\n", triangle_sum_unit_sphere/(4.0*M_PI));
         printf("Sum of faces of triangles on unit sphere does not match face of unit sphere.\n");
 		exit(1);
 	}
@@ -337,22 +338,24 @@ int face_edges[][3], int face_edges_reverse[][3], int face_vertices[][3])
             find_coords_from_triangle_on_face_index(triangle_on_face_index, RES_ID, &coord_0, &coord_1, &coord_0_points_amount);
             dual_scalar_index = dual_scalar_on_face_index + face_index*NO_OF_TRIANGLES/NO_OF_BASIC_TRIANGLES;
             // We want to construct a Voronoi gird, that's why we choose this function for calculating the dual cell centers.
-            find_voronoi_center_sphere(latitude_scalar[point_0], longitude_scalar[point_0], latitude_scalar[point_1], longitude_scalar[point_1],
-            latitude_scalar[point_2], longitude_scalar[point_2], &lat_res, &lon_res);
+            find_voronoi_center_sphere(&latitude_scalar[point_0], &longitude_scalar[point_0], &latitude_scalar[point_1], &longitude_scalar[point_1],
+            &latitude_scalar[point_2], &longitude_scalar[point_2], &lat_res, &lon_res);
             latitude_scalar_dual[dual_scalar_index] = lat_res;
             longitude_scalar_dual[dual_scalar_index] = lon_res;
-	        find_voronoi_center_sphere(latitude_scalar[point_3], longitude_scalar[point_3], latitude_scalar[point_0], longitude_scalar[point_0],
-	        latitude_scalar[point_2], longitude_scalar[point_2], &lat_res, &lon_res);
+	        find_voronoi_center_sphere(&latitude_scalar[point_3], &longitude_scalar[point_3], &latitude_scalar[point_0], &longitude_scalar[point_0],
+	        &latitude_scalar[point_2], &longitude_scalar[point_2], &lat_res, &lon_res);
             latitude_scalar_dual[dual_scalar_index - 1] = lat_res;
             longitude_scalar_dual[dual_scalar_index - 1] = lon_res;
             if (coord_0 == coord_0_points_amount - 1)
             {
-                find_voronoi_center_sphere(latitude_scalar[point_0], longitude_scalar[point_0], latitude_scalar[point_4], longitude_scalar[point_4], latitude_scalar[point_1], longitude_scalar[point_1], &lat_res, &lon_res);
+                find_voronoi_center_sphere(&latitude_scalar[point_0], &longitude_scalar[point_0],
+                &latitude_scalar[point_4], &longitude_scalar[point_4], &latitude_scalar[point_1], &longitude_scalar[point_1], &lat_res, &lon_res);
                 latitude_scalar_dual[dual_scalar_index + 1] = lat_res;
                 longitude_scalar_dual[dual_scalar_index + 1] = lon_res;
                 if (coord_1 == POINTS_PER_EDGE - 1)
                 {
-                    find_voronoi_center_sphere(latitude_scalar[point_2], longitude_scalar[point_2], latitude_scalar[point_1], longitude_scalar[point_1], latitude_scalar[point_5], longitude_scalar[point_5], &lat_res, &lon_res);
+                    find_voronoi_center_sphere(&latitude_scalar[point_2], &longitude_scalar[point_2],
+                    &latitude_scalar[point_1], &longitude_scalar[point_1], &latitude_scalar[point_5], &longitude_scalar[point_5], &lat_res, &lon_res);
                     latitude_scalar_dual[dual_scalar_index + 2] = lat_res;
                     longitude_scalar_dual[dual_scalar_index + 2] = lon_res;
                 }

@@ -82,7 +82,7 @@ int find_cell_cgs(double latitude_scalar[], double longitude_scalar[], double la
 			find_global_normal(&lat_0, &lon_0, &x_0, &y_0, &z_0);
 			find_global_normal(&lat_1, &lon_1, &x_1, &y_1, &z_1);
 			find_global_normal(&lat_2, &lon_2, &x_2, &y_2, &z_2);
-			triangle_unity_face = calc_triangle_area(lat_0, lon_0, lat_1, lon_1, lat_2, lon_2);
+			triangle_unity_face = calc_triangle_area(&lat_0, &lon_0, &lat_1, &lon_1, &lat_2, &lon_2);
 			x_res += triangle_unity_face*(x_0 + x_1 + x_2);
 			y_res += triangle_unity_face*(y_0 + y_1 + y_2);
 			z_res += triangle_unity_face*(z_0 + z_1 + z_2);

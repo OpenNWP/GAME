@@ -3,6 +3,8 @@
 
 module constants
 
+  use iso_c_binding
+  
   ! This is a collection of some quantities that are hardly ever changed.
   
   implicit none
@@ -20,8 +22,8 @@ module constants
   
   ! non-physical constants
   ! ----------------------
-  real :: M_PI = 4.*atan(1.)       ! pi
-  real :: EPSILON_SECURITY = 1e-10 ! security constant
+  real(c_double) :: M_PI = 4._c_double*atan(1._c_double) ! pi
+  real           :: EPSILON_SECURITY = 1e-10             ! security constant
   
   ! some properties of the standard atmosphere
   ! ------------------------------------------

@@ -25,29 +25,31 @@ module geodesy
   public :: scalar_product_elementary_2d
   public :: find_turn_angle
   public :: cross_product_elementary
+  public :: find_voronoi_center_sphere
+  public :: calc_triangle_area
   
   contains
   
-  function calculate_distance_cart(lat_1_in,lon_1_in,lat_2_in,lon_2_in,radius_1,radius_2) &
+  function calculate_distance_cart(lat_2_in,lon_2_in,lat_3_in,lon_3_in,radius_1,radius_2) &
   bind(c,name = "calculate_distance_cart")
   
     ! This function returns the Euclidian distance of two points.
     
-    real(c_double) :: lat_1_in,lon_1_in,lat_2_in,lon_2_in,radius_1,radius_2
-    real(c_double) :: calculate_distance_cart
+    real(c_double), intent(in) :: lat_2_in,lon_2_in,lat_3_in,lon_3_in,radius_1,radius_2
+    real(c_double)             :: calculate_distance_cart
     
     ! local variables
     real(c_double) :: x_1,y_1,z_1,x_2,y_2,z_2
     
     calculate_distance_cart = 0._c_double
     
-    if (lat_1_in==lat_2_in.and.lon_1_in==lon_2_in) then
+    if (lat_2_in==lat_3_in.and.lon_2_in==lon_3_in) then
       calculate_distance_cart = 0._c_double
       return
     endif
     
-    call find_global_normal(lat_1_in,lon_1_in,x_1,y_1,z_1)
-    call find_global_normal(lat_2_in,lon_2_in,x_2,y_2,z_2)
+    call find_global_normal(lat_2_in,lon_2_in,x_1,y_1,z_1)
+    call find_global_normal(lat_3_in,lon_3_in,x_2,y_2,z_2)
     x_1 = radius_1*x_1
     y_1 = radius_1*y_1
     z_1 = radius_1*z_1
@@ -63,52 +65,52 @@ module geodesy
   
     ! This function returns the geodetic distance of two points given their geographical coordinates.
     
-    real(c_double) :: latitude_a,longitude_a,latitude_b,longitude_b,radius
-    real(c_double) :: calculate_distance_h
+    real(c_double), intent(in) :: latitude_a,longitude_a,latitude_b,longitude_b,radius
+    real(c_double)             :: calculate_distance_h
     
     calculate_distance_h = 2._c_double*radius*asin(sqrt(0.5-0.5*(cos(latitude_a)*cos(latitude_b) &
     *cos(longitude_b-longitude_a)+sin(latitude_a)*sin(latitude_b))))
     
   end function calculate_distance_h
 
-  subroutine find_geodetic(lat_1_in,lon_1_in,lat_2_in,lon_2_in,tau,lat_out,lon_out) &
+  subroutine find_geodetic(lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau,lat_out,lon_out) &
   bind(c,name = "find_geodetic")
 
     ! This subroutine calculates the geographical coordinates of a point on a geodetic between two points.
     
-    real(c_double), intent(in)  :: lat_1_in,lon_1_in,lat_2_in,lon_2_in,tau
+    real(c_double), intent(in)  :: lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau
     real(c_double), intent(out) :: lat_out,lon_out
     
     ! local variables
     real(c_double) :: d,theta,tau_dash,x,y,z
     
-    d = calculate_distance_cart(lat_1_in,lon_1_in,lat_2_in,lon_2_in,1._c_double,1._c_double)
+    d = calculate_distance_cart(lat_2_in,lon_2_in,lat_3_in,lon_3_in,1._c_double,1._c_double)
     theta = 2._c_double*asin(d/2._c_double)
     tau_dash = 0.5 + sqrt(1._c_double/d**2 - 0.25_c_double)*tan(theta*(tau - 0.5))
-    x = tau_dash*cos(lat_2_in)*cos(lon_2_in) + (1._c_double - tau_dash)*cos(lat_1_in)*cos(lon_1_in)
-    y = tau_dash*cos(lat_2_in)*sin(lon_2_in) + (1._c_double - tau_dash)*cos(lat_1_in)*sin(lon_1_in)
-    z = tau_dash*sin(lat_2_in) + (1._c_double- tau_dash)*sin(lat_1_in)
+    x = tau_dash*cos(lat_3_in)*cos(lon_3_in) + (1._c_double - tau_dash)*cos(lat_2_in)*cos(lon_2_in)
+    y = tau_dash*cos(lat_3_in)*sin(lon_3_in) + (1._c_double - tau_dash)*cos(lat_2_in)*sin(lon_2_in)
+    z = tau_dash*sin(lat_3_in) + (1._c_double- tau_dash)*sin(lat_2_in)
     lat_out = asin(z/sqrt(x**2 + y**2 + z**2))
     lon_out = atan2(y,x)
   
   end subroutine find_geodetic
   
-  function find_geodetic_direction(lat_1_in,lon_1_in,lat_2_in,lon_2_in,tau) &
+  function find_geodetic_direction(lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau) &
   bind(c,name = "find_geodetic_direction")
   
     ! This function calculates the geodetic direction between two points given their geographical coordinates at a certain point
     ! (defined by the parameter tau) between them.
     
-    real(c_double) :: lat_1_in,lon_1_in,lat_2_in,lon_2_in,tau
-    real(c_double) :: find_geodetic_direction
+    real(c_double), intent(in) :: lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau
+    real(c_double)             :: find_geodetic_direction
     
     ! local variables
     real(c_double) :: rel_vec(3),local_i(3),local_j(3),lat,lon,x_comp,y_comp
     
-    rel_vec(1) = cos(lat_2_in)*cos(lon_2_in) - cos(lat_1_in)*cos(lon_1_in)
-    rel_vec(2) = cos(lat_2_in)*sin(lon_2_in) - cos(lat_1_in)*sin(lon_1_in)
-    rel_vec(3) = sin(lat_2_in) - sin(lat_1_in)
-    call find_geodetic(lat_1_in,lon_1_in,lat_2_in,lon_2_in,tau,lat,lon)
+    rel_vec(1) = cos(lat_3_in)*cos(lon_3_in) - cos(lat_2_in)*cos(lon_2_in)
+    rel_vec(2) = cos(lat_3_in)*sin(lon_3_in) - cos(lat_2_in)*sin(lon_2_in)
+    rel_vec(3) = sin(lat_3_in) - sin(lat_2_in)
+    call find_geodetic(lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau,lat,lon)
     call calc_local_i(lon,local_i)
     call calc_local_j(lat,lon,local_j)
     x_comp = scalar_product_elementary(local_i,rel_vec)
@@ -134,7 +136,7 @@ module geodesy
   subroutine active_turn(x_in,y_in,turn_angle,x_out,y_out) &
   bind(c,name = "active_turn")
   
-    ! This function turns a vector in R^2 around the z-axis.
+    ! This subroutine turns a vector in R^2 around the z-axis.
     
     real(c_double), intent(in)  :: x_in,y_in,turn_angle
     real(c_double), intent(out) :: x_out,y_out
@@ -147,7 +149,7 @@ module geodesy
   subroutine passive_turn(x_in,y_in,turn_angle,x_out,y_out) &
   bind(c,name = "passive_turn")
   
-    ! This function turns a vector in R^2 around the z-axis.
+    ! This subroutine turns a vector in R^2 around the z-axis.
     
     real(c_double), intent(in)  :: x_in,y_in,turn_angle
     real(c_double), intent(out) :: x_out,y_out
@@ -159,7 +161,7 @@ module geodesy
   subroutine find_between_point(x_0,y_0,z_0,x_1,y_1,z_1,rel_on_line,x_out,y_out,z_out) &
   bind(c,name = "find_between_point")
   
-	! This function calculates the coordinates of a point on a straight line between two other points.
+	! This subroutine calculates the coordinates of a point on a straight line between two other points.
 	
     real(c_double), intent(in)  :: x_0,y_0,z_0,x_1,y_1,z_1,rel_on_line
     real(c_double), intent(out) :: x_out,y_out,z_out
@@ -350,6 +352,110 @@ module geodesy
     z_out = z_in/length
     
   end subroutine normalize_cartesian
+  
+  subroutine find_voronoi_center_sphere(lat_1_in,lon_1_in,lat_2_in,lon_2_in,lat_3_in,lon_3_in,lat_out,lon_out) &
+  bind(c,name = "find_voronoi_center_sphere")
+	
+    ! This subroutine calculates the Voronoi center of three points given their geographical coordinates.
+
+    real(c_double), intent(in)  :: lat_1_in,lon_1_in,lat_2_in,lon_2_in,lat_3_in,lon_3_in
+    real(c_double), intent(out) :: lat_out,lon_out
+	
+	! local variables
+    real(c_double) :: x_0,y_0,z_0,x_1,y_1,z_1,x_2,y_2,z_3,rel_vector_0(3),rel_vector_1(3),cross_product_result(3)
+	
+    call find_global_normal(lat_1_in,lon_1_in,x_0,y_0,z_0)
+    call find_global_normal(lat_2_in,lon_2_in,x_1,y_1,z_1)
+    call find_global_normal(lat_3_in,lon_3_in,x_2,y_2,z_3)
+    rel_vector_0(1) = x_1-x_0
+    rel_vector_0(2) = y_1-y_0
+    rel_vector_0(3) = z_1-z_0
+    rel_vector_1(1) = x_2-x_0
+    rel_vector_1(2) = y_2-y_0
+    rel_vector_1(3) = z_3-z_0
+    call cross_product_elementary(rel_vector_0,rel_vector_1,cross_product_result)
+    call find_geos(cross_product_result(1),cross_product_result(2),cross_product_result(3),lat_out,lon_out)
+    
+  end subroutine find_voronoi_center_sphere
+  
+  function calc_triangle_area(lat_1_in,lon_1_in,lat_2_in,lon_2_in,lat_3_in,lon_3_in) &
+  bind(c,name = "calc_triangle_area")
+
+    ! This function calculates the area of a spherical triangle.
+	
+    real(c_double), intent(in) :: lat_1_in,lon_1_in,lat_2_in,lon_2_in,lat_3_in,lon_3_in
+    real(c_double)             :: calc_triangle_area
+	
+	! local variables
+    real(c_double) :: lat_1,lon_1,lat_2,lon_2,lat_3,lon_3, &
+    average_latitude,x_1,y_1,z_1,x_2,y_2,z_2,x_3,y_3,z_3, &
+    angle_1,angle_2,angle_3, &
+    dir_12,dir_13,dir_21,dir_23,dir_31,dir_32, &
+    vector_12(2),vector_13(2),vector_21(2),vector_23(2),vector_31(2),vector_32(2),vector_in(3),vector_out(3)
+	
+	! copying the intent(in) arguments to local variables
+    lat_1 = lat_1_in
+    lon_1 = lon_1_in
+    lat_2 = lat_2_in
+    lon_2 = lon_2_in
+    lat_3 = lat_3_in
+    lon_3 = lon_3_in
+	
+    average_latitude = (lat_1+lat_2+lat_3)/3.0_c_double
+    if (abs(average_latitude)>0.9_c_double*M_PI/2.0_c_double) then
+      call find_global_normal(lat_1,lon_1,x_1,y_1,z_1)
+      call find_global_normal(lat_2,lon_2,x_2,y_2,z_2)
+      call find_global_normal(lat_3,lon_3,x_3,y_3,z_3)
+      vector_in(1) = x_1
+      vector_in(2) = y_1
+      vector_in(3) = z_1
+      call active_turn_x(average_latitude,vector_in,vector_out)
+      x_1 = vector_out(1)
+      y_1 = vector_out(2)
+      z_1 = vector_out(3)
+      vector_in(1) = x_2
+      vector_in(2) = y_2
+      vector_in(3) = z_2
+      call active_turn_x(average_latitude,vector_in,vector_out)
+      x_2 = vector_out(1)
+      y_2 = vector_out(2)
+      z_2 = vector_out(3)
+      vector_in(1) = x_3
+      vector_in(2) = y_3
+      vector_in(3) = z_3
+      call active_turn_x(average_latitude,vector_in,vector_out)
+      x_3 = vector_out(1)
+      y_3 = vector_out(2)
+      z_3 = vector_out(3)
+      call find_geos(x_1,y_1,z_1,lat_1,lon_1)
+      call find_geos(x_2,y_2,z_2,lat_2,lon_2)
+      call find_geos(x_3,y_3,z_3,lat_3,lon_3)
+    endif
+    
+    dir_12 = find_geodetic_direction(lat_1,lon_1,lat_2,lon_2,0.0_c_double)
+    dir_13 = find_geodetic_direction(lat_1,lon_1,lat_3,lon_3,0.0_c_double)
+    dir_21 = find_geodetic_direction(lat_2,lon_2,lat_1,lon_1,0.0_c_double)
+    dir_23 = find_geodetic_direction(lat_2,lon_2,lat_3,lon_3,0.0_c_double)
+    dir_31 = find_geodetic_direction(lat_3,lon_3,lat_1,lon_1,0.0_c_double)
+    dir_32 = find_geodetic_direction(lat_3,lon_3,lat_2,lon_2,0.0_c_double)
+    vector_12(1) = cos(dir_12)
+    vector_12(2) = sin(dir_12)
+    vector_13(1) = cos(dir_13)
+    vector_13(2) = sin(dir_13)
+    vector_21(1) = cos(dir_21)
+    vector_21(2) = sin(dir_21)
+    vector_23(1) = cos(dir_23)
+    vector_23(2) = sin(dir_23)
+    vector_31(1) = cos(dir_31)
+    vector_31(2) = sin(dir_31)
+    vector_32(1) = cos(dir_32)
+    vector_32(2) = sin(dir_32)
+    angle_1 = acos(scalar_product_elementary_2d(vector_12,vector_13))
+    angle_2 = acos(scalar_product_elementary_2d(vector_21,vector_23))
+    angle_3 = acos(scalar_product_elementary_2d(vector_31,vector_32))
+    calc_triangle_area = angle_1+angle_2+angle_3-M_PI
+  
+  end function calc_triangle_area
 
 end module geodesy
 
