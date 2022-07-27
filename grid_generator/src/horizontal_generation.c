@@ -531,8 +531,8 @@ int set_dual_vector_h_doubles(double latitude_scalar_dual[], double latitude_vec
 	#pragma omp parallel for
     for (int i = 0; i < NO_OF_VECTORS_H; ++i)
     {
-        find_min_dist_rel_on_line(latitude_scalar_dual[from_index_dual[i]], longitude_scalar_dual[from_index_dual[i]],
-        latitude_scalar_dual[to_index_dual[i]], longitude_scalar_dual[to_index_dual[i]], latitude_vector[i], longitude_vector[i], &rel_on_line_dual[i]);
+        rel_on_line_dual[i] = rel_on_line(&latitude_scalar_dual[from_index_dual[i]], &longitude_scalar_dual[from_index_dual[i]],
+        &latitude_scalar_dual[to_index_dual[i]], &longitude_scalar_dual[to_index_dual[i]], &latitude_vector[i], &longitude_vector[i]);
         if (fabs(rel_on_line_dual[i] - 0.5) > 0.14)
         {
             printf("Bisection warning.\n");

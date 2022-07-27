@@ -57,27 +57,6 @@ double calc_spherical_polygon_area(double lat_points[], double lon_points[], int
     return area;
 }
 
-int find_min_dist_rel_on_line(double lat_0, double lon_0, double lat_1, double lon_1, double lat_point, double lon_point, double *rel_on_line)
-{
-	/*
-	This function calculates where a geodetic is the closest to a certain point.
-	*/
-    int number_of_points = 1000 + 1;
-    double *dist_vector = malloc(number_of_points*sizeof(double));
-    double lat, lon, parameter;
-    for (int i = 0; i < number_of_points; ++i)
-    {
-        parameter = (i + 0.0)/(number_of_points + 1.0);
-        find_geodetic(&lat_0, &lon_0, &lat_1, &lon_1, &parameter, &lat, &lon);
-        double one = 1.0;
-        dist_vector[i] = calculate_distance_cart(&lat_point, &lon_point, &lat, &lon, &one, &one);
-    }
-    int min_index = find_min_index(dist_vector, &number_of_points);
-    free(dist_vector);
-    *rel_on_line = (min_index + 0.0)/(number_of_points + 1.0);
-    return 0;
-}
-
 int sort_edge_indices(double lat_points[], double lon_points[], int number_of_edges, int indices_resorted[])
 {
 	/*

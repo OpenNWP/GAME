@@ -6,7 +6,8 @@ module geodesy
   ! This file contains functions calculating geodesic operations.
 
   use iso_c_binding
-  use constants,    only : M_PI
+  use constants,     only: M_PI
+  use index_helpers, only: find_min_index
   
   implicit none
   
@@ -27,6 +28,7 @@ module geodesy
   public :: cross_product_elementary
   public :: find_voronoi_center_sphere
   public :: calc_triangle_area
+  public :: rel_on_line
   
   contains
   
@@ -456,6 +458,38 @@ module geodesy
     calc_triangle_area = angle_1+angle_2+angle_3-M_PI
   
   end function calc_triangle_area
+  
+
+  function rel_on_line(lat_0,lon_0,lat_1,lon_1,lat_point,lon_point) &
+  bind(c,name = "rel_on_line")
+	
+    ! This function calculates where a geodetic is the closest to a certain point.
+	
+    real(c_double), intent(in) :: lat_0,lon_0,lat_1,lon_1,lat_point,lon_point
+    real(c_double)             :: rel_on_line
+	
+	! local variables
+    integer                     :: number_of_points,ji,min_index
+    real(c_double), allocatable :: dist_vector(:)
+    real(c_double)              :: lat,lon,tau
+	
+    number_of_points = 1001
+    
+    allocate(dist_vector(number_of_points))
+
+    do ji=1,number_of_points
+      tau = ji/(number_of_points + 1._c_double)
+      call find_geodetic(lat_0,lon_0,lat_1,lon_1,tau,lat,lon)
+      dist_vector(ji) = calculate_distance_cart(lat_point,lon_point,lat,lon,1._c_double,1._c_double)
+    enddo
+    
+    min_index = find_min_index(dist_vector,number_of_points) + 1
+    
+    deallocate(dist_vector)
+    
+    rel_on_line = min_index/(number_of_points+1._c_double)
+  
+  end function rel_on_line
 
 end module geodesy
 
