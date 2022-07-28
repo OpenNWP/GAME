@@ -29,7 +29,7 @@ module geodesy
   public :: find_voronoi_center_sphere
   public :: calc_triangle_area
   public :: rel_on_line
-  public :: sort_edge_indices
+  public :: sort_vertex_indices
   
   contains
   
@@ -493,24 +493,25 @@ module geodesy
   end function rel_on_line
   
 
-  subroutine sort_edge_indices(lat_points,lon_points,number_of_edges,indices_resorted) &
-  bind(c,name = "sort_edge_indices")
+  subroutine sort_vertex_indices(lat_points,lon_points,number_of_vertices,indices_resorted) &
+  bind(c,name = "sort_vertex_indices")
   
-    ! This subroutine sorts the edges of a polygon in positive mathematical direction.
+    ! This subroutine sorts the vertices of a polygon in positive mathematical direction.
     
-    integer(c_int), intent(in)  :: number_of_edges
-    real(c_double), intent(in)  :: lat_points(number_of_edges),lon_points(number_of_edges)
-    integer(c_int), intent(out) :: indices_resorted(number_of_edges)
+    integer(c_int), intent(in)  :: number_of_vertices
+    real(c_double), intent(in)  :: lat_points(number_of_vertices),lon_points(number_of_vertices)
+    integer(c_int), intent(out) :: indices_resorted(number_of_vertices)
     
     ! local variables
-    integer        :: ji,jk,index_array(number_of_edges-1),first_index,second_index,third_index,index_candidates(2),check, &
-                      needs_to_be_reversed,counter,neighbour(2*number_of_edges),indices_resorted_w_dir(number_of_edges)
-    real(c_double) :: x_center,y_center,z_center,x_points(number_of_edges),y_points(number_of_edges),z_points(number_of_edges), &
-                      lat_center,lon_center,distance_candidate,distance_array(number_of_edges-1),angle_sum, &
+    integer        :: ji,jk,index_array(number_of_vertices-1),first_index,second_index,third_index,index_candidates(2),check, &
+                      needs_to_be_reversed,counter,neighbour(2*number_of_vertices),indices_resorted_w_dir(number_of_vertices)
+    real(c_double) :: x_center,y_center,z_center,x_points(number_of_vertices), &
+                      y_points(number_of_vertices),z_points(number_of_vertices), &
+                      lat_center,lon_center,distance_candidate,distance_array(number_of_vertices-1),angle_sum, &
                       new_direction,direction_1,direction_2
     
-    ! calculating the Cartesian coordinates of the edges
-    do ji=1,number_of_edges
+    ! calculating the Cartesian coordinates of the vertices
+    do ji=1,number_of_vertices
       call find_global_normal(lat_points(ji),lon_points(ji),x_points(ji),y_points(ji),z_points(ji))
     enddo
     
@@ -518,16 +519,17 @@ module geodesy
     x_center = 0._c_double
     y_center = 0._c_double
     z_center = 0._c_double
-    do ji=1,number_of_edges
-      x_center = x_center+1._c_double/number_of_edges*x_points(ji)
-      y_center = y_center+1._c_double/number_of_edges*y_points(ji)
-      z_center = z_center+1._c_double/number_of_edges*z_points(ji)
+    do ji=1,number_of_vertices
+      x_center = x_center+1._c_double/number_of_vertices*x_points(ji)
+      y_center = y_center+1._c_double/number_of_vertices*y_points(ji)
+      z_center = z_center+1._c_double/number_of_vertices*z_points(ji)
     enddo
     call find_geos(x_center,y_center,z_center,lat_center,lon_center)
     
-    do ji=1,number_of_edges
+    ! calculating the neighbour of each vertex
+    do ji=1,number_of_vertices
       counter = 1
-      do jk=1,number_of_edges
+      do jk=1,number_of_vertices
         distance_candidate = calculate_distance_cart(lat_points(ji),lon_points(ji),lat_points(jk),lon_points(jk), &
         1._c_double,1._c_double)
         if (distance_candidate/=0._c_double) then
@@ -536,23 +538,26 @@ module geodesy
           counter = counter+1
         endif
       enddo
-      neighbour(2*ji-1) = index_array(find_min_index(distance_array,number_of_edges-1)+1)
-      distance_array(find_min_index(distance_array,number_of_edges-1)+1) = 2.1_c_double
-      neighbour(2*ji) = index_array(find_min_index(distance_array,number_of_edges-1)+1)
+      neighbour(2*ji-1) = index_array(find_min_index(distance_array,number_of_vertices-1)+1)
+      distance_array(find_min_index(distance_array,number_of_vertices-1)+1) = 2.1_c_double
+      neighbour(2*ji) = index_array(find_min_index(distance_array,number_of_vertices-1)+1)
     enddo
-    do ji=2,number_of_edges
+    
+    ! the resorting itself
+    do ji=2,number_of_vertices
       indices_resorted(ji) = 0
     enddo
+    ! arbitrary start
     indices_resorted(1) = 1
-    do ji=2,number_of_edges
+    do ji=2,number_of_vertices
       counter = 1
-      do jk=1,number_of_edges
+      do jk=1,number_of_vertices
         if (neighbour(2*jk-1)==indices_resorted(ji-1) .or. neighbour(2*jk)==indices_resorted(ji-1)) then
           index_candidates(counter) = jk
           counter = counter+1
         endif
       enddo
-      check = in_bool_checker(index_candidates(1),indices_resorted,number_of_edges)
+      check = in_bool_checker(index_candidates(1),indices_resorted,number_of_vertices)
       if (check==1) then
         indices_resorted(ji) = index_candidates(2)
       else
@@ -563,10 +568,10 @@ module geodesy
     ! detecting if the indices have to be reversed
     needs_to_be_reversed = 0
     angle_sum = 0._c_double
-    do ji=1,number_of_edges
+    do ji=1,number_of_vertices
       first_index = ji
-      second_index = mod(ji,number_of_edges)+1
-      third_index = mod(ji+1,number_of_edges)+1
+      second_index = mod(ji,number_of_vertices)+1
+      third_index = mod(ji+1,number_of_vertices)+1
       direction_1 = find_geodetic_direction(lat_points(indices_resorted(first_index)),lon_points(indices_resorted(first_index)), &
       lat_points(indices_resorted(second_index)),lon_points(indices_resorted(second_index)),1._c_double)
       direction_2 = find_geodetic_direction(lat_points(indices_resorted(second_index)),lon_points(indices_resorted(second_index)), &
@@ -578,23 +583,23 @@ module geodesy
       needs_to_be_reversed = 1
     endif
     if (abs(angle_sum)<0.99_c_double*2._c_double*M_PI .or. abs(angle_sum)>1.01_c_double*2._c_double*M_PI) then
-      write(*,*) "Problem in function sort_edge_indices."
+      write(*,*) "Problem in function sort_vertex_indices."
       call exit(1)
     endif
     
     ! reversing the indices if necessary
     if (needs_to_be_reversed==1) then
-      do ji=1,number_of_edges
-        indices_resorted_w_dir(ji) = indices_resorted(number_of_edges+1-ji) 
+      do ji=1,number_of_vertices
+        indices_resorted_w_dir(ji) = indices_resorted(number_of_vertices+1-ji) 
       enddo
-      do ji=1,number_of_edges
+      do ji=1,number_of_vertices
         indices_resorted(ji) = indices_resorted_w_dir(ji)    
       enddo
     endif
     
     indices_resorted = indices_resorted - 1
     
-  end subroutine sort_edge_indices
+  end subroutine sort_vertex_indices
 
 
 end module geodesy

@@ -36,7 +36,7 @@ double calc_spherical_polygon_area(double lat_points[], double lon_points[], int
     find_geos(&x_center, &y_center, &z_center, &lat_center, &lon_center);
     double triangle_surfaces[number_of_edges];
 	int indices_resorted[number_of_edges];
-    sort_edge_indices(lat_points, lon_points, &number_of_edges, indices_resorted);
+    sort_vertex_indices(lat_points, lon_points, &number_of_edges, indices_resorted);
 	double lat_points_sorted[number_of_edges];
 	double lon_points_sorted[number_of_edges];	
 	for (int i = 0; i < number_of_edges; ++i)

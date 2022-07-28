@@ -75,7 +75,7 @@ extern double find_geodetic_direction();
 extern int find_voronoi_center_sphere();
 extern double calc_triangle_area();
 extern double rel_on_line();
-extern int sort_edge_indices();
+extern int sort_vertex_indices();
 
 
 

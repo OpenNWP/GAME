@@ -141,7 +141,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 				}
 				
 				// sorting the vertices in counter-clockwise direction
-				sort_edge_indices(latitude_vertices, longitude_vertices, &no_of_edges, indices_resorted);
+				sort_vertex_indices(latitude_vertices, longitude_vertices, &no_of_edges, indices_resorted);
 				for (int l = 0; l < no_of_edges; ++l)
 				{
 					vertex_indices_resorted[l] = vertex_indices[indices_resorted[l]];

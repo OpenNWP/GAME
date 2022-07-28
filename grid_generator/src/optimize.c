@@ -63,7 +63,7 @@ int find_cell_cgs(double latitude_scalar[], double longitude_scalar[], double la
 		{
 			printf("Trouble in find_cell_cgs detected.\n");
 		}
-		sort_edge_indices(latitude_vertices, longitude_vertices, &no_of_edges, indices_resorted);
+		sort_vertex_indices(latitude_vertices, longitude_vertices, &no_of_edges, indices_resorted);
 		for (int j = 0; j < no_of_edges; ++j)
 		{
 			vertex_indices_resorted[j] = vertex_indices[indices_resorted[j]];
