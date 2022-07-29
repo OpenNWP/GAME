@@ -32,7 +32,6 @@ int find_adjacent_vector_indices_h(int [], int [], int [], int []);
 int set_horizontal_curl_indices(double [], double [], int [], int [], int [], double, int []);
 int rhombus_averaging(int [], int [], int [], int [], int [], int [], int [], int [], double [], double [], double [], double [], double [], double [], double [], double [], double [], double);
 int set_dual_vector_h_doubles(double [], double [], double [], double [], int [], int [], double [], double []);
-int set_gravity_potential(double [], double [], double);
 int set_from_to_index_dual(int [], int [], int [][3], int [][3]);
 int calc_vorticity_indices_triangles(int [], int [], double [], double [], int [], double, int []);
 int set_z_vector_and_normal_distance(double [], double [], double [], double [], double [], int [], int [], double, double [], double);
@@ -76,6 +75,7 @@ extern double calc_triangle_area();
 extern double rel_on_line();
 extern int sort_vertex_indices();
 extern double calc_spherical_polygon_area();
+extern int set_gravity_potential();
 
 
 

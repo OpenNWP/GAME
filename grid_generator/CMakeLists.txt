@@ -18,7 +18,6 @@ src/miscellaneous.c
 src/index.c
 src/coordinator.c
 src/geodesy.f90
-src/gravity_potential.c
 src/coriolis.c
 src/discrete_coordinate_trafos.c
 src/interpolate_ll.c
@@ -26,6 +25,8 @@ src/phys_sfc_properties.c
 src/index_helpers.f90
 src/horizontal_generation.c
 src/vertical_grid.c
+src/vertical_grid.f90
+src/grid_nml.f90
 )
 find_package(OpenMP)
 SET(CMAKE_C_FLAGS "${OpenMP_C_FLAGS} -O2 -Wall")

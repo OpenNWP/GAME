@@ -301,7 +301,7 @@ int main(int argc, char *argv[])
         -----------------------------------------------------------------------------
     */
     printf("Setting the gravity potential ... ");
-	set_gravity_potential(z_scalar, gravity_potential, radius);
+	set_gravity_potential(z_scalar, gravity_potential, &radius);
     printf(GREEN "finished" RESET);
     printf(".\n");
     
