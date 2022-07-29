@@ -29,8 +29,8 @@ module vertical_grid
     integer(c_int) :: ji
     
     !$omp parallel do private(ji)
-    do ji=1,10
-      gravity_potential(ji) = -0.0 !*(radius*radius/(radius+z_scalar(ji))-radius)
+    do ji=1,no_of_scalars
+      gravity_potential(ji) = -gravity*(radius**2/(radius+z_scalar(ji))-radius)
     enddo
     !$omp end parallel do
     
