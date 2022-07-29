@@ -7,13 +7,15 @@ module vertical_grid
 
   use iso_c_binding
   use constants, only: gravity
-  use grid_nml,  only: no_of_scalars,grid_nml_setup
+  use grid_nml,  only: no_of_scalars_h,no_of_scalars,no_of_vectors_per_layer, &
+                       no_of_vectors,grid_nml_setup
   
   implicit none
   
   private
   
   public :: set_gravity_potential
+  public :: set_volume
   
   contains
   
@@ -37,5 +39,39 @@ module vertical_grid
     !$omp end parallel do
     
   end subroutine set_gravity_potential
+  
+  
+  subroutine set_volume(volume,z_vector,area,radius) &
+  bind(c,name = "set_volume")
+
+    ! This subroutine computes the volumes of the grid boxes.
+	
+    real(c_double), intent(out) :: volume(no_of_scalars)
+    real(c_double), intent(in)  :: z_vector(no_of_vectors)
+    real(c_double), intent(in)  :: area(no_of_vectors)
+    real(c_double), intent(in)  :: radius
+	
+    ! local variables
+    integer(c_int) :: ji,layer_index,h_index
+    real(c_double) :: radius_1,radius_2, base_area
+    
+    call grid_nml_setup()
+    
+    !$omp parallel do private(layer_index,h_index,radius_1,radius_2,base_area)
+    do ji=1,no_of_scalars
+      layer_index = (ji-1)/no_of_scalars_h
+      h_index = ji-layer_index*no_of_scalars_h
+      base_area = area(h_index+(layer_index+1)*no_of_vectors_per_layer)
+      radius_1 = radius+z_vector(h_index+(layer_index+1)*no_of_vectors_per_layer)
+      radius_2 = radius+z_vector(h_index+layer_index*no_of_vectors_per_layer)
+      volume(ji) = base_area/(3._c_double*radius_1**2)*(radius_2**3-radius_1**3)
+    enddo
+    !$omp end parallel do
+    
+  end subroutine set_volume
 
 end module vertical_grid
+
+
+
+

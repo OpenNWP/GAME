@@ -292,7 +292,7 @@ int main(int argc, char *argv[])
     printf(".\n");
     
     printf("Calculating grid box volumes ... ");
-	set_volume(volume, z_vector, area, from_index, to_index, toa, vorticity_indices_triangles, radius);
+	set_volume(volume, z_vector, area, &radius);
     printf(GREEN "finished" RESET);
     printf(".\n");
     

@@ -166,27 +166,6 @@ int set_z_scalar_dual(double z_scalar_dual[], double z_vector[], int from_index[
 	return 0;
 }
 
-int set_volume(double volume[], double z_vector[], double area[], int from_index[], int to_index[], double toa, int vorticity_indices_triangles[], double radius)
-{
-	/*
-	This function computes the volumes of the grid boxes.
-	*/
-	
-    int layer_index, h_index;
-    double radius_0, radius_1, base_area;
-    #pragma omp parallel for private(layer_index, h_index, radius_0, radius_1, base_area)
-    for (int i = 0; i < NO_OF_SCALARS; ++i)
-    {
-        layer_index = i/NO_OF_SCALARS_H;
-        h_index = i - layer_index*NO_OF_SCALARS_H;
-        base_area = area[h_index + (layer_index + 1)*NO_OF_VECTORS_PER_LAYER];
-        radius_0 = radius + z_vector[h_index + (layer_index + 1)*NO_OF_VECTORS_PER_LAYER];
-        radius_1 = radius + z_vector[h_index + layer_index*NO_OF_VECTORS_PER_LAYER];
-        volume[i] = base_area/(3.0*pow(radius_0, 2))*(pow(radius_1, 3) - pow(radius_0, 3));
-    }
-	return 0;
-}
-
 int set_area_dual(double area_dual[], double z_vector_dual[], double normal_distance[], double z_vector[], int from_index[],
 int to_index[], double triangle_face_unit_sphere[], double toa, double radius)
 {
