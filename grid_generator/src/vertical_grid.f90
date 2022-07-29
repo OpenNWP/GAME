@@ -28,6 +28,8 @@ module vertical_grid
     ! local variables
     integer(c_int) :: ji
     
+    call grid_nml_setup()
+    
     !$omp parallel do private(ji)
     do ji=1,no_of_scalars
       gravity_potential(ji) = -gravity*(radius**2/(radius+z_scalar(ji))-radius)
