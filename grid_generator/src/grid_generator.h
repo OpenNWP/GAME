@@ -47,7 +47,6 @@ int interpolate_ll(double [], double [], int [], double []);
 int set_background_state(double [], double [], double [], double []);
 int set_sfc_properties(double [], double [], double [], double [], double [], double [], double [], int [], int, int);
 int cross_product_elementary(double[], double[], double[]);
-double calc_spherical_polygon_area(double[], double[], int);
 double double_sum_gen(double[], int, int, int);
 extern double rad2deg();
 extern double deg2rad();
@@ -76,7 +75,7 @@ extern int find_voronoi_center_sphere();
 extern double calc_triangle_area();
 extern double rel_on_line();
 extern int sort_vertex_indices();
-
+extern double calc_spherical_polygon_area();
 
 
 

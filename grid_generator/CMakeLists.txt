@@ -17,7 +17,6 @@ src/optimize.c
 src/miscellaneous.c
 src/index.c
 src/coordinator.c
-src/geodesy.c
 src/geodesy.f90
 src/gravity_potential.c
 src/coriolis.c

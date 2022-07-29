@@ -601,6 +601,62 @@ module geodesy
     
   end subroutine sort_vertex_indices
 
+  function calc_spherical_polygon_area(lat_points,lon_points,number_of_edges) &
+  bind(c,name = "calc_spherical_polygon_area")
+    
+    ! This function calculates the area of a spherical polygon.
+    
+    integer(c_int), intent(in) :: number_of_edges
+    real(c_double), intent(in) :: lat_points(number_of_edges),lon_points(number_of_edges)
+    real(c_double)             :: calc_spherical_polygon_area
+    
+    ! local variables
+    real(c_double) :: x_points(number_of_edges),y_points(number_of_edges),z_points(number_of_edges), &
+                      x_center,y_center,z_center,lat_center,lon_center,triangle_surfaces(number_of_edges), &
+                      lat_points_sorted(number_of_edges),lon_points_sorted(number_of_edges)
+    integer        :: ji,indices_resorted(number_of_edges)
+    
+    ! calculating the normalized Cartesian coordinates of the vertex points
+    do ji=1,number_of_edges
+      call find_global_normal(lat_points(ji),lon_points(ji),x_points(ji),y_points(ji),z_points(ji))
+    enddo
+    
+    ! calculating the center of the polygon
+    x_center = 0._c_double
+    y_center = 0._c_double
+    z_center = 0._c_double
+    do ji=1,number_of_edges
+      x_center = x_center+1._c_double/number_of_edges*x_points(ji)
+      y_center = y_center+1._c_double/number_of_edges*y_points(ji)
+      z_center = z_center+1._c_double/number_of_edges*z_points(ji)
+    enddo
+    
+    ! calculating the geographical coordinates of the center of the polygon
+    call find_geos(x_center,y_center,z_center,lat_center,lon_center)
+    
+    ! sorting the vertex indices
+    call sort_vertex_indices(lat_points,lon_points,number_of_edges,indices_resorted)
+    indices_resorted = indices_resorted+1
+    
+    ! sorting the vertex points
+    do ji=1,number_of_edges
+      lat_points_sorted(ji) = lat_points(indices_resorted(ji))
+      lon_points_sorted(ji) = lon_points(indices_resorted(ji))
+    enddo
+    
+    ! calculating the areas of the triangles that constitute the polygon
+    do ji=1,number_of_edges
+      triangle_surfaces(ji) = calc_triangle_area(lat_center,lon_center,lat_points_sorted(ji),lon_points_sorted(ji), &
+      lat_points_sorted(mod(ji,number_of_edges)+1),lon_points_sorted(mod(ji,number_of_edges)+1))
+    enddo
+    
+    ! adding up the triangle surfaces
+    calc_spherical_polygon_area = 0._c_double
+    do ji=1,number_of_edges
+      calc_spherical_polygon_area = calc_spherical_polygon_area + triangle_surfaces(ji)
+    enddo
+
+  end function calc_spherical_polygon_area
 
 end module geodesy
 

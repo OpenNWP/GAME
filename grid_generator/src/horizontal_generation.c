@@ -147,7 +147,7 @@ int calc_cell_area_unity(double pent_hex_face_unity_sphere[], double latitude_sc
         {
         	printf("Trouble in calc_cell_face_unity.\n");
         }
-        pent_hex_face_unity_sphere[i] = calc_spherical_polygon_area(lat_points, lon_points, no_of_edges);
+        pent_hex_face_unity_sphere[i] = calc_spherical_polygon_area(lat_points, lon_points, &no_of_edges);
     }
     double pent_hex_sum_unity_sphere = 0;
     double pent_hex_avg_unity_sphere_ideal = 4*M_PI/NO_OF_SCALARS_H;
