@@ -3,6 +3,14 @@ build
 *.nc
 *.mod
 *.png
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.log
+*.out
+*.xml
+*.toc
 grid_generator/grid_generator
 output
 figs
