@@ -25,8 +25,8 @@ src/interpolate_ll.c
 src/phys_sfc_properties.c
 src/index_helpers.f90
 src/horizontal_generation.c
-src/vertical_grid.c
-src/vertical_grid.f90
+src/vertical/vertical_grid.c
+src/vertical/vertical_grid.f90
 src/grid_nml.f90
 )
 find_package(OpenMP)

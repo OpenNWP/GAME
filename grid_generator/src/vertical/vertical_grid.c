@@ -10,11 +10,11 @@ This file contains functions that compute properties of the vertical grid.
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "../../src/game_types.h"
-#include "../../src/game_constants.h"
-#include "grid_generator.h"
-#include "standard.h"
-#include "../../src/constituents/constituents.h"
+#include "../../../src/game_types.h"
+#include "../../../src/game_constants.h"
+#include "../grid_generator.h"
+#include "../standard.h"
+#include "../../../src/constituents/constituents.h"
 
 int set_z_scalar(double z_scalar[], double oro[], int NO_OF_ORO_LAYERS, double toa, double stretching_parameter)
 {
