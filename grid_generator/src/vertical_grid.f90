@@ -7,8 +7,8 @@ module vertical_grid
 
   use iso_c_binding
   use constants, only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv,r_d, &
-                       p_0_standard
-  use grid_nml,  only: no_of_scalars_h,no_of_scalars,no_of_vectors_per_layer, &
+                       p_0_standard,c_d_p,p_0
+  use grid_nml,  only: no_of_scalars_h,no_of_scalars,no_of_vectors_per_layer,no_of_layers, &
                        no_of_vectors,no_of_dual_scalars_h,no_of_dual_scalars,no_of_vectors_h,grid_nml_setup
   
   implicit none
@@ -19,6 +19,8 @@ module vertical_grid
   public :: set_volume
   public :: standard_temp
   public :: standard_pres
+  public :: set_z_scalar_dual
+  public :: set_background_state
   
   contains
   
@@ -29,7 +31,7 @@ module vertical_grid
     real(c_double), intent(in)  :: z_scalar(no_of_scalars)
     real(c_double), intent(out) :: gravity_potential(no_of_scalars)
     real(c_double), intent(in)  :: radius
-	
+  
     ! local variables
     integer(c_int) :: ji
     
@@ -48,12 +50,12 @@ module vertical_grid
   bind(c,name = "set_volume")
 
     ! This subroutine computes the volumes of the grid boxes.
-	
+  
     real(c_double), intent(out) :: volume(no_of_scalars)
     real(c_double), intent(in)  :: z_vector(no_of_vectors)
     real(c_double), intent(in)  :: area(no_of_vectors)
     real(c_double), intent(in)  :: radius
-	
+  
     ! local variables
     integer(c_int) :: ji,layer_index,h_index
     real(c_double) :: radius_1,radius_2, base_area
@@ -84,7 +86,7 @@ module vertical_grid
     ! local variables
     real(c_double) :: tropo_temp_standard
     
-    tropo_temp_standard = surface_temp-tropo_height*lapse_rate;
+    tropo_temp_standard = surface_temp-tropo_height*lapse_rate
     
     if (z_height<tropo_height) then
       standard_temp = surface_temp-z_height*lapse_rate
@@ -127,7 +129,7 @@ module vertical_grid
   bind(c,name = "set_z_scalar_dual")
   
     ! This subroutine sets the z coordinates of the dual scalar points.
-	
+  
     real(c_double), intent(out) :: z_scalar_dual(no_of_dual_scalars)
     real(c_double), intent(in)  :: z_vector(no_of_vectors)
     integer(c_int), intent(in)  :: from_index(no_of_vectors_h),to_index(no_of_vectors_h), &
@@ -135,9 +137,9 @@ module vertical_grid
 
     ! local variables
     integer(c_int) :: ji,layer_index,h_index
-	
+  
     call grid_nml_setup()
-	
+  
     !$omp parallel do private(ji,layer_index,h_index)
     do ji=1,no_of_dual_scalars
       layer_index = (ji-1)/no_of_dual_scalars_h
@@ -154,6 +156,47 @@ module vertical_grid
     !$omp end parallel do
     
   end subroutine set_z_scalar_dual
+  
+  subroutine set_background_state(z_scalar,gravity_potential,theta_v_bg,exner_bg) &
+  bind(c,name = "set_background_state")
+
+    ! This subroutine sets the hydrostatic background state.
+    
+    real(c_double), intent(in)  :: z_scalar(no_of_scalars),gravity_potential(no_of_scalars)
+    real(c_double), intent(out) :: theta_v_bg(no_of_scalars),exner_bg(no_of_scalars)
+  
+    ! local variables
+    integer(c_int) :: h_index,layer_index,scalar_index
+    real(c_double) :: temperature,pressure,b,c
+  
+    call grid_nml_setup()
+  
+    !$omp parallel do private(h_index,layer_index,scalar_index,temperature,pressure,b,c)
+    do h_index=1,no_of_scalars_h
+      ! integrating from bottom to top
+      do layer_index=no_of_layers-1,0,-1
+        scalar_index = layer_index*no_of_scalars_h+h_index
+        temperature = standard_temp(z_scalar(scalar_index))
+        ! lowest layer
+        if (layer_index==no_of_layers-1) then
+          pressure = standard_pres(z_scalar(scalar_index))
+          exner_bg(scalar_index) = (pressure/p_0)**(r_d/c_d_p)
+          theta_v_bg(scalar_index) = temperature/exner_bg(scalar_index)
+        ! other layers
+        else
+          ! solving a quadratic equation for the Exner pressure
+          b = -0.5_c_double*exner_bg(scalar_index + no_of_scalars_h)/standard_temp(z_scalar(scalar_index+no_of_scalars_h)) &
+          *(temperature - standard_temp(z_scalar(scalar_index + no_of_scalars_h)) &
+          + 2._c_double/c_d_p*(gravity_potential(scalar_index) - gravity_potential(scalar_index+no_of_scalars_h)))
+          c = exner_bg(scalar_index+no_of_scalars_h)**2*temperature/standard_temp(z_scalar(scalar_index+no_of_scalars_h))
+          exner_bg(scalar_index) = b + (b**2 + c)**0.5_c_double
+          theta_v_bg(scalar_index) = temperature/exner_bg(scalar_index)
+        endif
+      enddo
+    enddo
+    !$omp end parallel do
+  
+  end subroutine set_background_state
 
 end module vertical_grid
 

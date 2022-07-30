@@ -39,7 +39,6 @@ int read_horizontal_explicit(double [], double [], int [], int [], int [], int [
 int write_statistics_file(double [], double [], double [], int, char [], char []);
 int direct_tangential_unity(double [], double [], double [], double [], int [], int [], double [], double);
 int interpolate_ll(double [], double [], int [], double []);
-int set_background_state(double [], double [], double [], double []);
 int set_sfc_properties(double [], double [], double [], double [], double [], double [], double [], int [], int, int);
 int cross_product_elementary(double[], double[], double[]);
 double double_sum_gen(double[], int, int, int);
@@ -76,6 +75,7 @@ extern int set_volume();
 extern int calc_inner_product();
 extern int set_z_scalar_dual();
 extern int grid_nml_setup();
+extern int set_background_state();
 
 
 

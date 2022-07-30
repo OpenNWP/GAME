@@ -256,45 +256,6 @@ double longitude_scalar_dual[], int vorticity_indices_triangles[], double radius
 	return 0;
 }
 
-int set_background_state(double z_scalar[], double gravity_potential[], double theta_v_bg[], double exner_bg[])
-{
-	/*
-	This sets the hydrostatic background state.
-	*/
-	
-	int scalar_index;
-	double temperature, pressure, b, c;
-	for (int h_index = 0; h_index < NO_OF_SCALARS_H; ++h_index)
-	{
-		// integrating from bottom to top
-		for (int layer_index = NO_OF_LAYERS - 1; layer_index >= 0; --layer_index)
-		{
-			scalar_index = layer_index*NO_OF_SCALARS_H + h_index;
-			temperature = standard_temp(&z_scalar[scalar_index]);
-			// lowest layer
-			if (layer_index == NO_OF_LAYERS - 1)
-			{
-				pressure = standard_pres(&z_scalar[scalar_index]);
-				exner_bg[scalar_index] = pow(pressure/P_0, R_D/C_D_P);
-				theta_v_bg[scalar_index] = temperature/exner_bg[scalar_index];
-			}
-			// other layers
-			else
-			{
-				// solving a quadratic equation for the Exner pressure
-				b = -0.5*exner_bg[scalar_index + NO_OF_SCALARS_H]/standard_temp(&z_scalar[scalar_index + NO_OF_SCALARS_H])
-				*(temperature - standard_temp(&z_scalar[scalar_index + NO_OF_SCALARS_H])
-				+ 2.0/C_D_P*(gravity_potential[scalar_index] - gravity_potential[scalar_index + NO_OF_SCALARS_H]));
-				c = pow(exner_bg[scalar_index + NO_OF_SCALARS_H], 2)*temperature/standard_temp(&z_scalar[scalar_index + NO_OF_SCALARS_H]);
-				exner_bg[scalar_index] = b + pow((pow(b, 2) + c), 0.5);
-				theta_v_bg[scalar_index] = temperature/exner_bg[scalar_index];
-			}
-		}
-	}
-	
-	return 0;
-}
-
 
 
 
