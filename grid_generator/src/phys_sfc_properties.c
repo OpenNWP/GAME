@@ -43,11 +43,11 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 	/*
 	Orography
 	*/
-	double *oro_unfiltered = malloc(NO_OF_SCALARS_H*sizeof(double));
-	
-	int ncid, is_land_id;
 	if (oro_id == 1)
 	{
+		double *oro_unfiltered = malloc(NO_OF_SCALARS_H*sizeof(double));
+		
+		int ncid, is_land_id;
 		char is_land_file_pre[200];
 		sprintf(is_land_file_pre, "phys_quantities/B%d_is_land.nc", RES_ID);
 		char is_land_file[strlen(is_land_file_pre) + 1];
@@ -56,17 +56,15 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 		NCCHECK(nc_inq_varid(ncid, "is_land", &is_land_id));
 		NCCHECK(nc_get_var_int(ncid, is_land_id, &is_land[0]));
 		NCCHECK(nc_close(ncid));
-	}
   
-  	// reading the ETOPO orography
-   	int lat_in_id, lon_in_id, z_in_id;
-   	int no_of_lat_points = 10801;
-   	int no_of_lon_points = 21601;
-	double *latitude_input = malloc(no_of_lat_points*sizeof(double));
-   	double *longitude_input = malloc(no_of_lon_points*sizeof(double));
-	int (*z_input)[no_of_lon_points] = malloc(sizeof(int[no_of_lat_points][no_of_lon_points]));
-	if (oro_id == 1)
-	{
+	  	// reading the ETOPO orography
+	   	int lat_in_id, lon_in_id, z_in_id;
+	   	int no_of_lat_points = 10801;
+	   	int no_of_lon_points = 21601;
+		double *latitude_input = malloc(no_of_lat_points*sizeof(double));
+	   	double *longitude_input = malloc(no_of_lon_points*sizeof(double));
+		int (*z_input)[no_of_lon_points] = malloc(sizeof(int[no_of_lat_points][no_of_lon_points]));
+		
 		NCCHECK(nc_open("phys_quantities/etopo.nc", NC_NOWRITE, &ncid));
 		NCCHECK(nc_inq_varid(ncid, "y", &lat_in_id));
 		NCCHECK(nc_inq_varid(ncid, "x", &lon_in_id));
@@ -75,51 +73,48 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 		NCCHECK(nc_get_var_double(ncid, lon_in_id, &longitude_input[0]));
 		NCCHECK(nc_get_var_int(ncid, z_in_id, &z_input[0][0]));
 		NCCHECK(nc_close(ncid));
-	}
-	
-    // setting the unfiltered orography
-    int lat_index, lon_index;
-	#pragma omp parallel for private(lat_index, lon_index)
-	for (int i = 0; i < NO_OF_SCALARS_H; ++i)
-	{
-		// default
-		oro[i] = 0.0;
-		oro_unfiltered[i] = 0.0;
-	
-    	double *lat_distance_vector = malloc(no_of_lat_points*sizeof(double));
-		double *lon_distance_vector = malloc(no_of_lon_points*sizeof(double));
-		for (int j = 0; j < no_of_lat_points; ++j)
-		{
-			lat_distance_vector[j] = fabs(deg2rad(&latitude_input[j]) - latitude_scalar[i]);
-		}
-		for (int j = 0; j < no_of_lon_points; ++j)
-		{
-			lon_distance_vector[j] = fabs(deg2rad(&longitude_input[j]) - longitude_scalar[i]);
-		}
-		lat_index = find_min_index(lat_distance_vector, &no_of_lat_points);
-		lon_index = find_min_index(lon_distance_vector, &no_of_lon_points);
-		oro_unfiltered[i] = z_input[lat_index][lon_index];
 		
-		// over the sea there is no orography
-		if (is_land[i] == 0)
+		// setting the unfiltered orography
+		int lat_index, lon_index;
+		#pragma omp parallel for private(lat_index, lon_index)
+		for (int i = 0; i < NO_OF_SCALARS_H; ++i)
 		{
+			// default
+			oro[i] = 0.0;
 			oro_unfiltered[i] = 0.0;
+		
+			double *lat_distance_vector = malloc(no_of_lat_points*sizeof(double));
+			double *lon_distance_vector = malloc(no_of_lon_points*sizeof(double));
+			for (int j = 0; j < no_of_lat_points; ++j)
+			{
+				lat_distance_vector[j] = fabs(deg2rad(&latitude_input[j]) - latitude_scalar[i]);
+			}
+			for (int j = 0; j < no_of_lon_points; ++j)
+			{
+				lon_distance_vector[j] = fabs(deg2rad(&longitude_input[j]) - longitude_scalar[i]);
+			}
+			lat_index = find_min_index(lat_distance_vector, &no_of_lat_points);
+			lon_index = find_min_index(lon_distance_vector, &no_of_lon_points);
+			oro_unfiltered[i] = z_input[lat_index][lon_index];
+			
+			// over the sea there is no orography
+			if (is_land[i] == 0)
+			{
+				oro_unfiltered[i] = 0.0;
+			}
+			
+			// freeing the memory
+			free(lat_distance_vector);
+			free(lon_distance_vector);
+			
 		}
-		
-		// freeing the memory
-		free(lat_distance_vector);
-		free(lon_distance_vector);
-		
-	}
-	free(z_input);
-	free(latitude_input);
-	free(longitude_input);
-	// smoothing the real orography
-	int min_indices_vector[no_of_avg_points];
-	double distance_vector[NO_OF_SCALARS_H];
-	int no_of_scalars_h = NO_OF_SCALARS_H;
-	if (oro_id == 1)
-	{
+		free(z_input);
+		free(latitude_input);
+		free(longitude_input);
+		// smoothing the real orography
+		int min_indices_vector[no_of_avg_points];
+		double distance_vector[NO_OF_SCALARS_H];
+		int no_of_scalars_h = NO_OF_SCALARS_H;
 		#pragma omp parallel for private(min_indices_vector, distance_vector)
 		for (int i = 0; i < NO_OF_SCALARS_H; ++i)
 		{
@@ -143,8 +138,8 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 				oro[i] += oro_unfiltered[min_indices_vector[j]]/no_of_avg_points;
 			}
 		}
+		free(oro_unfiltered);
 	}
-	free(oro_unfiltered);
 	
 	/*
 	Other physical properties of the surface
