@@ -40,9 +40,9 @@ module inner_product
       do jk=1,6
         if (jk<6 .or. h_index>no_of_pentagons) then
           inner_product_weights(8*(ji-1)+jk) = area(no_of_scalars_h+layer_index*no_of_vectors_per_layer &
-                                               +adjacent_vector_indices_h(6*h_index+jk)+1)
+                                               +adjacent_vector_indices_h(6*(h_index-1)+jk)+1)
           inner_product_weights(8*(ji-1)+jk) = inner_product_weights(8*(ji-1)+jk)*normal_distance(no_of_scalars_h &
-                                               +layer_index*no_of_vectors_per_layer+adjacent_vector_indices_h(6*h_index+jk)+1)
+                                               +layer_index*no_of_vectors_per_layer+adjacent_vector_indices_h(6*(h_index-1)+jk)+1)
           inner_product_weights(8*(ji-1)+jk) = inner_product_weights(8*(ji-1)+jk)/(2._c_double*volume(ji))
         else
           inner_product_weights(8*(ji-1)+jk) = 0._c_double

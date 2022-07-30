@@ -57,7 +57,7 @@ module vertical_grid
     
     call grid_nml_setup()
     
-    !$omp parallel do private(layer_index,h_index,radius_1,radius_2,base_area)
+    !$omp parallel do private(ji,layer_index,h_index,radius_1,radius_2,base_area)
     do ji=1,no_of_scalars
       layer_index = (ji-1)/no_of_scalars_h
       h_index = ji-layer_index*no_of_scalars_h
