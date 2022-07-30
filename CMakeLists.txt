@@ -10,7 +10,7 @@ project(game VERSION ${version})
 enable_language(Fortran)
 add_executable(
 game
-src/coordinator.c
+src/control.c
 src/constants.f90
 src/definitions.f90
 src/time_stepping/manage_pchevi.c
@@ -42,7 +42,7 @@ src/constituents/dictionary.c
 src/constituents/derived_quantities.c
 grid_generator/src/vertical_grid/vertical_grid.c
 grid_generator/src/vertical_grid/vertical_grid.f90
-grid_generator/src/grid_nml.f90
+grid_generator/src/namelists/grid_nml.f90
 grid_generator/src/geodesy.f90
 grid_generator/src/index_helpers.f90
 ../rte-rrtmgp/rrtmgp/mo_gas_optics.F90

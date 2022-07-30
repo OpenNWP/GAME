@@ -17,7 +17,7 @@ src/diff_ops/inner_product.f90
 src/optimize.c
 src/miscellaneous.c
 src/index.c
-src/coordinator.c
+src/control.c
 src/geodesy.f90
 src/diff_ops/coriolis.c
 src/discrete_coordinate_trafos.c
@@ -27,7 +27,7 @@ src/index_helpers.f90
 src/horizontal_generation.c
 src/vertical_grid/vertical_grid.c
 src/vertical_grid/vertical_grid.f90
-src/grid_nml.f90
+src/namelists/grid_nml.f90
 )
 find_package(OpenMP)
 SET(CMAKE_C_FLAGS "${OpenMP_C_FLAGS} -O2 -Wall")
