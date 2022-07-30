@@ -3,5 +3,5 @@ This source file is part of the Geophysical Fluids Modeling Framework (GAME), wh
 Github repository: https://github.com/OpenNWP/GAME
 */
 
-double standard_temp(double);
 double standard_pres(double);
+extern double standard_temp();

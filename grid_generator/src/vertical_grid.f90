@@ -6,7 +6,7 @@ module vertical_grid
   ! This file contains functions that compute properties of the vertical grid.
 
   use iso_c_binding
-  use constants, only: gravity
+  use constants, only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv
   use grid_nml,  only: no_of_scalars_h,no_of_scalars,no_of_vectors_per_layer, &
                        no_of_vectors,grid_nml_setup
   
@@ -69,8 +69,35 @@ module vertical_grid
     !$omp end parallel do
     
   end subroutine set_volume
+  
+  function standard_temp(z_height) &
+  bind(c,name = "standard_temp")
+  
+    ! This function returns the temperature in the standard atmosphere.
+    
+    real(c_double), intent(in) :: z_height
+    real(c_double)             :: standard_temp
+    
+    ! local variables
+    real(c_double) :: tropo_temp_standard
+    
+    tropo_temp_standard = surface_temp-tropo_height*lapse_rate;
+    
+    if (z_height<tropo_height) then
+      standard_temp = surface_temp-z_height*lapse_rate
+    elseif (z_height<inv_height) then
+      standard_temp = tropo_temp_standard
+    else
+      standard_temp = tropo_temp_standard+t_grad_inv*(z_height-inv_height)
+    endif
+    
+  end function standard_temp
 
 end module vertical_grid
+
+
+
+
 
 
 

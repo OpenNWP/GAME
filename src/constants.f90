@@ -27,12 +27,12 @@ module constants
   
   ! some properties of the standard atmosphere
   ! ------------------------------------------
-  real(c_double) :: lapse_rate = 0.0065      ! lapse_rate within the troposphere
-  real(c_double) :: surface_temp = 288.15    ! the temperature at the surface
-  real(c_double) :: tropo_height = 12000.    ! the tropopause height
-  real(c_double) :: inv_height = 20000.      ! height where the temperature inversion begins
-  real(c_double) :: t_grad_inv = 0.001       ! temperature gradient above the inversion
-  real(c_double) :: p_0_standard = 101325.   ! reference pressure of the standard atmosphere
+  real(c_double) :: lapse_rate = 0.0065_c_double      ! lapse_rate within the troposphere
+  real(c_double) :: surface_temp = 288.15_c_double    ! the temperature at the surface
+  real(c_double) :: tropo_height = 11000._c_double    ! the tropopause height
+  real(c_double) :: inv_height = 20000._c_double      ! height where the temperature inversion begins
+  real(c_double) :: t_grad_inv = 0.001_c_double       ! temperature gradient above the inversion
+  real(c_double) :: p_0_standard = 101325._c_double   ! reference pressure of the standard atmosphere
 
 end module constants
 

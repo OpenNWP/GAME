@@ -302,7 +302,7 @@ int set_background_state(double z_scalar[], double gravity_potential[], double t
 		for (int layer_index = NO_OF_LAYERS - 1; layer_index >= 0; --layer_index)
 		{
 			scalar_index = layer_index*NO_OF_SCALARS_H + h_index;
-			temperature = standard_temp(z_scalar[scalar_index]);
+			temperature = standard_temp(&z_scalar[scalar_index]);
 			// lowest layer
 			if (layer_index == NO_OF_LAYERS - 1)
 			{
@@ -314,10 +314,10 @@ int set_background_state(double z_scalar[], double gravity_potential[], double t
 			else
 			{
 				// solving a quadratic equation for the Exner pressure
-				b = -0.5*exner_bg[scalar_index + NO_OF_SCALARS_H]/standard_temp(z_scalar[scalar_index + NO_OF_SCALARS_H])
-				*(temperature - standard_temp(z_scalar[scalar_index + NO_OF_SCALARS_H])
+				b = -0.5*exner_bg[scalar_index + NO_OF_SCALARS_H]/standard_temp(&z_scalar[scalar_index + NO_OF_SCALARS_H])
+				*(temperature - standard_temp(&z_scalar[scalar_index + NO_OF_SCALARS_H])
 				+ 2.0/C_D_P*(gravity_potential[scalar_index] - gravity_potential[scalar_index + NO_OF_SCALARS_H]));
-				c = pow(exner_bg[scalar_index + NO_OF_SCALARS_H], 2)*temperature/standard_temp(z_scalar[scalar_index + NO_OF_SCALARS_H]);
+				c = pow(exner_bg[scalar_index + NO_OF_SCALARS_H], 2)*temperature/standard_temp(&z_scalar[scalar_index + NO_OF_SCALARS_H]);
 				exner_bg[scalar_index] = b + pow((pow(b, 2) + c), 0.5);
 				theta_v_bg[scalar_index] = temperature/exner_bg[scalar_index];
 			}
@@ -325,27 +325,6 @@ int set_background_state(double z_scalar[], double gravity_potential[], double t
 	}
 	
 	return 0;
-}
-
-double standard_temp(double z_height)
-{
-    // temperature in the standard atmosphere
-    
-    const double TROPO_TEMP_STANDARD = T_SFC + TROPO_HEIGHT_STANDARD*TEMP_GRADIENT;
-    double temperature;
-    if (z_height < TROPO_HEIGHT_STANDARD)
-    {
-        temperature = T_SFC + z_height*TEMP_GRADIENT;
-    }
-    else if (z_height < INVERSE_HEIGHT_STANDARD)
-    {
-        temperature = TROPO_TEMP_STANDARD;
-    }
-    else
-    {
-    	temperature = TROPO_TEMP_STANDARD + TEMP_GRADIENT_INV_STANDARD*(z_height - INVERSE_HEIGHT_STANDARD);
-    }
-    return temperature;
 }
 
 double standard_pres(double z_height)

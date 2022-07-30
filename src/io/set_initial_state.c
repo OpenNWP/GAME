@@ -170,7 +170,7 @@ int set_ideal_init(State *state, Grid* grid, Dualgrid* dualgrid, Diagnostics *di
         // standard atmosphere
         if (ideal_input_id == 0)
         {
-            temperature[i] = standard_temp(z_height);
+            temperature[i] = standard_temp(&z_height);
             temperature_v[i] = temperature[i];
             pressure[i] = standard_pres(z_height);
         }
