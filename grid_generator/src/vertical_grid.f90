@@ -9,7 +9,7 @@ module vertical_grid
   use constants, only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv,r_d, &
                        p_0_standard
   use grid_nml,  only: no_of_scalars_h,no_of_scalars,no_of_vectors_per_layer, &
-                       no_of_vectors,grid_nml_setup
+                       no_of_vectors,no_of_dual_scalars_h,no_of_dual_scalars,no_of_vectors_h,grid_nml_setup
   
   implicit none
   
@@ -17,6 +17,8 @@ module vertical_grid
   
   public :: set_gravity_potential
   public :: set_volume
+  public :: standard_temp
+  public :: standard_pres
   
   contains
   
@@ -120,6 +122,38 @@ module vertical_grid
     endif
     
   end function standard_pres
+  
+  subroutine set_z_scalar_dual(z_scalar_dual,z_vector,from_index,to_index,vorticity_indices_triangles) &
+  bind(c,name = "set_z_scalar_dual")
+  
+    ! This subroutine sets the z coordinates of the dual scalar points.
+	
+    real(c_double), intent(out) :: z_scalar_dual(no_of_dual_scalars)
+    real(c_double), intent(in)  :: z_vector(no_of_vectors)
+    integer(c_int), intent(in)  :: from_index(no_of_vectors_h),to_index(no_of_vectors_h), &
+                                   vorticity_indices_triangles(3*no_of_dual_scalars_h)
+
+    ! local variables
+    integer(c_int) :: ji,layer_index,h_index
+	
+    call grid_nml_setup()
+	
+    !$omp parallel do private(ji,layer_index,h_index)
+    do ji=1,no_of_dual_scalars
+      layer_index = (ji-1)/no_of_dual_scalars_h
+      h_index = ji-layer_index*no_of_dual_scalars_h
+      z_scalar_dual(ji) &
+      = 1._c_double/6._c_double*( &
+      z_vector(layer_index*no_of_vectors_per_layer+1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+1))) &
+      + z_vector(layer_index*no_of_vectors_per_layer+1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+2))) &
+      + z_vector(layer_index*no_of_vectors_per_layer+1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+3))) &
+      + z_vector(layer_index*no_of_vectors_per_layer+1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+1))) &
+      + z_vector(layer_index*no_of_vectors_per_layer+1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+2))) &
+      + z_vector(layer_index*no_of_vectors_per_layer+1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+3))))
+    enddo
+    !$omp end parallel do
+    
+  end subroutine set_z_scalar_dual
 
 end module vertical_grid
 

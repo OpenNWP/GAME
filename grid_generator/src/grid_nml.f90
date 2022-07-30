@@ -8,7 +8,7 @@ module grid_nml
   use iso_c_binding
   
   implicit none
-
+  
   integer(c_int) :: res_id                  ! resolution_id
   integer(c_int) :: no_of_layers            ! number of layers
   integer(c_int) :: no_of_pentagons         ! number of pentagons
@@ -21,12 +21,16 @@ module grid_nml
   integer(c_int) :: no_of_v_vectors         ! number of vertical vectors
   integer(c_int) :: no_of_vectors_per_layer ! number of vectors per layer
   integer(c_int) :: no_of_vectors           ! number of vectors
+  integer(c_int) :: no_of_basic_triangles   ! number of basic triangles of the icosaheron
+  integer(c_int) :: no_of_triangles         ! the number of triangles of the grid
+  integer(c_int) :: no_of_dual_scalars_h    ! the number of dual scalars per layer
+  integer(c_int) :: no_of_dual_scalars      ! the number of dual scalars
   
   namelist /grid/res_id,no_of_layers
 
   contains
 
-  subroutine grid_nml_setup
+  subroutine grid_nml_setup()
   
     ! local variables
     res_id = 5
@@ -41,6 +45,10 @@ module grid_nml
     no_of_v_vectors = no_of_levels*no_of_scalars_h
     no_of_vectors_per_layer = no_of_vectors_h+no_of_scalars_h
     no_of_vectors = no_of_h_vectors+no_of_v_vectors
+    no_of_basic_triangles = 20
+    no_of_triangles = no_of_basic_triangles*4**res_id
+    no_of_dual_scalars_h = no_of_triangles
+    no_of_dual_scalars = no_of_levels*no_of_dual_scalars_h
   
   end subroutine grid_nml_setup
   

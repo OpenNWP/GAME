@@ -24,7 +24,6 @@ int calc_triangle_area_unity(double [], double [], double [], int [][3], int [][
 int set_vector_h_doubles(int [], int [], double [], double [], double [], double [], double []);
 int set_from_to_index(int [], int [], int [][3], int [][3], int [][3], int [][2]);
 int set_scalar_h_dual_coords(double [], double [], double [], double [], int [][3], int [][3], int [][3]);
-int set_z_scalar_dual(double [], double [], int [], int [], int [], double);
 int find_adjacent_vector_indices_h(int [], int [], int [], int []);
 int set_horizontal_curl_indices(double [], double [], int [], int [], int [], double, int []);
 int rhombus_averaging(int [], int [], int [], int [], int [], int [], int [], int [], double [], double [], double [], double [], double [], double [], double [], double [], double [], double);
@@ -75,7 +74,8 @@ extern double calc_spherical_polygon_area();
 extern int set_gravity_potential();
 extern int set_volume();
 extern int calc_inner_product();
-
+extern int set_z_scalar_dual();
+extern int grid_nml_setup();
 
 
 

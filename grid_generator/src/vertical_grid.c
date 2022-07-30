@@ -16,14 +16,6 @@ This file contains functions that compute properties of the vertical grid.
 #include "standard.h"
 #include "../../src/constituents/constituents.h"
 
-// constants that are specific to the ICAO standard atmosphere
-const double T_SFC = 273.15 + 15.0;
-const double TEMP_GRADIENT = -0.65/100.0;
-const double P_0_STANDARD = 101325.0;
-const double TROPO_HEIGHT_STANDARD = 11e3;
-const double INVERSE_HEIGHT_STANDARD = 20e3;
-const double TEMP_GRADIENT_INV_STANDARD = 0.1/100.0;
-
 int set_z_scalar(double z_scalar[], double oro[], int NO_OF_ORO_LAYERS, double toa, double stretching_parameter)
 {
 	/*
@@ -140,30 +132,6 @@ double longitude_scalar[], int from_index[], int to_index[], double toa, double 
 	printf("ratio of maximum to minimum layer thickness (including orography): %lf\n", thick_rel);
 	free(lowest_thicknesses);
     return 0;
-}
-
-int set_z_scalar_dual(double z_scalar_dual[], double z_vector[], int from_index[], int to_index[], int vorticity_indices_triangles[], double toa)
-{
-	/*
-	This function sets the z coordinates of the dual scalar points.
-	*/
-	
-	int layer_index, h_index;
-	#pragma omp parallel for private(layer_index, h_index)
-    for (int i = 0; i < NO_OF_DUAL_SCALARS; ++i)
-    {
-		layer_index = i/NO_OF_DUAL_SCALARS_H;
-		h_index = i - layer_index*NO_OF_DUAL_SCALARS_H;
-		z_scalar_dual[i]
-		= 1.0/6*(
-		z_vector[layer_index*NO_OF_VECTORS_PER_LAYER + from_index[vorticity_indices_triangles[3*h_index + 0]]]
-		+ z_vector[layer_index*NO_OF_VECTORS_PER_LAYER + from_index[vorticity_indices_triangles[3*h_index + 1]]]
-		+ z_vector[layer_index*NO_OF_VECTORS_PER_LAYER + from_index[vorticity_indices_triangles[3*h_index + 2]]]
-		+ z_vector[layer_index*NO_OF_VECTORS_PER_LAYER + to_index[vorticity_indices_triangles[3*h_index + 0]]]
-		+ z_vector[layer_index*NO_OF_VECTORS_PER_LAYER + to_index[vorticity_indices_triangles[3*h_index + 1]]]
-		+ z_vector[layer_index*NO_OF_VECTORS_PER_LAYER + to_index[vorticity_indices_triangles[3*h_index + 2]]]);
-    }
-	return 0;
 }
 
 int set_area_dual(double area_dual[], double z_vector_dual[], double normal_distance[], double z_vector[], int from_index[],

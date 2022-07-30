@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
     printf(".\n");
 	
 	printf("Determining scalar z coordinates of the dual grid ... ");
-	set_z_scalar_dual(z_scalar_dual, z_vector, from_index, to_index, vorticity_indices_triangles, toa);
+	set_z_scalar_dual(z_scalar_dual, z_vector, from_index, to_index, vorticity_indices_triangles);
     printf(GREEN "finished" RESET);
     printf(".\n");
 	
