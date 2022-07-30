@@ -497,15 +497,6 @@ int find_scalar_points_per_inner_face(int res_id)
     return scalar_points_per_inner_face;
 }
 
-int find_triangles_per_face(int res_id)
-{
-	/*
-	This function returns the numer of triangles per face of the icosahedron given a certain resolution ID.
-	*/
-    int no_of_triangles_per_face = (int) (pow(4, res_id));
-    return no_of_triangles_per_face;
-}
-
 int build_icosahedron(double latitude_ico[], double longitude_ico[], int edge_vertices[][2], int face_vertices[][3], int face_edges[][3], int face_edges_reverse[][3])
 {
 	/*

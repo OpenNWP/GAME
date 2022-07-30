@@ -45,7 +45,7 @@ int generate_horizontal_generators(double latitude_ico[], double longitude_ico[]
 	{
 	    for (int j = 0; j < RES_ID; ++j)
 	    {
-	        no_of_triangles_per_face = find_triangles_per_face(j);
+	        no_of_triangles_per_face = pow(4, j);
 	        for (int k = 0; k < no_of_triangles_per_face; ++k)
 	        {
 	            if (j == 0)
