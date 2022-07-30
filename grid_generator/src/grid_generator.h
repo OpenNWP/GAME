@@ -16,7 +16,6 @@ int find_triangle_indices_from_h_vector_index(int, int, int *, int *, int *, int
 int find_triangle_edge_points(int, int, int, int *, int *, int *, int *, int *, int *, int *, int [][3], int [][3], int [][3]);
 int build_icosahedron(double [], double [], int [][2], int [][3], int [][3], int [][3]);
 int generate_horizontal_generators(double [], double [], double [], double [], double [], double [], double [], int [][3], int [][3], int [][3]);
-int calc_inner_product(double [], double [], double [], int [], int [], double [], double [], double [], int []);
 int coriolis(int [], int [], int [], double [], double [], int [], double [], double [], double [], double [], double [], double [], double [], double [], double [], int [], int [], int [], double [], double [], double);
 int set_z_scalar(double [], double [], int, double, double);
 int set_f_vec(double [], double [], double [], double [], double);
@@ -75,6 +74,7 @@ extern int sort_vertex_indices();
 extern double calc_spherical_polygon_area();
 extern int set_gravity_potential();
 extern int set_volume();
+extern int calc_inner_product();
 
 
 

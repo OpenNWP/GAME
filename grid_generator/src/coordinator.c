@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
     printf(".\n");
     
     printf("Calculating inner product weights ... ");
-	calc_inner_product(inner_product_weights, normal_distance, volume, to_index, from_index, area, z_scalar, z_vector, adjacent_vector_indices_h);
+	calc_inner_product(inner_product_weights, normal_distance, volume, area, z_scalar, z_vector, adjacent_vector_indices_h);
     printf(GREEN "finished" RESET);
     printf(".\n");
     
