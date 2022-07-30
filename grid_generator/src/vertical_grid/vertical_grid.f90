@@ -29,9 +29,9 @@ module vertical_grid
   bind(c,name = "set_gravity_potential")
 
     ! This subroutine computes the gravity potential.
-    real(c_double), intent(in)  :: z_scalar(no_of_scalars)
-    real(c_double), intent(out) :: gravity_potential(no_of_scalars)
-    real(c_double), intent(in)  :: radius
+    real(wp), intent(in)  :: z_scalar(no_of_scalars)
+    real(wp), intent(out) :: gravity_potential(no_of_scalars)
+    real(wp), intent(in)  :: radius
   
     ! local variables
     integer(c_int) :: ji
@@ -52,14 +52,14 @@ module vertical_grid
 
     ! This subroutine computes the volumes of the grid boxes.
   
-    real(c_double), intent(out) :: volume(no_of_scalars)
-    real(c_double), intent(in)  :: z_vector(no_of_vectors)
-    real(c_double), intent(in)  :: area(no_of_vectors)
-    real(c_double), intent(in)  :: radius
+    real(wp), intent(out) :: volume(no_of_scalars)
+    real(wp), intent(in)  :: z_vector(no_of_vectors)
+    real(wp), intent(in)  :: area(no_of_vectors)
+    real(wp), intent(in)  :: radius
   
     ! local variables
     integer(c_int) :: ji,layer_index,h_index
-    real(c_double) :: radius_1,radius_2, base_area
+    real(wp) :: radius_1,radius_2, base_area
     
     call grid_nml_setup()
     
@@ -81,11 +81,11 @@ module vertical_grid
   
     ! This function returns the temperature in the standard atmosphere.
     
-    real(c_double), intent(in) :: z_height
-    real(c_double)             :: standard_temp
+    real(wp), intent(in) :: z_height
+    real(wp)             :: standard_temp
     
     ! local variables
-    real(c_double) :: tropo_temp_standard
+    real(wp) :: tropo_temp_standard
     
     tropo_temp_standard = surface_temp-tropo_height*lapse_rate
     
@@ -103,11 +103,11 @@ module vertical_grid
   bind(c,name = "standard_pres")
   
     ! This function returns the pressure in the standard atmosphere.
-    real(c_double), intent(in) :: z_height
-    real(c_double)             :: standard_pres
+    real(wp), intent(in) :: z_height
+    real(wp)             :: standard_pres
  
     ! local variables
-    real(c_double) :: tropo_temp_standard,pressure_at_inv_standard
+    real(wp) :: tropo_temp_standard,pressure_at_inv_standard
     
     tropo_temp_standard = surface_temp-tropo_height*lapse_rate
     
@@ -131,10 +131,10 @@ module vertical_grid
   
     ! This subroutine sets the z coordinates of the dual scalar points.
   
-    real(c_double), intent(out) :: z_scalar_dual(no_of_dual_scalars)
-    real(c_double), intent(in)  :: z_vector(no_of_vectors)
-    integer(c_int), intent(in)  :: from_index(no_of_vectors_h),to_index(no_of_vectors_h), &
-                                   vorticity_indices_triangles(3*no_of_dual_scalars_h)
+    real(wp), intent(out)      :: z_scalar_dual(no_of_dual_scalars)
+    real(wp), intent(in)       :: z_vector(no_of_vectors)
+    integer(c_int), intent(in) :: from_index(no_of_vectors_h),to_index(no_of_vectors_h), &
+                                  vorticity_indices_triangles(3*no_of_dual_scalars_h)
 
     ! local variables
     integer(c_int) :: ji,layer_index,h_index
@@ -163,12 +163,12 @@ module vertical_grid
 
     ! This subroutine sets the hydrostatic background state.
     
-    real(c_double), intent(in)  :: z_scalar(no_of_scalars),gravity_potential(no_of_scalars)
-    real(c_double), intent(out) :: theta_v_bg(no_of_scalars),exner_bg(no_of_scalars)
+    real(wp), intent(in)  :: z_scalar(no_of_scalars),gravity_potential(no_of_scalars)
+    real(wp), intent(out) :: theta_v_bg(no_of_scalars),exner_bg(no_of_scalars)
   
     ! local variables
     integer(c_int) :: h_index,layer_index,scalar_index
-    real(c_double) :: temperature,pressure,b,c
+    real(wp) :: temperature,pressure,b,c
   
     call grid_nml_setup()
   

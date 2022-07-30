@@ -23,14 +23,14 @@ module inner_product
 
     ! This subroutine computes the geometrical weights for computing the inner product.
 
-    real(c_double), intent(out) :: inner_product_weights(8*no_of_scalars)
-    real(c_double), intent(in)  :: normal_distance(no_of_vectors),volume(no_of_scalars),area(no_of_vectors), &
-                                   z_scalar(no_of_scalars),z_vector(no_of_vectors)
-    integer(c_int), intent(in)  :: adjacent_vector_indices_h(6*no_of_scalars_h)
+    real(wp), intent(out)      :: inner_product_weights(8*no_of_scalars)
+    real(wp), intent(in)       :: normal_distance(no_of_vectors),volume(no_of_scalars),area(no_of_vectors), &
+                                  z_scalar(no_of_scalars),z_vector(no_of_vectors)
+    integer(c_int), intent(in) :: adjacent_vector_indices_h(6*no_of_scalars_h)
 
     ! local variables
     integer(c_int) :: ji,jk,layer_index,h_index
-    real(c_double) :: delta_z
+    real(wp) :: delta_z
     
     call grid_nml_setup()
     

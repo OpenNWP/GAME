@@ -20,8 +20,8 @@ module definitions
   integer, parameter :: pd = 12
   integer, parameter :: rd = 37
   
-  integer, parameter :: sp = SELECTED_REAL_KIND(ps,rs) ! single precission
-  integer, parameter :: dp = SELECTED_REAL_KIND(pd,rd) ! double precission
+  integer, parameter :: sp = selected_real_kind(ps,rs) ! single precission
+  integer, parameter :: dp = selected_real_kind(pd,rd) ! double precission
   
   integer, parameter :: wp = dp                        ! working precission
 

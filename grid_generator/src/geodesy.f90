@@ -39,11 +39,11 @@ module geodesy
   
     ! This function returns the Euclidian distance of two points.
     
-    real(c_double), intent(in) :: lat_2_in,lon_2_in,lat_3_in,lon_3_in,radius_1,radius_2
-    real(c_double)             :: calculate_distance_cart
+    real(wp), intent(in) :: lat_2_in,lon_2_in,lat_3_in,lon_3_in,radius_1,radius_2
+    real(wp)             :: calculate_distance_cart
     
     ! local variables
-    real(c_double) :: x_1,y_1,z_1,x_2,y_2,z_2
+    real(wp) :: x_1,y_1,z_1,x_2,y_2,z_2
     
     calculate_distance_cart = 0._wp
     
@@ -69,8 +69,8 @@ module geodesy
   
     ! This function returns the geodetic distance of two points given their geographical coordinates.
     
-    real(c_double), intent(in) :: latitude_a,longitude_a,latitude_b,longitude_b,radius
-    real(c_double)             :: calculate_distance_h
+    real(wp), intent(in) :: latitude_a,longitude_a,latitude_b,longitude_b,radius
+    real(wp)             :: calculate_distance_h
     
     calculate_distance_h = 2._wp*radius*asin(sqrt(0.5-0.5*(cos(latitude_a)*cos(latitude_b) &
     *cos(longitude_b-longitude_a)+sin(latitude_a)*sin(latitude_b))))
@@ -82,11 +82,11 @@ module geodesy
 
     ! This subroutine calculates the geographical coordinates of a point on a geodetic between two points.
     
-    real(c_double), intent(in)  :: lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau
-    real(c_double), intent(out) :: lat_out,lon_out
+    real(wp), intent(in)  :: lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau
+    real(wp), intent(out) :: lat_out,lon_out
     
     ! local variables
-    real(c_double) :: d,theta,tau_dash,x,y,z
+    real(wp) :: d,theta,tau_dash,x,y,z
     
     d = calculate_distance_cart(lat_2_in,lon_2_in,lat_3_in,lon_3_in,1._wp,1._wp)
     theta = 2._wp*asin(d/2._wp)
@@ -105,11 +105,11 @@ module geodesy
     ! This function calculates the geodetic direction between two points given their geographical coordinates at a certain point
     ! (defined by the parameter tau) between them.
     
-    real(c_double), intent(in) :: lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau
-    real(c_double)             :: find_geodetic_direction
+    real(wp), intent(in) :: lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau
+    real(wp)             :: find_geodetic_direction
     
     ! local variables
-    real(c_double) :: rel_vec(3),local_i(3),local_j(3),lat,lon,x_comp,y_comp
+    real(wp) :: rel_vec(3),local_i(3),local_j(3),lat,lon,x_comp,y_comp
     
     rel_vec(1) = cos(lat_3_in)*cos(lon_3_in) - cos(lat_2_in)*cos(lon_2_in)
     rel_vec(2) = cos(lat_3_in)*sin(lon_3_in) - cos(lat_2_in)*sin(lon_2_in)
@@ -128,8 +128,8 @@ module geodesy
   
     ! This subroutine calculates the local eastward basis vector.
     
-    real(c_double), intent(in)  :: lon
-    real(c_double), intent(out) :: result_vec(3)
+    real(wp), intent(in)  :: lon
+    real(wp), intent(out) :: result_vec(3)
     
     result_vec(1) = -sin(lon)
     result_vec(2) = cos(lon)
@@ -142,8 +142,8 @@ module geodesy
   
     ! This subroutine turns a vector in R^2 around the z-axis.
     
-    real(c_double), intent(in)  :: x_in,y_in,turn_angle
-    real(c_double), intent(out) :: x_out,y_out
+    real(wp), intent(in)  :: x_in,y_in,turn_angle
+    real(wp), intent(out) :: x_out,y_out
     
     x_out = cos(turn_angle)*x_in-sin(turn_angle)*y_in
     y_out = sin(turn_angle)*x_in+cos(turn_angle)*y_in
@@ -155,8 +155,8 @@ module geodesy
   
     ! This subroutine turns a vector in R^2 around the z-axis.
     
-    real(c_double), intent(in)  :: x_in,y_in,turn_angle
-    real(c_double), intent(out) :: x_out,y_out
+    real(wp), intent(in)  :: x_in,y_in,turn_angle
+    real(wp), intent(out) :: x_out,y_out
     
     call active_turn(x_in,y_in,-turn_angle,x_out,y_out)
   
@@ -167,8 +167,8 @@ module geodesy
   
     ! This subroutine calculates the coordinates of a point on a straight line between two other points.
     
-    real(c_double), intent(in)  :: x_0,y_0,z_0,x_1,y_1,z_1,rel_on_line
-    real(c_double), intent(out) :: x_out,y_out,z_out
+    real(wp), intent(in)  :: x_0,y_0,z_0,x_1,y_1,z_1,rel_on_line
+    real(wp), intent(out) :: x_out,y_out,z_out
     
     x_out = x_0+rel_on_line*(x_1-x_0)
     y_out = y_0+rel_on_line*(y_1-y_0)
@@ -181,8 +181,8 @@ module geodesy
   
     ! This subroutine calculates the local northward basis vector.
     
-    real(c_double), intent(in)  :: lat,lon
-    real(c_double), intent(out) :: result_vec(3)
+    real(wp), intent(in)  :: lat,lon
+    real(wp), intent(out) :: result_vec(3)
     
     result_vec(1) = -sin(lat)*cos(lon)
     result_vec(2) = -sin(lat)*sin(lon)
@@ -195,8 +195,8 @@ module geodesy
   
     ! This subroutine calculates the geographical coordinates of a point given its Cartesian coordinates
     
-    real(c_double), intent(in)  :: x,y,z
-    real(c_double), intent(out) :: lat_out,lon_out
+    real(wp), intent(in)  :: x,y,z
+    real(wp), intent(out) :: lat_out,lon_out
 
     lat_out = asin(z/sqrt(x**2+y**2+z**2))
     lon_out = atan2(y,x)
@@ -208,8 +208,8 @@ module geodesy
   
     ! This subroutine calculates the Cartesian normal vector of a point given its geographical coordinates.
     
-    real(c_double), intent(in)  :: lat,lon
-    real(c_double), intent(out) :: x,y,z
+    real(wp), intent(in)  :: lat,lon
+    real(wp), intent(out) :: x,y,z
 
     x = cos(lat)*cos(lon)
     y = cos(lat)*sin(lon)
@@ -222,9 +222,9 @@ module geodesy
   
     ! This subroutine turns a vector in R^3 around the x-axis.
     
-    real(c_double), intent(in)  :: angle
-    real(c_double), intent(in)  :: vector_in(3)
-    real(c_double), intent(out) :: vector_out(3)
+    real(wp), intent(in)  :: angle
+    real(wp), intent(in)  :: vector_in(3)
+    real(wp), intent(out) :: vector_out(3)
     
     vector_out(1) = vector_in(1)
     vector_out(2) = cos(angle)*vector_in(2) - sin(angle)*vector_in(3)
@@ -237,8 +237,8 @@ module geodesy
   
     ! This function converts an angle in radians to an angle in degrees.
     
-    real(c_double), intent(in) :: input
-    real(c_double)             :: rad2deg
+    real(wp), intent(in) :: input
+    real(wp)             :: rad2deg
     
     rad2deg = input*360._wp/(2._wp*M_PI)
     
@@ -249,8 +249,8 @@ module geodesy
   
     ! This function converts an angle in degrees to an angle in radians.
     
-    real(c_double), intent(in) :: input
-    real(c_double)             :: deg2rad
+    real(wp), intent(in) :: input
+    real(wp)             :: deg2rad
     
     deg2rad = input*2._wp*M_PI/360._wp
     
@@ -261,8 +261,8 @@ module geodesy
   
     ! This function calculates the area of a vertical face (side face of a gridbox).
     
-    real(c_double), intent(in) :: base_distance,r_1,r_2
-    real(c_double)             :: calculate_vertical_area
+    real(wp), intent(in) :: base_distance,r_1,r_2
+    real(wp)             :: calculate_vertical_area
     
     calculate_vertical_area = base_distance*(0.5*r_2**2/r_1 - 0.5*r_1)
     
@@ -273,8 +273,8 @@ module geodesy
   
     ! This function returns the scalar product of two three-dimensional vectors.
     
-    real(c_double), intent(in) :: vector_a(3),vector_b(3)
-    real(c_double)             :: scalar_product_elementary
+    real(wp), intent(in) :: vector_a(3),vector_b(3)
+    real(wp)             :: scalar_product_elementary
     
     ! local variables
     integer :: ji
@@ -292,8 +292,8 @@ module geodesy
   
     ! This function returns the scalar product of two two-dimensional vectors.
     
-    real(c_double), intent(in) :: vector_a(2),vector_b(2)
-    real(c_double)             :: scalar_product_elementary_2d
+    real(wp), intent(in) :: vector_a(2),vector_b(2)
+    real(wp)             :: scalar_product_elementary_2d
     
     ! local variables
     integer :: ji
@@ -311,8 +311,8 @@ module geodesy
   
     ! This function returns the turn angle between two angles.
     
-    real(c_double), intent(in) :: angle_0,angle_1
-    real(c_double)             :: find_turn_angle
+    real(wp), intent(in) :: angle_0,angle_1
+    real(wp)             :: find_turn_angle
     
     find_turn_angle = angle_1 - angle_0
     
@@ -330,8 +330,8 @@ module geodesy
   
     ! This subroutine computes the cross product in Cartesian coordinates.
     
-    real(c_double), intent(in)  :: a_vector(3),b_vector(3)
-    real(c_double), intent(out) :: result_vector(3) 
+    real(wp), intent(in)  :: a_vector(3),b_vector(3)
+    real(wp), intent(out) :: result_vector(3) 
 
     result_vector(1) = a_vector(2)*b_vector(3) - a_vector(3)*b_vector(2)
     result_vector(2) = a_vector(3)*b_vector(1) - a_vector(1)*b_vector(3)
@@ -344,11 +344,11 @@ module geodesy
   
     ! This subroutine normalizes a Cartesian vector.
     
-    real(c_double), intent(in)  :: x_in,y_in,z_in
-    real(c_double), intent(out) :: x_out,y_out,z_out
+    real(wp), intent(in)  :: x_in,y_in,z_in
+    real(wp), intent(out) :: x_out,y_out,z_out
 
     ! local variables
-    real(c_double) :: length
+    real(wp) :: length
 
     length = sqrt(x_in**2 + y_in**2 + z_in**2)
     x_out = x_in/length
@@ -362,11 +362,11 @@ module geodesy
     
     ! This subroutine calculates the Voronoi center of three points given their geographical coordinates.
 
-    real(c_double), intent(in)  :: lat_1_in,lon_1_in,lat_2_in,lon_2_in,lat_3_in,lon_3_in
-    real(c_double), intent(out) :: lat_out,lon_out
+    real(wp), intent(in)  :: lat_1_in,lon_1_in,lat_2_in,lon_2_in,lat_3_in,lon_3_in
+    real(wp), intent(out) :: lat_out,lon_out
     
     ! local variables
-    real(c_double) :: x_0,y_0,z_0,x_1,y_1,z_1,x_2,y_2,z_3,rel_vector_0(3),rel_vector_1(3),cross_product_result(3)
+    real(wp) :: x_0,y_0,z_0,x_1,y_1,z_1,x_2,y_2,z_3,rel_vector_0(3),rel_vector_1(3),cross_product_result(3)
     
     call find_global_normal(lat_1_in,lon_1_in,x_0,y_0,z_0)
     call find_global_normal(lat_2_in,lon_2_in,x_1,y_1,z_1)
@@ -387,11 +387,11 @@ module geodesy
 
     ! This function calculates the area of a spherical triangle.
     
-    real(c_double), intent(in) :: lat_1_in,lon_1_in,lat_2_in,lon_2_in,lat_3_in,lon_3_in
-    real(c_double)             :: calc_triangle_area
+    real(wp), intent(in) :: lat_1_in,lon_1_in,lat_2_in,lon_2_in,lat_3_in,lon_3_in
+    real(wp)             :: calc_triangle_area
     
     ! local variables
-    real(c_double) :: lat_1,lon_1,lat_2,lon_2,lat_3,lon_3, &
+    real(wp) :: lat_1,lon_1,lat_2,lon_2,lat_3,lon_3, &
     average_latitude,x_1,y_1,z_1,x_2,y_2,z_2,x_3,y_3,z_3, &
     angle_1,angle_2,angle_3, &
     dir_12,dir_13,dir_21,dir_23,dir_31,dir_32, &
@@ -467,13 +467,13 @@ module geodesy
     
     ! This function calculates where a geodetic is the closest to a certain point.
     
-    real(c_double), intent(in) :: lat_0,lon_0,lat_1,lon_1,lat_point,lon_point
-    real(c_double)             :: rel_on_line
+    real(wp), intent(in) :: lat_0,lon_0,lat_1,lon_1,lat_point,lon_point
+    real(wp)             :: rel_on_line
     
     ! local variables
-    integer                     :: number_of_points,ji,min_index
-    real(c_double), allocatable :: dist_vector(:)
-    real(c_double)              :: lat,lon,tau
+    integer               :: number_of_points,ji,min_index
+    real(wp), allocatable :: dist_vector(:)
+    real(wp)              :: lat,lon,tau
     
     number_of_points = 1001
     
@@ -500,13 +500,13 @@ module geodesy
     ! This subroutine sorts the vertices of a polygon in positive mathematical direction.
     
     integer(c_int), intent(in)  :: number_of_vertices
-    real(c_double), intent(in)  :: lat_points(number_of_vertices),lon_points(number_of_vertices)
+    real(wp),       intent(in)  :: lat_points(number_of_vertices),lon_points(number_of_vertices)
     integer(c_int), intent(out) :: indices_resorted(number_of_vertices)
     
     ! local variables
     integer        :: ji,jk,index_array(number_of_vertices-1),first_index,second_index,third_index,index_candidates(2),check, &
                       needs_to_be_reversed,counter,neighbour(2*number_of_vertices),indices_resorted_w_dir(number_of_vertices)
-    real(c_double) :: x_center,y_center,z_center,x_points(number_of_vertices), &
+    real(wp) :: x_center,y_center,z_center,x_points(number_of_vertices), &
                       y_points(number_of_vertices),z_points(number_of_vertices), &
                       lat_center,lon_center,distance_candidate,distance_array(number_of_vertices-1),angle_sum, &
                       new_direction,direction_1,direction_2
@@ -608,14 +608,14 @@ module geodesy
     ! This function calculates the area of a spherical polygon.
     
     integer(c_int), intent(in) :: number_of_edges
-    real(c_double), intent(in) :: lat_points(number_of_edges),lon_points(number_of_edges)
-    real(c_double)             :: calc_spherical_polygon_area
+    real(wp), intent(in)       :: lat_points(number_of_edges),lon_points(number_of_edges)
+    real(wp)                   :: calc_spherical_polygon_area
     
     ! local variables
-    real(c_double) :: x_points(number_of_edges),y_points(number_of_edges),z_points(number_of_edges), &
-                      x_center,y_center,z_center,lat_center,lon_center,triangle_surfaces(number_of_edges), &
-                      lat_points_sorted(number_of_edges),lon_points_sorted(number_of_edges)
-    integer        :: ji,indices_resorted(number_of_edges)
+    real(wp) :: x_points(number_of_edges),y_points(number_of_edges),z_points(number_of_edges), &
+                x_center,y_center,z_center,lat_center,lon_center,triangle_surfaces(number_of_edges), &
+                lat_points_sorted(number_of_edges),lon_points_sorted(number_of_edges)
+    integer  :: ji,indices_resorted(number_of_edges)
     
     ! calculating the normalized Cartesian coordinates of the vertex points
     do ji=1,number_of_edges

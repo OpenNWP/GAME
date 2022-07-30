@@ -25,12 +25,12 @@ module index_helpers
     ! This function returns the index where a vector has its minimum.
     
     integer(c_int), intent(in) :: vector_length
-    real(c_double), intent(in) :: vector(vector_length)
+    real(wp), intent(in)       :: vector(vector_length)
     integer(c_int)             :: find_min_index
     
     ! local variables
     integer        :: ji
-    real(c_double) :: current_min
+    real(wp) :: current_min
     
     find_min_index = 1
     current_min = vector(1)
@@ -52,14 +52,14 @@ module index_helpers
     ! This function finds the index where a vector has its minimum, excluding the elements of another vector.
     
     integer(c_int), intent(in) :: vector_length
-    real(c_double), intent(in) :: vector(vector_length)
+    real(wp), intent(in)       :: vector(vector_length)
     integer(c_int), intent(in) :: exclude_indices_vector_length
     integer(c_int), intent(in) :: exclude_indices_vector(exclude_indices_vector_length)
     integer(c_int)             :: find_min_index_exclude
     
     ! local variables
     integer        :: ji
-    real(c_double) :: current_min
+    real(wp) :: current_min
     
     current_min = maxval(vector) + 1._wp
     find_min_index_exclude = 0
@@ -88,12 +88,12 @@ module index_helpers
     ! This function returns the index where a vector has its maximum.
     
     integer(c_int), intent(in) :: vector_length
-    real(c_double), intent(in) :: vector(vector_length)
+    real(wp), intent(in)       :: vector(vector_length)
     integer(c_int)             :: find_max_index
     
     ! local variables
     integer        :: ji
-    real(c_double) :: current_min
+    real(wp) :: current_min
     
     find_max_index = 1
     current_min = vector(1)
