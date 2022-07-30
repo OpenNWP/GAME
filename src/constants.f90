@@ -18,7 +18,8 @@ module constants
   real(c_double) :: density_water = 1024.    ! typical density of water
   real(c_double) :: p_0 = 100000.            ! reference pressure
   real(c_double) :: omega = 7.292115e-5      ! angular frequency of Earth rotation
-  real(c_double) :: gravity = 9.80616_c_double        ! average surface gravity value
+  real(c_double) :: gravity = 9.80616_c_double ! average surface gravity value
+  real(c_double) :: r_d = 287.057811_c_double ! specific gas constant of dry air
   
   ! non-physical constants
   ! ----------------------

@@ -6,7 +6,8 @@ module vertical_grid
   ! This file contains functions that compute properties of the vertical grid.
 
   use iso_c_binding
-  use constants, only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv
+  use constants, only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv,r_d, &
+                       p_0_standard
   use grid_nml,  only: no_of_scalars_h,no_of_scalars,no_of_vectors_per_layer, &
                        no_of_vectors,grid_nml_setup
   
@@ -93,7 +94,39 @@ module vertical_grid
     
   end function standard_temp
 
+  function standard_pres(z_height) &
+  bind(c,name = "standard_pres")
+  
+    ! This function returns the pressure in the standard atmosphere.
+    real(c_double), intent(in) :: z_height
+    real(c_double)             :: standard_pres
+ 
+    ! local variables
+    real(c_double) :: tropo_temp_standard,pressure_at_inv_standard
+    
+    tropo_temp_standard = surface_temp-tropo_height*lapse_rate
+    
+    if (z_height<tropo_height) then
+      standard_pres = p_0_standard*(1._c_double-lapse_rate*z_height/surface_temp)**(gravity/(r_d*lapse_rate))
+    else if (z_height<inv_height) then
+      standard_pres = p_0_standard*(1._c_double-lapse_rate*tropo_height/surface_temp) &
+      **(gravity/(r_d*lapse_rate)) &
+      *exp(-gravity*(z_height-tropo_height)/(r_d*tropo_temp_standard))
+    else
+      pressure_at_inv_standard = p_0_standard*(1._c_double-lapse_rate*tropo_height/surface_temp) &
+      **(gravity/(r_d*lapse_rate))*exp(-gravity*(inv_height-tropo_height)/(r_d*tropo_temp_standard))
+      standard_pres = pressure_at_inv_standard*(1._c_double-lapse_rate*(z_height-inv_height)/surface_temp) &
+      **(gravity/(r_d*lapse_rate))
+    endif
+    
+  end function standard_pres
+
 end module vertical_grid
+
+
+
+
+
 
 
 

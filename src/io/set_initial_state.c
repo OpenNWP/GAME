@@ -172,7 +172,7 @@ int set_ideal_init(State *state, Grid* grid, Dualgrid* dualgrid, Diagnostics *di
         {
             temperature[i] = standard_temp(&z_height);
             temperature_v[i] = temperature[i];
-            pressure[i] = standard_pres(z_height);
+            pressure[i] = standard_pres(&z_height);
         }
         // dry Ullrich test
         if (ideal_input_id == 1)
