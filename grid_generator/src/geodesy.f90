@@ -6,6 +6,7 @@ module geodesy
   ! This file contains functions calculating geodesic operations.
 
   use iso_c_binding
+  use definitions,   only: wp
   use constants,     only: M_PI
   use index_helpers, only: find_min_index,in_bool_checker
   
@@ -44,10 +45,10 @@ module geodesy
     ! local variables
     real(c_double) :: x_1,y_1,z_1,x_2,y_2,z_2
     
-    calculate_distance_cart = 0._c_double
+    calculate_distance_cart = 0._wp
     
     if (lat_2_in==lat_3_in .and. lon_2_in==lon_3_in) then
-      calculate_distance_cart = 0._c_double
+      calculate_distance_cart = 0._wp
       return
     endif
     
@@ -71,7 +72,7 @@ module geodesy
     real(c_double), intent(in) :: latitude_a,longitude_a,latitude_b,longitude_b,radius
     real(c_double)             :: calculate_distance_h
     
-    calculate_distance_h = 2._c_double*radius*asin(sqrt(0.5-0.5*(cos(latitude_a)*cos(latitude_b) &
+    calculate_distance_h = 2._wp*radius*asin(sqrt(0.5-0.5*(cos(latitude_a)*cos(latitude_b) &
     *cos(longitude_b-longitude_a)+sin(latitude_a)*sin(latitude_b))))
     
   end function calculate_distance_h
@@ -87,12 +88,12 @@ module geodesy
     ! local variables
     real(c_double) :: d,theta,tau_dash,x,y,z
     
-    d = calculate_distance_cart(lat_2_in,lon_2_in,lat_3_in,lon_3_in,1._c_double,1._c_double)
-    theta = 2._c_double*asin(d/2._c_double)
-    tau_dash = 0.5 + sqrt(1._c_double/d**2 - 0.25_c_double)*tan(theta*(tau - 0.5))
-    x = tau_dash*cos(lat_3_in)*cos(lon_3_in) + (1._c_double - tau_dash)*cos(lat_2_in)*cos(lon_2_in)
-    y = tau_dash*cos(lat_3_in)*sin(lon_3_in) + (1._c_double - tau_dash)*cos(lat_2_in)*sin(lon_2_in)
-    z = tau_dash*sin(lat_3_in) + (1._c_double- tau_dash)*sin(lat_2_in)
+    d = calculate_distance_cart(lat_2_in,lon_2_in,lat_3_in,lon_3_in,1._wp,1._wp)
+    theta = 2._wp*asin(d/2._wp)
+    tau_dash = 0.5 + sqrt(1._wp/d**2 - 0.25_wp)*tan(theta*(tau - 0.5))
+    x = tau_dash*cos(lat_3_in)*cos(lon_3_in) + (1._wp - tau_dash)*cos(lat_2_in)*cos(lon_2_in)
+    y = tau_dash*cos(lat_3_in)*sin(lon_3_in) + (1._wp - tau_dash)*cos(lat_2_in)*sin(lon_2_in)
+    z = tau_dash*sin(lat_3_in) + (1._wp- tau_dash)*sin(lat_2_in)
     lat_out = asin(z/sqrt(x**2 + y**2 + z**2))
     lon_out = atan2(y,x)
   
@@ -132,7 +133,7 @@ module geodesy
     
     result_vec(1) = -sin(lon)
     result_vec(2) = cos(lon)
-    result_vec(3) = 0._c_double
+    result_vec(3) = 0._wp
     
   end subroutine calc_local_i
 
@@ -239,7 +240,7 @@ module geodesy
     real(c_double), intent(in) :: input
     real(c_double)             :: rad2deg
     
-    rad2deg = input*360._c_double/(2._c_double*M_PI)
+    rad2deg = input*360._wp/(2._wp*M_PI)
     
   end function rad2deg
 
@@ -251,7 +252,7 @@ module geodesy
     real(c_double), intent(in) :: input
     real(c_double)             :: deg2rad
     
-    deg2rad = input*2._c_double*M_PI/360._c_double
+    deg2rad = input*2._wp*M_PI/360._wp
     
   end function deg2rad
 
@@ -278,7 +279,7 @@ module geodesy
     ! local variables
     integer :: ji
     
-    scalar_product_elementary = 0._c_double
+    scalar_product_elementary = 0._wp
     
     do ji=1,3
       scalar_product_elementary = scalar_product_elementary + vector_a(ji)*vector_b(ji)
@@ -297,7 +298,7 @@ module geodesy
     ! local variables
     integer :: ji
     
-    scalar_product_elementary_2d = 0._c_double
+    scalar_product_elementary_2d = 0._wp
     
     do ji=1,2
       scalar_product_elementary_2d = scalar_product_elementary_2d + vector_a(ji)*vector_b(ji)
@@ -316,10 +317,10 @@ module geodesy
     find_turn_angle = angle_1 - angle_0
     
     if (find_turn_angle>M_PI) then
-      find_turn_angle = find_turn_angle - 2._c_double*M_PI
+      find_turn_angle = find_turn_angle - 2._wp*M_PI
     endif
     if (find_turn_angle<-M_PI) then
-      find_turn_angle = find_turn_angle + 2._c_double*M_PI
+      find_turn_angle = find_turn_angle + 2._wp*M_PI
     endif
     
   end function find_turn_angle
@@ -404,8 +405,8 @@ module geodesy
     lat_3 = lat_3_in
     lon_3 = lon_3_in
     
-    average_latitude = (lat_1+lat_2+lat_3)/3.0_c_double
-    if (abs(average_latitude)>0.9_c_double*M_PI/2.0_c_double) then
+    average_latitude = (lat_1+lat_2+lat_3)/3.0_wp
+    if (abs(average_latitude)>0.9_wp*M_PI/2.0_wp) then
       call find_global_normal(lat_1,lon_1,x_1,y_1,z_1)
       call find_global_normal(lat_2,lon_2,x_2,y_2,z_2)
       call find_global_normal(lat_3,lon_3,x_3,y_3,z_3)
@@ -435,12 +436,12 @@ module geodesy
       call find_geos(x_3,y_3,z_3,lat_3,lon_3)
     endif
     
-    dir_12 = find_geodetic_direction(lat_1,lon_1,lat_2,lon_2,0.0_c_double)
-    dir_13 = find_geodetic_direction(lat_1,lon_1,lat_3,lon_3,0.0_c_double)
-    dir_21 = find_geodetic_direction(lat_2,lon_2,lat_1,lon_1,0.0_c_double)
-    dir_23 = find_geodetic_direction(lat_2,lon_2,lat_3,lon_3,0.0_c_double)
-    dir_31 = find_geodetic_direction(lat_3,lon_3,lat_1,lon_1,0.0_c_double)
-    dir_32 = find_geodetic_direction(lat_3,lon_3,lat_2,lon_2,0.0_c_double)
+    dir_12 = find_geodetic_direction(lat_1,lon_1,lat_2,lon_2,0.0_wp)
+    dir_13 = find_geodetic_direction(lat_1,lon_1,lat_3,lon_3,0.0_wp)
+    dir_21 = find_geodetic_direction(lat_2,lon_2,lat_1,lon_1,0.0_wp)
+    dir_23 = find_geodetic_direction(lat_2,lon_2,lat_3,lon_3,0.0_wp)
+    dir_31 = find_geodetic_direction(lat_3,lon_3,lat_1,lon_1,0.0_wp)
+    dir_32 = find_geodetic_direction(lat_3,lon_3,lat_2,lon_2,0.0_wp)
     vector_12(1) = cos(dir_12)
     vector_12(2) = sin(dir_12)
     vector_13(1) = cos(dir_13)
@@ -479,16 +480,16 @@ module geodesy
     allocate(dist_vector(number_of_points))
 
     do ji=1,number_of_points
-      tau = ji/(number_of_points + 1._c_double)
+      tau = ji/(number_of_points + 1._wp)
       call find_geodetic(lat_0,lon_0,lat_1,lon_1,tau,lat,lon)
-      dist_vector(ji) = calculate_distance_cart(lat_point,lon_point,lat,lon,1._c_double,1._c_double)
+      dist_vector(ji) = calculate_distance_cart(lat_point,lon_point,lat,lon,1._wp,1._wp)
     enddo
     
     min_index = find_min_index(dist_vector,number_of_points) + 1
     
     deallocate(dist_vector)
     
-    rel_on_line = min_index/(number_of_points+1._c_double)
+    rel_on_line = min_index/(number_of_points+1._wp)
   
   end function rel_on_line
   
@@ -516,13 +517,13 @@ module geodesy
     enddo
     
     ! calcuating the center of the polygon in Cartesian coordinates
-    x_center = 0._c_double
-    y_center = 0._c_double
-    z_center = 0._c_double
+    x_center = 0._wp
+    y_center = 0._wp
+    z_center = 0._wp
     do ji=1,number_of_vertices
-      x_center = x_center+1._c_double/number_of_vertices*x_points(ji)
-      y_center = y_center+1._c_double/number_of_vertices*y_points(ji)
-      z_center = z_center+1._c_double/number_of_vertices*z_points(ji)
+      x_center = x_center+1._wp/number_of_vertices*x_points(ji)
+      y_center = y_center+1._wp/number_of_vertices*y_points(ji)
+      z_center = z_center+1._wp/number_of_vertices*z_points(ji)
     enddo
     call find_geos(x_center,y_center,z_center,lat_center,lon_center)
     
@@ -531,15 +532,15 @@ module geodesy
       counter = 1
       do jk=1,number_of_vertices
         distance_candidate = calculate_distance_cart(lat_points(ji),lon_points(ji),lat_points(jk),lon_points(jk), &
-        1._c_double,1._c_double)
-        if (distance_candidate/=0._c_double) then
+        1._wp,1._wp)
+        if (distance_candidate/=0._wp) then
           index_array(counter) = jk
           distance_array(counter) = distance_candidate
           counter = counter+1
         endif
       enddo
       neighbour(2*ji-1) = index_array(find_min_index(distance_array,number_of_vertices-1)+1)
-      distance_array(find_min_index(distance_array,number_of_vertices-1)+1) = 2.1_c_double
+      distance_array(find_min_index(distance_array,number_of_vertices-1)+1) = 2.1_wp
       neighbour(2*ji) = index_array(find_min_index(distance_array,number_of_vertices-1)+1)
     enddo
     
@@ -567,22 +568,22 @@ module geodesy
     
     ! detecting if the indices have to be reversed
     needs_to_be_reversed = 0
-    angle_sum = 0._c_double
+    angle_sum = 0._wp
     do ji=1,number_of_vertices
       first_index = ji
       second_index = mod(ji,number_of_vertices)+1
       third_index = mod(ji+1,number_of_vertices)+1
       direction_1 = find_geodetic_direction(lat_points(indices_resorted(first_index)),lon_points(indices_resorted(first_index)), &
-      lat_points(indices_resorted(second_index)),lon_points(indices_resorted(second_index)),1._c_double)
+      lat_points(indices_resorted(second_index)),lon_points(indices_resorted(second_index)),1._wp)
       direction_2 = find_geodetic_direction(lat_points(indices_resorted(second_index)),lon_points(indices_resorted(second_index)), &
-      lat_points(indices_resorted(third_index)),lon_points(indices_resorted(third_index)),0._c_double)    
+      lat_points(indices_resorted(third_index)),lon_points(indices_resorted(third_index)),0._wp)    
       new_direction = find_turn_angle(direction_1,direction_2)
       angle_sum = angle_sum+new_direction    
     enddo
-    if (angle_sum<-0.9_c_double*2._c_double*M_PI) then
+    if (angle_sum<-0.9_wp*2._wp*M_PI) then
       needs_to_be_reversed = 1
     endif
-    if (abs(angle_sum)<0.99_c_double*2._c_double*M_PI .or. abs(angle_sum)>1.01_c_double*2._c_double*M_PI) then
+    if (abs(angle_sum)<0.99_wp*2._wp*M_PI .or. abs(angle_sum)>1.01_wp*2._wp*M_PI) then
       write(*,*) "Problem in function sort_vertex_indices."
       call exit(1)
     endif
@@ -622,13 +623,13 @@ module geodesy
     enddo
     
     ! calculating the center of the polygon
-    x_center = 0._c_double
-    y_center = 0._c_double
-    z_center = 0._c_double
+    x_center = 0._wp
+    y_center = 0._wp
+    z_center = 0._wp
     do ji=1,number_of_edges
-      x_center = x_center+1._c_double/number_of_edges*x_points(ji)
-      y_center = y_center+1._c_double/number_of_edges*y_points(ji)
-      z_center = z_center+1._c_double/number_of_edges*z_points(ji)
+      x_center = x_center+1._wp/number_of_edges*x_points(ji)
+      y_center = y_center+1._wp/number_of_edges*y_points(ji)
+      z_center = z_center+1._wp/number_of_edges*z_points(ji)
     enddo
     
     ! calculating the geographical coordinates of the center of the polygon
@@ -651,7 +652,7 @@ module geodesy
     enddo
     
     ! adding up the triangle surfaces
-    calc_spherical_polygon_area = 0._c_double
+    calc_spherical_polygon_area = 0._wp
     do ji=1,number_of_edges
       calc_spherical_polygon_area = calc_spherical_polygon_area + triangle_surfaces(ji)
     enddo

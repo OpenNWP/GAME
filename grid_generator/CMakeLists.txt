@@ -11,6 +11,7 @@ enable_language(Fortran)
 add_executable(
 grid_generator
 ../src/constants.f90
+../src/definitions.f90
 src/rhombus_averaging.c
 src/inner_product.f90
 src/optimize.c

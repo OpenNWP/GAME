@@ -6,10 +6,11 @@ module vertical_grid
   ! This file contains functions that compute properties of the vertical grid.
 
   use iso_c_binding
-  use constants, only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv,r_d, &
-                       p_0_standard,c_d_p,p_0
-  use grid_nml,  only: no_of_scalars_h,no_of_scalars,no_of_vectors_per_layer,no_of_layers, &
-                       no_of_vectors,no_of_dual_scalars_h,no_of_dual_scalars,no_of_vectors_h,grid_nml_setup
+  use definitions, only: wp
+  use constants,   only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv,r_d, &
+                         p_0_standard,c_d_p,p_0
+  use grid_nml,    only: no_of_scalars_h,no_of_scalars,no_of_vectors_per_layer,no_of_layers, &
+                         no_of_vectors,no_of_dual_scalars_h,no_of_dual_scalars,no_of_vectors_h,grid_nml_setup
   
   implicit none
   
@@ -69,7 +70,7 @@ module vertical_grid
       base_area = area(h_index+(layer_index+1)*no_of_vectors_per_layer)
       radius_1 = radius+z_vector(h_index+(layer_index+1)*no_of_vectors_per_layer)
       radius_2 = radius+z_vector(h_index+layer_index*no_of_vectors_per_layer)
-      volume(ji) = base_area/(3._c_double*radius_1**2)*(radius_2**3-radius_1**3)
+      volume(ji) = base_area/(3._wp*radius_1**2)*(radius_2**3-radius_1**3)
     enddo
     !$omp end parallel do
     
@@ -111,15 +112,15 @@ module vertical_grid
     tropo_temp_standard = surface_temp-tropo_height*lapse_rate
     
     if (z_height<tropo_height) then
-      standard_pres = p_0_standard*(1._c_double-lapse_rate*z_height/surface_temp)**(gravity/(r_d*lapse_rate))
+      standard_pres = p_0_standard*(1._wp-lapse_rate*z_height/surface_temp)**(gravity/(r_d*lapse_rate))
     else if (z_height<inv_height) then
-      standard_pres = p_0_standard*(1._c_double-lapse_rate*tropo_height/surface_temp) &
+      standard_pres = p_0_standard*(1._wp-lapse_rate*tropo_height/surface_temp) &
       **(gravity/(r_d*lapse_rate)) &
       *exp(-gravity*(z_height-tropo_height)/(r_d*tropo_temp_standard))
     else
-      pressure_at_inv_standard = p_0_standard*(1._c_double-lapse_rate*tropo_height/surface_temp) &
+      pressure_at_inv_standard = p_0_standard*(1._wp-lapse_rate*tropo_height/surface_temp) &
       **(gravity/(r_d*lapse_rate))*exp(-gravity*(inv_height-tropo_height)/(r_d*tropo_temp_standard))
-      standard_pres = pressure_at_inv_standard*(1._c_double-lapse_rate*(z_height-inv_height)/surface_temp) &
+      standard_pres = pressure_at_inv_standard*(1._wp-lapse_rate*(z_height-inv_height)/surface_temp) &
       **(gravity/(r_d*lapse_rate))
     endif
     
@@ -145,7 +146,7 @@ module vertical_grid
       layer_index = (ji-1)/no_of_dual_scalars_h
       h_index = ji-layer_index*no_of_dual_scalars_h
       z_scalar_dual(ji) &
-      = 1._c_double/6._c_double*( &
+      = 1._wp/6._wp*( &
       z_vector(layer_index*no_of_vectors_per_layer+1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+1))) &
       + z_vector(layer_index*no_of_vectors_per_layer+1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+2))) &
       + z_vector(layer_index*no_of_vectors_per_layer+1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+3))) &
@@ -185,11 +186,11 @@ module vertical_grid
         ! other layers
         else
           ! solving a quadratic equation for the Exner pressure
-          b = -0.5_c_double*exner_bg(scalar_index + no_of_scalars_h)/standard_temp(z_scalar(scalar_index+no_of_scalars_h)) &
+          b = -0.5_wp*exner_bg(scalar_index + no_of_scalars_h)/standard_temp(z_scalar(scalar_index+no_of_scalars_h)) &
           *(temperature - standard_temp(z_scalar(scalar_index + no_of_scalars_h)) &
-          + 2._c_double/c_d_p*(gravity_potential(scalar_index) - gravity_potential(scalar_index+no_of_scalars_h)))
+          + 2._wp/c_d_p*(gravity_potential(scalar_index) - gravity_potential(scalar_index+no_of_scalars_h)))
           c = exner_bg(scalar_index+no_of_scalars_h)**2*temperature/standard_temp(z_scalar(scalar_index+no_of_scalars_h))
-          exner_bg(scalar_index) = b + (b**2 + c)**0.5_c_double
+          exner_bg(scalar_index) = b + (b**2 + c)**0.5_wp
           theta_v_bg(scalar_index) = temperature/exner_bg(scalar_index)
         endif
       enddo

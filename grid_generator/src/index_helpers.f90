@@ -6,6 +6,7 @@ module index_helpers
   ! This module contains helper functions concerned with simple algebraic operations on vectors.
 
   use iso_c_binding
+  use definitions, only: wp
   
   implicit none
   
@@ -60,7 +61,7 @@ module index_helpers
     integer        :: ji
     real(c_double) :: current_min
     
-    current_min = maxval(vector) + 1._c_double
+    current_min = maxval(vector) + 1._wp
     find_min_index_exclude = 0
     
     do ji=1,vector_length

@@ -12,6 +12,7 @@ add_executable(
 game
 src/coordinator.c
 src/constants.f90
+src/definitions.f90
 src/time_stepping/manage_pchevi.c
 src/time_stepping/manage_pressure_gradient.c
 src/time_stepping/vector_tendencies_expl.c

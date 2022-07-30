@@ -6,7 +6,8 @@ module inner_product
   ! In this file, the inner product weights are computed.
 
   use iso_c_binding
-  use grid_nml,  only: no_of_scalars_h,no_of_scalars,no_of_vectors_per_layer, &
+  use definitions, only: wp
+  use grid_nml,    only: no_of_scalars_h,no_of_scalars,no_of_vectors_per_layer, &
                        no_of_vectors,no_of_layers,no_of_pentagons,grid_nml_setup
   
   implicit none
@@ -43,26 +44,26 @@ module inner_product
                                                +1+adjacent_vector_indices_h(6*(h_index-1)+jk))
           inner_product_weights(8*(ji-1)+jk) = inner_product_weights(8*(ji-1)+jk)*normal_distance(no_of_scalars_h &
                                                +layer_index*no_of_vectors_per_layer+1+adjacent_vector_indices_h(6*(h_index-1)+jk))
-          inner_product_weights(8*(ji-1)+jk) = inner_product_weights(8*(ji-1)+jk)/(2._c_double*volume(ji))
+          inner_product_weights(8*(ji-1)+jk) = inner_product_weights(8*(ji-1)+jk)/(2._wp*volume(ji))
         else
-          inner_product_weights(8*(ji-1)+jk) = 0._c_double
+          inner_product_weights(8*(ji-1)+jk) = 0._wp
         endif
       enddo
       ! upper w
       if (layer_index==0) then
-        delta_z = 2._c_double*(z_vector(h_index)-z_scalar(ji))
+        delta_z = 2._wp*(z_vector(h_index)-z_scalar(ji))
       else
         delta_z = z_scalar(ji-no_of_scalars_h)-z_scalar(ji)
       endif
-      inner_product_weights(8*(ji-1)+7) = area(h_index+layer_index*no_of_vectors_per_layer)*delta_z/(2._c_double*volume(ji))
+      inner_product_weights(8*(ji-1)+7) = area(h_index+layer_index*no_of_vectors_per_layer)*delta_z/(2._wp*volume(ji))
       ! lower w
       if (layer_index==no_of_layers-1) then
-        delta_z = 2._c_double*(z_scalar(ji)-z_vector(no_of_layers*no_of_vectors_per_layer+h_index))
+        delta_z = 2._wp*(z_scalar(ji)-z_vector(no_of_layers*no_of_vectors_per_layer+h_index))
       else
         delta_z = z_scalar(ji)-z_scalar(ji+no_of_scalars_h)
       endif
       
-      inner_product_weights(8*(ji-1)+8) = area(h_index+(layer_index+1)*no_of_vectors_per_layer)*delta_z/(2._c_double*volume(ji))
+      inner_product_weights(8*(ji-1)+8) = area(h_index+(layer_index+1)*no_of_vectors_per_layer)*delta_z/(2._wp*volume(ji))
     
     enddo
     !$omp end parallel do

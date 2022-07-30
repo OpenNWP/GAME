@@ -6,7 +6,8 @@ module radiation
   ! This module is a coupler to RTE+RRTMGP.
   
   use iso_c_binding,
-  use mo_rte_kind,                only: wp
+  use definitions,                only: wp
+  use constants,                  only: EPSILON_SECURITY,r_d
   use mo_rrtmgp_util_string,      only: lower_case
   use mo_gas_optics_rrtmgp,       only: ty_gas_optics_rrtmgp
   use mo_load_coefficients,       only: load_and_init
@@ -16,8 +17,8 @@ module radiation
   use mo_rte_sw,                  only: rte_sw
   use mo_rte_lw,                  only: rte_lw
   use mo_optical_props,           only: ty_optical_props_1scl, &
-                                  ty_optical_props_2str, &
-                                  ty_optical_props_arry
+                                        ty_optical_props_2str, &
+                                        ty_optical_props_arry
   use mo_cloud_optics,            only: ty_cloud_optics
   use mo_load_cloud_coefficients, only: load_cld_lutcoeff, load_cld_padecoeff
   
@@ -34,7 +35,6 @@ module radiation
   integer, parameter :: no_of_lw_bands = 16
   
   ! specific gas constants
-  real(wp)           :: R_D = 287.057811_wp
   real(wp)           :: R_V = 461.524879_wp
 
   character(len = 3),dimension(wp) :: active_gases = (/ &
@@ -236,8 +236,6 @@ module radiation
     real(wp)                          :: ice_cloud_weight
     ! liquid cloud particles weight
     real(wp)                          :: liquid_cloud_weight
-    ! security margin
-    real(wp)                          :: security_margin = 1e-10
     
     ! some general preparations
     
@@ -274,7 +272,7 @@ module radiation
       do jk=1,no_of_layers
         temperature_rad(ji,jk) = temperature_gas((jk-1)*no_of_scalars_h+ji)
         ! the pressure is diagnozed here, using the equation of state for ideal gases
-        pressure_rad(ji,jk) = R_D &
+        pressure_rad(ji,jk) = r_d &
         *mass_densities(no_of_condensed_constituents*no_of_scalars &
         + (jk-1)*no_of_scalars_h+ji)*temperature_rad(ji,jk)
       enddo
@@ -291,13 +289,13 @@ module radiation
         do jk=1,no_of_layers
           base_index = (jk-1)*no_of_scalars_h
           ! the solid condensates' effective radius
-          ice_precip_weight = mass_densities(base_index+ji)+security_margin
-          ice_cloud_weight = mass_densities(2*no_of_scalars+base_index+ji)+security_margin
+          ice_precip_weight = mass_densities(base_index+ji)+EPSILON_SECURITY
+          ice_cloud_weight = mass_densities(2*no_of_scalars+base_index+ji)+EPSILON_SECURITY
           ice_eff_radius_value = (ice_precip_weight*ice_precip_radius+ice_cloud_weight*ice_cloud_radius) &
           /(ice_precip_weight+ice_cloud_weight)
           ! the liquid condensates' effective radius
-          liquid_precip_weight = mass_densities(no_of_scalars+base_index+ji)+security_margin
-          liquid_cloud_weight = mass_densities(3*no_of_scalars+base_index+ji)+security_margin
+          liquid_precip_weight = mass_densities(no_of_scalars+base_index+ji)+EPSILON_SECURITY
+          liquid_cloud_weight = mass_densities(3*no_of_scalars+base_index+ji)+EPSILON_SECURITY
           liquid_eff_radius_value = (liquid_precip_weight*liquid_precip_radius+liquid_cloud_weight*liquid_cloud_radius) &
           /(liquid_precip_weight+liquid_cloud_weight)
           ! thickness of the gridbox
@@ -802,7 +800,7 @@ module radiation
               do jl=1,no_of_layers
                 vol_mix_ratio(jk,jl) = & 
                 mass_densities((no_of_condensed_constituents+1)*no_of_scalars+day_indices(jk)+(jl-1)*no_of_scalars_h)*R_V/ &
-                (mass_densities(no_of_condensed_constituents*no_of_scalars+day_indices(jk)+(jl-1)*no_of_scalars_h)*R_D)
+                (mass_densities(no_of_condensed_constituents*no_of_scalars+day_indices(jk)+(jl-1)*no_of_scalars_h)*r_d)
               enddo
             enddo
           ! in the long wave case,all points matter
@@ -811,7 +809,7 @@ module radiation
               do jl=1,no_of_layers
                 vol_mix_ratio(jk,jl) = & 
                 mass_densities((no_of_condensed_constituents+1)*no_of_scalars+jk+(jl-1)*no_of_scalars_h)*R_V/ &
-                (mass_densities(no_of_condensed_constituents*no_of_scalars+jk+(jl-1)*no_of_scalars_h)*R_D)
+                (mass_densities(no_of_condensed_constituents*no_of_scalars+jk+(jl-1)*no_of_scalars_h)*r_d)
               enddo
             enddo
           endif
@@ -878,7 +876,7 @@ module radiation
     character(len = *), intent(in) :: error_message
     
     ! write the error message if its real length is larger than zero
-    if (len(trim(error_message)) > 0) then
+    if (len(trim(error_message))>0) then
       write(*,*) error_message
     endif
   
