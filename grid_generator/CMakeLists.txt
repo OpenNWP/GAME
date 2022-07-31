@@ -12,7 +12,7 @@ add_executable(
 grid_generator
 ../src/constants.f90
 ../src/definitions.f90
-src/rhombus_averaging.c
+src/diff_ops/rhombus_averaging.c
 src/diff_ops/inner_product.f90
 src/optimize.c
 src/miscellaneous.c
