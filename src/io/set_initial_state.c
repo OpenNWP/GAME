@@ -31,7 +31,7 @@ int set_soil_temp(Grid *grid, State *state, double temperature[], char init_stat
 	int retval;
 	
     // figuring out if the SST is included in the initialization file and reading it if it exists (important for NWP)
-	double *sst = malloc(NO_OF_SCALARS_H*sizeof(double));
+	double *sst = malloc(N_SCALS_H*sizeof(double));
 	int sst_avail = 0;
     if (strlen(init_state_file) != 0)
     {
@@ -97,15 +97,15 @@ int set_soil_temp(Grid *grid, State *state, double temperature[], char init_stat
 	int soil_index;
 	double z_soil, t_sfc;
 	#pragma omp parallel for private(soil_index, z_soil, t_sfc)
-	for (int i = 0; i < NO_OF_SCALARS_H; ++i)
+	for (int i = 0; i < N_SCALS_H; ++i)
 	{
 		// sea surface temperature if SST is available
 		if (grid -> is_land[i] == 0 && sst_avail == 1)
 		{
 			// loop over all soil layers
-			for (int soil_layer_index = 0; soil_layer_index < NO_OF_SOIL_LAYERS; ++soil_layer_index)
+			for (int soil_layer_index = 0; soil_layer_index < N_SOIL_LAYERS; ++soil_layer_index)
 			{
-				state -> temperature_soil[i + soil_layer_index*NO_OF_SCALARS_H] = sst[i];
+				state -> temperature_soil[i + soil_layer_index*N_SCALS_H] = sst[i];
 			}
 		}
 		
@@ -115,14 +115,14 @@ int set_soil_temp(Grid *grid, State *state, double temperature[], char init_stat
 		if ((grid -> is_land[i] == 1 && t_soil_avail == 0) || (grid -> is_land[i] == 0 && sst_avail == 0))
 		{
 			// setting the surface temperature identical to the air temperature in the lowest layer
-			t_sfc = temperature[NO_OF_SCALARS - NO_OF_SCALARS_H + i];
+			t_sfc = temperature[N_SCALARS - N_SCALS_H + i];
 			
 			// loop over all soil layers
-			for (int soil_layer_index = 0; soil_layer_index < NO_OF_SOIL_LAYERS; ++soil_layer_index)
+			for (int soil_layer_index = 0; soil_layer_index < N_SOIL_LAYERS; ++soil_layer_index)
 			{
 				// index of this soil grid point
-				soil_index = i + soil_layer_index*NO_OF_SCALARS_H;
-				z_soil = grid -> z_t_const/NO_OF_SOIL_LAYERS*(0.5 + soil_layer_index);
+				soil_index = i + soil_layer_index*N_SCALS_H;
+				z_soil = grid -> z_t_const/N_SOIL_LAYERS*(0.5 + soil_layer_index);
 				state -> temperature_soil[soil_index] = t_sfc + (grid -> t_const_soil[i] - t_sfc)*z_soil/grid -> z_t_const;
 			}
 		}
@@ -140,10 +140,10 @@ int set_ideal_init(State *state, Grid* grid, Dualgrid* dualgrid, Diagnostics *di
 	This function sets the initial state of the model atmosphere for idealized test cases.
 	*/
 	
-    double *pressure = malloc(NO_OF_SCALARS*sizeof(double));
-    double *temperature = malloc(NO_OF_SCALARS*sizeof(double));
-    double *temperature_v = malloc(NO_OF_SCALARS*sizeof(double));
-    double *water_vapour_density = calloc(NO_OF_SCALARS, sizeof(double));
+    double *pressure = malloc(N_SCALARS*sizeof(double));
+    double *temperature = malloc(N_SCALARS*sizeof(double));
+    double *temperature_v = malloc(N_SCALARS*sizeof(double));
+    double *water_vapour_density = calloc(N_SCALARS, sizeof(double));
     double z_height;
     double lat, lon, u, v, pressure_value, specific_humidity, dry_density;
     // dummy argument
@@ -160,10 +160,10 @@ int set_ideal_init(State *state, Grid* grid, Dualgrid* dualgrid, Diagnostics *di
     int one = 1;
     // 3D scalar fields determined here, apart from density
     #pragma omp parallel for private(layer_index, h_index, lat, lon, z_height, dry_density, specific_humidity)
-    for (int i = 0; i < NO_OF_SCALARS; ++i)
+    for (int i = 0; i < N_SCALARS; ++i)
     {
-    	layer_index = i/NO_OF_SCALARS_H;
-    	h_index = i - layer_index*NO_OF_SCALARS_H;
+    	layer_index = i/N_SCALS_H;
+    	h_index = i - layer_index*N_SCALS_H;
         lat = grid -> latitude_scalar[h_index];
         lon = grid -> longitude_scalar[h_index];
         z_height = grid -> z_scalar[i];
@@ -191,10 +191,10 @@ int set_ideal_init(State *state, Grid* grid, Dualgrid* dualgrid, Diagnostics *di
         }
     }
 	// resricting the maximum relative humidity to 100 %
-    if (NO_OF_CONDENSED_CONSTITUENTS == 4)
+    if (N_CONDENSED_CONSTITUENTS == 4)
     {
 		#pragma omp parallel for
-		for (int i = 0; i < NO_OF_SCALARS; ++i)
+		for (int i = 0; i < N_SCALARS; ++i)
 		{
 			if (rel_humidity(water_vapour_density[i], temperature[i]) > 1.0)
 			{
@@ -205,8 +205,8 @@ int set_ideal_init(State *state, Grid* grid, Dualgrid* dualgrid, Diagnostics *di
 
     // horizontal wind fields are determind here
     // reading the grid properties which are not part of the struct grid
-    double *latitude_vector = malloc(NO_OF_VECTORS_H*sizeof(double));
-    double *longitude_vector = malloc(NO_OF_VECTORS_H*sizeof(double));
+    double *latitude_vector = malloc(N_VECS_H*sizeof(double));
+    double *longitude_vector = malloc(N_VECS_H*sizeof(double));
     int ncid_grid, retval, latitude_vector_id, longitude_vector_id;
     if ((retval = nc_open(grid_file, NC_NOWRITE, &ncid_grid)))
         NCERR(retval);
@@ -221,35 +221,35 @@ int set_ideal_init(State *state, Grid* grid, Dualgrid* dualgrid, Diagnostics *di
     if ((retval = nc_close(ncid_grid)))
         NCERR(retval);
     #pragma omp parallel for private(lat, lon, z_height, u, v, dummy_0, dummy_1, dummy_2, dummy_3, dummy_4, dummy_5, dummy_6)
-    for (int i = 0; i < NO_OF_LAYERS; ++i)
+    for (int i = 0; i < N_LAYERS; ++i)
     {
-        for (int j = 0; j < NO_OF_VECTORS_H; ++j)
+        for (int j = 0; j < N_VECS_H; ++j)
         {
             lat = latitude_vector[j];
             lon = longitude_vector[j];
-            z_height = grid -> z_vector[NO_OF_SCALARS_H + j + i*NO_OF_VECTORS_PER_LAYER];
+            z_height = grid -> z_vector[N_SCALS_H + j + i*N_VECS_PER_LAYER];
             // standard atmosphere: no wind
             if (ideal_input_id == 0)
             {
-                state -> wind[NO_OF_SCALARS_H + i*NO_OF_VECTORS_PER_LAYER + j] = 0.0;                
+                state -> wind[N_SCALS_H + i*N_VECS_PER_LAYER + j] = 0.0;                
                 
 			    // adding a "random" perturbation to the horizontal wind in the case of the Held-Suarez test case
 			    if (config -> rad_on == 2)
 			    {
-			    	state -> wind[NO_OF_SCALARS_H + i*NO_OF_VECTORS_PER_LAYER + j] += 0.1*fmod(j, 17)/16.0;
+			    	state -> wind[N_SCALS_H + i*N_VECS_PER_LAYER + j] += 0.1*fmod(j, 17)/16.0;
 			    }
             }
             // dry Ullrich test
             if (ideal_input_id == 1)
             {
         		baroclinic_wave_test(&one, &zero, &one, &small_atmos_rescale, &lon, &lat, &dummy_0, &z_height, &one, &u, &v, &dummy_1, &dummy_2, &dummy_3, &dummy_4, &dummy_5, &dummy_6);
-                state -> wind[NO_OF_SCALARS_H + i*NO_OF_VECTORS_PER_LAYER + j] = u*cos(grid -> direction[j]) + v*sin(grid -> direction[j]);
+                state -> wind[N_SCALS_H + i*N_VECS_PER_LAYER + j] = u*cos(grid -> direction[j]) + v*sin(grid -> direction[j]);
             }
             // moist Ullrich test
             if (ideal_input_id == 2)
             {
         		baroclinic_wave_test(&one, &one, &one, &small_atmos_rescale, &lon, &lat, &dummy_0, &z_height, &one, &u, &v, &dummy_1, &dummy_2, &dummy_3, &dummy_4, &dummy_5, &dummy_6);
-                state -> wind[NO_OF_SCALARS_H + i*NO_OF_VECTORS_PER_LAYER + j] = u*cos(grid -> direction[j]) + v*sin(grid -> direction[j]);
+                state -> wind[N_SCALS_H + i*N_VECS_PER_LAYER + j] = u*cos(grid -> direction[j]) + v*sin(grid -> direction[j]);
             }
         }
     }
@@ -257,16 +257,16 @@ int set_ideal_init(State *state, Grid* grid, Dualgrid* dualgrid, Diagnostics *di
     free(longitude_vector);
     // setting the vertical wind field equal to zero
 	#pragma omp parallel for
-    for (int i = 0; i < NO_OF_LEVELS; ++i)
+    for (int i = 0; i < N_LEVELS; ++i)
     {
-        for (int j = 0; j < NO_OF_SCALARS_H; ++j)
+        for (int j = 0; j < N_SCALS_H; ++j)
         {
-            state -> wind[i*NO_OF_VECTORS_PER_LAYER + j] = 0.0;
+            state -> wind[i*N_VECS_PER_LAYER + j] = 0.0;
         }
     }
     
     // this is the moist air density which has not yet been hydrostatically balanced
-	for (int i = 0; i < NO_OF_SCALARS; ++i)
+	for (int i = 0; i < N_SCALARS; ++i)
 	{
 		diagnostics -> scalar_field_placeholder[i] = pressure[i]/(R_D*temperature_v[i]);
 	}
@@ -283,14 +283,14 @@ int set_ideal_init(State *state, Grid* grid, Dualgrid* dualgrid, Diagnostics *di
     double b, c;
     // theta_v_pert and exner_pert are a misuse of name here, they contain the full values here
     #pragma omp parallel for private(scalar_index, b, c, pressure_value)
-	for (int h_index = 0; h_index < NO_OF_SCALARS_H; ++h_index)
+	for (int h_index = 0; h_index < N_SCALS_H; ++h_index)
 	{
 		// integrating from bottom to top
-		for (int layer_index = NO_OF_LAYERS - 1; layer_index >= 0; --layer_index)
+		for (int layer_index = N_LAYERS - 1; layer_index >= 0; --layer_index)
 		{
-			scalar_index = layer_index*NO_OF_SCALARS_H + h_index;
+			scalar_index = layer_index*N_SCALS_H + h_index;
 			// lowest layer
-			if (layer_index == NO_OF_LAYERS - 1)
+			if (layer_index == N_LAYERS - 1)
 			{
 				pressure_value = pressure[scalar_index];
 				state -> exner_pert[scalar_index] = pow(pressure_value/P_0, R_D/C_D_P);
@@ -299,12 +299,12 @@ int set_ideal_init(State *state, Grid* grid, Dualgrid* dualgrid, Diagnostics *di
 			else
 			{
 				// solving a quadratic equation for the Exner pressure
-				b = -0.5*state -> exner_pert[scalar_index + NO_OF_SCALARS_H]/temperature_v[scalar_index + NO_OF_SCALARS_H]
-				*(temperature_v[scalar_index] - temperature_v[scalar_index + NO_OF_SCALARS_H]
-				+ 2.0/C_D_P*(grid -> gravity_potential[scalar_index] - grid -> gravity_potential[scalar_index + NO_OF_SCALARS_H]
-				+ 0.5*diagnostics -> v_squared[scalar_index] - 0.5*diagnostics -> v_squared[scalar_index + NO_OF_SCALARS_H]
-				- (grid -> z_scalar[scalar_index] - grid -> z_scalar[scalar_index + NO_OF_SCALARS_H])*forcings -> pot_vort_tend[h_index + (layer_index + 1)*NO_OF_VECTORS_PER_LAYER]));
-				c = pow(state -> exner_pert[scalar_index + NO_OF_SCALARS_H], 2)*temperature_v[scalar_index]/temperature_v[scalar_index + NO_OF_SCALARS_H];
+				b = -0.5*state -> exner_pert[scalar_index + N_SCALS_H]/temperature_v[scalar_index + N_SCALS_H]
+				*(temperature_v[scalar_index] - temperature_v[scalar_index + N_SCALS_H]
+				+ 2.0/C_D_P*(grid -> gravity_potential[scalar_index] - grid -> gravity_potential[scalar_index + N_SCALS_H]
+				+ 0.5*diagnostics -> v_squared[scalar_index] - 0.5*diagnostics -> v_squared[scalar_index + N_SCALS_H]
+				- (grid -> z_scalar[scalar_index] - grid -> z_scalar[scalar_index + N_SCALS_H])*forcings -> pot_vort_tend[h_index + (layer_index + 1)*N_VECS_PER_LAYER]));
+				c = pow(state -> exner_pert[scalar_index + N_SCALS_H], 2)*temperature_v[scalar_index]/temperature_v[scalar_index + N_SCALS_H];
 				state -> exner_pert[scalar_index] = b + pow((pow(b, 2) + c), 0.5);
 			}
 			// this is the full virtual potential temperature here
@@ -323,26 +323,26 @@ int set_ideal_init(State *state, Grid* grid, Dualgrid* dualgrid, Diagnostics *di
     
     // substracting the background state
     #pragma omp parallel for
-	for (int i = 0; i < NO_OF_SCALARS; ++i)
+	for (int i = 0; i < N_SCALARS; ++i)
 	{
 		state -> exner_pert[i] = state -> exner_pert[i] - grid -> exner_bg[i];
 		state -> theta_v_pert[i] = state -> theta_v_pert[i] - grid -> theta_v_bg[i];
 	}
     
     #pragma omp parallel for
-	for (int i = 0; i < NO_OF_SCALARS; ++i)
+	for (int i = 0; i < N_SCALARS; ++i)
 	{
-		for (int j = 0; j < NO_OF_CONDENSED_CONSTITUENTS; ++j)
+		for (int j = 0; j < N_CONDENSED_CONSTITUENTS; ++j)
 		{
 			// condensed densities are zero in all test states
-			state -> rho[j*NO_OF_SCALARS + i] = 0;
+			state -> rho[j*N_SCALARS + i] = 0;
 		}
 		// the moist air density
-		state -> rho[NO_OF_CONDENSED_CONSTITUENTS*NO_OF_SCALARS + i] = diagnostics -> scalar_field_placeholder[i];
+		state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i] = diagnostics -> scalar_field_placeholder[i];
 		// water vapour density
-		if (NO_OF_CONDENSED_CONSTITUENTS == 4)
+		if (N_CONDENSED_CONSTITUENTS == 4)
 		{
-			state -> rho[(NO_OF_CONDENSED_CONSTITUENTS + 1)*NO_OF_SCALARS + i] = water_vapour_density[i];
+			state -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i] = water_vapour_density[i];
 		}
 	}
     free(water_vapour_density);
@@ -361,7 +361,7 @@ int read_init_data(char init_state_file[], State *state, Irreversible_quantities
 	This function reads the initial state of the model atmosphere from a netCDF file.
 	*/
 	
-    double *temperature = malloc(NO_OF_SCALARS*sizeof(double));
+    double *temperature = malloc(N_SCALARS*sizeof(double));
     int retval, ncid, tke_id, tke_avail;
     if ((retval = nc_open(init_state_file, NC_NOWRITE, &ncid)))
         NCERR(retval);
@@ -397,30 +397,30 @@ int read_init_data(char init_state_file[], State *state, Irreversible_quantities
         NCERR(retval);
     
 	// resricting the maximum relative humidity to 100 %
-    if (NO_OF_CONDENSED_CONSTITUENTS == 4)
+    if (N_CONDENSED_CONSTITUENTS == 4)
     {
 		#pragma omp parallel for
-		for (int i = 0; i < NO_OF_SCALARS; ++i)
+		for (int i = 0; i < N_SCALARS; ++i)
 		{
-			if (rel_humidity(state -> rho[(NO_OF_CONDENSED_CONSTITUENTS + 1)*NO_OF_SCALARS + i], temperature[i]) > 1.0)
+			if (rel_humidity(state -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i], temperature[i]) > 1.0)
 			{
-				state -> rho[(NO_OF_CONDENSED_CONSTITUENTS + 1)*NO_OF_SCALARS + i] = state -> rho[(NO_OF_CONDENSED_CONSTITUENTS + 1)*NO_OF_SCALARS + i]
-				/rel_humidity(state -> rho[(NO_OF_CONDENSED_CONSTITUENTS + 1)*NO_OF_SCALARS + i], temperature[i]);
+				state -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i] = state -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i]
+				/rel_humidity(state -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i], temperature[i]);
 			}
 		}
     }
 	
 	// diagnostic thermodynamical quantities
-    double *temperature_v = malloc(NO_OF_SCALARS*sizeof(double));
+    double *temperature_v = malloc(N_SCALARS*sizeof(double));
 	double pressure, pot_temp_v;
 	#pragma omp parallel for private(pressure, pot_temp_v)
-	for (int i = 0; i < NO_OF_SCALARS; ++i)
+	for (int i = 0; i < N_SCALARS; ++i)
 	{
 		temperature_v[i] = temperature[i]
-		*(1.0 + state -> rho[(NO_OF_CONDENSED_CONSTITUENTS + 1)*NO_OF_SCALARS + i]/state -> rho[NO_OF_CONDENSED_CONSTITUENTS*NO_OF_SCALARS + i]*(M_D/M_V - 1.0));
-		pressure = state -> rho[NO_OF_CONDENSED_CONSTITUENTS*NO_OF_SCALARS + i]*R_D*temperature_v[i];
+		*(1.0 + state -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i]/state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i]*(M_D/M_V - 1.0));
+		pressure = state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i]*R_D*temperature_v[i];
 		pot_temp_v = temperature_v[i]*pow(P_0/pressure, R_D/C_D_P);
-		state -> rhotheta_v[i] = state -> rho[NO_OF_CONDENSED_CONSTITUENTS*NO_OF_SCALARS + i]*pot_temp_v;
+		state -> rhotheta_v[i] = state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i]*pot_temp_v;
 		// calculating the virtual potential temperature perturbation
 		state -> theta_v_pert[i] = pot_temp_v - grid -> theta_v_bg[i];
 		// calculating the Exner pressure perturbation
@@ -431,7 +431,7 @@ int read_init_data(char init_state_file[], State *state, Irreversible_quantities
     // checks
     // checking for negative densities
     # pragma omp parallel for
-	for (int i = 0; i < NO_OF_CONSTITUENTS*NO_OF_SCALARS; ++i)
+	for (int i = 0; i < N_CONSTITUENTS*N_SCALARS; ++i)
 	{
 		if (state -> rho[i] < 0)
 	    {

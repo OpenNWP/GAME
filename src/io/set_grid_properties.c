@@ -193,7 +193,7 @@ int set_grid_properties(Grid *grid, Dualgrid *dualgrid, char grid_file_name[])
     if ((retval = nc_close(ncid)))
         ERR(retval);
     #pragma omp parallel for
-    for (int i = 0; i < 6*NO_OF_SCALARS_H; ++i)
+    for (int i = 0; i < 6*N_SCALS_H; ++i)
     {
         if (grid -> adjacent_vector_indices_h[i] == -1)
         {
@@ -204,12 +204,12 @@ int set_grid_properties(Grid *grid, Dualgrid *dualgrid, char grid_file_name[])
     // calculating the layer thicknesses
     int layer_index, h_index;
     #pragma omp parallel for private(layer_index, h_index)
-    for (int i = 0; i < NO_OF_SCALARS; ++i)
+    for (int i = 0; i < N_SCALARS; ++i)
     {
-    	layer_index = i/NO_OF_SCALARS_H;
-    	h_index = i - layer_index*NO_OF_SCALARS_H;
-    	grid -> layer_thickness[i] = grid -> z_vector[h_index + layer_index*NO_OF_VECTORS_PER_LAYER]
-    	- grid -> z_vector[h_index + (layer_index + 1)*NO_OF_VECTORS_PER_LAYER];
+    	layer_index = i/N_SCALS_H;
+    	h_index = i - layer_index*N_SCALS_H;
+    	grid -> layer_thickness[i] = grid -> z_vector[h_index + layer_index*N_VECS_PER_LAYER]
+    	- grid -> z_vector[h_index + (layer_index + 1)*N_VECS_PER_LAYER];
     }
 	
     // determining coordinate slopes
@@ -222,7 +222,7 @@ int set_grid_properties(Grid *grid, Dualgrid *dualgrid, char grid_file_name[])
 	// fundamental SFC properties
 	grid -> z_t_const = -10.0;
 	#pragma omp parallel for
-	for (int i = 0; i < NO_OF_SCALARS_H; ++i)
+	for (int i = 0; i < N_SCALS_H; ++i)
     {
 		grid -> t_const_soil[i] = T_0 + 25.0*cos(2.0*grid -> latitude_scalar[i]);
     }
@@ -236,16 +236,16 @@ int set_grid_properties(Grid *grid, Dualgrid *dualgrid, char grid_file_name[])
 	
 	// the surface is always at zero
 	grid -> z_soil_interface[0] = 0;
-	for (int i = 1; i < NO_OF_SOIL_LAYERS + 1; ++i)
+	for (int i = 1; i < N_SOIL_LAYERS + 1; ++i)
 	{
-		grid -> z_soil_interface[i] = grid -> z_soil_interface[i - 1] + pow(sigma_soil, NO_OF_SOIL_LAYERS - i);
+		grid -> z_soil_interface[i] = grid -> z_soil_interface[i - 1] + pow(sigma_soil, N_SOIL_LAYERS - i);
 	}
-	double rescale_factor = grid -> z_t_const/grid -> z_soil_interface[NO_OF_SOIL_LAYERS];
-	for (int i = 1; i < NO_OF_SOIL_LAYERS + 1; ++i)
+	double rescale_factor = grid -> z_t_const/grid -> z_soil_interface[N_SOIL_LAYERS];
+	for (int i = 1; i < N_SOIL_LAYERS + 1; ++i)
 	{
 		grid -> z_soil_interface[i] = rescale_factor*grid -> z_soil_interface[i];
 	}
-	for (int i = 0; i < NO_OF_SOIL_LAYERS; ++i)
+	for (int i = 0; i < N_SOIL_LAYERS; ++i)
 	{
 		grid -> z_soil_center[i] = 0.5*(grid -> z_soil_interface[i] + grid -> z_soil_interface[i + 1]);
 	}

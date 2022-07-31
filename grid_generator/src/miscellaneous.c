@@ -26,17 +26,17 @@ int set_f_vec(double latitude_vector[], double direction[], double direction_dua
 	*/
 	
 	#pragma omp parallel for
-    for (int i = 0; i < 2*NO_OF_VECTORS_H; ++i)
+    for (int i = 0; i < 2*N_VECS_H; ++i)
     {
     	// horizontal component at dual vector points
-        if (i < NO_OF_VECTORS_H)
+        if (i < N_VECS_H)
         {
         	f_vec[i] = 2*OMEGA/radius_rescale*cos(latitude_vector[i])*sin(direction_dual[i]);
     	}
         // vertical component at primal vector points
-        else if (i < 2*NO_OF_VECTORS_H)
+        else if (i < 2*N_VECS_H)
         {
-        	f_vec[i] = 2*OMEGA/radius_rescale*sin(latitude_vector[i - NO_OF_VECTORS_H]);
+        	f_vec[i] = 2*OMEGA/radius_rescale*sin(latitude_vector[i - N_VECS_H]);
     	}
     }
  	return 0;   
@@ -51,10 +51,10 @@ int calc_vorticity_indices_triangles(int from_index_dual[], int to_index_dual[],
 	int counter, sign;
 	double direction_change;
 	#pragma omp parallel for private(counter, sign, direction_change)
-    for (int i = 0; i < NO_OF_DUAL_SCALARS_H; ++i)
+    for (int i = 0; i < N_DUAL_SCALS_H; ++i)
     {
         counter = 0;
-        for (int j = 0; j < NO_OF_VECTORS_H; ++j)
+        for (int j = 0; j < N_VECS_H; ++j)
         {
             if (from_index_dual[j] == i || to_index_dual[j] == i)
             {
@@ -96,23 +96,23 @@ int no_of_lloyd_iterations, char grid_name[], char statistics_file_name[])
 	This function writes out statistical properties of the grid to a text file.
 	*/
 	
-	int no_of_scalars_h = NO_OF_SCALARS_H;
-	int no_of_vectors_h = NO_OF_VECTORS_H;
+	int no_of_scalars_h = N_SCALS_H;
+	int no_of_vectors_h = N_VECS_H;
 	
     double area_max, area_min, normal_distance_h_min, normal_distance_h_max, normal_distance_dual_h_min, normal_distance_dual_h_max;
     area_min = pent_hex_face_unity_sphere[find_min_index(pent_hex_face_unity_sphere, &no_of_scalars_h)];
     area_max = pent_hex_face_unity_sphere[find_max_index(pent_hex_face_unity_sphere, &no_of_scalars_h)];
-    double *horizontal_distance = malloc(NO_OF_VECTORS_H*sizeof(double));
+    double *horizontal_distance = malloc(N_VECS_H*sizeof(double));
     #pragma omp parallel for
-    for (int i = 0; i < NO_OF_VECTORS_H; ++i)
+    for (int i = 0; i < N_VECS_H; ++i)
     {
-    	horizontal_distance[i] = normal_distance[NO_OF_SCALARS_H + i];
+    	horizontal_distance[i] = normal_distance[N_SCALS_H + i];
     }
     normal_distance_h_min = horizontal_distance[find_min_index(horizontal_distance, &no_of_vectors_h)];
     normal_distance_h_max = horizontal_distance[find_max_index(horizontal_distance, &no_of_vectors_h)];
-    double *horizontal_distance_dual = malloc(NO_OF_VECTORS_H*sizeof(double));
+    double *horizontal_distance_dual = malloc(N_VECS_H*sizeof(double));
     #pragma omp parallel for
-    for (int i = 0; i < NO_OF_VECTORS_H; ++i)
+    for (int i = 0; i < N_VECS_H; ++i)
     {
     	horizontal_distance_dual[i] = normal_distance_dual[i];
     }

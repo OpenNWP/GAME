@@ -18,14 +18,14 @@ int grad_hor_cov(Scalar_field in_field, Vector_field out_field, Grid *grid)
     */
     int vector_index;
 	#pragma omp parallel for private(vector_index)
-    for (int h_index = 0; h_index < NO_OF_VECTORS_H; ++h_index)
+    for (int h_index = 0; h_index < N_VECS_H; ++h_index)
     {
-		for (int layer_index = 0; layer_index < NO_OF_LAYERS; ++layer_index)
+		for (int layer_index = 0; layer_index < N_LAYERS; ++layer_index)
 		{
-		    vector_index = NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + h_index;
+		    vector_index = N_SCALS_H + layer_index*N_VECS_PER_LAYER + h_index;
 		    out_field[vector_index]
-		    = (in_field[grid -> to_index[h_index] + layer_index*NO_OF_SCALARS_H]
-		    - in_field[grid -> from_index[h_index] + layer_index*NO_OF_SCALARS_H])
+		    = (in_field[grid -> to_index[h_index] + layer_index*N_SCALS_H]
+		    - in_field[grid -> from_index[h_index] + layer_index*N_SCALS_H])
 		    /grid -> normal_distance[vector_index];
         }
     }
@@ -40,13 +40,13 @@ int grad_vert_cov(Scalar_field in_field, Vector_field out_field, Grid *grid)
     int layer_index, h_index, lower_index, upper_index, vector_index;
     // loop over the inner grid points
 	#pragma omp parallel for private(layer_index, h_index, lower_index, upper_index, vector_index)
-    for (int i = NO_OF_SCALARS_H; i < NO_OF_V_VECTORS - NO_OF_SCALARS_H; ++i)
+    for (int i = N_SCALS_H; i < N_V_VECTORS - N_SCALS_H; ++i)
     {
-        layer_index = i/NO_OF_SCALARS_H;
-        h_index = i - layer_index*NO_OF_SCALARS_H;
-        lower_index = h_index + layer_index*NO_OF_SCALARS_H;
-        upper_index = h_index + (layer_index - 1)*NO_OF_SCALARS_H;
-        vector_index = h_index + layer_index*NO_OF_VECTORS_PER_LAYER;
+        layer_index = i/N_SCALS_H;
+        h_index = i - layer_index*N_SCALS_H;
+        lower_index = h_index + layer_index*N_SCALS_H;
+        upper_index = h_index + (layer_index - 1)*N_SCALS_H;
+        vector_index = h_index + layer_index*N_VECS_PER_LAYER;
         out_field[vector_index]
         = (in_field[upper_index] - in_field[lower_index])/grid -> normal_distance[vector_index];
     }
@@ -81,11 +81,11 @@ int grad_hor(Scalar_field in_field, Vector_field out_field, Grid *grid)
 	grad(in_field, out_field, grid);
     int layer_index, h_index;
 	#pragma omp parallel for private(layer_index, h_index)
-    for (int i = 0; i < NO_OF_V_VECTORS; ++i)
+    for (int i = 0; i < N_V_VECTORS; ++i)
     {
-        layer_index = i/NO_OF_SCALARS_H;
-        h_index = i - layer_index*NO_OF_SCALARS_H;
-        out_field[h_index + layer_index*NO_OF_VECTORS_PER_LAYER] = 0;
+        layer_index = i/N_SCALS_H;
+        h_index = i - layer_index*N_SCALS_H;
+        out_field[h_index + layer_index*N_VECS_PER_LAYER] = 0;
     }
     return 0;
 }

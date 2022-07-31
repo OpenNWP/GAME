@@ -23,9 +23,9 @@ int vector_tendencies_expl(State *state, State *state_tendency, Grid *grid, Dual
 	*/
 	if (rk_step == 1 || config -> totally_first_step_bool == 1)
 	{
-		scalar_times_vector(&state -> rho[NO_OF_CONDENSED_CONSTITUENTS*NO_OF_SCALARS], state -> wind, diagnostics -> flux_density, grid);
+		scalar_times_vector(&state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS], state -> wind, diagnostics -> flux_density, grid);
 		// Now, the "potential vorticity" is evaluated.
-		calc_pot_vort(state -> wind, &state -> rho[NO_OF_CONDENSED_CONSTITUENTS*NO_OF_SCALARS], diagnostics, grid, dualgrid);
+		calc_pot_vort(state -> wind, &state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS], diagnostics, grid, dualgrid);
 		// Now, the generalized Coriolis term is evaluated.
 		vorticity_flux(diagnostics -> flux_density, diagnostics -> pot_vort, forcings -> pot_vort_tend, grid, dualgrid);
 		// Kinetic energy is prepared for the gradient term of the Lamb transformation.
@@ -85,17 +85,17 @@ int vector_tendencies_expl(State *state, State *state_tendency, Grid *grid, Dual
 	current_ver_pgrad_weight = 1.0 - config -> impl_thermo_weight;
     int layer_index, h_index;
     #pragma omp parallel for private(layer_index, h_index)
-    for (int i = 0; i < NO_OF_VECTORS; ++i)
+    for (int i = 0; i < N_VECTORS; ++i)
     {
-    	layer_index = i/NO_OF_VECTORS_PER_LAYER;
-    	h_index = i - layer_index*NO_OF_VECTORS_PER_LAYER;
+    	layer_index = i/N_VECS_PER_LAYER;
+    	h_index = i - layer_index*N_VECS_PER_LAYER;
     	// upper and lower boundary
-        if (i < NO_OF_SCALARS_H || i >= NO_OF_VECTORS - NO_OF_SCALARS_H)
+        if (i < N_SCALS_H || i >= N_VECTORS - N_SCALS_H)
         {
             state_tendency -> wind[i] = 0.0;
         }
         // horizontal case
-        else if (h_index >= NO_OF_SCALARS_H)
+        else if (h_index >= N_SCALS_H)
     	{
     		state_tendency -> wind[i] =
     		old_weight*state_tendency -> wind[i] + new_weight*(
@@ -112,7 +112,7 @@ int vector_tendencies_expl(State *state, State *state_tendency, Grid *grid, Dual
     		+ irrev -> friction_acc[i]);
     	}
         // vertical case
-    	else if (h_index < NO_OF_SCALARS_H)
+    	else if (h_index < N_SCALS_H)
 		{
     		state_tendency -> wind[i] =
     		old_weight*state_tendency -> wind[i] + new_weight*(

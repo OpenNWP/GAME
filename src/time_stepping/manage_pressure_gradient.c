@@ -25,7 +25,7 @@ int manage_pressure_gradient(State *state, Grid *grid, Dualgrid *dualgrid, Diagn
 	if (config -> totally_first_step_bool == 0)
 	{
 		#pragma omp parallel for
-		for (int i = 0; i < NO_OF_VECTORS; ++i)
+		for (int i = 0; i < N_VECTORS; ++i)
 		{
 			forcings -> pgrad_acc_old[i] = -forcings -> pressure_gradient_acc_neg_nl[i] - forcings -> pressure_gradient_acc_neg_l[i];
 		}
@@ -33,7 +33,7 @@ int manage_pressure_gradient(State *state, Grid *grid, Dualgrid *dualgrid, Diagn
 	
 	// multiplying c_p by the full potential tempertature
 	#pragma omp parallel for
-	for (int i = 0; i < NO_OF_SCALARS; ++i)
+	for (int i = 0; i < N_SCALARS; ++i)
 	{
 		diagnostics -> scalar_field_placeholder[i] = C_D_P*(grid -> theta_v_bg[i] + state -> theta_v_pert[i]);
 	}
@@ -43,7 +43,7 @@ int manage_pressure_gradient(State *state, Grid *grid, Dualgrid *dualgrid, Diagn
 	// 3.) the linear pressure gradient term
 	// -------------------------------------
 	#pragma omp parallel for
-	for (int i = 0; i < NO_OF_SCALARS; ++i)
+	for (int i = 0; i < N_SCALARS; ++i)
 	{
 		diagnostics -> scalar_field_placeholder[i] = C_D_P*state -> theta_v_pert[i];
 	}
@@ -52,9 +52,9 @@ int manage_pressure_gradient(State *state, Grid *grid, Dualgrid *dualgrid, Diagn
 	// 4.) The pressure gradient has to get a deceleration factor due to condensates.
 	// ------------------------------------------------------------------------------
 	#pragma omp parallel for
-	for (int i = 0; i < NO_OF_SCALARS; ++i)
+	for (int i = 0; i < N_SCALARS; ++i)
 	{
-		irrev -> pressure_gradient_decel_factor[i] = state -> rho[NO_OF_CONDENSED_CONSTITUENTS*NO_OF_SCALARS + i]/density_total(state, i);
+		irrev -> pressure_gradient_decel_factor[i] = state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i]/density_total(state, i);
 	}
 	scalar_times_vector(irrev -> pressure_gradient_decel_factor, forcings -> pressure_gradient_acc_neg_nl, forcings -> pressure_gradient_acc_neg_nl, grid);
 	scalar_times_vector(irrev -> pressure_gradient_decel_factor, forcings -> pressure_gradient_acc_neg_l, forcings -> pressure_gradient_acc_neg_l, grid);
@@ -63,7 +63,7 @@ int manage_pressure_gradient(State *state, Grid *grid, Dualgrid *dualgrid, Diagn
 	if (config -> totally_first_step_bool == 1)
 	{
 		#pragma omp parallel for
-		for (int i = 0; i < NO_OF_VECTORS; ++i)
+		for (int i = 0; i < N_VECTORS; ++i)
 		{
 			forcings -> pgrad_acc_old[i] = -forcings -> pressure_gradient_acc_neg_nl[i] - forcings -> pressure_gradient_acc_neg_l[i];
 		}
@@ -78,9 +78,9 @@ int calc_pressure_grad_condensates_v(State *state, Grid *grid, Forcings *forcing
 	*/
 	
 	#pragma omp parallel for
-	for (int i = 0; i < NO_OF_SCALARS; ++i)
+	for (int i = 0; i < N_SCALARS; ++i)
 	{
-		irrev -> pressure_gradient_decel_factor[i] = state -> rho[NO_OF_CONDENSED_CONSTITUENTS*NO_OF_SCALARS + i]/density_total(state, i) - 1.0;
+		irrev -> pressure_gradient_decel_factor[i] = state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i]/density_total(state, i) - 1.0;
 	}
 	scalar_times_vector_v(irrev -> pressure_gradient_decel_factor, grid -> gravity_m, forcings -> pressure_grad_condensates_v, grid);
 	return 0;

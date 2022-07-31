@@ -15,7 +15,7 @@ In this file, algebraic multiplications of fields are collected.
 int scalar_times_scalar(Scalar_field in_field_0, Scalar_field in_field_1, Scalar_field out_field)
 {
 	#pragma omp parallel for
-    for (int i = 0; i < NO_OF_SCALARS; ++i)
+    for (int i = 0; i < N_SCALARS; ++i)
     {
     	out_field[i] = in_field_0[i]*in_field_1[i];
 	}
@@ -25,7 +25,7 @@ int scalar_times_scalar(Scalar_field in_field_0, Scalar_field in_field_1, Scalar
 int vector_times_vector(Vector_field in_field_0, Vector_field in_field_1, Vector_field out_field)
 {
 	#pragma omp parallel for
-    for (int i = 0; i < NO_OF_VECTORS; ++i)
+    for (int i = 0; i < N_VECTORS; ++i)
     {
     	out_field[i] = in_field_0[i]*in_field_1[i];
 	}
@@ -51,15 +51,15 @@ int scalar_times_vector_h(Scalar_field in_field_h, Vector_field vector_field, Ve
     int vector_index;
     double scalar_value;
     #pragma omp parallel for private (vector_index, scalar_value)
-    for (int h_index = 0; h_index < NO_OF_VECTORS_H; ++h_index)
+    for (int h_index = 0; h_index < N_VECS_H; ++h_index)
     {
-    	for (int layer_index = 0; layer_index < NO_OF_LAYERS; ++layer_index)
+    	for (int layer_index = 0; layer_index < N_LAYERS; ++layer_index)
     	{
-		    vector_index = NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + h_index;
+		    vector_index = N_SCALS_H + layer_index*N_VECS_PER_LAYER + h_index;
 		    scalar_value
 		    = 0.5*(
-		    in_field_h[grid -> to_index[h_index] + layer_index*NO_OF_SCALARS_H]
-		    + in_field_h[grid -> from_index[h_index] + layer_index*NO_OF_SCALARS_H]);
+		    in_field_h[grid -> to_index[h_index] + layer_index*N_SCALS_H]
+		    + in_field_h[grid -> from_index[h_index] + layer_index*N_SCALS_H]);
 			out_field[vector_index] = scalar_value*vector_field[vector_index];
     	}
     }
@@ -76,18 +76,18 @@ int scalar_times_vector_h_upstream(Scalar_field in_field_h, Vector_field vector_
     int vector_index;
     double scalar_value;
     #pragma omp parallel for private (vector_index, scalar_value)
-    for (int h_index = 0; h_index < NO_OF_VECTORS_H; ++h_index)
+    for (int h_index = 0; h_index < N_VECS_H; ++h_index)
     {
-    	for (int layer_index = 0; layer_index < NO_OF_LAYERS; ++layer_index)
+    	for (int layer_index = 0; layer_index < N_LAYERS; ++layer_index)
     	{
-		    vector_index = NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + h_index;
+		    vector_index = N_SCALS_H + layer_index*N_VECS_PER_LAYER + h_index;
 		    if (vector_field[vector_index] >= 0.0)
 		    {
-		    	scalar_value = in_field_h[grid -> from_index[h_index] + layer_index*NO_OF_SCALARS_H];
+		    	scalar_value = in_field_h[grid -> from_index[h_index] + layer_index*N_SCALS_H];
 		    }
 		    else
 		    {
-		    	scalar_value = in_field_h[grid -> to_index[h_index] + layer_index*NO_OF_SCALARS_H];
+		    	scalar_value = in_field_h[grid -> to_index[h_index] + layer_index*N_SCALS_H];
 		    }
 			out_field[vector_index] = scalar_value*vector_field[vector_index];
     	}
@@ -100,13 +100,13 @@ int scalar_times_vector_v(Scalar_field in_field_v, Vector_field vector_field, Ve
     int i, lower_index, upper_index;
     double scalar_value;
     #pragma omp parallel for private (i, lower_index, upper_index, scalar_value)
-    for (int h_index = 0; h_index < NO_OF_SCALARS_H; ++h_index)
+    for (int h_index = 0; h_index < N_SCALS_H; ++h_index)
     {
-    	for (int layer_index = 1; layer_index < NO_OF_LAYERS; ++layer_index)
+    	for (int layer_index = 1; layer_index < N_LAYERS; ++layer_index)
     	{
-    		i = layer_index*NO_OF_VECTORS_PER_LAYER + h_index;
-		    lower_index = h_index + layer_index*NO_OF_SCALARS_H;
-		    upper_index = h_index + (layer_index - 1)*NO_OF_SCALARS_H;
+    		i = layer_index*N_VECS_PER_LAYER + h_index;
+		    lower_index = h_index + layer_index*N_SCALS_H;
+		    upper_index = h_index + (layer_index - 1)*N_SCALS_H;
 		    scalar_value = 0.5*(
 		    in_field_v[upper_index]
 		    + in_field_v[lower_index]);

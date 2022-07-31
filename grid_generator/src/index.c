@@ -26,10 +26,10 @@ int find_adjacent_vector_indices_h(int from_index[], int to_index[], int adjacen
     int trouble_detected = 0;
     int counter;
     #pragma omp parallel for private(trouble_detected, counter)
-    for (int i = 0; i < NO_OF_SCALARS_H; ++i)
+    for (int i = 0; i < N_SCALS_H; ++i)
     {
         counter = 0;
-        for (int j = 0; j < NO_OF_VECTORS_H; ++j)
+        for (int j = 0; j < N_VECS_H; ++j)
         {
             if (from_index[j] == i || to_index[j] == i)
             {
@@ -53,7 +53,7 @@ int find_adjacent_vector_indices_h(int from_index[], int to_index[], int adjacen
         if (counter != 6)
         {
             trouble_detected = 1;
-            if (counter == 5 && i < NO_OF_PENTAGONS)
+            if (counter == 5 && i < N_PENTAGONS)
             {
                 trouble_detected = 0;
             }
@@ -63,21 +63,21 @@ int find_adjacent_vector_indices_h(int from_index[], int to_index[], int adjacen
             printf("Trouble detected, place 1.\n");
 			exit(1);
 		}
-        if (i < NO_OF_PENTAGONS)
+        if (i < N_PENTAGONS)
         {
             adjacent_vector_indices_h[6*i + 5] = -1;
             adjacent_signs_h[6*i + 5] = 0;
         }
     }
     int no_of_edges, double_check, sign_sum_check;
-    for (int i = 0; i < NO_OF_VECTORS_H; ++i)
+    for (int i = 0; i < N_VECS_H; ++i)
     {
         counter = 0;
         sign_sum_check = 0;
-        for (int j = 0; j < NO_OF_SCALARS_H; ++j)
+        for (int j = 0; j < N_SCALS_H; ++j)
         {
             no_of_edges = 6;
-            if (j < NO_OF_PENTAGONS)
+            if (j < N_PENTAGONS)
         	{
                 no_of_edges = 5;
             }

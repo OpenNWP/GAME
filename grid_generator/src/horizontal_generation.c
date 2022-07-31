@@ -24,7 +24,7 @@ int generate_horizontal_generators(double latitude_ico[], double longitude_ico[]
 	
 	int base_index_down_triangles, base_index_old, test_index, last_triangle_bool, old_triangle_on_line_index, base_index_up_triangles, points_downwards, points_upwards, dump, points_per_edge, edgepoint_0, edgepoint_1, edgepoint_2, no_of_triangles_per_face, point_0, point_1, point_2, dual_scalar_on_face_index, coord_0, coord_1, triangle_on_face_index, coord_0_points_amount;
 	double x_res, y_res, z_res;
-	for (int i = 0; i < NO_OF_SCALARS_H; ++i)
+	for (int i = 0; i < N_SCALS_H; ++i)
 	{
 	    upscale_scalar_point(RES_ID, i, &test_index);
 	    if (test_index != i)
@@ -32,7 +32,7 @@ int generate_horizontal_generators(double latitude_ico[], double longitude_ico[]
 	        printf("problem with upscale_scalar_point detected\n");
 		}
 	}
-	for (int i = 0; i < NO_OF_PENTAGONS; ++i)
+	for (int i = 0; i < N_PENTAGONS; ++i)
 	{
 	    latitude_scalar[i] = latitude_ico[i];
 	    longitude_scalar[i] = longitude_ico[i];
@@ -41,7 +41,7 @@ int generate_horizontal_generators(double latitude_ico[], double longitude_ico[]
 	    y_unity[i] = y_res;
 	    z_unity[i] = z_res;
 	}
-	for (int i = 0; i < NO_OF_BASIC_TRIANGLES; ++i)
+	for (int i = 0; i < N_BASIC_TRIANGLES; ++i)
 	{
 	    for (int j = 0; j < RES_ID; ++j)
 	    {
@@ -116,10 +116,10 @@ int calc_cell_area_unity(double pent_hex_face_unity_sphere[], double latitude_sc
 	*/
 	
     int check_0, check_1, check_2, counter, no_of_edges;
-    for (int i = 0; i < NO_OF_SCALARS_H; ++i)
+    for (int i = 0; i < N_SCALS_H; ++i)
     {
     	no_of_edges = 6;
-        if (i < NO_OF_PENTAGONS)
+        if (i < N_PENTAGONS)
         {
         	no_of_edges = 5;
         }
@@ -131,7 +131,7 @@ int calc_cell_area_unity(double pent_hex_face_unity_sphere[], double latitude_sc
             cell_vector_indices[j] = adjacent_vector_indices_h[6*i + j];
         }
         counter = 0;
-        for (int j = 0; j < NO_OF_DUAL_SCALARS_H; ++j)
+        for (int j = 0; j < N_DUAL_SCALS_H; ++j)
         {
             check_0 = in_bool_checker(&vorticity_indices_pre[3*j + 0], cell_vector_indices, &no_of_edges);
             check_1 = in_bool_checker(&vorticity_indices_pre[3*j + 1], cell_vector_indices, &no_of_edges);
@@ -150,8 +150,8 @@ int calc_cell_area_unity(double pent_hex_face_unity_sphere[], double latitude_sc
         pent_hex_face_unity_sphere[i] = calc_spherical_polygon_area(lat_points, lon_points, &no_of_edges);
     }
     double pent_hex_sum_unity_sphere = 0;
-    double pent_hex_avg_unity_sphere_ideal = 4*M_PI/NO_OF_SCALARS_H;
-    for (int i = 0; i < NO_OF_SCALARS_H; ++i)
+    double pent_hex_avg_unity_sphere_ideal = 4*M_PI/N_SCALS_H;
+    for (int i = 0; i < N_SCALS_H; ++i)
     {
         pent_hex_sum_unity_sphere += pent_hex_face_unity_sphere[i];
         if (pent_hex_face_unity_sphere[i] <= 0)
@@ -183,17 +183,17 @@ int face_edges_reverse[][3], int face_vertices[][3])
 	int dual_scalar_index, point_0, point_1, point_2, point_3, point_4, point_5, dual_scalar_on_face_index,
 	small_triangle_edge_index, coord_0_points_amount, coord_0, coord_1, face_index, on_face_index, triangle_on_face_index;
 	double triangle_face;
-    for (int i = 0; i < NO_OF_VECTORS_H; ++i)
+    for (int i = 0; i < N_VECS_H; ++i)
     {
-        if (i >= NO_OF_EDGES*(POINTS_PER_EDGE + 1))
+        if (i >= N_EDGES*(POINTS_PER_EDGE + 1))
         {
             find_triangle_indices_from_h_vector_index(RES_ID, i, &point_0, &point_1, &point_2, &point_3, &point_4, &point_5,
             &dual_scalar_on_face_index, &small_triangle_edge_index, face_edges, face_vertices, face_edges_reverse);
-            face_index = (i - NO_OF_EDGES*(POINTS_PER_EDGE + 1))/VECTOR_POINTS_PER_INNER_FACE;
-            on_face_index = i - (NO_OF_EDGES*(POINTS_PER_EDGE + 1) + face_index*VECTOR_POINTS_PER_INNER_FACE);
+            face_index = (i - N_EDGES*(POINTS_PER_EDGE + 1))/VECTOR_POINTS_PER_INNER_FACE;
+            on_face_index = i - (N_EDGES*(POINTS_PER_EDGE + 1) + face_index*VECTOR_POINTS_PER_INNER_FACE);
             triangle_on_face_index = on_face_index/3;
             find_coords_from_triangle_on_face_index(triangle_on_face_index, RES_ID, &coord_0, &coord_1, &coord_0_points_amount);
-            dual_scalar_index = dual_scalar_on_face_index + face_index*NO_OF_TRIANGLES/NO_OF_BASIC_TRIANGLES;
+            dual_scalar_index = dual_scalar_on_face_index + face_index*N_TRIANGLES/N_BASIC_TRIANGLES;
             triangle_face = calc_triangle_area(&latitude_scalar[point_0], &longitude_scalar[point_0], &latitude_scalar[point_1], &longitude_scalar[point_1],
             &latitude_scalar[point_2], &longitude_scalar[point_2]);
             triangle_face_unit_sphere[dual_scalar_index] = triangle_face;
@@ -215,8 +215,8 @@ int face_edges_reverse[][3], int face_vertices[][3])
         }
     }
     double triangle_sum_unit_sphere = 0.0;
-    double triangle_avg_unit_sphere_ideal = 4.0*M_PI/NO_OF_TRIANGLES;
-    for (int i = 0; i < NO_OF_DUAL_SCALARS_H; ++i)
+    double triangle_avg_unit_sphere_ideal = 4.0*M_PI/N_TRIANGLES;
+    for (int i = 0; i < N_DUAL_SCALS_H; ++i)
     {
         triangle_sum_unit_sphere += triangle_face_unit_sphere[i];
         if (triangle_face_unit_sphere[i] <= 0.0)
@@ -247,7 +247,7 @@ int set_vector_h_doubles(int from_index[], int to_index[], double latitude_scala
 	
 	double x_point_0, y_point_0, z_point_0, x_point_1, y_point_1, z_point_1, x_res, y_res, z_res, lat_res, lon_res;
 	#pragma omp parallel for private(x_point_0, y_point_0, z_point_0, x_point_1, y_point_1, z_point_1, x_res, y_res, z_res, lat_res, lon_res)
-    for (int i = 0; i < NO_OF_VECTORS_H; ++i)
+    for (int i = 0; i < N_VECS_H; ++i)
     {
         find_global_normal(&latitude_scalar[from_index[i]], &longitude_scalar[from_index[i]], &x_point_0, &y_point_0, &z_point_0);
         find_global_normal(&latitude_scalar[to_index[i]], &longitude_scalar[to_index[i]], &x_point_1, &y_point_1, &z_point_1);
@@ -269,26 +269,26 @@ int set_from_to_index(int from_index[], int to_index[], int face_edges[][3], int
 	
 	int edge_index, on_edge_index, point_0, point_1, point_2, point_3, point_4, point_5, dual_scalar_on_face_index, small_triangle_edge_index;
 	#pragma omp parallel for private(edge_index, on_edge_index, point_0, point_1, point_2, point_3, point_4, point_5, dual_scalar_on_face_index, small_triangle_edge_index)
-    for (int i = 0; i < NO_OF_VECTORS_H; ++i)
+    for (int i = 0; i < N_VECS_H; ++i)
     {
-        if (i < NO_OF_EDGES*(POINTS_PER_EDGE + 1))
+        if (i < N_EDGES*(POINTS_PER_EDGE + 1))
         {
             edge_index = i/(POINTS_PER_EDGE + 1);
             on_edge_index = i - edge_index*(POINTS_PER_EDGE + 1);
             if(on_edge_index == 0)
             {
                 from_index[i] = edge_vertices[edge_index][0];
-                to_index[i] = NO_OF_PENTAGONS + edge_index*POINTS_PER_EDGE;
+                to_index[i] = N_PENTAGONS + edge_index*POINTS_PER_EDGE;
             }
             else if (on_edge_index == POINTS_PER_EDGE)
             {
-                from_index[i] = NO_OF_PENTAGONS + (edge_index + 1)*POINTS_PER_EDGE - 1;
+                from_index[i] = N_PENTAGONS + (edge_index + 1)*POINTS_PER_EDGE - 1;
                 to_index[i] = edge_vertices[edge_index][1];
             }
             else
             {
-                from_index[i] = NO_OF_PENTAGONS + edge_index*POINTS_PER_EDGE + on_edge_index - 1;
-                to_index[i] = NO_OF_PENTAGONS + edge_index*POINTS_PER_EDGE + on_edge_index;
+                from_index[i] = N_PENTAGONS + edge_index*POINTS_PER_EDGE + on_edge_index - 1;
+                to_index[i] = N_PENTAGONS + edge_index*POINTS_PER_EDGE + on_edge_index;
             }
         }
         else
@@ -326,17 +326,17 @@ int face_edges[][3], int face_edges_reverse[][3], int face_vertices[][3])
 	int point_0, point_1, point_2, point_3, point_4, point_5, dual_scalar_on_face_index, small_triangle_edge_index,
 	dual_scalar_index, coord_0, coord_1, coord_0_points_amount, face_index, on_face_index, triangle_on_face_index;
 	#pragma omp parallel for private(lat_res, lon_res, point_0, point_1, point_2, point_3, point_4, point_5, dual_scalar_on_face_index, small_triangle_edge_index, dual_scalar_index, coord_0, coord_1, coord_0_points_amount, face_index, on_face_index, triangle_on_face_index)
-    for (int i = 0; i < NO_OF_VECTORS_H; ++i)
+    for (int i = 0; i < N_VECS_H; ++i)
     {
-        if (i >= NO_OF_EDGES*(POINTS_PER_EDGE + 1))
+        if (i >= N_EDGES*(POINTS_PER_EDGE + 1))
         {
             find_triangle_indices_from_h_vector_index(RES_ID, i, &point_0, &point_1, &point_2, &point_3, &point_4, &point_5, &dual_scalar_on_face_index,
             &small_triangle_edge_index, face_edges, face_vertices, face_edges_reverse);
-            face_index = (i - NO_OF_EDGES*(POINTS_PER_EDGE + 1))/VECTOR_POINTS_PER_INNER_FACE;
-            on_face_index = i - (NO_OF_EDGES*(POINTS_PER_EDGE + 1) + face_index*VECTOR_POINTS_PER_INNER_FACE);
+            face_index = (i - N_EDGES*(POINTS_PER_EDGE + 1))/VECTOR_POINTS_PER_INNER_FACE;
+            on_face_index = i - (N_EDGES*(POINTS_PER_EDGE + 1) + face_index*VECTOR_POINTS_PER_INNER_FACE);
             triangle_on_face_index = on_face_index/3;
             find_coords_from_triangle_on_face_index(triangle_on_face_index, RES_ID, &coord_0, &coord_1, &coord_0_points_amount);
-            dual_scalar_index = dual_scalar_on_face_index + face_index*NO_OF_TRIANGLES/NO_OF_BASIC_TRIANGLES;
+            dual_scalar_index = dual_scalar_on_face_index + face_index*N_TRIANGLES/N_BASIC_TRIANGLES;
             // We want to construct a Voronoi gird, that's why we choose this function for calculating the dual cell centers.
             find_voronoi_center_sphere(&latitude_scalar[point_0], &longitude_scalar[point_0], &latitude_scalar[point_1], &longitude_scalar[point_1],
             &latitude_scalar[point_2], &longitude_scalar[point_2], &lat_res, &lon_res);
@@ -373,19 +373,19 @@ int set_from_to_index_dual(int from_index_dual[], int to_index_dual[], int face_
 	
 	int coord_0, coord_1, on_face_index, on_edge_index, edge_index, small_triangle_edge_index, coord_0_points_amount, first_face_found, face_index;
     #pragma omp parallel for private(coord_0, coord_1, on_face_index, on_edge_index, edge_index, small_triangle_edge_index, coord_0_points_amount, first_face_found, face_index)
-    for (int i = 0; i < NO_OF_VECTORS_H; ++i)
+    for (int i = 0; i < N_VECS_H; ++i)
     {
     	int edge_rel_to_face_0 = 0;
     	int edge_rel_to_face_1 = 0;
     	int face_index_0 = 0;
     	int face_index_1 = 0;
     	int triangle_on_face_index = 0;
-        if (i < NO_OF_EDGES*(POINTS_PER_EDGE + 1))
+        if (i < N_EDGES*(POINTS_PER_EDGE + 1))
         {
             edge_index = i/(POINTS_PER_EDGE + 1);
             on_edge_index = i - edge_index*(POINTS_PER_EDGE + 1);
             first_face_found = 0;
-            for (int j = 0; j < NO_OF_BASIC_TRIANGLES; ++j)
+            for (int j = 0; j < N_BASIC_TRIANGLES; ++j)
             {
                 if (face_edges[j][0] == edge_index || face_edges[j][1] == edge_index || face_edges[j][2] == edge_index)
                 {
@@ -495,8 +495,8 @@ int set_from_to_index_dual(int from_index_dual[], int to_index_dual[], int face_
         }
         else
         {
-            face_index = (i - NO_OF_EDGES*(POINTS_PER_EDGE + 1))/VECTOR_POINTS_PER_INNER_FACE;
-            on_face_index = i - (NO_OF_EDGES*(POINTS_PER_EDGE + 1) + face_index*VECTOR_POINTS_PER_INNER_FACE);
+            face_index = (i - N_EDGES*(POINTS_PER_EDGE + 1))/VECTOR_POINTS_PER_INNER_FACE;
+            on_face_index = i - (N_EDGES*(POINTS_PER_EDGE + 1) + face_index*VECTOR_POINTS_PER_INNER_FACE);
             triangle_on_face_index = on_face_index/3;
             small_triangle_edge_index = on_face_index - 3*triangle_on_face_index;
             find_coords_from_triangle_on_face_index(triangle_on_face_index, RES_ID, &coord_0, &coord_1, &coord_0_points_amount);
@@ -529,7 +529,7 @@ int set_dual_vector_h_doubles(double latitude_scalar_dual[], double latitude_vec
 	*/
 	
 	#pragma omp parallel for
-    for (int i = 0; i < NO_OF_VECTORS_H; ++i)
+    for (int i = 0; i < N_VECS_H; ++i)
     {
         rel_on_line_dual[i] = rel_on_line(&latitude_scalar_dual[from_index_dual[i]], &longitude_scalar_dual[from_index_dual[i]],
         &latitude_scalar_dual[to_index_dual[i]], &longitude_scalar_dual[to_index_dual[i]], &latitude_vector[i], &longitude_vector[i]);
@@ -553,7 +553,7 @@ int direct_tangential_unity(double latitude_scalar_dual[], double longitude_scal
 	int temp_index;
 	double direction_change;
 	#pragma omp parallel for private(temp_index, direction_change)
-    for (int i = 0; i < NO_OF_VECTORS_H; ++i)
+    for (int i = 0; i < N_VECS_H; ++i)
     {
 	    direction_change = find_turn_angle(&direction[i], &direction_dual[i]);
 	    if (rad2deg(&direction_change) < -ORTH_CRITERION_DEG)
@@ -569,7 +569,7 @@ int direct_tangential_unity(double latitude_scalar_dual[], double longitude_scal
 
 	// checking for orthogonality
 	#pragma omp parallel for private(direction_change)
-    for (int i = 0; i < NO_OF_VECTORS_H; ++i)
+    for (int i = 0; i < N_VECS_H; ++i)
     {
         direction_change = find_turn_angle(&direction[i], &direction_dual[i]);
         if (fabs(rad2deg(&direction_change)) < ORTH_CRITERION_DEG || fabs(rad2deg(&direction_change)) > 90.0 + (90.0 - ORTH_CRITERION_DEG))

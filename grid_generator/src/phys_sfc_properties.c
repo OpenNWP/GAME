@@ -45,7 +45,7 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 	*/
 	if (oro_id == 1)
 	{
-		double *oro_unfiltered = malloc(NO_OF_SCALARS_H*sizeof(double));
+		double *oro_unfiltered = malloc(N_SCALS_H*sizeof(double));
 		
 		int ncid, is_land_id;
 		char is_land_file_pre[200];
@@ -77,7 +77,7 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 		// setting the unfiltered orography
 		int lat_index, lon_index;
 		#pragma omp parallel for private(lat_index, lon_index)
-		for (int i = 0; i < NO_OF_SCALARS_H; ++i)
+		for (int i = 0; i < N_SCALS_H; ++i)
 		{
 			// default
 			oro[i] = 0.0;
@@ -113,13 +113,13 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 		free(longitude_input);
 		// smoothing the real orography
 		int min_indices_vector[no_of_avg_points];
-		double distance_vector[NO_OF_SCALARS_H];
-		int no_of_scalars_h = NO_OF_SCALARS_H;
+		double distance_vector[N_SCALS_H];
+		int no_of_scalars_h = N_SCALS_H;
 		#pragma omp parallel for private(min_indices_vector, distance_vector)
-		for (int i = 0; i < NO_OF_SCALARS_H; ++i)
+		for (int i = 0; i < N_SCALS_H; ++i)
 		{
 			// finding the distance to the other grid points
-			for (int j = 0; j < NO_OF_SCALARS_H; ++j)
+			for (int j = 0; j < N_SCALS_H; ++j)
 			{
 				double one = 1.0;
 				distance_vector[j] = calculate_distance_h(&latitude_scalar[i], &longitude_scalar[i], &latitude_scalar[j], &longitude_scalar[j], &one);
@@ -157,7 +157,7 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 	double t_conductivity_soil = 7.5e-7;
 	double lat_deg;
 	#pragma omp parallel for private(lat_deg)
-	for (int i = 0; i < NO_OF_SCALARS_H; ++i)
+	for (int i = 0; i < N_SCALS_H; ++i)
 	{
 		// ocean
 		sfc_albedo[i] = albedo_water;

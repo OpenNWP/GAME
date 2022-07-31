@@ -25,9 +25,9 @@ int sanity_checker(Config *config, Config_io *config_io, Grid *grid)
 	checking user input for correctness:
 	------------------------------------
 	*/
-    if (grid -> no_of_oro_layers < 0 || grid -> no_of_oro_layers >= NO_OF_LAYERS)
+    if (grid -> no_of_oro_layers < 0 || grid -> no_of_oro_layers >= N_LAYERS)
     {
-    	printf("It must be 0 <= orography_layers < NO_OF_LAYERS.\n");
+    	printf("It must be 0 <= orography_layers < N_LAYERS.\n");
     	printf("Aborting.\n");
     	exit(1);
     }
@@ -139,13 +139,13 @@ int sanity_checker(Config *config, Config_io *config_io, Grid *grid)
     	printf("Aborting.\n");
 		exit(1);
 	}
-	if (NO_OF_SOIL_LAYERS < 2)
+	if (N_SOIL_LAYERS < 2)
 	{
-		printf("NO_OF_SOIL_LAYERS must be >= 2.\n");
+		printf("N_SOIL_LAYERS must be >= 2.\n");
     	printf("Aborting.\n");
 		exit(1);
 	}
-	if (config_io -> ideal_input_id == 2 && NO_OF_CONSTITUENTS == 1)
+	if (config_io -> ideal_input_id == 2 && N_CONSTITUENTS == 1)
 	{
 		printf("You chose a moist test case, but your model is dry.\n");
     	printf("Aborting.\n");
@@ -247,12 +247,12 @@ int readback_config(Config *config, Config_io *config_io, Grid *grid, char grid_
 	printf("Start hour:\t\t\t\t%d\n", config_io -> hour);
 	printf("%s", stars);
 	printf("Dynamics configuration:\n");
-	printf("Number of layers: %d\n", NO_OF_LAYERS);
-	printf("Number of scalar data points per layer: %d\n", NO_OF_SCALARS_H);
-	printf("Number of horizontal vectors per layer: %d\n", NO_OF_VECTORS_H);
-	printf("Number of scalar data points: %d\n", NO_OF_SCALARS);
-	printf("Number of vectors: %d\n", NO_OF_VECTORS);
-	printf("Number of data points: %d\n", NO_OF_SCALARS + NO_OF_VECTORS);
+	printf("Number of layers: %d\n", N_LAYERS);
+	printf("Number of scalar data points per layer: %d\n", N_SCALS_H);
+	printf("Number of horizontal vectors per layer: %d\n", N_VECS_H);
+	printf("Number of scalar data points: %d\n", N_SCALARS);
+	printf("Number of vectors: %d\n", N_VECTORS);
+	printf("Number of data points: %d\n", N_SCALARS + N_VECTORS);
 	if (config -> momentum_diff_h == 0)
 	{
 		printf("Horizontal momentum diffusion is turned off.\n");
@@ -306,12 +306,12 @@ int readback_config(Config *config, Config_io *config_io, Grid *grid, char grid_
 	printf("%s", stars);
 	
 	printf("Physics configuration:\n");
-	printf("Number of constituents: %d\n", NO_OF_CONSTITUENTS);
-	printf("Number of condensed constituents: %d\n", NO_OF_CONDENSED_CONSTITUENTS);
-	printf("Number of gaseous constituents: %d\n", NO_OF_GASEOUS_CONSTITUENTS);
-	if (NO_OF_CONSTITUENTS != 1 && NO_OF_CONSTITUENTS != 6)
+	printf("Number of constituents: %d\n", N_CONSTITUENTS);
+	printf("Number of condensed constituents: %d\n", N_CONDENSED_CONSTITUENTS);
+	printf("Number of gaseous constituents: %d\n", N_GASEOUS_CONSTITUENTS);
+	if (N_CONSTITUENTS != 1 && N_CONSTITUENTS != 6)
 	{
-		printf("Error: NO_OF_CONSTITUENTS must be either 1 or 6.\n");
+		printf("Error: N_CONSTITUENTS must be either 1 or 6.\n");
 		printf("Aborting.\n");
 		exit(1);
 	}
@@ -347,15 +347,15 @@ int readback_config(Config *config, Config_io *config_io, Grid *grid, char grid_
 	{
 		printf("Heat conduction in the soil is turned on.\n");
 	}
-	if (config -> sfc_phase_trans == 0 && NO_OF_GASEOUS_CONSTITUENTS > 1)
+	if (config -> sfc_phase_trans == 0 && N_GASEOUS_CONSTITUENTS > 1)
 	{
 		printf("Phase transitions at the surface are turned off.\n");
 	}
-	if (config -> sfc_phase_trans == 1 && NO_OF_GASEOUS_CONSTITUENTS > 1)
+	if (config -> sfc_phase_trans == 1 && N_GASEOUS_CONSTITUENTS > 1)
 	{
 		printf("Phase transitions at the surface are turned on.\n");
 	}
-	if (config -> sfc_phase_trans == 1 && NO_OF_GASEOUS_CONSTITUENTS == 1)
+	if (config -> sfc_phase_trans == 1 && N_GASEOUS_CONSTITUENTS == 1)
 	{
 		printf("Phase transitions at the surface are turned on, but your model is dry, so this will have no effect.\n");
 	}
@@ -437,15 +437,15 @@ int main(int argc, char *argv[])
 	sanity_checker(config, config_io, grid);
 	
     /*
-	Determining the name of the grid file from the RES_ID, NO_OF_LAYERS and so on.
+	Determining the name of the grid file from the RES_ID, N_LAYERS and so on.
     ------------------------------------------------------------------------------
     */
     char grid_file_pre[200];
-	sprintf(grid_file_pre, "../../grid_generator/grids/RES%d_L%d_ORO%d.nc", RES_ID, NO_OF_LAYERS, grid -> oro_id);
+	sprintf(grid_file_pre, "../../grid_generator/grids/RES%d_L%d_ORO%d.nc", RES_ID, N_LAYERS, grid -> oro_id);
     char grid_file[strlen(grid_file_pre) + 1];
     strcpy(grid_file, grid_file_pre);
     
-	// Determining the name of the init state file from the IDEAL_INPUT_ID, RES_ID, NO_OF_LAYERS and so on.
+	// Determining the name of the init state file from the IDEAL_INPUT_ID, RES_ID, N_LAYERS and so on.
     char init_state_file_pre[200];
     // the NWP case
     if (config_io -> ideal_input_id == -1)
@@ -533,16 +533,16 @@ int main(int argc, char *argv[])
     // calculating the mean area of the cells
 	int layer_index, h_index;
 	double cell_area_sum = 0.0;
-	for (int i = 0; i < NO_OF_LEVELS*NO_OF_SCALARS_H; ++i)
+	for (int i = 0; i < N_LEVELS*N_SCALS_H; ++i)
 	{
-		layer_index = i/NO_OF_SCALARS_H;
-		h_index = i - layer_index*NO_OF_SCALARS_H;
-		cell_area_sum += grid -> area[h_index + layer_index*NO_OF_VECTORS_PER_LAYER];
+		layer_index = i/N_SCALS_H;
+		h_index = i - layer_index*N_SCALS_H;
+		cell_area_sum += grid -> area[h_index + layer_index*N_VECS_PER_LAYER];
 	}
-	grid -> mean_velocity_area = 2.0/3.0*cell_area_sum/(NO_OF_LEVELS*NO_OF_SCALARS_H);
+	grid -> mean_velocity_area = 2.0/3.0*cell_area_sum/(N_LEVELS*N_SCALS_H);
     
     // calculating the average horizontal resolution
-    grid -> eff_hor_res = pow(cell_area_sum/(NO_OF_LEVELS*NO_OF_SCALARS_H), 0.5);
+    grid -> eff_hor_res = pow(cell_area_sum/(N_LEVELS*N_SCALS_H), 0.5);
     
     // delta_t is the time step
     double delta_t = 1.61*1e-3*grid -> eff_hor_res;
@@ -576,20 +576,20 @@ int main(int argc, char *argv[])
 	
 	// finding the minimum horizontal grid distance
 	double normal_dist_min_hor = grid -> eff_hor_res;
-	for (int i = 0; i < NO_OF_VECTORS_H; ++i)
+	for (int i = 0; i < N_VECS_H; ++i)
 	{
-		if(grid -> normal_distance[NO_OF_VECTORS - NO_OF_VECTORS_PER_LAYER + i] < normal_dist_min_hor)
+		if(grid -> normal_distance[N_VECTORS - N_VECS_PER_LAYER + i] < normal_dist_min_hor)
 		{
-			normal_dist_min_hor = grid -> normal_distance[NO_OF_VECTORS - NO_OF_VECTORS_PER_LAYER + i];
+			normal_dist_min_hor = grid -> normal_distance[N_VECTORS - N_VECS_PER_LAYER + i];
 		}
 	}
 	// finding the minimum vertical grid distance
-	double normal_dist_min_vert = grid -> z_vector[0]/NO_OF_LAYERS;
-	for (int i = 0; i < NO_OF_SCALARS_H; ++i)
+	double normal_dist_min_vert = grid -> z_vector[0]/N_LAYERS;
+	for (int i = 0; i < N_SCALS_H; ++i)
 	{
-		if(grid -> normal_distance[NO_OF_VECTORS - NO_OF_VECTORS_PER_LAYER - NO_OF_SCALARS_H + i] < normal_dist_min_vert)
+		if(grid -> normal_distance[N_VECTORS - N_VECS_PER_LAYER - N_SCALS_H + i] < normal_dist_min_vert)
 		{
-			normal_dist_min_vert = grid -> normal_distance[NO_OF_VECTORS - NO_OF_VECTORS_PER_LAYER - NO_OF_SCALARS_H + i];
+			normal_dist_min_vert = grid -> normal_distance[N_VECTORS - N_VECS_PER_LAYER - N_SCALS_H + i];
 		}
 	}
 	
@@ -612,15 +612,15 @@ int main(int argc, char *argv[])
     printf("%s", stars);
     
     int min_no_of_10m_wind_avg_steps = 600/delta_t;
-    double *wind_h_lowest_layer = calloc(1, min_no_of_10m_wind_avg_steps*NO_OF_VECTORS_H*sizeof(double));
+    double *wind_h_lowest_layer = calloc(1, min_no_of_10m_wind_avg_steps*N_VECS_H*sizeof(double));
     double t_write = t_init;
     #pragma omp parallel for
-	for (int h_index = 0; h_index < NO_OF_VECTORS_H; ++h_index)
+	for (int h_index = 0; h_index < N_VECS_H; ++h_index)
 	{
 		// here, for all output time steps, the initial value is used
 		for (int time_step_10_m_wind = 0; time_step_10_m_wind < min_no_of_10m_wind_avg_steps; ++time_step_10_m_wind)
 		{
-			wind_h_lowest_layer[time_step_10_m_wind*NO_OF_VECTORS_H + h_index] = state_old -> wind[NO_OF_VECTORS - NO_OF_VECTORS_PER_LAYER + h_index];
+			wind_h_lowest_layer[time_step_10_m_wind*N_VECS_H + h_index] = state_old -> wind[N_VECTORS - N_VECS_PER_LAYER + h_index];
     	}
     }
 	temperature_diagnostics(state_old, grid, diagnostics);
@@ -728,9 +728,9 @@ int main(int argc, char *argv[])
         	if (wind_lowest_layer_step_counter < min_no_of_10m_wind_avg_steps)
         	{
         		#pragma omp parallel for
-		    	for (int h_index = 0; h_index < NO_OF_VECTORS_H; ++h_index)
+		    	for (int h_index = 0; h_index < N_VECS_H; ++h_index)
        			{
-		    		wind_h_lowest_layer[wind_lowest_layer_step_counter*NO_OF_VECTORS_H + h_index] = state_old -> wind[NO_OF_VECTORS - NO_OF_VECTORS_PER_LAYER + h_index];
+		    		wind_h_lowest_layer[wind_lowest_layer_step_counter*N_VECS_H + h_index] = state_old -> wind[N_VECTORS - N_VECS_PER_LAYER + h_index];
 		    	}
 		    	wind_lowest_layer_step_counter += 1;
         	}
@@ -753,7 +753,7 @@ int main(int argc, char *argv[])
             
             // resetting the wind in the lowest layer to zero
             #pragma omp parallel for
-            for (int i = 0; i < min_no_of_10m_wind_avg_steps*NO_OF_VECTORS_H; ++i)
+            for (int i = 0; i < min_no_of_10m_wind_avg_steps*N_VECS_H; ++i)
             {
             	wind_h_lowest_layer[i] = 0;
         	}

@@ -29,12 +29,12 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
     int scalar_shift_index, scalar_shift_index_phase_trans, scalar_index;
     
     // determining the RK weights
-    double old_weight[NO_OF_CONSTITUENTS];
-    double new_weight[NO_OF_CONSTITUENTS];
-    for (int i = 0; i < NO_OF_CONSTITUENTS; ++i)
+    double old_weight[N_CONSTITUENTS];
+    double new_weight[N_CONSTITUENTS];
+    for (int i = 0; i < N_CONSTITUENTS; ++i)
     {
 		new_weight[i] = 1.0;
-		if (rk_step == 1 && i != NO_OF_CONDENSED_CONSTITUENTS)
+		if (rk_step == 1 && i != N_CONDENSED_CONSTITUENTS)
 		{
 			new_weight[i] = 0.5;
 		}
@@ -68,9 +68,9 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 	if (config -> mass_diff_h == 1 && rk_step == 0)
 	{
 		// loop over all constituents
-		for (int i = 0; i < NO_OF_CONSTITUENTS; ++i)
+		for (int i = 0; i < N_CONSTITUENTS; ++i)
 		{
-			scalar_shift_index = i*NO_OF_SCALARS;
+			scalar_shift_index = i*N_SCALARS;
 
     		// The diffusion of the tracer density depends on its gradient.
 			grad(&state -> rho[scalar_shift_index], diagnostics -> vector_field_placeholder, grid);
@@ -92,19 +92,19 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 	--------------------------------------------------
 	*/
 	// loop over all constituents
-	for (int i = 0; i < NO_OF_CONSTITUENTS; ++i)
+	for (int i = 0; i < N_CONSTITUENTS; ++i)
 	{
-		scalar_shift_index = i*NO_OF_SCALARS;
+		scalar_shift_index = i*N_SCALARS;
 		scalar_shift_index_phase_trans = scalar_shift_index;
-		if (MOISTURE_ON == 1 && i == NO_OF_CONDENSED_CONSTITUENTS + 1)
+		if (MOISTURE_ON == 1 && i == N_CONDENSED_CONSTITUENTS + 1)
 		{
-			scalar_shift_index_phase_trans = scalar_shift_index - NO_OF_SCALARS;
+			scalar_shift_index_phase_trans = scalar_shift_index - N_SCALARS;
 		}
 		
         // This is the mass advection, which needs to be carried out for all constituents.
         // -------------------------------------------------------------------------------
         // moist air
-		if (i == NO_OF_CONDENSED_CONSTITUENTS)
+		if (i == N_CONDENSED_CONSTITUENTS)
 		{
 			scalar_times_vector_h(&state -> rho[scalar_shift_index], state -> wind, diagnostics -> flux_density, grid);
     		div_h(diagnostics -> flux_density, diagnostics -> flux_density_div, grid);
@@ -118,7 +118,7 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 		
 		// adding the tendencies in all grid boxes
 		#pragma omp parallel for private(scalar_index)
-		for (int j = 0; j < NO_OF_SCALARS; ++j)
+		for (int j = 0; j < N_SCALARS; ++j)
 		{
 			scalar_index = scalar_shift_index + j;
 			state_tendency -> rho[scalar_index]
@@ -136,11 +136,11 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 		Explicit component of the rho*theta_v integration
 		-------------------------------------------------
 		*/
-		if (i == NO_OF_CONDENSED_CONSTITUENTS)
+		if (i == N_CONDENSED_CONSTITUENTS)
 		{
 			// determining the virtual potential temperature
 			#pragma omp parallel for
-			for (int j = 0; j < NO_OF_SCALARS; ++j)
+			for (int j = 0; j < N_SCALARS; ++j)
 			{
 				diagnostics -> scalar_field_placeholder[j] = state -> rhotheta_v[j]/state -> rho[scalar_shift_index + j];
 			}
@@ -148,7 +148,7 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 			div_h(diagnostics -> flux_density, diagnostics -> flux_density_div, grid);
 			// adding the tendencies in all grid boxes
 			#pragma omp parallel for
-			for (int j = 0; j < NO_OF_SCALARS; ++j)
+			for (int j = 0; j < N_SCALARS; ++j)
 			{
 				state_tendency -> rhotheta_v[j]
 				= old_weight[i]*state_tendency -> rhotheta_v[j]

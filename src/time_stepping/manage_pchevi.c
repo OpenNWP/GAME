@@ -64,11 +64,11 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 		vector_tendencies_expl(state_new, state_tendency, grid, dualgrid, diagnostics, forcings, irrev, config, rk_step, delta_t);
 	    // time stepping for the horizontal momentum can be directly executed
 	    #pragma omp parallel for private(vector_index)
-	    for (int h_index = 0; h_index < NO_OF_VECTORS_H; ++h_index)
+	    for (int h_index = 0; h_index < N_VECS_H; ++h_index)
 	    {
-	    	for (int layer_index = 0; layer_index < NO_OF_LAYERS; ++layer_index)
+	    	for (int layer_index = 0; layer_index < N_LAYERS; ++layer_index)
 			{
-				vector_index = NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + h_index;
+				vector_index = N_SCALS_H + layer_index*N_VECS_PER_LAYER + h_index;
 				state_new -> wind[vector_index] = state_old -> wind[vector_index] + delta_t*state_tendency -> wind[vector_index];
 	    	}
 	    }
@@ -89,7 +89,7 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 		
 		// 4.) vertical tracer advection
 		// -----------------------------
-		if (NO_OF_CONSTITUENTS > 1)
+		if (N_CONSTITUENTS > 1)
 		{
 			three_band_solver_gen_densities(state_old, state_new, state_tendency, diagnostics, irrev, config, delta_t, rk_step, grid);
 		}

@@ -19,11 +19,11 @@ int create_rad_array_scalar(double in[], double out[], int rad_block_index)
 	*/
 	int layer_index, h_index;
 	// loop over all elements of the resulting array
-	for (int i = 0; i < NO_OF_SCALARS_RAD; ++i)
+	for (int i = 0; i < N_SCALS_RAD; ++i)
 	{
-		layer_index = i/NO_OF_SCALARS_RAD_PER_LAYER;
-		h_index = i - layer_index*NO_OF_SCALARS_RAD_PER_LAYER;
-		out[i] = in[rad_block_index*NO_OF_SCALARS_RAD_PER_LAYER + h_index + layer_index*NO_OF_SCALARS_H];
+		layer_index = i/N_SCALS_RAD_PER_LAYER;
+		h_index = i - layer_index*N_SCALS_RAD_PER_LAYER;
+		out[i] = in[rad_block_index*N_SCALS_RAD_PER_LAYER + h_index + layer_index*N_SCALS_H];
 	}
 	return 0;
 }
@@ -34,9 +34,9 @@ int create_rad_array_scalar_h(double in[], double out[], int rad_block_index)
 	cuts out a slice of a horizontal scalar field for hand-over to the radiation routine (done for RAM efficiency reasons)
 	*/
 	// loop over all elements of the resulting array
-	for (int i = 0; i < NO_OF_SCALARS_RAD_PER_LAYER; ++i)
+	for (int i = 0; i < N_SCALS_RAD_PER_LAYER; ++i)
 	{
-		out[i] = in[rad_block_index*NO_OF_SCALARS_RAD_PER_LAYER + i];
+		out[i] = in[rad_block_index*N_SCALS_RAD_PER_LAYER + i];
 	}
 	return 0;
 }
@@ -47,15 +47,15 @@ int create_rad_array_mass_den(double in[], double out[], int rad_block_index)
 	same thing as create_rad_array_scalar, only for a mass density field
 	*/
 	int layer_index, h_index;
-	for (int const_id = 0; const_id < NO_OF_CONSTITUENTS; ++const_id)
+	for (int const_id = 0; const_id < N_CONSTITUENTS; ++const_id)
 	{
 		// loop over all elements of the resulting array
-		for (int i = 0; i < NO_OF_SCALARS_RAD; ++i)
+		for (int i = 0; i < N_SCALS_RAD; ++i)
 		{
-			layer_index = i/NO_OF_SCALARS_RAD_PER_LAYER;
-			h_index = i - layer_index*NO_OF_SCALARS_RAD_PER_LAYER;
-			out[const_id*NO_OF_SCALARS_RAD + i]
-			= in[const_id*NO_OF_SCALARS + rad_block_index*NO_OF_SCALARS_RAD_PER_LAYER + h_index + layer_index*NO_OF_SCALARS_H];
+			layer_index = i/N_SCALS_RAD_PER_LAYER;
+			h_index = i - layer_index*N_SCALS_RAD_PER_LAYER;
+			out[const_id*N_SCALS_RAD + i]
+			= in[const_id*N_SCALARS + rad_block_index*N_SCALS_RAD_PER_LAYER + h_index + layer_index*N_SCALS_H];
 		}
 	}
 	return 0;
@@ -69,11 +69,11 @@ int create_rad_array_vector(double in[], double out[], int rad_block_index)
 	*/
 	int layer_index, h_index;
 	// loop over all elements of the resulting array
-	for (int i = 0; i < NO_OF_SCALARS_RAD + NO_OF_SCALARS_RAD_PER_LAYER; ++i)
+	for (int i = 0; i < N_SCALS_RAD + N_SCALS_RAD_PER_LAYER; ++i)
 	{
-		layer_index = i/NO_OF_SCALARS_RAD_PER_LAYER;
-		h_index = i - layer_index*NO_OF_SCALARS_RAD_PER_LAYER;
-		out[i] = in[rad_block_index*NO_OF_SCALARS_RAD_PER_LAYER + h_index + layer_index*NO_OF_VECTORS_PER_LAYER];
+		layer_index = i/N_SCALS_RAD_PER_LAYER;
+		h_index = i - layer_index*N_SCALS_RAD_PER_LAYER;
+		out[i] = in[rad_block_index*N_SCALS_RAD_PER_LAYER + h_index + layer_index*N_VECS_PER_LAYER];
 	}
 	return 0;
 }
@@ -85,11 +85,11 @@ int remap_to_original(double in[], double out[], int rad_block_index)
 	*/
 	int layer_index, h_index;
 	// loop over all elements of the resulting array
-	for (int i = 0; i < NO_OF_SCALARS_RAD; ++i)
+	for (int i = 0; i < N_SCALS_RAD; ++i)
 	{
-		layer_index = i/NO_OF_SCALARS_RAD_PER_LAYER;
-		h_index = i - layer_index*NO_OF_SCALARS_RAD_PER_LAYER;
-		out[rad_block_index*NO_OF_SCALARS_RAD_PER_LAYER + h_index + layer_index*NO_OF_SCALARS_H] = in[i];
+		layer_index = i/N_SCALS_RAD_PER_LAYER;
+		h_index = i - layer_index*N_SCALS_RAD_PER_LAYER;
+		out[rad_block_index*N_SCALS_RAD_PER_LAYER + h_index + layer_index*N_SCALS_H] = in[i];
 	}
 	return 0;
 }
@@ -101,9 +101,9 @@ int remap_to_original_scalar_h(double in[], double out[], int rad_block_index)
 	reverses what create_rad_array_scalar_h has done
 	*/
 	// loop over all elements of the resulting array
-	for (int i = 0; i < NO_OF_SCALARS_RAD_PER_LAYER; ++i)
+	for (int i = 0; i < N_SCALS_RAD_PER_LAYER; ++i)
 	{
-		out[rad_block_index*NO_OF_SCALARS_RAD_PER_LAYER + i] = in[i];
+		out[rad_block_index*N_SCALS_RAD_PER_LAYER + i] = in[i];
 	}
 	return 0;
 }
@@ -114,13 +114,13 @@ int call_radiation(State *state, Grid *grid, Dualgrid *dualgrid, State *state_te
 	{
 		printf("Starting update of radiative fluxes ...\n");
 	}
-	int no_of_scalars = NO_OF_SCALARS_RAD;
-	int no_of_constituents = NO_OF_CONSTITUENTS;
-	int no_of_condensed_constituents = NO_OF_CONDENSED_CONSTITUENTS;
-	int no_of_layers = NO_OF_LAYERS;
+	int no_of_scalars = N_SCALS_RAD;
+	int no_of_constituents = N_CONSTITUENTS;
+	int no_of_condensed_constituents = N_CONDENSED_CONSTITUENTS;
+	int no_of_layers = N_LAYERS;
 	// loop over all radiation blocks
 	#pragma omp parallel for
-	for (int rad_block_index = 0; rad_block_index < NO_OF_RAD_BLOCKS; ++rad_block_index)
+	for (int rad_block_index = 0; rad_block_index < N_RAD_BLOCKS; ++rad_block_index)
 	{
 		Radiation *radiation = calloc(1, sizeof(Radiation));
 		// remapping all the arrays

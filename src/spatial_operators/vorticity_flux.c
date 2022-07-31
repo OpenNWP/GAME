@@ -21,28 +21,28 @@ int vorticity_flux(Vector_field mass_flux_density, Curl_field pot_vorticity, Vec
     int i, h_index_shifted, number_of_edges, mass_flux_base_index, pot_vort_base_index;
     double vert_weight;
 	#pragma omp parallel for private(i, number_of_edges, vert_weight, h_index_shifted, mass_flux_base_index, pot_vort_base_index)
-    for (int h_index = 0; h_index < NO_OF_VECTORS_PER_LAYER; ++h_index)
+    for (int h_index = 0; h_index < N_VECS_PER_LAYER; ++h_index)
     {
-    	for (int layer_index = 0; layer_index < NO_OF_LAYERS + 1; ++layer_index)
+    	for (int layer_index = 0; layer_index < N_LAYERS + 1; ++layer_index)
     	{
-		    i = layer_index*NO_OF_VECTORS_PER_LAYER + h_index;
+		    i = layer_index*N_VECS_PER_LAYER + h_index;
 		    
 		    /*
 		    Calculating the horizontal component of the vorticity flux term.
 		    ----------------------------------------------------------------
 		    */
-		    if (h_index >= NO_OF_SCALARS_H && layer_index < NO_OF_LAYERS)
+		    if (h_index >= N_SCALS_H && layer_index < N_LAYERS)
 		    {
 			    out_field[i] = 0;
-		    	h_index_shifted = h_index - NO_OF_SCALARS_H;
-		    	mass_flux_base_index = NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER;
-		    	pot_vort_base_index = NO_OF_VECTORS_H + layer_index*2*NO_OF_VECTORS_H;
+		    	h_index_shifted = h_index - N_SCALS_H;
+		    	mass_flux_base_index = N_SCALS_H + layer_index*N_VECS_PER_LAYER;
+		    	pot_vort_base_index = N_VECS_H + layer_index*2*N_VECS_H;
 		    	/*
 		    	"Standard" component (vertical potential vorticity times horizontal mass flux density).
 		        ----------------------------------------------------------------------------------------
 		        */
 				// From_index comes before to_index as usual.
-				if (grid -> from_index[h_index_shifted] < NO_OF_PENTAGONS)
+				if (grid -> from_index[h_index_shifted] < N_PENTAGONS)
 				{
 					for (int j = 0; j < 4; ++j)
 					{
@@ -74,7 +74,7 @@ int vorticity_flux(Vector_field mass_flux_density, Curl_field pot_vorticity, Vec
 						}
 					}
 				}
-				if (grid -> to_index[h_index_shifted] < NO_OF_PENTAGONS)	
+				if (grid -> to_index[h_index_shifted] < N_PENTAGONS)	
 				{
 					for (int j = 5; j < 9; ++j)
 					{
@@ -114,32 +114,32 @@ int vorticity_flux(Vector_field mass_flux_density, Curl_field pot_vorticity, Vec
 		        // effect of layer above
 		        out_field[i]
 				-= 0.5
-				*grid -> inner_product_weights[8*(layer_index*NO_OF_SCALARS_H + grid -> from_index[h_index_shifted]) + 6]
-				*mass_flux_density[layer_index*NO_OF_VECTORS_PER_LAYER + grid -> from_index[h_index_shifted]]
-				*pot_vorticity[h_index_shifted + layer_index*2*NO_OF_VECTORS_H];
+				*grid -> inner_product_weights[8*(layer_index*N_SCALS_H + grid -> from_index[h_index_shifted]) + 6]
+				*mass_flux_density[layer_index*N_VECS_PER_LAYER + grid -> from_index[h_index_shifted]]
+				*pot_vorticity[h_index_shifted + layer_index*2*N_VECS_H];
 				out_field[i]
 				-= 0.5
-				*grid -> inner_product_weights[8*(layer_index*NO_OF_SCALARS_H + grid -> to_index[h_index_shifted]) + 6]
-				*mass_flux_density[layer_index*NO_OF_VECTORS_PER_LAYER + grid -> to_index[h_index_shifted]]
-				*pot_vorticity[h_index_shifted + layer_index*2*NO_OF_VECTORS_H];
+				*grid -> inner_product_weights[8*(layer_index*N_SCALS_H + grid -> to_index[h_index_shifted]) + 6]
+				*mass_flux_density[layer_index*N_VECS_PER_LAYER + grid -> to_index[h_index_shifted]]
+				*pot_vorticity[h_index_shifted + layer_index*2*N_VECS_H];
 		        // effect of layer below
 				out_field[i]
 				-= 0.5
-				*grid -> inner_product_weights[8*(layer_index*NO_OF_SCALARS_H + grid -> from_index[h_index_shifted]) + 7]
-				*mass_flux_density[(layer_index + 1)*NO_OF_VECTORS_PER_LAYER + grid -> from_index[h_index_shifted]]
-				*pot_vorticity[h_index_shifted + (layer_index + 1)*2*NO_OF_VECTORS_H];
+				*grid -> inner_product_weights[8*(layer_index*N_SCALS_H + grid -> from_index[h_index_shifted]) + 7]
+				*mass_flux_density[(layer_index + 1)*N_VECS_PER_LAYER + grid -> from_index[h_index_shifted]]
+				*pot_vorticity[h_index_shifted + (layer_index + 1)*2*N_VECS_H];
 				out_field[i]
 				-= 0.5
-				*grid -> inner_product_weights[8*(layer_index*NO_OF_SCALARS_H + grid -> to_index[h_index_shifted]) + 7]
-				*mass_flux_density[(layer_index + 1)*NO_OF_VECTORS_PER_LAYER + grid -> to_index[h_index_shifted]]
-				*pot_vorticity[h_index_shifted + (layer_index + 1)*2*NO_OF_VECTORS_H];
+				*grid -> inner_product_weights[8*(layer_index*N_SCALS_H + grid -> to_index[h_index_shifted]) + 7]
+				*mass_flux_density[(layer_index + 1)*N_VECS_PER_LAYER + grid -> to_index[h_index_shifted]]
+				*pot_vorticity[h_index_shifted + (layer_index + 1)*2*N_VECS_H];
 		    }
 		    
 		    /*
 		    Calculating the vertical component of the vorticity flux term.
 		    --------------------------------------------------------------
 		    */
-		    else if (h_index < NO_OF_SCALARS_H)
+		    else if (h_index < N_SCALS_H)
 		    {
 			    out_field[i] = 0;
 				/*
@@ -147,13 +147,13 @@ int vorticity_flux(Vector_field mass_flux_density, Curl_field pot_vorticity, Vec
 				*/
 				// determining the number of edges
 				number_of_edges = 6;
-				if (h_index < NO_OF_PENTAGONS)
+				if (h_index < N_PENTAGONS)
 				{
 					number_of_edges = 5;
 				}
 				// determining the vertical interpolation weight
 				vert_weight = 0.5;
-				if (layer_index == 0 || layer_index == NO_OF_LAYERS)
+				if (layer_index == 0 || layer_index == N_LAYERS)
 				{
 					vert_weight = 1;
 				}
@@ -163,20 +163,20 @@ int vorticity_flux(Vector_field mass_flux_density, Curl_field pot_vorticity, Vec
 					{
 						out_field[i] +=
 						vert_weight
-						*grid -> inner_product_weights[8*((layer_index - 1)*NO_OF_SCALARS_H + h_index) + j]
-						*mass_flux_density[NO_OF_SCALARS_H + (layer_index - 1)*NO_OF_VECTORS_PER_LAYER + grid -> adjacent_vector_indices_h[6*h_index + j]]
-						*pot_vorticity[layer_index*2*NO_OF_VECTORS_H + grid -> adjacent_vector_indices_h[6*h_index + j]];
+						*grid -> inner_product_weights[8*((layer_index - 1)*N_SCALS_H + h_index) + j]
+						*mass_flux_density[N_SCALS_H + (layer_index - 1)*N_VECS_PER_LAYER + grid -> adjacent_vector_indices_h[6*h_index + j]]
+						*pot_vorticity[layer_index*2*N_VECS_H + grid -> adjacent_vector_indices_h[6*h_index + j]];
 					}
 				}
-				if (layer_index <= NO_OF_LAYERS - 1)
+				if (layer_index <= N_LAYERS - 1)
 				{
 					for (int j = 0; j < number_of_edges; ++j)
 					{
 						out_field[i] +=
 						vert_weight
-						*grid -> inner_product_weights[8*(layer_index*NO_OF_SCALARS_H + h_index) + j]
-						*mass_flux_density[NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + grid -> adjacent_vector_indices_h[6*h_index + j]]
-						*pot_vorticity[layer_index*2*NO_OF_VECTORS_H + grid -> adjacent_vector_indices_h[6*h_index + j]];
+						*grid -> inner_product_weights[8*(layer_index*N_SCALS_H + h_index) + j]
+						*mass_flux_density[N_SCALS_H + layer_index*N_VECS_PER_LAYER + grid -> adjacent_vector_indices_h[6*h_index + j]]
+						*pot_vorticity[layer_index*2*N_VECS_H + grid -> adjacent_vector_indices_h[6*h_index + j]];
 					}
 				}
 		    }

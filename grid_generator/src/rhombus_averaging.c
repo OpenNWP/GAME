@@ -27,7 +27,7 @@ int rhombus_averaging(int vorticity_indices_triangles[], int vorticity_signs_tri
     int density_to_rhombus_index_candidate, check_counter, dual_scalar_h_index_0, dual_scalar_h_index_1, vector_h_index_0, vector_h_index_1, vector_h_index_0_found, vector_h_index_1_found, k, which_vertex_check_result, first_case_counter, second_case_counter;
     double triangle_0, triangle_1, triangle_2, triangle_3, rhombus_area, check_sum;
     #pragma omp parallel for private(counter, indices_list_pre, indices_list, double_indices, density_to_rhombus_indices_pre, density_to_rhombus_index_candidate, check_counter, dual_scalar_h_index_0, dual_scalar_h_index_1, vector_h_index_0, vector_h_index_1, vector_h_index_0_found, vector_h_index_1_found, k, which_vertex_check_result, first_case_counter, second_case_counter, triangle_0, triangle_1, triangle_2, triangle_3, rhombus_area, check_sum)
-    for (int i = 0; i < NO_OF_VECTORS_H; ++i)
+    for (int i = 0; i < N_VECS_H; ++i)
     {
 		double_indices[0] = -1;
 		double_indices[1] = -1;
@@ -67,7 +67,7 @@ int rhombus_averaging(int vorticity_indices_triangles[], int vorticity_signs_tri
     	for (int j = 0; j < 4; ++j)
     	{
 			vorticity_indices_rhombi[4*i + j] = indices_list[j];
-			if (vorticity_indices_rhombi[4*i + j] >= NO_OF_VECTORS_H || vorticity_indices_rhombi[4*i + j] < 0)
+			if (vorticity_indices_rhombi[4*i + j] >= N_VECS_H || vorticity_indices_rhombi[4*i + j] < 0)
 			{
 				printf("Error in vorticity_indices_rhombi and vortictiy_signs creation from vorticity_indices_triangles and vortictiy_signs_pre, position 3.");
 				exit(1);
@@ -105,7 +105,7 @@ int rhombus_averaging(int vorticity_indices_triangles[], int vorticity_signs_tri
 			density_to_rhombus_indices[4*i + j] = density_to_rhombus_indices_pre[j];
 		}
 		// now the weights
-		rhombus_area = area_dual[NO_OF_VECTORS_H + from_index_dual[i]] + area_dual[NO_OF_VECTORS_H + to_index_dual[i]];
+		rhombus_area = area_dual[N_VECS_H + from_index_dual[i]] + area_dual[N_VECS_H + to_index_dual[i]];
 		// This is a sum over the four primal cells which are needed for the density interpolation.
 		first_case_counter = 0;
 		second_case_counter = 0;
@@ -183,7 +183,7 @@ int rhombus_averaging(int vorticity_indices_triangles[], int vorticity_signs_tri
 				&latitude_scalar_dual[dual_scalar_h_index_1], &longitude_scalar_dual[dual_scalar_h_index_1], &latitude_vector[i], &longitude_vector[i]);
 				triangle_3 = calc_triangle_area(&latitude_scalar[density_to_rhombus_indices[4*i + j]], &longitude_scalar[density_to_rhombus_indices[4*i + j]],
 				&latitude_scalar_dual[dual_scalar_h_index_1], &longitude_scalar_dual[dual_scalar_h_index_1], &latitude_vector[vector_h_index_1], &longitude_vector[vector_h_index_1]);
-				density_to_rhombus_weights[4*i + j] = pow(radius + z_vector[NO_OF_SCALARS_H], 2)*(triangle_0 + triangle_1 + triangle_2 + triangle_3)/rhombus_area;
+				density_to_rhombus_weights[4*i + j] = pow(radius + z_vector[N_SCALS_H], 2)*(triangle_0 + triangle_1 + triangle_2 + triangle_3)/rhombus_area;
 			}
 			else
 			{
@@ -237,7 +237,7 @@ int rhombus_averaging(int vorticity_indices_triangles[], int vorticity_signs_tri
 				}
 				triangle_1 = calc_triangle_area(&latitude_scalar[density_to_rhombus_indices[4*i + j]], &longitude_scalar[density_to_rhombus_indices[4*i + j]],
 				&latitude_scalar_dual[dual_scalar_h_index_0], &longitude_scalar_dual[dual_scalar_h_index_0], &latitude_vector[vector_h_index_1], &longitude_vector[vector_h_index_1]);
-				density_to_rhombus_weights[4*i + j] = pow(radius + z_vector[NO_OF_SCALARS_H], 2)*(triangle_0 + triangle_1)/rhombus_area;
+				density_to_rhombus_weights[4*i + j] = pow(radius + z_vector[N_SCALS_H], 2)*(triangle_0 + triangle_1)/rhombus_area;
 			}
 		}
 		if (first_case_counter != 2)

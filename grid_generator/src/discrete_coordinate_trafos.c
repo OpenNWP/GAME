@@ -67,8 +67,8 @@ int *dual_scalar_on_face_index, int *small_triangle_edge_index, int face_edges[]
 	This function finds which triangles a horizontal vector is connected to.
 	*/
 	
-    int face_index = (i - NO_OF_EDGES*(POINTS_PER_EDGE + 1))/VECTOR_POINTS_PER_INNER_FACE;
-    int on_face_index = i - (NO_OF_EDGES*(POINTS_PER_EDGE + 1) + face_index*VECTOR_POINTS_PER_INNER_FACE);
+    int face_index = (i - N_EDGES*(POINTS_PER_EDGE + 1))/VECTOR_POINTS_PER_INNER_FACE;
+    int on_face_index = i - (N_EDGES*(POINTS_PER_EDGE + 1) + face_index*VECTOR_POINTS_PER_INNER_FACE);
     int triangle_on_face_index = on_face_index/3;
     *small_triangle_edge_index = on_face_index - 3*triangle_on_face_index;
    	find_triangle_edge_points(triangle_on_face_index, face_index, res_id, point_0, point_1, point_2, point_3, point_4, point_5,
@@ -92,42 +92,42 @@ int find_triangle_edge_points(int triangle_on_face_index, int face_index, int re
     {
         if (face_edges_reverse[face_index][0] == 0)
         {
-            *point_0 = NO_OF_PENTAGONS + face_edges[face_index][0]*points_per_edge + coord_0;
+            *point_0 = N_PENTAGONS + face_edges[face_index][0]*points_per_edge + coord_0;
         }
         else
         {
-            *point_0 = NO_OF_PENTAGONS + (face_edges[face_index][0] + 1)*points_per_edge - 1 - coord_0;
+            *point_0 = N_PENTAGONS + (face_edges[face_index][0] + 1)*points_per_edge - 1 - coord_0;
         }
     }
     else
-        *point_0 = NO_OF_PENTAGONS + points_per_edge*NO_OF_EDGES + face_index*scalar_points_per_inner_face + triangle_on_face_index - points_per_edge;
+        *point_0 = N_PENTAGONS + points_per_edge*N_EDGES + face_index*scalar_points_per_inner_face + triangle_on_face_index - points_per_edge;
     if (coord_0 == points_per_edge - 1 - coord_1)
     {
         if (face_edges_reverse[face_index][1] == 0)
         {
-            *point_1 = NO_OF_PENTAGONS + face_edges[face_index][1]*points_per_edge + coord_1;
+            *point_1 = N_PENTAGONS + face_edges[face_index][1]*points_per_edge + coord_1;
         }
         else
         {
-            *point_1 = NO_OF_PENTAGONS + (face_edges[face_index][1] + 1)*points_per_edge - 1 - coord_1;
+            *point_1 = N_PENTAGONS + (face_edges[face_index][1] + 1)*points_per_edge - 1 - coord_1;
         }
     }
     else
-        *point_1 = NO_OF_PENTAGONS + points_per_edge*NO_OF_EDGES + face_index*scalar_points_per_inner_face + triangle_on_face_index - coord_1;
+        *point_1 = N_PENTAGONS + points_per_edge*N_EDGES + face_index*scalar_points_per_inner_face + triangle_on_face_index - coord_1;
     if (coord_0 == 0)
     {
         if (face_edges_reverse[face_index][2] == 0)
         {
-            *point_2 = NO_OF_PENTAGONS + (face_edges[face_index][2] + 1)*points_per_edge - 1 - coord_1;
+            *point_2 = N_PENTAGONS + (face_edges[face_index][2] + 1)*points_per_edge - 1 - coord_1;
         }
         else
         {
-            *point_2 = NO_OF_PENTAGONS + face_edges[face_index][2]*points_per_edge + coord_1;
+            *point_2 = N_PENTAGONS + face_edges[face_index][2]*points_per_edge + coord_1;
         }
     }
     else
 	{
-        *point_2 = NO_OF_PENTAGONS + points_per_edge*NO_OF_EDGES + face_index*scalar_points_per_inner_face + triangle_on_face_index - 1 - coord_1;
+        *point_2 = N_PENTAGONS + points_per_edge*N_EDGES + face_index*scalar_points_per_inner_face + triangle_on_face_index - 1 - coord_1;
     }
     if (coord_1 == 0)
     {
@@ -331,25 +331,25 @@ int upscale_scalar_point(int res_id, int old_index, int *new_index)
     int points_per_edge, on_edge_index, scalar_points_per_inner_face, on_face_index, coord_0, coord_1, coord_0_points_amount;
     points_per_edge = find_points_per_edge(res_id);
     scalar_points_per_inner_face = find_scalar_points_per_inner_face(res_id);
-    if (old_index < NO_OF_PENTAGONS)
+    if (old_index < N_PENTAGONS)
     {
         *new_index = old_index;
     }
-    else if (old_index < NO_OF_PENTAGONS + NO_OF_EDGES*points_per_edge)
+    else if (old_index < N_PENTAGONS + N_EDGES*points_per_edge)
     {
-        edge_index = (old_index - NO_OF_PENTAGONS)/points_per_edge;
-        on_edge_index = old_index - (NO_OF_PENTAGONS + edge_index*points_per_edge);
-        *new_index = NO_OF_PENTAGONS + edge_index*POINTS_PER_EDGE + pow(2, RES_ID - res_id)*(on_edge_index + 1) - 1;
+        edge_index = (old_index - N_PENTAGONS)/points_per_edge;
+        on_edge_index = old_index - (N_PENTAGONS + edge_index*points_per_edge);
+        *new_index = N_PENTAGONS + edge_index*POINTS_PER_EDGE + pow(2, RES_ID - res_id)*(on_edge_index + 1) - 1;
     }
     else
     {
-        face_index = (old_index - (NO_OF_PENTAGONS + NO_OF_EDGES*points_per_edge))/scalar_points_per_inner_face;
-        on_face_index = old_index - (NO_OF_PENTAGONS + NO_OF_EDGES*points_per_edge + face_index*scalar_points_per_inner_face);
+        face_index = (old_index - (N_PENTAGONS + N_EDGES*points_per_edge))/scalar_points_per_inner_face;
+        on_face_index = old_index - (N_PENTAGONS + N_EDGES*points_per_edge + face_index*scalar_points_per_inner_face);
         find_coords_from_triangle_on_face_index(on_face_index + points_per_edge, res_id, &coord_0, &coord_1, &coord_0_points_amount);
         coord_0 = (coord_0 + 1)*pow(2, RES_ID - res_id) - 1;
         coord_1 = coord_1*pow(2, RES_ID - res_id);
        	find_triangle_on_face_index_from_coords(coord_0, coord_1, RES_ID, &on_face_index);
-        *new_index = NO_OF_PENTAGONS + NO_OF_EDGES*POINTS_PER_EDGE + face_index*SCALAR_POINTS_PER_INNER_FACE + on_face_index - POINTS_PER_EDGE;
+        *new_index = N_PENTAGONS + N_EDGES*POINTS_PER_EDGE + face_index*SCALAR_POINTS_PER_INNER_FACE + on_face_index - POINTS_PER_EDGE;
     }
     return 0;
 }
@@ -586,10 +586,10 @@ int build_icosahedron(double latitude_ico[], double longitude_ico[], int edge_ve
     edge_vertices[28][1] = 11;
     edge_vertices[29][0] = 10;
     edge_vertices[29][1] = 11;
-    int *vertices_check_counter = calloc(NO_OF_EDGES, sizeof(int));
-    for (int i = 0; i < NO_OF_PENTAGONS; ++i)
+    int *vertices_check_counter = calloc(N_EDGES, sizeof(int));
+    for (int i = 0; i < N_PENTAGONS; ++i)
     {
-    	for (int j = 0; j < NO_OF_EDGES; ++j)
+    	for (int j = 0; j < N_EDGES; ++j)
     	{
     		for (int k = 0; k < 2; ++k)
     		{
@@ -600,7 +600,7 @@ int build_icosahedron(double latitude_ico[], double longitude_ico[], int edge_ve
     		}
     	}
     }
-    for (int i = 0; i < NO_OF_PENTAGONS; ++i)
+    for (int i = 0; i < N_PENTAGONS; ++i)
     {
     	if (vertices_check_counter[i] != 5)
     	{
@@ -669,9 +669,9 @@ int build_icosahedron(double latitude_ico[], double longitude_ico[], int edge_ve
     face_vertices[19][0] = 11;
     face_vertices[19][1] = 10;
     face_vertices[19][2] = 9;
-    for (int i = 0; i < NO_OF_PENTAGONS; ++i)
+    for (int i = 0; i < N_PENTAGONS; ++i)
     {
-    	for (int j = 0; j < NO_OF_BASIC_TRIANGLES; ++j)
+    	for (int j = 0; j < N_BASIC_TRIANGLES; ++j)
     	{
     		for (int k = 0; k < 3; ++k)
     		{
@@ -682,7 +682,7 @@ int build_icosahedron(double latitude_ico[], double longitude_ico[], int edge_ve
     		}
     	}
     }
-    for (int i = 0; i < NO_OF_PENTAGONS; ++i)
+    for (int i = 0; i < N_PENTAGONS; ++i)
     {
     	if (vertices_check_counter[i] != 5)
     	{
@@ -693,12 +693,12 @@ int build_icosahedron(double latitude_ico[], double longitude_ico[], int edge_ve
     free(vertices_check_counter);
     int edge_other_vertex_index, check_index;
     check_index = 0;
-    int *edges_check_counter = calloc(NO_OF_EDGES, sizeof(int));
-    for (int i = 0; i < NO_OF_BASIC_TRIANGLES; ++i)
+    int *edges_check_counter = calloc(N_EDGES, sizeof(int));
+    for (int i = 0; i < N_BASIC_TRIANGLES; ++i)
     {
         for (int j = 0; j < 3; ++j)
         {
-            for (int k = 0; k < NO_OF_EDGES; ++k)
+            for (int k = 0; k < N_EDGES; ++k)
             {
                 if (edge_vertices[k][0] == face_vertices[i][j] || edge_vertices[k][1] == face_vertices[i][j])
                 {
@@ -739,7 +739,7 @@ int build_icosahedron(double latitude_ico[], double longitude_ico[], int edge_ve
             }
         }
     }
-    for (int i = 0; i < NO_OF_EDGES; ++i)
+    for (int i = 0; i < N_EDGES; ++i)
     {
     	if (edges_check_counter[i] != 2)
 	    {

@@ -25,7 +25,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 	double rescale_for_z_offset_2d = pow(rescale_for_z_offset_1d, 2);
 	// loop over all edges
 	#pragma omp parallel for private(offset, sign_0, sign_1, no_of_edges, index_offset, vertex_index_candidate_0, vertex_index_candidate_1, counter, check_result, first_index, last_index, check_sum, triangle_0, triangle_1, sum_of_weights)
-    for (int i = 0; i < NO_OF_VECTORS_H; ++i)
+    for (int i = 0; i < N_VECS_H; ++i)
     {
 		/*
 		translation from TRSK paper (Thuburn et al., 2009):
@@ -33,7 +33,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 		sign_1: n_{e', i}
 		trsk_weights: w
 		*/
-		int *from_or_to_index = malloc(NO_OF_VECTORS_H*sizeof(int));
+		int *from_or_to_index = malloc(N_VECS_H*sizeof(int));
 		offset = 0;
 		first_index = -1;
 		last_index = -1;
@@ -49,7 +49,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 			{
 				index_offset = 0;
 				sign_0 = -1;
-				for (int l = 0; l < NO_OF_VECTORS_H; ++l)
+				for (int l = 0; l < N_VECS_H; ++l)
 				{
 					from_or_to_index[l] = from_index[l];
 				}
@@ -58,7 +58,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 			{
 				index_offset = 5;
 				sign_0 = 1;
-				for (int l = 0; l < NO_OF_VECTORS_H; ++l)
+				for (int l = 0; l < N_VECS_H; ++l)
 				{
 					from_or_to_index[l] = to_index[l];
 				}
@@ -86,7 +86,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 					sign_1 = 1;
 				}
 				// determining wether the cell is pentagonal or hexagonal
-				if (from_or_to_index[i] < NO_OF_PENTAGONS)
+				if (from_or_to_index[i] < N_PENTAGONS)
 				{
 					no_of_edges = 5;
 				}
@@ -182,7 +182,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 					}
 					triangle_1 = calc_triangle_area(&latitude_scalar[from_or_to_index[i]], &longitude_scalar[from_or_to_index[i]],
 					&latitude_vertices[indices_resorted[l]], &longitude_vertices[indices_resorted[l]], &latitude_edges[l], &longitude_edges[l]);
-					vector_of_areas[l] = pow(radius + z_vector[NO_OF_SCALARS_H + i], 2)*(triangle_0 + triangle_1);
+					vector_of_areas[l] = pow(radius + z_vector[N_SCALS_H + i], 2)*(triangle_0 + triangle_1);
 					check_sum += vector_of_areas[l];
 				}
 				
@@ -235,7 +235,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 				// Eq. (33) of the TRSK paper
 				trsk_weights[10*i + k] = sign_0*(sum_of_weights - 0.5)*sign_1;
 				// weighting by geometrical grid prefactors, the minus sign accounts for the fact that our tangential direction is reversed compared to TRSK
-				trsk_weights[10*i + k] = -rescale_for_z_offset_1d*normal_distance_dual[trsk_indices[10*i + k]]/normal_distance[NO_OF_SCALARS_H + i]*trsk_weights[10*i + k];
+				trsk_weights[10*i + k] = -rescale_for_z_offset_1d*normal_distance_dual[trsk_indices[10*i + k]]/normal_distance[N_SCALS_H + i]*trsk_weights[10*i + k];
 			}
 		}
 		// modification following Gassmann (2018)
@@ -243,7 +243,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 		// As usual, the from cell is treated first.
 		// First of all, it needs to be determined wether the cell at hand is pentagonal or hexagonal.
 		no_of_edges = 6;
-		if (from_index[i] < NO_OF_PENTAGONS)
+		if (from_index[i] < N_PENTAGONS)
 		{
 			no_of_edges = 5;
 		}
@@ -299,7 +299,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 		// Then comes the to cell.
 		// First of all it needs to be determined wether the cell at hand is pentagonal or hexagonal.
 		no_of_edges = 6;
-		if (to_index[i] < NO_OF_PENTAGONS)
+		if (to_index[i] < N_PENTAGONS)
 		{
 			no_of_edges = 5;
 		}
@@ -344,7 +344,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 		}
 		
 		// Now the resorting itself can be executed.
-		if (to_index[i] < NO_OF_PENTAGONS)
+		if (to_index[i] < N_PENTAGONS)
 		{
 			trsk_modified_curl_indices[10*i + 0] = trsk_indices[10*i + 8];
 		}
@@ -353,7 +353,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 			trsk_modified_curl_indices[10*i + 0] = trsk_indices[10*i + 9];
 		}
 		trsk_modified_curl_indices[10*i + 1] = trsk_indices[10*i + 0];
-		if (from_index[i] < NO_OF_PENTAGONS)
+		if (from_index[i] < N_PENTAGONS)
 		{
 			trsk_modified_curl_indices[10*i + 2] = trsk_indices[10*i + 3];
 			trsk_modified_curl_indices[10*i + 3] = trsk_indices[10*i + 5];
@@ -370,7 +370,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 			trsk_modified_curl_indices[10*i + 3] = trsk_indices[10*i + 4];
 			trsk_modified_curl_indices[10*i + 4] = trsk_indices[10*i + 5];
 		}
-		if (from_index[i] < NO_OF_PENTAGONS)
+		if (from_index[i] < N_PENTAGONS)
 		{
 			trsk_modified_curl_indices[10*i + 5] = trsk_indices[10*i + 3];
 		}
@@ -379,7 +379,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 			trsk_modified_curl_indices[10*i + 5] = trsk_indices[10*i + 4];
 		}
 		trsk_modified_curl_indices[10*i + 6] = trsk_indices[10*i + 5];
-		if (to_index[i] < NO_OF_PENTAGONS)
+		if (to_index[i] < N_PENTAGONS)
 		{
 			trsk_modified_curl_indices[10*i + 7] = trsk_indices[10*i + 8];
 			trsk_modified_curl_indices[10*i + 8] = trsk_indices[10*i + 0];
@@ -414,14 +414,14 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
     // This checks Eq. (39) of the first TRSK paper (Thuburn et al., 2009).
 	double value_0, value_1;
 	#pragma omp parallel for private(first_index, value_0, second_index, value_1, check_sum)
-	for (int i = 0; i < NO_OF_VECTORS_H; ++i)
+	for (int i = 0; i < N_VECS_H; ++i)
 	{
 		for (int j = 0; j < 10; ++j)
 		{
 			first_index = trsk_indices[10*i + j];
 			if (first_index != -1)
 			{
-				value_0 = normal_distance[NO_OF_SCALARS_H + i]/(rescale_for_z_offset_1d*normal_distance_dual[first_index])*trsk_weights[10*i + j];
+				value_0 = normal_distance[N_SCALS_H + i]/(rescale_for_z_offset_1d*normal_distance_dual[first_index])*trsk_weights[10*i + j];
 				second_index = -1;
 				for (int k = 0; k < 10; ++k)
 				{
@@ -435,7 +435,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 					printf("Problem 38 in TRSK implementation detected.\n");
 					exit(1);
 				}
-				value_1 = normal_distance[NO_OF_SCALARS_H + first_index]/(rescale_for_z_offset_1d*normal_distance_dual[i])*trsk_weights[second_index];
+				value_1 = normal_distance[N_SCALS_H + first_index]/(rescale_for_z_offset_1d*normal_distance_dual[i])*trsk_weights[second_index];
 				check_sum = value_0 + value_1;
 				if (fabs(check_sum) > EPSILON_SECURITY)
 				{
@@ -447,7 +447,7 @@ int coriolis(int from_index_dual[], int to_index_dual[], int trsk_modified_curl_
 	}
 	
 	#pragma omp parallel for
-	for (int i = 0; i < 10*NO_OF_VECTORS_H; ++i)
+	for (int i = 0; i < 10*N_VECS_H; ++i)
 	{
 		if (trsk_indices[i] == -1)
 		{

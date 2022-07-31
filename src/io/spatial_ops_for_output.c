@@ -22,21 +22,21 @@ int inner_product_tangential(Vector_field in_field_0, Vector_field in_field_1, S
     int layer_index, h_index;
     double tangential_wind_value;
     #pragma omp parallel for private (layer_index, h_index, tangential_wind_value)
-	for (int i = 0; i < NO_OF_SCALARS; ++i)
+	for (int i = 0; i < N_SCALARS; ++i)
 	{
-	    layer_index = i/NO_OF_SCALARS_H;
-	    h_index = i - layer_index*NO_OF_SCALARS_H;
+	    layer_index = i/N_SCALS_H;
+	    h_index = i - layer_index*N_SCALS_H;
 	    out_field[i] = 0;
 	    for (int j = 0; j < 6; ++j)
 	    {
 			tangential_wind(in_field_1, layer_index, grid -> adjacent_vector_indices_h[6*h_index + j], &tangential_wind_value, grid);
 	        out_field[i] +=
 	        grid -> inner_product_weights[8*i + j]
-	        *in_field_0[NO_OF_SCALARS_H + layer_index*NO_OF_VECTORS_PER_LAYER + grid -> adjacent_vector_indices_h[6*h_index + j]]
+	        *in_field_0[N_SCALS_H + layer_index*N_VECS_PER_LAYER + grid -> adjacent_vector_indices_h[6*h_index + j]]
 	        *tangential_wind_value;
 	    }
-	    out_field[i] += grid -> inner_product_weights[8*i + 6]*in_field_0[h_index + layer_index*NO_OF_VECTORS_PER_LAYER]*in_field_1[h_index + layer_index*NO_OF_VECTORS_PER_LAYER];
-	    out_field[i] += grid -> inner_product_weights[8*i + 7]*in_field_0[h_index + (layer_index + 1)*NO_OF_VECTORS_PER_LAYER]*in_field_1[h_index + (layer_index + 1)*NO_OF_VECTORS_PER_LAYER];
+	    out_field[i] += grid -> inner_product_weights[8*i + 6]*in_field_0[h_index + layer_index*N_VECS_PER_LAYER]*in_field_1[h_index + layer_index*N_VECS_PER_LAYER];
+	    out_field[i] += grid -> inner_product_weights[8*i + 7]*in_field_0[h_index + (layer_index + 1)*N_VECS_PER_LAYER]*in_field_1[h_index + (layer_index + 1)*N_VECS_PER_LAYER];
 	}
 	
 	// returning 0 indicating success
@@ -55,44 +55,44 @@ int epv_diagnostics(Curl_field pot_vort, State *state, Scalar_field epv, Grid *g
 	int layer_index, h_index, scalar_index;
 	double upper_weight, lower_weight, layer_thickness;
 	#pragma omp parallel for private(layer_index, h_index, scalar_index, upper_weight, lower_weight, layer_thickness)
-	for (int i = 0; i < NO_OF_VECTORS; ++i)
+	for (int i = 0; i < N_VECTORS; ++i)
 	{
-		layer_index = i/NO_OF_VECTORS_PER_LAYER;
-		h_index = i - layer_index*NO_OF_VECTORS_PER_LAYER;
+		layer_index = i/N_VECS_PER_LAYER;
+		h_index = i - layer_index*N_VECS_PER_LAYER;
 		// diagnozing the horizontal vorticity at the primal horizontal vector points (they are TANGENTIAL! so it is not a real vector field, but a modified one)
-		if (h_index >= NO_OF_SCALARS_H)
+		if (h_index >= N_SCALS_H)
 		{
 			// determining the upper and lower weights
 			layer_thickness =
-			0.5*(grid -> z_vector[layer_index*NO_OF_VECTORS_PER_LAYER + grid -> from_index[h_index - NO_OF_SCALARS_H]]
-			+ grid -> z_vector[layer_index*NO_OF_VECTORS_PER_LAYER + grid -> to_index[h_index - NO_OF_SCALARS_H]])
-			- 0.5*(grid -> z_vector[(layer_index + 1)*NO_OF_VECTORS_PER_LAYER + grid -> from_index[h_index - NO_OF_SCALARS_H]]
-			+ grid -> z_vector[(layer_index + 1)*NO_OF_VECTORS_PER_LAYER + grid -> to_index[h_index - NO_OF_SCALARS_H]]);
+			0.5*(grid -> z_vector[layer_index*N_VECS_PER_LAYER + grid -> from_index[h_index - N_SCALS_H]]
+			+ grid -> z_vector[layer_index*N_VECS_PER_LAYER + grid -> to_index[h_index - N_SCALS_H]])
+			- 0.5*(grid -> z_vector[(layer_index + 1)*N_VECS_PER_LAYER + grid -> from_index[h_index - N_SCALS_H]]
+			+ grid -> z_vector[(layer_index + 1)*N_VECS_PER_LAYER + grid -> to_index[h_index - N_SCALS_H]]);
 			if (layer_index == 0)
 			{
 				upper_weight =
-				(0.5*(grid -> z_vector[layer_index*NO_OF_VECTORS_PER_LAYER + grid -> from_index[h_index - NO_OF_SCALARS_H]]
-				+ grid -> z_vector[layer_index*NO_OF_VECTORS_PER_LAYER + grid -> to_index[h_index - NO_OF_SCALARS_H]])
+				(0.5*(grid -> z_vector[layer_index*N_VECS_PER_LAYER + grid -> from_index[h_index - N_SCALS_H]]
+				+ grid -> z_vector[layer_index*N_VECS_PER_LAYER + grid -> to_index[h_index - N_SCALS_H]])
 				- grid -> z_vector[i])/layer_thickness;
 			}
 			else
 			{
-				upper_weight = 0.5*(grid -> z_vector[i - NO_OF_VECTORS_PER_LAYER] - grid -> z_vector[i])/layer_thickness;
+				upper_weight = 0.5*(grid -> z_vector[i - N_VECS_PER_LAYER] - grid -> z_vector[i])/layer_thickness;
 			}
-			if (layer_index == NO_OF_LAYERS - 1)
+			if (layer_index == N_LAYERS - 1)
 			{
 				lower_weight = (grid -> z_vector[i]
-				- 0.5*(grid -> z_vector[(layer_index + 1)*NO_OF_VECTORS_PER_LAYER + grid -> from_index[h_index - NO_OF_SCALARS_H]]
-				+ grid -> z_vector[(layer_index + 1)*NO_OF_VECTORS_PER_LAYER + grid -> to_index[h_index - NO_OF_SCALARS_H]]))/layer_thickness;
+				- 0.5*(grid -> z_vector[(layer_index + 1)*N_VECS_PER_LAYER + grid -> from_index[h_index - N_SCALS_H]]
+				+ grid -> z_vector[(layer_index + 1)*N_VECS_PER_LAYER + grid -> to_index[h_index - N_SCALS_H]]))/layer_thickness;
 			}
 			else
 			{
- 				lower_weight = 0.5*(grid -> z_vector[i] - grid -> z_vector[i + NO_OF_VECTORS_PER_LAYER])/layer_thickness;
+ 				lower_weight = 0.5*(grid -> z_vector[i] - grid -> z_vector[i + N_VECS_PER_LAYER])/layer_thickness;
 			}
 			// determining the horizontal potential vorticity at the primal vector point
 			(*pot_vort_as_mod_vector_field)[i] =
-			upper_weight*pot_vort[layer_index*2*NO_OF_VECTORS_H + h_index - NO_OF_SCALARS_H]
-			+ lower_weight*pot_vort[(layer_index + 1)*2*NO_OF_VECTORS_H + h_index - NO_OF_SCALARS_H];
+			upper_weight*pot_vort[layer_index*2*N_VECS_H + h_index - N_SCALS_H]
+			+ lower_weight*pot_vort[(layer_index + 1)*2*N_VECS_H + h_index - N_SCALS_H];
 		}
 		// diagnozing the vertical component of the potential vorticity at the vertical vector points
 		else
@@ -107,18 +107,18 @@ int epv_diagnostics(Curl_field pot_vort, State *state, Scalar_field epv, Grid *g
 					scalar_index = h_index;
 				    (*pot_vort_as_mod_vector_field)[i] +=
 				    0.5*grid -> inner_product_weights[8*scalar_index + j]
-				    *pot_vort[NO_OF_VECTORS_H + layer_index*2*NO_OF_VECTORS_H + grid -> adjacent_vector_indices_h[6*h_index + j]];
+				    *pot_vort[N_VECS_H + layer_index*2*N_VECS_H + grid -> adjacent_vector_indices_h[6*h_index + j]];
 				}
 			}
 			// lowest layer
-			else if (layer_index == NO_OF_LAYERS)
+			else if (layer_index == N_LAYERS)
 			{
 				for (int j = 0; j < 6; ++j)
 				{
-					scalar_index = (NO_OF_LAYERS - 1)*NO_OF_SCALARS_H + h_index;
+					scalar_index = (N_LAYERS - 1)*N_SCALS_H + h_index;
 				    (*pot_vort_as_mod_vector_field)[i] +=
 				    0.5*grid -> inner_product_weights[8*scalar_index + j]
-				    *pot_vort[NO_OF_VECTORS_H + (layer_index - 1)*2*NO_OF_VECTORS_H + grid -> adjacent_vector_indices_h[6*h_index + j]];
+				    *pot_vort[N_VECS_H + (layer_index - 1)*2*N_VECS_H + grid -> adjacent_vector_indices_h[6*h_index + j]];
 				}
 			}
 			// inner domain
@@ -127,30 +127,30 @@ int epv_diagnostics(Curl_field pot_vort, State *state, Scalar_field epv, Grid *g
 				// contribution of upper cell
 				for (int j = 0; j < 6; ++j)
 				{
-					scalar_index = (layer_index - 1)*NO_OF_SCALARS_H + h_index;
+					scalar_index = (layer_index - 1)*N_SCALS_H + h_index;
 				    (*pot_vort_as_mod_vector_field)[i] +=
 				    0.25*grid -> inner_product_weights[8*scalar_index + j]
-				    *pot_vort[NO_OF_VECTORS_H + (layer_index - 1)*2*NO_OF_VECTORS_H + grid -> adjacent_vector_indices_h[6*h_index + j]];
+				    *pot_vort[N_VECS_H + (layer_index - 1)*2*N_VECS_H + grid -> adjacent_vector_indices_h[6*h_index + j]];
 				}
 				// contribution of lower cell
 				for (int j = 0; j < 6; ++j)
 				{
-					scalar_index = layer_index*NO_OF_SCALARS_H + h_index;
+					scalar_index = layer_index*N_SCALS_H + h_index;
 				    (*pot_vort_as_mod_vector_field)[i] +=
 				    0.25*grid -> inner_product_weights[8*scalar_index + j]
-				    *pot_vort[NO_OF_VECTORS_H + layer_index*2*NO_OF_VECTORS_H + grid -> adjacent_vector_indices_h[6*h_index + j]];
+				    *pot_vort[N_VECS_H + layer_index*2*N_VECS_H + grid -> adjacent_vector_indices_h[6*h_index + j]];
 				}
 			}
 		}
 	}
 	// taking the gradient of the virtual potential temperature
 	// misuse of name
-	for (int i = 0; i < NO_OF_SCALARS_H; ++i)
+	for (int i = 0; i < N_SCALS_H; ++i)
 	{
 		state -> theta_v_pert[i] += grid -> theta_v_bg[i];
 	}
 	grad(state -> theta_v_pert, *grad_pot_temp, grid);
-	for (int i = 0; i < NO_OF_SCALARS_H; ++i)
+	for (int i = 0; i < N_SCALS_H; ++i)
 	{
 		state -> theta_v_pert[i] -= grid -> theta_v_bg[i];
 	}
@@ -163,7 +163,7 @@ int epv_diagnostics(Curl_field pot_vort, State *state, Scalar_field epv, Grid *g
 	return 0;
 }
 
-int interpolate_to_ll(double in_field[], double out_field[][NO_OF_LON_IO_POINTS], Grid *grid)
+int interpolate_to_ll(double in_field[], double out_field[][N_LON_IO_POINTS], Grid *grid)
 {
 	/*
 	This function interpolates a single-layer scalar field to a lat-lon grid.
@@ -171,18 +171,18 @@ int interpolate_to_ll(double in_field[], double out_field[][NO_OF_LON_IO_POINTS]
 	
 	// loop over all output points
 	#pragma omp parallel for
-	for (int i = 0; i < NO_OF_LAT_IO_POINTS; ++i)
+	for (int i = 0; i < N_LAT_IO_POINTS; ++i)
 	{
-		for (int j = 0; j < NO_OF_LON_IO_POINTS; ++j)
+		for (int j = 0; j < N_LON_IO_POINTS; ++j)
 		{
 			// initializing the result with zero
 			out_field[i][j] = 0.0;
 			// 1/r-average
 			for (int k = 0; k < 5; ++k)
 			{
-				if (in_field[grid -> latlon_interpol_indices[5*(j + NO_OF_LON_IO_POINTS*i) + k]] != 9999)
+				if (in_field[grid -> latlon_interpol_indices[5*(j + N_LON_IO_POINTS*i) + k]] != 9999)
 				{
-					out_field[i][j] += grid -> latlon_interpol_weights[5*(j + NO_OF_LON_IO_POINTS*i) + k]*in_field[grid -> latlon_interpol_indices[5*(j + NO_OF_LON_IO_POINTS*i) + k]];
+					out_field[i][j] += grid -> latlon_interpol_weights[5*(j + N_LON_IO_POINTS*i) + k]*in_field[grid -> latlon_interpol_indices[5*(j + N_LON_IO_POINTS*i) + k]];
 				}
 				else
 				{
@@ -197,7 +197,7 @@ int interpolate_to_ll(double in_field[], double out_field[][NO_OF_LON_IO_POINTS]
 	return 0;
 }
 
-int edges_to_cells_lowest_layer(double in_field[NO_OF_VECTORS_H], double out_field[NO_OF_SCALARS_H], Grid *grid)
+int edges_to_cells_lowest_layer(double in_field[N_VECS_H], double out_field[N_SCALS_H], Grid *grid)
 {
 	/*
 	This function averages a horizontal vector field (defined in the lowest layer) from edges to centers.
@@ -205,13 +205,13 @@ int edges_to_cells_lowest_layer(double in_field[NO_OF_VECTORS_H], double out_fie
 	
 	int no_of_edges;
 	#pragma omp parallel for private (no_of_edges)
-    for (int i = 0; i < NO_OF_SCALARS_H; ++i)
+    for (int i = 0; i < N_SCALS_H; ++i)
     {
     	// initializing the result with zero
         out_field[i] = 0;
         // determining the number of edges of the cell at hand
         no_of_edges = 6;
-        if (i < NO_OF_PENTAGONS)
+        if (i < N_PENTAGONS)
         {
         	no_of_edges = 5;
         }
@@ -219,7 +219,7 @@ int edges_to_cells_lowest_layer(double in_field[NO_OF_VECTORS_H], double out_fie
         for (int j = 0; j < no_of_edges; ++j)
         {
         	out_field[i] += 0.5
-        	*grid -> inner_product_weights[8*(NO_OF_SCALARS - NO_OF_SCALARS_H + i) + j]
+        	*grid -> inner_product_weights[8*(N_SCALARS - N_SCALS_H + i) + j]
         	*in_field[grid -> adjacent_vector_indices_h[6*i + j]];
     	}
     }
