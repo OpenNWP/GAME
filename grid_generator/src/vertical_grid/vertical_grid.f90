@@ -246,8 +246,8 @@ module vertical_grid
           radius_1 = radius + z_vector(primal_vector_index)
           radius_2 = radius + z_vector(primal_vector_index - n_vectors_per_layer)
           base_distance = normal_distance(primal_vector_index)
-          area_dual(ji) = calculate_vertical_area(base_distance,radius_1,radius_2)
         endif
+        area_dual(ji) = calculate_vertical_area(base_distance,radius_1,radius_2)
       endif
     enddo
     !$omp end parallel do
