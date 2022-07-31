@@ -3,21 +3,7 @@
 
 module dictionary
 
-  ! In this module, properties of the constituents are being stored.
-  
-  ! gaseous constituents IDs:
-  ! 0: dry air
-  ! 1: H2O
-  ! 2: N2
-  ! 3: O2
-  ! 4: Ar
-  ! 5: CO2
-  ! 6: Ne
-  ! 7: He
-  ! 8: CH4
-  ! 9: CO
-  ! 10: O3
-  ! 11: N2O
+  ! This module contains look-up functions for properties of the atmosphere.
 
   use definitions, only: wp
   use constants,   only: t_0,n_a,r_v,m_v
@@ -41,6 +27,20 @@ module dictionary
   bind(c,name = "molar_fraction_in_dry_air")
     
     ! This function returns the molar fraction of certain gases in dry air.
+    
+    ! gaseous constituents IDs:
+    ! 0: dry air
+    ! 1: H2O
+    ! 2: N2
+    ! 3: O2
+    ! 4: Ar
+    ! 5: CO2
+    ! 6: Ne
+    ! 7: He
+    ! 8: CH4
+    ! 9: CO
+    ! 10: O3
+    ! 11: N2O
     
     integer, intent(in) :: gas_number
     real(wp)            :: molar_fraction_in_dry_air
@@ -278,8 +278,8 @@ module dictionary
     temp_c = temperature - t_0
 
     ! clipping too extreme values for this approximation
-    if (temp_c<-70._wp) then
-      temp_c = -70._wp
+    if (temp_c<-80._wp) then
+      temp_c = -80._wp
     endif
     if (temp_c>0._wp) then
       temp_c = 0._wp
@@ -308,14 +308,12 @@ module dictionary
     ! This function calculates the enhancement factor over ice, which accounts for the fact the the saturation vapour pressure is different in moist air compared to pure water vapour.
     ! It uses the formula by Huang: A Simple Accurate Formula for Calculating Saturation Vapor Pressure of Water and Ice, 2018, DOI: 10.1175/JAMC-D-17-0334.1.
 
-    ! input arguments
     real(wp), intent(in) :: air_pressure
-    ! output argument
     real(wp)             :: enhancement_factor_over_ice
     
     enhancement_factor_over_ice = 0.99882_wp*exp(0.00000008_wp*air_pressure)
 
-    end function enhancement_factor_over_ice
+  end function enhancement_factor_over_ice
 
 end module dictionary
 
