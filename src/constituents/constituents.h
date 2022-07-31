@@ -9,7 +9,7 @@ int calc_h2otracers_source_rates(State *, Diagnostics *, Grid *, Config *, Irrev
 extern double saturation_pressure_over_water(double *);
 extern double saturation_pressure_over_ice(double *);
 double dsaturation_pressure_over_water_dT(double);
-double dsaturation_pressure_over_ice_dT(double);
+extern double dsaturation_pressure_over_ice_dT();
 extern double enhancement_factor_over_water(double *);
 extern double enhancement_factor_over_ice(double *);
 double c_v_mass_weighted_air(State *, Diagnostics *, int);

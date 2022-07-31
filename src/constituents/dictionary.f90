@@ -18,6 +18,7 @@ module dictionary
   public :: c_p_ice
   public :: saturation_pressure_over_water
   public :: saturation_pressure_over_ice
+  public :: dsaturation_pressure_over_ice_dT
   public :: enhancement_factor_over_water
   public :: enhancement_factor_over_ice
   
@@ -288,6 +289,35 @@ module dictionary
     saturation_pressure_over_ice = exp(43.494_wp-6545.8_wp/(temp_c+278._wp))/(temp_c+868._wp)**2
     
   end function saturation_pressure_over_ice
+  
+  function dsaturation_pressure_over_ice_dT(temperature) &
+  bind(c,name = "dsaturation_pressure_over_ice_dT")
+
+    ! This function returns derivative of the the saturation pressure in Pa of pure water vapour over plane ice
+    ! as a function of the temperature in K.
+    
+    real(wp), intent(in) :: temperature
+    real(wp)             :: dsaturation_pressure_over_ice_dT
+    
+    ! local variables
+    real(wp) :: temp_c
+    
+    ! calculating the temperature in degrees Celsius
+    temp_c = temperature - t_0
+    
+    ! this is the stability limit
+    if (temp_c<-80._wp) then
+      temp_c = -80._wp
+    endif
+    ! at temperatures > 0 degrees Celsius ice cannot exist in equilibrium which is why this is clipped
+    if (temp_c>0._wp) then
+      temp_c = 0._wp
+    endif
+    
+    dsaturation_pressure_over_ice_dT = saturation_pressure_over_ice(temperature) &
+    *(6545.8_wp/(temp_c + 278._wp)**2 - 2._wp/(temp_c + 868._wp))
+
+  end function dsaturation_pressure_over_ice_dT
   
   function enhancement_factor_over_water(air_pressure) &
   bind(c,name = "enhancement_factor_over_water")

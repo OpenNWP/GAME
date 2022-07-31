@@ -135,7 +135,7 @@ int calc_h2otracers_source_rates(State *state, Diagnostics *diagnostics, Grid *g
             	a = -R_V*phase_trans_heat(&one, &diagnostics -> temperature[i])/c_v_mass_weighted_air(state, diagnostics, i);
             	b = R_V*diagnostics -> temperature[i]
             	- R_V*state -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i]*phase_trans_heat(&one, &diagnostics -> temperature[i])/c_v_mass_weighted_air(state, diagnostics, i)
-            	+ enhancement_factor*dsaturation_pressure_over_ice_dT(diagnostics -> temperature[i])
+            	+ enhancement_factor*dsaturation_pressure_over_ice_dT(&diagnostics -> temperature[i])
             	*phase_trans_heat(&one, &diagnostics -> temperature[i])/c_v_mass_weighted_air(state, diagnostics, i);
             	c = water_vapour_pressure - saturation_pressure;
             	p = b/a;
@@ -209,7 +209,7 @@ int calc_h2otracers_source_rates(State *state, Diagnostics *diagnostics, Grid *g
             	a = -R_V*phase_trans_heat(&one, &diagnostics -> temperature[i])/c_v_mass_weighted_air(state, diagnostics, i);
             	b = R_V*diagnostics -> temperature[i]
             	- R_V*state -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i]*phase_trans_heat(&one, &diagnostics -> temperature[i])/c_v_mass_weighted_air(state, diagnostics, i)
-            	+ enhancement_factor*dsaturation_pressure_over_ice_dT(diagnostics -> temperature[i])
+            	+ enhancement_factor*dsaturation_pressure_over_ice_dT(&diagnostics -> temperature[i])
             	*phase_trans_heat(&one, &diagnostics -> temperature[i])/c_v_mass_weighted_air(state, diagnostics, i);
             	c = water_vapour_pressure - saturation_pressure;
             	p = b/a;
