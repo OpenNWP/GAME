@@ -9,8 +9,8 @@ The Lloyd algorithm is implemented here.
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "../../src/game_types.h"
-#include "grid_generator.h"
+#include "../../../src/game_types.h"
+#include "../grid_generator.h"
 
 int find_cell_cgs(double latitude_scalar[], double longitude_scalar[], double latitude_scalar_dual[], double longitude_scalar_dual[], int adjacent_vector_indices_h[], int from_index_dual[], int to_index_dual[])
 {

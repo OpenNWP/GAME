@@ -10,12 +10,9 @@ This file collects functions that are relevant for the neighbourship relations o
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <netcdf.h>
 #include <math.h>
-#include "../../src/game_types.h"
-#include "grid_generator.h"
-#define ERRCODE 2
-#define ERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(ERRCODE);}
+#include "../../../src/game_types.h"
+#include "../grid_generator.h"
 
 int find_adjacent_vector_indices_h(int from_index[], int to_index[], int adjacent_signs_h[], int adjacent_vector_indices_h[])
 {

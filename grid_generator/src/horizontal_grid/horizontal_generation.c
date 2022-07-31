@@ -10,11 +10,10 @@ In this file, the horizontal grid generation procedure is stored.
 #include <stdlib.h>
 #include <stdio.h>
 #include <netcdf.h>
-#include "../../src/game_types.h"
-#include "../../src/game_constants.h"
-#include "grid_generator.h"
-#define ERRCODE 2
-#define ERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(ERRCODE);}
+#include "../../../src/game_types.h"
+#include "../../../src/game_constants.h"
+#include "../grid_generator.h"
+#define ERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(1);}
 
 int generate_horizontal_generators(double latitude_ico[], double longitude_ico[], double latitude_scalar[], double longitude_scalar[], double x_unity[], double y_unity[], double z_unity[], int face_edges_reverse[][3], int face_edges[][3], int face_vertices[][3])
 {

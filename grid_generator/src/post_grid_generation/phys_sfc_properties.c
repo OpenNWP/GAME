@@ -12,9 +12,9 @@ With this program, orographies can be produced.
 #include <netcdf.h>
 #include <math.h>
 #include <string.h>
-#include "../../src/game_types.h"
-#include "../../src/game_constants.h"
-#include "grid_generator.h"
+#include "../../../src/game_types.h"
+#include "../../../src/game_constants.h"
+#include "../grid_generator.h"
 #define NCERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(1);}
 #define NCCHECK(e) {if(e != 0) NCERR(e)}
 

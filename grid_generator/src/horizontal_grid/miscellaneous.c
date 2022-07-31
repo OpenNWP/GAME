@@ -12,11 +12,10 @@ This function is a collection of some helper functions that are needed for the g
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "../../src/game_types.h"
-#include "../../src/game_constants.h"
-#include "grid_generator.h"
-#define ERRCODE 2
-#define ERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(ERRCODE);}
+#include "../../../src/game_types.h"
+#include "../../../src/game_constants.h"
+#include "../grid_generator.h"
+#define ERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(1);}
 
 int set_f_vec(double latitude_vector[], double direction[], double direction_dual[], double f_vec[], double radius_rescale)
 {

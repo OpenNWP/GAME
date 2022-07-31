@@ -43,8 +43,8 @@ src/constituents/derived_quantities.c
 grid_generator/src/vertical_grid/vertical_grid.c
 grid_generator/src/vertical_grid/vertical_grid.f90
 grid_generator/src/namelists/grid_nml.f90
-grid_generator/src/geodesy.f90
-grid_generator/src/index_helpers.f90
+grid_generator/src/foundations/geodesy.f90
+grid_generator/src/foundations/index_helpers.f90
 ../rte-rrtmgp/rrtmgp/mo_gas_optics.F90
 ../rte-rrtmgp/rrtmgp/mo_gas_optics_rrtmgp.F90
 ../rte-rrtmgp/rrtmgp/mo_rrtmgp_constants.F90
