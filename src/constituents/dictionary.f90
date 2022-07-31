@@ -15,6 +15,7 @@ module dictionary
   public :: molar_fraction_in_dry_air
   public :: calc_o3_vmr
   public :: phase_trans_heat
+  public :: c_p_water
   public :: c_p_ice
   public :: saturation_pressure_over_water
   public :: dsaturation_pressure_over_water_dT
@@ -132,6 +133,42 @@ module dictionary
     endif
     
   end function phase_trans_heat
+  
+  function c_p_water(temperature) &
+  bind(c,name = "c_p_water")
+
+    ! This function returns c_p of water.
+  
+    real(wp), intent(in) :: temperature
+    real(wp)             :: c_p_water
+  
+    ! local variables
+    real(wp) :: temp_c
+  
+    ! calculating the temperature in degrees Celsius
+    temp_c = temperature - t_0
+  
+    ! For "positive" temperatures we use the formula cited in Pruppacher and Klett (2010), p. 93, Eq. (3-15).
+  
+    if (temp_c>=0._wp) then
+      ! clipping values that are too extreme for this approximation
+      if (temp_c>35._wp) then
+        temp_c = 35._wp
+      endif
+      c_p_water = 0.9979_wp + 3.1e-6_wp*(temp_c-35._wp)**2 + 3.8e-9_wp*(temp_c-35._wp)**4
+    ! This is the case of supercooled water. We use the formula cited in Pruppacher and Klett (2010), p. 93, Eq. (3-16).
+    else
+      ! clipping values that are too extreme for this approximation
+      if (temp_c<-37._wp) then
+        temp_c = -37._wp
+      endif
+      c_p_water = 1.000938_wp - 2.7052e-3_wp*temp_c - 2.3235e-5_wp*temp_c**2 + 4.3778e-6_wp*temp_c**3 + 2.7136e-7_wp*temp_c**4
+    endif
+    
+    ! unit conversion from IT cal/(g*K) to J/(kg*K)
+    c_p_water = 4186.8_wp*c_p_water
+  
+  end function c_p_water
   
   function c_p_ice(temperature) &
   bind(c,name = "c_p_ice")
