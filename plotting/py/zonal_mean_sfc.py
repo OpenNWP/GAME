@@ -17,7 +17,6 @@ no_of_layers = 26
 run_span_min = 1200*1440 # run length in minutes
 dt_data_min = 1440 # output time step in minutes
 begin_since_init_min = 200*1440 #  when to begin computing the zonal average in minutes
-stretching_parameter = 1.3 # stretching parameter of the vertical grid
 toa = 41152 # top of atmosphere
 
 # END OF USUAL INPUT SECTION
@@ -35,19 +34,9 @@ if short_name == "t2":
 	
 no_of_steps = 1 + int((run_span_min - begin_since_init_min)/dt_data_min)
 
-# setting the vertical grid
-height_vector = np.zeros([no_of_layers])
-z_vertical_vector_pre = np.zeros([no_of_layers + 1])
-for i in range(no_of_layers + 1):
-	z_rel = 1 - i/no_of_layers
-	sigma_z = mat.pow(z_rel, stretching_parameter)
-	z_vertical_vector_pre[i] = sigma_z*toa
-for i in range(no_of_layers):
-	height_vector[i] = 0.5*(z_vertical_vector_pre[i] + z_vertical_vector_pre[i + 1])
-
 def input_filename(time_step):
 	# returns the file name as a function of the time step (averaging interval only)
-	file_name = game_output_dir + "/" + run_id + "/" + run_id + "+" + str(begin_since_init_min + time_step*dt_data_min) + "s_surface.nc"
+	file_name = game_output_dir + "/" + run_id + "/" + run_id + "+" + str(begin_since_init_min + time_step*dt_data_min) + "min_surface.nc"
 	return file_name
 
 # 2.) reading the model output

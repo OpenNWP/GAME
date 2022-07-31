@@ -24,6 +24,12 @@ def return_analysis_time(input_filename):
 	start_day = int(analysis_date[6:8])
 	return start_year, start_month, start_day, analysis_time
 
+def read_stretching_parameter(grid_filename):
+	ds = nc.Dataset(grid_filename, "r", format = "NETCDF4")
+	# reading the variables
+	stretching_parameter = float(ds["stretching_parameter"][:][0])
+	ds.close()
+	return stretching_parameter
 
 
 

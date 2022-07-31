@@ -17,7 +17,7 @@ no_of_layers = 26
 run_span_min = 1200*1440 # run length in minutes
 dt_data_min = 1440 # output time step in minutes
 begin_since_init_min = 200*1440 #  when to begin computing the zonal average in minutes
-stretching_parameter = 1.3 # stretching parameter of the vertical grid
+grid_filename = "/home/max/code/GAME/grid_generator/grids/RES5_L26_ORO0.nc" # grid filename
 toa = 41152 # top of atmosphere
 
 # END OF USUAL INPUT SECTION
@@ -34,8 +34,9 @@ no_of_steps = 1 + int((run_span_min - begin_since_init_min)/dt_data_min)
 # setting the vertical grid
 height_vector = np.zeros([no_of_layers])
 z_vertical_vector_pre = np.zeros([no_of_layers + 1])
+stretching_parameter = rmo.read_stretching_parameter(grid_filename)
 for i in range(no_of_layers + 1):
-	z_rel = 1 - i/no_of_layers
+	z_rel = 1.0 - i/no_of_layers
 	sigma_z = mat.pow(z_rel, stretching_parameter)
 	z_vertical_vector_pre[i] = sigma_z*toa
 for i in range(no_of_layers):
