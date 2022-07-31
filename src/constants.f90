@@ -21,10 +21,10 @@ module constants
   real(wp), parameter :: p_0 = 100000._wp          ! reference pressure
   real(wp), parameter :: omega = 7.292115e-5_wp    ! angular frequency of Earth rotation
   real(wp), parameter :: gravity = 9.80616_wp      ! average surface gravity value
-  real(wp), parameter :: r_d = 287.057811_wp       ! specific gas constant of dry air
-  real(wp), parameter :: r_v = 461.524879_wp       ! specific gas constant of water vapour
   real(wp), parameter :: m_d = n_a*0.004810e-23_wp ! molar mass of dry air
   real(wp), parameter :: m_v = n_a*0.002991e-23_wp ! molar mass of water
+  real(wp), parameter :: r_d = 287.057811_wp       ! specific gas constant of dry air
+  real(wp), parameter :: r_v = 461.524879_wp       ! specific gas constant of water vapour
   real(wp), parameter :: c_d_v = 717.942189_wp     ! isochoric specific heat capacity of dry air
   real(wp), parameter :: c_v_v = 1396.475121_wp    ! isochoric specific heat capacity of water vapour
   real(wp), parameter :: c_d_p = 1005._wp          ! isobaric specific heat capacity of dry air
