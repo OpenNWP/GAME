@@ -114,26 +114,6 @@ double c_v_mass_weighted_air(State *state, Diagnostics *diagnostics, int grid_po
 	return result;
 }
 
-double calc_diffusion_coeff(double temperature, double density)
-{
-	/*
-	This function calculates the molecular diffusion coefficient according to the kinetic gas theory.
-	*/
-	
-	// these things are hardly ever modified
-	double particle_radius = 130e-12;
-	double particle_mass = M_D/N_A;
-	
-	// actual calculation
-    double thermal_velocity = sqrt(8.0*K_B*temperature/(M_PI*particle_mass));
-    double particle_density = density/particle_mass;
-    double cross_section = 4.0*M_PI*pow(particle_radius, 2.0);
-    double mean_free_path = 1.0/(sqrt(2.0)*particle_density*cross_section);
-    double result = 1.0/3.0*thermal_velocity*mean_free_path;
-    return result;
-}
-
-
 
 
 

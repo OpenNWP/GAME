@@ -41,6 +41,7 @@ src/radiation/rterrtmgp_coupler.f90
 src/constituents/phase_trans.c
 src/constituents/dictionary.f90
 src/constituents/derived_quantities.c
+src/constituents/derived_quantities.f90
 grid_generator/src/vertical_grid/vertical_grid.c
 grid_generator/src/vertical_grid/vertical_grid.f90
 grid_generator/src/namelists/grid_nml.f90

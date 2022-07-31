@@ -21,6 +21,6 @@ double spec_heat_cap_diagnostics_p(State *, int, Config *);
 double spec_heat_cap_diagnostics_v(State *, int, Config *);
 double gas_constant_diagnostics(State *, int, Config *);
 double density_total(State *, int);
-double calc_diffusion_coeff(double, double);
+extern double calc_diffusion_coeff();
 int temperature_diagnostics(State *, Grid *, Diagnostics *);
 extern double c_p_ice();

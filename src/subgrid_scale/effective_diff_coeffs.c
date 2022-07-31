@@ -26,7 +26,7 @@ int hor_viscosity(State *state, Irreversible_quantities *irrev, Grid *grid, Dual
 	for (int i = 0; i < N_SCALARS; ++i)
 	{
 		// molecular component
-		irrev -> molecular_diffusion_coeff[i] = calc_diffusion_coeff(diagnostics -> temperature[i], state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i]);
+		irrev -> molecular_diffusion_coeff[i] = calc_diffusion_coeff(&diagnostics -> temperature[i], &state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i]);
 		irrev -> viscosity[i] = irrev -> molecular_diffusion_coeff[i];
 		
 		// computing and adding the turbulent component
