@@ -11,27 +11,27 @@ module grid_nml
   implicit none
   
   integer(c_int) :: res_id                       ! resolution_id
-  integer(c_int) :: no_of_layers                 ! number of layers
-  integer(c_int) :: no_of_pentagons              ! number of pentagons
-  integer(c_int) :: no_of_hexagons               ! number of hexagons
-  integer(c_int) :: no_of_scalars_h              ! number of columns
-  integer(c_int) :: no_of_vectors_h              ! number of horizontal vectors per layer
-  integer(c_int) :: no_of_h_vectors              ! number of horizontal vectors
-  integer(c_int) :: no_of_scalars                ! number of scalars
-  integer(c_int) :: no_of_levels                 ! number of levels
-  integer(c_int) :: no_of_v_vectors              ! number of vertical vectors
-  integer(c_int) :: no_of_vectors_per_layer      ! number of vectors per layer
-  integer(c_int) :: no_of_vectors                ! number of vectors
-  integer(c_int) :: no_of_basic_triangles        ! number of basic triangles of the icosaheron
-  integer(c_int) :: no_of_triangles              ! the number of triangles of the grid
-  integer(c_int) :: no_of_dual_scalars_h         ! the number of dual scalars per layer
-  integer(c_int) :: no_of_dual_scalars           ! the number of dual scalars
-  integer(c_int) :: no_of_dual_vectors_per_layer ! the number of dual vectors per layer
-  integer(c_int) :: no_of_dual_h_vectors         ! the number of horizontal dual vectors per layer
-  integer(c_int) :: no_of_dual_v_vectors         ! the number of vertical dual vectors per layer
-  integer(c_int) :: no_of_dual_vectors           ! the number of dual vectors
+  integer(c_int) :: n_layers                 ! number of layers
+  integer(c_int) :: n_pentagons              ! number of pentagons
+  integer(c_int) :: n_hexagons               ! number of hexagons
+  integer(c_int) :: n_scalars_h              ! number of columns
+  integer(c_int) :: n_vectors_h              ! number of horizontal vectors per layer
+  integer(c_int) :: n_h_vectors              ! number of horizontal vectors
+  integer(c_int) :: n_scalars                ! number of scalars
+  integer(c_int) :: n_levels                 ! number of levels
+  integer(c_int) :: n_v_vectors              ! number of vertical vectors
+  integer(c_int) :: n_vectors_per_layer      ! number of vectors per layer
+  integer(c_int) :: n_vectors                ! number of vectors
+  integer(c_int) :: n_basic_triangles        ! number of basic triangles of the icosaheron
+  integer(c_int) :: n_triangles              ! the number of triangles of the grid
+  integer(c_int) :: n_dual_scalars_h         ! the number of dual scalars per layer
+  integer(c_int) :: n_dual_scalars           ! the number of dual scalars
+  integer(c_int) :: n_dual_vectors_per_layer ! the number of dual vectors per layer
+  integer(c_int) :: n_dual_h_vectors         ! the number of horizontal dual vectors per layer
+  integer(c_int) :: n_dual_v_vectors         ! the number of vertical dual vectors per layer
+  integer(c_int) :: n_dual_vectors           ! the number of dual vectors
   
-  namelist /grid/res_id,no_of_layers
+  namelist /grid/res_id,n_layers
 
   contains
 
@@ -39,25 +39,25 @@ module grid_nml
   
     ! local variables
     res_id = 5
-    no_of_layers = 26
-    no_of_pentagons = 12
-    no_of_hexagons = 10*(2**(2*res_id)-1)
-    no_of_scalars_h = no_of_pentagons+no_of_hexagons
-    no_of_scalars = no_of_layers*no_of_scalars_h
-    no_of_vectors_h = (5*no_of_pentagons/2 + 6/2*no_of_hexagons)
-    no_of_h_vectors = no_of_layers*no_of_vectors_h
-    no_of_levels = no_of_layers+1
-    no_of_v_vectors = no_of_levels*no_of_scalars_h
-    no_of_vectors_per_layer = no_of_vectors_h+no_of_scalars_h
-    no_of_vectors = no_of_h_vectors+no_of_v_vectors
-    no_of_basic_triangles = 20
-    no_of_triangles = no_of_basic_triangles*4**res_id
-    no_of_dual_scalars_h = no_of_triangles
-    no_of_dual_scalars = no_of_levels*no_of_dual_scalars_h
-    no_of_dual_vectors_per_layer = no_of_vectors_h+no_of_dual_scalars_h
-    no_of_dual_h_vectors = no_of_levels*no_of_vectors_h
-    no_of_dual_v_vectors = no_of_layers*no_of_dual_scalars_h
-    no_of_dual_vectors = no_of_dual_h_vectors+no_of_dual_v_vectors
+    n_layers = 26
+    n_pentagons = 12
+    n_hexagons = 10*(2**(2*res_id)-1)
+    n_scalars_h = n_pentagons+n_hexagons
+    n_scalars = n_layers*n_scalars_h
+    n_vectors_h = (5*n_pentagons/2 + 6/2*n_hexagons)
+    n_h_vectors = n_layers*n_vectors_h
+    n_levels = n_layers+1
+    n_v_vectors = n_levels*n_scalars_h
+    n_vectors_per_layer = n_vectors_h+n_scalars_h
+    n_vectors = n_h_vectors+n_v_vectors
+    n_basic_triangles = 20
+    n_triangles = n_basic_triangles*4**res_id
+    n_dual_scalars_h = n_triangles
+    n_dual_scalars = n_levels*n_dual_scalars_h
+    n_dual_vectors_per_layer = n_vectors_h+n_dual_scalars_h
+    n_dual_h_vectors = n_levels*n_vectors_h
+    n_dual_v_vectors = n_layers*n_dual_scalars_h
+    n_dual_vectors = n_dual_h_vectors+n_dual_v_vectors
   
   end subroutine grid_nml_setup
   

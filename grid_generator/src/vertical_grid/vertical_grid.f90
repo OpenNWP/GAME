@@ -9,9 +9,9 @@ module vertical_grid
   use definitions, only: wp
   use constants,   only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv,r_d, &
                          p_0_standard,c_d_p,p_0
-  use grid_nml,    only: no_of_scalars_h,no_of_scalars,no_of_vectors_per_layer,no_of_layers, &
-                         no_of_vectors,no_of_dual_scalars_h,no_of_dual_scalars,no_of_vectors_h, &
-                         no_of_dual_vectors,no_of_dual_vectors_per_layer,grid_nml_setup
+  use grid_nml,    only: n_scalars_h,n_scalars,n_vectors_per_layer,n_layers, &
+                         n_vectors,n_dual_scalars_h,n_dual_scalars,n_vectors_h, &
+                         n_dual_vectors,n_dual_vectors_per_layer,grid_nml_setup
   use geodesy,     only: calculate_vertical_area
   
   implicit none
@@ -32,8 +32,8 @@ module vertical_grid
   bind(c,name = "set_gravity_potential")
 
     ! This subroutine computes the gravity potential.
-    real(wp), intent(in)  :: z_scalar(no_of_scalars)
-    real(wp), intent(out) :: gravity_potential(no_of_scalars)
+    real(wp), intent(in)  :: z_scalar(n_scalars)
+    real(wp), intent(out) :: gravity_potential(n_scalars)
     real(wp), intent(in)  :: radius
   
     ! local variables
@@ -42,7 +42,7 @@ module vertical_grid
     call grid_nml_setup()
     
     !$omp parallel do private(ji)
-    do ji=1,no_of_scalars
+    do ji=1,n_scalars
       gravity_potential(ji) = -gravity*(radius**2/(radius+z_scalar(ji))-radius)
     enddo
     !$omp end parallel do
@@ -55,9 +55,9 @@ module vertical_grid
 
     ! This subroutine computes the volumes of the grid boxes.
   
-    real(wp), intent(out) :: volume(no_of_scalars)
-    real(wp), intent(in)  :: z_vector(no_of_vectors)
-    real(wp), intent(in)  :: area(no_of_vectors)
+    real(wp), intent(out) :: volume(n_scalars)
+    real(wp), intent(in)  :: z_vector(n_vectors)
+    real(wp), intent(in)  :: area(n_vectors)
     real(wp), intent(in)  :: radius
   
     ! local variables
@@ -67,12 +67,12 @@ module vertical_grid
     call grid_nml_setup()
     
     !$omp parallel do private(ji,layer_index,h_index,radius_1,radius_2,base_area)
-    do ji=1,no_of_scalars
-      layer_index = (ji-1)/no_of_scalars_h
-      h_index = ji-layer_index*no_of_scalars_h
-      base_area = area(h_index+(layer_index+1)*no_of_vectors_per_layer)
-      radius_1 = radius+z_vector(h_index+(layer_index+1)*no_of_vectors_per_layer)
-      radius_2 = radius+z_vector(h_index+layer_index*no_of_vectors_per_layer)
+    do ji=1,n_scalars
+      layer_index = (ji-1)/n_scalars_h
+      h_index = ji-layer_index*n_scalars_h
+      base_area = area(h_index+(layer_index+1)*n_vectors_per_layer)
+      radius_1 = radius+z_vector(h_index+(layer_index+1)*n_vectors_per_layer)
+      radius_2 = radius+z_vector(h_index+layer_index*n_vectors_per_layer)
       volume(ji) = base_area/(3._wp*radius_1**2)*(radius_2**3-radius_1**3)
     enddo
     !$omp end parallel do
@@ -134,10 +134,10 @@ module vertical_grid
   
     ! This subroutine sets the z coordinates of the dual scalar points.
   
-    real(wp), intent(out)      :: z_scalar_dual(no_of_dual_scalars)
-    real(wp), intent(in)       :: z_vector(no_of_vectors)
-    integer(c_int), intent(in) :: from_index(no_of_vectors_h),to_index(no_of_vectors_h), &
-                                  vorticity_indices_triangles(3*no_of_dual_scalars_h)
+    real(wp), intent(out)      :: z_scalar_dual(n_dual_scalars)
+    real(wp), intent(in)       :: z_vector(n_vectors)
+    integer(c_int), intent(in) :: from_index(n_vectors_h),to_index(n_vectors_h), &
+                                  vorticity_indices_triangles(3*n_dual_scalars_h)
 
     ! local variables
     integer(c_int) :: ji,layer_index,h_index
@@ -145,17 +145,17 @@ module vertical_grid
     call grid_nml_setup()
   
     !$omp parallel do private(ji,layer_index,h_index)
-    do ji=1,no_of_dual_scalars
-      layer_index = (ji-1)/no_of_dual_scalars_h
-      h_index = ji-layer_index*no_of_dual_scalars_h
+    do ji=1,n_dual_scalars
+      layer_index = (ji-1)/n_dual_scalars_h
+      h_index = ji-layer_index*n_dual_scalars_h
       z_scalar_dual(ji) &
       = 1._wp/6._wp*( &
-      z_vector(layer_index*no_of_vectors_per_layer+1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+1))) &
-      + z_vector(layer_index*no_of_vectors_per_layer+1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+2))) &
-      + z_vector(layer_index*no_of_vectors_per_layer+1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+3))) &
-      + z_vector(layer_index*no_of_vectors_per_layer+1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+1))) &
-      + z_vector(layer_index*no_of_vectors_per_layer+1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+2))) &
-      + z_vector(layer_index*no_of_vectors_per_layer+1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+3))))
+      z_vector(layer_index*n_vectors_per_layer+1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+1))) &
+      + z_vector(layer_index*n_vectors_per_layer+1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+2))) &
+      + z_vector(layer_index*n_vectors_per_layer+1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+3))) &
+      + z_vector(layer_index*n_vectors_per_layer+1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+1))) &
+      + z_vector(layer_index*n_vectors_per_layer+1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+2))) &
+      + z_vector(layer_index*n_vectors_per_layer+1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+3))))
     enddo
     !$omp end parallel do
     
@@ -166,8 +166,8 @@ module vertical_grid
 
     ! This subroutine sets the hydrostatic background state.
     
-    real(wp), intent(in)  :: z_scalar(no_of_scalars),gravity_potential(no_of_scalars)
-    real(wp), intent(out) :: theta_v_bg(no_of_scalars),exner_bg(no_of_scalars)
+    real(wp), intent(in)  :: z_scalar(n_scalars),gravity_potential(n_scalars)
+    real(wp), intent(out) :: theta_v_bg(n_scalars),exner_bg(n_scalars)
   
     ! local variables
     integer(c_int) :: h_index,layer_index,scalar_index
@@ -176,23 +176,23 @@ module vertical_grid
     call grid_nml_setup()
   
     !$omp parallel do private(h_index,layer_index,scalar_index,temperature,pressure,b,c)
-    do h_index=1,no_of_scalars_h
+    do h_index=1,n_scalars_h
       ! integrating from bottom to top
-      do layer_index=no_of_layers-1,0,-1
-        scalar_index = layer_index*no_of_scalars_h+h_index
+      do layer_index=n_layers-1,0,-1
+        scalar_index = layer_index*n_scalars_h+h_index
         temperature = standard_temp(z_scalar(scalar_index))
         ! lowest layer
-        if (layer_index==no_of_layers-1) then
+        if (layer_index==n_layers-1) then
           pressure = standard_pres(z_scalar(scalar_index))
           exner_bg(scalar_index) = (pressure/p_0)**(r_d/c_d_p)
           theta_v_bg(scalar_index) = temperature/exner_bg(scalar_index)
         ! other layers
         else
           ! solving a quadratic equation for the Exner pressure
-          b = -0.5_wp*exner_bg(scalar_index + no_of_scalars_h)/standard_temp(z_scalar(scalar_index+no_of_scalars_h)) &
-          *(temperature - standard_temp(z_scalar(scalar_index + no_of_scalars_h)) &
-          + 2._wp/c_d_p*(gravity_potential(scalar_index) - gravity_potential(scalar_index+no_of_scalars_h)))
-          c = exner_bg(scalar_index+no_of_scalars_h)**2*temperature/standard_temp(z_scalar(scalar_index+no_of_scalars_h))
+          b = -0.5_wp*exner_bg(scalar_index + n_scalars_h)/standard_temp(z_scalar(scalar_index+n_scalars_h)) &
+          *(temperature - standard_temp(z_scalar(scalar_index + n_scalars_h)) &
+          + 2._wp/c_d_p*(gravity_potential(scalar_index) - gravity_potential(scalar_index+n_scalars_h)))
+          c = exner_bg(scalar_index+n_scalars_h)**2*temperature/standard_temp(z_scalar(scalar_index+n_scalars_h))
           exner_bg(scalar_index) = b + (b**2 + c)**0.5_wp
           theta_v_bg(scalar_index) = temperature/exner_bg(scalar_index)
         endif
@@ -206,9 +206,9 @@ module vertical_grid
   bind(c,name = "set_area")
 
     ! This function sets the areas of the grid boxes.
-    real(wp), intent(out) :: area(no_of_vectors)
-    real(wp), intent(in)  :: z_vector(no_of_vectors),z_vector_dual(no_of_dual_vectors), &
-                             normal_distance_dual(no_of_dual_vectors),pent_hex_face_unity_sphere(no_of_scalars_h), &
+    real(wp), intent(out) :: area(n_vectors)
+    real(wp), intent(in)  :: z_vector(n_vectors),z_vector_dual(n_dual_vectors), &
+                             normal_distance_dual(n_dual_vectors),pent_hex_face_unity_sphere(n_scalars_h), &
                              radius
   
     ! local variables
@@ -218,15 +218,15 @@ module vertical_grid
     call grid_nml_setup()
     
     !$omp parallel do private(ji,layer_index,h_index,dual_vector_index,base_distance,radius_1,radius_2)
-    do ji=1,no_of_vectors
-      layer_index = (ji-1)/no_of_vectors_per_layer
-      h_index = ji-layer_index*no_of_vectors_per_layer
-      if (h_index<=no_of_scalars_h) then
+    do ji=1,n_vectors
+      layer_index = (ji-1)/n_vectors_per_layer
+      h_index = ji-layer_index*n_vectors_per_layer
+      if (h_index<=n_scalars_h) then
         area(ji) = pent_hex_face_unity_sphere(h_index)*(radius+z_vector(ji))**2
       else
-        dual_vector_index = (layer_index+1)*no_of_dual_vectors_per_layer + h_index - no_of_scalars_h
+        dual_vector_index = (layer_index+1)*n_dual_vectors_per_layer + h_index - n_scalars_h
         radius_1 = radius+z_vector_dual(dual_vector_index)
-        radius_2 = radius+z_vector_dual(dual_vector_index - no_of_dual_vectors_per_layer)
+        radius_2 = radius+z_vector_dual(dual_vector_index - n_dual_vectors_per_layer)
         base_distance = normal_distance_dual(dual_vector_index)
         area(ji) = calculate_vertical_area(base_distance,radius_1,radius_2)
       endif
