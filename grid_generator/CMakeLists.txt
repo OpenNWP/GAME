@@ -17,7 +17,7 @@ src/diff_ops/rhombus_averaging.c
 src/diff_ops/inner_product.f90
 src/optimization/optimize.c
 src/horizontal_grid/miscellaneous.c
-src/horizontal_grid/index.c
+src/horizontal_grid/find_neighbours.c
 src/foundations/geodesy.f90
 src/diff_ops/coriolis.c
 src/horizontal_grid/discrete_coordinate_trafos.c
