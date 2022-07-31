@@ -81,53 +81,6 @@ double longitude_scalar[], int from_index[], int to_index[], double toa, double 
     return 0;
 }
 
-int set_area_dual(double area_dual[], double z_vector_dual[], double normal_distance[], double z_vector[], int from_index[],
-int to_index[], double triangle_face_unit_sphere[], double toa, double radius)
-{
-	/*
-	This function computes the areas of the dual grid.
-	*/
-	
-	int layer_index, h_index, primal_vector_index;
-	double radius_0, radius_1, base_distance;
-	#pragma omp parallel for private(layer_index, h_index, primal_vector_index, radius_0, radius_1, base_distance)
-    for (int i = 0; i < N_DUAL_VECTORS; ++i)
-    {
-        layer_index = i/N_DUAL_VECS_PER_LAYER;
-        h_index = i - layer_index*N_DUAL_VECS_PER_LAYER;
-        if (h_index >= N_VECS_H)
-        {
-            area_dual[i] = pow(radius + z_vector_dual[i], 2)*triangle_face_unit_sphere[h_index - N_VECS_H];
-        }
-        else
-        {
-        	if (layer_index == 0)
-        	{
-		        primal_vector_index = N_SCALS_H + h_index;
-		        radius_0 = radius + z_vector[primal_vector_index];
-		        radius_1 = radius + toa;
-		        base_distance = normal_distance[primal_vector_index];
-        	}
-        	else if (layer_index == N_LAYERS)
-        	{
-		        primal_vector_index = N_SCALS_H + (N_LAYERS - 1)*N_VECS_PER_LAYER + h_index;
-		        radius_0 = radius + 0.5*(z_vector[N_LAYERS*N_VECS_PER_LAYER + from_index[h_index]] + z_vector[N_LAYERS*N_VECS_PER_LAYER + to_index[h_index]]);
-		        radius_1 = radius + z_vector[primal_vector_index];
-		        base_distance = normal_distance[primal_vector_index]*radius_0/radius_1;
-        	}
-        	else
-        	{
-		        primal_vector_index = N_SCALS_H + layer_index*N_VECS_PER_LAYER + h_index;
-		        radius_0 = radius + z_vector[primal_vector_index];
-		        radius_1 = radius + z_vector[primal_vector_index - N_VECS_PER_LAYER];
-		        base_distance = normal_distance[primal_vector_index];
-        	}
-            area_dual[i] = calculate_vertical_area(&base_distance, &radius_0, &radius_1);
-        }
-    }
-    return 0;
-}
-
 int calc_z_vector_dual_and_normal_distance_dual(double z_vector_dual[], double normal_distance_dual[], double z_scalar_dual[], double toa, int from_index[],
 int to_index[], double z_vector[], int from_index_dual[], int to_index_dual[], double latitude_scalar_dual[],
 double longitude_scalar_dual[], int vorticity_indices_triangles[], double radius)

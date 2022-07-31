@@ -11,7 +11,8 @@ module vertical_grid
                          p_0_standard,c_d_p,p_0
   use grid_nml,    only: n_scalars_h,n_scalars,n_vectors_per_layer,n_layers,n_levels, &
                          n_vectors,n_dual_scalars_h,n_dual_scalars,n_vectors_h, &
-                         n_dual_vectors,n_dual_vectors_per_layer,toa,n_oro_layers,stretching_parameter
+                         n_dual_vectors,n_dual_vectors_per_layer,toa,n_oro_layers,stretching_parameter, &
+                         radius
   use geodesy,     only: calculate_vertical_area
   
   implicit none
@@ -24,6 +25,7 @@ module vertical_grid
   public :: standard_temp
   public :: standard_pres
   public :: set_z_scalar_dual
+  public :: set_area_dual
   public :: set_background_state
   public :: set_area
   
@@ -206,6 +208,51 @@ module vertical_grid
     !$omp end parallel do
     
   end subroutine set_z_scalar_dual
+  
+  subroutine set_area_dual(area_dual,z_vector_dual,normal_distance,z_vector,from_index,to_index,triangle_face_unit_sphere) &
+  bind(c,name = "set_area_dual")
+
+    ! This subroutine computes the areas of the dual grid.
+  
+    real(wp), intent(out) :: area_dual(n_dual_vectors)
+    real(wp), intent(in)  :: z_vector_dual(n_dual_vectors),normal_distance(n_vectors),z_vector(n_vectors), &
+                             triangle_face_unit_sphere(n_dual_scalars_h)
+    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+  
+    ! local variables
+    integer  :: ji,layer_index,h_index,primal_vector_index
+    real(wp) :: radius_1,radius_2,base_distance
+  
+    !$omp parallel do private(ji,layer_index,h_index,primal_vector_index,radius_1,radius_2,base_distance)
+    do ji=1,n_dual_vectors
+      layer_index = (ji-1)/n_dual_vectors_per_layer
+      h_index = ji - layer_index*n_dual_vectors_per_layer
+      if (h_index>=n_vectors_h+1) then
+        area_dual(ji) = (radius + z_vector_dual(ji))**2*triangle_face_unit_sphere(h_index-n_vectors_h)
+      else
+        if (layer_index==0) then
+          primal_vector_index = n_scalars_h + h_index
+          radius_1 = radius + z_vector(primal_vector_index)
+          radius_2 = radius + toa
+          base_distance = normal_distance(primal_vector_index)
+        else if (layer_index==n_layers) then
+          primal_vector_index = n_scalars_h + (n_layers-1)*n_vectors_per_layer + h_index
+          radius_1 = radius + 0.5_wp*(z_vector(n_layers*n_vectors_per_layer + from_index(h_index)) &
+          + z_vector(n_layers*n_vectors_per_layer + to_index(h_index)))
+          radius_2 = radius + z_vector(primal_vector_index)
+          base_distance = normal_distance(primal_vector_index)*radius_1/radius_2
+        else
+          primal_vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
+          radius_1 = radius + z_vector(primal_vector_index)
+          radius_2 = radius + z_vector(primal_vector_index - n_vectors_per_layer)
+          base_distance = normal_distance(primal_vector_index)
+          area_dual(ji) = calculate_vertical_area(base_distance,radius_1,radius_2)
+        endif
+      endif
+    enddo
+    !$omp end parallel do
+    
+  end subroutine set_area_dual
   
   subroutine set_background_state(z_scalar,gravity_potential,theta_v_bg,exner_bg) &
   bind(c,name = "set_background_state")

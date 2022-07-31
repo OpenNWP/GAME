@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
     printf(".\n");
     
     printf("Calculating dual areas ... ");
-	set_area_dual(area_dual, z_vector_dual, normal_distance, z_vector, from_index, to_index, triangle_face_unit_sphere, toa, radius);
+	set_area_dual(area_dual, z_vector_dual, normal_distance, z_vector, from_index, to_index, triangle_face_unit_sphere);
     printf(GREEN "finished" RESET);
     printf(".\n");
     

@@ -7,6 +7,7 @@ module grid_nml
   
   use iso_c_binding
   use definitions, only: wp
+  use constants,   only: r_e
   
   implicit none
   
@@ -33,6 +34,8 @@ module grid_nml
   real(wp)       :: toa                      ! top of atmosphere in meters above MSL
   integer(c_int) :: n_oro_layers             ! number of layers following the orography
   real(wp)       :: stretching_parameter     ! vertical grid stretching parameter
+  real(wp)       :: radius_rescale           ! radius rescaling factor
+  real(wp)       :: radius                   ! radius of the planet to construct the grid for
   
   namelist /grid/res_id,n_layers
 
@@ -65,6 +68,8 @@ module grid_nml
     toa = 41152._wp
     n_oro_layers = 23
     stretching_parameter = 1.3_wp
+    radius_rescale = 1._wp
+    radius = radius_rescale*r_e
   
   end subroutine grid_nml_setup
   
