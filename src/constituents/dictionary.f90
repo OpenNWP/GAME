@@ -17,6 +17,7 @@ module dictionary
   public :: phase_trans_heat
   public :: c_p_ice
   public :: saturation_pressure_over_water
+  public :: dsaturation_pressure_over_water_dT
   public :: saturation_pressure_over_ice
   public :: dsaturation_pressure_over_ice_dT
   public :: enhancement_factor_over_water
@@ -263,6 +264,34 @@ module dictionary
     endif
 
   end function saturation_pressure_over_water
+  
+  function dsaturation_pressure_over_water_dT(temperature) &
+  bind(c,name = "dsaturation_pressure_over_water_dT")
+  
+    ! This function returns the derivative of the saturation pressure in Pa of pure water vapour over plane liquid water
+    ! as a function of the temperature in K.
+    
+    real(wp), intent(in) :: temperature
+    real(wp)             :: dsaturation_pressure_over_water_dT
+    
+    ! local variables
+    real(wp) :: temp_c
+    
+    ! calculating the temperature in degrees Celsius
+    temp_c = temperature - t_0
+    
+    ! these are the limits of this approximation
+    if (temp_c>100._wp) then
+      temp_c = 100._wp
+    endif
+    if (temp_c<0._wp) then
+      temp_c = 0._wp
+    endif
+    
+    dsaturation_pressure_over_water_dT = saturation_pressure_over_water(temperature) &
+    *(4924.99_wp/(temp_c + 237.1_wp)**2 - 1.57_wp/(temp_c + 105._wp))
+  
+  end function dsaturation_pressure_over_water_dT
 
   function saturation_pressure_over_ice(temperature) &
   bind(c,name = "saturation_pressure_over_ice")

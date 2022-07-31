@@ -75,32 +75,6 @@ double c_p_cond(int const_id, double temperature)
 	return result;
 }
 
-double dsaturation_pressure_over_water_dT(double temperature)
-{
-	/*
-	This function returns the derivative of the saturation pressure in Pa of pure water vapour over plane liquid water
-	as a function of the temperature in K.
-	*/
-    
-    // calculating the temperature in degrees Celsius
-    double temp_c = temperature - T_0;
-    
-    // these are the limits of this approximation
-    if (temp_c > 100.0)
-    {
-    	temp_c = 100.0;
-    }
-    if (temp_c < 0.0)
-    {
-    	temp_c = 0.0;
-    }
-    
-   	double result = saturation_pressure_over_water(&temperature)
-	*(4924.99/pow(temp_c + 237.1, 2.0) - 1.57/(temp_c + 105.0));
-    
-    return result;
-}
-
 
 
 
