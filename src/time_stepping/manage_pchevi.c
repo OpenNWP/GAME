@@ -38,7 +38,6 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 	{
 		calc_h2otracers_source_rates(state_old, diagnostics, grid, config, irrev, delta_t);
 	}
-	
 	/*
 	Loop over the RK substeps
 	-------------------------

@@ -8,6 +8,7 @@ module radiation
   use iso_c_binding,
   use definitions,                only: wp
   use constants,                  only: EPSILON_SECURITY,r_d
+  use dictionary,                 only: molar_fraction_in_dry_air,calc_o3_vmr
   use mo_rrtmgp_util_string,      only: lower_case
   use mo_gas_optics_rrtmgp,       only: ty_gas_optics_rrtmgp
   use mo_load_coefficients,       only: load_and_init
@@ -55,25 +56,6 @@ module radiation
   "/home/max/code/rte-rrtmgp/extensions/cloud_optics/rrtmgp-cloud-optics-coeffs-lw.nc"
   ! the gases in lowercase
   character(len = 32),dimension(size(active_gases)) :: gases_lowercase
-  
-  ! interface to C functions
-  interface
-    real(C_DOUBLE) function specific_gas_constants(gas_number) bind(c,name = "specific_gas_constants")
-      use,intrinsic::iso_c_binding
-      implicit none
-      integer(C_INT),value :: gas_number
-    end function specific_gas_constants
-    real(C_DOUBLE) function molar_fraction_in_dry_air(gas_number) bind(c,name = "molar_fraction_in_dry_air")
-      use,intrinsic::iso_c_binding
-      implicit none
-      integer(C_INT),value :: gas_number
-    end function molar_fraction_in_dry_air
-    real(C_DOUBLE) function calc_o3_vmr(z_height) bind(c,name = "calc_o3_vmr")
-      use,intrinsic::iso_c_binding
-      implicit none
-      real(C_DOUBLE),value :: z_height
-    end function calc_o3_vmr
-  end interface
   
   contains
   

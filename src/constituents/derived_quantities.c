@@ -67,14 +67,14 @@ double rel_humidity(double abs_humidity, double temperature)
 	*/
 	
 	double vapour_pressure = abs_humidity*R_V*temperature;
-	double saturation_pressure;
+	double saturation_pressure = 0.0;
 	if (temperature > T_0)
 	{
-		saturation_pressure = saturation_pressure_over_water(temperature);
+		saturation_pressure = saturation_pressure_over_water(&temperature);
 	}
 	if (temperature <= T_0)
 	{
-		saturation_pressure = saturation_pressure_over_ice(temperature);
+		saturation_pressure = saturation_pressure_over_ice(&temperature);
 	}
 	double result = vapour_pressure/saturation_pressure;
 	return result;

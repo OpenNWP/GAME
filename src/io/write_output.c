@@ -191,11 +191,11 @@ double pseudopotential_temperature(State *state, Diagnostics *diagnostics, Grid 
 		// therefore we firstly compute the saturation pressure, the vapour pressure and the relative humidity
 		if (diagnostics -> temperature[scalar_index] >= T_0)
 		{
-			saturation_pressure = saturation_pressure_over_water(diagnostics -> temperature[scalar_index]);
+			saturation_pressure = saturation_pressure_over_water(&diagnostics -> temperature[scalar_index]);
 		}
 		else
 		{
-			saturation_pressure = saturation_pressure_over_ice(diagnostics -> temperature[scalar_index]);
+			saturation_pressure = saturation_pressure_over_ice(&diagnostics -> temperature[scalar_index]);
 		}
 		vapour_pressure = state -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + scalar_index]*R_V*diagnostics -> temperature[scalar_index];
 		rel_hum = vapour_pressure/saturation_pressure;
