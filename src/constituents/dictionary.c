@@ -17,29 +17,6 @@ Condensate properties
 ---------------------
 */
 
-double c_p_ice(double temperature)
-{
-	/*
-	This function returns c_p of ice.
-	It follows Eq. (4) in Murphy DM, Koop T. Review of the vapour pressures of ice and supercooled water for atmospheric applications.
-	QUARTERLY JOURNAL OF THE ROYAL METEOROLOGICAL SOCIETY. 2005;131(608):1539-1565.
-	*/
-	// ice cannot exist in equilibrium at temperatures > T_0
-	if (temperature > T_0)
-	{
-		temperature = T_0;
-	}
-	// clipping values that are too extreme for this approximation
-	if (temperature < 20.0)
-	{
-		temperature = 20.0;
-	}
-	double result = -2.0572 + 0.14644*temperature + 0.06163*temperature*exp(-pow(temperature/125.1, 2));
-	// unit conversion from J/(mol*K) to J/(kg*K)
-	result = result/M_V;
-    return result;
-}
-
 double c_p_water(double temperature)
 {
 	/*
@@ -88,7 +65,7 @@ double c_p_cond(int const_id, double temperature)
 	
 	if (fmod(const_id, 2) == 0)
 	{
-		result = c_p_ice(temperature);
+		result = c_p_ice(&temperature);
 	}
 	else
 	{

@@ -29,6 +29,7 @@ module dictionary
   public :: molar_fraction_in_dry_air
   public :: calc_o3_vmr
   public :: phase_trans_heat
+  public :: c_p_ice
   public :: saturation_pressure_over_water
   public :: saturation_pressure_over_ice
   public :: enhancement_factor_over_water
@@ -72,7 +73,7 @@ module dictionary
       molar_fraction_in_dry_air = 1e-6_wp
     endif
     if (gas_number==11) then
-	  ! https://www.epa.gov/climate-indicators/climate-change-indicators-atmospheric-concentrations-greenhouse-gases
+    ! https://www.epa.gov/climate-indicators/climate-change-indicators-atmospheric-concentrations-greenhouse-gases
       molar_fraction_in_dry_air = 0.3e-6_wp
     endif
   
@@ -130,6 +131,35 @@ module dictionary
     
   end function phase_trans_heat
   
+  function c_p_ice(temperature) &
+  bind(c,name = "c_p_ice")
+  
+    ! This function returns c_p of ice.
+    ! It follows Eq. (4) in Murphy DM, Koop T. Review of the vapour pressures of ice and supercooled water for atmospheric applications.
+    ! QUARTERLY JOURNAL OF THE ROYAL METEOROLOGICAL SOCIETY. 2005;131(608):1539-1565.
+  
+    real(wp), intent(in) :: temperature
+    real(wp)             :: c_p_ice
+    
+    ! local variables
+    real(wp) :: temperature_local
+    
+    temperature_local = temperature
+  
+    ! ice cannot exist in equilibrium at temperatures > T_0
+    if (temperature_local>t_0) then
+      temperature_local = t_0
+    endif
+    ! clipping values that are too extreme for this approximation
+    if (temperature_local<20._wp) then
+      temperature_local = 20._wp
+    endif
+    c_p_ice = -2.0572_wp + 0.14644_wp*temperature_local + 0.06163_wp*temperature_local*exp(-(temperature_local/125.1_wp)**2)
+    ! unit conversion from J/(mol*K) to J/(kg*K)
+    c_p_ice = c_p_ice/m_v
+    
+  end function c_p_ice
+  
   function enthalpy_evaporation(temperature)
     
     ! This function returns the enthalpy of evaporation depending on the temperature.
@@ -166,9 +196,9 @@ module dictionary
   
   function enthalpy_sublimation(temperature)
     
-	! This function returns the enthalpy of sublimation depending on the temperature.
-	! It follows Eq. (5) in Murphy DM, Koop T. Review of the vapour pressures of ice and supercooled water for atmospheric applications.
-	! QUARTERLY JOURNAL OF THE ROYAL METEOROLOGICAL SOCIETY. 2005;131(608):1539-1565.
+  ! This function returns the enthalpy of sublimation depending on the temperature.
+  ! It follows Eq. (5) in Murphy DM, Koop T. Review of the vapour pressures of ice and supercooled water for atmospheric applications.
+  ! QUARTERLY JOURNAL OF THE ROYAL METEOROLOGICAL SOCIETY. 2005;131(608):1539-1565.
     
     real(wp), intent(in) :: temperature
     real(wp)             :: enthalpy_sublimation
@@ -194,7 +224,7 @@ module dictionary
     enthalpy_sublimation = enthalpy_sublimation/m_v
   
   end function enthalpy_sublimation
-	
+  
   function saturation_pressure_over_water(temperature) &
   bind(c,name = "saturation_pressure_over_water")
 

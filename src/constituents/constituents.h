@@ -23,3 +23,4 @@ double gas_constant_diagnostics(State *, int, Config *);
 double density_total(State *, int);
 double calc_diffusion_coeff(double, double);
 int temperature_diagnostics(State *, Grid *, Diagnostics *);
+extern double c_p_ice();
