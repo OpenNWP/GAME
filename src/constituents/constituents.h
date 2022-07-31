@@ -13,7 +13,7 @@ extern double dsaturation_pressure_over_ice_dT();
 extern double enhancement_factor_over_water(double *);
 extern double enhancement_factor_over_ice(double *);
 double c_v_mass_weighted_air(State *, Diagnostics *, int);
-double c_p_cond(int, double);
+extern double c_p_cond();
 extern double phase_trans_heat(int *, double *);
 double rel_humidity(double, double);
 extern double calc_o3_vmr(int *);

@@ -17,6 +17,7 @@ module dictionary
   public :: phase_trans_heat
   public :: c_p_water
   public :: c_p_ice
+  public :: c_p_cond
   public :: saturation_pressure_over_water
   public :: dsaturation_pressure_over_water_dT
   public :: saturation_pressure_over_ice
@@ -198,6 +199,23 @@ module dictionary
     c_p_ice = c_p_ice/m_v
     
   end function c_p_ice
+
+  function c_p_cond(const_id,temperature) &
+  bind(c,name = "c_p_cond")
+  
+    ! This function resturns c_p of a specific condensed constituent.
+    
+    integer, intent(in)  :: const_id
+    real(wp), intent(in) :: temperature
+    real(wp)             :: c_p_cond
+  
+    if (mod(const_id,2)==0) then
+      c_p_cond = c_p_ice(temperature)
+    else
+      c_p_cond = c_p_water(temperature)
+    endif
+  
+  end function c_p_cond
   
   function enthalpy_evaporation(temperature)
     

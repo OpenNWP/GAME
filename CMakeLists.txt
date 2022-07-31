@@ -39,7 +39,6 @@ src/radiation/manage_radiation_calls.c
 src/radiation/held_suar.c
 src/radiation/rterrtmgp_coupler.f90
 src/constituents/phase_trans.c
-src/constituents/dictionary.c
 src/constituents/dictionary.f90
 src/constituents/derived_quantities.c
 grid_generator/src/vertical_grid/vertical_grid.c

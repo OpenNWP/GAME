@@ -489,7 +489,7 @@ int three_band_solver_gen_densities(State *state_old, State *state_new, State *s
 						temperature_old_at_interface = diagnostics -> temperature[upper_index];
 					}
 					vertical_flux_vector_rhs[j] = density_old_at_interface*vertical_flux_vector_rhs[j];
-					vertical_enthalpy_flux_vector[j] = c_p_cond(k, temperature_old_at_interface)*temperature_old_at_interface*vertical_flux_vector_rhs[j];
+					vertical_enthalpy_flux_vector[j] = c_p_cond(&k, &temperature_old_at_interface)*temperature_old_at_interface*vertical_flux_vector_rhs[j];
 				}
 				if (rk_step == 0 && k == 0)
 				{
@@ -600,7 +600,7 @@ int three_band_solver_gen_densities(State *state_old, State *state_new, State *s
 							if (rk_step == 0)
 							{
 								irrev -> condensates_sediment_heat[base_index] += -config -> snow_velocity
-								*diagnostics -> temperature[i + N_SCALARS - N_SCALS_H]*c_p_cond(k, diagnostics -> temperature[i + N_SCALARS - N_SCALS_H])
+								*diagnostics -> temperature[i + N_SCALARS - N_SCALS_H]*c_p_cond(&k, &diagnostics -> temperature[i + N_SCALARS - N_SCALS_H])
 								*state_old -> rho[k*N_SCALARS + i + N_SCALARS - N_SCALS_H]
 								*grid -> area[i + N_VECTORS - N_SCALS_H]/grid -> volume[base_index];
 							}
@@ -613,7 +613,7 @@ int three_band_solver_gen_densities(State *state_old, State *state_new, State *s
 							if (rk_step == 0)
 							{
 								irrev -> condensates_sediment_heat[base_index] += -config -> rain_velocity
-								*diagnostics -> temperature[i + N_SCALARS - N_SCALS_H]*c_p_cond(k, diagnostics -> temperature[i + N_SCALARS - N_SCALS_H])
+								*diagnostics -> temperature[i + N_SCALARS - N_SCALS_H]*c_p_cond(&k, &diagnostics -> temperature[i + N_SCALARS - N_SCALS_H])
 								*state_old -> rho[k*N_SCALARS + i + N_SCALARS - N_SCALS_H]
 								*grid -> area[i + N_VECTORS - N_SCALS_H]/grid -> volume[base_index];
 							}
@@ -626,7 +626,7 @@ int three_band_solver_gen_densities(State *state_old, State *state_new, State *s
 							if (rk_step == 0)
 							{
 								irrev -> condensates_sediment_heat[base_index] += -config -> cloud_droplets_velocity
-								*diagnostics -> temperature[i + N_SCALARS - N_SCALS_H]*c_p_cond(k, diagnostics -> temperature[i + N_SCALARS - N_SCALS_H])
+								*diagnostics -> temperature[i + N_SCALARS - N_SCALS_H]*c_p_cond(&k, &diagnostics -> temperature[i + N_SCALARS - N_SCALS_H])
 								*state_old -> rho[k*N_SCALARS + i + N_SCALARS - N_SCALS_H]
 								*grid -> area[i + N_VECTORS - N_SCALS_H]/grid -> volume[base_index];
 							}

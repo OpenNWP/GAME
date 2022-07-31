@@ -104,7 +104,7 @@ double c_v_mass_weighted_air(State *state, Diagnostics *diagnostics, int grid_po
 	for (int i = 0; i < N_CONDENSED_CONSTITUENTS; ++i)
 	{
 		// It is correct to use c_p here because the compression of the condensates has almost no effect on the air pressure.
-		result += state -> rho[i*N_SCALARS + grid_point_index]*c_p_cond(i, diagnostics -> temperature[grid_point_index]);
+		result += state -> rho[i*N_SCALARS + grid_point_index]*c_p_cond(&i, &diagnostics -> temperature[grid_point_index]);
 	}
 	result += state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + grid_point_index]*C_D_V;
 	if (MOISTURE_ON == 1)
