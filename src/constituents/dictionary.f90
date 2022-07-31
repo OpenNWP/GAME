@@ -130,8 +130,7 @@ module dictionary
     
   end function phase_trans_heat
   
-  function enthalpy_evaporation(temperature) &
-  bind(c,name = "enthalpy_evaporation")
+  function enthalpy_evaporation(temperature)
     
     ! This function returns the enthalpy of evaporation depending on the temperature.
     
@@ -165,8 +164,7 @@ module dictionary
 
   end function enthalpy_evaporation
   
-  function enthalpy_sublimation(temperature) &
-  bind(c,name = "enthalpy_sublimation")
+  function enthalpy_sublimation(temperature)
     
 	! This function returns the enthalpy of sublimation depending on the temperature.
 	! It follows Eq. (5) in Murphy DM, Koop T. Review of the vapour pressures of ice and supercooled water for atmospheric applications.
