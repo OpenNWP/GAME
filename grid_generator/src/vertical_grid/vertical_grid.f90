@@ -10,7 +10,9 @@ module vertical_grid
   use constants,   only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv,r_d, &
                          p_0_standard,c_d_p,p_0
   use grid_nml,    only: no_of_scalars_h,no_of_scalars,no_of_vectors_per_layer,no_of_layers, &
-                         no_of_vectors,no_of_dual_scalars_h,no_of_dual_scalars,no_of_vectors_h,grid_nml_setup
+                         no_of_vectors,no_of_dual_scalars_h,no_of_dual_scalars,no_of_vectors_h, &
+                         no_of_dual_vectors,no_of_dual_vectors_per_layer,grid_nml_setup
+  use geodesy,     only: calculate_vertical_area
   
   implicit none
   
@@ -22,6 +24,7 @@ module vertical_grid
   public :: standard_pres
   public :: set_z_scalar_dual
   public :: set_background_state
+  public :: set_area
   
   contains
   
@@ -198,7 +201,40 @@ module vertical_grid
     !$omp end parallel do
   
   end subroutine set_background_state
+  
+  subroutine set_area(area,z_vector,z_vector_dual,normal_distance_dual,pent_hex_face_unity_sphere,radius) &
+  bind(c,name = "set_area")
 
+    ! This function sets the areas of the grid boxes.
+    real(wp), intent(out) :: area(no_of_vectors)
+    real(wp), intent(in)  :: z_vector(no_of_vectors),z_vector_dual(no_of_dual_vectors), &
+                             normal_distance_dual(no_of_dual_vectors),pent_hex_face_unity_sphere(no_of_scalars_h), &
+                             radius
+  
+    ! local variables
+    integer(c_int) :: ji,layer_index,h_index,dual_vector_index
+    real(wp)       :: base_distance,radius_1,radius_2
+    
+    call grid_nml_setup()
+    
+    !$omp parallel do private(ji,layer_index,h_index,dual_vector_index,base_distance,radius_1,radius_2)
+    do ji=1,no_of_vectors
+      layer_index = (ji-1)/no_of_vectors_per_layer
+      h_index = ji-layer_index*no_of_vectors_per_layer
+      if (h_index<=no_of_scalars_h) then
+        area(ji) = pent_hex_face_unity_sphere(h_index)*(radius+z_vector(ji))**2
+      else
+        dual_vector_index = (layer_index+1)*no_of_dual_vectors_per_layer + h_index - no_of_scalars_h
+        radius_1 = radius+z_vector_dual(dual_vector_index)
+        radius_2 = radius+z_vector_dual(dual_vector_index - no_of_dual_vectors_per_layer)
+        base_distance = normal_distance_dual(dual_vector_index)
+        area(ji) = calculate_vertical_area(base_distance,radius_1,radius_2)
+      endif
+    enddo
+    !$omp end parallel do
+    
+  end subroutine set_area
+  
 end module vertical_grid
 
 

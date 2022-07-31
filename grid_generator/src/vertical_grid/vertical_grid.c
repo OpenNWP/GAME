@@ -181,36 +181,6 @@ int to_index[], double triangle_face_unit_sphere[], double toa, double radius)
     return 0;
 }
 
-int set_area(double area[], double z_vector[], double z_vector_dual[], double normal_distance_dual[], double pent_hex_face_unity_sphere[], double radius)
-{
-	/*
-	This function sets the areas of the grid boxes.
-	*/
-	
-	int layer_index, h_index, dual_vector_index;
-	double base_distance, radius_0, radius_1;
-	#pragma omp parallel for private(layer_index, h_index, dual_vector_index, base_distance, radius_0, radius_1)
-    for (int i = 0; i < N_VECTORS; ++i)
-    {
-        layer_index = i/N_VECS_PER_LAYER;
-        h_index = i - layer_index*N_VECS_PER_LAYER;
-        if (h_index < N_SCALS_H)
-        {
-            area[i] = pent_hex_face_unity_sphere[h_index]*pow(radius + z_vector[i], 2);
-        }
-        else
-        {
-            dual_vector_index = (layer_index + 1)*N_DUAL_VECS_PER_LAYER + h_index - N_SCALS_H;
-            radius_0 = radius + z_vector_dual[dual_vector_index];
-            radius_1 = radius + z_vector_dual[dual_vector_index - N_DUAL_VECS_PER_LAYER];
-            base_distance = normal_distance_dual[dual_vector_index];
-            area[i] = calculate_vertical_area(&base_distance, &radius_0, &radius_1);
-        }
-    }
-    
-	return 0;
-}
-
 int calc_z_vector_dual_and_normal_distance_dual(double z_vector_dual[], double normal_distance_dual[], double z_scalar_dual[], double toa, int from_index[],
 int to_index[], double z_vector[], int from_index_dual[], int to_index_dual[], double latitude_scalar_dual[],
 double longitude_scalar_dual[], int vorticity_indices_triangles[], double radius)

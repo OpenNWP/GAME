@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
     printf(".\n");
 	
 	printf("Calculating areas ... ");
-	set_area(area, z_vector, z_vector_dual, normal_distance_dual, pent_hex_face_unity_sphere, radius);
+	set_area(area, z_vector, z_vector_dual, normal_distance_dual, pent_hex_face_unity_sphere, &radius);
     printf(GREEN "finished" RESET);
     printf(".\n");
     
