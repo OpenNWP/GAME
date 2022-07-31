@@ -32,8 +32,6 @@ module inner_product
     integer(c_int) :: ji,jk,layer_index,h_index
     real(wp)       :: delta_z
     
-    call grid_nml_setup()
-    
     !$omp parallel do private(ji,jk,layer_index,h_index,delta_z)
     do ji=1,n_scalars
       layer_index = (ji-1)/n_scalars_h

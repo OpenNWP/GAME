@@ -16,59 +16,6 @@ This file contains functions that compute properties of the vertical grid.
 #include "../standard.h"
 #include "../../../src/constituents/constituents.h"
 
-int set_z_scalar(double z_scalar[], double oro[], int N_ORO_LAYERS, double toa, double stretching_parameter)
-{
-	/*
-	This function sets the z coordinates of the scalar data points.
-	*/
-	
-	int no_of_scalars_h = N_SCALS_H;
-	
-	double z_vertical_vector_pre[N_LAYERS + 1];
-	// the heights are defined according to z_k = A_k + B_k*oro with A_0 = toa, A_{N_LEVELS} = 0, B_0 = 0, B_{N_LEVELS} = 1
-	double A, B, sigma_z, z_rel, max_oro;
-	// loop over all columns
-    for (int h_index = 0; h_index < N_SCALS_H; ++h_index)
-    {
-    	// filling up z_vertical_vector_pre
-		for (int j = 0; j < N_LAYERS + 1; ++j)
-		{
-			z_rel = 1 - (j + 0.0)/N_LAYERS; // z/toa
-			sigma_z = pow(z_rel, stretching_parameter);
-			A = sigma_z*toa; // the height without orography
-			// B corrects for orography
-			if (j >= N_LAYERS - N_ORO_LAYERS)
-			{
-				B = (j - (N_LAYERS - N_ORO_LAYERS) + 0.0)/N_ORO_LAYERS;
-			}
-			else
-			{
-				B = 0;
-			}
-			z_vertical_vector_pre[j] = A + B*oro[h_index];
-		}
-		
-		// doing a check
-		if (h_index == 0)
-		{
-			max_oro = oro[find_max_index(oro, &no_of_scalars_h)];
-			if (max_oro >= z_vertical_vector_pre[N_LAYERS - N_ORO_LAYERS])
-			{
-				printf("Maximum of orography larger or equal to the height of the lowest flat level.\n");
-				printf("Aborting.\n");
-				exit(1);
-			}
-		}
-		
-		// placing the scalar points in the middle between the preliminary values of the adjacent levels
-		for (int layer_index = 0; layer_index < N_LAYERS; ++layer_index)
-		{
-			z_scalar[layer_index*N_SCALS_H + h_index] = 0.5*(z_vertical_vector_pre[layer_index] + z_vertical_vector_pre[layer_index + 1]);
-    	}
-    }
-    return 0;
-}
-
 int set_z_vector_and_normal_distance(double z_vector[], double z_scalar[], double normal_distance[], double latitude_scalar[],
 double longitude_scalar[], int from_index[], int to_index[], double toa, double oro[], double radius)
 {

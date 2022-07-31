@@ -10,6 +10,13 @@ echo "Setup:"
 echo "oro_id = $oro_id"
 echo "number of Lloyd iterations: $n_iterations"
 
+if [ ! -f ./build/grid_generator ]
+then
+  echo "Executable grid_generator does not exist. Compile first."
+  echo "Aborting."
+  exit
+fi
+
 if [ $use_scalar_h_coords_file -eq 1 ]
 then
   if [ ! -f $scalar_h_coords_file ]

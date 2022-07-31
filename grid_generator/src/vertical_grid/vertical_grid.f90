@@ -9,15 +9,16 @@ module vertical_grid
   use definitions, only: wp
   use constants,   only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv,r_d, &
                          p_0_standard,c_d_p,p_0
-  use grid_nml,    only: n_scalars_h,n_scalars,n_vectors_per_layer,n_layers, &
+  use grid_nml,    only: n_scalars_h,n_scalars,n_vectors_per_layer,n_layers,n_levels, &
                          n_vectors,n_dual_scalars_h,n_dual_scalars,n_vectors_h, &
-                         n_dual_vectors,n_dual_vectors_per_layer,grid_nml_setup
+                         n_dual_vectors,n_dual_vectors_per_layer,toa,n_oro_layers,stretching_parameter
   use geodesy,     only: calculate_vertical_area
   
   implicit none
   
   private
   
+  public :: set_z_scalar
   public :: set_gravity_potential
   public :: set_volume
   public :: standard_temp
@@ -27,6 +28,57 @@ module vertical_grid
   public :: set_area
   
   contains
+  
+  subroutine set_z_scalar(z_scalar,oro,max_oro) &
+  bind(c,name = "set_z_scalar")
+
+    ! This function sets the z coordinates of the scalar data points.
+    
+    real(wp), intent(out) :: z_scalar(n_scalars)
+    real(wp), intent(in)  :: oro(n_scalars_h)
+    real(wp), intent(in)  :: max_oro
+    
+    ! local variables
+    integer(c_int) :: h_index,level_index,layer_index
+    real(wp)       :: A,B,sigma_z,z_rel,z_vertical_vector_pre(n_levels)
+    
+    ! the heights are defined according to z_k = A_k + B_k*oro with A_0 = toa, A_{N_LEVELS} = 0, B_0 = 0, B_{N_LEVELS} = 1
+    
+    ! loop over all columns
+    !$omp parallel do private(h_index,level_index,layer_index,A,B,sigma_z,z_rel,z_vertical_vector_pre)
+    do h_index=1,n_scalars_h
+    
+      ! filling up z_vertical_vector_pre
+      do level_index=1,n_levels
+        z_rel = 1._wp-(level_index-1._wp)/n_layers ! z/toa
+        sigma_z = z_rel**stretching_parameter
+        A = sigma_z*toa ! the height without orography
+        ! B corrects for orography
+        if (level_index>=n_layers-n_oro_layers+1) then
+          B = (level_index-(n_layers-n_oro_layers)-1._wp)/n_oro_layers
+        else
+          B = 0._wp
+        endif
+        z_vertical_vector_pre(level_index) = A + B*oro(h_index)
+      enddo
+    
+      ! doing a check
+      if (h_index==1) then
+        if (max_oro>=z_vertical_vector_pre(n_layers-n_oro_layers+1)) then
+          write(*,*) "Maximum of orography larger or equal to the height of the lowest flat level."
+          call exit(1)
+        endif
+      endif
+    
+      ! placing the scalar points in the middle between the preliminary values of the adjacent levels
+      do layer_index=0,n_layers-1
+        z_scalar(layer_index*n_scalars_h+h_index) = 0.5_wp*( &
+        z_vertical_vector_pre(layer_index+1)+z_vertical_vector_pre(layer_index+2))
+      enddo
+    enddo
+    !$omp end parallel do
+    
+  end subroutine set_z_scalar
   
   subroutine set_gravity_potential(z_scalar,gravity_potential,radius) &
   bind(c,name = "set_gravity_potential")
@@ -38,8 +90,6 @@ module vertical_grid
   
     ! local variables
     integer(c_int) :: ji
-    
-    call grid_nml_setup()
     
     !$omp parallel do private(ji)
     do ji=1,n_scalars
@@ -63,8 +113,6 @@ module vertical_grid
     ! local variables
     integer(c_int) :: ji,layer_index,h_index
     real(wp) :: radius_1,radius_2, base_area
-    
-    call grid_nml_setup()
     
     !$omp parallel do private(ji,layer_index,h_index,radius_1,radius_2,base_area)
     do ji=1,n_scalars
@@ -142,8 +190,6 @@ module vertical_grid
     ! local variables
     integer(c_int) :: ji,layer_index,h_index
   
-    call grid_nml_setup()
-  
     !$omp parallel do private(ji,layer_index,h_index)
     do ji=1,n_dual_scalars
       layer_index = (ji-1)/n_dual_scalars_h
@@ -172,8 +218,6 @@ module vertical_grid
     ! local variables
     integer(c_int) :: h_index,layer_index,scalar_index
     real(wp) :: temperature,pressure,b,c
-  
-    call grid_nml_setup()
   
     !$omp parallel do private(h_index,layer_index,scalar_index,temperature,pressure,b,c)
     do h_index=1,n_scalars_h
@@ -214,8 +258,6 @@ module vertical_grid
     ! local variables
     integer(c_int) :: ji,layer_index,h_index,dual_vector_index
     real(wp)       :: base_distance,radius_1,radius_2
-    
-    call grid_nml_setup()
     
     !$omp parallel do private(ji,layer_index,h_index,dual_vector_index,base_distance,radius_1,radius_2)
     do ji=1,n_vectors

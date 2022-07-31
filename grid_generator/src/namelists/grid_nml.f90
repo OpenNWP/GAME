@@ -10,7 +10,7 @@ module grid_nml
   
   implicit none
   
-  integer(c_int) :: res_id                       ! resolution_id
+  integer(c_int) :: res_id                   ! resolution_id
   integer(c_int) :: n_layers                 ! number of layers
   integer(c_int) :: n_pentagons              ! number of pentagons
   integer(c_int) :: n_hexagons               ! number of hexagons
@@ -30,12 +30,16 @@ module grid_nml
   integer(c_int) :: n_dual_h_vectors         ! the number of horizontal dual vectors per layer
   integer(c_int) :: n_dual_v_vectors         ! the number of vertical dual vectors per layer
   integer(c_int) :: n_dual_vectors           ! the number of dual vectors
+  real(wp)       :: toa                      ! top of atmosphere in meters above MSL
+  integer(c_int) :: n_oro_layers             ! number of layers following the orography
+  real(wp)       :: stretching_parameter     ! vertical grid stretching parameter
   
   namelist /grid/res_id,n_layers
 
   contains
 
-  subroutine grid_nml_setup()
+  subroutine grid_nml_setup() &
+  bind(c,name = "grid_nml_setup")
   
     ! local variables
     res_id = 5
@@ -58,6 +62,9 @@ module grid_nml
     n_dual_h_vectors = n_levels*n_vectors_h
     n_dual_v_vectors = n_layers*n_dual_scalars_h
     n_dual_vectors = n_dual_h_vectors+n_dual_v_vectors
+    toa = 41152._wp
+    n_oro_layers = 23
+    stretching_parameter = 1.3_wp
   
   end subroutine grid_nml_setup
   

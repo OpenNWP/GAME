@@ -45,11 +45,9 @@ int main(int argc, char *argv[])
    	n_iterations = strtod(argv[2], NULL);
     int use_scalar_h_file;
    	use_scalar_h_file = strtod(argv[3], NULL);
-    int len = strlen(argv[4]);
-    char *scalar_h_file = malloc((len + 1)*sizeof(char));
+    char scalar_h_file[strlen(argv[4]) + 1];
     strcpy(scalar_h_file, argv[4]);
-    double stretching_parameter;
-   	stretching_parameter = strtof(argv[5], NULL);
+    double stretching_parameter = strtof(argv[5], NULL);
    	int no_of_oro_layers = strtod(argv[6], NULL);
    	double toa = strtof(argv[7], NULL);
    	double radius_rescale = strtof(argv[8], NULL);
@@ -165,7 +163,7 @@ int main(int argc, char *argv[])
 	int *is_land = calloc(N_SCALS_H, sizeof(int));
     printf(GREEN "finished" RESET);
     printf(".\n");
-    
+    grid_nml_setup();
     /*
 	1.) creating or reading the properties that determine the horizontal grid
 	    ---------------------------------------------------------------------
@@ -246,15 +244,16 @@ int main(int argc, char *argv[])
     printf(GREEN "finished" RESET);
     printf(".\n");
     int no_of_scalars_h = N_SCALS_H;
+    double max_oro = oro[find_max_index(oro, &no_of_scalars_h)];
 	printf("minimum orography: %lf m\n", oro[find_min_index(oro, &no_of_scalars_h)]);
-	printf("maximum orography: %lf m\n", oro[find_max_index(oro, &no_of_scalars_h)]);
+	printf("maximum orography: %lf m\n", max_oro);
 	
 	/*
 	6.) setting the explicit property of the vertical grid
 	    --------------------------------------------------
 	*/
     printf("Setting the vertical coordinates of the scalar data points ... ");
-	set_z_scalar(z_scalar, oro, no_of_oro_layers, toa, stretching_parameter);
+	set_z_scalar(z_scalar, oro, &max_oro);
     printf(GREEN "finished" RESET);
     printf(".\n");
 	
@@ -484,7 +483,6 @@ int main(int argc, char *argv[])
     printf(".\n");
     
     // freeing allocated memory
-    free(scalar_h_file);
 	free(roughness_length);
 	free(sfc_albedo);
 	free(sfc_rho_c);

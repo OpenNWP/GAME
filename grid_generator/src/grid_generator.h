@@ -17,7 +17,6 @@ int find_triangle_edge_points(int, int, int, int *, int *, int *, int *, int *, 
 int build_icosahedron(double [], double [], int [][2], int [][3], int [][3], int [][3]);
 int generate_horizontal_generators(double [], double [], double [], double [], double [], double [], double [], int [][3], int [][3], int [][3]);
 int coriolis(int [], int [], int [], double [], double [], int [], double [], double [], double [], double [], double [], double [], double [], double [], double [], int [], int [], int [], double [], double [], double);
-int set_z_scalar(double [], double [], int, double, double);
 int set_f_vec(double [], double [], double [], double [], double);
 int calc_cell_area_unity(double [], double [], double [], int [], int []);
 int calc_triangle_area_unity(double [], double [], double [], int [][3], int [][3], int [][3]);
@@ -76,6 +75,7 @@ extern int set_z_scalar_dual();
 extern int grid_nml_setup();
 extern int set_background_state();
 extern int set_area();
+extern int set_z_scalar();
 
 
 
