@@ -15,7 +15,7 @@ extern double enhancement_factor_over_ice(double *);
 double c_v_mass_weighted_air(State *, Diagnostics *, int);
 extern double c_p_cond();
 extern double phase_trans_heat(int *, double *);
-double rel_humidity(double, double);
+extern double rel_humidity();
 extern double calc_o3_vmr(int *);
 double spec_heat_cap_diagnostics_p(State *, int, Config *);
 double spec_heat_cap_diagnostics_v(State *, int, Config *);

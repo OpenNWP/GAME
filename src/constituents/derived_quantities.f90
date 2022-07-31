@@ -6,15 +6,43 @@ module derived_quantities
   ! This module contains look-up functions for properties of the atmosphere.
 
   use definitions, only: wp
-  use constants,   only: m_d,n_a,k_b,M_PI
+  use constants,   only: m_d,n_a,k_b,M_PI,t_0,r_v
+  use dictionary,  only: saturation_pressure_over_water,saturation_pressure_over_ice
   
   implicit none
   
   private
   
+  public :: rel_humidity
   public :: calc_diffusion_coeff
   
   contains
+  
+  function rel_humidity(abs_humidity,temperature) &
+  bind(c,name = "rel_humidity")
+    
+    ! This function returns the relative humidity as a function of the absolute humidity in kg/m^3 and the temperature in K.
+    
+    real(wp), intent(in) :: abs_humidity,temperature
+    real(wp)             :: rel_humidity
+    
+    ! local variables
+    real(wp)             :: vapour_pressure     ! actual water vapour pressure
+    real(wp)             :: saturation_pressure ! saturation water vapour pressure
+    
+    ! calculation of the water vapour pressure according to the equation of state
+    vapour_pressure = abs_humidity*r_v*temperature
+    
+    if (temperature>t_0) then
+      saturation_pressure = saturation_pressure_over_water(temperature)
+    endif
+    if (temperature<=t_0) then
+      saturation_pressure = saturation_pressure_over_ice(temperature)
+    endif
+    
+    rel_humidity = vapour_pressure/saturation_pressure
+    
+  end function rel_humidity
   
   function calc_diffusion_coeff(temperature,density) &
   bind(c,name = "calc_diffusion_coeff")
@@ -41,3 +69,16 @@ module derived_quantities
   end function calc_diffusion_coeff
 
 end module derived_quantities
+
+
+
+
+
+
+
+
+
+
+
+
+

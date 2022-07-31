@@ -643,7 +643,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
     {    
 	    if (N_CONSTITUENTS >= 4)
 	    {
-    		(*rh)[i] = 100.0*rel_humidity(state_write_out -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i], diagnostics -> temperature[i]);
+    		(*rh)[i] = 100.0*rel_humidity(&state_write_out -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i], &diagnostics -> temperature[i]);
     	}
     	(*pressure)[i] = state_write_out -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i]*gas_constant_diagnostics(state_write_out, i, config)*diagnostics -> temperature[i];
     }

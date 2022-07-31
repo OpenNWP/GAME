@@ -196,9 +196,9 @@ int set_ideal_init(State *state, Grid* grid, Dualgrid* dualgrid, Diagnostics *di
 		#pragma omp parallel for
 		for (int i = 0; i < N_SCALARS; ++i)
 		{
-			if (rel_humidity(water_vapour_density[i], temperature[i]) > 1.0)
+			if (rel_humidity(&water_vapour_density[i], &temperature[i]) > 1.0)
 			{
-				water_vapour_density[i] = water_vapour_density[i]/rel_humidity(water_vapour_density[i], temperature[i]);
+				water_vapour_density[i] = water_vapour_density[i]/rel_humidity(&water_vapour_density[i], &temperature[i]);
 			}
 		}
     }
@@ -402,10 +402,10 @@ int read_init_data(char init_state_file[], State *state, Irreversible_quantities
 		#pragma omp parallel for
 		for (int i = 0; i < N_SCALARS; ++i)
 		{
-			if (rel_humidity(state -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i], temperature[i]) > 1.0)
+			if (rel_humidity(&state -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i], &temperature[i]) > 1.0)
 			{
 				state -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i] = state -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i]
-				/rel_humidity(state -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i], temperature[i]);
+				/rel_humidity(&state -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i], &temperature[i]);
 			}
 		}
     }

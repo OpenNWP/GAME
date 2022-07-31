@@ -60,26 +60,6 @@ double gas_constant_diagnostics(State *state, int grid_point_index, Config *conf
 	return result;
 }
 
-double rel_humidity(double abs_humidity, double temperature)
-{
-	/*
-	This function returns the relative humidity (NOT in percent) as a function of the absolute humidity in kg/m^3 and the temperature in K.
-	*/
-	
-	double vapour_pressure = abs_humidity*R_V*temperature;
-	double saturation_pressure = 0.0;
-	if (temperature > T_0)
-	{
-		saturation_pressure = saturation_pressure_over_water(&temperature);
-	}
-	if (temperature <= T_0)
-	{
-		saturation_pressure = saturation_pressure_over_ice(&temperature);
-	}
-	double result = vapour_pressure/saturation_pressure;
-	return result;
-}
-
 double density_total(State *state, int grid_point_index)
 {
 	/*
