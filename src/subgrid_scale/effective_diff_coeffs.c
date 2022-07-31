@@ -13,35 +13,8 @@ In this file, diffusion coefficients, including eddy viscosities, are computed.
 #include "../constituents/constituents.h"
 #include "subgrid_scale.h"
 
-double tke2hor_diff_coeff(double tke, double effective_resolution)
-{
-	/*
-	This function returns the horizontal kinematic eddy viscosity as a function of the specific TKE.
-	*/
-	
-	double mean_velocity = pow(2.0*tke, 0.5);
-	double mean_free_path = effective_resolution/6.0;
-	double result = 1.0/6.0*mean_free_path*mean_velocity;
-	return result;
-}
-
-double tke2vert_diff_coeff(double tke, double n_squared, double layer_thickness)
-{
-	/*
-	This function returns the vertical kinematic eddy viscosity as a function of the specific TKE and the Brunt-Väisälä frequency.
-	*/
-	
-	// vertical component of the turbulent kinetic energy
-	double tke_vert = 3.0*1e-3*tke;
-	
-	double mean_velocity = pow(2.0*tke_vert, 0.5);
-	// used Brunt-Väisälä frequency
-	double n_used = pow(fmax(n_squared, 1e-4), 0.5);
-	double mean_free_path = pow(2.0*tke_vert, 0.5)/n_used;
-	mean_free_path = fmin(mean_free_path, layer_thickness);
-	double result = 1.0/6.0*mean_free_path*mean_velocity;
-	return result;
-}
+extern double tke2hor_diff_coeff();
+extern double tke2vert_diff_coeff();
 
 int hor_viscosity(State *state, Irreversible_quantities *irrev, Grid *grid, Dualgrid *dualgrid, Diagnostics *diagnostics, Config *config)
 {
@@ -57,7 +30,7 @@ int hor_viscosity(State *state, Irreversible_quantities *irrev, Grid *grid, Dual
 		irrev -> viscosity[i] = irrev -> molecular_diffusion_coeff[i];
 		
 		// computing and adding the turbulent component
-		irrev -> viscosity[i] += tke2hor_diff_coeff(irrev -> tke[i], grid -> eff_hor_res);
+		irrev -> viscosity[i] += tke2hor_diff_coeff(&irrev -> tke[i], &grid -> eff_hor_res);
 	}
 	
 	/*
@@ -132,7 +105,7 @@ int hor_viscosity(State *state, Irreversible_quantities *irrev, Grid *grid, Dual
 	for (int i = 0; i < N_SCALARS; ++i)
 	{
 		// multiplying by the density
-		irrev -> viscosity[i] = state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i]*tke2hor_diff_coeff(irrev -> tke[i], grid -> eff_hor_res);
+		irrev -> viscosity[i] = state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i]*tke2hor_diff_coeff(&irrev -> tke[i], &grid -> eff_hor_res);
 	}
 	
 	return 0;
@@ -155,14 +128,14 @@ int vert_hor_mom_viscosity(State *state, Irreversible_quantities *irrev, Diagnos
 		h_index = i - layer_index*N_VECS_H;
 		scalar_base_index = layer_index*N_SCALS_H;
 		// the turbulent component
-		mom_diff_coeff = 0.25*(tke2vert_diff_coeff(irrev -> tke[scalar_base_index + grid -> from_index[h_index]],
-		diagnostics -> n_squared[scalar_base_index + grid -> from_index[h_index]], grid -> layer_thickness[scalar_base_index + grid -> from_index[h_index]])
-		+ tke2vert_diff_coeff(irrev -> tke[scalar_base_index + grid -> to_index[h_index]],
-		diagnostics -> n_squared[scalar_base_index + grid -> to_index[h_index]], grid -> layer_thickness[scalar_base_index + grid -> to_index[h_index]])
-		+ tke2vert_diff_coeff(irrev -> tke[(layer_index + 1)*N_SCALS_H + grid -> from_index[h_index]],
-		diagnostics -> n_squared[(layer_index + 1)*N_SCALS_H + grid -> from_index[h_index]], grid -> layer_thickness[(layer_index + 1)*N_SCALS_H + grid -> from_index[h_index]])
-		+ tke2vert_diff_coeff(irrev -> tke[(layer_index + 1)*N_SCALS_H + grid -> to_index[h_index]],
-		diagnostics -> n_squared[(layer_index + 1)*N_SCALS_H + grid -> to_index[h_index]], grid -> layer_thickness[(layer_index + 1)*N_SCALS_H + grid -> to_index[h_index]]));
+		mom_diff_coeff = 0.25*(tke2vert_diff_coeff(&irrev -> tke[scalar_base_index + grid -> from_index[h_index]],
+		&diagnostics -> n_squared[scalar_base_index + grid -> from_index[h_index]], &grid -> layer_thickness[scalar_base_index + grid -> from_index[h_index]])
+		+ tke2vert_diff_coeff(&irrev -> tke[scalar_base_index + grid -> to_index[h_index]],
+		&diagnostics -> n_squared[scalar_base_index + grid -> to_index[h_index]], &grid -> layer_thickness[scalar_base_index + grid -> to_index[h_index]])
+		+ tke2vert_diff_coeff(&irrev -> tke[(layer_index + 1)*N_SCALS_H + grid -> from_index[h_index]],
+		&diagnostics -> n_squared[(layer_index + 1)*N_SCALS_H + grid -> from_index[h_index]], &grid -> layer_thickness[(layer_index + 1)*N_SCALS_H + grid -> from_index[h_index]])
+		+ tke2vert_diff_coeff(&irrev -> tke[(layer_index + 1)*N_SCALS_H + grid -> to_index[h_index]],
+		&diagnostics -> n_squared[(layer_index + 1)*N_SCALS_H + grid -> to_index[h_index]], &grid -> layer_thickness[(layer_index + 1)*N_SCALS_H + grid -> to_index[h_index]]));
 		// computing and adding the molecular viscosity
 		// the scalar variables need to be averaged to the vector points at half levels
 		molecular_viscosity = 0.25*(irrev -> molecular_diffusion_coeff[scalar_base_index + grid -> from_index[h_index]]
@@ -211,7 +184,7 @@ int vert_vert_mom_viscosity(State *state, Grid *grid, Diagnostics *diagnostics, 
 			// molecular viscosity
 			= irrev -> molecular_diffusion_coeff[i]
 			// turbulent component
-			+ tke2vert_diff_coeff(irrev -> tke[i], diagnostics -> n_squared[i], grid -> layer_thickness[i]);
+			+ tke2vert_diff_coeff(&irrev -> tke[i], &diagnostics -> n_squared[i], &grid -> layer_thickness[i]);
 			
 			diagnostics -> scalar_field_placeholder[i] = state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i]*mom_diff_coeff*diagnostics -> scalar_field_placeholder[i];
 		}
@@ -245,7 +218,7 @@ int scalar_diffusion_coeffs(State *state, Config *config, Irreversible_quantitie
 		// molecular component
 		= irrev -> molecular_diffusion_coeff[i]
 		// turbulent component
-		+ tke2vert_diff_coeff(irrev -> tke[i], diagnostics -> n_squared[i], grid -> layer_thickness[i]);
+		+ tke2vert_diff_coeff(&irrev -> tke[i], &diagnostics -> n_squared[i], &grid -> layer_thickness[i]);
 		
 		/*
 		Computing the temperature diffusion coefficient
