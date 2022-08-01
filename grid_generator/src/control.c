@@ -106,11 +106,11 @@ int main(int argc, char *argv[])
     int face_vertices[20][3];
     int face_edges[20][3];
     int face_edges_reverse[20][3];
-    printf("Building icosahedron ... ");
+    printf("Building icosahedron ...");
 	build_icosahedron(latitude_ico, longitude_ico, edge_vertices, face_vertices, face_edges, face_edges_reverse);
     printf(GREEN "finished" RESET);
     printf(".\n");
-    printf("Allocating memory ... ");
+    printf("Allocating memory ...");
     double *x_unity = malloc(N_SCALS_H*sizeof(double));
     double *y_unity = malloc(N_SCALS_H*sizeof(double));
     double *z_unity = malloc(N_SCALS_H*sizeof(double));
@@ -239,7 +239,7 @@ int main(int argc, char *argv[])
 	5.) setting the physical surface properties
 	    ---------------------------------------
 	*/
-    printf("Setting the physical surface properties ... ");
+    printf("Setting the physical surface properties ...");
 	set_sfc_properties(latitude_scalar, longitude_scalar, roughness_length, sfc_albedo, sfc_rho_c, t_conductivity, oro, is_land, oro_id, no_of_avg_points);
     printf(GREEN "finished" RESET);
     printf(".\n");
@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
 	6.) setting the explicit property of the vertical grid
 	    --------------------------------------------------
 	*/
-    printf("Setting the vertical coordinates of the scalar data points ... ");
+    printf("Setting the vertical coordinates of the scalar data points ...");
 	set_z_scalar(z_scalar, oro, &max_oro);
     printf(GREEN "finished" RESET);
     printf(".\n");
@@ -262,35 +262,35 @@ int main(int argc, char *argv[])
 	    ----------------------------------------------------
 	*/
 	
-	printf("Determining vector z coordinates and normal distances of the primal grid ... ");
+	printf("Determining vector z coordinates and normal distances of the primal grid ...\n");
 	set_z_vector_and_normal_distance(z_vector, normal_distance, z_scalar, latitude_scalar, longitude_scalar,
 	from_index, to_index, oro);
 	free(oro);
     printf(GREEN "finished" RESET);
     printf(".\n");
 	
-	printf("Determining scalar z coordinates of the dual grid ... ");
+	printf("Determining scalar z coordinates of the dual grid ...");
 	set_z_scalar_dual(z_scalar_dual, z_vector, from_index, to_index, vorticity_indices_triangles);
     printf(GREEN "finished" RESET);
     printf(".\n");
 	
-	printf("Determining vector z coordinates of the dual grid and distances of the dual grid ... ");
+	printf("Determining vector z coordinates of the dual grid and distances of the dual grid ...");
 	calc_z_vector_dual_and_normal_distance_dual(z_vector_dual, normal_distance_dual, z_scalar_dual, from_index, to_index, z_vector,
 	from_index_dual, to_index_dual, latitude_scalar_dual, longitude_scalar_dual, vorticity_indices_triangles);
     printf(GREEN "finished" RESET);
     printf(".\n");
 	
-	printf("Calculating areas ... ");
+	printf("Calculating areas ...");
 	set_area(area, z_vector, z_vector_dual, normal_distance_dual, pent_hex_face_unity_sphere, &radius);
     printf(GREEN "finished" RESET);
     printf(".\n");
     
-    printf("Calculating dual areas ... ");
+    printf("Calculating dual areas ...");
 	set_area_dual(area_dual, z_vector_dual, normal_distance, z_vector, from_index, to_index, triangle_face_unit_sphere);
     printf(GREEN "finished" RESET);
     printf(".\n");
     
-    printf("Calculating grid box volumes ... ");
+    printf("Calculating grid box volumes ...");
 	set_volume(volume, z_vector, area, &radius);
     printf(GREEN "finished" RESET);
     printf(".\n");
@@ -299,22 +299,22 @@ int main(int argc, char *argv[])
     8.) Now come the derived quantities, which are needed for differential operators.
         -----------------------------------------------------------------------------
     */
-    printf("Setting the gravity potential ... ");
+    printf("Setting the gravity potential ...");
 	set_gravity_potential(z_scalar, gravity_potential, &radius);
     printf(GREEN "finished" RESET);
     printf(".\n");
     
-    printf("Setting the hydrostatic background state ... ");
+    printf("Setting the hydrostatic background state ...");
 	set_background_state(z_scalar, gravity_potential, theta_v_bg, exner_bg);
     printf(GREEN "finished" RESET);
     printf(".\n");
     
-    printf("Calculating inner product weights ... ");
+    printf("Calculating inner product weights ...");
 	calc_inner_product(inner_product_weights, normal_distance, volume, area, z_scalar, z_vector, adjacent_vector_indices_h);
     printf(GREEN "finished" RESET);
     printf(".\n");
     
-    printf("Setting rhombus interpolation indices and weights ... ");
+    printf("Setting rhombus interpolation indices and weights ...");
 	rhombus_averaging(vorticity_indices_triangles, vorticity_signs_triangles, from_index_dual,
 	to_index_dual, vorticity_indices_rhombi, density_to_rhombi_indices, from_index, to_index, area_dual,
 	z_vector, latitude_scalar_dual, longitude_scalar_dual, density_to_rhombi_weights, latitude_vector,
@@ -322,14 +322,14 @@ int main(int argc, char *argv[])
     printf(GREEN "finished" RESET);
     printf(".\n");
     
-    printf("Calculating Coriolis indices and weights ... ");
+    printf("Calculating Coriolis indices and weights ...");
 	coriolis(from_index_dual, to_index_dual, trsk_modified_curl_indices, normal_distance, normal_distance_dual,
 	to_index, area, z_scalar, latitude_scalar, longitude_scalar, latitude_vector, longitude_vector, latitude_scalar_dual,
 	longitude_scalar_dual, trsk_weights, trsk_indices, from_index, adjacent_vector_indices_h, z_vector, z_vector_dual, radius);
     printf(GREEN "finished" RESET);
     printf(".\n");
     
-    printf("Calculating interpolation to the lat-lon grid ... ");
+    printf("Calculating interpolation to the lat-lon grid ...");
     interpolate_ll(latitude_scalar, longitude_scalar, interpol_indices, interpol_weights);
     printf(GREEN "finished" RESET);
     printf(".\n");
@@ -350,7 +350,7 @@ int main(int argc, char *argv[])
     theta_v_bg_id, exner_bg_id, sfc_albedo_id, sfc_rho_c_id, t_conductivity_id, roughness_length_id, is_land_id, no_of_oro_layers_id, stretching_parameter_id,
     toa_id, radius_id;
     
-    printf("Starting to write to output file ... ");
+    printf("Starting to write to output file ...");
     NCCHECK(nc_create(output_file, NC_CLOBBER, &ncid_g_prop));
     NCCHECK(nc_def_dim(ncid_g_prop, "scalar_index", N_SCALARS, &scalar_dimid));
     NCCHECK(nc_def_dim(ncid_g_prop, "scalar_8_index", 8*N_SCALARS, &scalar_8_dimid));
