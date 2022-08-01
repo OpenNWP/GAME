@@ -354,8 +354,8 @@ module vertical_grid
         ! calculating the horizontal distance
         normal_distance(ji) &
         = calculate_distance_h( &
-        latitude_scalar(from_index(h_index - n_scalars_h)), longitude_scalar(from_index(h_index - n_scalars_h)), &
-        latitude_scalar(to_index(h_index - n_scalars_h)), longitude_scalar(to_index(h_index - n_scalars_h)), &
+        latitude_scalar(1+from_index(h_index - n_scalars_h)), longitude_scalar(1+from_index(h_index - n_scalars_h)), &
+        latitude_scalar(1+to_index(h_index - n_scalars_h)), longitude_scalar(1+to_index(h_index - n_scalars_h)), &
         radius + z_vector(ji))
       else
         upper_index = h_index + (layer_index - 1)*n_scalars_h
