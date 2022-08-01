@@ -25,7 +25,6 @@ src/diff_ops/coriolis.c
 src/post_grid_generation/interpolate_ll.c
 src/post_grid_generation/phys_sfc_properties.c
 src/foundations/index_helpers.f90
-src/vertical_grid/vertical_grid.c
 src/vertical_grid/vertical_grid.f90
 src/namelists/grid_nml.f90
 )

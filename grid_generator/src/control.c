@@ -263,8 +263,8 @@ int main(int argc, char *argv[])
 	*/
 	
 	printf("Determining vector z coordinates and normal distances of the primal grid ... ");
-	set_z_vector_and_normal_distance(z_vector, z_scalar, normal_distance, latitude_scalar, longitude_scalar,
-	from_index, to_index, toa, oro, radius);
+	set_z_vector_and_normal_distance(z_vector, normal_distance, z_scalar, latitude_scalar, longitude_scalar,
+	from_index, to_index, oro);
 	free(oro);
     printf(GREEN "finished" RESET);
     printf(".\n");

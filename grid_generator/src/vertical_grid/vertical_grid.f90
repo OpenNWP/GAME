@@ -325,6 +325,71 @@ module vertical_grid
     
   end subroutine set_area
   
+  subroutine set_z_vector_and_normal_distance(z_vector,normal_distance,z_scalar,latitude_scalar, &
+  longitude_scalar,from_index,to_index,oro) &
+  bind(c,name = "set_z_vector_and_normal_distance")
+
+    ! This subroutine calculates the vertical position of the vector points as well as the normal distances of the primal grid.
+  
+    real(wp), intent(out) :: z_vector(n_vectors),normal_distance(n_vectors)
+    real(wp), intent(in)  :: z_scalar(n_scalars),latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h),oro(n_scalars_h)
+    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+  
+    integer               :: ji,layer_index,h_index,upper_index,lower_index
+    real(wp)              :: min_thick,max_thick,thick_rel
+    real(wp), allocatable :: lowest_thicknesses(:)
+    
+    allocate(lowest_thicknesses(n_scalars_h))
+    
+    !$omp parallel do private(ji,layer_index,h_index,upper_index,lower_index)
+    do ji=1,n_vectors
+      layer_index = (ji-1)/n_vectors_per_layer
+      h_index = ji - layer_index*n_vectors_per_layer
+      ! horizontal grid points
+      if (h_index>=n_scalars_h+1) then
+        ! placing the vector vertically in the middle between the two adjacent scalar points
+        z_vector(ji) &
+        = 0.5_wp*(z_scalar(layer_index*n_scalars_h + 1 + from_index(h_index - n_scalars_h)) &
+        + z_scalar(layer_index*n_scalars_h + 1 + to_index(h_index - n_scalars_h)))
+        ! calculating the horizontal distance
+        normal_distance(ji) &
+        = calculate_distance_h( &
+        latitude_scalar(from_index(h_index - n_scalars_h)), longitude_scalar(from_index(h_index - n_scalars_h)), &
+        latitude_scalar(to_index(h_index - n_scalars_h)), longitude_scalar(to_index(h_index - n_scalars_h)), &
+        radius + z_vector(ji))
+      else
+        upper_index = h_index + (layer_index - 1)*n_scalars_h
+        lower_index = h_index + layer_index*n_scalars_h
+        ! highest level
+        if (layer_index==0) then
+          z_vector(ji) = toa
+          normal_distance(ji) = toa - z_scalar(lower_index)
+        ! lowest level
+        elseif (layer_index==n_layers) then
+          z_vector(ji) = oro(h_index)
+          normal_distance(ji) = z_scalar(upper_index) - z_vector(ji)
+          lowest_thicknesses(h_index) = z_vector(ji - n_vectors_per_layer) - z_vector(ji)
+        ! inner levels
+        else
+          normal_distance(ji) = z_scalar(upper_index) - z_scalar(lower_index)
+          ! placing the vertical vector in the middle between the two adjacent scalar points
+          z_vector(ji) = z_scalar(lower_index) + 0.5_wp*normal_distance(ji)
+        endif
+      endif
+    enddo
+    !$omp end parallel do
+    
+    !$omp parallel workshare
+    min_thick = minval(lowest_thicknesses)
+    !$omp end parallel workshare
+    max_thick = z_vector(1) - z_vector(n_vectors_per_layer+1)
+    thick_rel = max_thick/min_thick
+    write(*,*) "ratio of maximum to minimum layer thickness (including orography):", thick_rel
+    
+    deallocate(lowest_thicknesses)
+  
+  end subroutine set_z_vector_and_normal_distance
+  
   subroutine calc_z_vector_dual_and_normal_distance_dual(z_vector_dual,normal_distance_dual, &
   z_scalar_dual,from_index,to_index,z_vector, &
   from_index_dual,to_index_dual,latitude_scalar_dual,longitude_scalar_dual,vorticity_indices_triangles) &
