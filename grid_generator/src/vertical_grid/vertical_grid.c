@@ -81,52 +81,6 @@ double longitude_scalar[], int from_index[], int to_index[], double toa, double 
     return 0;
 }
 
-int calc_z_vector_dual_and_normal_distance_dual(double z_vector_dual[], double normal_distance_dual[], double z_scalar_dual[], double toa, int from_index[],
-int to_index[], double z_vector[], int from_index_dual[], int to_index_dual[], double latitude_scalar_dual[],
-double longitude_scalar_dual[], int vorticity_indices_triangles[], double radius)
-{
-	/*
-	This function sets the z coordinates of the dual vector points as well as the normal distances of the dual grid.
-	*/
-	
-	int layer_index, h_index, upper_index, lower_index;
-	#pragma omp parallel for private(layer_index, h_index, upper_index, lower_index)
-    for (int i = 0; i < N_DUAL_VECTORS; ++i)
-    {
-        layer_index = i/N_DUAL_VECS_PER_LAYER;
-        h_index = i - layer_index*N_DUAL_VECS_PER_LAYER;
-        if (h_index >= N_VECS_H)
-        {
-            upper_index = h_index - N_VECS_H + layer_index*N_DUAL_SCALS_H;
-            lower_index = h_index - N_VECS_H + (layer_index + 1)*N_DUAL_SCALS_H;
-            normal_distance_dual[i] = z_scalar_dual[upper_index] - z_scalar_dual[lower_index];
-			z_vector_dual[i] = 1.0/3*(z_vector[N_SCALS_H + layer_index*N_VECS_PER_LAYER + vorticity_indices_triangles[3*(h_index - N_VECS_H) + 0]]
-			+ z_vector[N_SCALS_H + layer_index*N_VECS_PER_LAYER + vorticity_indices_triangles[3*(h_index - N_VECS_H) + 1]]
-			+ z_vector[N_SCALS_H + layer_index*N_VECS_PER_LAYER + vorticity_indices_triangles[3*(h_index - N_VECS_H) + 2]]);
-        }
-        else
-        {
-			if (layer_index == 0)
-			{
-				z_vector_dual[i] = toa;
-			}
-			else if (layer_index == N_LAYERS)
-			{
-				z_vector_dual[i] = 0.5*(z_vector[N_LAYERS*N_VECS_PER_LAYER + from_index[h_index]] + z_vector[N_LAYERS*N_VECS_PER_LAYER + to_index[h_index]]);
-			}
-			else
-			{
-				z_vector_dual[i] = 0.5*(z_vector[N_SCALS_H + h_index + (layer_index - 1)*N_VECS_PER_LAYER] + z_vector[N_SCALS_H + h_index + layer_index*N_VECS_PER_LAYER]);
-			}
-			double r_value = radius + z_vector_dual[i];
-            normal_distance_dual[i] = calculate_distance_h(&latitude_scalar_dual[from_index_dual[h_index]], &longitude_scalar_dual[from_index_dual[h_index]],
-            &latitude_scalar_dual[to_index_dual[h_index]], &longitude_scalar_dual[to_index_dual[h_index]], &r_value);
-        }
-    }
-	return 0;
-}
-
-
 
 
 

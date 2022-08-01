@@ -30,13 +30,13 @@ int set_dual_vector_h_doubles(double [], double [], double [], double [], int []
 int set_from_to_index_dual(int [], int [], int [][3], int [][3]);
 int calc_vorticity_indices_triangles(int [], int [], double [], double [], int [], double, int []);
 int set_z_vector_and_normal_distance(double [], double [], double [], double [], double [], int [], int [], double, double [], double);
-int calc_z_vector_dual_and_normal_distance_dual(double [], double [], double [], double, int [], int [], double [], int [], int [], double [], double [], int [], double);
 int optimize_to_scvt(double [], double [], double [], double [], int, int [][3], int [][3], int [][3], int [], int [], int []);
 int read_horizontal_explicit(double [], double [], int [], int [], int [], int [], char [], int *);
 int write_statistics_file(double [], double [], double [], int, char [], char []);
 int direct_tangential_unity(double [], double [], double [], double [], int [], int [], double [], double);
 int interpolate_ll(double [], double [], int [], double []);
 int set_sfc_properties(double [], double [], double [], double [], double [], double [], double [], int [], int, int);
+extern int calc_z_vector_dual_and_normal_distance_dual();
 extern double rad2deg();
 extern double deg2rad();
 extern int find_min_index();

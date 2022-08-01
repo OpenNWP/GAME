@@ -275,8 +275,8 @@ int main(int argc, char *argv[])
     printf(".\n");
 	
 	printf("Determining vector z coordinates of the dual grid and distances of the dual grid ... ");
-	calc_z_vector_dual_and_normal_distance_dual(z_vector_dual, normal_distance_dual, z_scalar_dual, toa, from_index, to_index, z_vector,
-	from_index_dual, to_index_dual, latitude_scalar_dual, longitude_scalar_dual, vorticity_indices_triangles, radius);
+	calc_z_vector_dual_and_normal_distance_dual(z_vector_dual, normal_distance_dual, z_scalar_dual, from_index, to_index, z_vector,
+	from_index_dual, to_index_dual, latitude_scalar_dual, longitude_scalar_dual, vorticity_indices_triangles);
     printf(GREEN "finished" RESET);
     printf(".\n");
 	

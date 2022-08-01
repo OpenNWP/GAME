@@ -13,7 +13,7 @@ module vertical_grid
                          n_vectors,n_dual_scalars_h,n_dual_scalars,n_vectors_h, &
                          n_dual_vectors,n_dual_vectors_per_layer,toa,n_oro_layers,stretching_parameter, &
                          radius
-  use geodesy,     only: calculate_vertical_area
+  use geodesy,     only: calculate_vertical_area,calculate_distance_h
   
   implicit none
   
@@ -28,6 +28,7 @@ module vertical_grid
   public :: set_area_dual
   public :: set_background_state
   public :: set_area
+  public :: calc_z_vector_dual_and_normal_distance_dual
   
   contains
   
@@ -237,8 +238,8 @@ module vertical_grid
           base_distance = normal_distance(primal_vector_index)
         else if (layer_index==n_layers) then
           primal_vector_index = n_scalars_h + (n_layers-1)*n_vectors_per_layer + h_index
-          radius_1 = radius + 0.5_wp*(z_vector(n_layers*n_vectors_per_layer + from_index(h_index)) &
-          + z_vector(n_layers*n_vectors_per_layer + to_index(h_index)))
+          radius_1 = radius + 0.5_wp*(z_vector(n_layers*n_vectors_per_layer + 1 + from_index(h_index)) &
+          + z_vector(n_layers*n_vectors_per_layer + 1 + to_index(h_index)))
           radius_2 = radius + z_vector(primal_vector_index)
           base_distance = normal_distance(primal_vector_index)*radius_1/radius_2
         else
@@ -324,6 +325,55 @@ module vertical_grid
     
   end subroutine set_area
   
+  subroutine calc_z_vector_dual_and_normal_distance_dual(z_vector_dual,normal_distance_dual, &
+  z_scalar_dual,from_index,to_index,z_vector, &
+  from_index_dual,to_index_dual,latitude_scalar_dual,longitude_scalar_dual,vorticity_indices_triangles) &
+  bind(c,name = "calc_z_vector_dual_and_normal_distance_dual")
+  
+    ! This subroutine sets the z coordinates of the dual vector points as well as the normal distances of the dual grid.
+    
+    real(wp), intent(out) :: z_vector_dual(n_dual_vectors),normal_distance_dual(n_dual_vectors)
+    real(wp), intent(in)  :: z_scalar_dual(n_dual_scalars),z_vector(n_vectors), &
+                             latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h)
+    integer, intent(in)   :: from_index(n_vectors_h),to_index(n_vectors_h),from_index_dual(n_vectors_h), &
+                             to_index_dual(n_vectors_h),vorticity_indices_triangles(3*n_dual_scalars_h)
+  
+    ! local variables
+    integer :: ji,layer_index,h_index,upper_index,lower_index
+    
+    !$omp parallel do private(ji,layer_index,h_index,upper_index,lower_index)
+    do ji=1,n_dual_vectors
+      layer_index = (ji-1)/n_dual_vectors_per_layer
+      h_index = ji - layer_index*n_dual_vectors_per_layer
+      if (h_index>=n_vectors_h+1) then
+        upper_index = h_index - n_vectors_h + layer_index*n_dual_scalars_h
+        lower_index = h_index - n_vectors_h + (layer_index+1)*n_dual_scalars_h
+        normal_distance_dual(ji) = z_scalar_dual(upper_index) - z_scalar_dual(lower_index)
+        z_vector_dual(ji) = 1._wp/3._wp*( &
+        z_vector(n_scalars_h + layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(3*(h_index-n_vectors_h-1)+1)) &
+        + z_vector(n_scalars_h+layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(3*(h_index-n_vectors_h-1)+2)) &
+        + z_vector(n_scalars_h+layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(3*(h_index-n_vectors_h-1)+3)))
+      else
+        if (layer_index==0) then
+          z_vector_dual(ji) = toa
+        elseif (layer_index==n_layers) then
+          z_vector_dual(ji) = 0.5_wp*(z_vector(n_layers*n_vectors_per_layer+1+from_index(h_index)) &
+          + z_vector(n_layers*n_vectors_per_layer+1+to_index(h_index)))
+        else
+          z_vector_dual(ji) = 0.5_wp*(z_vector(n_scalars_h+h_index+(layer_index-1)*n_vectors_per_layer) &
+          + z_vector(n_scalars_h + h_index + layer_index*n_vectors_per_layer))
+        endif
+        normal_distance_dual(ji) = calculate_distance_h(latitude_scalar_dual(1+from_index_dual(h_index)), &
+        longitude_scalar_dual(1+from_index_dual(h_index)), &
+        latitude_scalar_dual(1+to_index_dual(h_index)), & 
+        longitude_scalar_dual(1+to_index_dual(h_index)), &
+        radius+z_vector_dual(ji))
+      endif
+    enddo
+    !$omp end parallel do
+  
+  end subroutine calc_z_vector_dual_and_normal_distance_dual
+
 end module vertical_grid
 
 
