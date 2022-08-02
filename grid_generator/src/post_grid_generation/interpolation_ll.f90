@@ -44,7 +44,7 @@ module interpolation_ll
     do ji=1,n_latlon_io_points
       lat_index = (ji-1)/n_lon_io_points
       lon_index = ji - lat_index*n_lon_io_points
-      lat_value = M_PI/2._wp - 0.5_wp*delta_latitude - (lat_index-1)*delta_latitude
+      lat_value = M_PI/2._wp - 0.5_wp*delta_latitude - lat_index*delta_latitude
       if (lat_value<-M_PI/2._wp .or. lat_value>M_PI/2._wp) then
         write(*,*) "An error occured during the interpolation to the lat lon grid, position 0."
         call exit(1)
