@@ -7,7 +7,7 @@ module manage_radiation_calls
 
   use iso_c_binding
   use definitions,  only: wp
-  use grid_nml,     only: n_scalars_h
+  use grid_nml,     only: n_scalars,n_scalars_h
   use rad_nml,      only: n_scals_rad_per_layer,n_scals_rad
 
   implicit none
@@ -22,8 +22,8 @@ module manage_radiation_calls
   bind(c,name = "create_rad_array_scalar")
 
     ! This subroutine cuts out a slice of a scalar field for hand-over to the radiation routine (done for RAM efficiency reasons).
-    real(wp), intent(in)  :: in_array(n_scalars_h)
-    real(wp), intent(out) :: out_array(n_scalars_h)
+    real(wp), intent(in)  :: in_array(n_scalars)
+    real(wp), intent(out) :: out_array(n_scals_rad)
     integer(c_int)        :: rad_block_index
     
     ! local variables
