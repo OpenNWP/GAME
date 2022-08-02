@@ -18,6 +18,9 @@ The main organizes the model, manages the time stepping, calls model output, col
 #include "radiation/radiation.h"
 #include "constituents/constituents.h"
 #include "time_stepping/time_stepping.h"
+#include "../grid_generator/src/grid_generator.h"
+
+extern int rad_nml_setup();
 
 int sanity_checker(Config *config, Config_io *config_io, Grid *grid)
 {
@@ -432,6 +435,9 @@ int main(int argc, char *argv[])
 	// setting hte vertical swamp layer properties
 	config -> damping_start_height_over_toa = 0.53;
 	config -> damping_coeff_max = 0.25;
+	
+	grid_nml_setup();
+	rad_nml_setup();
 	
 	// checking the user input
 	sanity_checker(config, config_io, grid);

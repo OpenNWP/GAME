@@ -12,21 +12,7 @@ This file manages the calls to the radiation routines.
 #include "../game_types.h"
 #include "../radiation/radiation.h"
 
-int create_rad_array_scalar(double in[], double out[], int rad_block_index)
-{
-	/*
-	cuts out a slice of a scalar field for hand-over to the radiation routine (done for RAM efficiency reasons)
-	*/
-	int layer_index, h_index;
-	// loop over all elements of the resulting array
-	for (int i = 0; i < N_SCALS_RAD; ++i)
-	{
-		layer_index = i/N_SCALS_RAD_PER_LAYER;
-		h_index = i - layer_index*N_SCALS_RAD_PER_LAYER;
-		out[i] = in[rad_block_index*N_SCALS_RAD_PER_LAYER + h_index + layer_index*N_SCALS_H];
-	}
-	return 0;
-}
+extern int create_rad_array_scalar();
 
 int create_rad_array_scalar_h(double in[], double out[], int rad_block_index)
 {
@@ -128,10 +114,10 @@ int call_radiation(State *state, Grid *grid, Dualgrid *dualgrid, State *state_te
 		create_rad_array_scalar_h(grid -> longitude_scalar, radiation -> lon_scal, rad_block_index);
 		create_rad_array_scalar_h(state -> temperature_soil, radiation -> temp_sfc, rad_block_index);
 		create_rad_array_scalar_h(grid -> sfc_albedo, radiation -> sfc_albedo, rad_block_index);
-		create_rad_array_scalar(grid -> z_scalar, radiation -> z_scal, rad_block_index);
+		create_rad_array_scalar(grid -> z_scalar, radiation -> z_scal, &rad_block_index);
 		create_rad_array_vector(grid -> z_vector, radiation -> z_vect, rad_block_index);
 		create_rad_array_mass_den(state -> rho, radiation -> rho, rad_block_index);
-		create_rad_array_scalar(diagnostics -> temperature, radiation -> temp, rad_block_index);
+		create_rad_array_scalar(diagnostics -> temperature, radiation -> temp, &rad_block_index);
 		// calling the radiation routine
 		// RTE+RRTMGP
 		if (config -> rad_on == 1)

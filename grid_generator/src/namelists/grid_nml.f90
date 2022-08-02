@@ -47,7 +47,6 @@ module grid_nml
   subroutine grid_nml_setup() &
   bind(c,name = "grid_nml_setup")
   
-    ! local variables
     res_id = 5
     n_layers = 26
     n_pentagons = 12

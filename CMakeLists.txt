@@ -13,6 +13,7 @@ game
 src/control.c
 src/constants.f90
 src/definitions.f90
+src/namelists/rad_nml.f90
 src/time_stepping/manage_pchevi.c
 src/time_stepping/manage_pressure_gradient.c
 src/time_stepping/vector_tendencies_expl.c
@@ -36,6 +37,7 @@ src/subgrid_scale/effective_diff_coeffs.f90
 src/subgrid_scale/tke.c
 src/subgrid_scale/planetary_boundary_layer.c
 src/radiation/manage_radiation_calls.c
+src/radiation/manage_radiation_calls.f90
 src/radiation/held_suar.c
 src/radiation/rterrtmgp_coupler.f90
 src/constituents/phase_trans.c
