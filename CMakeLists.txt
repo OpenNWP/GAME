@@ -14,6 +14,7 @@ src/control.c
 src/constants.f90
 src/definitions.f90
 src/namelists/rad_nml.f90
+src/namelists/constituents_nml.f90
 src/time_stepping/manage_pchevi.c
 src/time_stepping/manage_pressure_gradient.c
 src/time_stepping/vector_tendencies_expl.c

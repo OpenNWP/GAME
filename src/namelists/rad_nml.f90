@@ -10,9 +10,9 @@ module rad_nml
   
   implicit none
   
-  integer(c_int) :: n_rad_blocks          ! resolution_id
-  integer(c_int) :: n_scals_rad           ! number of layers
-  integer(c_int) :: n_scals_rad_per_layer ! number of pentagons
+  integer(c_int) :: n_rad_blocks  ! number of radiation domains
+  integer(c_int) :: n_scals_rad   ! number of scalars per radiation domain
+  integer(c_int) :: n_scals_rad_h ! numbers of horizontal scalars per layer of the radiaiton domain
   
   namelist /grid/n_rad_blocks
 
@@ -21,9 +21,9 @@ module rad_nml
   subroutine rad_nml_setup() &
   bind(c,name = "rad_nml_setup")
   
-    n_rad_blocks = 18                                ! nnumber of radiation domains
-    n_scals_rad = n_scalars/n_rad_blocks             ! number of scalars per radiation domain
-    n_scals_rad_per_layer = n_scalars_h/n_rad_blocks ! numbers of horizontal scalars per layer of the radiaiton domain
+    n_rad_blocks = 18
+    n_scals_rad = n_scalars/n_rad_blocks
+    n_scals_rad_h = n_scalars_h/n_rad_blocks
   
     ! sanity check
     if (mod(n_scalars_h,n_rad_blocks)/=0) then

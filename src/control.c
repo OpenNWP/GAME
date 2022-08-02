@@ -21,6 +21,7 @@ The main organizes the model, manages the time stepping, calls model output, col
 #include "../grid_generator/src/grid_generator.h"
 
 extern int rad_nml_setup();
+extern int constituents_nml_setup();
 
 int sanity_checker(Config *config, Config_io *config_io, Grid *grid)
 {
@@ -438,6 +439,7 @@ int main(int argc, char *argv[])
 	
 	grid_nml_setup();
 	rad_nml_setup();
+	constituents_nml_setup();
 	
 	// checking the user input
 	sanity_checker(config, config_io, grid);

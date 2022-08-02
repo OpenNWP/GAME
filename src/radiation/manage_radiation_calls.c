@@ -15,56 +15,9 @@ This file manages the calls to the radiation routines.
 extern int create_rad_array_scalar();
 extern int create_rad_array_scalar_h();
 extern int create_rad_array_vector();
-
-int create_rad_array_mass_den(double in[], double out[], int rad_block_index)
-{
-	/*
-	same thing as create_rad_array_scalar, only for a mass density field
-	*/
-	int layer_index, h_index;
-	for (int const_id = 0; const_id < N_CONSTITUENTS; ++const_id)
-	{
-		// loop over all elements of the resulting array
-		for (int i = 0; i < N_SCALS_RAD; ++i)
-		{
-			layer_index = i/N_SCALS_RAD_PER_LAYER;
-			h_index = i - layer_index*N_SCALS_RAD_PER_LAYER;
-			out[const_id*N_SCALS_RAD + i]
-			= in[const_id*N_SCALARS + rad_block_index*N_SCALS_RAD_PER_LAYER + h_index + layer_index*N_SCALS_H];
-		}
-	}
-	return 0;
-}
-
-int remap_to_original(double in[], double out[], int rad_block_index)
-{
-	/*
-	reverses what create_rad_array_scalar has done
-	*/
-	int layer_index, h_index;
-	// loop over all elements of the resulting array
-	for (int i = 0; i < N_SCALS_RAD; ++i)
-	{
-		layer_index = i/N_SCALS_RAD_PER_LAYER;
-		h_index = i - layer_index*N_SCALS_RAD_PER_LAYER;
-		out[rad_block_index*N_SCALS_RAD_PER_LAYER + h_index + layer_index*N_SCALS_H] = in[i];
-	}
-	return 0;
-}
-
-
-int remap_to_original_scalar_h(double in[], double out[], int rad_block_index)
-{
-	/*
-	reverses what create_rad_array_scalar_h has done
-	*/
-	// loop over all elements of the resulting array
-	for (int i = 0; i < N_SCALS_RAD_PER_LAYER; ++i)
-	{
-		out[rad_block_index*N_SCALS_RAD_PER_LAYER + i] = in[i];
-	}
-	return 0;
-}
+extern int create_rad_array_mass_den();
+extern int remap_to_original();
+extern int remap_to_original_scalar_h();
 
 int call_radiation(State *state, Grid *grid, Dualgrid *dualgrid, State *state_tendency, Diagnostics *diagnostics, Forcings *forcings, Irreversible_quantities *irrev, Config *config, double delta_t, double time_coordinate)
 {
@@ -88,7 +41,7 @@ int call_radiation(State *state, Grid *grid, Dualgrid *dualgrid, State *state_te
 		create_rad_array_scalar_h(grid -> sfc_albedo, radiation -> sfc_albedo, &rad_block_index);
 		create_rad_array_scalar(grid -> z_scalar, radiation -> z_scal, &rad_block_index);
 		create_rad_array_vector(grid -> z_vector, radiation -> z_vect, &rad_block_index);
-		create_rad_array_mass_den(state -> rho, radiation -> rho, rad_block_index);
+		create_rad_array_mass_den(state -> rho, radiation -> rho, &rad_block_index);
 		create_rad_array_scalar(diagnostics -> temperature, radiation -> temp, &rad_block_index);
 		// calling the radiation routine
 		// RTE+RRTMGP
@@ -115,9 +68,9 @@ int call_radiation(State *state, Grid *grid, Dualgrid *dualgrid, State *state_te
 			held_suar(radiation -> lat_scal, radiation -> z_scal, radiation -> rho, radiation -> temp, radiation -> rad_tend);
 		}
 		// filling the actual radiation tendency
-		remap_to_original(radiation -> rad_tend, forcings -> radiation_tendency, rad_block_index);
-		remap_to_original_scalar_h(radiation -> sfc_sw_in, forcings -> sfc_sw_in, rad_block_index);
-		remap_to_original_scalar_h(radiation -> sfc_lw_out, forcings -> sfc_lw_out, rad_block_index);
+		remap_to_original(radiation -> rad_tend, forcings -> radiation_tendency, &rad_block_index);
+		remap_to_original_scalar_h(radiation -> sfc_sw_in, forcings -> sfc_sw_in, &rad_block_index);
+		remap_to_original_scalar_h(radiation -> sfc_lw_out, forcings -> sfc_lw_out, &rad_block_index);
 		free(radiation);
 	}
 	if (config -> rad_on == 1)
