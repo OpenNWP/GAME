@@ -5,5 +5,5 @@ Github repository: https://github.com/OpenNWP/GAME
 
 void radiation_init();
 void calc_radiative_flux_convergence(double [], double [], double [], double [], double [], double [], double [], double [], double [], double [], double [], int *, int *, int *, int *, double *);
-int held_suar(double [], double [], double [], double [], double []);
+extern int held_suar();
 int call_radiation(State *, Grid *, Dualgrid *, State *, Diagnostics *, Forcings *, Irreversible_quantities *, Config *, double, double);

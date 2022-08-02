@@ -39,7 +39,7 @@ src/subgrid_scale/tke.c
 src/subgrid_scale/planetary_boundary_layer.c
 src/radiation/manage_radiation_calls.c
 src/radiation/manage_radiation_calls.f90
-src/radiation/held_suar.c
+src/radiation/held_suar.f90
 src/radiation/rterrtmgp_coupler.f90
 src/constituents/phase_trans.c
 src/constituents/dictionary.f90

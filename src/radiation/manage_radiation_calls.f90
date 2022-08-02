@@ -9,7 +9,7 @@ module manage_radiation_calls
   use definitions,      only: wp
   use grid_nml,         only: n_scalars,n_scalars_h,n_vectors_per_layer,n_vectors
   use rad_nml,          only: n_scals_rad_h,n_scals_rad
-  use constituents_nml, only: no_of_constituents
+  use constituents_nml, only: n_constituents
 
   implicit none
   
@@ -90,15 +90,15 @@ module manage_radiation_calls
 
     ! This subroutine does same thing as create_rad_array_scalar, only for a mass density field.
     
-    real(wp), intent(in)  :: in_array(no_of_constituents*n_scalars)
-    real(wp), intent(out) :: out_array(no_of_constituents*n_scals_rad)
+    real(wp), intent(in)  :: in_array(n_constituents*n_scalars)
+    real(wp), intent(out) :: out_array(n_constituents*n_scals_rad)
     integer(c_int)        :: rad_block_index
     
     ! local variables
     integer :: const_id,ji,layer_index,h_index
     
     ! loop over all constituents
-    do const_id=1,no_of_constituents
+    do const_id=1,n_constituents
        ! loop over all elements of the resulting array
       do ji=1,n_scals_rad
         layer_index = (ji-1)/n_scals_rad_h
