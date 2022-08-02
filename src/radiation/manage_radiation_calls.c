@@ -13,19 +13,7 @@ This file manages the calls to the radiation routines.
 #include "../radiation/radiation.h"
 
 extern int create_rad_array_scalar();
-
-int create_rad_array_scalar_h(double in[], double out[], int rad_block_index)
-{
-	/*
-	cuts out a slice of a horizontal scalar field for hand-over to the radiation routine (done for RAM efficiency reasons)
-	*/
-	// loop over all elements of the resulting array
-	for (int i = 0; i < N_SCALS_RAD_PER_LAYER; ++i)
-	{
-		out[i] = in[rad_block_index*N_SCALS_RAD_PER_LAYER + i];
-	}
-	return 0;
-}
+extern int create_rad_array_scalar_h();
 
 int create_rad_array_mass_den(double in[], double out[], int rad_block_index)
 {
@@ -110,10 +98,10 @@ int call_radiation(State *state, Grid *grid, Dualgrid *dualgrid, State *state_te
 	{
 		Radiation *radiation = calloc(1, sizeof(Radiation));
 		// remapping all the arrays
-		create_rad_array_scalar_h(grid -> latitude_scalar, radiation -> lat_scal, rad_block_index);
-		create_rad_array_scalar_h(grid -> longitude_scalar, radiation -> lon_scal, rad_block_index);
-		create_rad_array_scalar_h(state -> temperature_soil, radiation -> temp_sfc, rad_block_index);
-		create_rad_array_scalar_h(grid -> sfc_albedo, radiation -> sfc_albedo, rad_block_index);
+		create_rad_array_scalar_h(grid -> latitude_scalar, radiation -> lat_scal, &rad_block_index);
+		create_rad_array_scalar_h(grid -> longitude_scalar, radiation -> lon_scal, &rad_block_index);
+		create_rad_array_scalar_h(state -> temperature_soil, radiation -> temp_sfc, &rad_block_index);
+		create_rad_array_scalar_h(grid -> sfc_albedo, radiation -> sfc_albedo, &rad_block_index);
 		create_rad_array_scalar(grid -> z_scalar, radiation -> z_scal, &rad_block_index);
 		create_rad_array_vector(grid -> z_vector, radiation -> z_vect, rad_block_index);
 		create_rad_array_mass_den(state -> rho, radiation -> rho, rad_block_index);

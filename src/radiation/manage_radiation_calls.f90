@@ -15,6 +15,7 @@ module manage_radiation_calls
   private
   
   public :: create_rad_array_scalar
+  public :: create_rad_array_scalar_h
   
   contains
   
@@ -37,5 +38,39 @@ module manage_radiation_calls
     enddo
   
   end subroutine create_rad_array_scalar
+  
+  subroutine create_rad_array_scalar_h(in_array,out_array,rad_block_index) &
+  bind(c,name = "create_rad_array_scalar_h")
+
+    ! This subroutine cuts out a slice of a scalar field for hand-over to the radiation routine (done for RAM efficiency reasons).
+    real(wp), intent(in)  :: in_array(n_scalars_h)
+    real(wp), intent(out) :: out_array(n_scals_rad_per_layer)
+    integer(c_int)        :: rad_block_index
+    
+    ! local variables
+    integer :: ji
+    
+    ! loop over all elements of the resulting array
+    do ji=1,n_scals_rad_per_layer
+      out_array(ji) = in_array(rad_block_index*n_scals_rad_per_layer + ji)
+    enddo
+  
+  end subroutine create_rad_array_scalar_h
 
 end module manage_radiation_calls
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
