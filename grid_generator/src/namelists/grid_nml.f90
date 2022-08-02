@@ -36,6 +36,9 @@ module grid_nml
   real(wp)       :: stretching_parameter     ! vertical grid stretching parameter
   real(wp)       :: radius_rescale           ! radius rescaling factor
   real(wp)       :: radius                   ! radius of the planet to construct the grid for
+  integer(c_int) :: n_lat_io_points          ! number of points of the post-processing lat-lon grid in lat direction
+  integer(c_int) :: n_lon_io_points          ! number of points of the post-processing lat-lon grid in lon direction
+  integer(c_int) :: n_latlon_io_points       ! number of points of the post-processing lat-lon grid
   
   namelist /grid/res_id,n_layers
 
@@ -70,6 +73,9 @@ module grid_nml
     stretching_parameter = 1.3_wp
     radius_rescale = 1._wp
     radius = radius_rescale*r_e
+    n_lat_io_points = 2*2**RES_ID
+    n_lon_io_points = 2*n_lat_io_points
+    n_latlon_io_points = n_lat_io_points*n_lon_io_points
   
   end subroutine grid_nml_setup
   
