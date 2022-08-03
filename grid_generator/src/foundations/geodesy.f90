@@ -24,6 +24,8 @@ module geodesy
   public :: calculate_vertical_area
   public :: active_turn_x
   public :: scalar_product_elementary
+  public :: find_geos
+  public :: find_global_normal
   public :: scalar_product_elementary_2d
   public :: find_turn_angle
   public :: cross_product_elementary

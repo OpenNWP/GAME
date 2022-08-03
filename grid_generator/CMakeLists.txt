@@ -16,6 +16,7 @@ src/control.c
 src/diff_ops/rhombus_averaging.c
 src/diff_ops/inner_product.f90
 src/optimization/optimize.c
+src/optimization/optimize.f90
 src/horizontal_grid/discrete_coordinate_trafos.c
 src/horizontal_grid/horizontal_generation.c
 src/derived_hor_quantities/miscellaneous.c
