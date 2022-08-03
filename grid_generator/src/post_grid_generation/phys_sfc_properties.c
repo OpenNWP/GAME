@@ -4,7 +4,7 @@ Github repository: https://github.com/OpenNWP/GAME
 */
 
 /*
-With this program, orographies can be produced.
+In this file, the physical surface properties are set.
 */
 
 #include <stdlib.h>
@@ -18,20 +18,7 @@ With this program, orographies can be produced.
 #define NCERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(1);}
 #define NCCHECK(e) {if(e != 0) NCERR(e)}
 
-double vegetation_height_ideal(double latitude, double oro)
-{
-	/*
-	calculating a latitude- and height-dependant idealized vegetation height
-	*/
-	
-	double vegetation_height_equator = 20.0;
-	
-	double result;
-	
-	result = vegetation_height_equator*cos(latitude)*exp(-oro/1500.0);
-	
-	return result;
-}
+extern double vegetation_height_ideal();
 
 int set_sfc_properties(double latitude_scalar[], double longitude_scalar[], double roughness_length[], double sfc_albedo[],
 double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int oro_id, int no_of_avg_points)

@@ -25,6 +25,7 @@ src/foundations/geodesy.f90
 src/diff_ops/coriolis.c
 src/post_grid_generation/interpolation_ll.f90
 src/post_grid_generation/phys_sfc_properties.c
+src/post_grid_generation/phys_sfc_properties.f90
 src/foundations/index_helpers.f90
 src/vertical_grid/vertical_grid.f90
 src/namelists/grid_nml.f90
