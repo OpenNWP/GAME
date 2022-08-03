@@ -174,7 +174,7 @@ double sfc_rho_c[], double t_conductivity[], double oro[], int is_land[], int or
 			
 			sfc_rho_c[i] = density_soil*c_p_soil;
 			
-			roughness_length[i] = vegetation_height_ideal(latitude_scalar[i], oro[i])/8.0;
+			roughness_length[i] = vegetation_height_ideal(&latitude_scalar[i], &oro[i])/8.0;
 		}
 		
 		// restricting the roughness length to a minimum
