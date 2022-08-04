@@ -17,7 +17,6 @@ int find_triangle_edge_points(int, int, int, int *, int *, int *, int *, int *, 
 int build_icosahedron(double [], double [], int [][2], int [][3], int [][3], int [][3]);
 int generate_horizontal_generators(double [], double [], double [], double [], double [], double [], double [], int [][3], int [][3], int [][3]);
 int coriolis(int [], int [], int [], double [], double [], int [], double [], double [], double [], double [], double [], double [], double [], double [], double [], int [], int [], int [], double [], double [], double);
-int set_f_vec(double [], double [], double [], double [], double);
 int calc_cell_area_unity(double [], double [], double [], int [], int []);
 int calc_triangle_area_unity(double [], double [], double [], int [][3], int [][3], int [][3]);
 int set_vector_h_doubles(int [], int [], double [], double [], double [], double [], double []);
@@ -33,6 +32,7 @@ int optimize_to_scvt(double [], double [], double [], double [], int, int [][3],
 int read_horizontal_explicit(double [], double [], int [], int [], int [], int [], char [], int *);
 int write_statistics_file(double [], double [], double [], int, char [], char []);
 int direct_tangential_unity(double [], double [], double [], double [], int [], int [], double [], double);
+extern int set_f_vec();
 extern int set_sfc_properties();
 extern int interpolate_ll();
 extern int set_z_vector_and_normal_distance();

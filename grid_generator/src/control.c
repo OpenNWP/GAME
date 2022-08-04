@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
 	to_index_dual, from_index_dual, rel_on_line_dual, ORTH_CRITERION_DEG);
 	
 	// setting the Coriolis vector
-    set_f_vec(latitude_vector, direction, direction_dual, f_vec, radius_rescale);
+    set_f_vec(latitude_vector, direction_dual, f_vec);
     
     // calculating the dual cells on the unity sphere
     calc_triangle_area_unity(triangle_face_unit_sphere, latitude_scalar, longitude_scalar, face_edges,

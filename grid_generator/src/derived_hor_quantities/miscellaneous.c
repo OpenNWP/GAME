@@ -17,30 +17,6 @@ This function is a collection of some helper functions that are needed for the g
 #include "../grid_generator.h"
 #define ERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(1);}
 
-int set_f_vec(double latitude_vector[], double direction[], double direction_dual[], double f_vec[], double radius_rescale)
-{
-	/*
-	This function sets the Coriolis vector (vertical at horizontal primal vector points,
-	horizontal at horizontal dual vector points).
-	*/
-	
-	#pragma omp parallel for
-    for (int i = 0; i < 2*N_VECS_H; ++i)
-    {
-    	// horizontal component at dual vector points
-        if (i < N_VECS_H)
-        {
-        	f_vec[i] = 2*OMEGA/radius_rescale*cos(latitude_vector[i])*sin(direction_dual[i]);
-    	}
-        // vertical component at primal vector points
-        else if (i < 2*N_VECS_H)
-        {
-        	f_vec[i] = 2*OMEGA/radius_rescale*sin(latitude_vector[i - N_VECS_H]);
-    	}
-    }
- 	return 0;   
-}
-
 int calc_vorticity_indices_triangles(int from_index_dual[], int to_index_dual[], double direction[], double direction_dual[], int vorticity_indices_triangles[], double ORTH_CRITERION_DEG, int vorticity_signs_pre[])
 {
 	/*
