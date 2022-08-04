@@ -39,8 +39,10 @@ module grid_nml
   integer(c_int) :: n_lat_io_points          ! number of points of the post-processing lat-lon grid in lat direction
   integer(c_int) :: n_lon_io_points          ! number of points of the post-processing lat-lon grid in lon direction
   integer(c_int) :: n_latlon_io_points       ! number of points of the post-processing lat-lon grid
+  integer(c_int) :: no_of_avg_points         ! number of points used for smoothing the orography
+  integer(c_int) :: oro_id                   ! orography ID
   
-  namelist /grid/res_id,n_layers
+  namelist /grid/res_id,n_layers,toa,n_oro_layers,stretching_parameter,radius_rescale,no_of_avg_points,oro_id
 
   contains
 
@@ -72,9 +74,11 @@ module grid_nml
     stretching_parameter = 1.3_wp
     radius_rescale = 1._wp
     radius = radius_rescale*r_e
-    n_lat_io_points = 2*2**RES_ID
+    n_lat_io_points = 2*2**res_id
     n_lon_io_points = 2*n_lat_io_points
     n_latlon_io_points = n_lat_io_points*n_lon_io_points
+    no_of_avg_points = 7
+    oro_id = 0
   
   end subroutine grid_nml_setup
   

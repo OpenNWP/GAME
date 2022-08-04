@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
 	    ---------------------------------------
 	*/
     printf("Setting the physical surface properties ...");
-	set_sfc_properties(latitude_scalar, longitude_scalar, roughness_length, sfc_albedo, sfc_rho_c, t_conductivity, oro, is_land, oro_id, no_of_avg_points);
+	set_sfc_properties(latitude_scalar, longitude_scalar, roughness_length, sfc_albedo, sfc_rho_c, t_conductivity, oro, is_land, &oro_id);
     printf(GREEN "finished" RESET);
     printf(".\n");
     int no_of_scalars_h = N_SCALS_H;

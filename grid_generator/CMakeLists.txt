@@ -24,7 +24,6 @@ src/derived_hor_quantities/find_neighbours.c
 src/foundations/geodesy.f90
 src/diff_ops/coriolis.c
 src/post_grid_generation/interpolation_ll.f90
-src/post_grid_generation/phys_sfc_properties.c
 src/post_grid_generation/phys_sfc_properties.f90
 src/foundations/index_helpers.f90
 src/vertical_grid/vertical_grid.f90
@@ -32,8 +31,8 @@ src/namelists/grid_nml.f90
 )
 find_package(OpenMP)
 SET(CMAKE_C_FLAGS "${OpenMP_C_FLAGS} -O2 -Wall")
-SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -O2 -Wall -Wpedantic -Wno-c-binding-type -lnetcdff")
-target_link_libraries(grid_generator m netcdf)
+SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -O2 -Wall -Wpedantic -Wno-c-binding-type -I/usr/include -L/usr/lib/x86_64-linux-gnu")
+target_link_libraries(grid_generator m netcdf netcdff)
 
 
 
