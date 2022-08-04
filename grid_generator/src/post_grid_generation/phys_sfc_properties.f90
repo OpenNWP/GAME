@@ -79,7 +79,7 @@ module phys_sfc_properties
       no_of_lon_points = 21601
       allocate(latitude_input(no_of_lat_points))
       allocate(longitude_input(no_of_lon_points))
-      allocate(z_input(no_of_lat_points,no_of_lon_points))
+      allocate(z_input(no_of_lon_points,no_of_lat_points))
     
       oro_file = "phys_quantities/etopo.nc"
       call nc_check(nf90_open(trim(oro_file),NF90_CLOBBER,ncid))
@@ -92,14 +92,14 @@ module phys_sfc_properties
       call nc_check(nf90_close(ncid))
     
       ! setting the unfiltered orography
-      !$omp parallel do private(ji,lat_index,lon_index)
+      !$omp parallel do private(ji,jk,lat_index,lon_index,lat_distance_vector,lon_distance_vector)
       do ji=1,n_scalars_h
         ! default
         oro(ji) = 0._wp
         oro_unfiltered(ji) = 0._wp
     
         allocate(lat_distance_vector(no_of_lat_points))
-        allocate(lon_distance_vector(no_of_lat_points))
+        allocate(lon_distance_vector(no_of_lon_points))
         do jk=1,no_of_lat_points
           lat_distance_vector(jk) = abs(deg2rad(latitude_input(jk))-latitude_scalar(ji))
         enddo
@@ -108,7 +108,7 @@ module phys_sfc_properties
         enddo
         lat_index = find_min_index(lat_distance_vector,no_of_lat_points)
         lon_index = find_min_index(lon_distance_vector,no_of_lon_points)
-        oro_unfiltered(ji) = z_input(1+lat_index,1+lon_index)
+        oro_unfiltered(ji) = z_input(1+lon_index,1+lat_index)
       
         ! over the sea there is no orography
         if (is_land(ji)==0) then
