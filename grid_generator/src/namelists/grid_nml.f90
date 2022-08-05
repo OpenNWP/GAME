@@ -41,10 +41,12 @@ module grid_nml
   integer(c_int) :: n_latlon_io_points       ! number of points of the post-processing lat-lon grid
   integer(c_int) :: no_of_avg_points         ! number of points used for smoothing the orography
   integer(c_int) :: oro_id                   ! orography ID
+  integer(c_int) :: no_of_lloyd_iterations   ! number of Lloyd iterations used for the optimization
   
   real(wp), parameter :: orth_criterion_deg = 89.99_wp ! used for checking grid orthogonality
   
-  namelist /grid/res_id,n_layers,toa,n_oro_layers,stretching_parameter,radius_rescale,no_of_avg_points,oro_id
+  namelist /grid/res_id,n_layers,toa,n_oro_layers,stretching_parameter,radius_rescale,no_of_avg_points,oro_id, &
+                 no_of_lloyd_iterations
 
   contains
 
@@ -81,6 +83,7 @@ module grid_nml
     n_latlon_io_points = n_lat_io_points*n_lon_io_points
     no_of_avg_points = 7
     oro_id = 0
+    no_of_lloyd_iterations = 2000
   
   end subroutine grid_nml_setup
   

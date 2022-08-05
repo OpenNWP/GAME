@@ -333,7 +333,7 @@ int main(int argc, char *argv[])
     printf(".\n");
     
     // A statistics file is created to compare the fundamental statistical properties of the grid with the literature.
-	write_statistics_file(pent_hex_face_unity_sphere, normal_distance, normal_distance_dual, no_of_lloyd_iterations, grid_name, statistics_file);
+	write_statistics_file(pent_hex_face_unity_sphere, normal_distance, normal_distance_dual, z_vector, z_vector_dual, grid_name, statistics_file);
 	
 	/*
 	writing the result to a netcdf file
