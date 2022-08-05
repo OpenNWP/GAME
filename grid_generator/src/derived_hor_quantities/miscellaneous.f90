@@ -52,9 +52,9 @@ module miscellaneous
   
     ! This subroutine computes the vector indices needed for calculating the vorticity on triangles.
     
-    real(wp), intent(in)  :: from_index_dual(n_vectors_h),to_index_dual(n_vectors_h), &
-                             direction(n_vectors_h),direction_dual(n_vectors_h)
-    real(wp), intent(out) :: vorticity_indices_triangles(3*n_dual_scalars_h),vorticity_signs_triangles(3*n_dual_scalars_h)
+    integer(c_int), intent(in)  :: from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
+    real(wp),       intent(in)  :: direction(n_vectors_h),direction_dual(n_vectors_h)
+    integer(c_int), intent(out) :: vorticity_indices_triangles(3*n_dual_scalars_h),vorticity_signs_triangles(3*n_dual_scalars_h)
     
     ! local variables
     integer             :: ji,jk,counter,sign_
@@ -64,7 +64,7 @@ module miscellaneous
     do ji=1,n_dual_scalars_h
       counter = 1
       do jk=1,n_vectors_h
-        if (from_index_dual(jk)==ji-1 .or. to_index_dual(jk)== ji-1) then
+        if (from_index_dual(jk)==ji-1 .or. to_index_dual(jk)==ji-1) then
           vorticity_indices_triangles(3*(ji-1)+counter) = jk-1
           sign_ = 1
           if (from_index_dual(jk)==ji-1) then
