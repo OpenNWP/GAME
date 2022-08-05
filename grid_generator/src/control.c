@@ -35,8 +35,6 @@ The grid generation procedure is manged from this file. Memory allocation and IO
 #define BOLDCYAN "\033[1m\033[36m"
 #define BOLDWHITE "\033[1m\033[37m"
 
-const double ORTH_CRITERION_DEG = 89.99;
-
 int main(int argc, char *argv[])
 {
     int oro_id;
@@ -217,7 +215,7 @@ int main(int argc, char *argv[])
 	
 	// determining the directions of the dual vectors
 	direct_tangential_unity(latitude_scalar_dual, longitude_scalar_dual, direction, direction_dual,
-	to_index_dual, from_index_dual, rel_on_line_dual, ORTH_CRITERION_DEG);
+	to_index_dual, from_index_dual, rel_on_line_dual, 89.99);
 	
 	// setting the Coriolis vector
     set_f_vec(latitude_vector, direction_dual, f_vec);
@@ -228,7 +226,7 @@ int main(int argc, char *argv[])
     
     // finding the vorticity indices
 	calc_vorticity_indices_triangles(from_index_dual, to_index_dual, direction, direction_dual,
-	vorticity_indices_triangles, ORTH_CRITERION_DEG, vorticity_signs_triangles);
+	vorticity_indices_triangles, vorticity_signs_triangles);
 	
 	// calculating the cell faces on the unity sphere
 	calc_cell_area_unity(pent_hex_face_unity_sphere, latitude_scalar_dual,

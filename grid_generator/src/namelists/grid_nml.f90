@@ -42,6 +42,8 @@ module grid_nml
   integer(c_int) :: no_of_avg_points         ! number of points used for smoothing the orography
   integer(c_int) :: oro_id                   ! orography ID
   
+  real(wp), parameter :: orth_criterion_deg = 89.99_wp ! used for checking grid orthogonality
+  
   namelist /grid/res_id,n_layers,toa,n_oro_layers,stretching_parameter,radius_rescale,no_of_avg_points,oro_id
 
   contains

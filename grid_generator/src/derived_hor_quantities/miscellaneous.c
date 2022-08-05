@@ -17,53 +17,6 @@ This function is a collection of some helper functions that are needed for the g
 #include "../grid_generator.h"
 #define ERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(1);}
 
-int calc_vorticity_indices_triangles(int from_index_dual[], int to_index_dual[], double direction[], double direction_dual[], int vorticity_indices_triangles[], double ORTH_CRITERION_DEG, int vorticity_signs_pre[])
-{
-	/*
-	This function computes the vector indices needed for calculating the vorticity on triangles.
-	*/
-	
-	int counter, sign;
-	double direction_change;
-	#pragma omp parallel for private(counter, sign, direction_change)
-    for (int i = 0; i < N_DUAL_SCALS_H; ++i)
-    {
-        counter = 0;
-        for (int j = 0; j < N_VECS_H; ++j)
-        {
-            if (from_index_dual[j] == i || to_index_dual[j] == i)
-            {
-                vorticity_indices_triangles[3*i + counter] = j;
-                sign = 1;
-                if (from_index_dual[j] == i)
-                {
-                    direction_change = find_turn_angle(&direction_dual[j], &direction[j]);
-                    if (rad2deg(&direction_change) < -ORTH_CRITERION_DEG)
-                    {
-                        sign = -1;
-                    }
-                }
-                if (to_index_dual[j] == i)
-                {
-                    direction_change = find_turn_angle(&direction_dual[j], &direction[j]);
-                    if (rad2deg(&direction_change) > ORTH_CRITERION_DEG)
-                    {
-                        sign = -1;
-                    }
-                }
-                vorticity_signs_pre[3*i + counter] = sign;
-                ++counter;
-            }
-        }
-        if (counter != 3)
-		{
-            printf("Trouble detected, place 0.\n");
-			exit(1);
-		}
-    }
-	return 0;
-}
-
 int write_statistics_file(double pent_hex_face_unity_sphere[], double normal_distance[], double normal_distance_dual[],
 int no_of_lloyd_iterations, char grid_name[], char statistics_file_name[])
 {
