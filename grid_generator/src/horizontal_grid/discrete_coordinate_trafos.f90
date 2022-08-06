@@ -10,7 +10,8 @@ module discrete_coordinate_trafos
   use phys_sfc_properties, only: nc_check
   use definitions,         only: wp
   use grid_nml,            only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
-                                 no_of_lloyd_iterations,n_vectors,n_dual_vectors,res_id
+                                 no_of_lloyd_iterations,n_vectors,n_dual_vectors,res_id,n_pentagons,n_basic_edges, &
+                                 n_points_per_edge
   
   implicit none
   
@@ -101,6 +102,42 @@ module discrete_coordinate_trafos
     find_scalar_points_per_inner_face = ((2**res_id_local-2)*(2**res_id_local-1))/2
     
   end function find_scalar_points_per_inner_face
+  
+  function upscale_scalar_point(res_id_local,old_index) &
+  bind(c,name = "upscale_scalar_point")
+  
+    ! This function converts an index of a scalar data point to a higher resolution ID.
+    
+    integer(c_int), intent(in) :: res_id_local,old_index
+    integer(c_int)             :: upscale_scalar_point
+    
+    ! local variables
+    integer ::  edge_index,face_index,points_per_edge,on_edge_index,scalar_points_per_inner_face, &
+                on_face_index,coord_0,coord_1,coord_0_points_amount,on_face_index_local,scalar_points_per_inner_face_full_grid
+    
+    scalar_points_per_inner_face_full_grid = (2**res_id-2)/2*(2**res_id-1)
+    
+    points_per_edge = find_points_per_edge(res_id_local)
+    scalar_points_per_inner_face = find_scalar_points_per_inner_face(res_id_local)
+    if (old_index<n_pentagons) then
+      upscale_scalar_point = old_index
+    elseif (old_index<n_pentagons+n_basic_edges*points_per_edge) then
+      edge_index = (old_index - n_pentagons)/points_per_edge
+      on_edge_index = old_index - (n_pentagons + edge_index*points_per_edge)
+      upscale_scalar_point = n_pentagons + edge_index*n_points_per_edge + 2**(res_id - res_id_local)*(on_edge_index + 1) - 1
+    else
+      face_index = (old_index - (n_pentagons + n_basic_edges*points_per_edge))/scalar_points_per_inner_face
+      on_face_index = old_index - (n_pentagons + n_basic_edges*points_per_edge + face_index*scalar_points_per_inner_face)
+      on_face_index_local = on_face_index + points_per_edge
+      call find_coords_from_triangle_on_face_index(on_face_index_local,res_id_local,coord_0,coord_1,coord_0_points_amount)
+      coord_0 = (coord_0+1)*2**(res_id-res_id_local) - 1
+      coord_1 = coord_1*2**(res_id-res_id_local)
+      on_face_index = find_triangle_on_face_index_from_coords(coord_0,coord_1)
+      upscale_scalar_point = n_pentagons + n_basic_edges*n_points_per_edge + &
+                             face_index*scalar_points_per_inner_face_full_grid + on_face_index - n_points_per_edge
+    endif
+  
+  end function upscale_scalar_point
 
 end module discrete_coordinate_trafos
 

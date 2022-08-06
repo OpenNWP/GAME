@@ -24,6 +24,8 @@ module grid_nml
   integer(c_int) :: n_vectors_per_layer      ! number of vectors per layer
   integer(c_int) :: n_vectors                ! number of vectors
   integer(c_int) :: n_basic_triangles        ! number of basic triangles of the icosaheron
+  integer(c_int) :: n_basic_edges            ! number of basic edges of the icosaheron
+  integer(c_int) :: n_points_per_edge        ! number of points per edge
   integer(c_int) :: n_triangles              ! the number of triangles of the grid
   integer(c_int) :: n_dual_scalars_h         ! the number of dual scalars per layer
   integer(c_int) :: n_dual_scalars           ! the number of dual scalars
@@ -66,6 +68,8 @@ module grid_nml
     n_vectors_per_layer = n_vectors_h+n_scalars_h
     n_vectors = n_h_vectors+n_v_vectors
     n_basic_triangles = 20
+    n_basic_edges = 3*n_basic_triangles/2
+    n_points_per_edge = 2**res_id-1
     n_triangles = n_basic_triangles*4**res_id
     n_dual_scalars_h = n_triangles
     n_dual_scalars = n_levels*n_dual_scalars_h

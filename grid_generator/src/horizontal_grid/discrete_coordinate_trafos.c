@@ -273,40 +273,6 @@ int *point_0, int *point_1, int *point_2, int face_vertices[][3], int face_edges
     return 0;
 }
 
-int upscale_scalar_point(int res_id, int old_index, int *new_index)
-{
-	/*
-	This function converts an index of a scalar data point to a higher resolution ID.
-	*/
-	
-    int edge_index, face_index;
-    int points_per_edge, on_edge_index, scalar_points_per_inner_face, on_face_index, coord_0, coord_1, coord_0_points_amount;
-    points_per_edge = find_points_per_edge(&res_id);
-    scalar_points_per_inner_face = find_scalar_points_per_inner_face(&res_id);
-    if (old_index < N_PENTAGONS)
-    {
-        *new_index = old_index;
-    }
-    else if (old_index < N_PENTAGONS + N_EDGES*points_per_edge)
-    {
-        edge_index = (old_index - N_PENTAGONS)/points_per_edge;
-        on_edge_index = old_index - (N_PENTAGONS + edge_index*points_per_edge);
-        *new_index = N_PENTAGONS + edge_index*POINTS_PER_EDGE + pow(2, RES_ID - res_id)*(on_edge_index + 1) - 1;
-    }
-    else
-    {
-        face_index = (old_index - (N_PENTAGONS + N_EDGES*points_per_edge))/scalar_points_per_inner_face;
-        on_face_index = old_index - (N_PENTAGONS + N_EDGES*points_per_edge + face_index*scalar_points_per_inner_face);
-        int on_face_index_local = on_face_index + points_per_edge;
-        find_coords_from_triangle_on_face_index(&on_face_index_local, &res_id, &coord_0, &coord_1, &coord_0_points_amount);
-        coord_0 = (coord_0 + 1)*pow(2, RES_ID - res_id) - 1;
-        coord_1 = coord_1*pow(2, RES_ID - res_id);
-       	on_face_index = find_triangle_on_face_index_from_coords(&coord_0, &coord_1);
-        *new_index = N_PENTAGONS + N_EDGES*POINTS_PER_EDGE + face_index*SCALAR_POINTS_PER_INNER_FACE + on_face_index - POINTS_PER_EDGE;
-    }
-    return 0;
-}
-
 int write_scalar_coordinates(int edgepoint_0, int edgepoint_1, int edgepoint_2, int point_0, int point_1, int point_2, int points_upwards, double x_unity[], double y_unity[], double z_unity[], double latitude_scalar[], double longitude_scalar[])
 {
 	/*

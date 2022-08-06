@@ -21,11 +21,12 @@ int generate_horizontal_generators(double latitude_ico[], double longitude_ico[]
 	This function computes the geographical coordinates of the generators (centers of the pentagons and hexagons).
 	*/
 	
-	int base_index_down_triangles, base_index_old, test_index, last_triangle_bool, old_triangle_on_line_index, base_index_up_triangles, points_downwards, points_upwards, dump, points_per_edge, edgepoint_0, edgepoint_1, edgepoint_2, no_of_triangles_per_face, point_0, point_1, point_2, dual_scalar_on_face_index, coord_0, coord_1, triangle_on_face_index, coord_0_points_amount;
+	int base_index_down_triangles, base_index_old, test_index, last_triangle_bool, old_triangle_on_line_index, base_index_up_triangles, points_downwards, points_upwards, dump, points_per_edge, edgepoint_0, edgepoint_1, edgepoint_2, no_of_triangles_per_face, point_0, point_1, point_2, dual_scalar_on_face_index, coord_0, coord_1, triangle_on_face_index, coord_0_points_amount, first_argument;
 	double x_res, y_res, z_res;
 	for (int i = 0; i < N_SCALS_H; ++i)
 	{
-	    upscale_scalar_point(RES_ID, i, &test_index);
+		first_argument = RES_ID;
+	    test_index = upscale_scalar_point(&first_argument, &i);
 	    if (test_index != i)
 	    {
 	        printf("Problem with upscale_scalar_point detected.\n");
@@ -51,9 +52,10 @@ int generate_horizontal_generators(double latitude_ico[], double longitude_ico[]
 	            {
 	                dual_scalar_on_face_index = 1;
 	                find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index, i, j + 1, &point_0, &point_1, &point_2, face_vertices, face_edges, face_edges_reverse);
-	                upscale_scalar_point(j + 1, point_0, &point_0);
-	                upscale_scalar_point(j + 1, point_1, &point_1);
-	                upscale_scalar_point(j + 1, point_2, &point_2);
+					first_argument = j + 1;
+	                point_0 = upscale_scalar_point(&first_argument, &point_0);
+	                point_1 = upscale_scalar_point(&first_argument, &point_1);
+	                point_2 = upscale_scalar_point(&first_argument, &point_2);
 	                points_upwards = 1;
 	                write_scalar_coordinates(face_vertices[i][0], face_vertices[i][1], face_vertices[i][2], point_0, point_1, point_2, points_upwards, x_unity, y_unity, z_unity, latitude_scalar, longitude_scalar);
 	            }
@@ -89,12 +91,13 @@ int generate_horizontal_generators(double latitude_ico[], double longitude_ico[]
                     	dual_scalar_on_face_index = base_index_up_triangles + 2*old_triangle_on_line_index;
 	                }
 	                find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index, i, j + 1, &point_0, &point_1, &point_2, face_vertices, face_edges, face_edges_reverse);
-	                upscale_scalar_point(j, edgepoint_0, &edgepoint_0);
-	                upscale_scalar_point(j, edgepoint_1, &edgepoint_1);
-	                upscale_scalar_point(j, edgepoint_2, &edgepoint_2);
-	                upscale_scalar_point(j + 1, point_0, &point_0);
-	                upscale_scalar_point(j + 1, point_1, &point_1);
-	                upscale_scalar_point(j + 1, point_2, &point_2);
+	                edgepoint_0 = upscale_scalar_point(&j, &edgepoint_0);
+	                edgepoint_1 = upscale_scalar_point(&j, &edgepoint_1);
+	                edgepoint_2 = upscale_scalar_point(&j, &edgepoint_2);
+					first_argument = j + 1;
+	                point_0 = upscale_scalar_point(&first_argument, &point_0);
+	                point_1 = upscale_scalar_point(&first_argument, &point_1);
+	                point_2 = upscale_scalar_point(&first_argument, &point_2);
 	                points_upwards = 1;
 	                if (points_downwards == 1)
 	                {

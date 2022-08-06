@@ -56,7 +56,6 @@ N_LAT_IO_POINTS = (int) (2*(pow(2, RES_ID))),
 N_LATLON_IO_POINTS = N_LON_IO_POINTS*N_LAT_IO_POINTS,
 POINTS_PER_EDGE = (int) (pow(2, RES_ID) - 1),
 TRIANGLES_PER_FACE = N_TRIANGLES/N_BASIC_TRIANGLES,
-SCALAR_POINTS_PER_INNER_FACE = (int) (0.5*(pow(2, RES_ID) - 2)*(pow(2, RES_ID) - 1)),
 VECTOR_POINTS_PER_INNER_FACE = (int) (1.5*(pow(2, RES_ID) - 1)*pow(2, RES_ID))};
 
 typedef double Scalar_field[N_SCALARS];
