@@ -522,29 +522,6 @@ int set_from_to_index_dual(int from_index_dual[], int to_index_dual[], int face_
     return 0;
 }
 
-int set_dual_vector_h_doubles(double latitude_scalar_dual[], double latitude_vector[], double direction_dual[], double longitude_vector[], int to_index_dual[], int from_index_dual[], double longitude_scalar_dual[], double rel_on_line_dual[])
-{
-	/*
-	This function computes the following two properties of horizontal dual vectors:
-	- where they are placed in between the dual scalar points
-	- in which direction they point
-	*/
-	
-	#pragma omp parallel for
-    for (int i = 0; i < N_VECS_H; ++i)
-    {
-        rel_on_line_dual[i] = rel_on_line(&latitude_scalar_dual[from_index_dual[i]], &longitude_scalar_dual[from_index_dual[i]],
-        &latitude_scalar_dual[to_index_dual[i]], &longitude_scalar_dual[to_index_dual[i]], &latitude_vector[i], &longitude_vector[i]);
-        if (fabs(rel_on_line_dual[i] - 0.5) > 0.14)
-        {
-            printf("Bisection warning.\n");
-        }
-        direction_dual[i] = find_geodetic_direction(&latitude_scalar_dual[from_index_dual[i]], &longitude_scalar_dual[from_index_dual[i]],
-        &latitude_scalar_dual[to_index_dual[i]], &longitude_scalar_dual[to_index_dual[i]], &rel_on_line_dual[i]);
-    }
-    return 0;
-}
-
 int direct_tangential_unity(double latitude_scalar_dual[], double longitude_scalar_dual[], double direction[], double direction_dual[], int to_index_dual[], int from_index_dual[], double rel_on_line_dual[], double ORTH_CRITERION_DEG)
 {
 	/*

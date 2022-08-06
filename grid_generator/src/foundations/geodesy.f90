@@ -33,6 +33,7 @@ module geodesy
   public :: calc_triangle_area
   public :: rel_on_line
   public :: sort_vertex_indices
+  public :: find_geodetic_direction
   
   contains
   

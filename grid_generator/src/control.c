@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
 	set_vector_h_doubles(from_index, to_index, latitude_scalar, longitude_scalar, latitude_vector, longitude_vector, direction);
 	
 	// Same as before, but for dual vectors. They have the same positions as the primal vectors.
-	set_dual_vector_h_doubles(latitude_scalar_dual, latitude_vector, direction_dual, longitude_vector,
+	set_dual_vector_h_atttributes(latitude_scalar_dual, latitude_vector, direction_dual, longitude_vector,
 	to_index_dual, from_index_dual, longitude_scalar_dual, rel_on_line_dual);
 	
 	// determining the directions of the dual vectors
