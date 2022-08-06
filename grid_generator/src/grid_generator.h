@@ -29,7 +29,7 @@ int set_dual_vector_h_doubles(double [], double [], double [], double [], int []
 int set_from_to_index_dual(int [], int [], int [][3], int [][3]);
 extern int calc_vorticity_indices_triangles();
 int optimize_to_scvt(double [], double [], double [], double [], int, int [][3], int [][3], int [][3], int [], int [], int []);
-int read_horizontal_explicit(double [], double [], int [], int [], int [], int [], char [], int *);
+extern int read_horizontal_explicit();
 int direct_tangential_unity(double [], double [], double [], double [], int [], int [], double [], double);
 extern int write_statistics_file();
 extern int set_f_vec();

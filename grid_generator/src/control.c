@@ -39,8 +39,8 @@ int main(int argc, char *argv[])
 {
     int oro_id;
    	oro_id = strtod(argv[1], NULL);
-    int n_iterations;
-   	n_iterations = strtod(argv[2], NULL);
+    int n_lloyd_iterations;
+   	n_lloyd_iterations = strtod(argv[2], NULL);
     int use_scalar_h_file;
    	use_scalar_h_file = strtod(argv[3], NULL);
     char scalar_h_file[strlen(argv[4]) + 1];
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
 	    ---------------------------------------------------------------------
 	*/
     printf("Establishing horizontal grid structure ... \n");
-   	int no_of_lloyd_iterations = 0;
+   	int n_lloyd_read_from_file = 0;
     if (use_scalar_h_file == 0)
     {
     	// Here, the positions of the horizontal generators, i.e. the horizontal scalar points are determined.
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-    	read_horizontal_explicit(latitude_scalar, longitude_scalar, from_index, to_index, from_index_dual, to_index_dual, scalar_h_file, &no_of_lloyd_iterations);
+    	read_horizontal_explicit(latitude_scalar, longitude_scalar, from_index, to_index, from_index_dual, to_index_dual, scalar_h_file, &n_lloyd_read_from_file);
     }
     
     /*
@@ -192,11 +192,11 @@ int main(int argc, char *argv[])
 	3.) grid optimization
 	    -----------------
 	*/
-	if (n_iterations > 0)
+	if (n_lloyd_iterations > 0)
 	{
-		optimize_to_scvt(latitude_scalar, longitude_scalar, latitude_scalar_dual, longitude_scalar_dual, n_iterations,
+		optimize_to_scvt(latitude_scalar, longitude_scalar, latitude_scalar_dual, longitude_scalar_dual, n_lloyd_iterations,
 		face_edges, face_edges_reverse, face_vertices, adjacent_vector_indices_h, from_index_dual, to_index_dual);
-		no_of_lloyd_iterations = no_of_lloyd_iterations + n_iterations;
+		n_lloyd_iterations = n_lloyd_read_from_file + n_lloyd_iterations;
 	}
 	
 	/*
@@ -344,7 +344,7 @@ int main(int argc, char *argv[])
     vorticity_signs_triangles_id, f_vec_dimid, scalar_dimid, scalar_h_dimid, scalar_dual_h_dimid, vector_dimid, latlon_dimid_5, scalar_h_dimid_6, vector_h_dimid,
     vector_h_dimid_10, vector_h_dimid_4, vector_v_dimid_6, vector_dual_dimid, gravity_potential_id, scalar_dual_h_dimid_3, vector_dual_area_dimid,
     inner_product_weights_id, scalar_8_dimid, scalar_2_dimid, vector_h_dual_dimid_2, density_to_rhombi_indices_id, density_to_rhombi_weights_id,
-    vorticity_indices_triangles_id, ncid_g_prop, single_double_dimid, no_of_lloyd_iterations_id, single_int_dimid, interpol_indices_id, interpol_weights_id,
+    vorticity_indices_triangles_id, ncid_g_prop, single_double_dimid, n_lloyd_iterations_id, single_int_dimid, interpol_indices_id, interpol_weights_id,
     theta_v_bg_id, exner_bg_id, sfc_albedo_id, sfc_rho_c_id, t_conductivity_id, roughness_length_id, is_land_id, no_of_oro_layers_id, stretching_parameter_id,
     toa_id, radius_id;
     
@@ -369,7 +369,7 @@ int main(int argc, char *argv[])
     NCCHECK(nc_def_dim(ncid_g_prop, "vector_index_h_2_dual", 2*N_DUAL_H_VECTORS, &vector_h_dual_dimid_2));
     NCCHECK(nc_def_dim(ncid_g_prop, "single_double_dimid_index", 1, &single_double_dimid));
     NCCHECK(nc_def_dim(ncid_g_prop, "single_int_dimid_index", 1, &single_int_dimid));
-    NCCHECK(nc_def_var(ncid_g_prop, "no_of_lloyd_iterations", NC_INT, 1, &single_int_dimid, &no_of_lloyd_iterations_id));
+    NCCHECK(nc_def_var(ncid_g_prop, "n_lloyd_iterations", NC_INT, 1, &single_int_dimid, &n_lloyd_iterations_id));
     NCCHECK(nc_def_var(ncid_g_prop, "no_of_oro_layers", NC_INT, 1, &single_int_dimid, &no_of_oro_layers_id));
     NCCHECK(nc_def_var(ncid_g_prop, "stretching_parameter", NC_DOUBLE, 1, &single_double_dimid, &stretching_parameter_id));
     NCCHECK(nc_def_var(ncid_g_prop, "toa", NC_DOUBLE, 1, &single_double_dimid, &toa_id));
@@ -432,7 +432,7 @@ int main(int argc, char *argv[])
 	NCCHECK(nc_put_att_text(ncid_g_prop, roughness_length_id, "units", strlen("m"), "m"));
     NCCHECK(nc_enddef(ncid_g_prop));
     NCCHECK(nc_put_var_int(ncid_g_prop, no_of_oro_layers_id, &no_of_oro_layers));
-    NCCHECK(nc_put_var_int(ncid_g_prop, no_of_lloyd_iterations_id, &no_of_lloyd_iterations));
+    NCCHECK(nc_put_var_int(ncid_g_prop, n_lloyd_iterations, &n_lloyd_iterations));
     NCCHECK(nc_put_var_double(ncid_g_prop, stretching_parameter_id, &stretching_parameter));
     NCCHECK(nc_put_var_double(ncid_g_prop, toa_id, &toa));
     NCCHECK(nc_put_var_double(ncid_g_prop, radius_id, &radius));
