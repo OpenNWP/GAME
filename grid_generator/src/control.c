@@ -432,7 +432,7 @@ int main(int argc, char *argv[])
 	NCCHECK(nc_put_att_text(ncid_g_prop, roughness_length_id, "units", strlen("m"), "m"));
     NCCHECK(nc_enddef(ncid_g_prop));
     NCCHECK(nc_put_var_int(ncid_g_prop, no_of_oro_layers_id, &no_of_oro_layers));
-    NCCHECK(nc_put_var_int(ncid_g_prop, n_lloyd_iterations, &n_lloyd_iterations));
+    NCCHECK(nc_put_var_int(ncid_g_prop, n_lloyd_iterations_id, &n_lloyd_iterations));
     NCCHECK(nc_put_var_double(ncid_g_prop, stretching_parameter_id, &stretching_parameter));
     NCCHECK(nc_put_var_double(ncid_g_prop, toa_id, &toa));
     NCCHECK(nc_put_var_double(ncid_g_prop, radius_id, &radius));
