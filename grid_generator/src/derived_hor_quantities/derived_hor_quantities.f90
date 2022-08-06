@@ -102,7 +102,7 @@ module derived_hor_quantities
     ! This subroutine writes out statistical properties of the grid to a text file.
     
     real(wp),         intent(in) :: pent_hex_face_unity_sphere(n_scalars_h), &
-                                    normal_distance(n_vectors_h),normal_distance_dual(n_vectors_h)
+                                    normal_distance(n_vectors),normal_distance_dual(n_dual_vectors)
     real(wp),         intent(in) :: z_vector(n_vectors),z_vector_dual(n_dual_vectors)
     character(len=1), intent(in) :: grid_name,statistics_file_name
     
