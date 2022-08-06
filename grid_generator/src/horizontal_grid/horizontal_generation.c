@@ -28,7 +28,7 @@ int generate_horizontal_generators(double latitude_ico[], double longitude_ico[]
 	    upscale_scalar_point(RES_ID, i, &test_index);
 	    if (test_index != i)
 	    {
-	        printf("problem with upscale_scalar_point detected\n");
+	        printf("Problem with upscale_scalar_point detected.\n");
 		}
 	}
 	for (int i = 0; i < N_PENTAGONS; ++i)
@@ -61,7 +61,7 @@ int generate_horizontal_generators(double latitude_ico[], double longitude_ico[]
 	            {
 	                find_triangle_edge_points_from_dual_scalar_on_face_index(k, i, j, &edgepoint_0, &edgepoint_1, &edgepoint_2, face_vertices, face_edges, face_edges_reverse);
 	                find_triangle_on_face_index_from_dual_scalar_on_face_index(k, j, &triangle_on_face_index, &points_downwards, &dump, &last_triangle_bool);
-	                find_coords_from_triangle_on_face_index(triangle_on_face_index, j, &coord_0, &coord_1, &coord_0_points_amount);
+	                find_coords_from_triangle_on_face_index(&triangle_on_face_index, &j, &coord_0, &coord_1, &coord_0_points_amount);
 	                points_per_edge = find_points_per_edge(&j);
 	                base_index_old = 0;
 	                base_index_down_triangles = 0;
@@ -191,7 +191,8 @@ int face_edges_reverse[][3], int face_vertices[][3])
             face_index = (i - N_EDGES*(POINTS_PER_EDGE + 1))/VECTOR_POINTS_PER_INNER_FACE;
             on_face_index = i - (N_EDGES*(POINTS_PER_EDGE + 1) + face_index*VECTOR_POINTS_PER_INNER_FACE);
             triangle_on_face_index = on_face_index/3;
-            find_coords_from_triangle_on_face_index(triangle_on_face_index, RES_ID, &coord_0, &coord_1, &coord_0_points_amount);
+            int res_id = RES_ID;
+            find_coords_from_triangle_on_face_index(&triangle_on_face_index, &res_id, &coord_0, &coord_1, &coord_0_points_amount);
             dual_scalar_index = dual_scalar_on_face_index + face_index*N_TRIANGLES/N_BASIC_TRIANGLES;
             triangle_face = calc_triangle_area(&latitude_scalar[point_0], &longitude_scalar[point_0], &latitude_scalar[point_1], &longitude_scalar[point_1],
             &latitude_scalar[point_2], &longitude_scalar[point_2]);
@@ -334,7 +335,8 @@ int face_edges[][3], int face_edges_reverse[][3], int face_vertices[][3])
             face_index = (i - N_EDGES*(POINTS_PER_EDGE + 1))/VECTOR_POINTS_PER_INNER_FACE;
             on_face_index = i - (N_EDGES*(POINTS_PER_EDGE + 1) + face_index*VECTOR_POINTS_PER_INNER_FACE);
             triangle_on_face_index = on_face_index/3;
-            find_coords_from_triangle_on_face_index(triangle_on_face_index, RES_ID, &coord_0, &coord_1, &coord_0_points_amount);
+            int res_id = RES_ID;
+            find_coords_from_triangle_on_face_index(&triangle_on_face_index, &res_id, &coord_0, &coord_1, &coord_0_points_amount);
             dual_scalar_index = dual_scalar_on_face_index + face_index*N_TRIANGLES/N_BASIC_TRIANGLES;
             // We want to construct a Voronoi gird, that's why we choose this function for calculating the dual cell centers.
             find_voronoi_center_sphere(&latitude_scalar[point_0], &longitude_scalar[point_0], &latitude_scalar[point_1], &longitude_scalar[point_1],
@@ -498,7 +500,8 @@ int set_from_to_index_dual(int from_index_dual[], int to_index_dual[], int face_
             on_face_index = i - (N_EDGES*(POINTS_PER_EDGE + 1) + face_index*VECTOR_POINTS_PER_INNER_FACE);
             triangle_on_face_index = on_face_index/3;
             small_triangle_edge_index = on_face_index - 3*triangle_on_face_index;
-            find_coords_from_triangle_on_face_index(triangle_on_face_index, RES_ID, &coord_0, &coord_1, &coord_0_points_amount);
+            int res_id = RES_ID;
+            find_coords_from_triangle_on_face_index(&triangle_on_face_index, &res_id, &coord_0, &coord_1, &coord_0_points_amount);
             if (small_triangle_edge_index == 0)
             {
                 from_index_dual[i] = face_index*TRIANGLES_PER_FACE + 2*triangle_on_face_index + coord_1;

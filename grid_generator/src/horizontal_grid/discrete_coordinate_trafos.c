@@ -12,54 +12,6 @@ This file contains discrete coordinate transformations on the icosahedral grid.
 #include "../../../src/game_types.h"
 #include "../grid_generator.h"
 
-int find_coords_from_triangle_on_face_index(int triangle_on_face_index, int res_id, int *coord_0, int *coord_1, int *coord_0_points_amount)
-{
-	/*
-	This function computes the discrete coordinates of a triangle from its index on face.
-	*/
-	
-    int check = 1;
-    int coord_1_pre = -1;
-    int min_index, max_index, points_per_edge;
-    points_per_edge = find_points_per_edge(&res_id);
-    max_index = -1;
-    while (check == 1)
-    {
-        ++coord_1_pre;
-        *coord_0_points_amount = points_per_edge - coord_1_pre;
-        max_index = max_index + *coord_0_points_amount;
-        min_index = max_index - (*coord_0_points_amount - 1);
-        if (triangle_on_face_index <= max_index && triangle_on_face_index >= min_index)
-        {
-            *coord_0 = triangle_on_face_index - min_index;
-            check = 0;
-        }
-    }
-    *coord_1 = coord_1_pre;
-    return 0;
-}
-
-int find_triangle_on_face_index_from_coords(int coord_0, int coord_1, int res_id, int *triangle_on_face_index)
-{
-	/*
-	This function computes the index on face of a triangle from its discrete coordinates.
-	*/
-	
-    int i = 0;
-    *triangle_on_face_index = 0;
-    int points_per_edge;
-    points_per_edge = find_points_per_edge(&res_id);
-    int coord_0_points_amount = points_per_edge;
-    while (i < coord_1)
-    {
-        *triangle_on_face_index += coord_0_points_amount;
-        coord_0_points_amount -= 1;
-        ++i;
-    }
-    *triangle_on_face_index += coord_0;
-    return 0;
-}
-
 int find_triangle_indices_from_h_vector_index(int res_id, int i, int *point_0, int *point_1, int *point_2, int *point_3, int *point_4, int *point_5,
 int *dual_scalar_on_face_index, int *small_triangle_edge_index, int face_edges[][3], int face_vertices[][3], int face_edges_reverse[][3])
 {
@@ -83,7 +35,7 @@ int find_triangle_edge_points(int triangle_on_face_index, int face_index, int re
 	*/
 	
     int coord_0, coord_1, coord_0_points_amount;
-    find_coords_from_triangle_on_face_index(triangle_on_face_index, res_id, &coord_0, &coord_1, &coord_0_points_amount);
+    find_coords_from_triangle_on_face_index(&triangle_on_face_index, &res_id, &coord_0, &coord_1, &coord_0_points_amount);
     *dual_scalar_on_face_index = 1 + 2*triangle_on_face_index + coord_1;
     int points_per_edge, scalar_points_per_inner_face;
     points_per_edge = find_points_per_edge(&res_id);
@@ -207,7 +159,7 @@ int *points_downwards, int *special_case_bool, int *last_triangle_bool)
         dual_scalar_on_face_index_2 = -1;
         dual_scalar_on_face_index_3 = -1;
         ++triangle_on_face_index_pre;
-        find_coords_from_triangle_on_face_index(triangle_on_face_index_pre, res_id, &coord_0_pre, &coord_1_pre, &coord_0_points_amount_pre);
+        find_coords_from_triangle_on_face_index(&triangle_on_face_index_pre, &res_id, &coord_0_pre, &coord_1_pre, &coord_0_points_amount_pre);
         dual_scalar_on_face_index_0 = 2*triangle_on_face_index_pre + 1 + coord_1_pre;
         dual_scalar_on_face_index_1 = dual_scalar_on_face_index_0 - 1;
         if (coord_0_pre == coord_0_points_amount_pre - 1)
@@ -261,7 +213,7 @@ int *point_0, int *point_1, int *point_2, int face_vertices[][3], int face_edges
     int points_downwards, special_case_bool, last_triangle_bool;
     int triangle_on_face_index, rhombuspoint_0, rhombuspoint_1, rhombuspoint_2, rhombuspoint_3, coord_0, coord_1, coord_0_points_amount, points_per_edge, dump, addpoint_0, addpoint_1;
     find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index, res_id, &triangle_on_face_index, &points_downwards, &special_case_bool, &last_triangle_bool);
-    find_coords_from_triangle_on_face_index(triangle_on_face_index, res_id, &coord_0, &coord_1, &coord_0_points_amount);
+    find_coords_from_triangle_on_face_index(&triangle_on_face_index, &res_id, &coord_0, &coord_1, &coord_0_points_amount);
     points_per_edge = find_points_per_edge(&res_id);
     find_triangle_edge_points(triangle_on_face_index, face_index, res_id, &rhombuspoint_0, &rhombuspoint_1, &rhombuspoint_2, &rhombuspoint_3, &addpoint_0, &addpoint_1, &dump, face_vertices, face_edges, face_edges_reverse);
     if (points_downwards == 1)
@@ -345,10 +297,11 @@ int upscale_scalar_point(int res_id, int old_index, int *new_index)
     {
         face_index = (old_index - (N_PENTAGONS + N_EDGES*points_per_edge))/scalar_points_per_inner_face;
         on_face_index = old_index - (N_PENTAGONS + N_EDGES*points_per_edge + face_index*scalar_points_per_inner_face);
-        find_coords_from_triangle_on_face_index(on_face_index + points_per_edge, res_id, &coord_0, &coord_1, &coord_0_points_amount);
+        int on_face_index_local = on_face_index + points_per_edge;
+        find_coords_from_triangle_on_face_index(&on_face_index_local, &res_id, &coord_0, &coord_1, &coord_0_points_amount);
         coord_0 = (coord_0 + 1)*pow(2, RES_ID - res_id) - 1;
         coord_1 = coord_1*pow(2, RES_ID - res_id);
-       	find_triangle_on_face_index_from_coords(coord_0, coord_1, RES_ID, &on_face_index);
+       	on_face_index = find_triangle_on_face_index_from_coords(&coord_0, &coord_1);
         *new_index = N_PENTAGONS + N_EDGES*POINTS_PER_EDGE + face_index*SCALAR_POINTS_PER_INNER_FACE + on_face_index - POINTS_PER_EDGE;
     }
     return 0;
