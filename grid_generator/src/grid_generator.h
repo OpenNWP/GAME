@@ -22,7 +22,7 @@ int calc_triangle_area_unity(double [], double [], double [], int [][3], int [][
 int set_vector_h_doubles(int [], int [], double [], double [], double [], double [], double []);
 int set_from_to_index(int [], int [], int [][3], int [][3], int [][3], int [][2]);
 int set_scalar_h_dual_coords(double [], double [], double [], double [], int [][3], int [][3], int [][3]);
-int find_adjacent_vector_indices_h(int [], int [], int [], int []);
+extern int find_adjacent_vector_indices_h();
 int set_horizontal_curl_indices(double [], double [], int [], int [], int [], double, int []);
 int rhombus_averaging(int [], int [], int [], int [], int [], int [], int [], int [], double [], double [], double [], double [], double [], double [], double [], double [], double [], double);
 int set_dual_vector_h_doubles(double [], double [], double [], double [], int [], int [], double [], double []);

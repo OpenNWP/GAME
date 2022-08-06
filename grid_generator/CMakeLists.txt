@@ -20,7 +20,6 @@ src/optimization/optimize.f90
 src/horizontal_grid/discrete_coordinate_trafos.c
 src/horizontal_grid/horizontal_generation.c
 src/derived_hor_quantities/derived_hor_quantities.f90
-src/derived_hor_quantities/find_neighbours.c
 src/foundations/geodesy.f90
 src/diff_ops/coriolis.c
 src/post_grid_generation/interpolation_ll.f90

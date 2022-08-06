@@ -8,7 +8,7 @@ module derived_hor_quantities
   use iso_c_binding
   use definitions, only: wp
   use grid_nml,    only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
-                         no_of_lloyd_iterations,radius,n_vectors,n_dual_vectors
+                         no_of_lloyd_iterations,radius,n_vectors,n_dual_vectors,n_pentagons
   use geodesy,     only: find_turn_angle,rad2deg
   use constants,   only: omega
   
@@ -18,6 +18,8 @@ module derived_hor_quantities
   
   public :: set_f_vec
   public :: calc_vorticity_indices_triangles
+  public :: write_statistics_file
+  public :: find_adjacent_vector_indices_h
   
   contains
   
@@ -167,6 +169,90 @@ module derived_hor_quantities
     close(1)
     
   end subroutine write_statistics_file
+  
+  subroutine find_adjacent_vector_indices_h(from_index,to_index,adjacent_signs_h,adjacent_vector_indices_h) &
+  bind(c,name = "find_adjacent_vector_indices_h")
+  
+    ! This subroutine finds the horizontal vectors that are adjacent to a grid cell.
+    
+    integer(c_int), intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    integer(c_int), intent(out) :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h)
+    
+    ! local variables
+    integer :: ji,jk,jl,trouble_detected,counter,no_of_edges,double_check,sign_sum_check
+    
+    trouble_detected = 0
+    
+    !$omp parallel do private(ji,jk,trouble_detected,counter)
+    do ji=1,n_scalars_h
+      counter = 1
+      do jk=1,n_vectors_h
+        if (from_index(jk)==ji-1 .or. to_index(jk)==ji-1) then
+          if (from_index(jk)==to_index(jk)) then
+            write(*,*) "It is from_index == to_index at the following grid point:", jk
+            call exit(1)
+          endif
+          adjacent_vector_indices_h(6*(ji-1)+counter) = jk-1
+          if (from_index(jk)==ji-1) then
+            adjacent_signs_h(6*(ji-1)+counter) = 1
+          endif
+          if (to_index(jk)==ji-1) then
+            adjacent_signs_h(6*(ji-1)+counter) = -1
+          endif
+          counter = counter+1
+        endif
+      enddo
+      if (counter/=7) then
+        trouble_detected = 1
+        if (counter==6 .and. ji<=n_pentagons) then
+          trouble_detected = 0
+        endif
+      endif
+      if (trouble_detected==1) then
+        write(*,*) "Trouble detected in subroutine find_adjacent_vector_indices_h, position 1."
+        call exit(1)
+      endif
+      if (ji<=n_pentagons) then
+        adjacent_vector_indices_h(6*(ji-1)+6) = -1
+        adjacent_signs_h(6*(ji-1)+6) = 0
+      endif
+    enddo
+    !$omp end parallel do
+    
+    !$omp parallel do private(ji,jk,jl,counter,no_of_edges,sign_sum_check,double_check)
+    do ji=1,n_vectors_h
+      counter = 0
+      sign_sum_check = 0
+      do jk=1,n_scalars_h
+        no_of_edges = 6
+        if (jk<=n_pentagons) then
+          no_of_edges = 5
+        endif
+        double_check = 0
+        do jl=1,no_of_edges
+          if (adjacent_vector_indices_h(6*(jk-1)+jl)==ji-1) then
+            counter = counter+1
+            double_check = double_check+1
+            sign_sum_check = sign_sum_check+adjacent_signs_h(6*(jk-1)+jl)
+          endif
+        enddo
+        if (double_check>1) then
+          write(*,*) "Same vector twice in adjacent_vector_indices_h of same grid cell."
+          call exit(1)
+        endif
+      enddo
+      if (sign_sum_check/=0) then
+        write(*,*) "Problem with adjacent_signs_h."
+        call exit(1)
+      endif
+      if (counter/=2) then
+        write(*,*) "Trouble detected in subroutine find_adjacent_vector_indices_h, position 2."
+        call exit(1)
+      endif
+    enddo
+    !$omp end parallel do
+  
+  end subroutine find_adjacent_vector_indices_h
 
 end module derived_hor_quantities
 
