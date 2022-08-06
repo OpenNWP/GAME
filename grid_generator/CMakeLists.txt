@@ -18,6 +18,7 @@ src/diff_ops/inner_product.f90
 src/optimization/optimize.c
 src/optimization/optimize.f90
 src/horizontal_grid/discrete_coordinate_trafos.c
+src/horizontal_grid/discrete_coordinate_trafos.f90
 src/horizontal_grid/horizontal_generation.c
 src/horizontal_grid/horizontal_generation.f90
 src/derived_hor_quantities/derived_hor_quantities.f90

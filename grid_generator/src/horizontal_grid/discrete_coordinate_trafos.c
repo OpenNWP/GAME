@@ -21,7 +21,7 @@ int find_coords_from_triangle_on_face_index(int triangle_on_face_index, int res_
     int check = 1;
     int coord_1_pre = -1;
     int min_index, max_index, points_per_edge;
-    points_per_edge = find_points_per_edge(res_id);
+    points_per_edge = find_points_per_edge(&res_id);
     max_index = -1;
     while (check == 1)
     {
@@ -48,7 +48,7 @@ int find_triangle_on_face_index_from_coords(int coord_0, int coord_1, int res_id
     int i = 0;
     *triangle_on_face_index = 0;
     int points_per_edge;
-    points_per_edge = find_points_per_edge(res_id);
+    points_per_edge = find_points_per_edge(&res_id);
     int coord_0_points_amount = points_per_edge;
     while (i < coord_1)
     {
@@ -86,8 +86,8 @@ int find_triangle_edge_points(int triangle_on_face_index, int face_index, int re
     find_coords_from_triangle_on_face_index(triangle_on_face_index, res_id, &coord_0, &coord_1, &coord_0_points_amount);
     *dual_scalar_on_face_index = 1 + 2*triangle_on_face_index + coord_1;
     int points_per_edge, scalar_points_per_inner_face;
-    points_per_edge = find_points_per_edge(res_id);
-    scalar_points_per_inner_face = find_scalar_points_per_inner_face(res_id);
+    points_per_edge = find_points_per_edge(&res_id);
+    scalar_points_per_inner_face = find_scalar_points_per_inner_face(&res_id);
     if (coord_1 == 0)
     {
         if (face_edges_reverse[face_index][0] == 0)
@@ -201,7 +201,7 @@ int *points_downwards, int *special_case_bool, int *last_triangle_bool)
     int triangle_on_face_index_pre, coord_0_pre, coord_1_pre, coord_0_points_amount_pre, dual_scalar_on_face_index_0,
     dual_scalar_on_face_index_1, dual_scalar_on_face_index_2, dual_scalar_on_face_index_3, points_per_edge;
     triangle_on_face_index_pre = -1;
-    points_per_edge = find_points_per_edge(res_id);
+    points_per_edge = find_points_per_edge(&res_id);
     while (value_found == 0)
     {
         dual_scalar_on_face_index_2 = -1;
@@ -262,7 +262,7 @@ int *point_0, int *point_1, int *point_2, int face_vertices[][3], int face_edges
     int triangle_on_face_index, rhombuspoint_0, rhombuspoint_1, rhombuspoint_2, rhombuspoint_3, coord_0, coord_1, coord_0_points_amount, points_per_edge, dump, addpoint_0, addpoint_1;
     find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index, res_id, &triangle_on_face_index, &points_downwards, &special_case_bool, &last_triangle_bool);
     find_coords_from_triangle_on_face_index(triangle_on_face_index, res_id, &coord_0, &coord_1, &coord_0_points_amount);
-    points_per_edge = find_points_per_edge(res_id);
+    points_per_edge = find_points_per_edge(&res_id);
     find_triangle_edge_points(triangle_on_face_index, face_index, res_id, &rhombuspoint_0, &rhombuspoint_1, &rhombuspoint_2, &rhombuspoint_3, &addpoint_0, &addpoint_1, &dump, face_vertices, face_edges, face_edges_reverse);
     if (points_downwards == 1)
     {
@@ -329,8 +329,8 @@ int upscale_scalar_point(int res_id, int old_index, int *new_index)
 	
     int edge_index, face_index;
     int points_per_edge, on_edge_index, scalar_points_per_inner_face, on_face_index, coord_0, coord_1, coord_0_points_amount;
-    points_per_edge = find_points_per_edge(res_id);
-    scalar_points_per_inner_face = find_scalar_points_per_inner_face(res_id);
+    points_per_edge = find_points_per_edge(&res_id);
+    scalar_points_per_inner_face = find_scalar_points_per_inner_face(&res_id);
     if (old_index < N_PENTAGONS)
     {
         *new_index = old_index;
@@ -476,25 +476,6 @@ int find_v_vector_indices_for_dual_scalar_z(int from_index[], int to_index[], in
 		exit(1);
 	}
 	return 0;
-}
-
-int find_points_per_edge(int res_id)
-{
-	/*
-	This function returns the points per edge (centers of hexagons) given a certain resolution ID.
-	*/
-    int points_per_edge = (int) (pow(2, res_id) - 1);
-    return points_per_edge;
-}
-
-int find_scalar_points_per_inner_face(int res_id)
-{
-	/*
-	This function returns the number of scalar data points (centers of hexagons) in the inner of a face
-	of the icosahedron given a certain resolution ID.
-	*/
-    int scalar_points_per_inner_face = (int) (0.5*(pow(2, res_id) - 2)*(pow(2, res_id) - 1));
-    return scalar_points_per_inner_face;
 }
 
 int build_icosahedron(double latitude_ico[], double longitude_ico[], int edge_vertices[][2], int face_vertices[][3], int face_edges[][3], int face_edges_reverse[][3])

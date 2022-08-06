@@ -62,7 +62,7 @@ int generate_horizontal_generators(double latitude_ico[], double longitude_ico[]
 	                find_triangle_edge_points_from_dual_scalar_on_face_index(k, i, j, &edgepoint_0, &edgepoint_1, &edgepoint_2, face_vertices, face_edges, face_edges_reverse);
 	                find_triangle_on_face_index_from_dual_scalar_on_face_index(k, j, &triangle_on_face_index, &points_downwards, &dump, &last_triangle_bool);
 	                find_coords_from_triangle_on_face_index(triangle_on_face_index, j, &coord_0, &coord_1, &coord_0_points_amount);
-	                points_per_edge = find_points_per_edge(j);
+	                points_per_edge = find_points_per_edge(&j);
 	                base_index_old = 0;
 	                base_index_down_triangles = 0;
 	                base_index_up_triangles = base_index_down_triangles + 4*points_per_edge + 3;

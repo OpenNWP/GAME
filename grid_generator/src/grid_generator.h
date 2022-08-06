@@ -5,8 +5,8 @@ Github repository: https://github.com/OpenNWP/GAME
 
 int find_triangle_on_face_index_from_dual_scalar_on_face_index(int, int, int *, int *, int *, int *);
 int find_triangle_edge_points_from_dual_scalar_on_face_index(int, int, int, int *, int *, int *, int [][3], int face_edges[][3], int face_edges_reverse[][3]);
-int find_points_per_edge(int);
-int find_scalar_points_per_inner_face(int);
+extern int find_points_per_edge();
+extern int find_scalar_points_per_inner_face();
 int upscale_scalar_point(int, int, int *);
 int write_scalar_coordinates(int, int, int, int, int, int, int, double [], double [], double [], double [], double []);
 int find_v_vector_indices_for_dual_scalar_z(int [], int [], int [], int, int []);
