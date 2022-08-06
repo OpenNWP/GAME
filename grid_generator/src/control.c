@@ -196,6 +196,9 @@ int main(int argc, char *argv[])
 	{
 		optimize_to_scvt(latitude_scalar, longitude_scalar, latitude_scalar_dual, longitude_scalar_dual, n_lloyd_iterations,
 		face_edges, face_edges_reverse, face_vertices, adjacent_vector_indices_h, from_index_dual, to_index_dual);
+	}
+    if (use_scalar_h_file == 1)
+    {
 		n_lloyd_iterations = n_lloyd_read_from_file + n_lloyd_iterations;
 	}
 	
