@@ -9,9 +9,9 @@
 # See handbook for more information.
 
 res_id=5 # the resolution ID (also needs to be set in src/game_types.h)
-oro_id=1 # The orography ID. A corresponding file must exist in surface_generator/surface_files.
-n_iterations=0 # The number of iterations to be used for the optimization.
-use_scalar_h_coords_file=1 # If this is set to one, the horizontal coordinates of the grid points will be read from the file specified in the next line.
+oro_id=0 # The orography ID. A corresponding file must exist in surface_generator/surface_files.
+n_iterations=1 # The number of iterations to be used for the optimization.
+use_scalar_h_coords_file=2000 # If this is set to one, the horizontal coordinates of the grid points will be read from the file specified in the next line.
 scalar_h_coords_file="grids/RES${res_id}_L26_ORO0.nc" # File used for reading horizontal coordinates of grid points, if use_scalar_h_coords_file == 1.
 stretching_parameter=1.3 # stretching parameter of the vertical grid, must be >= 1, 1: no stretching
 toa=41152 # height of the top of the atmosphere
