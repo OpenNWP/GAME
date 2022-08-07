@@ -10,6 +10,13 @@ module definitions
   private
   
   public :: wp
+  public :: t_grid
+  public :: t_dual_grid
+  public :: t_state
+  public :: t_diag
+  public :: t_radiation
+  public :: t_forcings
+  public :: t_irrev
   
   ! setting the floating pointeger :: precision
   ! single precision
@@ -97,7 +104,7 @@ module definitions
   
   end type t_state
   
-  type t_diagnostics
+  type t_diag
     
     real(wp), allocatable :: flux_density(:)
     real(wp), allocatable :: flux_density_div(:)
@@ -123,7 +130,7 @@ module definitions
     real(wp), allocatable :: roughness_velocity(:)
     real(wp), allocatable :: monin_obukhov_length(:)
   
-  end type t_diagnostics
+  end type t_diag
   
   type t_radiation
     
@@ -154,6 +161,29 @@ module definitions
     real(wp), allocatable :: radiation_tendency(:)
   
   end type t_forcings
+  
+  type t_irrev
+    
+    real(wp), allocatable :: temperature_diffusion_heating(:)
+    real(wp), allocatable :: friction_acc(:)
+    real(wp), allocatable :: heating_diss(:)
+    real(wp), allocatable :: molecular_diffusion_coeff(:)
+    real(wp), allocatable :: mass_diffusion_coeff_numerical_h(:)
+    real(wp), allocatable :: mass_diffusion_coeff_numerical_v(:)
+    real(wp), allocatable :: temp_diffusion_coeff_numerical_h(:)
+    real(wp), allocatable :: temp_diffusion_coeff_numerical_v(:)
+    real(wp), allocatable :: pressure_gradient_decel_factor(:)
+    real(wp), allocatable :: condensates_sediment_heat(:)
+    real(wp), allocatable :: mass_diff_tendency(:)
+    real(wp), allocatable :: phase_trans_rates(:)
+    real(wp), allocatable :: phase_trans_heating_rate(:)
+    real(wp), allocatable :: viscosity(:)
+    real(wp), allocatable :: viscosity_rhombi(:)
+    real(wp), allocatable :: viscosity_triangles(:)
+    real(wp), allocatable :: vert_hor_viscosity(:)
+    real(wp), allocatable :: tke(:)
+  
+  end type t_irrev
 
 end module definitions
 
