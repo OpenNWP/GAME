@@ -640,7 +640,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	div_h(state_write_out -> wind, *div_h_all_layers, grid);
 	calc_rel_vort(state_write_out -> wind, diagnostics, grid, dualgrid);
     Scalar_field *rel_vort = calloc(1, sizeof(Scalar_field));
-	curl_field_to_cells(diagnostics -> rel_vort, *rel_vort, grid);
+	curl_field_to_cells(diagnostics -> rel_vort, *rel_vort, grid -> adjacent_vector_indices_h, grid -> inner_product_weights);
 	
 	// Diagnozing the u and v wind components at the vector points.
 	calc_uv_at_edge(state_write_out -> wind, diagnostics -> u_at_edge, diagnostics -> v_at_edge, grid -> trsk_indices, grid -> trsk_weights, grid -> direction);

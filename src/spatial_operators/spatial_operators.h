@@ -27,7 +27,7 @@ extern int calc_uv_at_edge();
 extern double vertical_contravariant_corr();
 extern double remap_verpri2horpri_vector();
 extern double horizontal_covariant();
-int curl_field_to_cells(Curl_field, Scalar_field, Grid *);
+extern int curl_field_to_cells();
 extern int edges_to_cells();
 int hor_momentum_diffusion(State *, Diagnostics *, Irreversible_quantities*, Config *, Grid *, Dualgrid *);
 int vert_momentum_diffusion(State *, Diagnostics *, Irreversible_quantities*, Grid *, Config *, double);
