@@ -147,43 +147,6 @@ int div_h_tracer(Vector_field in_field, Scalar_field density_field, Vector_field
     return 0;
 }
 
-int add_vertical_div(Vector_field in_field, Scalar_field out_field, Grid *grid)
-{
-	/*
-	This adds the divergence of the vertical component of a vector field to the input scalar field.	
-	*/
-	
-    int i;
-    double contra_upper, contra_lower, comp_v;
-	#pragma omp parallel for private (i, contra_upper, contra_lower, comp_v)
-    for (int h_index = 0; h_index < N_SCALS_H; ++h_index)
-    {
-    	for (int layer_index = 0; layer_index < N_LAYERS; ++layer_index)
-    	{
-    		i = layer_index*N_SCALS_H + h_index;
-		    if (layer_index == 0)
-		    {
-		    	contra_upper = 0;
-		    	contra_lower = in_field[h_index + (layer_index + 1)*N_VECS_PER_LAYER];
-		    }
-		    else if (layer_index == N_LAYERS - 1)
-		    {
-		        contra_upper = in_field[h_index + layer_index*N_VECS_PER_LAYER];
-		        contra_lower = 0;
-		    }
-		    else
-		    {
-		        contra_upper = in_field[h_index + layer_index*N_VECS_PER_LAYER];
-		        contra_lower = in_field[h_index + (layer_index + 1)*N_VECS_PER_LAYER];
-		    }
-			comp_v = contra_upper*grid -> area[h_index + layer_index*N_VECS_PER_LAYER]
-			- contra_lower*grid -> area[h_index + (layer_index + 1)*N_VECS_PER_LAYER];
-		    out_field[i] += 1/grid -> volume[i]*comp_v;
-    	}
-    }
-    return 0;
-}
-
 
 
 

@@ -60,7 +60,7 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 	    if (config -> temperature_diff_v == 1)
 	    {
 	    	scalar_times_vector_v(irrev -> temp_diffusion_coeff_numerical_v, diagnostics -> vector_field_placeholder, diagnostics -> flux_density, grid);
-	    	add_vertical_div(diagnostics -> flux_density, irrev -> temperature_diffusion_heating, grid);
+	    	add_vertical_div(diagnostics -> flux_density, irrev -> temperature_diffusion_heating, grid -> area, grid -> volume);
 		}
 	}
 	
@@ -82,7 +82,7 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 			if (config -> mass_diff_v == 1)
 			{
 				scalar_times_vector_v(irrev -> mass_diffusion_coeff_numerical_v, diagnostics -> vector_field_placeholder, diagnostics -> vector_field_placeholder, grid);
-				add_vertical_div(diagnostics -> vector_field_placeholder, &irrev -> mass_diff_tendency[scalar_shift_index], grid);
+				add_vertical_div(diagnostics -> vector_field_placeholder, &irrev -> mass_diff_tendency[scalar_shift_index], grid -> area, grid -> volume);
 			}
 		}
 	}
