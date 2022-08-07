@@ -11,22 +11,12 @@ This file contains the gradient operators.
 #include "../game_types.h"
 #include "spatial_operators.h"
 
-int grad_cov(Scalar_field in_field, Vector_field out_field, Grid *grid)
-{
-	/*
-	calculates the covariant gradient
-	*/
-	grad_hor_cov(in_field, out_field, grid -> from_index, grid -> to_index, grid -> normal_distance);
-	grad_vert_cov(in_field, out_field, grid -> normal_distance);
-    return 0;
-}
-
 int grad(Scalar_field in_field, Vector_field out_field, Grid *grid)
 {
 	/*
 	calculates the gradient (horizontally contravariant, vertically covariant)
 	*/
-	grad_cov(in_field, out_field, grid);
+	grad_cov(in_field, out_field, grid -> from_index, grid -> to_index, grid -> normal_distance);
 	vector_field_hor_cov_to_con(out_field, grid);
     return 0;
 }

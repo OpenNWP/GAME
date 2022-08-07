@@ -16,6 +16,7 @@ module gradient_operators
   
   public :: grad_hor_cov
   public :: grad_vert_cov
+  public :: grad_cov
   
   contains
 
@@ -71,7 +72,25 @@ module gradient_operators
     enddo
     !$omp end parallel do
   
-  end subroutine grad_vert_cov
+  end subroutine grad_vert_cov  
+  
+  subroutine grad_cov(in_field,out_field,from_index,to_index,normal_distance) &
+  bind(c,name = "grad_cov")
+  
+    ! This subroutine calculates the horizontal covariant gradient
+    
+    real(wp),       intent(in)  :: in_field(n_scalars)
+    real(wp),       intent(out) :: out_field(n_vectors)
+    integer(c_int), intent(in)  :: from_index(n_vectors_h)
+    integer(c_int), intent(in)  :: to_index(n_vectors_h)
+    real(wp),       intent(in)  :: normal_distance(n_vectors)
+    
+    ! This subroutine calculates the covariant gradient.
+    
+    call grad_hor_cov(in_field,out_field,from_index,to_index,normal_distance)
+    call grad_vert_cov(in_field,out_field,normal_distance)
+  
+  end subroutine grad_cov
 
 end module gradient_operators
 
