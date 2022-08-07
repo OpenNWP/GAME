@@ -12,26 +12,6 @@ In this file, algebraic multiplications of fields are collected.
 #include "spatial_operators.h"
 #include "../constituents/constituents.h"
 
-int scalar_times_scalar(Scalar_field in_field_0, Scalar_field in_field_1, Scalar_field out_field)
-{
-	#pragma omp parallel for
-    for (int i = 0; i < N_SCALARS; ++i)
-    {
-    	out_field[i] = in_field_0[i]*in_field_1[i];
-	}
-    return 0;
-}
-
-int vector_times_vector(Vector_field in_field_0, Vector_field in_field_1, Vector_field out_field)
-{
-	#pragma omp parallel for
-    for (int i = 0; i < N_VECTORS; ++i)
-    {
-    	out_field[i] = in_field_0[i]*in_field_1[i];
-	}
-    return 0;
-}
-
 int scalar_times_vector(Scalar_field scalar_field, Vector_field vector_field, Vector_field out_field, Grid *grid)
 {
 	/*

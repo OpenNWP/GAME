@@ -122,7 +122,11 @@ int hor_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible_
 	/*
 	diagonal component
 	*/
-	scalar_times_scalar(irrev -> viscosity, diagnostics -> wind_div, diagnostics -> wind_div);
+	#pragma omp parallel for
+	for (int i = 0; i < N_SCALARS; ++i)
+	{
+		diagnostics -> wind_div[i] = irrev -> viscosity[i]*diagnostics -> wind_div[i];
+	}
 	grad_hor(diagnostics -> wind_div, diagnostics -> vector_field_placeholder, grid -> from_index, grid -> to_index, grid -> normal_distance, grid -> inner_product_weights, grid -> slope);
     
     /*

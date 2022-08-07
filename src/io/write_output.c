@@ -126,15 +126,27 @@ int write_out_integral(State *state_write_out, double time_since_init, Grid *gri
 		{
 			diagnostics -> scalar_field_placeholder[i] = state_write_out -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i];
 		}
-    	scalar_times_scalar(diagnostics -> scalar_field_placeholder, *e_kin_density, *e_kin_density);
+		#pragma omp parallel for
+		for (int i = 0; i < N_SCALARS; ++i)
+		{
+			(*e_kin_density)[i] = diagnostics -> scalar_field_placeholder[i]*(*e_kin_density)[i];
+		}
     	kinetic_integral = global_scalar_integrator(*e_kin_density, grid);
     	free(e_kin_density);
     	Scalar_field *pot_energy_density = malloc(sizeof(Scalar_field));
-    	scalar_times_scalar(diagnostics -> scalar_field_placeholder, grid -> gravity_potential, *pot_energy_density);
+		#pragma omp parallel for
+		for (int i = 0; i < N_SCALARS; ++i)
+		{
+			(*pot_energy_density)[i] = diagnostics -> scalar_field_placeholder[i]*grid -> gravity_potential[i];
+		}
     	potential_integral = global_scalar_integrator(*pot_energy_density, grid);
     	free(pot_energy_density);
     	Scalar_field *int_energy_density = malloc(sizeof(Scalar_field));
-    	scalar_times_scalar(diagnostics -> scalar_field_placeholder, diagnostics -> temperature, *int_energy_density);
+		#pragma omp parallel for
+		for (int i = 0; i < N_SCALARS; ++i)
+		{
+			(*int_energy_density)[i] = diagnostics -> scalar_field_placeholder[i]*diagnostics -> temperature[i];
+		}
     	internal_integral = global_scalar_integrator(*int_energy_density, grid);
     	fprintf(global_integral_file, "%lf\t%lf\t%lf\t%lf\n", time_since_init, 0.5*kinetic_integral, potential_integral, C_D_V*internal_integral);
     	free(int_energy_density);
