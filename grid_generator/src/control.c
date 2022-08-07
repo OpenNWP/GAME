@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
 	set_scalar_h_dual_coords(latitude_scalar_dual, longitude_scalar_dual, latitude_scalar, longitude_scalar, face_edges, face_edges_reverse, face_vertices);
 	
 	// calculation of the horizontal coordinates of the vector points
-	set_vector_h_doubles(from_index, to_index, latitude_scalar, longitude_scalar, latitude_vector, longitude_vector, direction);
+	set_vector_h_attributes(from_index, to_index, latitude_scalar, longitude_scalar, latitude_vector, longitude_vector, direction);
 	
 	// Same as before, but for dual vectors. They have the same positions as the primal vectors.
 	set_dual_vector_h_atttributes(latitude_scalar_dual, latitude_vector, direction_dual, longitude_vector,

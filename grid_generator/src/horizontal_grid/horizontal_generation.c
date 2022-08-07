@@ -244,28 +244,6 @@ int face_edges_reverse[][3], int face_vertices[][3])
     return 0;
 }
 
-int set_vector_h_doubles(int from_index[], int to_index[], double latitude_scalar[], double longitude_scalar[], double latitude_vector[], double longitude_vector[], double direction[])
-{
-	/*
-	This function sets the geographical coordinates and the directions of the horizontal vector points.
-	*/
-	
-	double x_point_0, y_point_0, z_point_0, x_point_1, y_point_1, z_point_1, x_res, y_res, z_res, lat_res, lon_res;
-	#pragma omp parallel for private(x_point_0, y_point_0, z_point_0, x_point_1, y_point_1, z_point_1, x_res, y_res, z_res, lat_res, lon_res)
-    for (int i = 0; i < N_VECS_H; ++i)
-    {
-        find_global_normal(&latitude_scalar[from_index[i]], &longitude_scalar[from_index[i]], &x_point_0, &y_point_0, &z_point_0);
-        find_global_normal(&latitude_scalar[to_index[i]], &longitude_scalar[to_index[i]], &x_point_1, &y_point_1, &z_point_1);
-        double half = 0.5;
-        find_between_point(&x_point_0, &y_point_0, &z_point_0, &x_point_1, &y_point_1, &z_point_1, &half, &x_res, &y_res, &z_res);
-        find_geos(&x_res, &y_res, &z_res, &lat_res, &lon_res);
-        latitude_vector[i] = lat_res;
-        longitude_vector[i] = lon_res;
-        direction[i] = find_geodetic_direction(&latitude_scalar[from_index[i]], &longitude_scalar[from_index[i]], &latitude_scalar[to_index[i]], &longitude_scalar[to_index[i]], &half);
-    }
-	return 0;
-}
-
 int set_from_to_index(int from_index[], int to_index[], int face_edges[][3], int face_edges_reverse[][3], int face_vertices[][3], int edge_vertices[][2])
 {
 	/*

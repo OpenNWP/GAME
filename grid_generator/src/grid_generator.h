@@ -19,7 +19,7 @@ int generate_horizontal_generators(double [], double [], double [], double [], d
 int coriolis(int [], int [], int [], double [], double [], int [], double [], double [], double [], double [], double [], double [], double [], double [], double [], int [], int [], int [], double [], double [], double);
 int calc_cell_area_unity(double [], double [], double [], int [], int []);
 int calc_triangle_area_unity(double [], double [], double [], int [][3], int [][3], int [][3]);
-int set_vector_h_doubles(int [], int [], double [], double [], double [], double [], double []);
+extern int set_vector_h_attributes();
 int set_from_to_index(int [], int [], int [][3], int [][3], int [][3], int [][2]);
 int set_scalar_h_dual_coords(double [], double [], double [], double [], int [][3], int [][3], int [][3]);
 extern int find_adjacent_vector_indices_h();

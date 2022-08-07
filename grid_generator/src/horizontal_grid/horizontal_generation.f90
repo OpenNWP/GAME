@@ -11,13 +11,15 @@ module horizontal_generation
   use definitions,         only: wp
   use grid_nml,            only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
                                  no_of_lloyd_iterations,n_vectors,n_dual_vectors
-  use geodesy,             only: rel_on_line,find_geodetic_direction,find_between_point,normalize_cartesian,find_geos
+  use geodesy,             only: rel_on_line,find_geodetic_direction,find_between_point,normalize_cartesian,find_geos, &
+                                 find_global_normal
   
   implicit none
   
   private
   
   public :: set_scalar_coordinates
+  public :: set_vector_h_attributes
   public :: set_dual_vector_h_atttributes
   public :: read_horizontal_explicit
   
@@ -105,6 +107,35 @@ module horizontal_generation
     endif
   
   end subroutine set_scalar_coordinates
+
+  subroutine set_vector_h_attributes(from_index,to_index,latitude_scalar,longitude_scalar, &
+                                     latitude_vector,longitude_vector,direction) &
+  bind(c,name = "set_vector_h_attributes")
+    
+    ! This subroutine sets the geographical coordinates and the directions of the horizontal vector points.
+    
+    integer(c_int), intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    real(wp),       intent(in)  :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
+    real(wp),       intent(out) :: latitude_vector(n_vectors_h),longitude_vector(n_vectors_h),direction(n_vectors_h)
+    
+    ! local variables
+    integer  :: ji
+    real(wp) :: x_point_0,y_point_0,z_point_0,x_point_1,y_point_1,z_point_1,x_res,y_res,z_res,lat_res,lon_res
+
+    !$omp parallel do private(ji,x_point_0,y_point_0,z_point_0,x_point_1,y_point_1,z_point_1,x_res,y_res,z_res,lat_res,lon_res)
+    do ji=1,n_vectors_h
+      call find_global_normal(latitude_scalar(1+from_index(ji)),longitude_scalar(1+from_index(ji)),x_point_0,y_point_0,z_point_0)
+      call find_global_normal(latitude_scalar(1+to_index(ji)),longitude_scalar(1+to_index(ji)),x_point_1,y_point_1,z_point_1)
+      call find_between_point(x_point_0,y_point_0,z_point_0,x_point_1,y_point_1,z_point_1,0.5_wp,x_res,y_res,z_res)
+      call find_geos(x_res,y_res,z_res,lat_res,lon_res)
+      latitude_vector(ji) = lat_res
+      longitude_vector(ji) = lon_res
+      direction(ji) = find_geodetic_direction(latitude_scalar(1+from_index(ji)),longitude_scalar(1+from_index(ji)), &
+                                              latitude_scalar(1+to_index(ji)),longitude_scalar(1+to_index(ji)),0.5_wp)
+    enddo
+    !$omp end parallel do
+    
+  end subroutine set_vector_h_attributes
   
   subroutine set_dual_vector_h_atttributes(latitude_scalar_dual,latitude_vector,direction_dual,longitude_vector,to_index_dual, &
                                        from_index_dual,longitude_scalar_dual,rel_on_line_dual) &
