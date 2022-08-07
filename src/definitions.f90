@@ -4,7 +4,9 @@
 module definitions
 
   ! This file contains some definitions.
-                            
+  
+  use iso_c_binding
+  
   implicit none
   
   private
@@ -33,7 +35,7 @@ module definitions
   integer, parameter :: wp = dp                        ! working precission
   
   type t_grid
-  
+    
     real(wp), allocatable :: normal_distance(:)
     real(wp), allocatable :: volume(:)
     real(wp), allocatable :: area(:)

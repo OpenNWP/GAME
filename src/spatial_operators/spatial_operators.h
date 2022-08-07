@@ -3,7 +3,7 @@ This source file is part of the Geophysical Fluids Modeling Framework (GAME), wh
 Github repository: https://github.com/OpenNWP/GAME
 */
 
-int grad_hor_cov(Scalar_field, Vector_field, Grid *);
+extern int grad_hor_cov();
 int grad_vert_cov(Scalar_field, Vector_field, Grid *);
 int vector_field_hor_cov_to_con(Vector_field, Grid *);
 int grad_cov(Scalar_field, Vector_field, Grid *);

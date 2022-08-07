@@ -11,27 +11,6 @@ This file contains the gradient operators.
 #include "../game_types.h"
 #include "spatial_operators.h"
 
-int grad_hor_cov(Scalar_field in_field, Vector_field out_field, Grid *grid)
-{
-	/*
-	calculates the horizontal covariant gradient
-    */
-    int vector_index;
-	#pragma omp parallel for private(vector_index)
-    for (int h_index = 0; h_index < N_VECS_H; ++h_index)
-    {
-		for (int layer_index = 0; layer_index < N_LAYERS; ++layer_index)
-		{
-		    vector_index = N_SCALS_H + layer_index*N_VECS_PER_LAYER + h_index;
-		    out_field[vector_index]
-		    = (in_field[grid -> to_index[h_index] + layer_index*N_SCALS_H]
-		    - in_field[grid -> from_index[h_index] + layer_index*N_SCALS_H])
-		    /grid -> normal_distance[vector_index];
-        }
-    }
-    return 0;
-}
-
 int grad_vert_cov(Scalar_field in_field, Vector_field out_field, Grid *grid)
 {
 	/*
@@ -58,7 +37,7 @@ int grad_cov(Scalar_field in_field, Vector_field out_field, Grid *grid)
 	/*
 	calculates the covariant gradient
 	*/
-	grad_hor_cov(in_field, out_field, grid);
+	grad_hor_cov(in_field, out_field, grid -> from_index, grid -> to_index, grid -> normal_distance);
 	grad_vert_cov(in_field, out_field, grid);
     return 0;
 }

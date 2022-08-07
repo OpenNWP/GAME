@@ -27,6 +27,7 @@ src/spatial_operators/momentum_diff_diss.c
 src/spatial_operators/divergences.c
 src/spatial_operators/multiplications.c
 src/spatial_operators/gradient_operators.c
+src/spatial_operators/gradient_operators.f90
 src/spatial_operators/inner_product.c
 src/spatial_operators/averaging.c
 src/spatial_operators/linear_combine_two_states.c
