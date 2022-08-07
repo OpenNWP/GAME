@@ -277,7 +277,7 @@ int set_ideal_init(State *state, Grid* grid, Dualgrid* dualgrid, Diagnostics *di
 	vorticity_flux(diagnostics -> flux_density, diagnostics -> pot_vort, forcings -> pot_vort_tend, grid, dualgrid);
 	
 	// Kinetic energy is prepared for the gradient term of the Lamb transformation.
-	inner_product(state -> wind, state -> wind, diagnostics -> v_squared, grid);
+	inner_product(state -> wind, state -> wind, diagnostics -> v_squared, grid -> adjacent_vector_indices_h, grid -> inner_product_weights);
     // density is determined out of the hydrostatic equation
     int scalar_index;
     double b, c;

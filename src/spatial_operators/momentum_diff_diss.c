@@ -295,7 +295,7 @@ int simple_dissipation_rate(State *state, Irreversible_quantities *irrev, Grid *
 	/*
 	calculates a simplified dissipation rate
 	*/
-	inner_product(state -> wind, irrev -> friction_acc, irrev -> heating_diss, grid);
+	inner_product(state -> wind, irrev -> friction_acc, irrev -> heating_diss, grid -> adjacent_vector_indices_h, grid -> inner_product_weights);
 	#pragma omp parallel for
 	for (int i = 0; i < N_SCALARS; ++i)
 	{

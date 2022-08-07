@@ -23,7 +23,7 @@ int scalar_times_vector_h_upstream(Scalar_field, Vector_field, Vector_field, Gri
 int scalar_times_vector_v(Scalar_field, Vector_field, Vector_field, Grid *);
 int vector_times_vector(Vector_field, Vector_field, Vector_field);
 int linear_combine_two_states(State *, State *, State *, double, double, Grid *);
-int inner_product(Vector_field, Vector_field, Scalar_field, Grid *);
+extern int inner_product();
 int tangential_wind(Vector_field, int, int, double *, Grid *);
 int calc_uv_at_edge(Vector_field, Vector_field, Vector_field, Grid *);
 int vertical_contravariant_corr(Vector_field, int, int, Grid *, double *);

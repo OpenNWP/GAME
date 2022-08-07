@@ -21,7 +21,7 @@ int tke_update(Irreversible_quantities *irrev, double delta_t, State *state, Dia
 	
 	// computing the advection
 	grad(irrev -> tke, diagnostics -> vector_field_placeholder, grid);
-	inner_product(diagnostics -> vector_field_placeholder, state -> wind, diagnostics -> scalar_field_placeholder, grid);
+	inner_product(diagnostics -> vector_field_placeholder, state -> wind, diagnostics -> scalar_field_placeholder, grid -> adjacent_vector_indices_h, grid -> inner_product_weights);
 	
 	double decay_constant;
 	// loop over all scalar gridpoints

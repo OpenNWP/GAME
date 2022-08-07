@@ -119,7 +119,7 @@ int write_out_integral(State *state_write_out, double time_since_init, Grid *gri
     	double kinetic_integral, potential_integral, internal_integral;
     	global_integral_file = fopen(INTEGRAL_FILE, "a");
     	Scalar_field *e_kin_density = malloc(sizeof(Scalar_field));
-    	inner_product(state_write_out -> wind, state_write_out -> wind, *e_kin_density, grid);
+    	inner_product(state_write_out -> wind, state_write_out -> wind, *e_kin_density, grid -> adjacent_vector_indices_h, grid -> inner_product_weights);
 		#pragma omp parallel for
 		for (int i = 0; i < N_SCALARS; ++i)
 

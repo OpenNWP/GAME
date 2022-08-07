@@ -632,7 +632,7 @@ int main(int argc, char *argv[])
     	}
     }
 	temperature_diagnostics(state_old, grid, diagnostics);
-	inner_product(state_old -> wind, state_old -> wind, diagnostics -> v_squared, grid);
+	inner_product(state_old -> wind, state_old -> wind, diagnostics -> v_squared, grid -> adjacent_vector_indices_h, grid -> inner_product_weights);
 	
 	// time coordinate of the old RK step
     double t_0;
