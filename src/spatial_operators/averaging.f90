@@ -31,18 +31,18 @@ module averaging
     component &
     ! layer above
     = inner_product_weights(8*(layer_index*n_scalars_h + from_index(1+h_index)) + 7) &
-    *vector_field(layer_index*n_vectors_per_layer + from_index(1+h_index))
+    *vector_field(layer_index*n_vectors_per_layer + 1 + from_index(1+h_index))
     component = component &
     + inner_product_weights(8*(layer_index*n_scalars_h + to_index(1+h_index)) + 7) &
-    *vector_field(layer_index*n_vectors_per_layer + to_index(1+h_index))
+    *vector_field(layer_index*n_vectors_per_layer + 1 + to_index(1+h_index))
     ! layer below
     if (layer_index<n_layers-1) then
       component = component &
       + inner_product_weights(8*(layer_index*n_scalars_h + from_index(1+h_index)) + 8) &
-      *vector_field((layer_index + 1)*n_vectors_per_layer + from_index(1+h_index))
+      *vector_field((layer_index + 1)*n_vectors_per_layer + 1 + from_index(1+h_index))
       component = component &
       + inner_product_weights(8*(layer_index*n_scalars_h + to_index(1+h_index)) + 8) &
-      *vector_field((layer_index + 1)*n_vectors_per_layer + to_index(1+h_index))
+      *vector_field((layer_index + 1)*n_vectors_per_layer + 1 + to_index(1+h_index))
     endif
     ! horizontal average
     component = 0.5_wp*component
