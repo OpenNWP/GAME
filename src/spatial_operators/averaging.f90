@@ -8,18 +8,76 @@ module averaging
   use iso_c_binding
   use definitions, only: wp
   use grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer, &
-                         n_v_vectors,n_oro_layers
+                         n_v_vectors,n_oro_layers,n_pentagons
 
   implicit none
   
   private
   
+  public :: vertical_contravariant_corr
   public :: remap_verpri2horpri_vector
   public :: vector_field_hor_cov_to_con
   public :: tangential_wind
   public :: horizontal_covariant
 
   contains
+
+  function vertical_contravariant_corr(vector_field,layer_index,h_index,adjacent_vector_indices_h,inner_product_weights,slope) &
+  bind(c,name = "vertical_contravariant_corr")
+  
+    ! This function calculates (the vertical contravariant component - the vertical covariant component)
+    ! of a vector field out of the horizontal contravariant components.
+    
+    ! Attention: adjacent_signs_h appears twice, thus does not need to be taken into account.
+    
+    real(wp),       intent(in) :: vector_field(n_vectors),inner_product_weights(8*n_scalars),slope(n_vectors)
+    integer(c_int), intent(in) :: layer_index,h_index,adjacent_vector_indices_h(6*n_scalars_h)
+    real(wp)                   :: vertical_contravariant_corr
+    
+    ! local variables
+    integer :: ji,scalar_index,vector_index,n_edges
+    
+    vertical_contravariant_corr = 0._wp
+    
+    n_edges = 6
+    
+    if (h_index<n_pentagons) then
+      n_edges = 5
+    endif
+    if (layer_index>=n_layers-n_oro_layers) then
+      if (layer_index==n_layers-n_oro_layers) then
+        do ji=1,n_edges
+          scalar_index = layer_index*n_scalars_h + h_index
+          vector_index = n_scalars_h + layer_index*n_vectors_per_layer + 1+adjacent_vector_indices_h(6*h_index + ji)
+          vertical_contravariant_corr = vertical_contravariant_corr &
+          -0.5 &
+          *inner_product_weights(8*scalar_index + ji) &
+          *slope(vector_index) &
+          *vector_field(vector_index)
+        enddo
+      else
+        do ji=1,n_edges
+          scalar_index = (layer_index - 1)*n_scalars_h + h_index
+          vector_index = n_scalars_h + (layer_index - 1)*n_vectors_per_layer + 1+adjacent_vector_indices_h(6*h_index + ji)
+          vertical_contravariant_corr = vertical_contravariant_corr &
+          -0.5 &
+          *inner_product_weights(8*scalar_index + ji) &
+          *slope(vector_index) &
+          *vector_field(vector_index)
+        enddo
+        do ji=1,n_edges
+          scalar_index = layer_index*n_scalars_h + h_index
+          vector_index = n_scalars_h + layer_index*n_vectors_per_layer + 1+adjacent_vector_indices_h(6*h_index + ji)
+          vertical_contravariant_corr = vertical_contravariant_corr &
+          -0.5 &
+          *inner_product_weights(8*scalar_index + ji) &
+          *slope(vector_index) &
+          *vector_field(vector_index)
+        enddo
+      endif
+    endif
+  
+  end function vertical_contravariant_corr
 
   function remap_verpri2horpri_vector(vector_field,layer_index,h_index,from_index,to_index,inner_product_weights) &
   bind(c,name = "remap_verpri2horpri_vector")

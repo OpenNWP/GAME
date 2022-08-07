@@ -24,7 +24,7 @@ int linear_combine_two_states(State *, State *, State *, double, double, Grid *)
 extern int inner_product();
 extern double tangential_wind();
 int calc_uv_at_edge(Vector_field, Vector_field, Vector_field, Grid *);
-int vertical_contravariant_corr(Vector_field, int, int, Grid *, double *);
+extern double vertical_contravariant_corr();
 extern double remap_verpri2horpri_vector();
 extern double horizontal_covariant();
 int curl_field_to_cells(Curl_field, Scalar_field, Grid *);

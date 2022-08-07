@@ -41,18 +41,20 @@ int div_h(Vector_field in_field, Scalar_field out_field, Grid *grid)
 		    comp_v = 0.0;
 		    if (layer_index == N_LAYERS - grid -> no_of_oro_layers - 1)
 		    {
-		        vertical_contravariant_corr(in_field, layer_index + 1, h_index, grid, &contra_lower);
+		    	int layer_index_p1 = layer_index + 1;
+		        contra_lower = vertical_contravariant_corr(in_field, &layer_index_p1, &h_index, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope);
 		        comp_v = -contra_lower*grid -> area[h_index + (layer_index + 1)*N_VECS_PER_LAYER];
 		    }
 		    else if (layer_index == N_LAYERS - 1)
 		    {
-				vertical_contravariant_corr(in_field, layer_index, h_index, grid, &contra_upper);
+				contra_upper = vertical_contravariant_corr(in_field, &layer_index, &h_index, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope);
 				comp_v = contra_upper*grid -> area[h_index + layer_index*N_VECS_PER_LAYER];
 		    }
 		    else if (layer_index > N_LAYERS - grid -> no_of_oro_layers - 1)
 		    {
-		        vertical_contravariant_corr(in_field, layer_index, h_index, grid, &contra_upper);
-		        vertical_contravariant_corr(in_field, layer_index + 1, h_index, grid, &contra_lower);
+		        contra_upper = vertical_contravariant_corr(in_field, &layer_index, &h_index, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope);
+		    	int layer_index_p1 = layer_index + 1;
+		        contra_lower = vertical_contravariant_corr(in_field, &layer_index_p1, &h_index, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope);
 		        comp_v
 		        = contra_upper*grid -> area[h_index + layer_index*N_VECS_PER_LAYER]
 		        - contra_lower*grid -> area[h_index + (layer_index + 1)*N_VECS_PER_LAYER];
@@ -93,7 +95,8 @@ int div_h_tracer(Vector_field in_field, Scalar_field density_field, Vector_field
 		    comp_v = 0.0;
 		    if (layer_index == N_LAYERS - grid -> no_of_oro_layers - 1)
 		    {
-		        vertical_contravariant_corr(wind_field, layer_index + 1, h_index, grid, &contra_lower);
+		        int layer_index_p1 = layer_index + 1;
+		        contra_lower = vertical_contravariant_corr(wind_field, &layer_index_p1, &h_index, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope);
 		        if (contra_lower <= 0.0)
 		        {
 		        	density_lower = density_field[i];
@@ -106,7 +109,7 @@ int div_h_tracer(Vector_field in_field, Scalar_field density_field, Vector_field
 		    }
 		    else if (layer_index == N_LAYERS - 1)
 		    {
-				vertical_contravariant_corr(wind_field, layer_index, h_index, grid, &contra_upper);
+				contra_upper = vertical_contravariant_corr(wind_field, &layer_index, &h_index, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope);
 		        if (contra_upper <= 0.0)
 		        {
 		        	density_upper = density_field[i - N_SCALS_H];
@@ -119,7 +122,7 @@ int div_h_tracer(Vector_field in_field, Scalar_field density_field, Vector_field
 		    }
 		    else if (layer_index > N_LAYERS - grid -> no_of_oro_layers - 1)
 		    {
-		        vertical_contravariant_corr(wind_field, layer_index, h_index, grid, &contra_upper);
+		        contra_upper = vertical_contravariant_corr(wind_field, &layer_index, &h_index, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope);
 		        if (contra_upper <= 0.0)
 		        {
 		        	density_upper = density_field[i - N_SCALS_H];
@@ -128,7 +131,8 @@ int div_h_tracer(Vector_field in_field, Scalar_field density_field, Vector_field
 		        {
 		        	density_upper = density_field[i];
 		        }
-		        vertical_contravariant_corr(wind_field, layer_index + 1, h_index, grid, &contra_lower);
+		        int layer_index_p1 = layer_index + 1;
+		        contra_lower = vertical_contravariant_corr(wind_field, &layer_index_p1, &h_index, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope);
 		        if (contra_lower <= 0.0)
 		        {
 		        	density_lower = density_field[i];

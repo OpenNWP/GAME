@@ -12,62 +12,6 @@ This file contains functions that perform averagings.
 #include "../../grid_generator/src/grid_generator.h"
 #include "spatial_operators.h"
 
-int vertical_contravariant_corr(Vector_field vector_field, int layer_index, int h_index, Grid *grid, double *result)
-{
-	/*
-	calculates (the vertical contravariant component - the vertical covariant component)
-	of a vector field out of the horizontal contravariant components
-	*/
-	// Attention: adjacent_signs_h appears twice, thus does not need to be taken into account.
-	*result = 0;
-	int scalar_index, vector_index;
-	int no_of_edges = 6;
-	if (h_index < N_PENTAGONS)
-	{
-		no_of_edges = 5;
-	}
-    if (layer_index >= N_LAYERS - grid -> no_of_oro_layers)
-    {
-    	if (layer_index == N_LAYERS - grid -> no_of_oro_layers)
-    	{
-			for (int i = 0; i < no_of_edges; ++i)
-			{
-				scalar_index = layer_index*N_SCALS_H + h_index;
-				vector_index = N_SCALS_H + layer_index*N_VECS_PER_LAYER + grid -> adjacent_vector_indices_h[6*h_index + i];
-				*result
-				+= -0.5
-				*grid -> inner_product_weights[8*scalar_index + i]
-				*grid -> slope[vector_index]
-				*vector_field[vector_index];
-			}
-    	}
-    	else
-    	{
-			for (int i = 0; i < no_of_edges; ++i)
-			{
-				scalar_index = (layer_index - 1)*N_SCALS_H + h_index;
-				vector_index = N_SCALS_H + (layer_index - 1)*N_VECS_PER_LAYER + grid -> adjacent_vector_indices_h[6*h_index + i];
-				*result
-				+= -0.5
-				*grid -> inner_product_weights[8*scalar_index + i]
-				*grid -> slope[vector_index]
-				*vector_field[vector_index];
-			}
-			for (int i = 0; i < no_of_edges; ++i)
-			{
-				scalar_index = layer_index*N_SCALS_H + h_index;
-				vector_index = N_SCALS_H + layer_index*N_VECS_PER_LAYER + grid -> adjacent_vector_indices_h[6*h_index + i];
-				*result
-				+= -0.5
-				*grid -> inner_product_weights[8*scalar_index + i]
-				*grid -> slope[vector_index]
-				*vector_field[vector_index];
-			}
-    	}
-    }
-	return 0;
-}
-
 int calc_uv_at_edge(Vector_field in_field, Vector_field out_field_u, Vector_field out_field_v, Grid *grid)
 {
 	/*
