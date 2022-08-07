@@ -21,6 +21,7 @@ module averaging
   public :: tangential_wind
   public :: horizontal_covariant
   public :: calc_uv_at_edge
+  public :: edges_to_cells
 
   contains
 
@@ -215,6 +216,40 @@ module averaging
     !$omp end parallel do
     
   end subroutine calc_uv_at_edge
+
+  subroutine edges_to_cells(in_field,out_field,adjacent_vector_indices_h,inner_product_weights) &
+  bind(c,name = "edges_to_cells")
+    
+    ! This function averages a vector field from edges to cell centers.
+    
+    real(wp),       intent(in)  :: in_field(n_vectors),inner_product_weights(8*n_scalars)
+    integer(c_int), intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h)
+    real(wp),       intent(out) :: out_field(n_scalars)
+    
+    ! local variables
+    integer :: ji,jk,layer_index,h_index,n_edges
+    
+    !$omp parallel do private (ji,jk,layer_index,h_index,n_edges)
+    do ji=1,n_scalars
+      layer_index = (ji-1)/n_scalars_h
+      h_index = ji - layer_index*n_scalars_h
+      ! initializing the result with zero
+      out_field(ji) = 0._wp
+      ! determining the number of edges of the cell at hand
+      n_edges = 6
+      if (h_index<=n_pentagons) then
+        n_edges = 5
+      endif
+      ! loop over all cell edges
+      do jk=1,n_edges
+        out_field(ji) = out_field(ji) + 0.5_wp &
+        *inner_product_weights(8*(ji-1) + jk) &
+        *in_field(n_scalars_h + layer_index*n_vectors_per_layer + adjacent_vector_indices_h(6*(h_index-1) + jk))
+      enddo
+    enddo
+    !$omp end parallel do
+    
+  end subroutine edges_to_cells
 
 end module averaging
 

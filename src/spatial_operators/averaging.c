@@ -42,37 +42,6 @@ int curl_field_to_cells(Curl_field in_field, Scalar_field out_field, Grid *grid)
     return 0;
 }
 
-int edges_to_cells(Vector_field in_field, Scalar_field out_field, Grid *grid)
-{
-	/*
-	This function averages a vector field from edges to cell centers.
-	*/
-	int layer_index, h_index, no_of_edges;
-	#pragma omp parallel for private (layer_index, h_index, no_of_edges)
-    for (int i = 0; i < N_SCALARS; ++i)
-    {
-    	layer_index = i/N_SCALS_H;
-    	h_index = i - layer_index*N_SCALS_H;
-        // initializing the result with zero
-        out_field[i] = 0;
-        // determining the number of edges of the cell at hand
-        no_of_edges = 6;
-        if (h_index < N_PENTAGONS)
-        {
-        	no_of_edges = 5;
-        }
-        // loop over all cell edges
-        for (int j = 0; j < no_of_edges; ++j)
-        {
-        	out_field[i] += 0.5
-        	*grid -> inner_product_weights[8*i + j]
-        	*in_field[N_SCALS_H + layer_index*N_VECS_PER_LAYER + grid -> adjacent_vector_indices_h[6*h_index + j]];
-    	}
-    }
-    return 0;
-}
-
-
 
 
 
