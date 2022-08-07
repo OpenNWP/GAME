@@ -27,7 +27,7 @@ extern int inner_product();
 int tangential_wind(Vector_field, int, int, double *, Grid *);
 int calc_uv_at_edge(Vector_field, Vector_field, Vector_field, Grid *);
 int vertical_contravariant_corr(Vector_field, int, int, Grid *, double *);
-int remap_verpri2horpri_vector(Vector_field, int, int, double *, Grid *);
+extern int remap_verpri2horpri_vector();
 int horizontal_covariant(Vector_field, int, int, Grid *, double *);
 int curl_field_to_cells(Curl_field, Scalar_field, Grid *);
 int edges_to_cells(Vector_field, Scalar_field, Grid *);

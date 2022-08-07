@@ -31,6 +31,7 @@ src/spatial_operators/gradient_operators.c
 src/spatial_operators/gradient_operators.f90
 src/spatial_operators/inner_product.f90
 src/spatial_operators/averaging.c
+src/spatial_operators/averaging.f90
 src/spatial_operators/linear_combine_two_states.c
 src/io/set_initial_state.c
 src/io/write_output.c

@@ -10,33 +10,7 @@ This file contains functions that perform averagings.
 #include <stdio.h>
 #include "../game_types.h"
 #include "../../grid_generator/src/grid_generator.h"
-
-int remap_verpri2horpri_vector(Vector_field vector_field, int layer_index, int h_index, double *component, Grid *grid)
-{
-	/*
-	reconstructs the vertical vector component *component at edge h_index in layer layer_index
-	*/
-    *component
-    // layer above
-    = grid -> inner_product_weights[8*(layer_index*N_SCALS_H + grid -> from_index[h_index]) + 6]
-    *vector_field[layer_index*N_VECS_PER_LAYER + grid -> from_index[h_index]];
-    *component
-    += grid -> inner_product_weights[8*(layer_index*N_SCALS_H + grid -> to_index[h_index]) + 6]
-    *vector_field[layer_index*N_VECS_PER_LAYER + grid -> to_index[h_index]];
-	// layer below
-    if (layer_index < N_LAYERS - 1)
-    {
-		*component
-		+= grid -> inner_product_weights[8*(layer_index*N_SCALS_H + grid -> from_index[h_index]) + 7]
-		*vector_field[(layer_index + 1)*N_VECS_PER_LAYER + grid -> from_index[h_index]];
-		*component
-		+= grid -> inner_product_weights[8*(layer_index*N_SCALS_H + grid -> to_index[h_index]) + 7]
-		*vector_field[(layer_index + 1)*N_VECS_PER_LAYER + grid -> to_index[h_index]];
-    }
-	// horizontal average
-    *component = 0.5*(*component);
-    return 0;
-}
+#include "spatial_operators.h"
 
 int vertical_contravariant_corr(Vector_field vector_field, int layer_index, int h_index, Grid *grid, double *result)
 {
@@ -104,7 +78,7 @@ int horizontal_covariant(Vector_field vector_field, int layer_index, int h_index
 	if (layer_index >= N_LAYERS - grid -> no_of_oro_layers)
 	{
 		double vertical_component = 0;
-		remap_verpri2horpri_vector(vector_field, layer_index, h_index, &vertical_component, grid);
+		remap_verpri2horpri_vector(vector_field, &layer_index, &h_index, &vertical_component, grid -> from_index, grid -> to_index, grid -> inner_product_weights);
 		*result += grid -> slope[vector_index]*vertical_component;
 	}
 	return 0;
@@ -125,7 +99,8 @@ int vector_field_hor_cov_to_con(Vector_field cov_to_con_field, Grid *grid)
     {
         layer_index = i/N_VECS_H;
         h_index = i - layer_index*N_VECS_H;
-    	remap_verpri2horpri_vector(cov_to_con_field, layer_index + (N_LAYERS - grid -> no_of_oro_layers), h_index, &vertical_gradient, grid);
+        int index = layer_index + (N_LAYERS - grid -> no_of_oro_layers);
+    	remap_verpri2horpri_vector(cov_to_con_field, &index, &h_index, &vertical_gradient, grid -> from_index, grid -> to_index, grid -> inner_product_weights);
     	vector_index = N_SCALS_H + (N_LAYERS - grid -> no_of_oro_layers + layer_index)*N_VECS_PER_LAYER + h_index;
         cov_to_con_field[vector_index] += -grid -> slope[vector_index]*vertical_gradient;
     }
