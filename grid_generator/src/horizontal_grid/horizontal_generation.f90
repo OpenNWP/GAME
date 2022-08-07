@@ -11,16 +11,100 @@ module horizontal_generation
   use definitions,         only: wp
   use grid_nml,            only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
                                  no_of_lloyd_iterations,n_vectors,n_dual_vectors
-  use geodesy,             only: rel_on_line,find_geodetic_direction
+  use geodesy,             only: rel_on_line,find_geodetic_direction,find_between_point,normalize_cartesian,find_geos
   
   implicit none
   
   private
   
+  public :: set_scalar_coordinates
   public :: set_dual_vector_h_atttributes
   public :: read_horizontal_explicit
   
   contains
+  
+  subroutine set_scalar_coordinates(edgepoint_0,edgepoint_1,edgepoint_2,point_0,point_1,point_2,points_upwards, &
+                                    x_unity,y_unity,z_unity,latitude_scalar,longitude_scalar) &
+  bind(c,name = "set_scalar_coordinates")
+    
+    ! This subroutine computes the geographical coordinates of a scalar data point.
+    
+    integer(c_int), intent(in)  :: edgepoint_0,edgepoint_1,edgepoint_2,point_0,point_1,point_2,points_upwards
+    real(wp),       intent(out) :: x_unity(n_scalars_h),y_unity(n_scalars_h),z_unity(n_scalars_h), &
+                                   latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
+    
+    ! local variables
+    
+    real(wp) :: x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm,lat_res,lon_res
+
+    ! first point
+    call find_between_point(x_unity(1+edgepoint_0),y_unity(1+edgepoint_0),z_unity(1+edgepoint_0), &
+                            x_unity(1+edgepoint_1),y_unity(1+edgepoint_1),z_unity(1+edgepoint_1), &
+                            0.5_wp,x_res,y_res,z_res)
+    call normalize_cartesian(x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm)
+    if (points_upwards==1) then
+      x_unity(1+point_0) = x_res_norm
+      y_unity(1+point_0) = y_res_norm
+      z_unity(1+point_0) = z_res_norm
+    else
+      x_unity(1+point_1) = x_res_norm
+      y_unity(1+point_1) = y_res_norm
+      z_unity(1+point_1) = z_res_norm
+    endif
+    call find_geos(x_res,y_res,z_res,lat_res,lon_res)
+    if (points_upwards==1) then
+      latitude_scalar(1+point_0) = lat_res
+      longitude_scalar(1+point_0) = lon_res
+    else
+      latitude_scalar(1+point_1) = lat_res
+      longitude_scalar(1+point_1) = lon_res
+    endif
+    ! second point
+    call find_between_point(x_unity(1+edgepoint_1),y_unity(1+edgepoint_1),z_unity(1+edgepoint_1), &
+                            x_unity(1+edgepoint_2),y_unity(1+edgepoint_2),z_unity(1+edgepoint_2), &
+                            0.5_wp,x_res,y_res,z_res)
+    call normalize_cartesian(x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm)
+    if (points_upwards==1) then
+      x_unity(1+point_1) = x_res_norm
+      y_unity(1+point_1) = y_res_norm
+      z_unity(1+point_1) = z_res_norm
+    else
+      x_unity(1+point_2) = x_res_norm
+      y_unity(1+point_2) = y_res_norm
+      z_unity(1+point_2) = z_res_norm
+    endif
+    call find_geos(x_res,y_res,z_res,lat_res,lon_res)
+    if (points_upwards==1) then
+      latitude_scalar(1+point_1) = lat_res
+      longitude_scalar(1+point_1) = lon_res
+    else
+      latitude_scalar(1+point_2) = lat_res
+      longitude_scalar(1+point_2) = lon_res
+    endif
+    ! third point
+    call find_between_point(x_unity(1+edgepoint_2),y_unity(1+edgepoint_2),z_unity(1+edgepoint_2), &
+                            x_unity(1+edgepoint_0),y_unity(1+edgepoint_0),z_unity(1+edgepoint_0), &
+                            0.5_wp,x_res,y_res,z_res)
+    call normalize_cartesian(x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm)
+    if (points_upwards==1) then
+      x_unity(1+point_2) = x_res_norm
+      y_unity(1+point_2) = y_res_norm
+      z_unity(1+point_2) = z_res_norm
+    else
+      x_unity(1+point_0) = x_res_norm
+      y_unity(1+point_0) = y_res_norm
+      z_unity(1+point_0) = z_res_norm
+    endif
+    call find_geos(x_res,y_res,z_res,lat_res,lon_res)
+    if (points_upwards==1) then
+      latitude_scalar(1+point_2) = lat_res
+      longitude_scalar(1+point_2) = lon_res
+    else
+      latitude_scalar(1+point_0) = lat_res
+      longitude_scalar(1+point_0) = lon_res
+    endif
+  
+  end subroutine set_scalar_coordinates
   
   subroutine set_dual_vector_h_atttributes(latitude_scalar_dual,latitude_vector,direction_dual,longitude_vector,to_index_dual, &
                                        from_index_dual,longitude_scalar_dual,rel_on_line_dual) &

@@ -34,6 +34,7 @@ module geodesy
   public :: rel_on_line
   public :: sort_vertex_indices
   public :: find_geodetic_direction
+  public :: normalize_cartesian
   
   contains
   

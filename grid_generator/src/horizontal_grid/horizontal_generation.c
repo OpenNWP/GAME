@@ -57,7 +57,8 @@ int generate_horizontal_generators(double latitude_ico[], double longitude_ico[]
 	                point_1 = upscale_scalar_point(&first_argument, &point_1);
 	                point_2 = upscale_scalar_point(&first_argument, &point_2);
 	                points_upwards = 1;
-	                write_scalar_coordinates(face_vertices[i][0], face_vertices[i][1], face_vertices[i][2], point_0, point_1, point_2, points_upwards, x_unity, y_unity, z_unity, latitude_scalar, longitude_scalar);
+	                set_scalar_coordinates(&face_vertices[i][0], &face_vertices[i][1], &face_vertices[i][2],
+	                &point_0, &point_1, &point_2, &points_upwards, x_unity, y_unity, z_unity, latitude_scalar, longitude_scalar);
 	            }
 	            else
 	            {
@@ -103,7 +104,8 @@ int generate_horizontal_generators(double latitude_ico[], double longitude_ico[]
 	                {
 	                    points_upwards = 0;
 					}
-					write_scalar_coordinates(edgepoint_0, edgepoint_1, edgepoint_2, point_0, point_1, point_2, points_upwards, x_unity, y_unity, z_unity, latitude_scalar, longitude_scalar);
+					set_scalar_coordinates(&edgepoint_0, &edgepoint_1, &edgepoint_2, &point_0, &point_1, &point_2,
+					&points_upwards, x_unity, y_unity, z_unity, latitude_scalar, longitude_scalar);
 	            }
 	        }
 	    }
