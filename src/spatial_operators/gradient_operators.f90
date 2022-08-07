@@ -8,7 +8,8 @@ module gradient_operators
   use iso_c_binding
   use definitions, only: wp
   use grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer, &
-                         n_v_vectors
+                         n_v_vectors,n_v_vectors
+  use averaging,   only: vector_field_hor_cov_to_con
   
   implicit none
   
@@ -17,6 +18,8 @@ module gradient_operators
   public :: grad_hor_cov
   public :: grad_vert_cov
   public :: grad_cov
+  public :: grad_hor
+  public :: grad
   
   contains
 
@@ -91,6 +94,48 @@ module gradient_operators
     call grad_vert_cov(in_field,out_field,normal_distance)
   
   end subroutine grad_cov
+  
+  subroutine grad(in_field,out_field,from_index,to_index,normal_distance,inner_product_weights,slope) &
+  bind(c,name = "grad")
+    
+    ! This subroutine calculates the gradient (horizontally contravariant, vertically covariant).
+    
+    real(wp),       intent(in)  :: in_field(n_scalars)
+    real(wp),       intent(out) :: out_field(n_vectors)
+    integer(c_int), intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    real(wp),       intent(in)  :: normal_distance(n_vectors)
+    real(wp),       intent(in)  :: inner_product_weights(8*n_scalars),slope(n_vectors)
+    
+    call grad_cov(in_field, out_field,from_index,to_index,normal_distance)
+    call vector_field_hor_cov_to_con(out_field,from_index,to_index,inner_product_weights,slope)
+    
+  end subroutine grad
+
+  subroutine grad_hor(in_field,out_field,from_index,to_index,normal_distance,inner_product_weights,slope) &
+  bind(c,name = "grad_hor")
+    
+    ! This function calculates the horizontal contravariant gradient.
+    
+    real(wp),       intent(in)  :: in_field(n_scalars)
+    real(wp),       intent(out) :: out_field(n_vectors)
+    integer(c_int), intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    real(wp),       intent(in)  :: normal_distance(n_vectors)
+    real(wp),       intent(in)  :: inner_product_weights(8*n_scalars),slope(n_vectors)
+    
+    ! local variables
+    integer :: ji,layer_index,h_index
+    
+    call grad(in_field,out_field,from_index,to_index,normal_distance,inner_product_weights,slope)
+    
+    !$omp parallel do private(ji,layer_index,h_index)
+    do ji=1,n_v_vectors
+      layer_index = (ji-1)/n_scalars_h
+      h_index = ji - layer_index*n_scalars_h
+      out_field(h_index + layer_index*n_vectors_per_layer) = 0._wp
+    enddo
+    !$omp end parallel do
+    
+  end subroutine grad_hor
 
 end module gradient_operators
 

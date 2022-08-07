@@ -37,7 +37,7 @@ int manage_pressure_gradient(State *state, Grid *grid, Dualgrid *dualgrid, Diagn
 	{
 		diagnostics -> scalar_field_placeholder[i] = C_D_P*(grid -> theta_v_bg[i] + state -> theta_v_pert[i]);
 	}
-	grad(state -> exner_pert, forcings -> pressure_gradient_acc_neg_nl, grid);
+	grad(state -> exner_pert, forcings -> pressure_gradient_acc_neg_nl, grid -> from_index, grid -> to_index, grid -> normal_distance, grid -> inner_product_weights, grid -> slope);
 	scalar_times_vector(diagnostics -> scalar_field_placeholder, forcings -> pressure_gradient_acc_neg_nl, forcings -> pressure_gradient_acc_neg_nl, grid);
 		
 	// 3.) the linear pressure gradient term

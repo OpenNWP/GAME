@@ -215,9 +215,9 @@ int set_grid_properties(Grid *grid, Dualgrid *dualgrid, char grid_file_name[])
     // determining coordinate slopes
     grad_hor_cov(grid -> z_scalar, grid -> slope, grid -> from_index, grid -> to_index, grid -> normal_distance);
     // computing the gradient of the gravity potential
-    grad(grid -> gravity_potential, grid -> gravity_m, grid);
+    grad(grid -> gravity_potential, grid -> gravity_m, grid -> from_index, grid -> to_index, grid -> normal_distance, grid -> inner_product_weights, grid -> slope);
     // computing the gradient of the background Exner pressure
-    grad(grid -> exner_bg, grid -> exner_bg_grad, grid);
+    grad(grid -> exner_bg, grid -> exner_bg_grad, grid -> from_index, grid -> to_index, grid -> normal_distance, grid -> inner_product_weights, grid -> slope);
 	
 	// fundamental SFC properties
 	grid -> z_t_const = -10.0;

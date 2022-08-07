@@ -31,7 +31,7 @@ int vector_tendencies_expl(State *state, State *state_tendency, Grid *grid, Dual
 		// Kinetic energy is prepared for the gradient term of the Lamb transformation.
 		inner_product(state -> wind, state -> wind, diagnostics -> v_squared, grid -> adjacent_vector_indices_h, grid -> inner_product_weights);
 		// Taking the gradient of the kinetic energy
-		grad(diagnostics -> v_squared, forcings -> v_squared_grad, grid);
+		grad(diagnostics -> v_squared, forcings -> v_squared_grad, grid -> from_index, grid -> to_index, grid -> normal_distance, grid -> inner_product_weights, grid -> slope);
     }
     
     /*

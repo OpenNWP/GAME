@@ -123,7 +123,7 @@ int hor_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible_
 	diagonal component
 	*/
 	scalar_times_scalar(irrev -> viscosity, diagnostics -> wind_div, diagnostics -> wind_div);
-	grad_hor(diagnostics -> wind_div, diagnostics -> vector_field_placeholder, grid);
+	grad_hor(diagnostics -> wind_div, diagnostics -> vector_field_placeholder, grid -> from_index, grid -> to_index, grid -> normal_distance, grid -> inner_product_weights, grid -> slope);
     
     /*
     off-diagonal component
@@ -255,7 +255,8 @@ int vert_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible
 		}
 	}
 	// computing the horizontal gradient of the vertical velocity field
-	grad_hor(diagnostics -> scalar_field_placeholder, diagnostics -> vector_field_placeholder, grid);
+	grad_hor(diagnostics -> scalar_field_placeholder, diagnostics -> vector_field_placeholder,
+	grid -> from_index, grid -> to_index, grid -> normal_distance, grid -> inner_product_weights, grid -> slope);
 	// multiplying by the already computed diffusion coefficient
 	#pragma omp parallel for private(vector_index)
 	for (int h_index = 0; h_index < N_VECS_H; ++h_index)

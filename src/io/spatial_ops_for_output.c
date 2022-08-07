@@ -149,7 +149,7 @@ int epv_diagnostics(Curl_field pot_vort, State *state, Scalar_field epv, Grid *g
 	{
 		state -> theta_v_pert[i] += grid -> theta_v_bg[i];
 	}
-	grad(state -> theta_v_pert, *grad_pot_temp, grid);
+	grad(state -> theta_v_pert, *grad_pot_temp, grid -> from_index, grid -> to_index, grid -> normal_distance, grid -> inner_product_weights, grid -> slope);
 	for (int i = 0; i < N_SCALS_H; ++i)
 	{
 		state -> theta_v_pert[i] -= grid -> theta_v_bg[i];
