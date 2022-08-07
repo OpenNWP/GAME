@@ -124,6 +124,22 @@ module definitions
     real(wp), allocatable :: monin_obukhov_length(:)
   
   end type t_diagnostics
+  
+  type t_radiation
+    
+    real(wp), allocatable :: lat_scal(:)
+    real(wp), allocatable :: lon_scal(:)
+    real(wp), allocatable :: sfc_sw_in(:)
+    real(wp), allocatable :: sfc_lw_out(:)
+    real(wp), allocatable :: sfc_albedo(:)
+    real(wp), allocatable :: temp_sfc(:)
+    real(wp), allocatable :: z_scal(:)
+    real(wp), allocatable :: z_vect(:)
+    real(wp), allocatable :: rho(:)
+    real(wp), allocatable :: temp(:)
+    real(wp), allocatable :: rad_tend(:)
+  
+  end type t_radiation
 
 end module definitions
 
