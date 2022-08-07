@@ -85,6 +85,17 @@ module definitions
     real(wp), allocatable :: f_vec(:)
   
   end type t_dual_grid
+  
+  type t_state
+    
+    real(wp), allocatable :: rho(:)
+    real(wp), allocatable :: rhotheta_v(:)
+    real(wp), allocatable :: theta_v_pert(:)
+    real(wp), allocatable :: exner_pert(:)
+    real(wp), allocatable :: wind(:)
+    real(wp), allocatable :: temperature_soil(:)
+  
+  end type t_state
 
 end module definitions
 
