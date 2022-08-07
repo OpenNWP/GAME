@@ -16,38 +16,39 @@ module averaging
   
   public :: remap_verpri2horpri_vector
   public :: vector_field_hor_cov_to_con
+  public :: tangential_wind
 
   contains
 
-  subroutine remap_verpri2horpri_vector(vector_field,layer_index,h_index,component,from_index,to_index,inner_product_weights) &
+  function remap_verpri2horpri_vector(vector_field,layer_index,h_index,from_index,to_index,inner_product_weights) &
   bind(c,name = "remap_verpri2horpri_vector")
     
-    ! This subroutine reconstructs the vertical vector component *component at edge h_index in layer layer_index.
+    ! This function reconstructs the vertical vector component at edge h_index in layer layer_index.
     
     real(wp),       intent(in)  :: vector_field(n_vectors),inner_product_weights(8*n_scalars)
     integer(c_int), intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h),layer_index,h_index
-    real(wp),       intent(out) :: component
+    real(wp)                    :: remap_verpri2horpri_vector
     
-    component &
+    remap_verpri2horpri_vector &
     ! layer above
     = inner_product_weights(8*(layer_index*n_scalars_h + from_index(1+h_index)) + 7) &
     *vector_field(layer_index*n_vectors_per_layer + 1 + from_index(1+h_index))
-    component = component &
+    remap_verpri2horpri_vector = remap_verpri2horpri_vector &
     + inner_product_weights(8*(layer_index*n_scalars_h + to_index(1+h_index)) + 7) &
     *vector_field(layer_index*n_vectors_per_layer + 1 + to_index(1+h_index))
     ! layer below
     if (layer_index<n_layers-1) then
-      component = component &
+      remap_verpri2horpri_vector = remap_verpri2horpri_vector &
       + inner_product_weights(8*(layer_index*n_scalars_h + from_index(1+h_index)) + 8) &
       *vector_field((layer_index + 1)*n_vectors_per_layer + 1 + from_index(1+h_index))
-      component = component &
+      remap_verpri2horpri_vector = remap_verpri2horpri_vector &
       + inner_product_weights(8*(layer_index*n_scalars_h + to_index(1+h_index)) + 8) &
       *vector_field((layer_index + 1)*n_vectors_per_layer + 1 + to_index(1+h_index))
     endif
     ! horizontal average
-    component = 0.5_wp*component
+    remap_verpri2horpri_vector = 0.5_wp*remap_verpri2horpri_vector
   
-  end subroutine remap_verpri2horpri_vector
+  end function remap_verpri2horpri_vector
 
   subroutine vector_field_hor_cov_to_con(cov_to_con_field,from_index,to_index,inner_product_weights,slope) &
   bind(c,name = "vector_field_hor_cov_to_con")
@@ -68,8 +69,8 @@ module averaging
     do ji=1,n_oro_layers*n_vectors_h
       layer_index = (ji-1)/n_vectors_h
       h_index = ji - layer_index*n_vectors_h
-      call remap_verpri2horpri_vector(cov_to_con_field,layer_index + (n_layers - n_oro_layers), &
-                                 h_index-1,vertical_gradient,from_index,to_index,inner_product_weights)
+      vertical_gradient = remap_verpri2horpri_vector(cov_to_con_field,layer_index + (n_layers - n_oro_layers), &
+                                 h_index-1,from_index,to_index,inner_product_weights)
       vector_index = n_scalars_h + (n_layers - n_oro_layers + layer_index)*n_vectors_per_layer + h_index
       cov_to_con_field(vector_index) = cov_to_con_field(vector_index) - slope(vector_index)*vertical_gradient
     enddo
@@ -77,7 +78,33 @@ module averaging
     
   end subroutine vector_field_hor_cov_to_con
 
+  function tangential_wind(in_field,layer_index,h_index,trsk_indices,trsk_weights) &
+  bind(c,name = "tangential_wind")
+  
+    ! This function computes the tangential component *component of the vector field in_field at edge h_index in layer layer_index
+    ! using the TRSK weights.
+    
+    real(wp),       intent(in)  :: in_field(n_vectors),trsk_weights(10*n_vectors_h)
+    integer(c_int), intent(in)  :: layer_index,h_index,trsk_indices(10*n_vectors_h)
+    real(wp)                    :: tangential_wind
+    
+    ! local variables
+    integer :: ji
+    
+    ! initializing the result with zero
+    tangential_wind = 0._wp
+    ! loop over the maximum of ten edges 
+    do ji=1,10
+      tangential_wind = tangential_wind + trsk_weights(10*h_index+ji) &
+      *in_field(n_scalars_h + layer_index*n_vectors_per_layer + trsk_indices(10*h_index+ji))
+    enddo
+    
+  end function tangential_wind
+
 end module averaging
+
+
+
 
 
 

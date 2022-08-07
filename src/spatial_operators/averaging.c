@@ -77,28 +77,11 @@ int horizontal_covariant(Vector_field vector_field, int layer_index, int h_index
 	*result = vector_field[vector_index];
 	if (layer_index >= N_LAYERS - grid -> no_of_oro_layers)
 	{
-		double vertical_component = 0;
-		remap_verpri2horpri_vector(vector_field, &layer_index, &h_index, &vertical_component, grid -> from_index, grid -> to_index, grid -> inner_product_weights);
+		double vertical_component = 0.0;
+		vertical_component = remap_verpri2horpri_vector(vector_field, &layer_index, &h_index, grid -> from_index, grid -> to_index, grid -> inner_product_weights);
 		*result += grid -> slope[vector_index]*vertical_component;
 	}
 	return 0;
-}
-
-int tangential_wind(Vector_field in_field, int layer_index, int h_index, double *component, Grid *grid)
-{
-	/*
-	This function computes the tangential component *component of the vector field in_field at edge h_index in layer layer_index
-	using the TRSK weights.
-	*/
-	// initializing the result with zero
-    *component = 0;
-    // loop over the maximum of ten edges 
-	for (int i = 0; i < 10; ++i)
-	{
-		*component += grid -> trsk_weights[10*h_index + i]
-		*in_field[N_SCALS_H + layer_index*N_VECS_PER_LAYER + grid -> trsk_indices[10*h_index + i]];
-	}
-    return 0;
 }
 
 int calc_uv_at_edge(Vector_field in_field, Vector_field out_field_u, Vector_field out_field_v, Grid *grid)
@@ -116,7 +99,7 @@ int calc_uv_at_edge(Vector_field in_field, Vector_field out_field_u, Vector_fiel
 		h_index = i - layer_index*N_VECS_H;
 		wind_0 = in_field[N_SCALS_H + layer_index*N_VECS_PER_LAYER + h_index];
 		// finding the tangential component
-		tangential_wind(in_field, layer_index, h_index, &wind_1, grid);
+		wind_1 = tangential_wind(in_field, &layer_index, &h_index, grid -> trsk_indices, grid -> trsk_weights);
 		// turning the Cartesian coordinate system to obtain u and v
 		double m_direction = -grid -> direction[h_index];
 		passive_turn(&wind_0, &wind_1, &m_direction,

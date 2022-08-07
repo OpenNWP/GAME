@@ -22,10 +22,10 @@ int scalar_times_vector_h_upstream(Scalar_field, Vector_field, Vector_field, Gri
 int scalar_times_vector_v(Scalar_field, Vector_field, Vector_field, Grid *);
 int linear_combine_two_states(State *, State *, State *, double, double, Grid *);
 extern int inner_product();
-int tangential_wind(Vector_field, int, int, double *, Grid *);
+extern double tangential_wind();
 int calc_uv_at_edge(Vector_field, Vector_field, Vector_field, Grid *);
 int vertical_contravariant_corr(Vector_field, int, int, Grid *, double *);
-extern int remap_verpri2horpri_vector();
+extern double remap_verpri2horpri_vector();
 int horizontal_covariant(Vector_field, int, int, Grid *, double *);
 int curl_field_to_cells(Curl_field, Scalar_field, Grid *);
 int edges_to_cells(Vector_field, Scalar_field, Grid *);

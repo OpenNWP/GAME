@@ -29,7 +29,7 @@ int inner_product_tangential(Vector_field in_field_0, Vector_field in_field_1, S
 	    out_field[i] = 0;
 	    for (int j = 0; j < 6; ++j)
 	    {
-			tangential_wind(in_field_1, layer_index, grid -> adjacent_vector_indices_h[6*h_index + j], &tangential_wind_value, grid);
+			tangential_wind_value = tangential_wind(in_field_1, &layer_index, &grid -> adjacent_vector_indices_h[6*h_index + j], grid -> trsk_indices, grid -> trsk_weights);
 	        out_field[i] +=
 	        grid -> inner_product_weights[8*i + j]
 	        *in_field_0[N_SCALS_H + layer_index*N_VECS_PER_LAYER + grid -> adjacent_vector_indices_h[6*h_index + j]]
