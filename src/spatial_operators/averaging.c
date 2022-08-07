@@ -68,22 +68,6 @@ int vertical_contravariant_corr(Vector_field vector_field, int layer_index, int 
 	return 0;
 }
 
-int horizontal_covariant(Vector_field vector_field, int layer_index, int h_index, Grid *grid, double *result)
-{
-	/*
-	calculates the horizontal covariant component of a vector field out of the horizontal contravariant and the vertical covariant components
-	*/
-	int vector_index = N_SCALS_H + layer_index*N_VECS_PER_LAYER + h_index;
-	*result = vector_field[vector_index];
-	if (layer_index >= N_LAYERS - grid -> no_of_oro_layers)
-	{
-		double vertical_component = 0.0;
-		vertical_component = remap_verpri2horpri_vector(vector_field, &layer_index, &h_index, grid -> from_index, grid -> to_index, grid -> inner_product_weights);
-		*result += grid -> slope[vector_index]*vertical_component;
-	}
-	return 0;
-}
-
 int calc_uv_at_edge(Vector_field in_field, Vector_field out_field_u, Vector_field out_field_v, Grid *grid)
 {
 	/*

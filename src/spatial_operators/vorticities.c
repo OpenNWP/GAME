@@ -190,7 +190,8 @@ int calc_rel_vort(Vector_field velocity_field, Diagnostics *diagnostics, Grid *g
             if (layer_index == N_LAYERS)
             {
                 index_2 = base_index - N_VECS_H + h_index;
-                horizontal_covariant(velocity_field, layer_index - 1, h_index, grid, &covar_2);
+                int layer_index_m1 = layer_index - 1;
+                covar_2 = horizontal_covariant(velocity_field, &layer_index_m1, &h_index, grid -> from_index, grid -> to_index, grid -> inner_product_weights, grid -> slope);
                 diagnostics -> rel_vort[i] = 1/dualgrid -> area[h_index + layer_index*N_DUAL_VECS_PER_LAYER]*grid -> normal_distance[index_2]*covar_2;
             }
             else
@@ -199,8 +200,9 @@ int calc_rel_vort(Vector_field velocity_field, Diagnostics *diagnostics, Grid *g
                 index_1 = base_index + grid -> from_index[h_index];
                 index_2 = base_index - N_VECS_H + h_index;
                 index_3 = base_index + grid -> to_index[h_index];
-                horizontal_covariant(velocity_field, layer_index, h_index, grid, &covar_0);
-                horizontal_covariant(velocity_field, layer_index - 1, h_index, grid, &covar_2);
+                covar_0 = horizontal_covariant(velocity_field, &layer_index, &h_index, grid -> from_index, grid -> to_index, grid -> inner_product_weights, grid -> slope);
+                int layer_index_m1 = layer_index - 1;
+                covar_2 = horizontal_covariant(velocity_field, &layer_index_m1, &h_index, grid -> from_index, grid -> to_index, grid -> inner_product_weights, grid -> slope);
                 diagnostics -> rel_vort[i] = 1/dualgrid -> area[h_index + layer_index*N_DUAL_VECS_PER_LAYER]*(
                 - grid -> normal_distance[index_0]*covar_0
                 + grid -> normal_distance[index_1]*velocity_field[index_1]

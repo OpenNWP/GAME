@@ -26,7 +26,7 @@ extern double tangential_wind();
 int calc_uv_at_edge(Vector_field, Vector_field, Vector_field, Grid *);
 int vertical_contravariant_corr(Vector_field, int, int, Grid *, double *);
 extern double remap_verpri2horpri_vector();
-int horizontal_covariant(Vector_field, int, int, Grid *, double *);
+extern double horizontal_covariant();
 int curl_field_to_cells(Curl_field, Scalar_field, Grid *);
 int edges_to_cells(Vector_field, Scalar_field, Grid *);
 int hor_momentum_diffusion(State *, Diagnostics *, Irreversible_quantities*, Config *, Grid *, Dualgrid *);

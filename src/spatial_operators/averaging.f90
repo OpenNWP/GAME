@@ -17,6 +17,7 @@ module averaging
   public :: remap_verpri2horpri_vector
   public :: vector_field_hor_cov_to_con
   public :: tangential_wind
+  public :: horizontal_covariant
 
   contains
 
@@ -100,6 +101,31 @@ module averaging
     enddo
     
   end function tangential_wind
+  
+  function horizontal_covariant(vector_field,layer_index,h_index,from_index,to_index,inner_product_weights,slope) &
+  bind(c,name = "horizontal_covariant")
+    
+    ! This function calculates the horizontal covariant component of a vector field out of the horizontal contravariant and the vertical covariant components
+    ! contravariant measure numbers.
+    
+    integer(c_int), intent(in) :: from_index(n_vectors_h),to_index(n_vectors_h),layer_index,h_index
+    real(wp),       intent(in) :: vector_field(n_vectors),inner_product_weights(8*n_scalars),slope(n_vectors)
+    real(wp)                   :: horizontal_covariant
+    
+    ! local variables
+    real(wp) :: vertical_component
+    integer  :: vector_index
+    
+    vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
+    
+    horizontal_covariant = vector_field(vector_index)
+    
+    if (layer_index>=n_layers-n_oro_layers) then
+      vertical_component = remap_verpri2horpri_vector(vector_field,layer_index,h_index,from_index,to_index,inner_product_weights)
+      horizontal_covariant = horizontal_covariant + slope(vector_index)*vertical_component
+    endif
+   
+  end function horizontal_covariant
 
 end module averaging
 
