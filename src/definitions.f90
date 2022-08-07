@@ -72,8 +72,26 @@ module definitions
     integer               :: no_of_oro_layers
   
   end type t_grid
+  
+  type t_dual_grid
+  
+    real(wp), allocatable :: area(:)
+    real(wp), allocatable :: z_vector(:)
+    real(wp), allocatable :: normal_distance(:)
+    integer,  allocatable :: from_index(:)
+    integer,  allocatable :: to_index(:)
+    integer,  allocatable :: vorticity_indices_triangles(:)
+    integer,  allocatable :: vorticity_signs_triangles(:)
+    real(wp), allocatable :: f_vec(:)
+  
+  end type t_dual_grid
 
 end module definitions
+
+
+
+
+
 
 
 
