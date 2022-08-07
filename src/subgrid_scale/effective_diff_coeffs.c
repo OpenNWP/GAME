@@ -243,7 +243,7 @@ int update_n_squared(State *state, Diagnostics *diagnostics, Grid *grid)
 		diagnostics -> scalar_field_placeholder[i] = grid -> theta_v_bg[i] + state -> theta_v_pert[i];
 	}
 	// vertical gradient of the full virtual potential temperature
-	grad_vert_cov(diagnostics -> scalar_field_placeholder, diagnostics -> vector_field_placeholder, grid);
+	grad_vert_cov(diagnostics -> scalar_field_placeholder, diagnostics -> vector_field_placeholder, grid -> normal_distance);
 	// calculating the inverse full virtual potential temperature
 	#pragma omp parallel for
 	for (int i = 0; i < N_SCALARS; ++i)
