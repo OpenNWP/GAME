@@ -118,11 +118,11 @@ module averaging
     
     vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
     
-    horizontal_covariant = vector_field(vector_index)
+    horizontal_covariant = vector_field(1+vector_index)
     
     if (layer_index>=n_layers-n_oro_layers) then
       vertical_component = remap_verpri2horpri_vector(vector_field,layer_index,h_index,from_index,to_index,inner_product_weights)
-      horizontal_covariant = horizontal_covariant + slope(vector_index)*vertical_component
+      horizontal_covariant = horizontal_covariant + slope(1+vector_index)*vertical_component
     endif
    
   end function horizontal_covariant
