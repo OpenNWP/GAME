@@ -17,7 +17,7 @@ int grad(Scalar_field in_field, Vector_field out_field, Grid *grid)
 	calculates the gradient (horizontally contravariant, vertically covariant)
 	*/
 	grad_cov(in_field, out_field, grid -> from_index, grid -> to_index, grid -> normal_distance);
-	vector_field_hor_cov_to_con(out_field, grid);
+	vector_field_hor_cov_to_con(out_field, grid -> from_index, grid -> to_index, grid -> inner_product_weights, grid -> slope);
     return 0;
 }
 
