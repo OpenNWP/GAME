@@ -96,6 +96,34 @@ module definitions
     real(wp), allocatable :: temperature_soil(:)
   
   end type t_state
+  
+  type t_diagnostics
+    
+    real(wp), allocatable :: flux_density(:)
+    real(wp), allocatable :: flux_density_div(:)
+    real(wp), allocatable :: rel_vort_on_triangles(:)
+    real(wp), allocatable :: rel_vort(:)
+    real(wp), allocatable :: pot_vort(:)
+    real(wp), allocatable :: temperature(:)
+    real(wp), allocatable :: c_g_p_field(:)
+    real(wp), allocatable :: v_squared(:)
+    real(wp), allocatable :: wind_div(:)
+    real(wp), allocatable :: curl_of_vorticity(:)
+    real(wp), allocatable :: scalar_field_placeholder(:)
+    real(wp), allocatable :: vector_field_placeholder(:)
+    real(wp), allocatable :: u_at_edge(:)
+    real(wp), allocatable :: v_at_edge(:)
+    real(wp), allocatable :: u_at_cell(:)
+    real(wp), allocatable :: v_at_cell(:)
+    real(wp), allocatable :: n_squared(:)
+    real(wp), allocatable :: dv_hdz(:)
+    real(wp), allocatable :: scalar_flux_resistance(:)
+    real(wp), allocatable :: power_flux_density_sensible(:)
+    real(wp), allocatable :: power_flux_density_latent(:)
+    real(wp), allocatable :: roughness_velocity(:)
+    real(wp), allocatable :: monin_obukhov_length(:)
+  
+  end type t_diagnostics
 
 end module definitions
 
