@@ -643,7 +643,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	curl_field_to_cells(diagnostics -> rel_vort, *rel_vort, grid);
 	
 	// Diagnozing the u and v wind components at the vector points.
-	calc_uv_at_edge(state_write_out -> wind, diagnostics -> u_at_edge, diagnostics -> v_at_edge, grid);
+	calc_uv_at_edge(state_write_out -> wind, diagnostics -> u_at_edge, diagnostics -> v_at_edge, grid -> trsk_indices, grid -> trsk_weights, grid -> direction);
 	// Averaging to cell centers for output.
 	edges_to_cells(diagnostics -> u_at_edge, diagnostics -> u_at_cell, grid);
 	edges_to_cells(diagnostics -> v_at_edge, diagnostics -> v_at_cell, grid);

@@ -8,7 +8,8 @@ module averaging
   use iso_c_binding
   use definitions, only: wp
   use grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer, &
-                         n_v_vectors,n_oro_layers,n_pentagons
+                         n_v_vectors,n_oro_layers,n_pentagons,n_h_vectors
+  use geodesy,     only: passive_turn
 
   implicit none
   
@@ -19,6 +20,7 @@ module averaging
   public :: vector_field_hor_cov_to_con
   public :: tangential_wind
   public :: horizontal_covariant
+  public :: calc_uv_at_edge
 
   contains
 
@@ -184,6 +186,35 @@ module averaging
     endif
    
   end function horizontal_covariant
+  
+  subroutine calc_uv_at_edge(in_field,out_field_u,out_field_v,trsk_indices,trsk_weights,direction) &
+  bind(c,name = "calc_uv_at_edge")
+  
+    ! This function diagnozes eastward and northward components of a vector field at edges.
+    
+    real(wp), intent(in)       :: in_field(n_vectors),trsk_weights(10*n_vectors_h),direction(n_vectors_h)
+    integer(c_int), intent(in) :: trsk_indices(10*n_vectors_h)
+    real(wp), intent(out)      :: out_field_u(n_vectors),out_field_v(n_vectors)
+    
+    ! local variables
+    integer  :: ji,layer_index,h_index
+    real(wp) :: wind_0,wind_1 ! orthogonal and tangential component at edge, respectively
+    
+    !$omp parallel do private(ji,layer_index,h_index,wind_0,wind_1)
+    do ji=1,n_h_vectors
+      layer_index = (ji-1)/n_vectors_h
+      h_index = ji - layer_index*n_vectors_h
+      wind_0 = in_field(n_scalars_h + layer_index*n_vectors_per_layer + h_index)
+      ! finding the tangential component
+      wind_1 = tangential_wind(in_field,layer_index,h_index-1,trsk_indices,trsk_weights)
+      ! turning the Cartesian coordinate system to obtain u and v
+      call passive_turn(wind_0,wind_1,-direction(h_index), &
+      out_field_u(n_scalars_h + layer_index*n_vectors_per_layer + h_index), &
+      out_field_v(n_scalars_h + layer_index*n_vectors_per_layer + h_index))
+    enddo
+    !$omp end parallel do
+    
+  end subroutine calc_uv_at_edge
 
 end module averaging
 
