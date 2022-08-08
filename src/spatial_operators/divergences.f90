@@ -102,7 +102,7 @@ module divergences
         do jl=1,n_edges
           comp_h = comp_h &
           + in_field(n_scalars_h + layer_index*n_vectors_per_layer + 1+adjacent_vector_indices_h(6*(h_index-1) + jl)) &
-          *adjacent_signs_h(6*h_index + jl) &
+          *adjacent_signs_h(6*(h_index-1) + jl) &
           *area(n_scalars_h + layer_index*n_vectors_per_layer + 1+adjacent_vector_indices_h(6*(h_index-1) + jl))
         enddo
         comp_v = 0._wp
