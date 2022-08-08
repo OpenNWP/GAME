@@ -23,7 +23,7 @@ int vector_tendencies_expl(State *state, State *state_tendency, Grid *grid, Dual
 	*/
 	if (rk_step == 1 || config -> totally_first_step_bool == 1)
 	{
-		scalar_times_vector(&state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS], state -> wind, diagnostics -> flux_density, grid);
+		scalar_times_vector(&state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS], state -> wind, diagnostics -> flux_density, grid -> from_index, grid -> to_index);
 		// Now, the "potential vorticity" is evaluated.
 		calc_pot_vort(state -> wind, &state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS], diagnostics, grid, dualgrid);
 		// Now, the generalized Coriolis term is evaluated.

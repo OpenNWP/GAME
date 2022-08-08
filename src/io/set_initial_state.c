@@ -270,7 +270,7 @@ int set_ideal_init(State *state, Grid* grid, Dualgrid* dualgrid, Diagnostics *di
 	{
 		diagnostics -> scalar_field_placeholder[i] = pressure[i]/(R_D*temperature_v[i]);
 	}
-	scalar_times_vector(diagnostics -> scalar_field_placeholder, state -> wind, diagnostics -> flux_density, grid);
+	scalar_times_vector(diagnostics -> scalar_field_placeholder, state -> wind, diagnostics -> flux_density, grid -> from_index, grid -> to_index);
 	// Now, the potential vorticity is evaluated.
 	calc_pot_vort(state -> wind, diagnostics -> scalar_field_placeholder, diagnostics, grid, dualgrid);
 	// Now, the generalized Coriolis term is evaluated.

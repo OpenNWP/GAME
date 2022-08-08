@@ -38,7 +38,7 @@ int manage_pressure_gradient(State *state, Grid *grid, Dualgrid *dualgrid, Diagn
 		diagnostics -> scalar_field_placeholder[i] = C_D_P*(grid -> theta_v_bg[i] + state -> theta_v_pert[i]);
 	}
 	grad(state -> exner_pert, forcings -> pressure_gradient_acc_neg_nl, grid -> from_index, grid -> to_index, grid -> normal_distance, grid -> inner_product_weights, grid -> slope);
-	scalar_times_vector(diagnostics -> scalar_field_placeholder, forcings -> pressure_gradient_acc_neg_nl, forcings -> pressure_gradient_acc_neg_nl, grid);
+	scalar_times_vector(diagnostics -> scalar_field_placeholder, forcings -> pressure_gradient_acc_neg_nl, forcings -> pressure_gradient_acc_neg_nl, grid -> from_index, grid -> to_index);
 		
 	// 3.) the linear pressure gradient term
 	// -------------------------------------
@@ -47,7 +47,7 @@ int manage_pressure_gradient(State *state, Grid *grid, Dualgrid *dualgrid, Diagn
 	{
 		diagnostics -> scalar_field_placeholder[i] = C_D_P*state -> theta_v_pert[i];
 	}
-	scalar_times_vector(diagnostics -> scalar_field_placeholder, grid -> exner_bg_grad, forcings -> pressure_gradient_acc_neg_l, grid);
+	scalar_times_vector(diagnostics -> scalar_field_placeholder, grid -> exner_bg_grad, forcings -> pressure_gradient_acc_neg_l, grid -> from_index, grid -> to_index);
 	
 	// 4.) The pressure gradient has to get a deceleration factor due to condensates.
 	// ------------------------------------------------------------------------------
@@ -56,8 +56,8 @@ int manage_pressure_gradient(State *state, Grid *grid, Dualgrid *dualgrid, Diagn
 	{
 		irrev -> pressure_gradient_decel_factor[i] = state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i]/density_total(state, i);
 	}
-	scalar_times_vector(irrev -> pressure_gradient_decel_factor, forcings -> pressure_gradient_acc_neg_nl, forcings -> pressure_gradient_acc_neg_nl, grid);
-	scalar_times_vector(irrev -> pressure_gradient_decel_factor, forcings -> pressure_gradient_acc_neg_l, forcings -> pressure_gradient_acc_neg_l, grid);
+	scalar_times_vector(irrev -> pressure_gradient_decel_factor, forcings -> pressure_gradient_acc_neg_nl, forcings -> pressure_gradient_acc_neg_nl, grid -> from_index, grid -> to_index);
+	scalar_times_vector(irrev -> pressure_gradient_decel_factor, forcings -> pressure_gradient_acc_neg_l, forcings -> pressure_gradient_acc_neg_l, grid -> from_index, grid -> to_index);
 	
 	// at the very fist step, the old time step pressure gradient acceleration must be saved here
 	if (config -> totally_first_step_bool == 1)
@@ -82,7 +82,7 @@ int calc_pressure_grad_condensates_v(State *state, Grid *grid, Forcings *forcing
 	{
 		irrev -> pressure_gradient_decel_factor[i] = state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i]/density_total(state, i) - 1.0;
 	}
-	scalar_times_vector_v(irrev -> pressure_gradient_decel_factor, grid -> gravity_m, forcings -> pressure_grad_condensates_v, grid);
+	scalar_times_vector_v(irrev -> pressure_gradient_decel_factor, grid -> gravity_m, forcings -> pressure_grad_condensates_v);
 	return 0;
 }
 

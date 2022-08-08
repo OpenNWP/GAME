@@ -250,7 +250,7 @@ int update_n_squared(State *state, Diagnostics *diagnostics, Grid *grid)
 	{
 		diagnostics -> scalar_field_placeholder[i] = 1.0/diagnostics -> scalar_field_placeholder[i];
 	}
-	scalar_times_vector_v(diagnostics -> scalar_field_placeholder, diagnostics -> vector_field_placeholder, diagnostics -> vector_field_placeholder, grid);
+	scalar_times_vector_v(diagnostics -> scalar_field_placeholder, diagnostics -> vector_field_placeholder, diagnostics -> vector_field_placeholder);
 	
 	// multiplying by the gravity acceleration
     int layer_index, h_index, vector_index;

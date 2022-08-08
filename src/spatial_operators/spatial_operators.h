@@ -16,10 +16,10 @@ int vorticity_flux(Vector_field, Dual_vector_field, Vector_field, Grid *, Dualgr
 extern int div_h();
 extern int div_h_tracer();
 extern int add_vertical_div();
-int scalar_times_vector(Scalar_field, Vector_field, Vector_field, Grid *);
-int scalar_times_vector_h(Scalar_field, Vector_field, Vector_field, Grid *);
-int scalar_times_vector_h_upstream(Scalar_field, Vector_field, Vector_field, Grid *);
-int scalar_times_vector_v(Scalar_field, Vector_field, Vector_field, Grid *);
+extern int scalar_times_vector();
+extern int scalar_times_vector_h();
+extern int scalar_times_vector_h_upstream();
+extern int scalar_times_vector_v();
 int linear_combine_two_states(State *, State *, State *, double, double, Grid *);
 extern int inner_product();
 extern double tangential_wind();
