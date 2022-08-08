@@ -52,8 +52,8 @@ module multiplications
       do layer_index=0,n_layers-1
         vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
         scalar_value &
-        = 0.5_wp*(scalar_field(to_index(h_index) + layer_index*n_scalars_h) &
-        + scalar_field(from_index(h_index) + layer_index*n_scalars_h))
+        = 0.5_wp*(scalar_field(1+from_index(h_index) + layer_index*n_scalars_h) &
+        + scalar_field(1+to_index(h_index) + layer_index*n_scalars_h))
         out_field(vector_index) = scalar_value*vector_field(vector_index)
       enddo
     enddo
@@ -80,9 +80,9 @@ module multiplications
       do layer_index=0,n_layers-1
         vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
         if (vector_field(vector_index)>=0._wp) then
-          scalar_value = scalar_field(from_index(h_index) + layer_index*n_scalars_h)
+          scalar_value = scalar_field(1+from_index(h_index) + layer_index*n_scalars_h)
         else
-          scalar_value = scalar_field(to_index(h_index) + layer_index*n_scalars_h)
+          scalar_value = scalar_field(1+to_index(h_index) + layer_index*n_scalars_h)
         endif
         out_field(vector_index) = scalar_value*vector_field(vector_index)
       enddo
@@ -105,7 +105,7 @@ module multiplications
     
     !$omp parallel do private(h_index,layer_index,ji,lower_index,upper_index,scalar_value)
     do h_index=1,n_scalars_h
-      do layer_index=0,n_layers-1
+      do layer_index=1,n_layers-1
         ji = layer_index*n_vectors_per_layer + h_index
         lower_index = h_index + layer_index*n_scalars_h
         upper_index = h_index + (layer_index - 1)*n_scalars_h
