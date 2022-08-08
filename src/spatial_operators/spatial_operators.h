@@ -13,8 +13,8 @@ int calc_pot_vort(Vector_field, Scalar_field, Diagnostics *, Grid *, Dualgrid *)
 int add_f_to_rel_vort(Curl_field, Curl_field, Dualgrid *);
 int calc_rel_vort(Vector_field, Diagnostics *, Grid *, Dualgrid *);
 int vorticity_flux(Vector_field, Dual_vector_field, Vector_field, Grid *, Dualgrid *);
-int div_h(Vector_field, Scalar_field, Grid *);
-int div_h_tracer(Vector_field, Scalar_field, Vector_field, Scalar_field, Grid *);
+extern int div_h();
+extern int div_h_tracer();
 extern int add_vertical_div();
 int scalar_times_vector(Scalar_field, Vector_field, Vector_field, Grid *);
 int scalar_times_vector_h(Scalar_field, Vector_field, Vector_field, Grid *);

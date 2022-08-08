@@ -56,7 +56,8 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 		// Now the diffusive temperature flux density can be obtained.
 	    scalar_times_vector_h(irrev -> temp_diffusion_coeff_numerical_h, diagnostics -> vector_field_placeholder, diagnostics -> flux_density, grid);
 	    // The divergence of the diffusive temperature flux density is the diffusive temperature heating.
-	    div_h(diagnostics -> flux_density, irrev -> temperature_diffusion_heating, grid);
+	    div_h(diagnostics -> flux_density, irrev -> temperature_diffusion_heating,
+			grid -> adjacent_signs_h, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope, grid -> area, grid -> volume);
     	// vertical temperature diffusion
 	    if (config -> temperature_diff_v == 1)
 	    {
@@ -79,7 +80,8 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 			// Now the diffusive mass flux density can be obtained.
 			scalar_times_vector_h(irrev -> mass_diffusion_coeff_numerical_h, diagnostics -> vector_field_placeholder, diagnostics -> vector_field_placeholder, grid);
 	    	// The divergence of the diffusive mass flux density is the diffusive mass source rate.
-			div_h(diagnostics -> vector_field_placeholder, &irrev -> mass_diff_tendency[scalar_shift_index], grid);
+			div_h(diagnostics -> vector_field_placeholder, &irrev -> mass_diff_tendency[scalar_shift_index],
+			grid -> adjacent_signs_h, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope, grid -> area, grid -> volume);
 			// vertical mass diffusion
 			if (config -> mass_diff_v == 1)
 			{
@@ -109,13 +111,15 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 		if (i == N_CONDENSED_CONSTITUENTS)
 		{
 			scalar_times_vector_h(&state -> rho[scalar_shift_index], state -> wind, diagnostics -> flux_density, grid);
-    		div_h(diagnostics -> flux_density, diagnostics -> flux_density_div, grid);
+    		div_h(diagnostics -> flux_density, diagnostics -> flux_density_div,
+			grid -> adjacent_signs_h, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope, grid -> area, grid -> volume);
 		}
 		// all other constituents
 		else
 		{
 			scalar_times_vector_h_upstream(&state -> rho[scalar_shift_index], state -> wind, diagnostics -> flux_density, grid);
-    		div_h_tracer(diagnostics -> flux_density, &state -> rho[scalar_shift_index], state -> wind, diagnostics -> flux_density_div, grid);
+    		div_h_tracer(diagnostics -> flux_density, &state -> rho[scalar_shift_index], state -> wind, diagnostics -> flux_density_div,
+			grid -> adjacent_signs_h, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope, grid -> area, grid -> volume);
 		}
 		
 		// adding the tendencies in all grid boxes
@@ -147,7 +151,8 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 				diagnostics -> scalar_field_placeholder[j] = state -> rhotheta_v[j]/state -> rho[scalar_shift_index + j];
 			}
 			scalar_times_vector_h(diagnostics -> scalar_field_placeholder, diagnostics -> flux_density, diagnostics -> flux_density, grid);
-			div_h(diagnostics -> flux_density, diagnostics -> flux_density_div, grid);
+			div_h(diagnostics -> flux_density, diagnostics -> flux_density_div,
+			grid -> adjacent_signs_h, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope, grid -> area, grid -> volume);
 			// adding the tendencies in all grid boxes
 			#pragma omp parallel for
 			for (int j = 0; j < N_SCALARS; ++j)

@@ -112,7 +112,8 @@ int hor_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible_
 	*/
     
     // calculating the divergence of the wind field
-    div_h(state -> wind, diagnostics -> wind_div, grid);
+    div_h(state -> wind, diagnostics -> wind_div,
+	grid -> adjacent_signs_h, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope, grid -> area, grid -> volume);
     // calculating the relative vorticity of the wind field
 	calc_rel_vort(state -> wind, diagnostics, grid, dualgrid);
     
@@ -275,7 +276,8 @@ int vert_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible
 		}
 	}
 	// the divergence of the diffusive flux density results in the diffusive acceleration
-	div_h(diagnostics -> vector_field_placeholder, diagnostics -> scalar_field_placeholder, grid);
+	div_h(diagnostics -> vector_field_placeholder, diagnostics -> scalar_field_placeholder,
+			grid -> adjacent_signs_h, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope, grid -> area, grid -> volume);
 	// vertically averaging the divergence to half levels and dividing by the density
 	#pragma omp parallel for private(layer_index, h_index, vector_index)
 	for (int i = 0; i < N_V_VECTORS - 2*N_SCALS_H; ++i)
