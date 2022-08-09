@@ -25,11 +25,6 @@ module radiation
   
   implicit none
   
-  private
-  
-  public :: radiation_init
-  public :: calc_radiative_flux_convergence
-  
   ! the number of bands in the short wave region
   integer, parameter :: no_of_sw_bands = 14
   ! the number of bands in the long wave region

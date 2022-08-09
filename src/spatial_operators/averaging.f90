@@ -12,17 +12,6 @@ module averaging
   use geodesy,     only: passive_turn
 
   implicit none
-  
-  private
-  
-  public :: vertical_contravariant_corr
-  public :: remap_verpri2horpri_vector
-  public :: vector_field_hor_cov_to_con
-  public :: tangential_wind
-  public :: horizontal_covariant
-  public :: calc_uv_at_edge
-  public :: edges_to_cells
-  public :: curl_field_to_cells
 
   contains
 

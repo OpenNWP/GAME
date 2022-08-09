@@ -13,12 +13,6 @@ module divergences
   
   implicit none
   
-  private
-  
-  public :: div_h
-  public :: div_h_tracer
-  public :: add_vertical_div
-  
   contains
   
   subroutine div_h(in_field,out_field,adjacent_signs_h,adjacent_vector_indices_h,inner_product_weights,slope,area,volume) &

@@ -13,10 +13,6 @@ module optimize
 
   implicit none
   
-  private
-  
-  public :: find_cell_cgs
-  
   contains
 
   subroutine find_cell_cgs(latitude_scalar,longitude_scalar,latitude_scalar_dual,longitude_scalar_dual, &

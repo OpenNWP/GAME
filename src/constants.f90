@@ -9,8 +9,6 @@ module constants
   
   implicit none
   
-  public
-  
   ! physical constants
   ! ------------------
   real(wp), parameter :: r_e = 6371000.789927_wp   ! Earth radius

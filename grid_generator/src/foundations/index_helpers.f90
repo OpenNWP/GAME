@@ -10,13 +10,6 @@ module index_helpers
   
   implicit none
   
-  private
-  
-  public :: find_min_index
-  public :: find_max_index
-  public :: find_min_index_exclude
-  public :: in_bool_checker
-  
   contains
 
   function find_min_index(vector,vector_length) &

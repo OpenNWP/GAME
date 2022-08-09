@@ -16,14 +16,6 @@ module discrete_coordinate_trafos
   
   implicit none
   
-  private
-  
-  public :: find_coords_from_triangle_on_face_index
-  public :: find_triangle_on_face_index_from_coords
-  public :: find_points_per_edge
-  public :: find_scalar_points_per_inner_face
-  public :: find_v_vector_indices_for_dual_scalar_z
-  
   contains
   
   subroutine find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local,coord_0,coord_1,coord_0_points_amount) &

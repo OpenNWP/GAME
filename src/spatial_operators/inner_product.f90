@@ -9,10 +9,6 @@ module mo_inner_product
 
   implicit none
   
-  private
-  
-  public :: inner_product
-  
   contains
 
   subroutine inner_product(in_field_1,in_field_2,out_field,adjacent_vector_indices_h,inner_product_weights) &

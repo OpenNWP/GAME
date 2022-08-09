@@ -12,10 +12,6 @@ module inner_product
   
   implicit none
   
-  private
-  
-  public :: calc_inner_product
-  
   contains             
   
   subroutine calc_inner_product(inner_product_weights,normal_distance,volume,area,z_scalar,z_vector,adjacent_vector_indices_h) &

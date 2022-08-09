@@ -17,19 +17,6 @@ module vertical_grid
   
   implicit none
   
-  private
-  
-  public :: set_z_scalar
-  public :: set_gravity_potential
-  public :: set_volume
-  public :: standard_temp
-  public :: standard_pres
-  public :: set_z_scalar_dual
-  public :: set_area_dual
-  public :: set_background_state
-  public :: set_area
-  public :: calc_z_vector_dual_and_normal_distance_dual
-  
   contains
   
   subroutine set_z_scalar(z_scalar,oro,max_oro) &

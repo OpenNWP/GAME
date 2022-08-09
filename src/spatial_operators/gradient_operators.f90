@@ -13,14 +13,6 @@ module gradient_operators
   
   implicit none
   
-  private
-  
-  public :: grad_hor_cov
-  public :: grad_vert_cov
-  public :: grad_cov
-  public :: grad_hor
-  public :: grad
-  
   contains
 
   subroutine grad_hor_cov(in_field,out_field,from_index,to_index,normal_distance) &

@@ -16,13 +16,6 @@ module horizontal_generation
   
   implicit none
   
-  private
-  
-  public :: set_scalar_coordinates
-  public :: set_vector_h_attributes
-  public :: set_dual_vector_h_atttributes
-  public :: read_horizontal_explicit
-  
   contains
   
   subroutine set_scalar_coordinates(edgepoint_0,edgepoint_1,edgepoint_2,point_0,point_1,point_2,points_upwards, &

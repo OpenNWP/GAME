@@ -14,10 +14,6 @@ module interpolation_ll
   
   implicit none
   
-  private
-  
-  public :: interpolate_ll
-  
   contains
   
   subroutine interpolate_ll(latitude_scalar,longitude_scalar,interpol_indices,interpol_weights) &

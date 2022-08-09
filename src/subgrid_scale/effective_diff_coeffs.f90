@@ -10,8 +10,6 @@ module effective_diff_coeffs
   
   implicit none
   
-  private
-  
   contains
   
   function tke2hor_diff_coeff(tke,effective_resolution) &

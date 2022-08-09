@@ -9,17 +9,6 @@ module definitions
   
   implicit none
   
-  private
-  
-  public :: wp
-  public :: t_grid
-  public :: t_dual_grid
-  public :: t_state
-  public :: t_diag
-  public :: t_radiation
-  public :: t_forcings
-  public :: t_irrev
-  
   ! setting the floating pointeger :: precision
   ! single precision
   integer, parameter :: ps = 6

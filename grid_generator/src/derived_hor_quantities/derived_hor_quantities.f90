@@ -14,13 +14,6 @@ module derived_hor_quantities
   
   implicit none
   
-  private
-  
-  public :: set_f_vec
-  public :: calc_vorticity_indices_triangles
-  public :: write_statistics_file
-  public :: find_adjacent_vector_indices_h
-  
   contains
   
   subroutine set_f_vec(latitude_vector,direction_dual,f_vec) &

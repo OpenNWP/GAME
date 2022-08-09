@@ -13,15 +13,6 @@ module manage_radiation_calls
 
   implicit none
   
-  private
-  
-  public :: create_rad_array_scalar
-  public :: create_rad_array_scalar_h
-  public :: create_rad_array_vector
-  public :: create_rad_array_mass_den
-  public :: remap_to_original
-  public :: remap_to_original_scalar_h
-  
   contains
   
   subroutine create_rad_array_scalar(in_array,out_array,rad_block_index) &

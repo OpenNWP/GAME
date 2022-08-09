@@ -11,11 +11,6 @@ module derived_quantities
   
   implicit none
   
-  private
-  
-  public :: rel_humidity
-  public :: calc_diffusion_coeff
-  
   contains
   
   function rel_humidity(abs_humidity,temperature) &

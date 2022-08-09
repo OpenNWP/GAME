@@ -15,12 +15,6 @@ module phys_sfc_properties
 
   implicit none
   
-  private
-  
-  public :: set_sfc_properties
-  public :: int2string
-  public :: nc_check
-  
   contains
 
   function vegetation_height_ideal(latitude,oro) &

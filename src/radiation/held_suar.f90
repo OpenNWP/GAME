@@ -13,10 +13,6 @@ module mo_held_suar
   
   implicit none
   
-  private
-  
-  public :: held_suar
-  
   contains
 
   function t_eq(latitude,pressure)

@@ -12,30 +12,6 @@ module geodesy
   
   implicit none
   
-  private
-  
-  public :: calculate_distance_cart
-  public :: calculate_distance_h
-  public :: active_turn
-  public :: passive_turn
-  public :: find_between_point
-  public :: rad2deg
-  public :: deg2rad
-  public :: calculate_vertical_area
-  public :: active_turn_x
-  public :: scalar_product_elementary
-  public :: find_geos
-  public :: find_global_normal
-  public :: scalar_product_elementary_2d
-  public :: find_turn_angle
-  public :: cross_product_elementary
-  public :: find_voronoi_center_sphere
-  public :: calc_triangle_area
-  public :: rel_on_line
-  public :: sort_vertex_indices
-  public :: find_geodetic_direction
-  public :: normalize_cartesian
-  
   contains
   
   function calculate_distance_cart(lat_2_in,lon_2_in,lat_3_in,lon_3_in,radius_1,radius_2) &

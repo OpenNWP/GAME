@@ -10,10 +10,6 @@ module column_solvers
   
   implicit none
   
-  private
-  
-  public :: thomas_algorithm
-  
   contains
 
   subroutine thomas_algorithm(c_vector,d_vector,e_vector,r_vector,solution_vector,solution_length) &
