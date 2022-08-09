@@ -12,7 +12,7 @@ module horizontal_generation
   use grid_nml,            only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
                                  no_of_lloyd_iterations,n_vectors,n_dual_vectors
   use geodesy,             only: rel_on_line,find_geodetic_direction,find_between_point,normalize_cartesian,find_geos, &
-                                 find_global_normal
+                                 find_global_normal,rad2deg,find_turn_angle
   
   implicit none
   
@@ -168,6 +168,55 @@ module horizontal_generation
     !$omp end parallel do
   
   end subroutine set_dual_vector_h_atttributes
+  
+  
+  subroutine direct_tangential_unity(latitude_scalar_dual,longitude_scalar_dual,direction,direction_dual, &
+                                     to_index_dual,from_index_dual,rel_on_line_dual) &
+  bind(c,name = "direct_tangential_unity")
+  
+    ! This subroutine determines the directions of the dual vectors.
+    
+    integer(c_int), intent(out) :: to_index_dual(n_vectors_h),from_index_dual(n_vectors_h)
+    real(wp),       intent(in)  :: latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h), &
+                                   direction(n_vectors_h)
+    real(wp),       intent(out) :: direction_dual(n_vectors_h),rel_on_line_dual(n_vectors_h)
+    
+    ! local variables
+    integer  :: ji,temp_index
+    real(wp) :: direction_change
+    
+    !$omp parallel do private(ji,temp_index,direction_change)
+    do ji=1,n_vectors_h
+      direction_change = find_turn_angle(direction(ji),direction_dual(ji))
+      if (rad2deg(direction_change)<-orth_criterion_deg) then
+        ! ensuring e_y = k x e_z
+        temp_index = from_index_dual(ji)
+        from_index_dual(ji) = to_index_dual(ji)
+        to_index_dual(ji) = temp_index
+        rel_on_line_dual(ji) = 1._wp - rel_on_line_dual(ji)
+        ! calculating the direction
+        direction_dual(ji) = find_geodetic_direction(latitude_scalar_dual(1+from_index_dual(ji)), &
+                                                     longitude_scalar_dual(1+from_index_dual(ji)), &
+                                                     latitude_scalar_dual(1+to_index_dual(ji)), &
+                                                     longitude_scalar_dual(1+to_index_dual(ji)), &
+                                                     rel_on_line_dual(ji))
+      endif
+    enddo
+    !$omp end parallel do
+
+    ! checking for orthogonality
+    !$omp parallel do private(ji,direction_change)
+    do ji=1,n_vectors_h
+      direction_change = find_turn_angle(direction(ji),direction_dual(ji))
+      if (abs(rad2deg(direction_change))<orth_criterion_deg .or. abs(rad2deg(direction_change)) &
+          >90._wp+(90._wp-orth_criterion_deg)) then
+         write(*,*) "Grid non-orthogonal. Error in subroutine direct_tangential_unity.\n"
+         call exit(1)
+      endif
+    enddo
+    !$omp end parallel do
+  
+  end subroutine direct_tangential_unity
   
   subroutine read_horizontal_explicit(latitude_scalar,longitude_scalar,from_index,to_index, &
                                       from_index_dual,to_index_dual,filename,n_lloyd_read_file) &

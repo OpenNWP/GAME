@@ -505,42 +505,5 @@ int set_from_to_index_dual(int from_index_dual[], int to_index_dual[], int face_
     return 0;
 }
 
-int direct_tangential_unity(double latitude_scalar_dual[], double longitude_scalar_dual[], double direction[], double direction_dual[], int to_index_dual[], int from_index_dual[], double rel_on_line_dual[], double ORTH_CRITERION_DEG)
-{
-	/*
-	This function determines the directions of the dual vectors.
-	*/
-	// ensuring e_y = k x e_z
-	
-	int temp_index;
-	double direction_change;
-	#pragma omp parallel for private(temp_index, direction_change)
-    for (int i = 0; i < N_VECS_H; ++i)
-    {
-	    direction_change = find_turn_angle(&direction[i], &direction_dual[i]);
-	    if (rad2deg(&direction_change) < -ORTH_CRITERION_DEG)
-	    {
-	    	temp_index = from_index_dual[i];
-	        from_index_dual[i] = to_index_dual[i];
-	        to_index_dual[i] = temp_index;
-	        rel_on_line_dual[i] = 1 - rel_on_line_dual[i];
-        	direction_dual[i] = find_geodetic_direction(&latitude_scalar_dual[from_index_dual[i]], &longitude_scalar_dual[from_index_dual[i]],
-        	&latitude_scalar_dual[to_index_dual[i]], &longitude_scalar_dual[to_index_dual[i]], &rel_on_line_dual[i]);
-	    }
-    }
-
-	// checking for orthogonality
-	#pragma omp parallel for private(direction_change)
-    for (int i = 0; i < N_VECS_H; ++i)
-    {
-        direction_change = find_turn_angle(&direction[i], &direction_dual[i]);
-        if (fabs(rad2deg(&direction_change)) < ORTH_CRITERION_DEG || fabs(rad2deg(&direction_change)) > 90.0 + (90.0 - ORTH_CRITERION_DEG))
-		{
-            printf("Grid non-orthogonal: Intersection angle of %lf degrees detected.\n", fabs(rad2deg(&direction_change)));
-		}
-    }
-    return 0;
-}
-
 
 

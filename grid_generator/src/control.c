@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
 	
 	// determining the directions of the dual vectors
 	direct_tangential_unity(latitude_scalar_dual, longitude_scalar_dual, direction, direction_dual,
-	to_index_dual, from_index_dual, rel_on_line_dual, 89.99);
+	to_index_dual, from_index_dual, rel_on_line_dual);
 	
 	// setting the Coriolis vector
     set_f_vec(latitude_vector, direction_dual, f_vec);
