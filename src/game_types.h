@@ -102,7 +102,6 @@ int latlon_interpol_indices[5*N_LATLON_IO_POINTS];
 double latlon_interpol_weights[5*N_LATLON_IO_POINTS];
 double z_soil_interface[N_SOIL_LAYERS + 1];
 double z_soil_center[N_SOIL_LAYERS];
-double mean_velocity_area;
 double t_const_soil[N_SCALS_H];
 double z_t_const;
 double toa;

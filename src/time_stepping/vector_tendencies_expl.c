@@ -44,7 +44,9 @@ int vector_tendencies_expl(State *state, State *state_tendency, Grid *grid, Dual
     	if (config -> momentum_diff_h == 1 || config -> mass_diff_h == 1 || config -> temperature_diff_h == 1)
     	{
     		update_n_squared(state, diagnostics, grid);
-			tke_update(irrev, delta_t, state, diagnostics, grid);
+			tke_update(state -> rho, irrev -> viscosity, irrev -> heating_diss,
+			           irrev -> tke, diagnostics -> vector_field_placeholder, state -> wind, diagnostics -> scalar_field_placeholder, grid -> from_index, grid -> to_index,
+                       grid -> adjacent_vector_indices_h, grid -> normal_distance, grid -> inner_product_weights, grid -> slope);
     	}
     	
 		// momentum diffusion and dissipation (only updated at the first RK step)

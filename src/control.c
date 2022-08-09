@@ -20,6 +20,7 @@ The main organizes the model, manages the time stepping, calls model output, col
 #include "time_stepping/time_stepping.h"
 #include "../grid_generator/src/grid_generator.h"
 
+extern int run_nml_setup();
 extern int rad_nml_setup();
 extern int constituents_nml_setup();
 
@@ -438,6 +439,7 @@ int main(int argc, char *argv[])
 	config -> damping_coeff_max = 0.25;
 	
 	grid_nml_setup();
+	run_nml_setup();
 	rad_nml_setup();
 	constituents_nml_setup();
 	
@@ -547,7 +549,6 @@ int main(int argc, char *argv[])
 		h_index = i - layer_index*N_SCALS_H;
 		cell_area_sum += grid -> area[h_index + layer_index*N_VECS_PER_LAYER];
 	}
-	grid -> mean_velocity_area = 2.0/3.0*cell_area_sum/(N_LEVELS*N_SCALS_H);
     
     // calculating the average horizontal resolution
     grid -> eff_hor_res = pow(cell_area_sum/(N_LEVELS*N_SCALS_H), 0.5);
