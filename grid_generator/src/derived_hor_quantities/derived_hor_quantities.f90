@@ -6,12 +6,13 @@ module derived_hor_quantities
   ! This module contains helper functions concerned with simple algebraic operations on vectors.
 
   use iso_c_binding
-  use definitions, only: wp
-  use grid_nml,    only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
-                         no_of_lloyd_iterations,radius,n_vectors,n_dual_vectors,n_pentagons
-  use geodesy,     only: find_turn_angle,rad2deg,find_geodetic_direction,find_global_normal,find_geos, &
-                         find_between_point,rel_on_line
-  use constants,   only: omega
+  use definitions,   only: wp
+  use grid_nml,      only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
+                           no_of_lloyd_iterations,radius,n_vectors,n_dual_vectors,n_pentagons
+  use geodesy,       only: find_turn_angle,rad2deg,find_geodetic_direction,find_global_normal,find_geos, &
+                           find_between_point,rel_on_line,calc_spherical_polygon_area
+  use constants,     only: omega,EPSILON_SECURITY,M_PI
+  use index_helpers, only: in_bool_checker
   
   implicit none
   
@@ -356,6 +357,70 @@ module derived_hor_quantities
     !$omp end parallel do
   
   end subroutine find_adjacent_vector_indices_h
+  
+  subroutine calc_cell_area_unity(pent_hex_face_unity_sphere,latitude_scalar_dual,longitude_scalar_dual, &
+                                  adjacent_vector_indices_h,vorticity_indices_pre) &
+  bind(c,name = "calc_cell_area_unity")
+    
+    ! This subroutine computes the areas of the cells (pentagons and hexagons) on the unity sphere.
+    
+    real(wp), intent(out) :: pent_hex_face_unity_sphere(n_scalars_h)
+    real(wp), intent(in)  :: latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h)
+    integer,  intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h),vorticity_indices_pre(3*n_dual_scalars_h)
+    
+    integer  :: ji,jk,check_1,check_2,check_3,counter,n_edges,cell_vector_indices(6)
+    real(wp) :: pent_hex_sum_unity_sphere,pent_hex_avg_unity_sphere_ideal,lat_points(6),lon_points(6)
+    
+    !$omp parallel do private(ji,jk,check_1,check_2,check_3,counter,n_edges,cell_vector_indices,lat_points,lon_points)
+    do ji=1,n_scalars_h
+      n_edges = 6
+      if (ji<=n_pentagons) then
+        n_edges = 5
+      endif
+      do jk=1,n_edges
+        cell_vector_indices(jk) = adjacent_vector_indices_h(6*(ji-1)+jk)
+      enddo
+      counter = 1
+      do jk=1,n_dual_scalars_h
+        check_1 = in_bool_checker(vorticity_indices_pre(3*(jk-1)+1),cell_vector_indices,n_edges)
+        check_2 = in_bool_checker(vorticity_indices_pre(3*(jk-1)+2),cell_vector_indices,n_edges)
+        check_3 = in_bool_checker(vorticity_indices_pre(3*(jk-1)+3),cell_vector_indices,n_edges)
+        if (check_1==1 .or. check_2==1 .or. check_3==1) then
+          lat_points(counter) = latitude_scalar_dual(jk)
+          lon_points(counter) = longitude_scalar_dual(jk)
+          counter = counter+1
+        endif
+      enddo
+      if (counter/=n_edges+1) then
+        write(*,*) "Trouble in calc_cell_face_unity."
+      endif
+      pent_hex_face_unity_sphere(ji) = calc_spherical_polygon_area(lat_points,lon_points,n_edges)
+    enddo
+    !$omp end parallel do
+    
+    pent_hex_sum_unity_sphere = 0._wp
+    pent_hex_avg_unity_sphere_ideal = 4._wp*M_PI/n_scalars_h
+    
+    !$omp parallel do private(ji),shared(pent_hex_sum_unity_sphere)
+    do ji=1,n_scalars_h
+      pent_hex_sum_unity_sphere = pent_hex_sum_unity_sphere+pent_hex_face_unity_sphere(ji)
+      if (pent_hex_face_unity_sphere(ji)<=0._wp) then
+        write(*,*) "pent_hex_face_unity_sphere contains a non-positive value."
+        call exit(1)
+      endif
+      if (abs(pent_hex_face_unity_sphere(ji)/pent_hex_avg_unity_sphere_ideal-1._wp)>0.4_wp) then
+        write(*,*) "Pentagons and hexagons on unity sphere have significantly different surfaces."
+        call exit(1)
+      endif
+    enddo
+    !$omp end parallel do
+    
+    if (abs(pent_hex_sum_unity_sphere/(4._wp*M_PI)-1._wp)>EPSILON_SECURITY) then
+      write(*,*) "Sum of faces of pentagons and hexagons on unity sphere does not match face of unit sphere."
+      call exit(1)
+    endif
+  
+  end subroutine calc_cell_area_unity
 
 end module derived_hor_quantities
 
