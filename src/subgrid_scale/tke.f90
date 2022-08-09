@@ -18,7 +18,7 @@ module tke
   
   contains
 
-  subroutine tke_update(rho,viscosity,tke,heating_diss,vector_field_placeholder,wind,scalar_field_placeholder,from_index,to_index, &
+  subroutine tke_update(rho,viscosity,heating_diss,tke,vector_field_placeholder,wind,scalar_field_placeholder,from_index,to_index, &
                         adjacent_vector_indices_h,normal_distance,inner_product_weights,slope) &
   bind(c,name = "tke_update")
   
