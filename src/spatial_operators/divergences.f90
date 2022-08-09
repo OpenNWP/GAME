@@ -26,10 +26,10 @@ module divergences
   
     ! This subroutine computes the divergence of a horizontal vector field.
     
-    integer(c_int), intent(in)  :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h)
-    real(wp),       intent(in)  :: in_field(n_vectors),inner_product_weights(8*n_scalars),slope(n_vectors), &
-                                   area(n_vectors),volume(n_scalars)
-    real(wp),       intent(out) :: out_field(n_scalars)
+    integer,  intent(in)  :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h)
+    real(wp), intent(in)  :: in_field(n_vectors),inner_product_weights(8*n_scalars),slope(n_vectors), &
+                             area(n_vectors),volume(n_scalars)
+    real(wp), intent(out) :: out_field(n_scalars)
     
     ! local variables
     integer  :: h_index,layer_index,ji,jl,n_edges
@@ -80,11 +80,11 @@ module divergences
   
     ! This subroutine computes the divergence of a horizontal tracer flux density field.
     
-    integer(c_int), intent(in)  :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h)
-    real(wp), intent(in)        :: in_field(n_vectors),density_field(n_scalars),wind_field(n_vectors), &
-                                   inner_product_weights(8*n_scalars),slope(n_vectors),area(n_vectors), &
-                                   volume(n_scalars)
-    real(wp), intent(out)       :: out_field(n_scalars)
+    integer,  intent(in)  :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h)
+    real(wp), intent(in)  :: in_field(n_vectors),density_field(n_scalars),wind_field(n_vectors), &
+                             inner_product_weights(8*n_scalars),slope(n_vectors),area(n_vectors), &
+                             volume(n_scalars)
+    real(wp), intent(out) :: out_field(n_scalars)
     
     ! local variables
     integer  :: h_index,layer_index,ji,jl,n_edges

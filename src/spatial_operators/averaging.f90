@@ -34,9 +34,9 @@ module averaging
     
     ! Attention: adjacent_signs_h appears twice, thus does not need to be taken into account.
     
-    real(wp),       intent(in) :: vector_field(n_vectors),inner_product_weights(8*n_scalars),slope(n_vectors)
-    integer(c_int), intent(in) :: layer_index,h_index,adjacent_vector_indices_h(6*n_scalars_h)
-    real(wp)                   :: vertical_contravariant_corr
+    real(wp), intent(in) :: vector_field(n_vectors),inner_product_weights(8*n_scalars),slope(n_vectors)
+    integer,  intent(in) :: layer_index,h_index,adjacent_vector_indices_h(6*n_scalars_h)
+    real(wp)             :: vertical_contravariant_corr
     
     ! local variables
     integer :: ji,scalar_index,vector_index,n_edges
@@ -88,9 +88,9 @@ module averaging
     
     ! This function reconstructs the vertical vector component at edge h_index in layer layer_index.
     
-    real(wp),       intent(in)  :: vector_field(n_vectors),inner_product_weights(8*n_scalars)
-    integer(c_int), intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h),layer_index,h_index
-    real(wp)                    :: remap_verpri2horpri_vector
+    real(wp), intent(in)  :: vector_field(n_vectors),inner_product_weights(8*n_scalars)
+    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h),layer_index,h_index
+    real(wp)              :: remap_verpri2horpri_vector
     
     remap_verpri2horpri_vector &
     ! layer above
@@ -119,9 +119,9 @@ module averaging
     ! This subroutine transforms the covariant horizontal measure numbers of a vector field to
     ! contravariant measure numbers.
     
-    integer(c_int), intent(in)    :: from_index(n_vectors_h),to_index(n_vectors_h)
-    real(wp),       intent(in)    :: inner_product_weights(8*n_scalars),slope(n_vectors)
-    real(wp),       intent(inout) :: cov_to_con_field(n_vectors)
+    integer,  intent(in)    :: from_index(n_vectors_h),to_index(n_vectors_h)
+    real(wp), intent(in)    :: inner_product_weights(8*n_scalars),slope(n_vectors)
+    real(wp), intent(inout) :: cov_to_con_field(n_vectors)
     
     ! local variables
     integer  :: ji,layer_index,h_index,vector_index
@@ -147,9 +147,9 @@ module averaging
     ! This function computes the tangential component *component of the vector field in_field at edge h_index in layer layer_index
     ! using the TRSK weights.
     
-    real(wp),       intent(in)  :: in_field(n_vectors),trsk_weights(10*n_vectors_h)
-    integer(c_int), intent(in)  :: layer_index,h_index,trsk_indices(10*n_vectors_h)
-    real(wp)                    :: tangential_wind
+    real(wp), intent(in) :: in_field(n_vectors),trsk_weights(10*n_vectors_h)
+    integer,  intent(in) :: layer_index,h_index,trsk_indices(10*n_vectors_h)
+    real(wp)             :: tangential_wind
     
     ! local variables
     integer :: ji
@@ -170,9 +170,9 @@ module averaging
     ! This function calculates the horizontal covariant component of a vector field out of the horizontal contravariant and the vertical covariant components
     ! contravariant measure numbers.
     
-    integer(c_int), intent(in) :: from_index(n_vectors_h),to_index(n_vectors_h),layer_index,h_index
-    real(wp),       intent(in) :: vector_field(n_vectors),inner_product_weights(8*n_scalars),slope(n_vectors)
-    real(wp)                   :: horizontal_covariant
+    integer,  intent(in) :: from_index(n_vectors_h),to_index(n_vectors_h),layer_index,h_index
+    real(wp), intent(in) :: vector_field(n_vectors),inner_product_weights(8*n_scalars),slope(n_vectors)
+    real(wp)             :: horizontal_covariant
     
     ! local variables
     real(wp) :: vertical_component
@@ -194,9 +194,9 @@ module averaging
   
     ! This function diagnozes eastward and northward components of a vector field at edges.
     
-    real(wp), intent(in)       :: in_field(n_vectors),trsk_weights(10*n_vectors_h),direction(n_vectors_h)
-    integer(c_int), intent(in) :: trsk_indices(10*n_vectors_h)
-    real(wp), intent(out)      :: out_field_u(n_vectors),out_field_v(n_vectors)
+    real(wp), intent(in)  :: in_field(n_vectors),trsk_weights(10*n_vectors_h),direction(n_vectors_h)
+    integer,  intent(in)  :: trsk_indices(10*n_vectors_h)
+    real(wp), intent(out) :: out_field_u(n_vectors),out_field_v(n_vectors)
     
     ! local variables
     integer  :: ji,layer_index,h_index
@@ -223,9 +223,9 @@ module averaging
     
     ! This function averages a vector field from edges to cell centers.
     
-    real(wp),       intent(in)  :: in_field(n_vectors),inner_product_weights(8*n_scalars)
-    integer(c_int), intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h)
-    real(wp),       intent(out) :: out_field(n_scalars)
+    real(wp), intent(in)  :: in_field(n_vectors),inner_product_weights(8*n_scalars)
+    integer,  intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h)
+    real(wp), intent(out) :: out_field(n_scalars)
     
     ! local variables
     integer :: ji,jk,layer_index,h_index,n_edges
@@ -257,9 +257,9 @@ module averaging
     
     ! This function averages a curl field from edges to cell centers.
     
-    real(wp), intent(in)       :: in_field((2*n_layers+1)*n_vectors_h),inner_product_weights(8*n_scalars)
-    integer(c_int), intent(in) :: adjacent_vector_indices_h(6*n_scalars_h)
-    real(wp), intent(out)      :: out_field(n_scalars)
+    real(wp), intent(in)  :: in_field((2*n_layers+1)*n_vectors_h),inner_product_weights(8*n_scalars)
+    integer,  intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h)
+    real(wp), intent(out) :: out_field(n_scalars)
     
     integer :: ji,jk,layer_index,h_index,n_edges
     

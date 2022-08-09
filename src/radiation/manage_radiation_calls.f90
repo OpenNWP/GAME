@@ -31,7 +31,7 @@ module manage_radiation_calls
     
     real(wp), intent(in)  :: in_array(n_scalars)
     real(wp), intent(out) :: out_array(n_scals_rad)
-    integer(c_int)        :: rad_block_index
+    integer               :: rad_block_index
     
     ! local variables
     integer :: ji,layer_index,h_index
@@ -52,7 +52,7 @@ module manage_radiation_calls
     
     real(wp), intent(in)  :: in_array(n_scalars_h)
     real(wp), intent(out) :: out_array(n_scals_rad_h)
-    integer(c_int)        :: rad_block_index
+    integer               :: rad_block_index
     
     ! local variables
     integer :: ji
@@ -71,7 +71,7 @@ module manage_radiation_calls
 	! Only the vertical vector points are taken into account since only they are needed by the radiation.
     real(wp), intent(in)  :: in_array(n_vectors)
     real(wp), intent(out) :: out_array(n_scals_rad+n_scals_rad_h)
-    integer(c_int)        :: rad_block_index
+    integer               :: rad_block_index
     
     ! local variables
     integer :: ji,layer_index,h_index
@@ -92,7 +92,7 @@ module manage_radiation_calls
     
     real(wp), intent(in)  :: in_array(n_constituents*n_scalars)
     real(wp), intent(out) :: out_array(n_constituents*n_scals_rad)
-    integer(c_int)        :: rad_block_index
+    integer               :: rad_block_index
     
     ! local variables
     integer :: const_id,ji,layer_index,h_index
@@ -117,7 +117,7 @@ module manage_radiation_calls
     
     real(wp), intent(in)  :: in_array(n_scals_rad)
     real(wp), intent(out) :: out_array(n_scalars)
-    integer(c_int)        :: rad_block_index
+    integer               :: rad_block_index
     
     ! local variables
     integer :: ji,layer_index,h_index
@@ -138,7 +138,7 @@ module manage_radiation_calls
     
     real(wp), intent(in)  :: in_array(n_scals_rad_h)
     real(wp), intent(out) :: out_array(n_scalars_h)
-    integer(c_int)        :: rad_block_index
+    integer               :: rad_block_index
     
     ! local variables
     integer :: ji

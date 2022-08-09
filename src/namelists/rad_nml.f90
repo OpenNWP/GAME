@@ -10,9 +10,9 @@ module rad_nml
   
   implicit none
   
-  integer(c_int) :: n_rad_blocks  ! number of radiation domains
-  integer(c_int) :: n_scals_rad   ! number of scalars per radiation domain
-  integer(c_int) :: n_scals_rad_h ! numbers of horizontal scalars per layer of the radiaiton domain
+  integer :: n_rad_blocks  ! number of radiation domains
+  integer :: n_scals_rad   ! number of scalars per radiation domain
+  integer :: n_scals_rad_h ! numbers of horizontal scalars per layer of the radiaiton domain
   
   namelist /grid/n_rad_blocks
 

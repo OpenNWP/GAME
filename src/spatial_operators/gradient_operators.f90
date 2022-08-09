@@ -28,11 +28,11 @@ module gradient_operators
   
     ! This subroutine calculates the horizontal covariant gradient
     
-    real(wp),       intent(in)  :: in_field(n_scalars)
-    real(wp),       intent(out) :: out_field(n_vectors)
-    integer(c_int), intent(in)  :: from_index(n_vectors_h)
-    integer(c_int), intent(in)  :: to_index(n_vectors_h)
-    real(wp),       intent(in)  :: normal_distance(n_vectors)
+    real(wp), intent(in)  :: in_field(n_scalars)
+    real(wp), intent(out) :: out_field(n_vectors)
+    integer,  intent(in)  :: from_index(n_vectors_h)
+    integer,  intent(in)  :: to_index(n_vectors_h)
+    real(wp), intent(in)  :: normal_distance(n_vectors)
     
     ! local variables
     integer :: h_index,layer_index,vector_index
@@ -82,11 +82,11 @@ module gradient_operators
   
     ! This subroutine calculates the horizontal covariant gradient
     
-    real(wp),       intent(in)  :: in_field(n_scalars)
-    real(wp),       intent(out) :: out_field(n_vectors)
-    integer(c_int), intent(in)  :: from_index(n_vectors_h)
-    integer(c_int), intent(in)  :: to_index(n_vectors_h)
-    real(wp),       intent(in)  :: normal_distance(n_vectors)
+    real(wp), intent(in)  :: in_field(n_scalars)
+    real(wp), intent(out) :: out_field(n_vectors)
+    integer,  intent(in)  :: from_index(n_vectors_h)
+    integer,  intent(in)  :: to_index(n_vectors_h)
+    real(wp), intent(in)  :: normal_distance(n_vectors)
     
     ! This subroutine calculates the covariant gradient.
     
@@ -100,11 +100,11 @@ module gradient_operators
     
     ! This subroutine calculates the gradient (horizontally contravariant, vertically covariant).
     
-    real(wp),       intent(in)  :: in_field(n_scalars)
-    real(wp),       intent(out) :: out_field(n_vectors)
-    integer(c_int), intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
-    real(wp),       intent(in)  :: normal_distance(n_vectors)
-    real(wp),       intent(in)  :: inner_product_weights(8*n_scalars),slope(n_vectors)
+    real(wp), intent(in)  :: in_field(n_scalars)
+    real(wp), intent(out) :: out_field(n_vectors)
+    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    real(wp), intent(in)  :: normal_distance(n_vectors)
+    real(wp), intent(in)  :: inner_product_weights(8*n_scalars),slope(n_vectors)
     
     call grad_cov(in_field, out_field,from_index,to_index,normal_distance)
     call vector_field_hor_cov_to_con(out_field,from_index,to_index,inner_product_weights,slope)
@@ -116,11 +116,11 @@ module gradient_operators
     
     ! This function calculates the horizontal contravariant gradient.
     
-    real(wp),       intent(in)  :: in_field(n_scalars)
-    real(wp),       intent(out) :: out_field(n_vectors)
-    integer(c_int), intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
-    real(wp),       intent(in)  :: normal_distance(n_vectors)
-    real(wp),       intent(in)  :: inner_product_weights(8*n_scalars),slope(n_vectors)
+    real(wp), intent(in)  :: in_field(n_scalars)
+    real(wp), intent(out) :: out_field(n_vectors)
+    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    real(wp), intent(in)  :: normal_distance(n_vectors)
+    real(wp), intent(in)  :: inner_product_weights(8*n_scalars),slope(n_vectors)
     
     ! local variables
     integer :: ji,layer_index,h_index

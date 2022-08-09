@@ -20,10 +20,10 @@ module mo_inner_product
     
     ! This subroutine computes the inner product of the two vector fields in_field_1 and in_field_2. This is needed for computing the dissipation due to momentum diffusion (friction).
     
-    real(wp),       intent(in)  :: in_field_1(n_vectors),in_field_2(n_vectors)
-    real(wp),       intent(out) :: out_field(n_scalars)
-    integer(c_int), intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h)
-    real(wp),       intent(in)  :: inner_product_weights(8*n_scalars)
+    real(wp), intent(in)  :: in_field_1(n_vectors),in_field_2(n_vectors)
+    real(wp), intent(out) :: out_field(n_scalars)
+    integer,  intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h)
+    real(wp), intent(in)  :: inner_product_weights(8*n_scalars)
     
     ! local variables
     integer :: h_index,layer_index,ji,jk,no_of_edges,base_index

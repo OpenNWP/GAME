@@ -21,12 +21,12 @@ module column_solvers
 
     ! This subroutine solves a system of linear equations with a three-band matrix.
     
-    integer(c_int),  intent(in)  :: solution_length                  ! length of the solution vector
-    real(wp),        intent(in)  :: c_vector(solution_length)        ! lower diagonal vector
-    real(wp),        intent(in)  :: d_vector(solution_length)        ! main diagonal vector
-    real(wp),        intent(in)  :: e_vector(solution_length)        ! upper diagonal vector
-    real(wp),        intent(in)  :: r_vector(solution_length)        ! right hand side vector
-    real(wp),        intent(out) :: solution_vector(solution_length) ! vector containing the solution
+    integer,  intent(in)  :: solution_length                  ! length of the solution vector
+    real(wp), intent(in)  :: c_vector(solution_length)        ! lower diagonal vector
+    real(wp), intent(in)  :: d_vector(solution_length)        ! main diagonal vector
+    real(wp), intent(in)  :: e_vector(solution_length)        ! upper diagonal vector
+    real(wp), intent(in)  :: r_vector(solution_length)        ! right hand side vector
+    real(wp), intent(out) :: solution_vector(solution_length) ! vector containing the solution
     
     ! local variables
     real(wp) :: e_prime_vector(solution_length-1) ! help vector for solving the matrix equation

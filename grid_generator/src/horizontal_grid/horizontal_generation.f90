@@ -210,7 +210,7 @@ module horizontal_generation
       direction_change = find_turn_angle(direction(ji),direction_dual(ji))
       if (abs(rad2deg(direction_change))<orth_criterion_deg .or. abs(rad2deg(direction_change)) &
           >90._wp+(90._wp-orth_criterion_deg)) then
-         write(*,*) "Grid non-orthogonal. Error in subroutine direct_tangential_unity.\n"
+         write(*,*) "Grid non-orthogonal. Error in subroutine direct_tangential_unity."
          call exit(1)
       endif
     enddo

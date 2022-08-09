@@ -25,9 +25,9 @@ module multiplications
   
     ! This subroutine multiplies the vector field vector_field by the scalar field scalar_field.
     
-    real(wp), intent(in)       :: scalar_field(n_scalars),vector_field(n_vectors)
-    integer(c_int), intent(in) :: from_index(n_vectors_h),to_index(n_vectors_h)
-    real(wp), intent(out)      :: out_field(n_vectors)
+    real(wp), intent(in)  :: scalar_field(n_scalars),vector_field(n_vectors)
+    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    real(wp), intent(out) :: out_field(n_vectors)
         
     call scalar_times_vector_h(scalar_field,vector_field,out_field,from_index,to_index)
     call scalar_times_vector_v(scalar_field,vector_field,out_field)
@@ -39,9 +39,9 @@ module multiplications
   
     ! This subroutine multiplies a vector field by a scalar field at the horizontal gridpoints.
     
-    real(wp), intent(in)       :: scalar_field(n_scalars),vector_field(n_vectors)
-    integer(c_int), intent(in) :: from_index(n_vectors_h),to_index(n_vectors_h)
-    real(wp), intent(out)      :: out_field(n_vectors)
+    real(wp), intent(in)  :: scalar_field(n_scalars),vector_field(n_vectors)
+    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    real(wp), intent(out) :: out_field(n_vectors)
     
     ! local variables
     integer  :: h_index,layer_index,vector_index
@@ -67,9 +67,9 @@ module multiplications
     ! This subroutine multiplies a vector field by a scalar field.
     ! The scalar field value from the upstream gridpoint is used.
     
-    real(wp), intent(in)       :: scalar_field(n_scalars),vector_field(n_vectors)
-    integer(c_int), intent(in) :: from_index(n_vectors_h),to_index(n_vectors_h)
-    real(wp), intent(out)      :: out_field(n_vectors)
+    real(wp), intent(in)  :: scalar_field(n_scalars),vector_field(n_vectors)
+    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    real(wp), intent(out) :: out_field(n_vectors)
     
     ! local variables
     integer  :: h_index,layer_index,vector_index
