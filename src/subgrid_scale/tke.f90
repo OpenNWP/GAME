@@ -6,13 +6,13 @@ module tke
   ! In this module, turbulence-related quantities are computed.
 
   use iso_c_binding
-  use definitions,      only: wp
-  use grid_nml,         only: n_scalars,n_vectors,n_vectors_h,n_scalars_h,mean_velocity_area
-  use constituents_nml, only: n_condensed_constituents,n_constituents
-  use run_nml,          only: dtime
-  use constants,        only: M_PI
+  use definitions,        only: wp
+  use grid_nml,           only: n_scalars,n_vectors,n_vectors_h,n_scalars_h,mean_velocity_area
+  use constituents_nml,   only: n_condensed_constituents,n_constituents
+  use run_nml,            only: dtime
+  use constants,          only: M_PI
   use gradient_operators, only: grad
-  use mo_inner_product, only: inner_product
+  use mo_inner_product,   only: inner_product
 
   implicit none
   
