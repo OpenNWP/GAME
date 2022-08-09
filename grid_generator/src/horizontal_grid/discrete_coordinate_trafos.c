@@ -273,41 +273,6 @@ int *point_0, int *point_1, int *point_2, int face_vertices[][3], int face_edges
     return 0;
 }
 
-int find_v_vector_indices_for_dual_scalar_z(int from_index[], int to_index[], int vorticity_indices_triangles[], int dual_scalar_h_index, int index_vector_for_dual_scalar_z[])
-{
-	/*
-	This function computes the vertical vector indices to compute the z-coordinates of a dual scalar data point with.
-	*/
-	
-	int counter = 0;
-	int check_result;
-	index_vector_for_dual_scalar_z[0] = -1;
-	index_vector_for_dual_scalar_z[1] = -1;
-	index_vector_for_dual_scalar_z[2] = -1;
-	int three = 3;
-	for (int k = 0; k < 3; ++k)
-	{
-		check_result = in_bool_checker(&from_index[vorticity_indices_triangles[3*dual_scalar_h_index + k]], index_vector_for_dual_scalar_z, &three);
-		if (check_result == 0)
-		{
-			index_vector_for_dual_scalar_z[counter] = from_index[vorticity_indices_triangles[3*dual_scalar_h_index + k]];
-			counter++;
-		}
-		check_result = in_bool_checker(&to_index[vorticity_indices_triangles[3*dual_scalar_h_index + k]], index_vector_for_dual_scalar_z, &three);
-		if (check_result == 0)
-		{
-			index_vector_for_dual_scalar_z[counter] = to_index[vorticity_indices_triangles[3*dual_scalar_h_index + k]];
-			counter++;
-		}
-	}
-	if (counter != 3)
-	{
-		printf("Error in function find_v_vector_indices_for_dual_scalar_z.\n");
-		exit(1);
-	}
-	return 0;
-}
-
 int build_icosahedron(double latitude_ico[], double longitude_ico[], int edge_vertices[][2], int face_vertices[][3], int face_edges[][3], int face_edges_reverse[][3])
 {
 	/*

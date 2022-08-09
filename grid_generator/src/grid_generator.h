@@ -9,7 +9,7 @@ extern int find_points_per_edge();
 extern int find_scalar_points_per_inner_face();
 extern int upscale_scalar_point();
 extern int set_scalar_coordinates();
-int find_v_vector_indices_for_dual_scalar_z(int [], int [], int [], int, int []);
+extern int find_v_vector_indices_for_dual_scalar_z();
 extern int find_coords_from_triangle_on_face_index();
 extern int find_triangle_on_face_index_from_coords();
 int find_triangle_indices_from_h_vector_index(int, int, int *, int *, int *, int *, int *, int *, int *, int *, int [][3], int [][3], int [][3]);

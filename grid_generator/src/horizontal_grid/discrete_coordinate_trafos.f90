@@ -12,6 +12,7 @@ module discrete_coordinate_trafos
   use grid_nml,            only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
                                  no_of_lloyd_iterations,n_vectors,n_dual_vectors,res_id,n_pentagons,n_basic_edges, &
                                  n_points_per_edge
+  use index_helpers,       only: in_bool_checker
   
   implicit none
   
@@ -21,6 +22,7 @@ module discrete_coordinate_trafos
   public :: find_triangle_on_face_index_from_coords
   public :: find_points_per_edge
   public :: find_scalar_points_per_inner_face
+  public :: find_v_vector_indices_for_dual_scalar_z
   
   contains
   
@@ -138,6 +140,47 @@ module discrete_coordinate_trafos
     endif
   
   end function upscale_scalar_point
+
+  subroutine find_v_vector_indices_for_dual_scalar_z(from_index,to_index,vorticity_indices_triangles, &
+  dual_scalar_h_index,index_vector_for_dual_scalar_z) &
+  bind(c,name = "find_v_vector_indices_for_dual_scalar_z")
+    
+    ! This subroutine computes the vertical vector indices to compute the z-coordinates of a dual scalar data point with.
+    
+    integer(c_int), intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h), &
+                                   vorticity_indices_triangles(3*n_dual_scalars_h),dual_scalar_h_index
+    integer(c_int), intent(out) :: index_vector_for_dual_scalar_z(3)
+        
+    ! local variables
+    integer :: ji,counter,check_result
+    
+    ! initialzing the result
+    index_vector_for_dual_scalar_z(1) = -1
+    index_vector_for_dual_scalar_z(2) = -1
+    index_vector_for_dual_scalar_z(3) = -1
+    
+    counter = 1
+    
+    do ji=1,3
+      check_result = in_bool_checker(from_index(1+vorticity_indices_triangles(3*dual_scalar_h_index + ji)), &
+                                     index_vector_for_dual_scalar_z,3)
+      if (check_result==0) then
+        index_vector_for_dual_scalar_z(counter) = from_index(1+vorticity_indices_triangles(3*dual_scalar_h_index + ji))
+        counter = counter+1
+      endif
+      check_result = in_bool_checker(to_index(1+vorticity_indices_triangles(3*dual_scalar_h_index + ji)), &
+                                     index_vector_for_dual_scalar_z,3)
+      if (check_result==0) then
+        index_vector_for_dual_scalar_z(counter) = to_index(1+vorticity_indices_triangles(3*dual_scalar_h_index + ji))
+        counter = counter+1
+      endif
+    enddo
+    if (counter/=4) then
+      write(*,*) "Error in subroutine find_v_vector_indices_for_dual_scalar_z."
+      call exit(1)
+    endif
+  
+  end subroutine find_v_vector_indices_for_dual_scalar_z
 
 end module discrete_coordinate_trafos
 
