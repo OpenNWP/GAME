@@ -25,9 +25,9 @@ module interpolation_ll
   
     ! This function interpolates to the lat-lon grid.
   
-    integer(c_int), intent(out) :: interpol_indices(5*n_scalars_h)
-    real(wp),       intent(out) :: interpol_weights(5*n_scalars_h)
-    real(wp),       intent(in)  :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
+    integer,  intent(out) :: interpol_indices(5*n_scalars_h)
+    real(wp), intent(out) :: interpol_weights(5*n_scalars_h)
+    real(wp), intent(in)  :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
   
     ! local variables
     real(wp) :: delta_latitude,delta_longitude,lat_value,lon_value,weights_sum, &

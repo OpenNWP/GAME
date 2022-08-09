@@ -31,9 +31,9 @@ module horizontal_generation
     
     ! This subroutine computes the geographical coordinates of a scalar data point.
     
-    integer(c_int), intent(in)  :: edgepoint_0,edgepoint_1,edgepoint_2,point_0,point_1,point_2,points_upwards
-    real(wp),       intent(out) :: x_unity(n_scalars_h),y_unity(n_scalars_h),z_unity(n_scalars_h), &
-                                   latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
+    integer,  intent(in)  :: edgepoint_0,edgepoint_1,edgepoint_2,point_0,point_1,point_2,points_upwards
+    real(wp), intent(out) :: x_unity(n_scalars_h),y_unity(n_scalars_h),z_unity(n_scalars_h), &
+                             latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
     
     ! local variables
     
@@ -114,9 +114,9 @@ module horizontal_generation
     
     ! This subroutine sets the geographical coordinates and the directions of the horizontal vector points.
     
-    integer(c_int), intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
-    real(wp),       intent(in)  :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
-    real(wp),       intent(out) :: latitude_vector(n_vectors_h),longitude_vector(n_vectors_h),direction(n_vectors_h)
+    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    real(wp), intent(in)  :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
+    real(wp), intent(out) :: latitude_vector(n_vectors_h),longitude_vector(n_vectors_h),direction(n_vectors_h)
     
     ! local variables
     integer  :: ji
@@ -145,10 +145,10 @@ module horizontal_generation
     ! - where they are placed in between the dual scalar points
     ! - in which direction they point
     
-    real(wp),       intent(in)  :: latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h), &
-                                   latitude_vector(n_vectors_h),longitude_vector(n_vectors_h)
-    integer(c_int), intent(in)  :: from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
-    real(wp),       intent(out) :: direction_dual(n_vectors_h),rel_on_line_dual(n_vectors_h)
+    real(wp), intent(in)  :: latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h), &
+                             latitude_vector(n_vectors_h),longitude_vector(n_vectors_h)
+    integer,  intent(in)  :: from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
+    real(wp), intent(out) :: direction_dual(n_vectors_h),rel_on_line_dual(n_vectors_h)
     
     ! local variables
     integer :: ji
@@ -176,10 +176,10 @@ module horizontal_generation
   
     ! This subroutine determines the directions of the dual vectors.
     
-    integer(c_int), intent(out) :: to_index_dual(n_vectors_h),from_index_dual(n_vectors_h)
-    real(wp),       intent(in)  :: latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h), &
-                                   direction(n_vectors_h)
-    real(wp),       intent(out) :: direction_dual(n_vectors_h),rel_on_line_dual(n_vectors_h)
+    integer,  intent(out) :: to_index_dual(n_vectors_h),from_index_dual(n_vectors_h)
+    real(wp), intent(in)  :: latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h), &
+                             direction(n_vectors_h)
+    real(wp), intent(out) :: direction_dual(n_vectors_h),rel_on_line_dual(n_vectors_h)
     
     ! local variables
     integer  :: ji,temp_index
@@ -226,7 +226,7 @@ module horizontal_generation
     ! This is an optional feature.
     
     real(wp), intent(out)        :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
-    integer(c_int), intent(out)  :: from_index(n_vectors_h),to_index(n_vectors_h), &
+    integer,  intent(out)        :: from_index(n_vectors_h),to_index(n_vectors_h), &
                                     from_index_dual(n_vectors_h),to_index_dual(n_vectors_h),n_lloyd_read_file
     character(len=1), intent(in) :: filename
     

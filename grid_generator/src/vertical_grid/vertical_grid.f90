@@ -42,8 +42,8 @@ module vertical_grid
     real(wp), intent(in)  :: max_oro
     
     ! local variables
-    integer(c_int) :: h_index,level_index,layer_index
-    real(wp)       :: A,B,sigma_z,z_rel,z_vertical_vector_pre(n_levels)
+    integer  :: h_index,level_index,layer_index
+    real(wp) :: A,B,sigma_z,z_rel,z_vertical_vector_pre(n_levels)
     
     ! the heights are defined according to z_k = A_k + B_k*oro with A_0 = toa, A_{N_LEVELS} = 0, B_0 = 0, B_{N_LEVELS} = 1
     
@@ -92,7 +92,7 @@ module vertical_grid
     real(wp), intent(in)  :: radius
   
     ! local variables
-    integer(c_int) :: ji
+    integer :: ji
     
     !$omp parallel do private(ji)
     do ji=1,n_scalars
@@ -114,7 +114,7 @@ module vertical_grid
     real(wp), intent(in)  :: radius
   
     ! local variables
-    integer(c_int) :: ji,layer_index,h_index
+    integer  :: ji,layer_index,h_index
     real(wp) :: radius_1,radius_2, base_area
     
     !$omp parallel do private(ji,layer_index,h_index,radius_1,radius_2,base_area)
@@ -185,13 +185,13 @@ module vertical_grid
   
     ! This subroutine sets the z coordinates of the dual scalar points.
   
-    real(wp), intent(out)      :: z_scalar_dual(n_dual_scalars)
-    real(wp), intent(in)       :: z_vector(n_vectors)
-    integer(c_int), intent(in) :: from_index(n_vectors_h),to_index(n_vectors_h), &
-                                  vorticity_indices_triangles(3*n_dual_scalars_h)
+    real(wp), intent(out) :: z_scalar_dual(n_dual_scalars)
+    real(wp), intent(in)  :: z_vector(n_vectors)
+    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h), &
+                             vorticity_indices_triangles(3*n_dual_scalars_h)
 
     ! local variables
-    integer(c_int) :: ji,layer_index,h_index
+    integer :: ji,layer_index,h_index
   
     !$omp parallel do private(ji,layer_index,h_index)
     do ji=1,n_dual_scalars
@@ -264,7 +264,7 @@ module vertical_grid
     real(wp), intent(out) :: theta_v_bg(n_scalars),exner_bg(n_scalars)
   
     ! local variables
-    integer(c_int) :: h_index,layer_index,scalar_index
+    integer  :: h_index,layer_index,scalar_index
     real(wp) :: temperature,pressure,b,c
   
     !$omp parallel do private(h_index,layer_index,scalar_index,temperature,pressure,b,c)
@@ -304,8 +304,8 @@ module vertical_grid
                              radius
   
     ! local variables
-    integer(c_int) :: ji,layer_index,h_index,dual_vector_index
-    real(wp)       :: base_distance,radius_1,radius_2
+    integer  :: ji,layer_index,h_index,dual_vector_index
+    real(wp) :: base_distance,radius_1,radius_2
     
     !$omp parallel do private(ji,layer_index,h_index,dual_vector_index,base_distance,radius_1,radius_2)
     do ji=1,n_vectors

@@ -11,39 +11,39 @@ module grid_nml
   
   implicit none
   
-  integer(c_int) :: res_id                   ! resolution_id
-  integer(c_int) :: n_layers                 ! number of layers
-  integer(c_int) :: n_pentagons              ! number of pentagons
-  integer(c_int) :: n_hexagons               ! number of hexagons
-  integer(c_int) :: n_scalars_h              ! number of columns
-  integer(c_int) :: n_vectors_h              ! number of horizontal vectors per layer
-  integer(c_int) :: n_h_vectors              ! number of horizontal vectors
-  integer(c_int) :: n_scalars                ! number of scalars
-  integer(c_int) :: n_levels                 ! number of levels
-  integer(c_int) :: n_v_vectors              ! number of vertical vectors
-  integer(c_int) :: n_vectors_per_layer      ! number of vectors per layer
-  integer(c_int) :: n_vectors                ! number of vectors
-  integer(c_int) :: n_basic_triangles        ! number of basic triangles of the icosaheron
-  integer(c_int) :: n_basic_edges            ! number of basic edges of the icosaheron
-  integer(c_int) :: n_points_per_edge        ! number of points per edge
-  integer(c_int) :: n_triangles              ! the number of triangles of the grid
-  integer(c_int) :: n_dual_scalars_h         ! the number of dual scalars per layer
-  integer(c_int) :: n_dual_scalars           ! the number of dual scalars
-  integer(c_int) :: n_dual_vectors_per_layer ! the number of dual vectors per layer
-  integer(c_int) :: n_dual_h_vectors         ! the number of horizontal dual vectors per layer
-  integer(c_int) :: n_dual_v_vectors         ! the number of vertical dual vectors per layer
-  integer(c_int) :: n_dual_vectors           ! the number of dual vectors
-  real(wp)       :: toa                      ! top of atmosphere in meters above MSL
-  integer(c_int) :: n_oro_layers             ! number of layers following the orography
-  real(wp)       :: stretching_parameter     ! vertical grid stretching parameter
-  real(wp)       :: radius_rescale           ! radius rescaling factor
-  real(wp)       :: radius                   ! radius of the planet to construct the grid for
-  integer(c_int) :: n_lat_io_points          ! number of points of the post-processing lat-lon grid in lat direction
-  integer(c_int) :: n_lon_io_points          ! number of points of the post-processing lat-lon grid in lon direction
-  integer(c_int) :: n_latlon_io_points       ! number of points of the post-processing lat-lon grid
-  integer(c_int) :: no_of_avg_points         ! number of points used for smoothing the orography
-  integer(c_int) :: oro_id                   ! orography ID
-  integer(c_int) :: no_of_lloyd_iterations   ! number of Lloyd iterations used for the optimization
+  integer  :: res_id                   ! resolution_id
+  integer  :: n_layers                 ! number of layers
+  integer  :: n_pentagons              ! number of pentagons
+  integer  :: n_hexagons               ! number of hexagons
+  integer  :: n_scalars_h              ! number of columns
+  integer  :: n_vectors_h              ! number of horizontal vectors per layer
+  integer  :: n_h_vectors              ! number of horizontal vectors
+  integer  :: n_scalars                ! number of scalars
+  integer  :: n_levels                 ! number of levels
+  integer  :: n_v_vectors              ! number of vertical vectors
+  integer  :: n_vectors_per_layer      ! number of vectors per layer
+  integer  :: n_vectors                ! number of vectors
+  integer  :: n_basic_triangles        ! number of basic triangles of the icosaheron
+  integer  :: n_basic_edges            ! number of basic edges of the icosaheron
+  integer  :: n_points_per_edge        ! number of points per edge
+  integer  :: n_triangles              ! the number of triangles of the grid
+  integer  :: n_dual_scalars_h         ! the number of dual scalars per layer
+  integer  :: n_dual_scalars           ! the number of dual scalars
+  integer  :: n_dual_vectors_per_layer ! the number of dual vectors per layer
+  integer  :: n_dual_h_vectors         ! the number of horizontal dual vectors per layer
+  integer  :: n_dual_v_vectors         ! the number of vertical dual vectors per layer
+  integer  :: n_dual_vectors           ! the number of dual vectors
+  real(wp) :: toa                      ! top of atmosphere in meters above MSL
+  integer  :: n_oro_layers             ! number of layers following the orography
+  real(wp) :: stretching_parameter     ! vertical grid stretching parameter
+  real(wp) :: radius_rescale           ! radius rescaling factor
+  real(wp) :: radius                   ! radius of the planet to construct the grid for
+  integer  :: n_lat_io_points          ! number of points of the post-processing lat-lon grid in lat direction
+  integer  :: n_lon_io_points          ! number of points of the post-processing lat-lon grid in lon direction
+  integer  :: n_latlon_io_points       ! number of points of the post-processing lat-lon grid
+  integer  :: no_of_avg_points         ! number of points used for smoothing the orography
+  integer  :: oro_id                   ! orography ID
+  integer  :: no_of_lloyd_iterations   ! number of Lloyd iterations used for the optimization
   
   real(wp), parameter :: orth_criterion_deg = 89.99_wp ! used for checking grid orthogonality
   

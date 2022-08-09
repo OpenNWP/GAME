@@ -55,9 +55,9 @@ module derived_hor_quantities
   
     ! This subroutine computes the vector indices needed for calculating the vorticity on triangles.
     
-    integer(c_int), intent(in)  :: from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
-    real(wp),       intent(in)  :: direction(n_vectors_h),direction_dual(n_vectors_h)
-    integer(c_int), intent(out) :: vorticity_indices_triangles(3*n_dual_scalars_h),vorticity_signs_triangles(3*n_dual_scalars_h)
+    integer,  intent(in)  :: from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
+    real(wp), intent(in)  :: direction(n_vectors_h),direction_dual(n_vectors_h)
+    integer,  intent(out) :: vorticity_indices_triangles(3*n_dual_scalars_h),vorticity_signs_triangles(3*n_dual_scalars_h)
     
     ! local variables
     integer             :: ji,jk,counter,sign_
@@ -175,8 +175,8 @@ module derived_hor_quantities
   
     ! This subroutine finds the horizontal vectors that are adjacent to a grid cell.
     
-    integer(c_int), intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
-    integer(c_int), intent(out) :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h)
+    integer, intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    integer, intent(out) :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h)
     
     ! local variables
     integer :: ji,jk,jl,trouble_detected,counter,no_of_edges,double_check,sign_sum_check

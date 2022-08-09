@@ -23,14 +23,14 @@ module inner_product
 
     ! This subroutine computes the geometrical weights for computing the inner product.
 
-    real(wp), intent(out)      :: inner_product_weights(8*n_scalars)
-    real(wp), intent(in)       :: normal_distance(n_vectors),volume(n_scalars),area(n_vectors), &
+    real(wp), intent(out) :: inner_product_weights(8*n_scalars)
+    real(wp), intent(in)  :: normal_distance(n_vectors),volume(n_scalars),area(n_vectors), &
                                   z_scalar(n_scalars),z_vector(n_vectors)
-    integer(c_int), intent(in) :: adjacent_vector_indices_h(6*n_scalars_h)
+    integer,  intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h)
 
     ! local variables
-    integer(c_int) :: ji,jk,layer_index,h_index
-    real(wp)       :: delta_z
+    integer  :: ji,jk,layer_index,h_index
+    real(wp) :: delta_z
     
     !$omp parallel do private(ji,jk,layer_index,h_index,delta_z)
     do ji=1,n_scalars

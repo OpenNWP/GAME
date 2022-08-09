@@ -31,8 +31,8 @@ module discrete_coordinate_trafos
     
     ! This subroutine computes the discrete coordinates of a triangle from its index on face.
     
-    integer(c_int), intent(in)  :: triangle_on_face_index,res_id_local
-    integer(c_int), intent(out) :: coord_0,coord_1,coord_0_points_amount
+    integer, intent(in)  :: triangle_on_face_index,res_id_local
+    integer, intent(out) :: coord_0,coord_1,coord_0_points_amount
     
     ! local variables
     integer :: check,coord_1_pre,min_index,max_index,points_per_edge
@@ -60,8 +60,8 @@ module discrete_coordinate_trafos
   
     ! This subroutine computes the index on face of a triangle from its discrete coordinates.
     
-    integer(c_int), intent(in)  :: coord_0,coord_1
-    integer(c_int)              :: find_triangle_on_face_index_from_coords
+    integer, intent(in)  :: coord_0,coord_1
+    integer              :: find_triangle_on_face_index_from_coords
     
     ! local variables
     integer :: i,coord_0_points_amount,points_per_edge
@@ -85,8 +85,8 @@ module discrete_coordinate_trafos
     
     ! This function returns the points per edge (centers of hexagons) given a certain resolution ID.
     
-    integer(c_int), intent(in) :: res_id_local
-    integer(c_int)             :: find_points_per_edge
+    integer, intent(in) :: res_id_local
+    integer             :: find_points_per_edge
     
     find_points_per_edge = 2**res_id_local-1
   
@@ -98,8 +98,8 @@ module discrete_coordinate_trafos
     ! This function returns the number of scalar data points (centers of hexagons) in the inner of a face
     ! of the icosahedron given a certain resolution ID.
     
-    integer(c_int), intent(in) :: res_id_local
-    integer(c_int)             :: find_scalar_points_per_inner_face
+    integer, intent(in) :: res_id_local
+    integer             :: find_scalar_points_per_inner_face
     
     find_scalar_points_per_inner_face = ((2**res_id_local-2)*(2**res_id_local-1))/2
     
@@ -110,8 +110,8 @@ module discrete_coordinate_trafos
   
     ! This function converts an index of a scalar data point to a higher resolution ID.
     
-    integer(c_int), intent(in) :: res_id_local,old_index
-    integer(c_int)             :: upscale_scalar_point
+    integer, intent(in) :: res_id_local,old_index
+    integer             :: upscale_scalar_point
     
     ! local variables
     integer ::  edge_index,face_index,points_per_edge,on_edge_index,scalar_points_per_inner_face, &
@@ -147,9 +147,9 @@ module discrete_coordinate_trafos
     
     ! This subroutine computes the vertical vector indices to compute the z-coordinates of a dual scalar data point with.
     
-    integer(c_int), intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h), &
-                                   vorticity_indices_triangles(3*n_dual_scalars_h),dual_scalar_h_index
-    integer(c_int), intent(out) :: index_vector_for_dual_scalar_z(3)
+    integer, intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h), &
+                            vorticity_indices_triangles(3*n_dual_scalars_h),dual_scalar_h_index
+    integer, intent(out) :: index_vector_for_dual_scalar_z(3)
         
     ! local variables
     integer :: ji,counter,check_result

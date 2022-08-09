@@ -46,8 +46,8 @@ module phys_sfc_properties
   
     ! This subroutine sets the physical surface properties.
   
-    integer(c_int), intent(in)  :: oro_id
-    integer(c_int), intent(out) :: is_land(n_scalars_h)
+    integer,  intent(in)  :: oro_id
+    integer,  intent(out) :: is_land(n_scalars_h)
     real(wp), intent(in)        :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
     real(wp), intent(out)       :: roughness_length(n_scalars_h),sfc_albedo(n_scalars_h), &
                                    sfc_rho_c(n_scalars_h),t_conductivity(n_scalars_h),oro(n_scalars_h)

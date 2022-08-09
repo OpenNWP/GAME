@@ -24,9 +24,9 @@ module index_helpers
   
     ! This function returns the index where a vector has its minimum.
     
-    integer(c_int), intent(in) :: vector_length
-    real(wp), intent(in)       :: vector(vector_length)
-    integer(c_int)             :: find_min_index
+    integer,  intent(in) :: vector_length
+    real(wp), intent(in) :: vector(vector_length)
+    integer              :: find_min_index
     
     ! local variables
     integer        :: ji
@@ -51,11 +51,11 @@ module index_helpers
   
     ! This function finds the index where a vector has its minimum, excluding the elements of another vector.
     
-    integer(c_int), intent(in) :: vector_length
-    real(wp), intent(in)       :: vector(vector_length)
-    integer(c_int), intent(in) :: exclude_indices_vector_length
-    integer(c_int), intent(in) :: exclude_indices_vector(exclude_indices_vector_length)
-    integer(c_int)             :: find_min_index_exclude
+    integer,  intent(in) :: vector_length
+    real(wp), intent(in) :: vector(vector_length)
+    integer,  intent(in) :: exclude_indices_vector_length
+    integer,  intent(in) :: exclude_indices_vector(exclude_indices_vector_length)
+    integer              :: find_min_index_exclude
     
     ! local variables
     integer        :: ji
@@ -87,9 +87,9 @@ module index_helpers
   
     ! This function returns the index where a vector has its maximum.
     
-    integer(c_int), intent(in) :: vector_length
-    real(wp), intent(in)       :: vector(vector_length)
-    integer(c_int)             :: find_max_index
+    integer,  intent(in) :: vector_length
+    real(wp), intent(in) :: vector(vector_length)
+    integer              :: find_max_index
     
     ! local variables
     integer        :: ji
@@ -115,10 +115,10 @@ module index_helpers
 
     ! This function checks if a vector of integers contains a certain value.
     
-    integer(c_int), intent(in) :: value
-    integer(c_int), intent(in) :: vector_length
-    integer(c_int), intent(in) :: vector(vector_length)
-    integer(c_int)             :: in_bool_checker
+    integer, intent(in) :: value
+    integer, intent(in) :: vector_length
+    integer, intent(in) :: vector(vector_length)
+    integer             :: in_bool_checker
     
     ! local variables
     integer :: ji

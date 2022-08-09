@@ -503,9 +503,9 @@ module geodesy
   
     ! This subroutine sorts the vertices of a polygon in positive mathematical direction.
     
-    integer(c_int), intent(in)  :: number_of_vertices
-    real(wp),       intent(in)  :: lat_points(number_of_vertices),lon_points(number_of_vertices)
-    integer(c_int), intent(out) :: indices_resorted(number_of_vertices)
+    integer,  intent(in)  :: number_of_vertices
+    real(wp), intent(in)  :: lat_points(number_of_vertices),lon_points(number_of_vertices)
+    integer,  intent(out) :: indices_resorted(number_of_vertices)
     
     ! local variables
     integer        :: ji,jk,index_array(number_of_vertices-1),first_index,second_index,third_index,index_candidates(2),check, &
@@ -611,9 +611,9 @@ module geodesy
     
     ! This function calculates the area of a spherical polygon.
     
-    integer(c_int), intent(in) :: number_of_edges
-    real(wp), intent(in)       :: lat_points(number_of_edges),lon_points(number_of_edges)
-    real(wp)                   :: calc_spherical_polygon_area
+    integer,  intent(in) :: number_of_edges
+    real(wp), intent(in) :: lat_points(number_of_edges),lon_points(number_of_edges)
+    real(wp)             :: calc_spherical_polygon_area
     
     ! local variables
     real(wp) :: x_points(number_of_edges),y_points(number_of_edges),z_points(number_of_edges), &

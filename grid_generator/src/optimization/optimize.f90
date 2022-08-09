@@ -25,10 +25,10 @@ module optimize
     
     ! This subroutine calculates the barycenters (centers of gravity) of the cells.
     
-    real(wp),       intent(inout) :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
-    real(wp),       intent(in)    :: latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h)
-    integer(c_int), intent(in)    :: adjacent_vector_indices_h(6*n_scalars_h), &
-                                     from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
+    real(wp), intent(inout) :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
+    real(wp), intent(in)    :: latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h)
+    integer,  intent(in)    :: adjacent_vector_indices_h(6*n_scalars_h), &
+                               from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
     
     ! local variables
     integer  :: ji,jk,no_of_edges,counter,vertex_index_candidate_0,vertex_index_candidate_1,check_result, &
