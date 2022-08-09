@@ -9,12 +9,122 @@ module derived_hor_quantities
   use definitions, only: wp
   use grid_nml,    only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
                          no_of_lloyd_iterations,radius,n_vectors,n_dual_vectors,n_pentagons
-  use geodesy,     only: find_turn_angle,rad2deg
+  use geodesy,     only: find_turn_angle,rad2deg,find_geodetic_direction,find_global_normal,find_geos, &
+                         find_between_point,rel_on_line
   use constants,   only: omega
   
   implicit none
   
   contains
+
+  subroutine set_dual_vector_h_atttributes(latitude_scalar_dual,latitude_vector,direction_dual,longitude_vector,to_index_dual, &
+                                       from_index_dual,longitude_scalar_dual,rel_on_line_dual) &
+  bind(c,name = "set_dual_vector_h_atttributes")
+    
+    ! This function computes the following two properties of horizontal dual vectors:
+    ! - where they are placed in between the dual scalar points
+    ! - in which direction they point
+    
+    real(wp), intent(in)  :: latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h), &
+                             latitude_vector(n_vectors_h),longitude_vector(n_vectors_h)
+    integer,  intent(in)  :: from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
+    real(wp), intent(out) :: direction_dual(n_vectors_h),rel_on_line_dual(n_vectors_h)
+    
+    ! local variables
+    integer :: ji
+    
+    !$omp parallel do private(ji)
+    do ji=1,n_vectors_h
+      rel_on_line_dual(ji) = rel_on_line(latitude_scalar_dual(1+from_index_dual(ji)),longitude_scalar_dual(1+from_index_dual(ji)), &
+      latitude_scalar_dual(1+to_index_dual(ji)),longitude_scalar_dual(1+to_index_dual(ji)),latitude_vector(ji),longitude_vector(ji))
+      if (abs(rel_on_line_dual(ji)-0.5_wp)>0.14_wp) then
+        write(*,*) "Bisection error."
+        call exit(1)
+      endif
+      direction_dual(ji) = find_geodetic_direction( &
+      latitude_scalar_dual(1+from_index_dual(ji)),longitude_scalar_dual(1+from_index_dual(ji)), &
+      latitude_scalar_dual(1+to_index_dual(ji)),longitude_scalar_dual(1+to_index_dual(ji)),rel_on_line_dual(ji))
+    enddo
+    !$omp end parallel do
+  
+  end subroutine set_dual_vector_h_atttributes
+
+  subroutine set_vector_h_attributes(from_index,to_index,latitude_scalar,longitude_scalar, &
+                                     latitude_vector,longitude_vector,direction) &
+  bind(c,name = "set_vector_h_attributes")
+    
+    ! This subroutine sets the geographical coordinates and the directions of the horizontal vector points.
+    
+    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    real(wp), intent(in)  :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
+    real(wp), intent(out) :: latitude_vector(n_vectors_h),longitude_vector(n_vectors_h),direction(n_vectors_h)
+    
+    ! local variables
+    integer  :: ji
+    real(wp) :: x_point_0,y_point_0,z_point_0,x_point_1,y_point_1,z_point_1,x_res,y_res,z_res,lat_res,lon_res
+
+    !$omp parallel do private(ji,x_point_0,y_point_0,z_point_0,x_point_1,y_point_1,z_point_1,x_res,y_res,z_res,lat_res,lon_res)
+    do ji=1,n_vectors_h
+      call find_global_normal(latitude_scalar(1+from_index(ji)),longitude_scalar(1+from_index(ji)),x_point_0,y_point_0,z_point_0)
+      call find_global_normal(latitude_scalar(1+to_index(ji)),longitude_scalar(1+to_index(ji)),x_point_1,y_point_1,z_point_1)
+      call find_between_point(x_point_0,y_point_0,z_point_0,x_point_1,y_point_1,z_point_1,0.5_wp,x_res,y_res,z_res)
+      call find_geos(x_res,y_res,z_res,lat_res,lon_res)
+      latitude_vector(ji) = lat_res
+      longitude_vector(ji) = lon_res
+      direction(ji) = find_geodetic_direction(latitude_scalar(1+from_index(ji)),longitude_scalar(1+from_index(ji)), &
+                                              latitude_scalar(1+to_index(ji)),longitude_scalar(1+to_index(ji)),0.5_wp)
+    enddo
+    !$omp end parallel do
+    
+  end subroutine set_vector_h_attributes
+  
+  subroutine direct_tangential_unity(latitude_scalar_dual,longitude_scalar_dual,direction,direction_dual, &
+                                     to_index_dual,from_index_dual,rel_on_line_dual) &
+  bind(c,name = "direct_tangential_unity")
+  
+    ! This subroutine determines the directions of the dual vectors.
+    
+    integer,  intent(out) :: to_index_dual(n_vectors_h),from_index_dual(n_vectors_h)
+    real(wp), intent(in)  :: latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h), &
+                             direction(n_vectors_h)
+    real(wp), intent(out) :: direction_dual(n_vectors_h),rel_on_line_dual(n_vectors_h)
+    
+    ! local variables
+    integer  :: ji,temp_index
+    real(wp) :: direction_change
+    
+    !$omp parallel do private(ji,temp_index,direction_change)
+    do ji=1,n_vectors_h
+      direction_change = find_turn_angle(direction(ji),direction_dual(ji))
+      if (rad2deg(direction_change)<-orth_criterion_deg) then
+        ! ensuring e_y = k x e_z
+        temp_index = from_index_dual(ji)
+        from_index_dual(ji) = to_index_dual(ji)
+        to_index_dual(ji) = temp_index
+        rel_on_line_dual(ji) = 1._wp - rel_on_line_dual(ji)
+        ! calculating the direction
+        direction_dual(ji) = find_geodetic_direction(latitude_scalar_dual(1+from_index_dual(ji)), &
+                                                     longitude_scalar_dual(1+from_index_dual(ji)), &
+                                                     latitude_scalar_dual(1+to_index_dual(ji)), &
+                                                     longitude_scalar_dual(1+to_index_dual(ji)), &
+                                                     rel_on_line_dual(ji))
+      endif
+    enddo
+    !$omp end parallel do
+
+    ! checking for orthogonality
+    !$omp parallel do private(ji,direction_change)
+    do ji=1,n_vectors_h
+      direction_change = find_turn_angle(direction(ji),direction_dual(ji))
+      if (abs(rad2deg(direction_change))<orth_criterion_deg .or. abs(rad2deg(direction_change)) &
+          >90._wp+(90._wp-orth_criterion_deg)) then
+         write(*,*) "Grid non-orthogonal. Error in subroutine direct_tangential_unity."
+         call exit(1)
+      endif
+    enddo
+    !$omp end parallel do
+  
+  end subroutine direct_tangential_unity
   
   subroutine set_f_vec(latitude_vector,direction_dual,f_vec) &
   bind(c,name = "set_f_vec")
