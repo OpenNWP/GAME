@@ -393,6 +393,7 @@ module derived_hor_quantities
       enddo
       if (counter/=n_edges+1) then
         write(*,*) "Trouble in calc_cell_face_unity."
+        call exit(1)
       endif
       pent_hex_face_unity_sphere(ji) = calc_spherical_polygon_area(lat_points,lon_points,n_edges)
     enddo
@@ -401,11 +402,10 @@ module derived_hor_quantities
     pent_hex_sum_unity_sphere = 0._wp
     pent_hex_avg_unity_sphere_ideal = 4._wp*M_PI/n_scalars_h
     
-    !$omp parallel do private(ji),shared(pent_hex_sum_unity_sphere)
     do ji=1,n_scalars_h
       pent_hex_sum_unity_sphere = pent_hex_sum_unity_sphere+pent_hex_face_unity_sphere(ji)
       if (pent_hex_face_unity_sphere(ji)<=0._wp) then
-        write(*,*) "pent_hex_face_unity_sphere contains a non-positive value."
+        write(*,*) "Pent_hex_face_unity_sphere contains a non-positive value."
         call exit(1)
       endif
       if (abs(pent_hex_face_unity_sphere(ji)/pent_hex_avg_unity_sphere_ideal-1._wp)>0.4_wp) then
@@ -413,7 +413,6 @@ module derived_hor_quantities
         call exit(1)
       endif
     enddo
-    !$omp end parallel do
     
     if (abs(pent_hex_sum_unity_sphere/(4._wp*M_PI)-1._wp)>EPSILON_SECURITY) then
       write(*,*) "Sum of faces of pentagons and hexagons on unity sphere does not match face of unit sphere."
