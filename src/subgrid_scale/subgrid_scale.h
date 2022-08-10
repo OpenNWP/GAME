@@ -11,4 +11,3 @@ extern int tke_update();
 int update_n_squared(State *, Diagnostics *, Grid *);
 int update_sfc_turb_quantities(State *, Grid *, Diagnostics *, Config *, double);
 int pbl_wind_tendency(State *, Diagnostics *, Irreversible_quantities *, Grid *, Config *config, double);
-double momentum_flux_resistance(double, double, double, double, double);
