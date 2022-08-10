@@ -141,68 +141,6 @@ int find_triangle_edge_points(int triangle_on_face_index, int face_index, int re
     return 0;
 }
 
-int find_triangle_on_face_index_from_dual_scalar_on_face_index(int dual_scalar_on_face_index, int res_id, int *triangle_on_face_index,
-int *points_downwards, int *special_case_bool, int *last_triangle_bool)
-{
-	/*
-	This function finds the on face index of a triangle from the dual scalar on face index and some further
-	properties of this triangle (wether it points upwards or downwards, ...).
-	*/
-	
-    int value_found = 0;
-    int triangle_on_face_index_pre, coord_0_pre, coord_1_pre, coord_0_points_amount_pre, dual_scalar_on_face_index_0,
-    dual_scalar_on_face_index_1, dual_scalar_on_face_index_2, dual_scalar_on_face_index_3, points_per_edge;
-    triangle_on_face_index_pre = -1;
-    points_per_edge = find_points_per_edge(&res_id);
-    while (value_found == 0)
-    {
-        dual_scalar_on_face_index_2 = -1;
-        dual_scalar_on_face_index_3 = -1;
-        ++triangle_on_face_index_pre;
-        find_coords_from_triangle_on_face_index(&triangle_on_face_index_pre, &res_id, &coord_0_pre, &coord_1_pre, &coord_0_points_amount_pre);
-        dual_scalar_on_face_index_0 = 2*triangle_on_face_index_pre + 1 + coord_1_pre;
-        dual_scalar_on_face_index_1 = dual_scalar_on_face_index_0 - 1;
-        if (coord_0_pre == coord_0_points_amount_pre - 1)
-        {
-            dual_scalar_on_face_index_2 = dual_scalar_on_face_index_0 + 1;
-            if (coord_1_pre == points_per_edge - 1)
-            {
-                dual_scalar_on_face_index_3 = dual_scalar_on_face_index_2 + 1;
-            }
-        }
-        if (dual_scalar_on_face_index == dual_scalar_on_face_index_0)
-        {
-            *points_downwards = 1;
-            *special_case_bool = 0;
-            *last_triangle_bool = 0;
-            value_found = 1;
-        }
-        if (dual_scalar_on_face_index == dual_scalar_on_face_index_1)
-        {
-            *points_downwards = 0;
-            *special_case_bool = 0;
-            *last_triangle_bool = 0;
-            value_found = 1;
-        }
-        if (dual_scalar_on_face_index == dual_scalar_on_face_index_2)
-        {
-            *points_downwards = 0;
-            *special_case_bool = 1;
-            *last_triangle_bool = 0;
-            value_found = 1;
-        }
-        if (dual_scalar_on_face_index == dual_scalar_on_face_index_3)
-        {
-            *points_downwards = 0;
-            *special_case_bool = 0;
-            *last_triangle_bool = 1;
-            value_found = 1;
-        }
-    }
-    *triangle_on_face_index = triangle_on_face_index_pre;
-    return 0;
-}
-
 int find_triangle_edge_points_from_dual_scalar_on_face_index(int dual_scalar_on_face_index, int face_index, int res_id,
 int *point_0, int *point_1, int *point_2, int face_vertices[][3], int face_edges[][3], int face_edges_reverse[][3])
 {
@@ -212,7 +150,7 @@ int *point_0, int *point_1, int *point_2, int face_vertices[][3], int face_edges
 	
     int points_downwards, special_case_bool, last_triangle_bool;
     int triangle_on_face_index, rhombuspoint_0, rhombuspoint_1, rhombuspoint_2, rhombuspoint_3, coord_0, coord_1, coord_0_points_amount, points_per_edge, dump, addpoint_0, addpoint_1;
-    find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index, res_id, &triangle_on_face_index, &points_downwards, &special_case_bool, &last_triangle_bool);
+    find_triangle_on_face_index_from_dual_scalar_on_face_index(&dual_scalar_on_face_index, &res_id, &triangle_on_face_index, &points_downwards, &special_case_bool, &last_triangle_bool);
     find_coords_from_triangle_on_face_index(&triangle_on_face_index, &res_id, &coord_0, &coord_1, &coord_0_points_amount);
     points_per_edge = find_points_per_edge(&res_id);
     find_triangle_edge_points(triangle_on_face_index, face_index, res_id, &rhombuspoint_0, &rhombuspoint_1, &rhombuspoint_2, &rhombuspoint_3, &addpoint_0, &addpoint_1, &dump, face_vertices, face_edges, face_edges_reverse);

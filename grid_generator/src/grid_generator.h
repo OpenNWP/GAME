@@ -3,7 +3,7 @@ This source file is part of the Geophysical Fluids Modeling Framework (GAME), wh
 Github repository: https://github.com/OpenNWP/GAME
 */
 
-int find_triangle_on_face_index_from_dual_scalar_on_face_index(int, int, int *, int *, int *, int *);
+extern int find_triangle_on_face_index_from_dual_scalar_on_face_index();
 int find_triangle_edge_points_from_dual_scalar_on_face_index(int, int, int, int *, int *, int *, int [][3], int face_edges[][3], int face_edges_reverse[][3]);
 extern int find_points_per_edge();
 extern int find_scalar_points_per_inner_face();

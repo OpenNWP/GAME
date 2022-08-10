@@ -174,6 +174,68 @@ module discrete_coordinate_trafos
   
   end subroutine find_v_vector_indices_for_dual_scalar_z
 
+  subroutine find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id,triangle_on_face_index, &
+  points_downwards,special_case_bool,last_triangle_bool) &
+  bind(c,name = "find_triangle_on_face_index_from_dual_scalar_on_face_index")
+    
+    ! This subroutine finds the on face index of a triangle from the dual scalar on face index and some further
+    ! properties of this triangle (wether it points upwards or downwards, ...).
+    
+    integer, intent(in)  :: dual_scalar_on_face_index,res_id
+    integer, intent(out) :: triangle_on_face_index,points_downwards,special_case_bool,last_triangle_bool
+    
+    ! local variables
+    integer :: value_found,triangle_on_face_index_pre,coord_0_pre,coord_1_pre,coord_0_points_amount_pre, &
+               dual_scalar_on_face_index_0,dual_scalar_on_face_index_1,dual_scalar_on_face_index_2, &
+               dual_scalar_on_face_index_3,points_per_edge
+    
+    value_found = 0
+    
+    triangle_on_face_index_pre = -1
+    points_per_edge = find_points_per_edge(res_id)
+    do while (value_found==0)
+      dual_scalar_on_face_index_2 = -1
+      dual_scalar_on_face_index_3 = -1
+      triangle_on_face_index_pre = triangle_on_face_index_pre+1
+      call find_coords_from_triangle_on_face_index(triangle_on_face_index_pre,res_id, &
+                                                   coord_0_pre,coord_1_pre,coord_0_points_amount_pre)
+      dual_scalar_on_face_index_0 = 2*triangle_on_face_index_pre + 1 + coord_1_pre
+      dual_scalar_on_face_index_1 = dual_scalar_on_face_index_0 - 1
+      if (coord_0_pre == coord_0_points_amount_pre-1) then
+        dual_scalar_on_face_index_2 = dual_scalar_on_face_index_0+1
+        if (coord_1_pre == points_per_edge-1) then
+          dual_scalar_on_face_index_3 = dual_scalar_on_face_index_2 + 1
+        endif
+      endif
+      if (dual_scalar_on_face_index==dual_scalar_on_face_index_0) then
+        points_downwards = 1
+        special_case_bool = 0
+        last_triangle_bool = 0
+        value_found = 1
+      endif
+      if (dual_scalar_on_face_index==dual_scalar_on_face_index_1) then
+        points_downwards = 0
+        special_case_bool = 0
+        last_triangle_bool = 0
+        value_found = 1
+      endif
+      if (dual_scalar_on_face_index==dual_scalar_on_face_index_2) then
+        points_downwards = 0
+        special_case_bool = 1
+        last_triangle_bool = 0
+        value_found = 1
+      endif
+      if (dual_scalar_on_face_index==dual_scalar_on_face_index_3) then
+        points_downwards = 0
+        special_case_bool = 0
+        last_triangle_bool = 1
+        value_found = 1
+      endif
+    enddo
+    triangle_on_face_index = triangle_on_face_index_pre
+  
+  end subroutine find_triangle_on_face_index_from_dual_scalar_on_face_index
+
 end module discrete_coordinate_trafos
 
 
