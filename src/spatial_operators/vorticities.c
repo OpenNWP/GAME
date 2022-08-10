@@ -12,6 +12,8 @@ Here, vorticities are calculated. The word "vorticity" hereby refers to both ver
 #include "../constituents/constituents.h"
 #include "spatial_operators.h"
 
+extern int add_f_to_rel_vort();
+
 int calc_rel_vort_on_triangles(Vector_field velocity_field, double result[], Grid *grid, Dualgrid * dualgrid)
 {
 	/*
@@ -74,7 +76,7 @@ int calc_pot_vort(Vector_field velocity_field, Scalar_field density_field, Diagn
 	// It is called "potential vorticity", but it is not Ertel's potential vorticity. It is the absolute vorticity divided by the density.
 	calc_rel_vort(velocity_field, diagnostics, grid, dualgrid);
 	// pot_vort is a misuse of name here
-	add_f_to_rel_vort(diagnostics -> rel_vort, diagnostics -> pot_vort, dualgrid);
+	add_f_to_rel_vort(diagnostics -> rel_vort, dualgrid -> f_vec, diagnostics -> pot_vort);
     int layer_index, h_index, edge_vector_index_h, upper_from_index, upper_to_index;
     double density_value;
     // determining the density value by which we need to divide
@@ -134,23 +136,6 @@ int calc_pot_vort(Vector_field velocity_field, Scalar_field density_field, Diagn
         
         // division by the density to obtain the "potential vorticity"
 		diagnostics -> pot_vort[i] = diagnostics -> pot_vort[i]/density_value;
-    }
-    return 0;
-}
-
-int add_f_to_rel_vort(Curl_field rel_vort, Curl_field out_field, Dualgrid *dualgrid)
-{
-	/*
-	adding the Coriolis parameter to the relative vorticity
-	*/
-    
-    int layer_index, h_index;
-    #pragma omp parallel for private(layer_index, h_index)
-    for (int i = 0; i < N_LAYERS*2*N_VECS_H + N_VECS_H; ++i)
-    {
-        layer_index = i/(2*N_VECS_H);
-        h_index = i - layer_index*2*N_VECS_H;
-   		out_field[i] = rel_vort[i] + dualgrid -> f_vec[h_index];
     }
     return 0;
 }
