@@ -1,26 +1,28 @@
-These are the coding standards that are important to me and that I insist on:
+Coding standards of this project:
 
-Geophysical principles
+General principles
 
 1. reliability
 2. accuracy
 3. performance
 
-Structure
+Modularity
 
-1. Several files are better than to put everything into one file.
-2. Sort your files into meaningful directories.
+1. The code should be as modular as possible as long as it does not harm performance.
+2. Sort files into meaningful directories.
 
 Blank spaces
 
 1. Never use more than one blank line.
-2. Use blank spaces behind commas.
+2. Don't use tabs.
+3. Use two blank spaces for indentations.
+4. Don't use blank spaces behind commas, apart from after intent statements.
 
 Names
 
 1. Use underscores: new_variable.
 2. Do not use capitals inside names: ThisIsForbidden.
-3. Use long names that explain what this thing does and why it exists in order to avoid comments.
+3. Use names that explain the meaning of the named object.
 
 Comments
 
