@@ -16,7 +16,7 @@ This file contains the implicit vertical solvers.
 
 extern int thomas_algorithm();
 
-int three_band_solver_ver_waves(State *state_old, State *state_new, State *state_tendency, Diagnostics *diagnostics, Forcings *forcings,
+int three_band_solver_ver_waves(State *state_old, State *state_new, State *state_target, State *state_tendency, Diagnostics *diagnostics, Forcings *forcings,
 Config *config, double delta_t, Grid *grid, int rk_step)
 {
 	/*
@@ -308,17 +308,17 @@ Config *config, double delta_t, Grid *grid, int rk_step)
 			base_index = i + j*N_SCALS_H;
 			if (j == 0)
 			{
-				state_new -> rho[gas_phase_first_index + base_index]
+				state_target -> rho[gas_phase_first_index + base_index]
 				= rho_expl[j] + delta_t*(solution_vector[j])/grid -> volume[base_index];
 			}
 			else if (j == N_LAYERS - 1)
 			{
-				state_new -> rho[gas_phase_first_index + base_index]
+				state_target -> rho[gas_phase_first_index + base_index]
 				= rho_expl[j] + delta_t*(-solution_vector[j - 1])/grid -> volume[base_index];
 			}
 			else
 			{
-				state_new -> rho[gas_phase_first_index + base_index]
+				state_target -> rho[gas_phase_first_index + base_index]
 				= rho_expl[j] + delta_t*(-solution_vector[j - 1] + solution_vector[j])/grid -> volume[base_index];
 			}
 		}
@@ -328,17 +328,17 @@ Config *config, double delta_t, Grid *grid, int rk_step)
 			base_index = i + j*N_SCALS_H;
 			if (j == 0)
 			{
-				state_new -> rhotheta_v[base_index]
+				state_target -> rhotheta_v[base_index]
 				= rhotheta_v_expl[j] + delta_t*(theta_v_int_new[j]*solution_vector[j])/grid -> volume[base_index];
 			}
 			else if (j == N_LAYERS - 1)
 			{
-				state_new -> rhotheta_v[base_index]
+				state_target -> rhotheta_v[base_index]
 				= rhotheta_v_expl[j] + delta_t*(-theta_v_int_new[j - 1]*solution_vector[j - 1])/grid -> volume[base_index];
 			}
 			else
 			{
-				state_new -> rhotheta_v[base_index]
+				state_target -> rhotheta_v[base_index]
 				= rhotheta_v_expl[j] + delta_t*(-theta_v_int_new[j - 1]*solution_vector[j - 1] + theta_v_int_new[j]*solution_vector[j])
 				/grid -> volume[base_index];
 			}
@@ -348,9 +348,9 @@ Config *config, double delta_t, Grid *grid, int rk_step)
 		{
 			base_index = i + j*N_SCALS_H;
 			density_interface_new
-			= 0.5*(state_new -> rho[gas_phase_first_index + base_index]
-			+ state_new -> rho[gas_phase_first_index + i + (j + 1)*N_SCALS_H]);
-			state_new -> wind[i + (j + 1)*N_VECS_PER_LAYER]
+			= 0.5*(state_target -> rho[gas_phase_first_index + base_index]
+			+ state_target -> rho[gas_phase_first_index + i + (j + 1)*N_SCALS_H]);
+			state_target -> wind[i + (j + 1)*N_VECS_PER_LAYER]
 			= (2.0*solution_vector[j]/grid -> area[i + (j + 1)*N_VECS_PER_LAYER] - density_interface_new*state_old -> wind[i + (j + 1)*N_VECS_PER_LAYER])
 			/rho_int_old[j];
 		}
@@ -358,16 +358,16 @@ Config *config, double delta_t, Grid *grid, int rk_step)
 		for (int j = 0; j < N_LAYERS; ++j)
 		{
 			base_index = i + j*N_SCALS_H;
-			state_new -> theta_v_pert[base_index] = state_new -> rhotheta_v[base_index]
-			/state_new -> rho[gas_phase_first_index + base_index]
+			state_target -> theta_v_pert[base_index] = state_target -> rhotheta_v[base_index]
+			/state_target -> rho[gas_phase_first_index + base_index]
 			- grid -> theta_v_bg[base_index];
 		}
 		// Exner pressure perturbation
 		for (int j = 0; j < N_LAYERS; ++j)
 		{
 			base_index = i + j*N_SCALS_H;
-			state_new -> exner_pert[base_index] = state_old -> exner_pert[base_index] + grid -> volume[base_index]
-			*gamma[j]*(state_new -> rhotheta_v[base_index] - state_old -> rhotheta_v[base_index]);
+			state_target -> exner_pert[base_index] = state_old -> exner_pert[base_index] + grid -> volume[base_index]
+			*gamma[j]*(state_target -> rhotheta_v[base_index] - state_old -> rhotheta_v[base_index]);
 		}
 		
 		// soil temperature
@@ -375,7 +375,7 @@ Config *config, double delta_t, Grid *grid, int rk_step)
 		{
 			for (int j = 0; j < N_SOIL_LAYERS; ++j)
 			{
-				state_new -> temperature_soil[i + j*N_SCALS_H] = solution_vector[N_LAYERS - 1 + j];
+				state_target -> temperature_soil[i + j*N_SCALS_H] = solution_vector[N_LAYERS - 1 + j];
 			}
 		}
 		

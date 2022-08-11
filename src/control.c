@@ -424,9 +424,9 @@ int main(int argc, char *argv[])
     Diagnostics *diagnostics = calloc(1, sizeof(Diagnostics));
     Forcings *forcings = calloc(1, sizeof(Forcings));
     State *state_write = calloc(1, sizeof(State));
-    State *state_new = calloc(1, sizeof(State));
+    State *state_2 = calloc(1, sizeof(State));
     State *state_tendency = calloc(1, sizeof(State));
-    State *state_old = calloc(1, sizeof(State));
+    State *state_1 = calloc(1, sizeof(State));
     
     /*
     reading command line input
@@ -531,12 +531,12 @@ int main(int argc, char *argv[])
     // ideal test case
     if (config_io -> ideal_input_id != -1)
     {
-    	set_ideal_init(state_old, grid, dualgrid, diagnostics, forcings, config, config_io -> ideal_input_id, grid_file);
+    	set_ideal_init(state_1, grid, dualgrid, diagnostics, forcings, config, config_io -> ideal_input_id, grid_file);
 	}
 	// NWP mode
     else
     {
-    	read_init_data(init_state_file, state_old, irrev, grid);
+    	read_init_data(init_state_file, state_1, irrev, grid);
 	}
 	printf("Initial state set successfully.\n");
 	printf("%s", stars);
@@ -631,11 +631,11 @@ int main(int argc, char *argv[])
 		// here, for all output time steps, the initial value is used
 		for (int time_step_10_m_wind = 0; time_step_10_m_wind < min_no_of_10m_wind_avg_steps; ++time_step_10_m_wind)
 		{
-			wind_h_lowest_layer[time_step_10_m_wind*N_VECS_H + h_index] = state_old -> wind[N_VECTORS - N_VECS_PER_LAYER + h_index];
+			wind_h_lowest_layer[time_step_10_m_wind*N_VECS_H + h_index] = state_1 -> wind[N_VECTORS - N_VECS_PER_LAYER + h_index];
     	}
     }
-	temperature_diagnostics(state_old, grid, diagnostics);
-	inner_product(state_old -> wind, state_old -> wind, diagnostics -> v_squared, grid -> adjacent_vector_indices_h, grid -> inner_product_weights);
+	temperature_diagnostics(state_1, grid, diagnostics);
+	inner_product(state_1 -> wind, state_1 -> wind, diagnostics -> v_squared, grid -> adjacent_vector_indices_h, grid -> inner_product_weights);
 	
 	// time coordinate of the old RK step
     double t_0;
@@ -650,7 +650,7 @@ int main(int argc, char *argv[])
     	{
     		radiation_init();
     	}
-    	call_radiation(state_old, grid, dualgrid, state_tendency, diagnostics, forcings, irrev, config, delta_t, t_0);
+    	call_radiation(state_1, grid, dualgrid, state_tendency, diagnostics, forcings, irrev, config, delta_t, t_0);
     	config -> rad_update = 1;
     	t_rad_update += config -> radiation_delta_t;
     }
@@ -659,7 +659,7 @@ int main(int argc, char *argv[])
     // in the time stepping and in writing the output.
     config -> totally_first_step_bool = 1;
     // writing out the initial state of the model run
-    write_out(state_old, wind_h_lowest_layer, min_no_of_10m_wind_avg_steps, t_init, t_write,
+    write_out(state_1, wind_h_lowest_layer, min_no_of_10m_wind_avg_steps, t_init, t_write,
     diagnostics, forcings, grid, dualgrid, config_io, config, irrev);
     
     t_write += 60*config_io -> write_out_interval_min;
@@ -669,9 +669,9 @@ int main(int argc, char *argv[])
     first_time = clock();
     if (config_io -> write_out_integrals == 1)
     {
-		write_out_integral(state_old, time_step_counter, grid, dualgrid, diagnostics, 0);
-		write_out_integral(state_old, time_step_counter, grid, dualgrid, diagnostics, 1);
-		write_out_integral(state_old, time_step_counter, grid, dualgrid, diagnostics, 2);
+		write_out_integral(state_1, time_step_counter, grid, dualgrid, diagnostics, 0);
+		write_out_integral(state_1, time_step_counter, grid, dualgrid, diagnostics, 1);
+		write_out_integral(state_1, time_step_counter, grid, dualgrid, diagnostics, 2);
 	}
 	
 	/*
@@ -679,7 +679,7 @@ int main(int argc, char *argv[])
     --------------------------------------
     */
     int wind_lowest_layer_step_counter = 0;
-    linear_combine_two_states(state_old, state_old, state_new, 1, 0, grid);
+    linear_combine_two_states(state_1, state_1, state_2, 1.0, 0.0, grid);
     
     /*
     This is the loop over the time steps.
@@ -688,10 +688,7 @@ int main(int argc, char *argv[])
     // this is to store the speed of the model integration
     double speed;
     while (t_0 < t_init + 60*config -> total_run_span_min + radius_rescale*300)
-    {
-    	// copying the new state into the old state
-    	linear_combine_two_states(state_new, state_old, state_old, 1, 0, grid);
-    	
+    {    	
     	/*
     	Checking if the radiative fluxes need to be updated:
     	----------------------------------------------------
@@ -707,7 +704,14 @@ int main(int argc, char *argv[])
     	}
     	
     	// Time step integration.
-    	manage_pchevi(state_old, state_new, grid, dualgrid, state_tendency, diagnostics, forcings, irrev, config, delta_t, t_0);
+    	if (fmod(time_step_counter, 2) == 0)
+    	{
+    		manage_pchevi(state_1, state_2, grid, dualgrid, state_tendency, diagnostics, forcings, irrev, config, delta_t, t_0);
+    	}
+    	else
+    	{
+    		manage_pchevi(state_2, state_1, grid, dualgrid, state_tendency, diagnostics, forcings, irrev, config, delta_t, t_0);
+    	}
     	// This switch can be set to zero now and remains there.
     	config -> totally_first_step_bool = 0;
 		time_step_counter += 1;	
@@ -718,9 +722,18 @@ int main(int argc, char *argv[])
 		*/
 		if (config_io -> write_out_integrals == 1)
         {
-			write_out_integral(state_new, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 0);
-			write_out_integral(state_new, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 1);
-			write_out_integral(state_new, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 2);
+			if (fmod(time_step_counter, 2) == 0)
+			{
+				write_out_integral(state_1, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 0);
+				write_out_integral(state_1, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 1);
+				write_out_integral(state_1, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 2);
+			}
+			else
+			{
+				write_out_integral(state_2, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 0);
+				write_out_integral(state_2, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 1);
+				write_out_integral(state_2, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 2);
+			}
     	}
     	
     	/*
@@ -730,7 +743,7 @@ int main(int argc, char *argv[])
     	// interpolating to the output time
         if(t_0 + delta_t >= t_write && t_0 <= t_write)
         {
-            interpolation_t(state_old, state_new, state_write, t_0, t_0 + delta_t, t_write, grid);
+            interpolation_t(state_1, state_2, state_write, t_0, t_0 + delta_t, t_write, grid);
     	}
         
         // 5 minutes before the output time, the wind in the lowest layer needs to be collected for 10 m wind diagnostics.
@@ -741,7 +754,7 @@ int main(int argc, char *argv[])
         		#pragma omp parallel for
 		    	for (int h_index = 0; h_index < N_VECS_H; ++h_index)
        			{
-		    		wind_h_lowest_layer[wind_lowest_layer_step_counter*N_VECS_H + h_index] = state_old -> wind[N_VECTORS - N_VECS_PER_LAYER + h_index];
+		    		wind_h_lowest_layer[wind_lowest_layer_step_counter*N_VECS_H + h_index] = state_1 -> wind[N_VECTORS - N_VECS_PER_LAYER + h_index];
 		    	}
 		    	wind_lowest_layer_step_counter += 1;
         	}
@@ -788,8 +801,8 @@ int main(int argc, char *argv[])
     free(state_tendency);
     free(grid);
     free(dualgrid);
-    free(state_old);
-    free(state_new);
+    free(state_1);
+    free(state_2);
     free(state_write);
     printf("%s", stars);
     free(stars);

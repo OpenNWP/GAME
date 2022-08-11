@@ -14,7 +14,7 @@ This is the horizontal (explicit) part of the constituent integration.
 #include "../constituents/constituents.h"
 #include "../subgrid_scale/subgrid_scale.h"
 
-int scalar_tendencies_expl(State *state_old, State *state, State *state_tendency, Grid *grid, Dualgrid *dualgrid, double delta_t, Diagnostics *diagnostics, Forcings *forcings,
+int scalar_tendencies_expl(State *state_scalar, State *state_vector, State *state_tendency, Grid *grid, Dualgrid *dualgrid, double delta_t, Diagnostics *diagnostics, Forcings *forcings,
 Irreversible_quantities *irrev, Config *config, int rk_step)
 {
 	/*
@@ -44,7 +44,7 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
     // updating the scalar diffusion coefficient if required
     if (rk_step == 0 && (config -> mass_diff_h == 1 || config -> temperature_diff_h == 1))
     {
-	    scalar_diffusion_coeffs(state, config, irrev, diagnostics, delta_t, grid, dualgrid);
+	    scalar_diffusion_coeffs(state_scalar, config, irrev, diagnostics, delta_t, grid, dualgrid);
     }
     
 	// Temperature diffusion gets updated at the first RK step if required.
@@ -75,7 +75,7 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 			scalar_shift_index = i*N_SCALARS;
 
     		// The diffusion of the tracer density depends on its gradient.
-			grad(&state -> rho[scalar_shift_index], diagnostics -> vector_field_placeholder,
+			grad(&state_scalar -> rho[scalar_shift_index], diagnostics -> vector_field_placeholder,
 			grid -> from_index, grid -> to_index, grid -> normal_distance, grid -> inner_product_weights, grid -> slope);
 			// Now the diffusive mass flux density can be obtained.
 			scalar_times_vector_h(irrev -> mass_diffusion_coeff_numerical_h, diagnostics -> vector_field_placeholder, diagnostics -> vector_field_placeholder, grid -> from_index, grid -> to_index);
@@ -110,15 +110,15 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
         // moist air
 		if (i == N_CONDENSED_CONSTITUENTS)
 		{
-			scalar_times_vector_h(&state -> rho[scalar_shift_index], state -> wind, diagnostics -> flux_density, grid -> from_index, grid -> to_index);
+			scalar_times_vector_h(&state_scalar -> rho[scalar_shift_index], state_vector -> wind, diagnostics -> flux_density, grid -> from_index, grid -> to_index);
     		div_h(diagnostics -> flux_density, diagnostics -> flux_density_div,
 			grid -> adjacent_signs_h, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope, grid -> area, grid -> volume);
 		}
 		// all other constituents
 		else
 		{
-			scalar_times_vector_h_upstream(&state -> rho[scalar_shift_index], state -> wind, diagnostics -> flux_density, grid -> from_index, grid -> to_index);
-    		div_h_tracer(diagnostics -> flux_density, &state -> rho[scalar_shift_index], state -> wind, diagnostics -> flux_density_div,
+			scalar_times_vector_h_upstream(&state_scalar -> rho[scalar_shift_index], state_vector -> wind, diagnostics -> flux_density, grid -> from_index, grid -> to_index);
+    		div_h_tracer(diagnostics -> flux_density, &state_scalar -> rho[scalar_shift_index], state_vector -> wind, diagnostics -> flux_density_div,
 			grid -> adjacent_signs_h, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope, grid -> area, grid -> volume);
 		}
 		
@@ -148,7 +148,7 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 			#pragma omp parallel for
 			for (int j = 0; j < N_SCALARS; ++j)
 			{
-				diagnostics -> scalar_field_placeholder[j] = state -> rhotheta_v[j]/state -> rho[scalar_shift_index + j];
+				diagnostics -> scalar_field_placeholder[j] = state_scalar -> rhotheta_v[j]/state_scalar -> rho[scalar_shift_index + j];
 			}
 			scalar_times_vector_h(diagnostics -> scalar_field_placeholder, diagnostics -> flux_density, diagnostics -> flux_density, grid -> from_index, grid -> to_index);
 			div_h(diagnostics -> flux_density, diagnostics -> flux_density_div,
@@ -164,7 +164,7 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 				-diagnostics -> flux_density_div[j]
 				// the diabatic forcings
 				// weighting factor accounting for condensates
-				+ C_D_V*state -> rho[scalar_shift_index + j]/c_v_mass_weighted_air(state, diagnostics, j)*(
+				+ C_D_V*state_scalar -> rho[scalar_shift_index + j]/c_v_mass_weighted_air(state_scalar, diagnostics, j)*(
 				// dissipation through molecular + turbulent momentum diffusion
 				irrev -> heating_diss[j]
 				// molecular + turbulent heat transport
@@ -176,7 +176,7 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 				// heating rate due to falling condensates
 				+ irrev -> condensates_sediment_heat[j]
 				// this has to be divided by c_p*exner
-				)/(C_D_P*(grid -> exner_bg[j] + state -> exner_pert[j]))
+				)/(C_D_P*(grid -> exner_bg[j] + state_scalar -> exner_pert[j]))
 				// tendency of due to phase transitions and mass diffusion
 				+ (irrev -> phase_trans_rates[scalar_shift_index + j] + irrev -> mass_diff_tendency[scalar_shift_index + j])
 				*diagnostics -> scalar_field_placeholder[j]);

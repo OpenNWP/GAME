@@ -45,22 +45,29 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 	int vector_index;
 	for (int rk_step = 0; rk_step < 2; ++rk_step)
 	{
-		/*
-		state_old remains unchanged the whole time.
-		At i == 0, it is state_old == state_new.
-		*/
-		
+		// At rk_step == 0, state_new contains garbage.
+	
 		// 1.) explicit component of the momentum equation
 		// -----------------------------------------------
 		// Update of the pressure gradient.
 		if (rk_step == 0)
 		{
-			manage_pressure_gradient(state_new, grid, dualgrid, diagnostics, forcings, irrev, config);
+			manage_pressure_gradient(state_old, grid, dualgrid, diagnostics, forcings, irrev, config);
 		}
-		calc_pressure_grad_condensates_v(state_new, grid, forcings, irrev);
 		
-		// Only the horizontal momentum is a forward tendency.
-		vector_tendencies_expl(state_new, state_tendency, grid, dualgrid, diagnostics, forcings, irrev, config, rk_step, delta_t);
+		if (rk_step == 0)
+		{
+			calc_pressure_grad_condensates_v(state_old, grid, forcings, irrev);
+			// Only the horizontal momentum is a forward tendency.
+			vector_tendencies_expl(state_old, state_tendency, grid, dualgrid, diagnostics, forcings, irrev, config, rk_step, delta_t);
+	    }
+		if (rk_step == 1)
+		{
+			calc_pressure_grad_condensates_v(state_new, grid, forcings, irrev);
+			// Only the horizontal momentum is a forward tendency.
+			vector_tendencies_expl(state_new, state_tendency, grid, dualgrid, diagnostics, forcings, irrev, config, rk_step, delta_t);
+	    }
+	    
 	    // time stepping for the horizontal momentum can be directly executed
 	    #pragma omp parallel for private(vector_index)
 	    for (int h_index = 0; h_index < N_VECS_H; ++h_index)
@@ -80,11 +87,25 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 		{
 			call_radiation(state_old, grid, dualgrid, state_tendency, diagnostics, forcings, irrev, config, delta_t, time_coordinate);
 		}
-		scalar_tendencies_expl(state_old, state_new, state_tendency, grid, dualgrid, delta_t, diagnostics, forcings, irrev, config, rk_step);
+		if (rk_step == 0)
+		{
+			scalar_tendencies_expl(state_old, state_new, state_tendency, grid, dualgrid, delta_t, diagnostics, forcings, irrev, config, rk_step);
+		}
+		if (rk_step == 1)
+		{
+			scalar_tendencies_expl(state_new, state_new, state_tendency, grid, dualgrid, delta_t, diagnostics, forcings, irrev, config, rk_step);
+		}
 
 		// 3.) vertical sound wave solver
 		// ------------------------------
-		three_band_solver_ver_waves(state_old, state_new, state_tendency, diagnostics, forcings, config, delta_t, grid, rk_step);
+		if (rk_step == 0)
+		{
+			three_band_solver_ver_waves(state_old, state_old, state_new, state_tendency, diagnostics, forcings, config, delta_t, grid, rk_step);
+		}
+		if (rk_step == 1)
+		{
+			three_band_solver_ver_waves(state_old, state_new, state_new, state_tendency, diagnostics, forcings, config, delta_t, grid, rk_step);
+		}
 		
 		// 4.) vertical tracer advection
 		// -----------------------------
