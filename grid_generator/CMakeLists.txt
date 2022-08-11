@@ -13,7 +13,7 @@ grid_generator
 src/control.c
 ../src/constants.f90
 ../src/definitions.f90
-src/diff_ops/rhombus_averaging.c
+src/diff_ops/rhombus_averaging.f90
 src/diff_ops/inner_product.f90
 src/optimization/optimize.c
 src/optimization/optimize.f90

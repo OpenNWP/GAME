@@ -316,10 +316,10 @@ int main(int argc, char *argv[])
     printf(".\n");
     
     printf("Setting rhombus interpolation indices and weights ...");
-	rhombus_averaging(vorticity_indices_triangles, vorticity_signs_triangles, from_index_dual,
+	rhombus_averaging(vorticity_indices_triangles, from_index_dual,
 	to_index_dual, vorticity_indices_rhombi, density_to_rhombi_indices, from_index, to_index, area_dual,
 	z_vector, latitude_scalar_dual, longitude_scalar_dual, density_to_rhombi_weights, latitude_vector,
-	longitude_vector, latitude_scalar, longitude_scalar, radius);
+	longitude_vector, latitude_scalar, longitude_scalar);
     printf(GREEN "finished" RESET);
     printf(".\n");
     
