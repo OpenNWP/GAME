@@ -70,7 +70,7 @@ module geodesy
     
     d = calculate_distance_cart(lat_2_in,lon_2_in,lat_3_in,lon_3_in,1._wp,1._wp)
     theta = 2._wp*asin(d/2._wp)
-    tau_dash = 0.5 + sqrt(1._wp/d**2 - 0.25_wp)*tan(theta*(tau - 0.5))
+    tau_dash = 0.5_wp + sqrt(1._wp/d**2 - 0.25_wp)*tan(theta*(tau - 0.5))
     x = tau_dash*cos(lat_3_in)*cos(lon_3_in) + (1._wp - tau_dash)*cos(lat_2_in)*cos(lon_2_in)
     y = tau_dash*cos(lat_3_in)*sin(lon_3_in) + (1._wp - tau_dash)*cos(lat_2_in)*sin(lon_2_in)
     z = tau_dash*sin(lat_3_in) + (1._wp- tau_dash)*sin(lat_2_in)
