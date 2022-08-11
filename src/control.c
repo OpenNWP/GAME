@@ -712,9 +712,6 @@ int main(int argc, char *argv[])
     	{
     		manage_pchevi(state_2, state_1, grid, dualgrid, state_tendency, diagnostics, forcings, irrev, config, delta_t, t_0);
     	}
-    	// This switch can be set to zero now and remains there.
-    	config -> totally_first_step_bool = 0;
-		time_step_counter += 1;	
 		
 		/*
 		Writing out integrals over the model domain if requested by the user.
@@ -724,18 +721,18 @@ int main(int argc, char *argv[])
         {
 			if (fmod(time_step_counter, 2) == 0)
 			{
-				write_out_integral(state_1, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 0);
-				write_out_integral(state_1, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 1);
-				write_out_integral(state_1, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 2);
-			}
-			else
-			{
 				write_out_integral(state_2, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 0);
 				write_out_integral(state_2, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 1);
 				write_out_integral(state_2, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 2);
 			}
+			else
+			{
+				write_out_integral(state_1, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 0);
+				write_out_integral(state_1, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 1);
+				write_out_integral(state_1, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 2);
+			}
     	}
-    	
+		
     	/*
     	Writing the actual output.
     	--------------------------
@@ -743,22 +740,41 @@ int main(int argc, char *argv[])
     	// interpolating to the output time
         if(t_0 + delta_t >= t_write && t_0 <= t_write)
         {
-            interpolation_t(state_1, state_2, state_write, t_0, t_0 + delta_t, t_write, grid);
+			if (fmod(time_step_counter, 2) == 0)
+			{
+            	interpolation_t(state_1, state_2, state_write, t_0, t_0 + delta_t, t_write, grid);
+        	}
+			else
+			{
+            	interpolation_t(state_2, state_1, state_write, t_0, t_0 + delta_t, t_write, grid);
+        	}
     	}
-        
+		
         // 5 minutes before the output time, the wind in the lowest layer needs to be collected for 10 m wind diagnostics.
         if (t_0 >= t_write - radius_rescale*300)
         {
         	if (wind_lowest_layer_step_counter < min_no_of_10m_wind_avg_steps)
         	{
-        		#pragma omp parallel for
-		    	for (int h_index = 0; h_index < N_VECS_H; ++h_index)
-       			{
-		    		wind_h_lowest_layer[wind_lowest_layer_step_counter*N_VECS_H + h_index] = state_1 -> wind[N_VECTORS - N_VECS_PER_LAYER + h_index];
-		    	}
-		    	wind_lowest_layer_step_counter += 1;
+				if (fmod(time_step_counter, 2) == 0)
+				{
+		    		#pragma omp parallel for
+					for (int h_index = 0; h_index < N_VECS_H; ++h_index)
+		   			{
+						wind_h_lowest_layer[wind_lowest_layer_step_counter*N_VECS_H + h_index] = state_1 -> wind[N_VECTORS - N_VECS_PER_LAYER + h_index];
+					}
+				}
+				else
+				{
+		 			#pragma omp parallel for
+					for (int h_index = 0; h_index < N_VECS_H; ++h_index)
+		   			{
+						wind_h_lowest_layer[wind_lowest_layer_step_counter*N_VECS_H + h_index] = state_2 -> wind[N_VECTORS - N_VECS_PER_LAYER + h_index];
+					}
+				}
+				wind_lowest_layer_step_counter += 1;
         	}
         }
+		
         // 5 minutes after the output time, the 10 m wind diagnostics can be executed, so output can actually be written
         if(t_0 + delta_t >= t_write + radius_rescale*300 && t_0 <= t_write + radius_rescale*300)
         {
@@ -783,6 +799,14 @@ int main(int argc, char *argv[])
         	}
             wind_lowest_layer_step_counter = 0;
         }
+        
+        
+    	
+    	// This switch can be set to zero now and remains there.
+    	config -> totally_first_step_bool = 0;
+
+		time_step_counter += 1;
+		
         // giving the user information on the run progress
         printf("Step %d completed.\n", time_step_counter);
         
