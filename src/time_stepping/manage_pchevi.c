@@ -38,6 +38,13 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 	{
 		calc_h2otracers_source_rates(state_old, diagnostics, grid, config, irrev, delta_t);
 	}
+	
+	// Radiation is updated here.
+	if (config -> rad_on > 0 && config -> rad_update == 1)
+	{
+		call_radiation(state_old, grid, dualgrid, state_tendency, diagnostics, forcings, irrev, config, delta_t, time_coordinate);
+	}
+		
 	/*
 	Loop over the RK substeps
 	-------------------------
@@ -45,6 +52,7 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 	int vector_index;
 	for (int rk_step = 0; rk_step < 2; ++rk_step)
 	{
+		// state_old remains unchanged the whole time.
 		// At rk_step == 0, state_new contains garbage.
 	
 		// 1.) explicit component of the momentum equation
@@ -82,11 +90,6 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 
 		// 2.) explicit component of the generalized density equations
 		// -----------------------------------------------------------
-	    // Radiation is updated here.
-		if (config -> rad_on > 0 && config -> rad_update == 1 && rk_step == 0)
-		{
-			call_radiation(state_old, grid, dualgrid, state_tendency, diagnostics, forcings, irrev, config, delta_t, time_coordinate);
-		}
 		if (rk_step == 0)
 		{
 			scalar_tendencies_expl(state_old, state_new, state_tendency, grid, dualgrid, delta_t, diagnostics, forcings, irrev, config, rk_step);
