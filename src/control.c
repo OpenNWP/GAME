@@ -24,6 +24,7 @@ extern int run_nml_setup();
 extern int rad_nml_setup();
 extern int constituents_nml_setup();
 extern int diff_nml_setup();
+extern int surface_nml_setup();
 
 int sanity_checker(Config *config, Config_io *config_io, Grid *grid)
 {
@@ -444,6 +445,7 @@ int main(int argc, char *argv[])
 	rad_nml_setup();
 	constituents_nml_setup();
 	diff_nml_setup();
+	surface_nml_setup();
 	
 	// checking the user input
 	sanity_checker(config, config_io, grid);
@@ -679,7 +681,12 @@ int main(int argc, char *argv[])
     --------------------------------------
     */
     int wind_lowest_layer_step_counter = 0;
-    linear_combine_two_states(state_1, state_1, state_2, 1.0, 0.0, grid);
+    double zero = 0.0;
+    double one = 1.0;
+    linear_combine_two_states(state_1 -> rho, state_1 -> rhotheta_v, state_1 -> exner_pert, state_1 -> wind, state_1 -> temperature_soil,
+                              state_1 -> rho, state_1 -> rhotheta_v, state_1 -> exner_pert, state_1 -> wind, state_1 -> temperature_soil,
+                              state_2 -> rho, state_2 -> rhotheta_v, state_2 -> theta_v_pert, state_2 -> exner_pert, state_2 -> wind, state_2 -> temperature_soil,
+                              &one, &zero, grid -> theta_v_bg);
     
     /*
     This is the loop over the time steps.

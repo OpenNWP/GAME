@@ -17,6 +17,7 @@ src/namelists/run_nml.f90
 src/namelists/rad_nml.f90
 src/namelists/constituents_nml.f90
 src/namelists/diff_nml.f90
+src/namelists/surface_nml.f90
 src/time_stepping/manage_pchevi.c
 src/time_stepping/manage_pressure_gradient.c
 src/time_stepping/vector_tendencies_expl.c
@@ -32,7 +33,7 @@ src/spatial_operators/multiplications.f90
 src/spatial_operators/gradient_operators.f90
 src/spatial_operators/inner_product.f90
 src/spatial_operators/averaging.f90
-src/spatial_operators/linear_combine_two_states.c
+src/spatial_operators/linear_combine_two_states.f90
 src/io/set_initial_state.c
 src/io/write_output.c
 src/io/set_grid_properties.c

@@ -19,7 +19,7 @@ extern int scalar_times_vector();
 extern int scalar_times_vector_h();
 extern int scalar_times_vector_h_upstream();
 extern int scalar_times_vector_v();
-int linear_combine_two_states(State *, State *, State *, double, double, Grid *);
+extern int linear_combine_two_states();
 extern int inner_product();
 extern double tangential_wind();
 extern int calc_uv_at_edge();
