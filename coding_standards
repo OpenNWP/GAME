@@ -16,7 +16,8 @@ Blank spaces
 1. Never use more than one blank line.
 2. Don't use tabs.
 3. Use two blank spaces for indentations.
-4. In formulas, blank spaces should be inserted where it helps the eye, but not behind every symbol and/or number.
+4. Don't use blank spaces behind commas.
+5. In formulas, blank spaces should be inserted where it helps the eye, but not behind every symbol and/or number.
 
 Names
 
