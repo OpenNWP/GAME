@@ -11,9 +11,9 @@ module this_does_something
   
   contains
 
-  subroutine grad_hor_cov(in_field,out_field
+  subroutine useful(in_field,out_field)
   
-    ! This subroutine does something.
+    ! This subroutine does something useful.
     
     real(wp), intent(in)  :: in_field(10)
     real(wp), intent(out) :: out_field(10)
@@ -27,7 +27,7 @@ module this_does_something
     enddo
     !$omp end parallel do
     
-  end subroutine grad_hor_cov
+  end subroutine useful
 
 end module this_does_something
 

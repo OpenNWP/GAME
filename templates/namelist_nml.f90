@@ -3,13 +3,14 @@
 
 module run_nml
 
-  ! This is the namelists the configures the basic run properties of a model integration.
+  ! This is the namelist that configures the basic run properties of a model integration.
   
   use definitions, only: wp
   
   implicit none
   
   character(len=64) :: run_id ! ID of this run
+  real(wp)          :: dtime  ! time step of this run
   
   namelist /run/run_id
 
@@ -19,8 +20,10 @@ module run_nml
   
     ! local variables
     integer :: fileunit
-  
+    
+    ! default values
     run_id = "ideal"
+    dtime = 5._wp
     
     ! open and read namelist file
     open(action="read",file="namelist.nml",newunit=fileunit)
