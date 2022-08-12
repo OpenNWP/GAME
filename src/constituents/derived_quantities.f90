@@ -5,9 +5,11 @@ module derived_quantities
 
   ! This module contains look-up functions for properties of the atmosphere.
 
-  use definitions, only: wp
-  use constants,   only: m_d,n_a,k_b,M_PI,t_0,r_v
-  use dictionary,  only: saturation_pressure_over_water,saturation_pressure_over_ice
+  use definitions,      only: wp
+  use constants,        only: m_d,n_a,k_b,M_PI,t_0,r_v
+  use dictionary,       only: saturation_pressure_over_water,saturation_pressure_over_ice
+  use grid_nml,         only: n_scalars
+  use constituents_nml, only: n_constituents
   
   implicit none
   
@@ -62,6 +64,28 @@ module derived_quantities
     calc_diffusion_coeff = 1.0_wp/3.0_wp*thermal_velocity*mean_free_path
     
   end function calc_diffusion_coeff
+  
+  function density_total(rho,ji) &
+  bind(c,name = "density_total")
+  
+    ! This function calculates the total density of the air at a certain gridpoint.
+    
+    ! input arguments
+    real(wp),intent(in) :: rho(n_constituents*n_scalars)  ! density field
+    integer, intent(in) :: ji   ! indices of the gridpoint
+    ! output
+    real(wp)            :: density_total ! the result
+    
+    ! local variables
+    integer :: j_constituent
+    
+    density_total = 0._wp
+    
+    do j_constituent=0,n_constituents-1
+      density_total = density_total + rho(ji+j_constituent*n_scalars)
+    enddo
+    
+  end function density_total
 
 end module derived_quantities
 

@@ -60,18 +60,22 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 		// Update of the pressure gradient.
 		if (rk_step == 0)
 		{
-			manage_pressure_gradient(state_old, grid, dualgrid, diagnostics, forcings, irrev, config);
+			manage_pressure_gradient(forcings -> pressure_gradient_acc_neg_nl,forcings -> pressure_gradient_acc_neg_l,
+                                     irrev -> pressure_gradient_decel_factor,diagnostics -> scalar_field_placeholder,state_old -> exner_pert,grid -> theta_v_bg,
+                                     state_old -> rho, forcings -> pgrad_acc_old,
+                                     state_old -> theta_v_pert,grid -> from_index,grid -> to_index,grid -> normal_distance, grid -> exner_bg_grad,
+                                     grid -> inner_product_weights,grid -> slope,&config -> totally_first_step_bool);
 		}
 		
 		if (rk_step == 0)
 		{
-			calc_pressure_grad_condensates_v(state_old, grid, forcings, irrev);
+			calc_pressure_grad_condensates_v(irrev -> pressure_gradient_decel_factor,state_old -> rho,grid -> gravity_m,forcings -> pressure_grad_condensates_v);
 			// Only the horizontal momentum is a forward tendency.
 			vector_tendencies_expl(state_old, state_tendency, grid, dualgrid, diagnostics, forcings, irrev, config, rk_step, delta_t);
 	    }
 		if (rk_step == 1)
 		{
-			calc_pressure_grad_condensates_v(state_new, grid, forcings, irrev);
+			calc_pressure_grad_condensates_v(irrev -> pressure_gradient_decel_factor,state_new -> rho,grid -> gravity_m,forcings -> pressure_grad_condensates_v);
 			// Only the horizontal momentum is a forward tendency.
 			vector_tendencies_expl(state_new, state_tendency, grid, dualgrid, diagnostics, forcings, irrev, config, rk_step, delta_t);
 	    }

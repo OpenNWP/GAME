@@ -20,7 +20,7 @@ extern double calc_o3_vmr(int *);
 double spec_heat_cap_diagnostics_p(State *, int, Config *);
 double spec_heat_cap_diagnostics_v(State *, int, Config *);
 double gas_constant_diagnostics(State *, int, Config *);
-double density_total(State *, int);
+extern double density_total();
 extern double calc_diffusion_coeff();
 int temperature_diagnostics(State *, Grid *, Diagnostics *);
 extern double c_p_ice();

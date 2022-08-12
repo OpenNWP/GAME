@@ -164,7 +164,7 @@ int hor_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible_
 			scalar_index_to = layer_index*N_SCALS_H + grid -> to_index[h_index];
 			irrev -> friction_acc[vector_index] =
 			(diagnostics -> vector_field_placeholder[vector_index] - diagnostics -> curl_of_vorticity[vector_index])
-			/(0.5*(density_total(state, scalar_index_from) + density_total(state, scalar_index_to)));
+			/(0.5*(density_total(state -> rho, &scalar_index_from) + density_total(state -> rho, &scalar_index_to)));
 		}
 	}
 	return 0;
@@ -223,10 +223,13 @@ int vert_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible
 		z_lower = 0.5*(grid -> z_vector[(layer_index + 1)*N_VECS_PER_LAYER + grid -> from_index[h_index]]
 		+ grid -> z_vector[(layer_index + 1)*N_VECS_PER_LAYER + grid -> to_index[h_index]]);
 		delta_z = z_upper - z_lower;
+		int index_1, index_2;
+		index_1 = layer_index*N_SCALS_H + grid -> from_index[h_index];
+		index_2 = layer_index*N_SCALS_H + grid -> to_index[h_index];
 		irrev -> friction_acc[vector_index] +=
 		(irrev -> vert_hor_viscosity[i]*diagnostics -> dv_hdz[i]
 		- irrev -> vert_hor_viscosity[i + N_VECS_H]*diagnostics -> dv_hdz[i + N_VECS_H])/delta_z
-		/(0.5*(density_total(state, layer_index*N_SCALS_H + grid -> from_index[h_index]) + density_total(state, layer_index*N_SCALS_H + grid -> to_index[h_index])));
+		/(0.5*(density_total(state, &index_1) + density_total(state, &index_2)));
 	}
 	
 	// 2.) vertical diffusion of vertical velocity
@@ -290,8 +293,11 @@ int vert_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible
 		diagnostics -> scalar_field_placeholder[h_index + layer_index*N_SCALS_H]
 		+ diagnostics -> scalar_field_placeholder[h_index + (layer_index + 1)*N_SCALS_H]);
 		// dividing by the density
+		int index_1, index_2;
+		index_1 = h_index + layer_index*N_SCALS_H;
+		index_2 = h_index + (layer_index + 1)*N_SCALS_H;
 		irrev -> friction_acc[vector_index] = irrev -> friction_acc[vector_index]
-		/(0.5*(density_total(state, h_index + layer_index*N_SCALS_H) + density_total(state, h_index + (layer_index + 1)*N_SCALS_H)));
+		/(0.5*(density_total(state, &index_1) + density_total(state, &index_2)));
 	}
 	
 	return 0;
@@ -306,7 +312,7 @@ int simple_dissipation_rate(State *state, Irreversible_quantities *irrev, Grid *
 	#pragma omp parallel for
 	for (int i = 0; i < N_SCALARS; ++i)
 	{
-		irrev -> heating_diss[i] = -density_total(state, i)*irrev -> heating_diss[i];
+		irrev -> heating_diss[i] = -density_total(state -> rho, &i)*irrev -> heating_diss[i];
 	}
 	return 0;
 }

@@ -60,20 +60,6 @@ double gas_constant_diagnostics(State *state, int grid_point_index, Config *conf
 	return result;
 }
 
-double density_total(State *state, int grid_point_index)
-{
-	/*
-	This function calculates the density of the air.
-	*/
-	
-	double result = 0.0;
-	for (int i = 0; i < N_CONSTITUENTS; ++i)
-	{
-		result += state -> rho[i*N_SCALARS + grid_point_index];
-	}
-	return result;
-}
-
 double c_v_mass_weighted_air(State *state, Diagnostics *diagnostics, int grid_point_index)
 {
 	/*
