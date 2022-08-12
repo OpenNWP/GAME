@@ -1,0 +1,33 @@
+Coding standards of this project
+
+General principles
+
+1. reliability (including numerical stability)
+2. accuracy
+3. performance
+
+Modularity
+
+1. The code should be sorted into meaningful files and functions/subroutines as long as it does not harm performance.
+2. Sort files into meaningful directories.
+
+Blank spaces
+
+1. Never use more than one blank line.
+2. Don't use tabs.
+3. Use two blank spaces for indentations.
+4. Don't use blank spaces behind commas, apart from after intent statements.
+5. In formulas, blank spaces should be inserted where it helps the eye, but not behind every symbol and/or number.
+
+Names
+
+1. Use underscores: new_variable.
+2. Do not use capitals inside names: ThisIsForbidden, thisIsForbidden.
+3. Use names that explain the meaning of the named object.
+
+Comments
+
+Do not use too much comments (<< 50 % of the code should be comments).
+Explain only those things that somebody who is reading your code for the first time would need to know.
+
+
