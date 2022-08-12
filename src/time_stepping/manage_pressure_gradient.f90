@@ -70,7 +70,7 @@ module mo_pgrad
     ! ------------------------------------------------------------------------------
     !$omp parallel do private(ji)
     do ji=1,n_scalars
-      pressure_gradient_decel_factor(ji) = rho(n_condensed_constituents*n_scalars+ji)/density_total(rho,ji)
+      pressure_gradient_decel_factor(ji) = rho(n_condensed_constituents*n_scalars+ji)/density_total(rho,ji-1)
     enddo
     !$omp end parallel do
     call scalar_times_vector(pressure_gradient_decel_factor,pressure_gradient_acc_neg_nl, &
@@ -102,7 +102,7 @@ module mo_pgrad
     
     !$omp parallel do private(ji)
     do ji=1,n_scalars
-      pressure_gradient_decel_factor(ji) = rho(n_condensed_constituents*n_scalars+ji)/density_total(rho,ji) - 1._wp
+      pressure_gradient_decel_factor(ji) = rho(n_condensed_constituents*n_scalars+ji)/density_total(rho,ji-1) - 1._wp
     enddo
     !$omp end parallel do
     call scalar_times_vector_v(pressure_gradient_decel_factor,gravity_m,pressure_grad_condensates_v)

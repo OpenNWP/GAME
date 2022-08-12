@@ -9,7 +9,7 @@ module linear_combination
   use definitions,      only: wp
   use grid_nml,         only: n_scalars,n_vectors,n_scalars_h
   use surface_nml,      only: nsoillays
-  use constituents_nml, only: n_constituents
+  use constituents_nml, only: n_constituents,n_condensed_constituents
   
   implicit none
   
@@ -31,7 +31,7 @@ module linear_combination
     !$omp parallel workshare
     rho = coeff_1*rho_1+coeff_2*rho_2
     rhotheta_v = coeff_1*rhotheta_v_1+coeff_2*rhotheta_v_2
-    theta_v_pert = rhotheta_v/rho-theta_v_bg
+    theta_v_pert = rhotheta_v/rho(n_condensed_constituents*n_scalars+1:(n_condensed_constituents+1)*n_scalars)-theta_v_bg
     exner_pert = coeff_1*exner_pert_1+coeff_2*exner_pert_2
     wind = coeff_1*wind_1+coeff_2*wind_2
     temperature_soil = coeff_1*temperature_soil_1+coeff_2*temperature_soil_2

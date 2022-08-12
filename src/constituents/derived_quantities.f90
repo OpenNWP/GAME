@@ -82,7 +82,7 @@ module derived_quantities
     density_total = 0._wp
     
     do j_constituent=0,n_constituents-1
-      density_total = density_total + rho(ji+j_constituent*n_scalars)
+      density_total = density_total + rho(1+ji+j_constituent*n_scalars)
     enddo
     
   end function density_total
