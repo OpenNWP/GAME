@@ -62,30 +62,38 @@ int write_out_integral(State *state_write_out, double time_since_init, Grid *gri
 	1: entropy
 	2: energy
 	*/
+	
+	if (integral_id < 0 || integral_id > 2)
+	{
+		printf("integral_id can only be 0, 1 or 2.\n");
+		printf("Aborting.\n");
+		exit(1);
+	}
+	
     double global_integral = 0.0;
     FILE *global_integral_file;
-    int INTEGRAL_FILE_LENGTH = 200;
-    char *INTEGRAL_FILE_PRE = malloc((INTEGRAL_FILE_LENGTH + 1)*sizeof(char));
+    
+    char integral_file_pre[200];
+	
     if (integral_id == 0)
     {
-   		sprintf(INTEGRAL_FILE_PRE, "%s", "masses");
+   		sprintf(integral_file_pre, "%s", "masses");
     }
     if (integral_id == 1)
    	{
-   		sprintf(INTEGRAL_FILE_PRE, "%s", "potential_temperature_density");
+   		sprintf(integral_file_pre, "%s", "potential_temperature_density");
     }
     if (integral_id == 2)
    	{
-   		sprintf(INTEGRAL_FILE_PRE, "%s", "energy");
+   		sprintf(integral_file_pre, "%s", "energy");
     }
-    INTEGRAL_FILE_LENGTH = strlen(INTEGRAL_FILE_PRE);
-    char *INTEGRAL_FILE = malloc((INTEGRAL_FILE_LENGTH + 1)*sizeof(char));
-    sprintf(INTEGRAL_FILE, "%s", INTEGRAL_FILE_PRE);
-    free(INTEGRAL_FILE_PRE);
+    char integral_file[strlen(integral_file_pre) + 1];
+    strcpy(integral_file, integral_file_pre);
+    sprintf(integral_file, "%s", integral_file_pre);
     if (integral_id == 0)
     {
     	// masses
-    	global_integral_file = fopen(INTEGRAL_FILE, "a");
+    	global_integral_file = fopen(integral_file, "a");
 		fprintf(global_integral_file, "%lf\t", time_since_init);
     	for (int const_id = 0; const_id < N_CONSTITUENTS; ++const_id)
     	{
@@ -109,7 +117,7 @@ int write_out_integral(State *state_write_out, double time_since_init, Grid *gri
     if (integral_id == 1)
     {
     	// density times virtual potential temperature
-    	global_integral_file = fopen(INTEGRAL_FILE, "a");
+    	global_integral_file = fopen(integral_file, "a");
     	global_integral = global_scalar_integrator(state_write_out -> rhotheta_v, grid);
     	fprintf(global_integral_file, "%lf\t%lf\n", time_since_init, global_integral);
     	fclose(global_integral_file);
@@ -117,7 +125,7 @@ int write_out_integral(State *state_write_out, double time_since_init, Grid *gri
     if (integral_id == 2)
     {
     	double kinetic_integral, potential_integral, internal_integral;
-    	global_integral_file = fopen(INTEGRAL_FILE, "a");
+    	global_integral_file = fopen(integral_file, "a");
     	Scalar_field *e_kin_density = malloc(sizeof(Scalar_field));
     	inner_product(state_write_out -> wind, state_write_out -> wind, *e_kin_density, grid -> adjacent_vector_indices_h, grid -> inner_product_weights);
 		#pragma omp parallel for
@@ -152,7 +160,6 @@ int write_out_integral(State *state_write_out, double time_since_init, Grid *gri
     	free(int_energy_density);
     	fclose(global_integral_file);
     }
-    free(INTEGRAL_FILE);
 	return 0;
 }
 
