@@ -274,7 +274,7 @@ module mo_coriolis
         n_edges = 5
       endif
       next_vertex_index = from_index_dual(ji)
-        indices_used_counter = 1
+      indices_used_counter = 1
       indices_used = -1
       do jk=1,n_edges-1
         value_written = 0
@@ -328,7 +328,7 @@ module mo_coriolis
       else
         trsk_modified_curl_indices(10*(ji-1)+6) = trsk_indices(10*(ji-1)+5)
       endif
-      trsk_modified_curl_indices(10*(ji-1)+6) = trsk_indices(10*(ji-1)+5)
+      trsk_modified_curl_indices(10*(ji-1)+7) = trsk_indices(10*(ji-1)+6)
       if (to_index(ji)<n_pentagons) then
         trsk_modified_curl_indices(10*(ji-1)+8) = trsk_indices(10*(ji-1)+9)
         trsk_modified_curl_indices(10*(ji-1)+9) = trsk_indices(10*(ji-1)+1)
