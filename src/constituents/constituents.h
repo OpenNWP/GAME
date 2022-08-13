@@ -4,8 +4,7 @@ Github repository: https://github.com/OpenNWP/GAME
 */
 
 extern double molar_fraction_in_dry_air(int *);
-double sink_velocity(int, double, double);
-int calc_h2otracers_source_rates(State *, Diagnostics *, Grid *, Config *, Irreversible_quantities *, double);
+extern int calc_h2otracers_source_rates();
 extern double saturation_pressure_over_water(double *);
 extern double saturation_pressure_over_ice(double *);
 extern double dsaturation_pressure_over_water_dT();

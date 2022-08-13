@@ -36,7 +36,9 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 	// cloud microphysics
 	if (MOISTURE_ON == 1)
 	{
-		calc_h2otracers_source_rates(state_old, diagnostics, grid, config, irrev, delta_t);
+		calc_h2otracers_source_rates(state_old -> rho,diagnostics -> temperature,grid -> layer_thickness,state_old -> temperature_soil, &
+                                     irrev -> phase_trans_rates,irrev -> phase_trans_heating_rate, &
+                                     diagnostics -> scalar_flux_resistance,grid -> is_land,diagnostics -> power_flux_density_latent);
 	}
 	
 	// Radiation is updated here.

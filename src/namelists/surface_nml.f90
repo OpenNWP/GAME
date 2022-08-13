@@ -7,9 +7,10 @@ module surface_nml
 
   implicit none
   
-  integer :: nsoillays ! number of soil layers
+  integer :: nsoillays        ! number of soil layers
+  logical :: lsfc_phase_trans ! surface phase transitions switch
   
-  namelist /surface/nsoillays
+  namelist /surface/nsoillays,lsfc_phase_trans
   
   contains
   
@@ -18,6 +19,7 @@ module surface_nml
     
     ! default values
     nsoillays = 5
+    lsfc_phase_trans = .true.
   
   end subroutine surface_nml_setup
 
