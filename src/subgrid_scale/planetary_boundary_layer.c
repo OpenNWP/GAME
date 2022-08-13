@@ -171,8 +171,9 @@ int pbl_wind_tendency(State *state, Diagnostics *diagnostics, Irreversible_quant
 		    pressure_value_lowest_layer = P_0*pow(exner_from, C_D_P/R_D);
 			temp_surface = temp_lowest_layer + standard_vert_lapse_rate*(grid -> z_scalar[grid -> from_index[h_index] + (N_LAYERS - 1)*N_SCALS_H]
 			- grid -> z_vector[N_VECTORS - N_SCALS_H + grid -> from_index[h_index]]);
+			int index = (N_LAYERS - 1)*N_SCALS_H + grid -> from_index[h_index];
 		    surface_p_factor = pow(1.0 - (temp_surface - temp_lowest_layer)/temp_surface, grid -> gravity_m[(N_LAYERS - 1)*N_VECS_PER_LAYER + grid -> from_index[h_index]]/
-		    (gas_constant_diagnostics(state, (N_LAYERS - 1)*N_SCALS_H + grid -> from_index[h_index], config)*standard_vert_lapse_rate));
+		    (gas_constant_diagnostics(state -> rho, &index)*standard_vert_lapse_rate));
 			pressure_sfc_from = pressure_value_lowest_layer/surface_p_factor;
 			// calculating the surface pressure at the to scalar point
 		    temp_lowest_layer = diagnostics -> temperature[(N_LAYERS - 1)*N_SCALS_H + grid -> to_index[h_index]];
@@ -181,8 +182,9 @@ int pbl_wind_tendency(State *state, Diagnostics *diagnostics, Irreversible_quant
 		    pressure_value_lowest_layer = P_0*pow(exner_to, C_D_P/R_D);
 			temp_surface = temp_lowest_layer + standard_vert_lapse_rate*(grid -> z_scalar[grid -> to_index[h_index] + (N_LAYERS - 1)*N_SCALS_H]
 			- grid -> z_vector[N_VECTORS - N_SCALS_H + grid -> to_index[h_index]]);
+			index = (N_LAYERS - 1)*N_SCALS_H + grid -> to_index[h_index];
 		    surface_p_factor = pow(1.0 - (temp_surface - temp_lowest_layer)/temp_surface, grid -> gravity_m[(N_LAYERS - 1)*N_VECS_PER_LAYER + grid -> to_index[h_index]]/
-		    (gas_constant_diagnostics(state, (N_LAYERS - 1)*N_SCALS_H + grid -> to_index[h_index], config)*standard_vert_lapse_rate));
+		    (gas_constant_diagnostics(state -> rho, &index)*standard_vert_lapse_rate));
 			pressure_sfc_to = pressure_value_lowest_layer/surface_p_factor;
 			// averaging the surface pressure to the vector point
 			pressure_sfc = 0.5*(pressure_sfc_from + pressure_sfc_to);

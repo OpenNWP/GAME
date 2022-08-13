@@ -224,8 +224,8 @@ int scalar_diffusion_coeffs(State *state, Config *config, Irreversible_quantitie
 		Computing the temperature diffusion coefficient
 		-----------------------------------------------
 		*/
-		irrev -> temp_diffusion_coeff_numerical_h[i] = c_v_mass_weighted_air(state, diagnostics, i)*irrev -> mass_diffusion_coeff_numerical_h[i];
-		irrev -> temp_diffusion_coeff_numerical_v[i] = c_v_mass_weighted_air(state, diagnostics, i)*irrev -> mass_diffusion_coeff_numerical_v[i];
+		irrev -> temp_diffusion_coeff_numerical_h[i] = c_v_mass_weighted_air(state -> rho, diagnostics -> temperature, &i)*irrev -> mass_diffusion_coeff_numerical_h[i];
+		irrev -> temp_diffusion_coeff_numerical_v[i] = c_v_mass_weighted_air(state -> rho, diagnostics -> temperature, &i)*irrev -> mass_diffusion_coeff_numerical_v[i];
 	}
 	return 0;
 }

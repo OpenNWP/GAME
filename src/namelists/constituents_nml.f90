@@ -6,6 +6,7 @@ module constituents_nml
   ! This namelist defines the constituents of the model atmosphere.
 
   use definitions, only: wp
+  use run_nml,     only: lmoist
 
   implicit none
   
@@ -23,6 +24,11 @@ module constituents_nml
     
     n_condensed_constituents = 4
     n_gaseous_constituents = 2
+    ! the dry case
+    if (.not. lmoist) then
+      n_condensed_constituents = 0
+      n_gaseous_constituents = 1
+    endif
     snow_velocity = 5._wp
     rain_velocity = 10._wp
     cloud_droplets_velocity = .01_wp

@@ -25,7 +25,7 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 	*/
     
 	// diagnosing the temperature
-	temperature_diagnostics(state_old, grid, diagnostics);
+	temperature_diagnostics(diagnostics -> temperature, grid -> theta_v_bg, state_old -> theta_v_pert, grid -> exner_bg, state_old -> exner_pert, state_old -> rho);
 	
 	// updating surface-related turbulence quantities if it is necessary
 	if (config -> sfc_sensible_heat_flux == 1 || config -> sfc_phase_trans == 1 || config -> pbl_scheme == 1)

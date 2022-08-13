@@ -12,8 +12,9 @@ module run_nml
   
   character(len=64) :: run_id ! ID of this run
   real(wp)          :: dtime  ! time step
+  logical           :: lmoist ! moisture switch
   
-  namelist /run/run_id
+  namelist /run/run_id,lmoist
 
   contains
 
@@ -22,6 +23,7 @@ module run_nml
   
     run_id = "ideal"
     dtime = 360.312923_wp
+    lmoist = .true.
   
   end subroutine run_nml_setup
   

@@ -636,7 +636,7 @@ int main(int argc, char *argv[])
 			wind_h_lowest_layer[time_step_10_m_wind*N_VECS_H + h_index] = state_1 -> wind[N_VECTORS - N_VECS_PER_LAYER + h_index];
     	}
     }
-	temperature_diagnostics(state_1, grid, diagnostics);
+	temperature_diagnostics(diagnostics -> temperature, grid -> theta_v_bg, state_1 -> theta_v_pert, grid -> exner_bg, state_1 -> exner_pert, state_1 -> rho);
 	inner_product(state_1 -> wind, state_1 -> wind, diagnostics -> v_squared, grid -> adjacent_vector_indices_h, grid -> inner_product_weights);
 	
 	// time coordinate of the old RK step

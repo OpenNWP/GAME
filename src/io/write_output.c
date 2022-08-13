@@ -280,7 +280,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	double (*lat_lon_output_field)[N_LON_IO_POINTS] = malloc(sizeof(double[N_LAT_IO_POINTS][N_LON_IO_POINTS]));
 	
 	// diagnosing the temperature
-	temperature_diagnostics(state_write_out, grid, diagnostics);
+	temperature_diagnostics(diagnostics -> temperature, grid -> theta_v_bg, state_write_out -> theta_v_pert, grid -> exner_bg, state_write_out -> exner_pert, state_write_out -> rho);
 	
 	int time_since_init_min = (int) (t_write - t_init);
 	time_since_init_min = time_since_init_min/60.0;
@@ -312,18 +312,19 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		{
 			// Now the aim is to determine the value of the mslp.
 		    temp_lowest_layer = diagnostics -> temperature[(N_LAYERS - 1)*N_SCALS_H + i];
+		    int index = (N_LAYERS - 1)*N_SCALS_H + i;
 		    pressure_value = state_write_out -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + (N_LAYERS - 1)*N_SCALS_H + i]
-		    *gas_constant_diagnostics(state_write_out, (N_LAYERS - 1)*N_SCALS_H + i, config)
+		    *gas_constant_diagnostics(state_write_out -> rho, &index)
 		    *temp_lowest_layer;
 		    temp_mslp = temp_lowest_layer + standard_vert_lapse_rate*grid -> z_scalar[i + (N_LAYERS - 1)*N_SCALS_H];
 		    mslp_factor = pow(1 - (temp_mslp - temp_lowest_layer)/temp_mslp, grid -> gravity_m[(N_LAYERS - 1)*N_VECS_PER_LAYER + i]/
-		    (gas_constant_diagnostics(state_write_out, (N_LAYERS - 1)*N_SCALS_H + i, config)*standard_vert_lapse_rate));
+		    (gas_constant_diagnostics(state_write_out -> rho, &index)*standard_vert_lapse_rate));
 		    mslp[i] = pressure_value/mslp_factor;
 		    
 			// Now the aim is to determine the value of the surface pressure.
 			temp_surface = temp_lowest_layer + standard_vert_lapse_rate*(grid -> z_scalar[i + (N_LAYERS - 1)*N_SCALS_H] - grid -> z_vector[N_VECTORS - N_SCALS_H + i]);
 		    sp_factor = pow(1.0 - (temp_surface - temp_lowest_layer)/temp_surface, grid -> gravity_m[(N_LAYERS - 1)*N_VECS_PER_LAYER + i]/
-		    (gas_constant_diagnostics(state_write_out, (N_LAYERS - 1)*N_SCALS_H + i, config)*standard_vert_lapse_rate));
+		    (gas_constant_diagnostics(state_write_out -> rho, &index)*standard_vert_lapse_rate));
 			sp[i] = pressure_value/sp_factor;
 			
 			// Now the aim is to calculate the 2 m temperature.
@@ -668,7 +669,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	    {
     		(*rh)[i] = 100.0*rel_humidity(&state_write_out -> rho[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i], &diagnostics -> temperature[i]);
     	}
-    	(*pressure)[i] = state_write_out -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i]*gas_constant_diagnostics(state_write_out, i, config)*diagnostics -> temperature[i];
+    	(*pressure)[i] = state_write_out -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i]*gas_constant_diagnostics(state_write_out -> rho, &i)*diagnostics -> temperature[i];
     }
     
 	#pragma omp parallel for

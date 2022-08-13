@@ -6,10 +6,11 @@ module derived_quantities
   ! This module contains look-up functions for properties of the atmosphere.
 
   use definitions,      only: wp
-  use constants,        only: m_d,n_a,k_b,M_PI,t_0,r_v
-  use dictionary,       only: saturation_pressure_over_water,saturation_pressure_over_ice
+  use run_nml,          only: lmoist
+  use constants,        only: m_d,n_a,k_b,M_PI,t_0,r_v,c_d_v,c_v_v,r_d,m_v
+  use dictionary,       only: saturation_pressure_over_water,saturation_pressure_over_ice,c_p_cond
   use grid_nml,         only: n_scalars
-  use constituents_nml, only: n_constituents
+  use constituents_nml, only: n_constituents,n_condensed_constituents
   
   implicit none
   
@@ -86,6 +87,85 @@ module derived_quantities
     enddo
     
   end function density_total
+
+  subroutine temperature_diagnostics(temperature,theta_v_bg,theta_v_pert,exner_bg,exner_pert,rho) &
+  bind(c,name = "temperature_diagnostics")
+    
+    ! This subroutine diagnoses the temperature of the gas phase.
+    
+    real(wp), intent(out) :: temperature(n_scalars)
+    real(wp), intent(in)  :: theta_v_bg(n_scalars),theta_v_pert(n_scalars),exner_bg(n_scalars),exner_pert(n_scalars), &
+                             rho(n_constituents*n_scalars)
+    
+    ! local variables
+    integer :: ji
+    
+    if (.not. lmoist) then
+     !$omp parallel do private(ji)
+      do ji=1,n_scalars
+        temperature(ji) = (theta_v_bg(ji)+theta_v_pert(ji))*(exner_bg(ji)+exner_pert(ji))
+      enddo
+      !$omp end parallel do
+    endif
+    if (lmoist) then
+     !$omp parallel do private(ji)
+      do ji=1,n_scalars
+        temperature(ji) = (theta_v_bg(ji)+theta_v_pert(ji))*(exner_bg(ji)+exner_pert(ji)) &
+        /(1._wp+rho((n_condensed_constituents+1)*n_scalars+ji)/rho(n_condensed_constituents*n_scalars+ji)*(m_d/m_v - 1.0))
+      enddo
+      !$omp end parallel do
+    endif
+    
+  end subroutine temperature_diagnostics
+
+  function gas_constant_diagnostics(rho,grid_point_index) &
+  bind(c,name = "gas_constant_diagnostics")
+    
+    ! This function calculates the specific gas constant of the gas phase.
+    
+    real(wp), intent(in) :: rho(n_constituents*n_scalars)
+    integer,  intent(in) :: grid_point_index
+    real(wp)             :: gas_constant_diagnostics
+    
+    gas_constant_diagnostics = 0._wp
+    if (.not. lmoist) then
+      gas_constant_diagnostics = r_d
+    endif
+    if (lmoist) then
+      gas_constant_diagnostics = (rho(n_condensed_constituents*n_scalars+1+grid_point_index) &
+                                  - rho((n_condensed_constituents + 1)*n_scalars+1+grid_point_index))*r_d &
+                                  + rho((n_condensed_constituents + 1)*n_scalars+1+grid_point_index)*r_v
+      gas_constant_diagnostics = gas_constant_diagnostics/rho(n_condensed_constituents*n_scalars+1+grid_point_index)
+    endif
+  
+  end function 
+
+  function c_v_mass_weighted_air(rho,temperature,grid_point_index) &
+  bind(c,name = "c_v_mass_weighted_air")
+  
+    ! This function calculates the mass-weighted c_v of the air.
+    
+    real(wp), intent(in) :: rho(n_constituents*n_scalars),temperature(n_scalars)
+    integer,  intent(in) :: grid_point_index
+    real(wp) :: c_v_mass_weighted_air
+    
+    ! local variables
+    integer :: j_constituent
+    
+    c_v_mass_weighted_air = 0._wp
+    do j_constituent=0,n_condensed_constituents-1
+      ! It is correct to use c_p here because the compression of the condensates has almost no effect on the air pressure.
+      c_v_mass_weighted_air = c_v_mass_weighted_air &
+                              +rho(j_constituent*n_scalars+1+grid_point_index) &
+                              *c_p_cond(j_constituent,temperature(1+grid_point_index))
+    enddo
+    c_v_mass_weighted_air = rho(n_condensed_constituents*n_scalars+1+grid_point_index)*c_d_v
+    if (lmoist) then
+      c_v_mass_weighted_air = c_v_mass_weighted_air &
+                              +rho((n_condensed_constituents+1)*n_scalars+1+grid_point_index)*c_v_v
+    endif
+  
+  end function c_v_mass_weighted_air
 
 end module derived_quantities
 

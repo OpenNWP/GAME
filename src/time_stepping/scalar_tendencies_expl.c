@@ -90,7 +90,7 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 			}
 		}
 	}
-		
+	
 	/*
 	Now, the actual scalar tendencies can be computed.
 	--------------------------------------------------
@@ -164,7 +164,7 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
 				-diagnostics -> flux_density_div[j]
 				// the diabatic forcings
 				// weighting factor accounting for condensates
-				+ C_D_V*state_scalar -> rho[scalar_shift_index + j]/c_v_mass_weighted_air(state_scalar, diagnostics, j)*(
+				+ C_D_V*state_scalar -> rho[scalar_shift_index + j]/c_v_mass_weighted_air(state_scalar -> rho, diagnostics -> temperature, &j)*(
 				// dissipation through molecular + turbulent momentum diffusion
 				irrev -> heating_diss[j]
 				// molecular + turbulent heat transport
