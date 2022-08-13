@@ -44,7 +44,9 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 	// Radiation is updated here.
 	if (config -> rad_on > 0 && config -> rad_update == 1)
 	{
-		call_radiation(state_old, grid, dualgrid, state_tendency, diagnostics, forcings, irrev, config, delta_t, time_coordinate);
+		call_radiation(grid -> latitude_scalar,grid -> longitude_scalar,state_old -> temperature_soil,grid -> sfc_albedo,grid -> z_scalar, &
+                       grid -> z_vector,state_old -> rho,diagnostics -> temperature,forcings -> radiation_tendency, &
+                       forcings -> sfc_sw_in, forcings -> sfc_lw_out, &time_coordinate);
 	}
 		
 	/*

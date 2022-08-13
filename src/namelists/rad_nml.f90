@@ -10,6 +10,7 @@ module rad_nml
   
   implicit none
   
+  integer :: rad_config    ! ID that configures the radiation
   integer :: n_rad_blocks  ! number of radiation domains
   integer :: n_scals_rad   ! number of scalars per radiation domain
   integer :: n_scals_rad_h ! numbers of horizontal scalars per layer of the radiaiton domain
@@ -21,6 +22,7 @@ module rad_nml
   subroutine rad_nml_setup() &
   bind(c,name = "rad_nml_setup")
   
+    rad_config = 1
     n_rad_blocks = 18
     n_scals_rad = n_scalars/n_rad_blocks
     n_scals_rad_h = n_scalars_h/n_rad_blocks

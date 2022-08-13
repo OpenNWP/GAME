@@ -652,7 +652,9 @@ int main(int argc, char *argv[])
     	{
     		radiation_init();
     	}
-    	call_radiation(state_1, grid, dualgrid, state_tendency, diagnostics, forcings, irrev, config, delta_t, t_0);
+    	call_radiation(grid -> latitude_scalar,grid -> longitude_scalar,state_1 -> temperature_soil,grid -> sfc_albedo,grid -> z_scalar, &
+                       grid -> z_vector,state_1 -> rho,diagnostics -> temperature,forcings -> radiation_tendency, &
+                       forcings -> sfc_sw_in, forcings -> sfc_lw_out, &t_0);
     	config -> rad_update = 1;
     	t_rad_update += config -> radiation_delta_t;
     }

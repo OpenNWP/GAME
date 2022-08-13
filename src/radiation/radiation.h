@@ -3,7 +3,7 @@ This source file is part of the Geophysical Fluids Modeling Framework (GAME), wh
 Github repository: https://github.com/OpenNWP/GAME
 */
 
-void radiation_init();
-void calc_radiative_flux_convergence(double [], double [], double [], double [], double [], double [], double [], double [], double [], double [], double [], int *, int *, int *, int *, double *);
+extern int radiation_init();
+extern int calc_radiative_flux_convergence();
 extern int held_suar();
-int call_radiation(State *, Grid *, Dualgrid *, State *, Diagnostics *, Forcings *, Irreversible_quantities *, Config *, double, double);
+extern int call_radiation();

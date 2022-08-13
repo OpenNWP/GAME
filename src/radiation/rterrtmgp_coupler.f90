@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME),which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module radiation
+module rrtmgp_coupler
 
   ! This module is a coupler to RTE+RRTMGP.
   
@@ -74,13 +74,11 @@ module radiation
   mass_densities,temperature_gas,radiation_tendency, &
   temp_sfc,sfc_sw_in,sfc_lw_out,sfc_albedo, &
   no_of_scalars,no_of_layers,no_of_constituents,no_of_condensed_constituents, &
-  time_coord) &
+  time_coord)
   
     ! This is the function that is called by the dynamical core. The dycore hands over
     ! the thermodynamic state as well as meta data (time stamp, coordinates) and gets
     ! back radiative flux convergences in W/m^3.
-  
-    bind(c,name = "calc_radiative_flux_convergence")
     
     ! the number of scalar points of the model grid
     integer, intent(in)                :: no_of_scalars
@@ -859,7 +857,7 @@ module radiation
   
   end subroutine handle_error
   
-end module radiation
+end module rrtmgp_coupler
 
 
 

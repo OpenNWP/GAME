@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME),which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module mo_held_suar
+module held_suarez
 
   ! This module calculates the Held-Suarez radiative forcing.
   
@@ -14,6 +14,30 @@ module mo_held_suar
   implicit none
   
   contains
+
+  subroutine held_suar(latitude_scalar,mass_densities,temperature_gas,radiation_tendency) &
+  bind(c,name = "held_suar")
+  
+    real(wp), intent(in)  :: latitude_scalar(n_scals_rad_h), &
+                             mass_densities(n_constituents*n_scals_rad),temperature_gas(n_scals_rad)
+    real(wp), intent(out) :: radiation_tendency(n_scals_rad)
+    
+    ! local variables
+    integer  :: ji,layer_index,h_index
+    real(wp) :: pressure
+  
+    !$omp parallel do private(ji,layer_index,h_index,pressure)
+    do ji=1,n_scals_rad
+      layer_index = (ji-1)/n_scals_rad_h
+      h_index = ji - layer_index*n_scals_rad_h
+      pressure = mass_densities(n_condensed_constituents*n_scals_rad + ji)*r_d*temperature_gas(ji)
+      radiation_tendency(ji) = -k_t(latitude_scalar(h_index),pressure) &
+                               *(temperature_gas(ji) - t_eq(latitude_scalar(h_index),pressure))
+      radiation_tendency(ji) = c_d_v*mass_densities(n_condensed_constituents*n_scals_rad_h + ji)*radiation_tendency(ji)
+    enddo
+    !$omp end parallel do
+    
+  end subroutine held_suar
 
   function t_eq(latitude,pressure)
   
@@ -50,31 +74,7 @@ module mo_held_suar
   
   end function k_t
 
-  subroutine held_suar(latitude_scalar,mass_densities,temperature_gas,radiation_tendency) &
-  bind(c,name = "held_suar")
-  
-    real(wp), intent(in)  :: latitude_scalar(n_scals_rad_h), &
-                             mass_densities(n_constituents*n_scals_rad),temperature_gas(n_scals_rad)
-    real(wp), intent(out) :: radiation_tendency(n_scals_rad)
-    
-    ! local variables
-    integer  :: ji,layer_index,h_index
-    real(wp) :: pressure
-  
-    !$omp parallel do private(ji,layer_index,h_index,pressure)
-    do ji=1,n_scals_rad
-      layer_index = (ji-1)/n_scals_rad_h
-      h_index = ji - layer_index*n_scals_rad_h
-      pressure = mass_densities(n_condensed_constituents*n_scals_rad + ji)*r_d*temperature_gas(ji)
-      radiation_tendency(ji) = -k_t(latitude_scalar(h_index),pressure) &
-                               *(temperature_gas(ji) - t_eq(latitude_scalar(h_index),pressure))
-      radiation_tendency(ji) = c_d_v*mass_densities(n_condensed_constituents*n_scals_rad_h + ji)*radiation_tendency(ji)
-    enddo
-    !$omp end parallel do
-    
-  end subroutine held_suar
-
-end module mo_held_suar
+end module held_suarez
 
 
 
