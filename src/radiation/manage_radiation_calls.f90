@@ -78,8 +78,7 @@ module manage_radiation_calls
         
         call calc_radiative_flux_convergence(radiation%lat_scal,radiation%lon_scal,radiation%z_scal,radiation%z_vect, &
                                              radiation%rho,radiation%temp,radiation%rad_tend,radiation%temp_sfc, &
-                                             radiation%sfc_sw_in,radiation%sfc_lw_out,radiation%sfc_albedo, &
-                                             n_scals_rad,n_layers,n_constituents,n_condensed_constituents,time_coordinate)
+                                             radiation%sfc_sw_in,radiation%sfc_lw_out,radiation%sfc_albedo,time_coordinate)
       endif
       ! Held-Suarez
       if (rad_config==2) then
