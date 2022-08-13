@@ -10,10 +10,14 @@ module rad_nml
   
   implicit none
   
-  integer :: rad_config    ! ID that configures the radiation
-  integer :: n_rad_blocks  ! number of radiation domains
-  integer :: n_scals_rad   ! number of scalars per radiation domain
-  integer :: n_scals_rad_h ! numbers of horizontal scalars per layer of the radiaiton domain
+  integer            :: rad_config                  ! ID that configures the radiation
+  integer            :: n_rad_blocks                ! number of radiation domains
+  integer            :: n_scals_rad                 ! number of scalars per radiation domain
+  integer            :: n_scals_rad_h               ! numbers of horizontal scalars per layer of the radiaiton domain
+  character(len=128) :: rrtmgp_coefficients_file_sw ! the name of the short wave data file
+  character(len=128) :: rrtmgp_coefficients_file_lw ! the name of the long wave data file
+  character(len=128) :: cloud_coefficients_file_sw  ! the name of the short wave cloud optics file
+  character(len=128) :: cloud_coefficients_file_lw  ! the name of the long wave cloud optics file
   
   namelist /grid/n_rad_blocks
 
@@ -26,6 +30,14 @@ module rad_nml
     n_rad_blocks = 18
     n_scals_rad = n_scalars/n_rad_blocks
     n_scals_rad_h = n_scalars_h/n_rad_blocks
+    rrtmgp_coefficients_file_sw = &
+    "/home/max/code/rte-rrtmgp/rrtmgp/data/rrtmgp-data-sw-g112-210809.nc"
+    rrtmgp_coefficients_file_lw = &
+    "/home/max/code/rte-rrtmgp/rrtmgp/data/rrtmgp-data-lw-g128-210809.nc"
+    cloud_coefficients_file_sw = &
+    "/home/max/code/rte-rrtmgp/extensions/cloud_optics/rrtmgp-cloud-optics-coeffs-sw.nc"
+    cloud_coefficients_file_lw = &
+    "/home/max/code/rte-rrtmgp/extensions/cloud_optics/rrtmgp-cloud-optics-coeffs-lw.nc"
   
     ! sanity check
     if (mod(n_scalars_h,n_rad_blocks)/=0) then

@@ -63,8 +63,6 @@ The following packages are additionally required if you want to make use of the 
 
 ### Compiling the code
 
-If you want to use radiation, modify the spectral properties filenames in the file `src/radiation/rterrtmgp_coupler.f90`. Then run
-
 	./compile.sh
 
 Before being able to run the model, however, you need to create a grid file. The handbook gives further information on that.

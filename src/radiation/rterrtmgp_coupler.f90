@@ -7,7 +7,7 @@ module rrtmgp_coupler
   
   use iso_c_binding,
   use definitions,                only: wp
-  use constants,                  only: EPSILON_SECURITY,r_d
+  use constants,                  only: EPSILON_SECURITY,r_d,r_v
   use dictionary,                 only: molar_fraction_in_dry_air,calc_o3_vmr
   use mo_rrtmgp_util_string,      only: lower_case
   use mo_gas_optics_rrtmgp,       only: ty_gas_optics_rrtmgp
@@ -22,7 +22,9 @@ module rrtmgp_coupler
                                         ty_optical_props_arry
   use mo_cloud_optics,            only: ty_cloud_optics
   use mo_load_cloud_coefficients, only: load_cld_lutcoeff, load_cld_padecoeff
-  use rad_nml,                    only: n_scals_rad_h,n_scals_rad
+  use rad_nml,                    only: n_scals_rad_h,n_scals_rad,rrtmgp_coefficients_file_sw, &
+                                        rrtmgp_coefficients_file_lw,cloud_coefficients_file_sw, &
+                                        cloud_coefficients_file_lw
   use grid_nml,                   only: n_layers
   use constituents_nml,           only: n_constituents,n_condensed_constituents
   
@@ -32,26 +34,11 @@ module rrtmgp_coupler
   integer, parameter :: no_of_sw_bands = 14
   ! the number of bands in the long wave region
   integer, parameter :: no_of_lw_bands = 16
-  
-  ! specific gas constants
-  real(wp)           :: R_V = 461.524879_wp
 
-  character(len = 3),dimension(wp) :: active_gases = (/ &
+  character(len=3), dimension(8) :: active_gases = (/ &
    "N2 ","O2 ","CH4","O3 ","CO2","H2O","N2O","CO " &
    /)
   
-  character(len=*),parameter :: rrtmgp_coefficients_file_sw = &
-  ! insert the name of the short wave data file here
-  "/home/max/code/rte-rrtmgp/rrtmgp/data/rrtmgp-data-sw-g112-210809.nc"
-  character(len=*),parameter :: rrtmgp_coefficients_file_lw = &
-  ! insert the name of the long wave data file here
-  "/home/max/code/rte-rrtmgp/rrtmgp/data/rrtmgp-data-lw-g128-210809.nc"
-  character(len=*),parameter :: cloud_coefficients_file_sw = &
-  ! insert the name of the short wave cloud optics file here
-  "/home/max/code/rte-rrtmgp/extensions/cloud_optics/rrtmgp-cloud-optics-coeffs-sw.nc"
-  character(len=*),parameter :: cloud_coefficients_file_lw = &
-  ! insert the name of the long wave cloud optics file here
-  "/home/max/code/rte-rrtmgp/extensions/cloud_optics/rrtmgp-cloud-optics-coeffs-lw.nc"
   ! the gases in lowercase
   character(len=32),dimension(size(active_gases)) :: gases_lowercase
   
@@ -760,7 +747,7 @@ module rrtmgp_coupler
             do jk=1,no_of_day_points
               do jl=1,n_layers
                 vol_mix_ratio(jk,jl) = & 
-                mass_densities((n_condensed_constituents+1)*n_scals_rad+day_indices(jk)+(jl-1)*n_scals_rad_h)*R_V/ &
+                mass_densities((n_condensed_constituents+1)*n_scals_rad+day_indices(jk)+(jl-1)*n_scals_rad_h)*r_v/ &
                 (mass_densities(n_condensed_constituents*n_scals_rad+day_indices(jk)+(jl-1)*n_scals_rad_h)*r_d)
               enddo
             enddo
@@ -769,7 +756,7 @@ module rrtmgp_coupler
             do jk=1,n_scals_rad_h
               do jl=1,n_layers
                 vol_mix_ratio(jk,jl) = & 
-                mass_densities((n_condensed_constituents+1)*n_scals_rad+jk+(jl-1)*n_scals_rad_h)*R_V/ &
+                mass_densities((n_condensed_constituents+1)*n_scals_rad+jk+(jl-1)*n_scals_rad_h)*r_v/ &
                 (mass_densities(n_condensed_constituents*n_scals_rad+jk+(jl-1)*n_scals_rad_h)*r_d)
               enddo
             enddo
