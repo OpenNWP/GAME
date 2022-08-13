@@ -159,21 +159,6 @@ double roughness_velocity[N_SCALS_H];
 double monin_obukhov_length[N_SCALS_H];
 } Diagnostics;
 
-// needed for the radiation calculation
-typedef struct radiation {
-double lat_scal[N_SCALS_RAD_PER_LAYER];
-double lon_scal[N_SCALS_RAD_PER_LAYER];
-double sfc_sw_in[N_SCALS_RAD_PER_LAYER];
-double sfc_lw_out[N_SCALS_RAD_PER_LAYER];
-double sfc_albedo[N_SCALS_RAD_PER_LAYER];
-double temp_sfc[N_SCALS_RAD_PER_LAYER];
-double z_scal[N_SCALS_RAD];
-double z_vect[N_SCALS_RAD + N_SCALS_RAD_PER_LAYER];
-double rho[N_CONSTITUENTS*N_SCALS_RAD];
-double temp[N_SCALS_RAD];
-double rad_tend[N_SCALS_RAD];
-} Radiation;
-
 // Collects forcings.
 typedef struct forcings {
 Vector_field pgrad_acc_old;
