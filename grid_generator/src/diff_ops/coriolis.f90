@@ -51,9 +51,10 @@ module mo_coriolis
     ! loop over all edges
     !$omp parallel do private(i,j,k,l,m,offset,sign_1,sign_2,n_edges,index_offset,vertex_index_candidate_1, &
     !$omp vertex_index_candidate_2,counter,check_result,first_index,last_index,check_sum,triangle_1, &
-    !$omp triangle_2,sum_of_weights,vertex_indices,edge_indices,indices_resorted, &
+    !$omp triangle_2,sum_of_weights,vertex_indices,edge_indices,indices_resorted,second_index, &
     !$omp vertex_indices_resorted,value_written,trsk_indices_pre,trsk_weights_pre,next_vertex_index, &
-    !$omp indices_used_counter,next_vertex_index_candidate,indices_used)
+    !$omp indices_used_counter,next_vertex_index_candidate,indices_used,latitude_vertices,longitude_vertices, &
+    !$omp latitude_edges,longitude_edges,vector_of_areas,value_1,value_2,from_or_to_index)
     do i=1,n_vectors_h
       
       ! translation from TRSK paper (Thuburn et al., 2009):
