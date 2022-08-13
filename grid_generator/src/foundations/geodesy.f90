@@ -564,7 +564,7 @@ module geodesy
       needs_to_be_reversed = 1
     endif
     if (abs(angle_sum)<0.99_wp*2._wp*M_PI .or. abs(angle_sum)>1.01_wp*2._wp*M_PI) then
-      write(*,*) "Problem in function sort_vertex_indices."
+      write(*,*) "Problem in subroutine sort_vertex_indices."
       call exit(1)
     endif
     

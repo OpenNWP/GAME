@@ -23,7 +23,7 @@ src/horizontal_grid/horizontal_generation.c
 src/horizontal_grid/horizontal_generation.f90
 src/derived_hor_quantities/derived_hor_quantities.f90
 src/foundations/geodesy.f90
-src/diff_ops/coriolis.c
+src/diff_ops/coriolis.f90
 src/post_grid_generation/interpolation_ll.f90
 src/post_grid_generation/phys_sfc_properties.f90
 src/foundations/index_helpers.f90

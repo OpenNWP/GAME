@@ -326,7 +326,7 @@ int main(int argc, char *argv[])
     printf("Calculating Coriolis indices and weights ...");
 	coriolis(from_index_dual, to_index_dual, trsk_modified_curl_indices, normal_distance, normal_distance_dual,
 	to_index, area, z_scalar, latitude_scalar, longitude_scalar, latitude_vector, longitude_vector, latitude_scalar_dual,
-	longitude_scalar_dual, trsk_weights, trsk_indices, from_index, adjacent_vector_indices_h, z_vector, z_vector_dual, radius);
+	longitude_scalar_dual, trsk_weights, trsk_indices, from_index, adjacent_vector_indices_h, z_vector);
     printf(GREEN "finished" RESET);
     printf(".\n");
     
