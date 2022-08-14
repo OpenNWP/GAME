@@ -23,6 +23,12 @@ In addition to that, some postprocessing diagnostics are also calculated here.
 #define NCERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(1);}
 #define NCCHECK(e) {if(e != 0) NCERR(e)}
 
+extern int curl_field_to_cells();
+extern int edges_to_cells();
+extern int calc_uv_at_edge();
+extern int edges_to_cells_lowest_layer();
+extern int epv_diagnostics();
+
 // the number of pressure levels for the pressure level output
 const int N_PRESSURE_LEVELS = 6;
 
@@ -52,6 +58,40 @@ double global_scalar_integrator(Scalar_field density_gen, Grid *grid)
     }
     
     return result;
+}
+
+int interpolate_to_ll(double in_field[], double out_field[][N_LON_IO_POINTS], Grid *grid)
+{
+	/*
+	This function interpolates a single-layer scalar field to a lat-lon grid.
+	*/
+	
+	// loop over all output points
+	#pragma omp parallel for
+	for (int i = 0; i < N_LAT_IO_POINTS; ++i)
+	{
+		for (int j = 0; j < N_LON_IO_POINTS; ++j)
+		{
+			// initializing the result with zero
+			out_field[i][j] = 0.0;
+			// 1/r-average
+			for (int k = 0; k < 5; ++k)
+			{
+				if (in_field[grid -> latlon_interpol_indices[5*(j + N_LON_IO_POINTS*i) + k]] != 9999)
+				{
+					out_field[i][j] += grid -> latlon_interpol_weights[5*(j + N_LON_IO_POINTS*i) + k]*in_field[grid -> latlon_interpol_indices[5*(j + N_LON_IO_POINTS*i) + k]];
+				}
+				else
+				{
+					out_field[i][j] = 9999;
+					break;
+				}
+			}
+		}
+	}
+	
+	// returning 0 indicating success
+	return 0;
 }
 
 int write_out_integral(State *state_write_out, double time_since_init, Grid *grid, Dualgrid *dualgrid, Diagnostics *diagnostics, int integral_id)
@@ -493,10 +533,10 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		
 		// averaging the wind quantities to cell centers for output
 		double *wind_10_m_mean_u_at_cell = malloc(N_SCALS_H*sizeof(double));
-		edges_to_cells_lowest_layer(wind_10_m_mean_u, wind_10_m_mean_u_at_cell, grid);
+		edges_to_cells_lowest_layer(wind_10_m_mean_u, wind_10_m_mean_u_at_cell, grid -> adjacent_vector_indices_h, grid -> inner_product_weights);
 		free(wind_10_m_mean_u);
 		double *wind_10_m_mean_v_at_cell = malloc(N_SCALS_H*sizeof(double));
-		edges_to_cells_lowest_layer(wind_10_m_mean_v, wind_10_m_mean_v_at_cell, grid);
+		edges_to_cells_lowest_layer(wind_10_m_mean_v, wind_10_m_mean_v_at_cell, grid -> adjacent_vector_indices_h, grid -> inner_product_weights);
 		free(wind_10_m_mean_v);
 		
 		// gust diagnostics
@@ -678,7 +718,8 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		diagnostics -> scalar_field_placeholder[i] = state_write_out -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i];
 	}
     calc_pot_vort(state_write_out -> wind, diagnostics -> scalar_field_placeholder, diagnostics, grid, dualgrid);
-    epv_diagnostics(diagnostics -> pot_vort, state_write_out, *epv, grid, dualgrid);
+    epv_diagnostics(*epv,grid -> from_index,grid -> to_index,grid -> inner_product_weights,diagnostics -> pot_vort,grid -> trsk_indices,grid -> trsk_weights,
+                    grid -> adjacent_vector_indices_h,grid -> slope,grid -> normal_distance,grid -> theta_v_bg,state_write_out -> theta_v_pert,grid -> z_vector);
     
 	// pressure level output
 	double closest_weight;

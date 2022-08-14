@@ -11,6 +11,3 @@ int write_out(State *, double [], int, double, double, Diagnostics *, Forcings *
 Irreversible_quantities *);
 int write_out_integral(State *, double, Grid *, Dualgrid *, Diagnostics *, int);
 int interpolation_t(State *, State *, State *, double, double, double, Grid *);
-int epv_diagnostics(Curl_field, State *, Scalar_field, Grid *, Dualgrid *);
-int interpolate_to_ll(double [], double [][N_LON_IO_POINTS], Grid *);
-int edges_to_cells_lowest_layer(double [], double [], Grid *);

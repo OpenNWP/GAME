@@ -129,29 +129,6 @@ module averaging
     !$omp end parallel do
     
   end subroutine vector_field_hor_cov_to_con
-
-  function tangential_wind(in_field,layer_index,h_index,trsk_indices,trsk_weights) &
-  bind(c,name = "tangential_wind")
-  
-    ! This function computes the tangential component *component of the vector field in_field at edge h_index in layer layer_index
-    ! using the TRSK weights.
-    
-    real(wp), intent(in) :: in_field(n_vectors),trsk_weights(10*n_vectors_h)
-    integer,  intent(in) :: layer_index,h_index,trsk_indices(10*n_vectors_h)
-    real(wp)             :: tangential_wind
-    
-    ! local variables
-    integer :: ji
-    
-    ! initializing the result with zero
-    tangential_wind = 0._wp
-    ! loop over the maximum of ten edges 
-    do ji=1,10
-      tangential_wind = tangential_wind + trsk_weights(10*h_index+ji) &
-      *in_field(n_scalars_h + layer_index*n_vectors_per_layer + trsk_indices(10*h_index+ji))
-    enddo
-    
-  end function tangential_wind
   
   function horizontal_covariant(vector_field,layer_index,h_index,from_index,to_index,inner_product_weights,slope) &
   bind(c,name = "horizontal_covariant")
@@ -177,102 +154,6 @@ module averaging
     endif
    
   end function horizontal_covariant
-  
-  subroutine calc_uv_at_edge(in_field,out_field_u,out_field_v,trsk_indices,trsk_weights,direction) &
-  bind(c,name = "calc_uv_at_edge")
-  
-    ! This function diagnozes eastward and northward components of a vector field at edges.
-    
-    real(wp), intent(in)  :: in_field(n_vectors),trsk_weights(10*n_vectors_h),direction(n_vectors_h)
-    integer,  intent(in)  :: trsk_indices(10*n_vectors_h)
-    real(wp), intent(out) :: out_field_u(n_vectors),out_field_v(n_vectors)
-    
-    ! local variables
-    integer  :: ji,layer_index,h_index
-    real(wp) :: wind_0,wind_1 ! orthogonal and tangential component at edge, respectively
-    
-    !$omp parallel do private(ji,layer_index,h_index,wind_0,wind_1)
-    do ji=1,n_h_vectors
-      layer_index = (ji-1)/n_vectors_h
-      h_index = ji - layer_index*n_vectors_h
-      wind_0 = in_field(n_scalars_h + layer_index*n_vectors_per_layer + h_index)
-      ! finding the tangential component
-      wind_1 = tangential_wind(in_field,layer_index,h_index-1,trsk_indices,trsk_weights)
-      ! turning the Cartesian coordinate system to obtain u and v
-      call passive_turn(wind_0,wind_1,-direction(h_index), &
-      out_field_u(n_scalars_h + layer_index*n_vectors_per_layer + h_index), &
-      out_field_v(n_scalars_h + layer_index*n_vectors_per_layer + h_index))
-    enddo
-    !$omp end parallel do
-    
-  end subroutine calc_uv_at_edge
-
-  subroutine edges_to_cells(in_field,out_field,adjacent_vector_indices_h,inner_product_weights) &
-  bind(c,name = "edges_to_cells")
-    
-    ! This function averages a vector field from edges to cell centers.
-    
-    real(wp), intent(in)  :: in_field(n_vectors),inner_product_weights(8*n_scalars)
-    integer,  intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h)
-    real(wp), intent(out) :: out_field(n_scalars)
-    
-    ! local variables
-    integer :: ji,jk,layer_index,h_index,n_edges
-    
-    !$omp parallel do private (ji,jk,layer_index,h_index,n_edges)
-    do ji=1,n_scalars
-      layer_index = (ji-1)/n_scalars_h
-      h_index = ji - layer_index*n_scalars_h
-      ! initializing the result with zero
-      out_field(ji) = 0._wp
-      ! determining the number of edges of the cell at hand
-      n_edges = 6
-      if (h_index<=n_pentagons) then
-        n_edges = 5
-      endif
-      ! loop over all cell edges
-      do jk=1,n_edges
-        out_field(ji) = out_field(ji) + 0.5_wp &
-        *inner_product_weights(8*(ji-1) + jk) &
-        *in_field(n_scalars_h + layer_index*n_vectors_per_layer + 1+adjacent_vector_indices_h(6*(h_index-1) + jk))
-      enddo
-    enddo
-    !$omp end parallel do
-    
-  end subroutine edges_to_cells
-  
-  subroutine curl_field_to_cells(in_field,out_field,adjacent_vector_indices_h,inner_product_weights) &
-  bind(c,name = "curl_field_to_cells")
-    
-    ! This function averages a curl field from edges to cell centers.
-    
-    real(wp), intent(in)  :: in_field((2*n_layers+1)*n_vectors_h),inner_product_weights(8*n_scalars)
-    integer,  intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h)
-    real(wp), intent(out) :: out_field(n_scalars)
-    
-    integer :: ji,jk,layer_index,h_index,n_edges
-    
-    !$omp parallel do private (ji,jk,layer_index,h_index,n_edges)
-    do ji=1,n_scalars
-      layer_index = (ji-1)/n_scalars_h
-      h_index = ji - layer_index*n_scalars_h
-      ! initializing the result with zero
-      out_field(ji) = 0._wp
-      ! determining the number of edges of the cell at hand
-      n_edges = 6
-      if (h_index<=n_pentagons) then
-        n_edges = 5
-      endif
-      ! loop over all edges of the respective cell
-      do jk=1,n_edges
-        out_field(ji) = out_field(ji) + 0.5_wp &
-        *inner_product_weights(8*(ji-1) + jk) &
-        *in_field(n_vectors_h + layer_index*2*n_vectors_h + 1+adjacent_vector_indices_h(6*(h_index-1) + jk))
-      enddo
-    enddo
-    !$omp end parallel do
-    
-  end subroutine curl_field_to_cells
 
 end module averaging
 
