@@ -73,7 +73,7 @@ module vorticities
           /(z_vector(n_scalars_h + h_index) - z_vector(n_scalars + n_vectors_per_layer + h_index)) &
           ! delta z
           *(z_vector(1) - z_vector(n_scalars_h + h_index))
-          ! linear extrapolation to the surface
+        ! linear extrapolation to the surface
         elseif (layer_index==n_layers) then
           density_value = &
           0.5_wp*(density_field((layer_index-1)*n_scalars_h + 1+from_index(h_index)) &
