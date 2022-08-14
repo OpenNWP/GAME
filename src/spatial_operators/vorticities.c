@@ -15,7 +15,6 @@ Here, vorticities are calculated. The word "vorticity" hereby refers to both ver
 extern int add_f_to_rel_vort();
 extern int calc_rel_vort_on_triangles();
 
-
 int calc_pot_vort(Vector_field velocity_field, Scalar_field density_field, Diagnostics *diagnostics, Grid *grid, Dualgrid *dualgrid)
 {
 	// It is called "potential vorticity", but it is not Ertel's potential vorticity. It is the absolute vorticity divided by the density.

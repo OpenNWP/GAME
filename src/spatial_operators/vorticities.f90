@@ -42,7 +42,7 @@ module vorticities
         velocity_value = velocity_field(vector_index)
         ! this corrects for terrain following coordinates
         length_rescale_factor = 1._wp
-          if (layer_index>=n_layers - n_oro_layers) then
+          if (layer_index>=n_layers-n_oro_layers) then
             length_rescale_factor = (radius + z_vector_dual(n_vectors_h + layer_index*n_dual_vectors_per_layer + h_index)) &
             /(radius + z_vector(vector_index))
             delta_z = z_vector_dual(n_vectors_h + layer_index*n_dual_vectors_per_layer + h_index) - z_vector(vector_index)
