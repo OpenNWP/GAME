@@ -70,9 +70,9 @@ module vorticities
           ! the gradient
           + (0.5_wp*(density_field(1+from_index(h_index)) + density_field(1+to_index(h_index))) &
           - 0.5_wp*(density_field(1+from_index(h_index) + n_scalars_h) + density_field(1+to_index(h_index) + n_scalars_h))) &
-          /(z_vector(n_scalars + h_index) - z_vector(n_scalars + n_vectors_per_layer + h_index)) &
+          /(z_vector(n_scalars_h + h_index) - z_vector(n_scalars + n_vectors_per_layer + h_index)) &
           ! delta z
-          *(z_vector(1) - z_vector(n_scalars + h_index))
+          *(z_vector(1) - z_vector(n_scalars_h + h_index))
           ! linear extrapolation to the surface
         elseif (layer_index==n_layers) then
           density_value = &
@@ -83,12 +83,12 @@ module vorticities
           + density_field((layer_index-2)*n_scalars_h + 1+to_index(h_index))) &
           - 0.5_wp*(density_field((layer_index-1)*n_scalars_h + 1+from_index(h_index)) &
           + density_field((layer_index-1)*n_scalars_h + 1+to_index(h_index)))) &
-          /(z_vector(n_scalars + (layer_index-2)*n_vectors_per_layer + h_index) &
-          - z_vector(n_scalars + (layer_index-1)*n_vectors_per_layer + h_index)) &
+          /(z_vector(n_scalars_h + (layer_index-2)*n_vectors_per_layer + h_index) &
+          - z_vector(n_scalars_h + (layer_index-1)*n_vectors_per_layer + h_index)) &
           ! delta z
           *(0.5_wp*(z_vector(layer_index*n_vectors_per_layer + 1+from_index(h_index)) &
           + z_vector(layer_index*n_vectors_per_layer + 1+to_index(h_index))) &
-          - z_vector(n_scalars + (layer_index-1)*n_vectors_per_layer + h_index))
+          - z_vector(n_scalars_h + (layer_index-1)*n_vectors_per_layer + h_index))
         else
           upper_from_index = (layer_index-1)*n_scalars_h + 1+from_index(h_index)
           upper_to_index = (layer_index-1)*n_scalars_h + 1+to_index(h_index)
