@@ -9,8 +9,9 @@ module surface_nml
   
   integer :: nsoillays        ! number of soil layers
   logical :: lsfc_phase_trans ! surface phase transitions switch
+  logical :: lprog_soil_temp  ! switch for prognostic soil temperature
   
-  namelist /surface/nsoillays,lsfc_phase_trans
+  namelist /surface/nsoillays,lsfc_phase_trans,lprog_soil_temp
   
   contains
   
@@ -20,6 +21,7 @@ module surface_nml
     ! default values
     nsoillays = 5
     lsfc_phase_trans = .true.
+    lprog_soil_temp = .true.
   
   end subroutine surface_nml_setup
 

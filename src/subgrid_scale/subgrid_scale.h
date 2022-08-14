@@ -9,5 +9,5 @@ extern int vert_vert_mom_viscosity();
 int scalar_diffusion_coeffs(State *, Config *, Irreversible_quantities *, Diagnostics *, double, Grid *, Dualgrid *);
 extern int tke_update();
 int update_n_squared(State *, Diagnostics *, Grid *);
-int update_sfc_turb_quantities(State *, Grid *, Diagnostics *, Config *, double);
+extern int update_sfc_turb_quantities();
 int pbl_wind_tendency(State *, Diagnostics *, Irreversible_quantities *, Grid *, Config *config, double);

@@ -30,7 +30,8 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 	// updating surface-related turbulence quantities if it is necessary
 	if (config -> sfc_sensible_heat_flux == 1 || config -> sfc_phase_trans == 1 || config -> pbl_scheme == 1)
 	{
-		update_sfc_turb_quantities(state_old, grid, diagnostics, config, delta_t);
+		update_sfc_turb_quantities(grid->is_land,grid->roughness_length,diagnostics->monin_obukhov_length,grid->z_scalar,grid->z_vector,
+                                        grid->theta_v_bg,state_old->theta_v_pert,diagnostics->v_squared,diagnostics->roughness_velocity,diagnostics->scalar_flux_resistance);
 	}
 	
 	// cloud microphysics
