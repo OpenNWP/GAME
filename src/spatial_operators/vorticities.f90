@@ -6,7 +6,8 @@ module vorticities
   use definitions, only: wp
   use grid_nml,    only: n_layers,n_vectors_h,n_vectors,n_layers,n_dual_vectors_per_layer,n_dual_v_vectors, &
                          n_dual_scalars_h,n_scalars_h,n_vectors_per_layer,n_vectors_h,n_oro_layers,n_dual_vectors, &
-                         radius
+                         radius,n_scalars
+  use averaging,   only: horizontal_covariant
   
   implicit none
   
@@ -70,6 +71,79 @@ module vorticities
     !$omp end parallel do
     
   end subroutine calc_rel_vort_on_triangles
+
+  subroutine calc_rel_vort(velocity_field,rel_vort_on_triangles,area,z_vector,z_vector_dual,rel_vort, &
+                           vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
+                           area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
+                           slope) &
+  bind(c,name = "calc_rel_vort")
+    
+    ! This subroutine averages the vorticities on triangles to rhombi and calculates horizontal (tangential) vorticities.
+    
+    real(wp), intent(in)  :: velocity_field(n_vectors),area(n_vectors), &
+                             z_vector(n_vectors),z_vector_dual(n_dual_vectors),normal_distance(n_vectors), &
+                             area_dual(n_dual_vectors),inner_product_weights(8*n_scalars),slope(n_vectors)
+    integer,  intent(in)  :: vorticity_indices_triangles(3*n_dual_scalars_h), &
+                             vorticity_signs_triangles(3*n_dual_scalars_h), &
+                             from_index(n_vectors_h),to_index(n_vectors_h), &
+                             from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
+    real(wp), intent(out) :: rel_vort_on_triangles(n_dual_v_vectors),rel_vort((2*n_layers+1)*n_vectors_h)
+    
+    ! local variables
+    integer  :: ji,layer_index,h_index,index_1,index_2,index_3,index_4,base_index
+    real(wp) :: covar_1,covar_3
+    
+    ! calling the subroutine which computes the relative vorticity on triangles
+    call calc_rel_vort_on_triangles(velocity_field,rel_vort_on_triangles,vorticity_indices_triangles,area, &
+                                    z_vector,z_vector_dual,vorticity_signs_triangles,normal_distance)
+                               
+    !$omp parallel do private(ji,layer_index,h_index,index_1,index_2,index_3,index_4,covar_1,covar_3,base_index)
+    do ji=n_vectors_h+1,n_layers*2*n_vectors_h+n_vectors_h
+      layer_index = (ji-1)/(2*n_vectors_h)
+      h_index = ji - layer_index*2*n_vectors_h
+      ! rhombus vorticities (stand vertically)
+      if (h_index>=n_vectors_h+1) then
+        base_index = n_vectors_h+layer_index*n_dual_vectors_per_layer
+        rel_vort(ji) = ( &
+        area_dual(base_index+1+from_index_dual(h_index-n_vectors_h)) &
+        *rel_vort_on_triangles(layer_index*n_dual_scalars_h+1+from_index_dual(h_index-n_vectors_h)) &
+        + area_dual(base_index+1+to_index_dual(h_index-n_vectors_h)) &
+        *rel_vort_on_triangles(layer_index*n_dual_scalars_h+1+to_index_dual(h_index-n_vectors_h)))/( &
+        area_dual(base_index+1+from_index_dual(h_index-n_vectors_h)) &
+        + area_dual(base_index+1+to_index_dual(h_index-n_vectors_h)))
+      ! tangential (horizontal) vorticities
+      else
+        base_index = layer_index*n_vectors_per_layer
+        ! At the lower boundary, w vanishes. Furthermore, the covariant velocity below the surface is also zero.
+          if (layer_index==n_layers) then
+            index_3 = base_index - n_vectors_h + h_index
+            covar_3 = horizontal_covariant(velocity_field,layer_index-1,h_index-1,from_index,to_index,inner_product_weights,slope)
+            rel_vort(ji) = 1._wp/area_dual(h_index+layer_index*n_dual_vectors_per_layer)*normal_distance(index_3)*covar_3
+          else
+            index_1 = base_index + n_scalars_h + h_index
+            index_2 = base_index + from_index(h_index)
+            index_3 = base_index - n_vectors_h + h_index
+            index_4 = base_index + to_index(h_index)
+            covar_1 = horizontal_covariant(velocity_field,layer_index,h_index-1,from_index,to_index,inner_product_weights,slope)
+            covar_3 = horizontal_covariant(velocity_field,layer_index-1,h_index-1,from_index,to_index,inner_product_weights,slope)
+            rel_vort(ji) = 1._wp/area_dual(h_index+layer_index*n_dual_vectors_per_layer)*( &
+            -normal_distance(index_1)*covar_1 &
+            +normal_distance(index_2)*velocity_field(index_2) &
+            +normal_distance(index_3)*covar_3 &
+            -normal_distance(index_4)*velocity_field(index_4))
+          endif
+      endif
+    enddo
+    !$omp end parallel do
+    
+    ! At the upper boundary, the tangential vorticity is assumed to have no vertical shear.
+    !$omp parallel do private(ji)
+    do ji=1,n_vectors_h
+      rel_vort(ji) = rel_vort(ji+2*n_vectors_h)
+    enddo
+    !$omp end parallel do
+  
+  end subroutine calc_rel_vort
 
   subroutine add_f_to_rel_vort(rel_vort,f_vec,out_field) &
   bind(c,name = "add_f_to_rel_vort")

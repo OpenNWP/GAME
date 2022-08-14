@@ -690,7 +690,10 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
     Scalar_field *div_h_all_layers = calloc(1, sizeof(Scalar_field));
 	div_h(state_write_out -> wind, *div_h_all_layers,
 	grid -> adjacent_signs_h, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope, grid -> area, grid -> volume);
-	calc_rel_vort(state_write_out -> wind, diagnostics, grid, dualgrid);
+	calc_rel_vort(state_write_out->wind,diagnostics->rel_vort_on_triangles,grid->area,grid->z_vector,dualgrid->z_vector,diagnostics->rel_vort, &
+                  dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,grid->normal_distance, &
+                  dualgrid->area,grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,grid->inner_product_weights, &
+                  grid->slope);
     Scalar_field *rel_vort = calloc(1, sizeof(Scalar_field));
 	curl_field_to_cells(diagnostics -> rel_vort, *rel_vort, grid -> adjacent_vector_indices_h, grid -> inner_product_weights);
 	

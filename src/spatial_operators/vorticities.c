@@ -14,11 +14,15 @@ Here, vorticities are calculated. The word "vorticity" hereby refers to both ver
 
 extern int add_f_to_rel_vort();
 extern int calc_rel_vort_on_triangles();
+extern int calc_rel_vort();
 
 int calc_pot_vort(Vector_field velocity_field, Scalar_field density_field, Diagnostics *diagnostics, Grid *grid, Dualgrid *dualgrid)
 {
 	// It is called "potential vorticity", but it is not Ertel's potential vorticity. It is the absolute vorticity divided by the density.
-	calc_rel_vort(velocity_field, diagnostics, grid, dualgrid);
+	calc_rel_vort(velocity_field,diagnostics->rel_vort_on_triangles,grid->area,grid->z_vector,dualgrid->z_vector,diagnostics->rel_vort, &
+                  dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,grid->normal_distance, &
+                  dualgrid->area,grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,grid->inner_product_weights, &
+                  grid->slope);
 	// pot_vort is a misuse of name here
 	add_f_to_rel_vort(diagnostics -> rel_vort, dualgrid -> f_vec, diagnostics -> pot_vort);
     int layer_index, h_index, edge_vector_index_h, upper_from_index, upper_to_index;
@@ -80,72 +84,6 @@ int calc_pot_vort(Vector_field velocity_field, Scalar_field density_field, Diagn
         
         // division by the density to obtain the "potential vorticity"
 		diagnostics -> pot_vort[i] = diagnostics -> pot_vort[i]/density_value;
-    }
-    return 0;
-}
-
-int calc_rel_vort(Vector_field velocity_field, Diagnostics *diagnostics, Grid *grid, Dualgrid *dualgrid)
-{
-	/*
-	This function averages the vorticities on triangles to rhombi and calculates horizontal (tangential) vorticities.
-	*/
-	
-	// calling the function which computes the relative vorticity on triangles
-	calc_rel_vort_on_triangles(velocity_field,diagnostics -> rel_vort_on_triangles,dualgrid->vorticity_indices_triangles,dualgrid->area, &
-                               grid->z_vector,dualgrid->z_vector,dualgrid->vorticity_signs_triangles,grid->normal_distance);
-    int layer_index, h_index, index_0, index_1, index_2, index_3, base_index;
-    double covar_0, covar_2;
-	#pragma omp parallel for private(layer_index, h_index, index_0, index_1, index_2, index_3, covar_0, covar_2, base_index)
-    for (int i = N_VECS_H; i < N_LAYERS*2*N_VECS_H + N_VECS_H; ++i)
-    {
-        layer_index = i/(2*N_VECS_H);
-        h_index = i - layer_index*2*N_VECS_H;
-        // rhombus vorticities (stand vertically)
-        if (h_index >= N_VECS_H)
-        {
-        	base_index = N_VECS_H + layer_index*N_DUAL_VECS_PER_LAYER;
-			diagnostics -> rel_vort[i] = (
-			dualgrid -> area[base_index + dualgrid -> from_index[h_index - N_VECS_H]]
-			*diagnostics -> rel_vort_on_triangles[layer_index*N_DUAL_SCALS_H + dualgrid -> from_index[h_index - N_VECS_H]]
-			+ dualgrid -> area[base_index + dualgrid -> to_index[h_index - N_VECS_H]]
-			*diagnostics -> rel_vort_on_triangles[layer_index*N_DUAL_SCALS_H + dualgrid -> to_index[h_index - N_VECS_H]])/(
-			dualgrid -> area[base_index + dualgrid -> from_index[h_index - N_VECS_H]]
-			+ dualgrid -> area[base_index + dualgrid -> to_index[h_index - N_VECS_H]]);
-        }
-        // tangential (horizontal) vorticities
-        else
-        {
-        	base_index = layer_index*N_VECS_PER_LAYER;
-        	// At the lower boundary, w vanishes. Furthermore, the covariant velocity below the surface is also zero.
-            if (layer_index == N_LAYERS)
-            {
-                index_2 = base_index - N_VECS_H + h_index;
-                int layer_index_m1 = layer_index - 1;
-                covar_2 = horizontal_covariant(velocity_field, &layer_index_m1, &h_index, grid -> from_index, grid -> to_index, grid -> inner_product_weights, grid -> slope);
-                diagnostics -> rel_vort[i] = 1/dualgrid -> area[h_index + layer_index*N_DUAL_VECS_PER_LAYER]*grid -> normal_distance[index_2]*covar_2;
-            }
-            else
-            {
-                index_0 = base_index + N_SCALS_H + h_index;
-                index_1 = base_index + grid -> from_index[h_index];
-                index_2 = base_index - N_VECS_H + h_index;
-                index_3 = base_index + grid -> to_index[h_index];
-                covar_0 = horizontal_covariant(velocity_field, &layer_index, &h_index, grid -> from_index, grid -> to_index, grid -> inner_product_weights, grid -> slope);
-                int layer_index_m1 = layer_index - 1;
-                covar_2 = horizontal_covariant(velocity_field, &layer_index_m1, &h_index, grid -> from_index, grid -> to_index, grid -> inner_product_weights, grid -> slope);
-                diagnostics -> rel_vort[i] = 1/dualgrid -> area[h_index + layer_index*N_DUAL_VECS_PER_LAYER]*(
-                - grid -> normal_distance[index_0]*covar_0
-                + grid -> normal_distance[index_1]*velocity_field[index_1]
-                + grid -> normal_distance[index_2]*covar_2
-                - grid -> normal_distance[index_3]*velocity_field[index_3]);
-            }
-        }
-    }
-    // At the upper boundary, the tangential vorticity is assumed to have no vertical shear.
-    #pragma omp parallel for
-    for (int i = 0; i < N_VECS_H; ++i)
-    {
-    	diagnostics -> rel_vort[i] = diagnostics -> rel_vort[i + 2*N_VECS_H];
     }
     return 0;
 }
