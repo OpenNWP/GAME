@@ -9,7 +9,7 @@ extern int vector_field_hor_cov_to_con();
 extern int grad_cov();
 extern int grad();
 extern int grad_hor();
-int calc_pot_vort(Vector_field, Scalar_field, Diagnostics *, Grid *, Dualgrid *);
+extern int calc_pot_vort();
 extern int calc_rel_vort();
 int vorticity_flux(Vector_field, Dual_vector_field, Vector_field, Grid *, Dualgrid *);
 extern int div_h();

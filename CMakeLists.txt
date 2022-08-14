@@ -25,7 +25,6 @@ src/time_stepping/scalar_tendencies_expl.c
 src/time_stepping/column_solvers.c
 src/time_stepping/column_solvers.f90
 src/spatial_operators/vorticity_flux.c
-src/spatial_operators/vorticities.c
 src/spatial_operators/vorticities.f90
 src/spatial_operators/momentum_diff_diss.c
 src/spatial_operators/momentum_diff_diss.f90

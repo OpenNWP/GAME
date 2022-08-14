@@ -25,7 +25,11 @@ int vector_tendencies_expl(State *state, State *state_tendency, Grid *grid, Dual
 	{
 		scalar_times_vector(&state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS], state -> wind, diagnostics -> flux_density, grid -> from_index, grid -> to_index);
 		// Now, the "potential vorticity" is evaluated.
-		calc_pot_vort(state -> wind, &state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS], diagnostics, grid, dualgrid);
+		calc_pot_vort(state->wind,diagnostics->rel_vort_on_triangles,grid->z_vector,dualgrid->z_vector,diagnostics->rel_vort,
+                  dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,grid->normal_distance,
+                  dualgrid->area,grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,grid->inner_product_weights,
+                  grid->slope,dualgrid->f_vec,diagnostics -> pot_vort,grid -> density_to_rhombi_indices,grid -> density_to_rhombi_weights,
+                  &state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS]);
 		// Now, the generalized Coriolis term is evaluated.
 		vorticity_flux(diagnostics -> flux_density, diagnostics -> pot_vort, forcings -> pot_vort_tend, grid, dualgrid);
 		// Kinetic energy is prepared for the gradient term of the Lamb transformation.

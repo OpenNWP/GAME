@@ -720,7 +720,11 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 	{
 		diagnostics -> scalar_field_placeholder[i] = state_write_out -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i];
 	}
-    calc_pot_vort(state_write_out -> wind, diagnostics -> scalar_field_placeholder, diagnostics, grid, dualgrid);
+    calc_pot_vort(state_write_out->wind,diagnostics->rel_vort_on_triangles,grid->z_vector,dualgrid->z_vector,diagnostics->rel_vort,
+                  dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,grid->normal_distance,
+                  dualgrid->area,grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,grid->inner_product_weights,
+                  grid->slope,dualgrid->f_vec,diagnostics -> pot_vort,grid -> density_to_rhombi_indices,grid -> density_to_rhombi_weights,
+                  diagnostics -> scalar_field_placeholder);
     epv_diagnostics(*epv,grid -> from_index,grid -> to_index,grid -> inner_product_weights,diagnostics -> pot_vort,grid -> trsk_indices,grid -> trsk_weights,
                     grid -> adjacent_vector_indices_h,grid -> slope,grid -> normal_distance,grid -> theta_v_bg,state_write_out -> theta_v_pert,grid -> z_vector);
     
