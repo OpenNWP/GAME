@@ -38,7 +38,7 @@ module vorticities
       out_field(ji) = 0._wp
       ! loop over the three edges of the triangle at hand
       do jk=1,3
-        vector_index = n_scalars_h + layer_index*n_vectors_per_layer + vorticity_indices_triangles(3*(h_index-1)+jk)
+        vector_index = n_scalars_h + layer_index*n_vectors_per_layer + 1+vorticity_indices_triangles(3*(h_index-1)+jk)
         velocity_value = velocity_field(vector_index)
         ! this corrects for terrain following coordinates
         length_rescale_factor = 1._wp
