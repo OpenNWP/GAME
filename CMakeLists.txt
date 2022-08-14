@@ -28,6 +28,7 @@ src/spatial_operators/vorticity_flux.c
 src/spatial_operators/vorticities.c
 src/spatial_operators/vorticities.f90
 src/spatial_operators/momentum_diff_diss.c
+src/spatial_operators/momentum_diff_diss.f90
 src/spatial_operators/divergences.f90
 src/spatial_operators/multiplications.f90
 src/spatial_operators/gradient_operators.f90

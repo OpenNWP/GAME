@@ -68,7 +68,8 @@ int vector_tendencies_expl(State *state, State *state_tendency, Grid *grid, Dual
 		// calculation of the dissipative heating rate
 		if (config -> momentum_diff_h == 1 || config -> pbl_scheme > 0)
 		{
-			simple_dissipation_rate(state, irrev, grid);
+			simple_dissipation_rate(state -> wind,irrev->friction_acc,irrev->heating_diss,
+                                    grid -> adjacent_vector_indices_h,grid -> inner_product_weights,state -> rho);
 		}
 	}
 	

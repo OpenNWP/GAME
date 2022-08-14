@@ -26,4 +26,4 @@ extern double remap_verpri2horpri_vector();
 extern double horizontal_covariant();
 int hor_momentum_diffusion(State *, Diagnostics *, Irreversible_quantities*, Config *, Grid *, Dualgrid *);
 int vert_momentum_diffusion(State *, Diagnostics *, Irreversible_quantities*, Grid *, Config *, double);
-int simple_dissipation_rate(State *, Irreversible_quantities *, Grid *);
+extern int simple_dissipation_rate();

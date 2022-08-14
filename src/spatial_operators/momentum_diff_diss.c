@@ -304,20 +304,6 @@ int vert_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible
 	return 0;
 }
 
-int simple_dissipation_rate(State *state, Irreversible_quantities *irrev, Grid *grid)
-{
-	/*
-	calculates a simplified dissipation rate
-	*/
-	inner_product(state -> wind, irrev -> friction_acc, irrev -> heating_diss, grid -> adjacent_vector_indices_h, grid -> inner_product_weights);
-	#pragma omp parallel for
-	for (int i = 0; i < N_SCALARS; ++i)
-	{
-		irrev -> heating_diss[i] = -density_total(state -> rho, &i)*irrev -> heating_diss[i];
-	}
-	return 0;
-}
-
 
 
 
