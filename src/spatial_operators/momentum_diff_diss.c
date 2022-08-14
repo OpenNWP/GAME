@@ -115,7 +115,7 @@ int hor_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible_
     div_h(state -> wind, diagnostics -> wind_div,
 	grid -> adjacent_signs_h, grid -> adjacent_vector_indices_h, grid -> inner_product_weights, grid -> slope, grid -> area, grid -> volume);
     // calculating the relative vorticity of the wind field
-	calc_rel_vort(state->wind,diagnostics->rel_vort_on_triangles,grid->area,grid->z_vector,dualgrid->z_vector,diagnostics->rel_vort, &
+	calc_rel_vort(state->wind,diagnostics->rel_vort_on_triangles,grid->z_vector,dualgrid->z_vector,diagnostics->rel_vort, &
                   dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,grid->normal_distance, &
                   dualgrid->area,grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,grid->inner_product_weights, &
                   grid->slope);

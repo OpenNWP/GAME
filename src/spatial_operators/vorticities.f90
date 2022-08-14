@@ -43,27 +43,28 @@ module vorticities
         velocity_value = velocity_field(vector_index)
         ! this corrects for terrain following coordinates
         length_rescale_factor = 1._wp
-          if (layer_index>=n_layers-n_oro_layers) then
-            length_rescale_factor = (radius + z_vector_dual(n_vectors_h + layer_index*n_dual_vectors_per_layer + h_index)) &
-            /(radius + z_vector(vector_index))
-            delta_z = z_vector_dual(n_vectors_h + layer_index*n_dual_vectors_per_layer + h_index) - z_vector(vector_index)
-            if (delta_z>0._wp) then
+        if (layer_index>=n_layers-n_oro_layers) then
+          length_rescale_factor = (radius + z_vector_dual(n_vectors_h + layer_index*n_dual_vectors_per_layer + h_index)) &
+          /(radius + z_vector(vector_index))
+          delta_z = z_vector_dual(n_vectors_h + layer_index*n_dual_vectors_per_layer + h_index) - z_vector(vector_index)
+          if (delta_z>0._wp) then
+            index_for_vertical_gradient = vector_index - n_vectors_per_layer
+          else
+            if (layer_index==n_layers-1) then
               index_for_vertical_gradient = vector_index - n_vectors_per_layer
             else
-              if (layer_index==n_layers-1) then
-                index_for_vertical_gradient = vector_index - n_vectors_per_layer
-              else
-                index_for_vertical_gradient = vector_index + n_vectors_per_layer
-              endif
+              index_for_vertical_gradient = vector_index + n_vectors_per_layer
             endif
-            vertical_gradient = (velocity_field(vector_index) - velocity_field(index_for_vertical_gradient)) &
-                                /(z_vector(vector_index) - z_vector(index_for_vertical_gradient))
-            ! Here, the vertical interpolation is made.
-            velocity_value = velocity_value+delta_z*vertical_gradient
+          endif
+          vertical_gradient = (velocity_field(vector_index) - velocity_field(index_for_vertical_gradient)) &
+                              /(z_vector(vector_index) - z_vector(index_for_vertical_gradient))
+          ! Here, the vertical interpolation is made.
+          velocity_value = velocity_value+delta_z*vertical_gradient
         endif
         out_field(ji) = out_field(ji) + length_rescale_factor*normal_distance(vector_index) &
                                         *vorticity_signs_triangles(3*(h_index-1)+jk)*velocity_value
       enddo
+      
       ! dividing by the area (Stokes' Theorem)
       out_field(ji) = out_field(ji)/area_dual(n_vectors_h + layer_index*n_dual_vectors_per_layer + h_index)
     
@@ -72,7 +73,7 @@ module vorticities
     
   end subroutine calc_rel_vort_on_triangles
 
-  subroutine calc_rel_vort(velocity_field,rel_vort_on_triangles,area,z_vector,z_vector_dual,rel_vort, &
+  subroutine calc_rel_vort(velocity_field,rel_vort_on_triangles,z_vector,z_vector_dual,rel_vort, &
                            vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
                            area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
                            slope) &
@@ -80,7 +81,7 @@ module vorticities
     
     ! This subroutine averages the vorticities on triangles to rhombi and calculates horizontal (tangential) vorticities.
     
-    real(wp), intent(in)  :: velocity_field(n_vectors),area(n_vectors), &
+    real(wp), intent(in)  :: velocity_field(n_vectors), &
                              z_vector(n_vectors),z_vector_dual(n_dual_vectors),normal_distance(n_vectors), &
                              area_dual(n_dual_vectors),inner_product_weights(8*n_scalars),slope(n_vectors)
     integer,  intent(in)  :: vorticity_indices_triangles(3*n_dual_scalars_h), &
@@ -94,7 +95,7 @@ module vorticities
     real(wp) :: covar_1,covar_3
     
     ! calling the subroutine which computes the relative vorticity on triangles
-    call calc_rel_vort_on_triangles(velocity_field,rel_vort_on_triangles,vorticity_indices_triangles,area, &
+    call calc_rel_vort_on_triangles(velocity_field,rel_vort_on_triangles,vorticity_indices_triangles,area_dual, &
                                     z_vector,z_vector_dual,vorticity_signs_triangles,normal_distance)
                                
     !$omp parallel do private(ji,layer_index,h_index,index_1,index_2,index_3,index_4,covar_1,covar_3,base_index)
@@ -121,9 +122,9 @@ module vorticities
             rel_vort(ji) = 1._wp/area_dual(h_index+layer_index*n_dual_vectors_per_layer)*normal_distance(index_3)*covar_3
           else
             index_1 = base_index + n_scalars_h + h_index
-            index_2 = base_index + from_index(h_index)
+            index_2 = base_index + 1+from_index(h_index)
             index_3 = base_index - n_vectors_h + h_index
-            index_4 = base_index + to_index(h_index)
+            index_4 = base_index + 1+to_index(h_index)
             covar_1 = horizontal_covariant(velocity_field,layer_index,h_index-1,from_index,to_index,inner_product_weights,slope)
             covar_3 = horizontal_covariant(velocity_field,layer_index-1,h_index-1,from_index,to_index,inner_product_weights,slope)
             rel_vort(ji) = 1._wp/area_dual(h_index+layer_index*n_dual_vectors_per_layer)*( &

@@ -19,7 +19,7 @@ extern int calc_rel_vort();
 int calc_pot_vort(Vector_field velocity_field, Scalar_field density_field, Diagnostics *diagnostics, Grid *grid, Dualgrid *dualgrid)
 {
 	// It is called "potential vorticity", but it is not Ertel's potential vorticity. It is the absolute vorticity divided by the density.
-	calc_rel_vort(velocity_field,diagnostics->rel_vort_on_triangles,grid->area,grid->z_vector,dualgrid->z_vector,diagnostics->rel_vort, &
+	calc_rel_vort(velocity_field,diagnostics->rel_vort_on_triangles,grid->z_vector,dualgrid->z_vector,diagnostics->rel_vort, &
                   dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,grid->normal_distance, &
                   dualgrid->area,grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,grid->inner_product_weights, &
                   grid->slope);
