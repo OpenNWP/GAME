@@ -167,31 +167,6 @@ int vert_hor_mom_viscosity(State *state, Irreversible_quantities *irrev, Diagnos
 	return 0;
 }
 
-int vert_vert_mom_viscosity(State *state, Grid *grid, Diagnostics *diagnostics, Irreversible_quantities *irrev, double delta_t)
-{
-	/*
-	This function multiplies scalar_field_placeholder (containing dw/dz) by the diffusion coefficient acting on w because of w.
-	*/
-	int i;
-	double mom_diff_coeff;
-	#pragma omp parallel for private(mom_diff_coeff, i)
-	for (int h_index = 0; h_index < N_SCALS_H; ++h_index)
-	{
-		for (int layer_index = 0; layer_index < N_LAYERS; ++layer_index)
-		{
-			i = layer_index*N_SCALS_H + h_index;
-			mom_diff_coeff
-			// molecular viscosity
-			= irrev -> molecular_diffusion_coeff[i]
-			// turbulent component
-			+ tke2vert_diff_coeff(&irrev -> tke[i], &diagnostics -> n_squared[i], &grid -> layer_thickness[i]);
-			
-			diagnostics -> scalar_field_placeholder[i] = state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + i]*mom_diff_coeff*diagnostics -> scalar_field_placeholder[i];
-		}
-	}
-	return 0;
-}
-
 int scalar_diffusion_coeffs(State *state, Config *config, Irreversible_quantities *irrev, Diagnostics *diagnostics, double delta_t, Grid *grid, Dualgrid *dualgrid)
 {
 	/*

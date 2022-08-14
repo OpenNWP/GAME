@@ -6,7 +6,9 @@ module effective_diff_coeffs
   ! This module computes the effective diffusion coefficients.
   
   use iso_c_binding
-  use definitions, only: wp
+  use definitions,      only: wp
+  use grid_nml,         only: n_scalars_h,n_layers,n_scalars
+  use constituents_nml, only: n_condensed_constituents,n_constituents
   
   implicit none
   
@@ -52,6 +54,34 @@ module effective_diff_coeffs
     
   end function tke2vert_diff_coeff
 
+  subroutine vert_vert_mom_viscosity(rho,tke,n_squared,layer_thickness,scalar_field_placeholder,molecular_diffusion_coeff) &
+  bind(c,name = "vert_vert_mom_viscosity")
+  
+    real(wp), intent(in)    :: rho(n_constituents*n_scalars),tke(n_scalars), &
+                               n_squared(n_scalars),layer_thickness(n_scalars),molecular_diffusion_coeff(n_scalars)
+    real(wp), intent(inout) :: scalar_field_placeholder(n_scalars)
+  
+    ! This subroutine multiplies scalar_field_placeholder (containing dw/dz) by the diffusion coefficient acting on w because of w.
+    
+    integer  :: h_index,layer_index,ji
+    real(wp) :: mom_diff_coeff
+    
+    !$omp parallel do private(h_index,layer_index,ji,mom_diff_coeff)
+    do h_index=1,n_scalars_h
+      do layer_index=0,n_layers-1
+        ji = layer_index*n_scalars_h + h_index
+        mom_diff_coeff &
+        ! molecular viscosity
+        = molecular_diffusion_coeff(ji) &
+        ! turbulent component
+        + tke2vert_diff_coeff(tke(ji),n_squared(ji),layer_thickness(ji))
+        
+        scalar_field_placeholder(ji) = rho(n_condensed_constituents*n_scalars+ji)*mom_diff_coeff*scalar_field_placeholder(ji)
+      enddo
+    enddo
+    !$omp end parallel do
+  
+  end subroutine vert_vert_mom_viscosity
   
 end module effective_diff_coeffs
 

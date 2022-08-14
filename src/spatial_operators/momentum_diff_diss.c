@@ -243,7 +243,8 @@ int vert_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible
 	// computing something like dw/dz
 	add_vertical_div(state -> wind, diagnostics -> scalar_field_placeholder, grid -> area, grid -> volume);
 	// computing and multiplying by the respective diffusion coefficient
-	vert_vert_mom_viscosity(state, grid, diagnostics, irrev, delta_t);
+	vert_vert_mom_viscosity(state -> rho,irrev -> tke,diagnostics -> n_squared,grid -> layer_thickness,diagnostics -> scalar_field_placeholder,
+	irrev -> molecular_diffusion_coeff);
 	// taking the second derivative to compute the diffusive tendency
 	grad_vert_cov(diagnostics -> scalar_field_placeholder, irrev -> friction_acc, grid -> normal_distance);
 	
