@@ -22,10 +22,10 @@ module momentum_diff_diss
     
     ! This subroutine calculates a simplified dissipation rate.
     
-    real(wp), intent(in)  :: wind(n_vectors),friction_acc(n_vectors),inner_product_weights(8*n_scalars), &
-                             rho(n_constituents*n_scalars)
-    real(wp), intent(out) :: heating_diss(n_scalars)
-    integer,  intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h)
+    real(wp), intent(in)    :: wind(n_vectors),friction_acc(n_vectors),inner_product_weights(8*n_scalars), &
+                               rho(n_constituents*n_scalars)
+    real(wp), intent(inout) :: heating_diss(n_scalars)
+    integer,  intent(in)    :: adjacent_vector_indices_h(6*n_scalars_h)
     
     ! local variables
     integer :: ji
