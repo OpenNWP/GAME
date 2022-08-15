@@ -112,7 +112,7 @@ module effective_diff_coeffs
       mom_diff_coeff = 0.25_wp*(tke2vert_diff_coeff(tke(scalar_base_index + 1+from_index(h_index)), &
       n_squared(scalar_base_index + 1+from_index(h_index)),layer_thickness(scalar_base_index + 1+from_index(h_index))) &
       + tke2vert_diff_coeff(tke(scalar_base_index + 1+to_index(h_index)), &
-      n_squared(scalar_base_index + 1+to_index(h_index)),layer_thickness(scalar_base_index + 1+(h_index))) &
+      n_squared(scalar_base_index + 1+to_index(h_index)),layer_thickness(scalar_base_index + 1+to_index(h_index))) &
       + tke2vert_diff_coeff(tke((layer_index+1)*n_scalars_h + 1+from_index(h_index)), &
       n_squared((layer_index+1)*n_scalars_h + 1+from_index(h_index)), &
       layer_thickness((layer_index+1)*n_scalars_h + 1+from_index(h_index))) &
