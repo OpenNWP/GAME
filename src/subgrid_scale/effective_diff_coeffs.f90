@@ -9,7 +9,8 @@ module effective_diff_coeffs
   use definitions,        only: wp
   use gradient_operators, only: grad_vert_cov
   use multiplications,    only: scalar_times_vector_v
-  use grid_nml,           only: n_scalars_h,n_layers,n_scalars,n_vectors_per_layer,n_vectors,n_v_vectors
+  use grid_nml,           only: n_scalars_h,n_layers,n_scalars,n_vectors_per_layer,n_vectors,n_v_vectors, &
+                                n_vectors_h,n_h_vectors
   use constituents_nml,   only: n_condensed_constituents,n_constituents
   
   implicit none
@@ -84,6 +85,69 @@ module effective_diff_coeffs
     !$omp end parallel do
   
   end subroutine vert_vert_mom_viscosity
+  
+  subroutine vert_hor_mom_viscosity(tke,layer_thickness,from_index,to_index,vert_hor_viscosity,n_squared,rho, &
+                                    molecular_diffusion_coeff) &
+  bind(c,name = "vert_hor_mom_viscosity")
+    
+    ! This subroutine computes the effective viscosity (eddy + molecular viscosity) for the vertical diffusion of horizontal velocity.
+    ! This quantity is located at the half level edges.
+    
+    real(wp), intent(in)  :: tke(n_scalars),layer_thickness(n_scalars),n_squared(n_scalars), &
+                             rho(n_constituents*n_scalars),molecular_diffusion_coeff(n_scalars)
+    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    real(wp), intent(out) :: vert_hor_viscosity(n_h_vectors+n_vectors_h)
+    
+    ! local variables
+    integer  :: ji,layer_index,h_index,scalar_base_index
+    real(wp) :: mom_diff_coeff,molecular_viscosity
+    
+    ! loop over horizontal vector points at half levels
+    !$omp parallel do private(ji,layer_index,h_index,mom_diff_coeff,molecular_viscosity,scalar_base_index)
+    do ji=1,n_h_vectors-n_vectors_h
+      layer_index = (ji-1)/n_vectors_h
+      h_index = ji - layer_index*n_vectors_h
+      scalar_base_index = layer_index*n_scalars_h
+      ! the turbulent component
+      mom_diff_coeff = 0.25_wp*(tke2vert_diff_coeff(tke(scalar_base_index + 1+from_index(h_index)), &
+      n_squared(scalar_base_index + 1+from_index(h_index)),layer_thickness(scalar_base_index + 1+from_index(h_index))) &
+      + tke2vert_diff_coeff(tke(scalar_base_index + 1+to_index(h_index)), &
+      n_squared(scalar_base_index + 1+to_index(h_index)),layer_thickness(scalar_base_index + 1+(h_index))) &
+      + tke2vert_diff_coeff(tke((layer_index+1)*n_scalars_h + 1+from_index(h_index)), &
+      n_squared((layer_index+1)*n_scalars_h + 1+from_index(h_index)), &
+      layer_thickness((layer_index+1)*n_scalars_h + 1+from_index(h_index))) &
+      + tke2vert_diff_coeff(tke((layer_index+1)*n_scalars_h + 1+to_index(h_index)), &
+      n_squared((layer_index+1)*n_scalars_h + 1+to_index(h_index)), &
+      layer_thickness((layer_index+1)*n_scalars_h + 1+to_index(h_index))))
+      ! computing and adding the molecular viscosity
+      ! the scalar variables need to be averaged to the vector points at half levels
+      molecular_viscosity = 0.25_wp*(molecular_diffusion_coeff(scalar_base_index + 1+from_index(h_index)) &
+      + molecular_diffusion_coeff(scalar_base_index + 1+to_index(h_index)) &
+      + molecular_diffusion_coeff((layer_index+1)*n_scalars_h + 1+from_index(h_index)) &
+      + molecular_diffusion_coeff((layer_index+1)*n_scalars_h + 1+to_index(h_index)))
+      mom_diff_coeff = mom_diff_coeff+molecular_viscosity
+      
+      ! multiplying by the density (averaged to the half level edge)
+      vert_hor_viscosity(ji+n_vectors_h) = &
+      0.25_wp*(rho(n_condensed_constituents*n_scalars + scalar_base_index + 1+from_index(h_index)) &
+      + rho(n_condensed_constituents*n_scalars + scalar_base_index + 1+to_index(h_index)) &
+      + rho(n_condensed_constituents*n_scalars + (layer_index+1)*n_scalars_h + 1+from_index(h_index)) &
+      + rho(n_condensed_constituents*n_scalars + (layer_index+1)*n_scalars_h + 1+to_index(h_index))) &
+      *mom_diff_coeff
+    enddo
+    !$omp end parallel do
+    
+    ! for now, we set the vertical diffusion coefficient at the TOA equal to the vertical diffusion coefficient in the layer below
+    !$omp parallel workshare
+    vert_hor_viscosity(1:n_vectors_h) = vert_hor_viscosity(n_vectors_h+1:2*n_vectors_h)
+    !$omp end parallel workshare
+    ! for now, we set the vertical diffusion coefficient at the surface equal to the vertical diffusion coefficient in the layer above
+    !$omp parallel workshare
+    vert_hor_viscosity(n_h_vectors+1:n_h_vectors+n_vectors_h) = vert_hor_viscosity(n_h_vectors-n_vectors_h+1:n_h_vectors)
+    !$omp end parallel workshare
+    
+  
+  end subroutine vert_hor_mom_viscosity
   
   subroutine update_n_squared(theta_v_bg,theta_v_pert,normal_distance,inner_product_weights,gravity_m, &
                               scalar_field_placeholder,vector_field_placeholder,n_squared) &

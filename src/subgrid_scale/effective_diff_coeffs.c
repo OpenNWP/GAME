@@ -111,62 +111,6 @@ int hor_viscosity(State *state, Irreversible_quantities *irrev, Grid *grid, Dual
 	return 0;
 }
 
-int vert_hor_mom_viscosity(State *state, Irreversible_quantities *irrev, Diagnostics *diagnostics, Config *config, Grid *grid, double delta_t)
-{
-	/*
-	This function computes the effective viscosity (eddy + molecular viscosity) for the vertical diffusion of horizontal velocity.
-	This quantity is located at the half level edges.
-	*/
-	
-	int layer_index, h_index, scalar_base_index;
-	double mom_diff_coeff, molecular_viscosity;
-	// loop over horizontal vector points at half levels
-	#pragma omp parallel for private(layer_index, h_index, mom_diff_coeff, molecular_viscosity, scalar_base_index)
-	for (int i = 0; i < N_H_VECTORS - N_VECS_H; ++i)
-	{
-		layer_index = i/N_VECS_H;
-		h_index = i - layer_index*N_VECS_H;
-		scalar_base_index = layer_index*N_SCALS_H;
-		// the turbulent component
-		mom_diff_coeff = 0.25*(tke2vert_diff_coeff(&irrev -> tke[scalar_base_index + grid -> from_index[h_index]],
-		&diagnostics -> n_squared[scalar_base_index + grid -> from_index[h_index]], &grid -> layer_thickness[scalar_base_index + grid -> from_index[h_index]])
-		+ tke2vert_diff_coeff(&irrev -> tke[scalar_base_index + grid -> to_index[h_index]],
-		&diagnostics -> n_squared[scalar_base_index + grid -> to_index[h_index]], &grid -> layer_thickness[scalar_base_index + grid -> to_index[h_index]])
-		+ tke2vert_diff_coeff(&irrev -> tke[(layer_index + 1)*N_SCALS_H + grid -> from_index[h_index]],
-		&diagnostics -> n_squared[(layer_index + 1)*N_SCALS_H + grid -> from_index[h_index]], &grid -> layer_thickness[(layer_index + 1)*N_SCALS_H + grid -> from_index[h_index]])
-		+ tke2vert_diff_coeff(&irrev -> tke[(layer_index + 1)*N_SCALS_H + grid -> to_index[h_index]],
-		&diagnostics -> n_squared[(layer_index + 1)*N_SCALS_H + grid -> to_index[h_index]], &grid -> layer_thickness[(layer_index + 1)*N_SCALS_H + grid -> to_index[h_index]]));
-		// computing and adding the molecular viscosity
-		// the scalar variables need to be averaged to the vector points at half levels
-		molecular_viscosity = 0.25*(irrev -> molecular_diffusion_coeff[scalar_base_index + grid -> from_index[h_index]]
-		+ irrev -> molecular_diffusion_coeff[scalar_base_index + grid -> to_index[h_index]]
-		+ irrev -> molecular_diffusion_coeff[(layer_index + 1)*N_SCALS_H + grid -> from_index[h_index]]
-		+ irrev -> molecular_diffusion_coeff[(layer_index + 1)*N_SCALS_H + grid -> to_index[h_index]]);
-		mom_diff_coeff += molecular_viscosity;
-		
-		// multiplying by the density (averaged to the half level edge)
-		irrev -> vert_hor_viscosity[i + N_VECS_H] = 
-		0.25*(state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + scalar_base_index + grid -> from_index[h_index]]
-		+ state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + scalar_base_index + grid -> to_index[h_index]]
-		+ state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + (layer_index + 1)*N_SCALS_H + grid -> from_index[h_index]]
-		+ state -> rho[N_CONDENSED_CONSTITUENTS*N_SCALARS + (layer_index + 1)*N_SCALS_H + grid -> to_index[h_index]])
-		*mom_diff_coeff;
-	}
-	// for now, we set the vertical diffusion coefficient at the TOA equal to the vertical diffusion coefficient in the layer below
-	#pragma omp parallel for
-	for (int i = 0; i < N_VECS_H; ++i)
-	{
-		irrev -> vert_hor_viscosity[i] = irrev -> vert_hor_viscosity[i + N_VECS_H];
-	}
-	// for now, we set the vertical diffusion coefficient at the surface equal to the vertical diffusion coefficient in the layer above
-	#pragma omp parallel for	
-	for (int i = N_H_VECTORS; i < N_H_VECTORS + N_VECS_H; ++i)
-	{
-		irrev -> vert_hor_viscosity[i] = irrev -> vert_hor_viscosity[i - N_VECS_H];
-	}
-	return 0;
-}
-
 int scalar_diffusion_coeffs(State *state, Config *config, Irreversible_quantities *irrev, Diagnostics *diagnostics, double delta_t, Grid *grid, Dualgrid *dualgrid)
 {
 	/*

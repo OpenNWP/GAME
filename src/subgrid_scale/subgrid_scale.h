@@ -4,7 +4,7 @@ Github repository: https://github.com/OpenNWP/GAME
 */
 
 int hor_viscosity(State *, Irreversible_quantities *, Grid *, Dualgrid *, Diagnostics *, Config *);
-int vert_hor_mom_viscosity(State *, Irreversible_quantities *, Diagnostics *, Config *, Grid *, double);
+extern int vert_hor_mom_viscosity();
 extern int vert_vert_mom_viscosity();
 int scalar_diffusion_coeffs(State *, Config *, Irreversible_quantities *, Diagnostics *, double, Grid *, Dualgrid *);
 extern int tke_update();

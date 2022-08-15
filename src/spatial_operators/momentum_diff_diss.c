@@ -212,7 +212,8 @@ int vert_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible
 		}
 	}
 	// calculating the respective diffusion coefficient
-	vert_hor_mom_viscosity(state, irrev, diagnostics, config, grid, delta_t);
+	vert_hor_mom_viscosity(irrev->tke,grid->layer_thickness,grid->from_index,grid->to_index,irrev->vert_hor_viscosity,diagnostics->n_squared,state->rho, &
+                                    irrev->molecular_diffusion_coeff);
 	// now, the second derivative needs to be taken
 	double z_upper, z_lower, delta_z;
 	#pragma omp parallel for private(layer_index, h_index, vector_index, z_upper, z_lower, delta_z)
