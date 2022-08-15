@@ -28,7 +28,7 @@ module effective_diff_coeffs
     real(wp), intent(in)  :: temperature(n_scalars),rho(n_constituents*n_scalars),tke(n_scalars)
     integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h), &
                              vorticity_indices_triangles(3*n_dual_scalars_h)
-    real(wp), intent(out) :: molecular_diffusion_coeff(n_scalars),viscosity_triangles(n_dual_scalars_h), &
+    real(wp), intent(out) :: molecular_diffusion_coeff(n_scalars),viscosity_triangles(n_dual_v_vectors), &
                              viscosity(n_scalars),viscosity_rhombi(n_vectors)
     
     ! local variables
@@ -57,11 +57,11 @@ module effective_diff_coeffs
         scalar_index_to = layer_index*n_scalars_h + to_index(h_index)
         
         ! preliminary result
-        viscosity_rhombi(vector_index) = 0.5_wp*(viscosity(scalar_index_from) + viscosity(scalar_index_to))
+        viscosity_rhombi(vector_index) = 0.5_wp*(viscosity(1+scalar_index_from) + viscosity(1+scalar_index_to))
         
         ! multiplying by the mass density of the gas phase
-        viscosity_rhombi(vector_index) = 0.5_wp*(rho(n_condensed_constituents*n_scalars + scalar_index_from) &
-        + rho(n_condensed_constituents*n_scalars + scalar_index_to))*viscosity_rhombi(vector_index) 
+        viscosity_rhombi(vector_index) = 0.5_wp*(rho(n_condensed_constituents*n_scalars + 1+scalar_index_from) &
+        + rho(n_condensed_constituents*n_scalars + 1+scalar_index_to))*viscosity_rhombi(vector_index) 
       enddo
     enddo
     
@@ -72,7 +72,7 @@ module effective_diff_coeffs
       layer_index = (ji-1)/n_dual_scalars_h
       h_index = ji - layer_index*n_dual_scalars_h
       
-     scalar_base_index = layer_index*n_scalars_h
+      scalar_base_index = layer_index*n_scalars_h
       
       ! preliminary result
       viscosity_triangles(ji) = 1._wp/6._wp*( &
