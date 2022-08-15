@@ -68,7 +68,9 @@ int vector_tendencies_expl(State *state, State *state_tendency, Grid *grid, Dual
 		// planetary boundary layer
 		if (config -> pbl_scheme > 0)
 		{
-			pbl_wind_tendency(state, diagnostics, irrev, grid, config, delta_t);
+			pbl_wind_tendency(state->wind,grid->z_vector,diagnostics->monin_obukhov_length,grid->exner_bg,state->exner_pert,diagnostics->v_squared, &
+                              grid->from_index,grid->to_index,irrev->friction_acc,grid->gravity_m,grid->roughness_length,state->rho, &
+                              diagnostics->temperature,grid->z_scalar);
 		}
 		// calculation of the dissipative heating rate
 		if (config -> momentum_diff_h == 1 || config -> pbl_scheme > 0)

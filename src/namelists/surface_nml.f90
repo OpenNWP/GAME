@@ -10,8 +10,9 @@ module surface_nml
   integer :: nsoillays        ! number of soil layers
   logical :: lsfc_phase_trans ! surface phase transitions switch
   logical :: lprog_soil_temp  ! switch for prognostic soil temperature
+  integer :: pbl_scheme       ! planetary boundary layer scheme: 0: off, 1: NWP, 2: Held-Suarez
   
-  namelist /surface/nsoillays,lsfc_phase_trans,lprog_soil_temp
+  namelist /surface/nsoillays,lsfc_phase_trans,lprog_soil_temp,pbl_scheme
   
   contains
   
@@ -22,6 +23,7 @@ module surface_nml
     nsoillays = 5
     lsfc_phase_trans = .true.
     lprog_soil_temp = .true.
+    pbl_scheme = 1
   
   end subroutine surface_nml_setup
 

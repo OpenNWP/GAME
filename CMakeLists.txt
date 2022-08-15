@@ -41,7 +41,6 @@ src/io/spatial_ops_for_output.f90
 src/subgrid_scale/effective_diff_coeffs.c
 src/subgrid_scale/effective_diff_coeffs.f90
 src/subgrid_scale/tke.f90
-src/subgrid_scale/planetary_boundary_layer.c
 src/subgrid_scale/planetary_boundary_layer.f90
 src/radiation/manage_radiation_calls.f90
 src/radiation/held_suar.f90

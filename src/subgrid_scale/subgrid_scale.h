@@ -10,4 +10,4 @@ int scalar_diffusion_coeffs(State *, Config *, Irreversible_quantities *, Diagno
 extern int tke_update();
 extern int update_n_squared();
 extern int update_sfc_turb_quantities();
-int pbl_wind_tendency(State *, Diagnostics *, Irreversible_quantities *, Grid *, Config *config, double);
+extern int pbl_wind_tendency();

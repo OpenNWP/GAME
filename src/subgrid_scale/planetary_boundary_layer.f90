@@ -6,18 +6,140 @@ module planetary_boundary_layer
   ! In this module, quantities referring to the planetary boundary layer are computed.
 
   use iso_c_binding
-  use constants,   only: EPSILON_SECURITY,M_PI,gravity
-  use definitions, only: wp
-  use run_nml,     only: dtime
-  use diff_nml,    only: h_prandtl
-  use grid_nml,    only: n_scalars,n_scalars_h,n_vectors_per_layer,n_layers,n_vectors
-  use surface_nml, only: lprog_soil_temp
+  use constants,          only: EPSILON_SECURITY,M_PI,gravity,p_0,c_d_p,r_d
+  use definitions,        only: wp
+  use run_nml,            only: dtime
+  use diff_nml,           only: h_prandtl
+  use grid_nml,           only: n_scalars,n_scalars_h,n_vectors_per_layer,n_layers,n_vectors,n_vectors_h,n_vectors_per_layer, &
+                                n_h_vectors
+  use surface_nml,        only: lprog_soil_temp,pbl_scheme
+  use constituents_nml,   only: n_constituents
+  use derived_quantities, only: gas_constant_diagnostics
   
   implicit none
   
   real(wp), parameter :: KARMAN = 0.4_wp ! von Karman's constant
+  real(wp), parameter :: PRANDTL_HEIGHT = 100._wp ! von Karman's constant
   
   contains
+  
+  subroutine pbl_wind_tendency(wind,z_vector,monin_obukhov_length,exner_bg,exner_pert,v_squared, &
+                               from_index,to_index,friction_acc,gravity_m,roughness_length,rho, &
+                               temperature,z_scalar) &
+  bind(c,name = "pbl_wind_tendency")
+  
+    ! This subroutine computes the interaction of the horizontal wind with the surface.
+  
+    real(wp), intent(in)  :: wind(n_vectors),z_vector(n_vectors),monin_obukhov_length(n_scalars_h), &
+                             exner_bg(n_scalars),exner_pert(n_scalars),v_squared(n_scalars), &
+                             gravity_m(n_vectors),roughness_length(n_scalars_h), &
+                             rho(n_constituents*n_scalars),temperature(n_scalars),z_scalar(n_scalars)
+    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    real(wp), intent(out) :: friction_acc(n_vectors)
+  
+    ! local variables
+    integer  :: ji,vector_index,layer_index, h_index
+    real(wp) :: flux_resistance,wind_speed_lowest_layer,z_agl,layer_thickness,roughness_length_value, &
+                monin_obukhov_length_value,wind_rescale_factor,bndr_lr_visc_max,sigma_b,standard_vert_lapse_rate, &
+                exner_from,exner_to,pressure_from,pressure_to,pressure,temp_lowest_layer, pressure_value_lowest_layer, &
+                temp_surface,surface_p_factor,pressure_sfc_from,pressure_sfc_to,pressure_sfc,sigma
+  
+    if (pbl_scheme==1) then
+      !$omp parallel do private(ji,vector_index,flux_resistance,wind_speed_lowest_layer,z_agl, &
+      !$omp layer_thickness,monin_obukhov_length_value,wind_rescale_factor,roughness_length_value)
+      do ji=1,n_vectors_h
+        vector_index = n_vectors - n_vectors_per_layer + ji
+      
+        ! averaging some quantities to the vector point
+        wind_speed_lowest_layer = 0.5_wp*((v_squared(n_scalars - n_scalars_h + 1+from_index(ji)))**0.5_wp &
+        + (v_squared(n_scalars - n_scalars_h + 1+to_index(ji)))**0.5_wp)
+        z_agl = z_vector(vector_index) - 0.5_wp*(z_vector(n_vectors - n_scalars_h + 1+from_index(ji)) &
+        + z_vector(n_vectors - n_scalars_h + 1+to_index(ji)))
+        layer_thickness = 0.5_wp*(z_vector(n_vectors - n_scalars_h - n_vectors_per_layer + 1+from_index(ji)) &
+        + z_vector(n_vectors - n_scalars_h - n_vectors_per_layer + 1+to_index(ji))) &
+        - 0.5_wp*(z_vector(n_vectors - n_scalars_h + 1+from_index(ji)) &
+        + z_vector(n_vectors - n_scalars_h + 1+to_index(ji)))
+        roughness_length_value = 0.5_wp*(roughness_length(1+from_index(ji)) + roughness_length(1+to_index(ji)))
+        monin_obukhov_length_value = 0.5_wp*(monin_obukhov_length(1+from_index(ji)) &
+                                             + monin_obukhov_length(1+to_index(ji)))
+      
+        ! calculating the flux resistance at the vector point
+        flux_resistance = momentum_flux_resistance(wind_speed_lowest_layer, &
+                                                   z_agl,roughness_length_value,monin_obukhov_length_value)
+      
+        ! rescaling the wind if the lowest wind vector is above the height of the Prandtl layer
+        wind_rescale_factor = 1._wp
+        if (z_agl>PRANDTL_HEIGHT) then
+          wind_rescale_factor = log(PRANDTL_HEIGHT/roughness_length_value)/log(z_agl/roughness_length_value)
+        endif
+      
+        ! adding the momentum flux into the surface as an acceleration
+        friction_acc(vector_index) = friction_acc(vector_index) &
+        - wind_rescale_factor*wind(vector_index)/flux_resistance/layer_thickness
+      enddo
+      !$omp end parallel do
+    endif
+  
+    ! This is the explicit friction ansatz in the boundary layer from the Held-Suarez (1994) test case.
+    if (pbl_scheme==2) then
+      ! some parameters
+      bndr_lr_visc_max = 1._wp/86400._wp ! maximum friction coefficient in the boundary layer
+      sigma_b = 0.7_wp ! boundary layer height in sigma-p coordinates
+      standard_vert_lapse_rate = 0.0065_wp
+      !$omp parallel do private(layer_index,h_index,vector_index,exner_from,exner_to,pressure_from,pressure_to,pressure, &
+      !$omp temp_lowest_layer,pressure_value_lowest_layer,temp_surface,surface_p_factor, &
+      !$omp pressure_sfc_from,pressure_sfc_to,pressure_sfc,sigma)
+      do ji=1,n_h_vectors
+        layer_index = (ji-1)/n_vectors_h
+        h_index = ji - layer_index*n_vectors_h
+        vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
+        ! calculating the pressure at the horizontal vector point
+        exner_from = exner_bg(layer_index*n_scalars_h + 1+from_index(h_index)) &
+        + exner_pert(layer_index*n_scalars_h + 1+from_index(h_index))
+        exner_to = exner_bg(layer_index*n_scalars_h + 1+to_index(h_index)) &
+        + exner_pert(layer_index*n_scalars_h + 1+to_index(h_index))
+        pressure_from = p_0*exner_from**(c_d_p/r_d)
+        pressure_to = p_0*exner_to**(c_d_p/r_d)
+        pressure = 0.5_wp*(pressure_from+pressure_to)
+      
+        ! calculating the surface pressure at the horizontal vecor point
+        ! calculating the surface pressure at the from scalar point
+        temp_lowest_layer = temperature((n_layers-1)*n_scalars_h + 1+from_index(h_index))
+        exner_from = exner_bg((n_layers-1)*n_scalars_h + 1+from_index(h_index)) &
+        + exner_pert((n_layers-1)*n_scalars_h + 1+from_index(h_index))
+        pressure_value_lowest_layer = p_0*exner_from**(c_d_p/r_d)
+        temp_surface = temp_lowest_layer &
+        + standard_vert_lapse_rate*(z_scalar(1+from_index(h_index) + (n_layers-1)*n_scalars_h) &
+        - z_vector(n_vectors - n_scalars_h + 1+from_index(h_index)))
+        surface_p_factor = (1._wp - (temp_surface - temp_lowest_layer)/temp_surface) &
+        **(gravity_m((n_layers-1)*n_vectors_per_layer + 1+from_index(h_index))/ &
+        (gas_constant_diagnostics(rho,(n_layers-1)*n_scalars_h + 1+from_index(h_index))*standard_vert_lapse_rate))
+        pressure_sfc_from = pressure_value_lowest_layer/surface_p_factor
+        ! calculating the surface pressure at the to scalar point
+        temp_lowest_layer = temperature((n_layers-1)*n_scalars_h + 1+to_index(h_index))
+        exner_to = exner_bg((n_layers-1)*n_scalars_h + 1+to_index(h_index)) &
+        + exner_pert((n_layers-1)*n_scalars_h + 1+to_index(h_index))
+        pressure_value_lowest_layer = p_0*exner_to**(c_d_p/r_d)
+        temp_surface = temp_lowest_layer &
+        + standard_vert_lapse_rate*(z_scalar(1+to_index(h_index) + (n_layers-1)*n_scalars_h) &
+        - z_vector(n_vectors - n_scalars_h + 1+to_index(h_index)))
+        surface_p_factor = (1._wp - (temp_surface - temp_lowest_layer)/temp_surface) &
+        **(gravity_m((n_layers-1)*n_vectors_per_layer + 1+to_index(h_index))/ &
+        (gas_constant_diagnostics(rho,(n_layers-1)*n_scalars_h + 1+to_index(h_index))*standard_vert_lapse_rate))
+        pressure_sfc_to = pressure_value_lowest_layer/surface_p_factor
+        ! averaging the surface pressure to the vector point
+        pressure_sfc = 0.5_wp*(pressure_sfc_from+pressure_sfc_to)
+      
+        ! calculating sigma
+        sigma = pressure/pressure_sfc
+        ! finally calculating the friction acceleration
+        friction_acc(vector_index) = friction_acc(vector_index) &
+        - bndr_lr_visc_max*max(0._wp,(sigma-sigma_b)/(1._wp-sigma_b))*wind(vector_index)
+      enddo
+      !$omp end parallel do
+    endif
+  
+  end subroutine 
   
   subroutine update_sfc_turb_quantities(is_land,roughness_length,monin_obukhov_length,z_scalar,z_vector, &
                                         theta_v_bg,theta_v_pert,v_squared,roughness_velocity,scalar_flux_resistance) &
@@ -104,6 +226,7 @@ module planetary_boundary_layer
   bind(c,name = "roughness_length_from_u10_sea")
   
     ! This function returns the roughness length as a function of the mean wind speed at 10 m above a fully developed sea.
+    ! refer to Stensrud,Parameterization schemes (2007), p.130
 
     ! input variable
     real(wp), intent(in) :: u10
@@ -112,8 +235,6 @@ module planetary_boundary_layer
 
     ! local variables
     real(wp) :: swh,period,wavelength ! properties of the wave field
-
-    ! refer to Stensrud,Parameterization schemes (2007), p.130
 
     ! empirically determined formula for the SWH
     swh = 0.0248_wp*u10**2
