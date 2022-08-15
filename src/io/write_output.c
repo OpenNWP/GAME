@@ -32,17 +32,6 @@ extern int epv_diagnostics();
 // the number of pressure levels for the pressure level output
 const int N_PRESSURE_LEVELS = 6;
 
-double global_scalar_integrator(Scalar_field density_gen, Grid *grid)
-{
-    double result = 0.0;
-    for (int i = 0; i < N_SCALARS; ++i)
-    {
-        result += density_gen[i]*grid -> volume[i];
-    }
-    
-    return result;
-}
-
 int interpolate_to_ll(double in_field[], double out_field[][N_LON_IO_POINTS], Grid *grid)
 {
 	/*
@@ -125,7 +114,11 @@ int write_out_integral(State *state_write_out, double time_since_init, Grid *gri
 			{
 				diagnostics -> scalar_field_placeholder[i] = state_write_out -> rho[const_id*N_SCALARS + i];
 			}
-			global_integral = global_scalar_integrator(diagnostics -> scalar_field_placeholder, grid);
+		    global_integral = 0.0;
+			for (int i = 0; i < N_SCALARS; ++i)
+			{
+				global_integral += diagnostics -> scalar_field_placeholder[i]*grid -> volume[i];
+			}
 			if (const_id == N_CONSTITUENTS - 1)
 			{
 				fprintf(global_integral_file, "%lf\n", global_integral);
@@ -141,7 +134,11 @@ int write_out_integral(State *state_write_out, double time_since_init, Grid *gri
     {
     	// density times virtual potential temperature
     	global_integral_file = fopen(integral_file, "a");
-    	global_integral = global_scalar_integrator(state_write_out -> rhotheta_v, grid);
+	    global_integral = 0.0;
+		for (int i = 0; i < N_SCALARS; ++i)
+		{
+			global_integral += state_write_out -> rhotheta_v[i]*grid -> volume[i];
+		}
     	fprintf(global_integral_file, "%lf\t%lf\n", time_since_init, global_integral);
     	fclose(global_integral_file);
     }
@@ -162,7 +159,11 @@ int write_out_integral(State *state_write_out, double time_since_init, Grid *gri
 		{
 			(*e_kin_density)[i] = diagnostics -> scalar_field_placeholder[i]*(*e_kin_density)[i];
 		}
-    	kinetic_integral = global_scalar_integrator(*e_kin_density, grid);
+	    kinetic_integral = 0.0;
+		for (int i = 0; i < N_SCALARS; ++i)
+		{
+			kinetic_integral += (*e_kin_density)[i]*grid -> volume[i];
+		}
     	free(e_kin_density);
     	Scalar_field *pot_energy_density = malloc(sizeof(Scalar_field));
 		#pragma omp parallel for
@@ -170,7 +171,11 @@ int write_out_integral(State *state_write_out, double time_since_init, Grid *gri
 		{
 			(*pot_energy_density)[i] = diagnostics -> scalar_field_placeholder[i]*grid -> gravity_potential[i];
 		}
-    	potential_integral = global_scalar_integrator(*pot_energy_density, grid);
+	    potential_integral = 0.0;
+		for (int i = 0; i < N_SCALARS; ++i)
+		{
+			potential_integral += (*pot_energy_density)[i]*grid -> volume[i];
+		}
     	free(pot_energy_density);
     	Scalar_field *int_energy_density = malloc(sizeof(Scalar_field));
 		#pragma omp parallel for
@@ -178,7 +183,11 @@ int write_out_integral(State *state_write_out, double time_since_init, Grid *gri
 		{
 			(*int_energy_density)[i] = diagnostics -> scalar_field_placeholder[i]*diagnostics -> temperature[i];
 		}
-    	internal_integral = global_scalar_integrator(*int_energy_density, grid);
+	    internal_integral = 0.0;
+		for (int i = 0; i < N_SCALARS; ++i)
+		{
+			internal_integral += (*int_energy_density)[i]*grid -> volume[i];
+		}
     	fprintf(global_integral_file, "%lf\t%lf\t%lf\t%lf\n", time_since_init, 0.5*kinetic_integral, potential_integral, C_D_V*internal_integral);
     	free(int_energy_density);
     	fclose(global_integral_file);
