@@ -105,7 +105,7 @@ module effective_diff_coeffs
     !$omp end parallel workshare
     ! vertical gradient of the full virtual potential temperature
     call grad_vert_cov(scalar_field_placeholder,vector_field_placeholder,normal_distance)
-    ! calculating the inverse full virtual potential temperaturel virtual potential temperature
+    ! calculating the inverse full virtual potential temperature
     !$omp parallel workshare
     scalar_field_placeholder = 1.0/scalar_field_placeholder
     !$omp end parallel workshare
