@@ -1,5 +1,5 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME),which is released under the MIT license.
-! Github repository: https://github.com/OpenNWP/GAME
+! Github repository: https:!github.com/OpenNWP/GAME
 
 module effective_diff_coeffs
   
@@ -10,12 +10,157 @@ module effective_diff_coeffs
   use gradient_operators, only: grad_vert_cov
   use multiplications,    only: scalar_times_vector_v
   use grid_nml,           only: n_scalars_h,n_layers,n_scalars,n_vectors_per_layer,n_vectors,n_v_vectors, &
-                                n_vectors_h,n_h_vectors
+                                n_vectors_h,n_h_vectors,n_dual_scalars_h,eff_hor_res,n_dual_v_vectors
   use constituents_nml,   only: n_condensed_constituents,n_constituents
+  use derived_quantities, only: c_v_mass_weighted_air,calc_diffusion_coeff
+  use diff_nml,           only: lmom_diff_h
   
   implicit none
   
   contains
+  
+  subroutine hor_viscosity(temperature,tke,rho,from_index,to_index,vorticity_indices_triangles, &
+                           molecular_diffusion_coeff,viscosity_triangles,viscosity,viscosity_rhombi) &
+  bind(c,name = "hor_viscosity")
+    
+    ! This subroutine computes the effective diffusion coefficient (molecular + turbulent).
+    
+    real(wp), intent(in)  :: temperature(n_scalars),rho(n_constituents*n_scalars),tke(n_scalars)
+    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h), &
+                             vorticity_indices_triangles(3*n_dual_scalars_h)
+    real(wp), intent(out) :: molecular_diffusion_coeff(n_scalars),viscosity_triangles(n_dual_scalars_h), &
+                             viscosity(n_scalars),viscosity_rhombi(n_vectors)
+    
+    ! local variables
+    integer  :: ji,scalar_index_from,scalar_index_to,vector_index,h_index,layer_index,rho_base_index,scalar_base_index
+    real(wp) :: density_value
+    
+    !$omp parallel do private(ji)
+    do ji=1,n_scalars
+      ! molecular component
+      molecular_diffusion_coeff(ji) = calc_diffusion_coeff(temperature(ji),rho(n_condensed_constituents*n_scalars+ji))
+      viscosity(ji) = molecular_diffusion_coeff(ji)
+      ! computing and adding the turbulent component
+      viscosity(ji) = viscosity(ji) + tke2hor_diff_coeff(tke(ji),eff_hor_res)
+    enddo
+    !$omp end parallel do
+    
+    ! Averaging the viscosity to rhombi
+    ! ---------------------------------
+    !$omp parallel do private(h_index,layer_index,scalar_index_from,scalar_index_to,vector_index)
+    do h_index=1,n_vectors_h
+      do layer_index=0,n_layers-1
+        vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
+        
+        ! indices of the adjacent scalar grid points
+        scalar_index_from = layer_index*n_scalars_h + from_index(h_index)
+        scalar_index_to = layer_index*n_scalars_h + to_index(h_index)
+        
+        ! preliminary result
+        viscosity_rhombi(vector_index) = 0.5_wp*(viscosity(scalar_index_from) + viscosity(scalar_index_to))
+        
+        ! multiplying by the mass density of the gas phase
+        viscosity_rhombi(vector_index) = 0.5_wp*(rho(n_condensed_constituents*n_scalars + scalar_index_from) &
+        + rho(n_condensed_constituents*n_scalars + scalar_index_to))*viscosity_rhombi(vector_index) 
+      enddo
+    enddo
+    
+    ! Averaging the viscosity to triangles
+    ! ------------------------------------
+    !$omp parallel do private(ji,layer_index,h_index,density_value,rho_base_index,scalar_base_index)
+    do ji=1,n_dual_v_vectors
+      layer_index = (ji-1)/n_dual_scalars_h
+      h_index = ji - layer_index*n_dual_scalars_h
+      
+     scalar_base_index = layer_index*n_scalars_h
+      
+      ! preliminary result
+      viscosity_triangles(ji) = 1._wp/6._wp*( &
+      viscosity(scalar_base_index + 1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+1))) &
+      + viscosity(scalar_base_index + 1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+1))) &
+      + viscosity(scalar_base_index + 1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+2))) &
+      + viscosity(scalar_base_index + 1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+2))) &
+      + viscosity(scalar_base_index + 1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+3))) &
+      + viscosity(scalar_base_index + 1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+3))))
+      
+      ! calculating and adding the molecular viscosity
+      rho_base_index = n_condensed_constituents*n_scalars + layer_index*n_scalars_h
+      density_value = &
+      1._wp/6._wp*( &
+      rho(rho_base_index + 1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+1))) &
+      + rho(rho_base_index + 1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+1))) &
+      + rho(rho_base_index + 1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+2))) &
+      + rho(rho_base_index + 1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+2))) &
+      + rho(rho_base_index + 1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+3))) &
+      + rho(rho_base_index + 1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+3))))
+      
+      ! multiplying by the mass density of the gas phase
+      viscosity_triangles(ji) = density_value*viscosity_triangles(ji)
+    enddo
+    !$omp end parallel do
+    
+    ! Multiplying the viscosity in the cell centers by the gas density
+    ! ----------------------------------------------------------------
+    !$omp parallel do private(ji)
+    do ji=1,n_scalars
+      ! multiplying by the density
+      viscosity(ji) = rho(n_condensed_constituents*n_scalars+ji)*tke2hor_diff_coeff(tke(ji),eff_hor_res)
+    enddo
+    !$omp end parallel do
+    
+  end subroutine hor_viscosity
+
+  subroutine scalar_diffusion_coeffs(temperature,tke,rho,from_index,to_index,vorticity_indices_triangles, &
+                           molecular_diffusion_coeff,viscosity_triangles,viscosity,viscosity_rhombi, &
+                           mass_diffusion_coeff_numerical_h,mass_diffusion_coeff_numerical_v, &
+                           temp_diffusion_coeff_numerical_h,temp_diffusion_coeff_numerical_v, &
+                           n_squared,layer_thickness) &
+  bind(c,name = "scalar_diffusion_coeffs")
+  
+    ! This subroutine computes the scalar diffusion coefficients (including eddies).
+    
+    real(wp), intent(in)  :: temperature(n_scalars),rho(n_constituents*n_scalars),tke(n_scalars), &
+                             n_squared(n_scalars),layer_thickness(n_scalars)
+    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h), &
+                             vorticity_indices_triangles(3*n_dual_scalars_h)
+    real(wp), intent(out) :: molecular_diffusion_coeff(n_scalars),viscosity_triangles(n_dual_scalars_h), &
+                             viscosity(n_scalars),viscosity_rhombi(n_vectors), &
+                             mass_diffusion_coeff_numerical_h(n_scalars), &
+                             mass_diffusion_coeff_numerical_v(n_scalars), &
+                             temp_diffusion_coeff_numerical_h(n_scalars), &
+                             temp_diffusion_coeff_numerical_v(n_scalars)
+                             
+    ! local variables
+    integer :: ji
+    
+    ! The diffusion coefficient only has to be calculated if it has not yet been done.
+    if (lmom_diff_h) then
+      call hor_viscosity(temperature,tke,rho,from_index,to_index,vorticity_indices_triangles, &
+                         molecular_diffusion_coeff,viscosity_triangles,viscosity,viscosity_rhombi)
+    endif
+    !$omp parallel do private(ji)
+    do ji=1,n_scalars
+    
+      ! Computing the mass diffusion coefficient
+      ! ----------------------------------------
+      ! horizontal diffusion coefficient
+      mass_diffusion_coeff_numerical_h(ji) = viscosity(ji)/rho(n_condensed_constituents*n_scalars+ji)
+      ! vertical diffusion coefficient
+      mass_diffusion_coeff_numerical_v(ji) &
+      ! molecular component
+      = molecular_diffusion_coeff(ji) &
+      ! turbulent component
+      + tke2vert_diff_coeff(tke(ji),n_squared(ji),layer_thickness(ji))
+      
+      ! Computing the temperature diffusion coefficient
+      ! -----------------------------------------------
+      temp_diffusion_coeff_numerical_h(ji) = c_v_mass_weighted_air(rho,temperature,ji-1)*mass_diffusion_coeff_numerical_h(ji)
+      temp_diffusion_coeff_numerical_v(ji) = c_v_mass_weighted_air(rho,temperature,ji-1)*mass_diffusion_coeff_numerical_v(ji)
+    
+    enddo
+    !$omp end parallel do
+  
+  end subroutine
   
   function tke2hor_diff_coeff(tke,effective_resolution) &
   bind(c,name = "tke2hor_diff_coeff")

@@ -121,7 +121,8 @@ int hor_momentum_diffusion(State *state, Diagnostics *diagnostics, Irreversible_
                   grid->slope);
     
     // calculating the effective horizontal kinematic viscosity
-	hor_viscosity(state, irrev, grid, dualgrid, diagnostics, config);
+	hor_viscosity(diagnostics->temperature,irrev->tke,state->rho,grid->from_index,grid->to_index,dualgrid->vorticity_indices_triangles,
+                  irrev->molecular_diffusion_coeff,irrev->viscosity_triangles,irrev->viscosity,irrev->viscosity_rhombi);
 	
 	/*
 	diagonal component

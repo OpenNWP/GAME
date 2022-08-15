@@ -44,7 +44,11 @@ Irreversible_quantities *irrev, Config *config, int rk_step)
     // updating the scalar diffusion coefficient if required
     if (rk_step == 0 && (config -> mass_diff_h == 1 || config -> temperature_diff_h == 1))
     {
-	    scalar_diffusion_coeffs(state_scalar, config, irrev, diagnostics, delta_t, grid, dualgrid);
+	    scalar_diffusion_coeffs(diagnostics->temperature,irrev->tke,state_scalar->rho,grid->from_index,grid->to_index,dualgrid->vorticity_indices_triangles,
+                           irrev->molecular_diffusion_coeff,irrev->viscosity_triangles,irrev->viscosity,irrev->viscosity_rhombi,
+                           irrev->mass_diffusion_coeff_numerical_h,irrev->mass_diffusion_coeff_numerical_v,
+                           irrev->temp_diffusion_coeff_numerical_h,irrev->temp_diffusion_coeff_numerical_v,
+                           diagnostics->n_squared,grid->layer_thickness);
     }
     
 	// Temperature diffusion gets updated at the first RK step if required.

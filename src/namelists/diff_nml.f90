@@ -11,8 +11,11 @@ module diff_nml
   implicit none
   
   real(wp) :: h_prandtl       ! height of the Prandtl layer
+  logical  :: lmom_diff_h     ! switch for horizontal momentum diffusion
+  real(wp) :: karman          ! von Karman's constant
   
-  namelist /diff/h_prandtl
+  
+  namelist /diff/h_prandtl,lmom_diff_h,karman
   
   contains
   
@@ -21,6 +24,8 @@ module diff_nml
     
     ! default values
     h_prandtl = 100._wp
+    lmom_diff_h = .true.
+    karman=0.4_wp
   
   end subroutine diff_nml_setup
   

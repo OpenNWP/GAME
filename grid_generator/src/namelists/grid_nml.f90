@@ -45,6 +45,7 @@ module grid_nml
   integer  :: oro_id                   ! orography ID
   integer  :: no_of_lloyd_iterations   ! number of Lloyd iterations used for the optimization
   real(wp) :: mean_velocity_area       ! the area that can be attributed to one horizontal vector grid point
+  real(wp) :: eff_hor_res              ! effective horizontal resolution
   
   real(wp), parameter :: orth_criterion_deg = 89.99_wp ! used for checking grid orthogonality
   
@@ -90,6 +91,7 @@ module grid_nml
     oro_id = 0
     no_of_lloyd_iterations = 2000
     mean_velocity_area = 2._wp/3._wp*4*M_PI*radius**2/n_scalars_h
+    eff_hor_res = sqrt(4*M_PI*radius**2/n_scalars_h)
   
   end subroutine grid_nml_setup
   
