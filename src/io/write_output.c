@@ -32,23 +32,6 @@ extern int epv_diagnostics();
 // the number of pressure levels for the pressure level output
 const int N_PRESSURE_LEVELS = 6;
 
-int get_pressure_levels(double pressure_levels[])
-{
-	/*
-	This function returns the pressure levels for the pressure level output.
-	Can be modified by the user (before compiling). Unit is Pa.
-	Remember to adjust N_PRESSURE_LEVELS adequately.
-	*/
-	
-	pressure_levels[0] = 20000.0;
-	pressure_levels[1] = 30000.0;
-	pressure_levels[2] = 50000.0;
-	pressure_levels[3] = 70000.0;
-	pressure_levels[4] = 85000.0;
-	pressure_levels[5] = 92500.0;
-	return 0;
-}
-
 double global_scalar_integrator(Scalar_field density_gen, Grid *grid)
 {
     double result = 0.0;
@@ -733,7 +716,12 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
     if (config_io -> pressure_level_output_switch == 1)
     {
     	double *pressure_levels = malloc(sizeof(double)*N_PRESSURE_LEVELS);
-    	get_pressure_levels(pressure_levels);
+		pressure_levels[0] = 20000.0;
+		pressure_levels[1] = 30000.0;
+		pressure_levels[2] = 50000.0;
+		pressure_levels[3] = 70000.0;
+		pressure_levels[4] = 85000.0;
+		pressure_levels[5] = 92500.0;
     	// allocating memory for the variables on pressure levels
     	double (*geopotential_height)[N_SCALS_H] = malloc(sizeof(double[N_PRESSURE_LEVELS][N_SCALS_H]));
     	double (*t_on_pressure_levels)[N_SCALS_H] = malloc(sizeof(double[N_PRESSURE_LEVELS][N_SCALS_H]));
