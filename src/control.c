@@ -747,15 +747,26 @@ int main(int argc, char *argv[])
     	--------------------------
     	*/
     	// interpolating to the output time
+    	double new_weight, old_weight;
         if(t_0 + delta_t >= t_write && t_0 <= t_write)
         {
 			if (fmod(time_step_counter, 2) == 0)
 			{
-            	interpolation_t(state_1, state_2, state_write, t_0, t_0 + delta_t, t_write, grid);
+				new_weight = (t_write - t_0)/delta_t;
+				old_weight = 1.0 - new_weight;
+				linear_combine_two_states(state_1 -> rho, state_1 -> rhotheta_v, state_1 -> exner_pert, state_1 -> wind, state_1 -> temperature_soil,
+				state_1 -> rho, state_1 -> rhotheta_v, state_1 -> exner_pert, state_1 -> wind, state_1 -> temperature_soil,
+				state_2 -> rho, state_2 -> rhotheta_v, state_2 -> theta_v_pert, state_2 -> exner_pert, state_2 -> wind, state_2 -> temperature_soil,
+				&old_weight, &new_weight, grid -> theta_v_bg);
         	}
 			else
 			{
-            	interpolation_t(state_2, state_1, state_write, t_0, t_0 + delta_t, t_write, grid);
+				new_weight = (t_write - t_0)/delta_t;
+				old_weight = 1.0 - new_weight;
+				linear_combine_two_states(state_1 -> rho, state_1 -> rhotheta_v, state_1 -> exner_pert, state_1 -> wind, state_1 -> temperature_soil,
+				state_1 -> rho, state_1 -> rhotheta_v, state_1 -> exner_pert, state_1 -> wind, state_1 -> temperature_soil,
+				state_2 -> rho, state_2 -> rhotheta_v, state_2 -> theta_v_pert, state_2 -> exner_pert, state_2 -> wind, state_2 -> temperature_soil,
+				&old_weight, &new_weight, grid -> theta_v_bg);
         	}
     	}
 		

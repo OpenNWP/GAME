@@ -10,4 +10,3 @@ int read_init_data(char[], State *, Irreversible_quantities *, Grid *);
 int write_out(State *, double [], int, double, double, Diagnostics *, Forcings *, Grid *, Dualgrid *, Config_io *, Config *,
 Irreversible_quantities *);
 int write_out_integral(State *, double, Grid *, Dualgrid *, Diagnostics *, int);
-int interpolation_t(State *, State *, State *, double, double, double, Grid *);
