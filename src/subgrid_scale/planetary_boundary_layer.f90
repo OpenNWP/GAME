@@ -30,12 +30,12 @@ module planetary_boundary_layer
   
     ! This subroutine computes the interaction of the horizontal wind with the surface.
   
-    real(wp), intent(in)  :: wind(n_vectors),z_vector(n_vectors),monin_obukhov_length(n_scalars_h), &
-                             exner_bg(n_scalars),exner_pert(n_scalars),v_squared(n_scalars), &
-                             gravity_m(n_vectors),roughness_length(n_scalars_h), &
-                             rho(n_constituents*n_scalars),temperature(n_scalars),z_scalar(n_scalars)
-    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
-    real(wp), intent(out) :: friction_acc(n_vectors)
+    real(wp), intent(in)    :: wind(n_vectors),z_vector(n_vectors),monin_obukhov_length(n_scalars_h), &
+                               exner_bg(n_scalars),exner_pert(n_scalars),v_squared(n_scalars), &
+                               gravity_m(n_vectors),roughness_length(n_scalars_h), &
+                               rho(n_constituents*n_scalars),temperature(n_scalars),z_scalar(n_scalars)
+    integer,  intent(in)    :: from_index(n_vectors_h),to_index(n_vectors_h)
+    real(wp), intent(inout) :: friction_acc(n_vectors)
   
     ! local variables
     integer  :: ji,vector_index,layer_index, h_index
