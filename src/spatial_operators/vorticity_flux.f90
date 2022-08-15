@@ -136,7 +136,7 @@ module mo_vorticity_flux
           ! determining the vertical interpolation weight
           vert_weight = 0.5_wp
           if (layer_index==0 .or. layer_index==n_layers) then
-            vert_weight = 1
+            vert_weight = 1._wp
           endif
           if (layer_index >= 1) then
             do jk=1,n_edges

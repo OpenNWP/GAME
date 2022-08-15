@@ -195,19 +195,6 @@ int write_out_integral(State *state_write_out, double time_since_init, Grid *gri
 	return 0;
 }
 
-int interpolation_t(State *state_0, State *state_p1, State *state_write, double t_0, double t_p1, double t_write, Grid *grid)
-{
-    double weight_0, weight_p1;
-    weight_p1 = (t_write - t_0)/(t_p1 - t_0);
-    weight_0 = 1.0 - weight_p1;
-    linear_combine_two_states(state_0 -> rho, state_0 -> rhotheta_v, state_0 -> exner_pert, state_0 -> wind, state_0 -> temperature_soil,
-                              state_p1 -> rho, state_p1 -> rhotheta_v, state_p1 -> exner_pert, state_p1 -> wind, state_p1 -> temperature_soil,
-                              state_write -> rho, state_write -> rhotheta_v, state_write -> theta_v_pert, state_write -> exner_pert, state_write -> wind, state_write -> temperature_soil,
-                              &weight_0, &weight_p1, grid -> theta_v_bg);
-    return 0;
-}
-
-
 double pseudopotential_temperature(State *state, Diagnostics *diagnostics, Grid *grid, int scalar_index)
 {
 	/*
