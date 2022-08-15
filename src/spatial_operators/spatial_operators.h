@@ -11,7 +11,7 @@ extern int grad();
 extern int grad_hor();
 extern int calc_pot_vort();
 extern int calc_rel_vort();
-int vorticity_flux(Vector_field, Dual_vector_field, Vector_field, Grid *, Dualgrid *);
+extern int vorticity_flux();
 extern int div_h();
 extern int div_h_tracer();
 extern int add_vertical_div();
