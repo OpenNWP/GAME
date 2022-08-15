@@ -205,66 +205,6 @@ int scalar_diffusion_coeffs(State *state, Config *config, Irreversible_quantitie
 	return 0;
 }
 
-int update_n_squared(State *state, Diagnostics *diagnostics, Grid *grid)
-{
-	/*
-	This function calculates the Brunt-Väisälä frequency.
-	*/
-	
-	// calculating the full virtual potential temperature
-	#pragma omp parallel for
-	for (int i = 0; i < N_SCALARS; ++i)
-	{
-		diagnostics -> scalar_field_placeholder[i] = grid -> theta_v_bg[i] + state -> theta_v_pert[i];
-	}
-	// vertical gradient of the full virtual potential temperature
-	grad_vert_cov(diagnostics -> scalar_field_placeholder, diagnostics -> vector_field_placeholder, grid -> normal_distance);
-	// calculating the inverse full virtual potential temperature
-	#pragma omp parallel for
-	for (int i = 0; i < N_SCALARS; ++i)
-	{
-		diagnostics -> scalar_field_placeholder[i] = 1.0/diagnostics -> scalar_field_placeholder[i];
-	}
-	scalar_times_vector_v(diagnostics -> scalar_field_placeholder, diagnostics -> vector_field_placeholder, diagnostics -> vector_field_placeholder);
-	
-	// multiplying by the gravity acceleration
-    int layer_index, h_index, vector_index;
-	#pragma omp parallel for private(layer_index, h_index, vector_index)
-    for (int i = N_SCALS_H; i < N_V_VECTORS - N_SCALS_H; ++i)
-    {
-        layer_index = i/N_SCALS_H;
-        h_index = i - layer_index*N_SCALS_H;
-        vector_index = h_index + layer_index*N_VECS_PER_LAYER;
-        diagnostics -> vector_field_placeholder[vector_index]
-        = grid -> gravity_m[vector_index]*diagnostics -> vector_field_placeholder[vector_index];
-    }
-    
-    // averaging vertically to the scalar points
-    #pragma omp parallel for private(layer_index, h_index)
-    for (int i = 0; i < N_SCALARS; ++i)
-    {
-        layer_index = i/N_SCALS_H;
-        h_index = i - layer_index*N_SCALS_H;
-        if (layer_index == 0)
-        {
-        	diagnostics -> n_squared[i] = diagnostics -> vector_field_placeholder[N_VECS_PER_LAYER + i];
-        }
-        else if (layer_index == N_LAYERS - 1)
-        {
-        	diagnostics -> n_squared[N_SCALARS - N_SCALS_H + i]
-        	= diagnostics -> vector_field_placeholder[N_VECTORS - N_VECS_PER_LAYER - N_SCALS_H + i];
-        }
-    	else
-    	{
-        	diagnostics -> n_squared[i]
-        	= grid -> inner_product_weights[8*i + 6]*diagnostics -> vector_field_placeholder[h_index + layer_index*N_VECS_PER_LAYER]
-        	+ grid -> inner_product_weights[8*i + 7]*diagnostics -> vector_field_placeholder[h_index + (layer_index + 1)*N_VECS_PER_LAYER];
-    	}
-    }
-    
-	return 0;
-}
-
 
 
 

@@ -47,7 +47,8 @@ int vector_tendencies_expl(State *state, State *state_tendency, Grid *grid, Dual
 		// updating the Brunt-Väisälä frequency and the TKE if any diffusion is switched on because it is required for computing the diffusion coefficients
     	if (config -> momentum_diff_h == 1 || config -> mass_diff_h == 1 || config -> temperature_diff_h == 1)
     	{
-    		update_n_squared(state, diagnostics, grid);
+    		update_n_squared(grid -> theta_v_bg,state -> theta_v_pert,grid -> normal_distance,grid -> inner_product_weights,grid -> gravity_m, &
+                             diagnostics -> scalar_field_placeholder,diagnostics -> vector_field_placeholder,diagnostics -> n_squared);
 			tke_update(state -> rho, irrev -> viscosity, irrev -> heating_diss,
 			           irrev -> tke, diagnostics -> vector_field_placeholder, state -> wind, diagnostics -> scalar_field_placeholder, grid -> from_index, grid -> to_index,
                        grid -> adjacent_vector_indices_h, grid -> normal_distance, grid -> inner_product_weights, grid -> slope);
