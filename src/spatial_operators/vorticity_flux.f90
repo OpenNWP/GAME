@@ -102,28 +102,28 @@ module mo_vorticity_flux
           ! effect of layer above
           out_field(ji) = out_field(ji) &
           - 0.5_wp &
-          *inner_product_weights(8*(layer_index*n_scalars_h + 1+from_index(h_index_shifted)) + 6) &
+          *inner_product_weights(8*(layer_index*n_scalars_h + from_index(h_index_shifted)) + 7) &
           *mass_flux_density(layer_index*n_vectors_per_layer + 1+from_index(h_index_shifted)) &
           *pot_vorticity(h_index_shifted + layer_index*2*n_vectors_h)
           out_field(ji) = out_field(ji) &
           - 0.5_wp &
-          *inner_product_weights(8*(layer_index*n_scalars_h + 1+to_index(h_index_shifted)) + 6) &
+          *inner_product_weights(8*(layer_index*n_scalars_h + to_index(h_index_shifted)) + 7) &
           *mass_flux_density(layer_index*n_vectors_per_layer + 1+to_index(h_index_shifted)) &
           *pot_vorticity(h_index_shifted + layer_index*2*n_vectors_h)
             ! effect of layer below
           out_field(ji) = out_field(ji) &
           - 0.5_wp &
-          *inner_product_weights(8*(layer_index*n_scalars_h + 1+from_index(h_index_shifted)) + 7) &
+          *inner_product_weights(8*(layer_index*n_scalars_h + from_index(h_index_shifted)) + 8) &
           *mass_flux_density((layer_index + 1)*n_vectors_per_layer + 1+from_index(h_index_shifted)) &
           *pot_vorticity(h_index_shifted + (layer_index + 1)*2*n_vectors_h)
           out_field(ji) = out_field(ji) &
           - 0.5_wp &
-          *inner_product_weights(8*(layer_index*n_scalars_h + 1+to_index(h_index_shifted)) + 7) &
+          *inner_product_weights(8*(layer_index*n_scalars_h + to_index(h_index_shifted)) + 8) &
           *mass_flux_density((layer_index + 1)*n_vectors_per_layer + 1+to_index(h_index_shifted)) &
           *pot_vorticity(h_index_shifted + (layer_index + 1)*2*n_vectors_h)
         ! Calculating the vertical component of the vorticity flux term.
         ! --------------------------------------------------------------
-        else if (h_index<n_scalars_h) then
+        elseif (h_index<=n_scalars_h) then
           out_field(ji) = 0._wp
           
           ! Determining the vertical acceleration due to the vorticity flux term.
@@ -142,18 +142,18 @@ module mo_vorticity_flux
             do jk=1,n_edges
               out_field(ji) = out_field(ji) &
               + vert_weight &
-              *inner_product_weights(8*((layer_index - 1)*n_scalars_h + h_index)+jk) &
-              *mass_flux_density(n_scalars_h + (layer_index - 1)*n_vectors_per_layer+1+adjacent_vector_indices_h(6*h_index+jk)) &
-              *pot_vorticity(layer_index*2*n_vectors_h+1+adjacent_vector_indices_h(6*h_index+jk))
+              *inner_product_weights(8*((layer_index - 1)*n_scalars_h + h_index-1)+jk) &
+              *mass_flux_density(n_scalars_h + (layer_index-1)*n_vectors_per_layer+1+adjacent_vector_indices_h(6*(h_index-1)+jk)) &
+              *pot_vorticity(layer_index*2*n_vectors_h+1+adjacent_vector_indices_h(6*(h_index-1)+jk))
             enddo
           endif
           if (layer_index<=n_layers-1) then
             do jk=1,n_edges
               out_field(ji) = out_field(ji) &
               + vert_weight &
-              *inner_product_weights(8*(layer_index*n_scalars_h + h_index)+jk) &
-              *mass_flux_density(n_scalars_h + layer_index*n_vectors_per_layer+1+adjacent_vector_indices_h(6*h_index+jk)) &
-              *pot_vorticity(layer_index*2*n_vectors_h+1+adjacent_vector_indices_h(6*h_index+jk))
+              *inner_product_weights(8*(layer_index*n_scalars_h + h_index-1)+jk) &
+              *mass_flux_density(n_scalars_h + layer_index*n_vectors_per_layer+1+adjacent_vector_indices_h(6*(h_index-1)+jk)) &
+              *pot_vorticity(layer_index*2*n_vectors_h+1+adjacent_vector_indices_h(6*(h_index-1)+jk))
             enddo
           endif
         endif
