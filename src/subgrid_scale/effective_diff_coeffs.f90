@@ -130,8 +130,8 @@ module effective_diff_coeffs
       if (layer_index==0) then
         n_squared(ji) = vector_field_placeholder(n_vectors_per_layer+ji)
       elseif (layer_index==n_layers-1) then
-        n_squared(n_scalars-n_scalars_h+ji) &
-        = vector_field_placeholder(n_vectors-n_vectors_per_layer-n_scalars_h+ji)
+        n_squared(ji) &
+        = vector_field_placeholder(n_vectors-n_vectors_per_layer-n_scalars_h+h_index)
       else
         n_squared(ji) &
         = inner_product_weights(8*(ji-1)+7)*vector_field_placeholder(h_index+layer_index*n_vectors_per_layer) &
