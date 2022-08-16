@@ -36,7 +36,7 @@ src/spatial_operators/averaging.f90
 src/spatial_operators/linear_combine_two_states.f90
 src/io/set_initial_state.c
 src/io/write_output.c
-src/io/set_grid_properties.f90
+src/io/grid_setup.f90
 src/io/spatial_ops_for_output.f90
 src/subgrid_scale/effective_diff_coeffs.f90
 src/subgrid_scale/tke.f90
@@ -47,7 +47,6 @@ src/radiation/rterrtmgp_coupler.f90
 src/constituents/phase_trans.f90
 src/constituents/dictionary.f90
 src/constituents/derived_quantities.f90
-grid_generator/src/vertical_grid/vertical_grid.f90
 grid_generator/src/foundations/geodesy.f90
 grid_generator/src/foundations/index_helpers.f90
 ../rte-rrtmgp/rrtmgp/mo_gas_optics.F90

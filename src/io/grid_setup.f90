@@ -1,20 +1,28 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https:!github.com/OpenNWP/GAME
 
-module mo_set_grid_props
+module grid_setup
   
   ! This module contains functions for reading the grid properties as well as setting the time step.
 
   use iso_c_binding
   use netcdf
-  use constants,          only: t_0
+  use constants,          only: t_0,r_e,M_PI
   use definitions,        only: wp
   use grid_nml,           only: n_vectors_per_layer,n_vectors,n_layers,n_scalars,n_scalars_h,n_latlon_io_points, &
                                 n_dual_vectors,n_vectors_h,n_dual_scalars_h
-  use gradient_operators, only: grad_hor_cov,grad
   use surface_nml,        only: nsoillays
 
   implicit none
+  
+  integer  :: res_id                   ! resolution_id
+  real(wp) :: toa                      ! top of atmosphere in meters above MSL
+  integer  :: n_oro_layers             ! number of layers following the orography
+  real(wp) :: stretching_parameter     ! vertical grid stretching parameter
+  real(wp) :: radius_rescale           ! radius rescaling factor
+  real(wp) :: radius                   ! radius of the planet to construct the grid for
+  real(wp) :: mean_velocity_area       ! the area that can be attributed to one horizontal vector grid point
+  real(wp) :: eff_hor_res              ! effective horizontal resolution
   
   contains
 
@@ -108,7 +116,7 @@ module mo_set_grid_props
     call nc_check(nf90_inq_varid(ncid,"roughness_length",roughness_length_id))
     call nc_check(nf90_inq_varid(ncid,"t_conductivity",t_conductivity_id))
     call nc_check(nf90_inq_varid(ncid,"is_land",is_land_id))
-    call nc_check(nf90_get_var(ncid,no_of_oro_layers_id,no_of_oro_layers))
+    call nc_check(nf90_get_var(ncid,no_of_oro_layers_id,n_oro_layers))
     call nc_check(nf90_get_var(ncid,toa_id,toa))
     call nc_check(nf90_get_var(ncid,radius_id,radius))
     call nc_check(nf90_get_var(ncid,stretching_parameter_id,stretching_parameter))
@@ -116,7 +124,6 @@ module mo_set_grid_props
     call nc_check(nf90_get_var(ncid,inner_product_weights_id,inner_product_weights))
     call nc_check(nf90_get_var(ncid,volume_id,volume))
     call nc_check(nf90_get_var(ncid,area_id,area))
-    write(*,*) "here"
     call nc_check(nf90_get_var(ncid,z_scalar_id,z_scalar))
     call nc_check(nf90_get_var(ncid,theta_v_bg_id,theta_v_bg))
     call nc_check(nf90_get_var(ncid,exner_bg_id,exner_bg))
@@ -126,9 +133,7 @@ module mo_set_grid_props
     call nc_check(nf90_get_var(ncid,area_dual_id,area_dual))
     call nc_check(nf90_get_var(ncid,z_vector_dual_id,z_vector_dual))
     call nc_check(nf90_get_var(ncid,direction_id,direction))
-    write(*,*) "here"
     call nc_check(nf90_get_var(ncid,f_vec_id,f_vec))
-    write(*,*) "here"
     call nc_check(nf90_get_var(ncid,density_to_rhombi_weights_id,density_to_rhombi_weights))
     call nc_check(nf90_get_var(ncid,normal_distance_dual_id,normal_distance_dual))
     call nc_check(nf90_get_var(ncid,latitude_scalar_id,latitude_scalar))
@@ -153,6 +158,11 @@ module mo_set_grid_props
     call nc_check(nf90_get_var(ncid,is_land_id,is_land))
     call nc_check(nf90_close(ncid))
     
+    radius_rescale = radius/r_e
+    no_of_oro_layers = n_oro_layers
+    mean_velocity_area = 2._wp/3._wp*4*M_PI*radius**2/n_scalars_h
+    eff_hor_res = sqrt(4*M_PI*radius**2/n_scalars_h)
+    
     !$omp parallel do private(ji)
     do ji=1,6*n_scalars_h
       if (adjacent_vector_indices_h(ji)==-1) then
@@ -170,13 +180,6 @@ module mo_set_grid_props
       - z_vector(h_index + (layer_index+1)*n_vectors_per_layer)
     enddo
     !$omp end parallel do
-    
-    ! determining coordinate slopes
-    call grad_hor_cov(z_scalar,slope,from_index,to_index,normal_distance)
-    ! computing the gradient of the gravity potential
-    call grad(gravity_potential,gravity_m,from_index,to_index,normal_distance,inner_product_weights,slope)
-    ! computing the gradient of the background Exner pressure
-    call grad(exner_bg,exner_bg_grad,from_index,to_index,normal_distance,inner_product_weights,slope)
     
     ! fundamental SFC properties
     z_t_const = -10._wp
@@ -217,7 +220,7 @@ module mo_set_grid_props
     
   end subroutine nc_check
 
-end module mo_set_grid_props
+end module grid_setup
 
 
 

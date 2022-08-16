@@ -13,6 +13,7 @@ module grid_nml
   
   integer  :: res_id                   ! resolution_id
   integer  :: n_layers                 ! number of layers
+  integer  :: oro_id                   ! orography ID
   integer  :: n_pentagons              ! number of pentagons
   integer  :: n_hexagons               ! number of hexagons
   integer  :: n_scalars_h              ! number of columns
@@ -33,24 +34,15 @@ module grid_nml
   integer  :: n_dual_h_vectors         ! the number of horizontal dual vectors per layer
   integer  :: n_dual_v_vectors         ! the number of vertical dual vectors per layer
   integer  :: n_dual_vectors           ! the number of dual vectors
-  real(wp) :: toa                      ! top of atmosphere in meters above MSL
-  integer  :: n_oro_layers             ! number of layers following the orography
-  real(wp) :: stretching_parameter     ! vertical grid stretching parameter
-  real(wp) :: radius_rescale           ! radius rescaling factor
-  real(wp) :: radius                   ! radius of the planet to construct the grid for
   integer  :: n_lat_io_points          ! number of points of the post-processing lat-lon grid in lat direction
   integer  :: n_lon_io_points          ! number of points of the post-processing lat-lon grid in lon direction
   integer  :: n_latlon_io_points       ! number of points of the post-processing lat-lon grid
   integer  :: no_of_avg_points         ! number of points used for smoothing the orography
-  integer  :: oro_id                   ! orography ID
-  integer  :: no_of_lloyd_iterations   ! number of Lloyd iterations used for the optimization
-  real(wp) :: mean_velocity_area       ! the area that can be attributed to one horizontal vector grid point
   real(wp) :: eff_hor_res              ! effective horizontal resolution
   
   real(wp), parameter :: orth_criterion_deg = 89.99_wp ! used for checking grid orthogonality
   
-  namelist /grid/res_id,n_layers,toa,n_oro_layers,stretching_parameter,radius_rescale,no_of_avg_points,oro_id, &
-                 no_of_lloyd_iterations
+  namelist /grid/res_id,n_layers,oro_id
 
   contains
 
@@ -59,6 +51,8 @@ module grid_nml
   
     res_id = 5
     n_layers = 26
+    oro_id = 0
+    ! depend on the resolution
     n_pentagons = 12
     n_hexagons = 10*(2**(2*res_id)-1)
     n_scalars_h = n_pentagons+n_hexagons
@@ -79,19 +73,10 @@ module grid_nml
     n_dual_h_vectors = n_levels*n_vectors_h
     n_dual_v_vectors = n_layers*n_dual_scalars_h
     n_dual_vectors = n_dual_h_vectors+n_dual_v_vectors
-    toa = 41152._wp
-    n_oro_layers = 23
-    stretching_parameter = 1.3_wp
-    radius_rescale = 1._wp
-    radius = radius_rescale*r_e
     n_lat_io_points = 2*2**res_id
     n_lon_io_points = 2*n_lat_io_points
     n_latlon_io_points = n_lat_io_points*n_lon_io_points
     no_of_avg_points = 7
-    oro_id = 0
-    no_of_lloyd_iterations = 2000
-    mean_velocity_area = 2._wp/3._wp*4*M_PI*radius**2/n_scalars_h
-    eff_hor_res = sqrt(4*M_PI*radius**2/n_scalars_h)
   
   end subroutine grid_nml_setup
   

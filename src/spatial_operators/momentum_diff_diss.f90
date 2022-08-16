@@ -8,7 +8,7 @@ module momentum_diff_diss
   use iso_c_binding
   use definitions,           only: wp
   use constants,             only: EPSILON_SECURITY
-  use grid_nml,              only: n_scalars,n_vectors,n_scalars_h,n_h_vectors,n_oro_layers,radius, &
+  use grid_nml,              only: n_scalars,n_vectors,n_scalars_h,n_h_vectors, &
                                    n_dual_vectors_per_layer,n_dual_scalars_h,n_dual_vectors,n_vectors_h, &
                                    n_layers,n_vectors_per_layer,n_dual_v_vectors,n_v_vectors
   use derived_quantities,    only: density_total
@@ -18,6 +18,7 @@ module momentum_diff_diss
   use vorticities,           only: calc_rel_vort
   use gradient_operators,    only: grad_hor,grad_vert_cov
   use effective_diff_coeffs, only: hor_viscosity,vert_vert_mom_viscosity,vert_hor_mom_viscosity
+  use grid_setup,            only: n_oro_layers,radius
 
   implicit none
   

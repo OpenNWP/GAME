@@ -7,12 +7,13 @@ module tke
 
   use iso_c_binding
   use definitions,        only: wp
-  use grid_nml,           only: n_scalars,n_vectors,n_vectors_h,n_scalars_h,mean_velocity_area
+  use grid_nml,           only: n_scalars,n_vectors,n_vectors_h,n_scalars_h
   use constituents_nml,   only: n_condensed_constituents,n_constituents
   use run_nml,            only: dtime
   use constants,          only: M_PI
   use gradient_operators, only: grad
   use mo_inner_product,   only: inner_product
+  use grid_setup,         only: mean_velocity_area
 
   implicit none
   

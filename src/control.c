@@ -202,6 +202,10 @@ int main(int argc, char *argv[])
                         grid->t_const_soil,&grid->z_t_const,&grid->toa,&grid->stretching_parameter,&grid->radius, &
                         dualgrid->area,dualgrid->z_vector,dualgrid->normal_distance,dualgrid->from_index, &
                         dualgrid->to_index,dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,dualgrid->f_vec);
+    
+    grad_hor_cov(grid->z_scalar,grid->slope,grid->from_index,grid->to_index,grid->normal_distance);
+    grad(grid->gravity_potential,grid->gravity_m,grid->from_index,grid->to_index,grid->normal_distance,grid->inner_product_weights,grid->slope);
+    grad(grid->exner_bg,grid->exner_bg_grad,grid->from_index,grid->to_index,grid->normal_distance,grid->inner_product_weights,grid->slope);
     printf("Grid loaded successfully.\n");
     
     // rescaling times for small Earth experiments
