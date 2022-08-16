@@ -116,6 +116,7 @@ module mo_set_grid_props
     call nc_check(nf90_get_var(ncid,inner_product_weights_id,inner_product_weights))
     call nc_check(nf90_get_var(ncid,volume_id,volume))
     call nc_check(nf90_get_var(ncid,area_id,area))
+    write(*,*) "here"
     call nc_check(nf90_get_var(ncid,z_scalar_id,z_scalar))
     call nc_check(nf90_get_var(ncid,theta_v_bg_id,theta_v_bg))
     call nc_check(nf90_get_var(ncid,exner_bg_id,exner_bg))
@@ -125,7 +126,9 @@ module mo_set_grid_props
     call nc_check(nf90_get_var(ncid,area_dual_id,area_dual))
     call nc_check(nf90_get_var(ncid,z_vector_dual_id,z_vector_dual))
     call nc_check(nf90_get_var(ncid,direction_id,direction))
+    write(*,*) "here"
     call nc_check(nf90_get_var(ncid,f_vec_id,f_vec))
+    write(*,*) "here"
     call nc_check(nf90_get_var(ncid,density_to_rhombi_weights_id,density_to_rhombi_weights))
     call nc_check(nf90_get_var(ncid,normal_distance_dual_id,normal_distance_dual))
     call nc_check(nf90_get_var(ncid,latitude_scalar_id,latitude_scalar))

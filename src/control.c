@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 	
     // reading the grid
 	printf("Reading grid data ...\n");
-    set_grid_properties(grid->no_of_oro_layers,grid->normal_distance,grid->volume,grid->area,grid->z_scalar,grid->z_vector, &
+    set_grid_properties(&grid->no_of_oro_layers,grid->normal_distance,grid->volume,grid->area,grid->z_scalar,grid->z_vector, &
                         grid->gravity_potential,grid->gravity_m,grid->slope,grid->theta_v_bg,grid->exner_bg,grid->exner_bg_grad, &
                         grid->layer_thickness,grid->trsk_indices,grid->trsk_modified_curl_indices,grid->from_index, &
                         grid->to_index,grid->adjacent_vector_indices_h,grid->adjacent_signs_h,grid->density_to_rhombi_indices, &
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
                         grid->density_to_rhombi_weights,grid->trsk_weights,grid->sfc_albedo,grid->sfc_rho_c, &
                         grid->t_conduc_soil,grid->roughness_length,grid->is_land,grid->latlon_interpol_indices, &
                         grid->latlon_interpol_weights,grid->z_soil_interface,grid->z_soil_center, &
-                        grid->t_const_soil,grid->z_t_const,grid->toa,grid->stretching_parameter,grid->radius, &
+                        grid->t_const_soil,&grid->z_t_const,&grid->toa,&grid->stretching_parameter,&grid->radius, &
                         dualgrid->area,dualgrid->z_vector,dualgrid->normal_distance,dualgrid->from_index, &
                         dualgrid->to_index,dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,dualgrid->f_vec);
     printf("Grid loaded successfully.\n");
