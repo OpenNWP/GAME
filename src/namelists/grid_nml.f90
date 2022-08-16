@@ -51,7 +51,7 @@ module grid_nml
   
     res_id = 5
     n_layers = 26
-    oro_id = 0
+    oro_id = 1
     ! depend on the resolution
     n_pentagons = 12
     n_hexagons = 10*(2**(2*res_id)-1)
