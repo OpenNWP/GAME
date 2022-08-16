@@ -47,8 +47,8 @@ src/radiation/rterrtmgp_coupler.f90
 src/constituents/phase_trans.f90
 src/constituents/dictionary.f90
 src/constituents/derived_quantities.f90
-grid_generator/src/foundations/geodesy.f90
-grid_generator/src/foundations/index_helpers.f90
+shared/geodesy.f90
+shared/various_helpers.f90
 ../rte-rrtmgp/rrtmgp/mo_gas_optics.F90
 ../rte-rrtmgp/rrtmgp/mo_gas_optics_rrtmgp.F90
 ../rte-rrtmgp/rrtmgp/mo_rrtmgp_constants.F90

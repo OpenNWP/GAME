@@ -12,7 +12,7 @@ module discrete_coordinate_trafos
   use grid_nml,            only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
                                  no_of_lloyd_iterations,n_vectors,n_dual_vectors,res_id,n_pentagons,n_basic_edges, &
                                  n_points_per_edge
-  use index_helpers,       only: in_bool_checker
+  use various_helpers,     only: in_bool_checker
   
   implicit none
   

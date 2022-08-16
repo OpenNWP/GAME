@@ -1,11 +1,12 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module index_helpers
+module various_helpers
   
-  ! This module contains helper functions concerned with simple algebraic operations on vectors.
+  ! This module contains helper functions and subroutines.
 
   use iso_c_binding
+  use netcdf
   use definitions, only: wp
   
   implicit none
@@ -126,8 +127,33 @@ module index_helpers
     enddo
 
   end function in_bool_checker
+  
+  subroutine nc_check(i_status) &
+  bind(c,name = "nc_check")
+  
+    ! This checks wether a NetCDF function threw an error.
+  
+    integer, intent(in) :: i_status
 
-end module index_helpers
+    if(i_status/=nf90_noerr) then 
+      print *, trim(nf90_strerror(i_status))
+      stop "Netcdf threw an error."
+    end if
+    
+  end subroutine nc_check
+  
+  character(len=64) function int2string(input)
+  
+    ! This is a helper function which converts an integer to a string.
+  
+    integer, intent(in) :: input
+    
+    write(int2string,*) input
+    int2string = adjustl(int2string)
+    
+  end function int2string
+
+end module various_helpers
 
 
 

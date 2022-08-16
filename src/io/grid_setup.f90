@@ -7,11 +7,12 @@ module grid_setup
 
   use iso_c_binding
   use netcdf
-  use constants,   only: t_0,r_e,M_PI
-  use definitions, only: wp
-  use grid_nml,    only: n_vectors_per_layer,n_vectors,n_layers,n_scalars,n_scalars_h,n_latlon_io_points, &
-                         n_dual_vectors,n_vectors_h,n_dual_scalars_h,oro_id,res_id
-  use surface_nml, only: nsoillays
+  use constants,       only: t_0,r_e,M_PI
+  use definitions,     only: wp
+  use grid_nml,        only: n_vectors_per_layer,n_vectors,n_layers,n_scalars,n_scalars_h,n_latlon_io_points, &
+                             n_dual_vectors,n_vectors_h,n_dual_scalars_h,oro_id,res_id
+  use surface_nml,     only: nsoillays
+  use various_helpers, only: int2string,nc_check
 
   implicit none
   
@@ -208,32 +209,6 @@ module grid_setup
     enddo
     
   end subroutine set_grid_properties
-  
-  subroutine nc_check(i_status) &
-  bind(c,name = "nc_check")
-  
-    ! This checks wether a NetCDF function threw an error.
-  
-    integer, intent(in) :: i_status
-
-    if(i_status/=nf90_noerr) then 
-      print *, trim(nf90_strerror(i_status))
-      stop "Netcdf threw an error."
-    end if
-    
-  end subroutine nc_check
-  
-  character(len=64) function int2string(input)
-  
-    ! This is a helper function which converts an integer to a string.
-  
-    integer, intent(in) :: input
-    
-    write(int2string,*) input
-    int2string = adjustl(int2string)
-    
-  end function int2string
-
 
 end module grid_setup
 

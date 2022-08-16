@@ -7,11 +7,11 @@ module phys_sfc_properties
 
   use iso_c_binding
   use netcdf
-  use constants,     only: M_PI,rho_h2o
-  use definitions,   only: wp
-  use grid_nml,      only: res_id,n_scalars_h,no_of_avg_points
-  use index_helpers, only: find_min_index,find_min_index_exclude
-  use geodesy,       only: deg2rad,calculate_distance_h
+  use constants,       only: M_PI,rho_h2o
+  use definitions,     only: wp
+  use grid_nml,        only: res_id,n_scalars_h,no_of_avg_points
+  use geodesy,         only: deg2rad,calculate_distance_h
+  use various_helpers, only: nc_check,int2string,find_min_index,find_min_index_exclude
 
   implicit none
   
@@ -196,31 +196,6 @@ module phys_sfc_properties
     !$omp end parallel do
   
   end subroutine
-  
-  character(len=64) function int2string(input)
-  
-    ! This is a helper function which converts an integer to a string.
-  
-    integer, intent(in) :: input
-    
-    write(int2string,*) input
-    int2string = adjustl(int2string)
-    
-  end function int2string
-  
-  subroutine nc_check(i_status) &
-  bind(c,name = "nc_check")
-  
-    ! This checks wether a NetCDF function threw an error.
-  
-    integer, intent(in) :: i_status
-
-    if(i_status/=nf90_noerr) then 
-      print *, trim(nf90_strerror(i_status))
-      stop "Netcdf threw an error."
-    end if
-    
-  end subroutine nc_check
   
 end module phys_sfc_properties
 

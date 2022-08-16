@@ -6,11 +6,11 @@ module interpolation_ll
   ! This file contains functions that compute properties of the vertical grid.
 
   use iso_c_binding
-  use definitions,   only: wp
-  use constants,     only: M_PI,EPSILON_SECURITY
-  use grid_nml,      only: n_scalars_h,n_lat_io_points,n_lon_io_points,n_latlon_io_points
-  use geodesy,       only: calculate_distance_h
-  use index_helpers, only: find_min_index_exclude
+  use definitions,     only: wp
+  use constants,       only: M_PI,EPSILON_SECURITY
+  use grid_nml,        only: n_scalars_h,n_lat_io_points,n_lon_io_points,n_latlon_io_points
+  use geodesy,         only: calculate_distance_h
+  use various_helpers, only: find_min_index_exclude
   
   implicit none
   
