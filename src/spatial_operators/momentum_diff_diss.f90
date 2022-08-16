@@ -143,7 +143,7 @@ module momentum_diff_diss
         - 0.5_wp*(z_vector(n_vectors - n_scalars_h + 1+from_index(h_index)) &
         + z_vector(N_VECTORS - n_scalars_h + 1+to_index(h_index))))
       ! inner layers
-      elseif (layer_index >= 1) then
+      elseif (layer_index>=1) then
         dv_hdz(ji) = (wind(vector_index) - wind(vector_index + n_vectors_per_layer)) &
         /(z_vector(vector_index) - z_vector(vector_index + n_vectors_per_layer))
       endif
@@ -203,7 +203,7 @@ module momentum_diff_diss
     !$omp end parallel do
     
     ! computing the horizontal gradient of the vertical velocity field
-    call grad_hor(scalar_field_placeholder, vector_field_placeholder,from_index,to_index, &
+    call grad_hor(scalar_field_placeholder,vector_field_placeholder,from_index,to_index, &
                   normal_distance,inner_product_weights,slope)
     ! multiplying by the already computed diffusion coefficient
     !$omp parallel do private(h_index,layer_index,vector_index)
@@ -222,7 +222,7 @@ module momentum_diff_diss
     call div_h(vector_field_placeholder,scalar_field_placeholder, &
                adjacent_signs_h,adjacent_vector_indices_h,inner_product_weights,slope,area,volume)
     ! vertically averaging the divergence to half levels and dividing by the density
-    !$omp parallel do private(layer_index,h_index,vector_index)
+    !$omp parallel do private(ji,layer_index,h_index,vector_index)
     do ji=1,n_v_vectors-2*n_scalars_h
       layer_index = (ji-1)/n_scalars_h
       h_index = ji - layer_index*n_scalars_h
