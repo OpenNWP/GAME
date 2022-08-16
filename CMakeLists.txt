@@ -18,6 +18,7 @@ src/namelists/rad_nml.f90
 src/namelists/constituents_nml.f90
 src/namelists/diff_nml.f90
 src/namelists/surface_nml.f90
+src/namelists/grid_nml.f90
 src/time_stepping/manage_pchevi.c
 src/time_stepping/manage_pressure_gradient.f90
 src/time_stepping/vector_tendencies_expl.c
@@ -47,7 +48,6 @@ src/constituents/phase_trans.f90
 src/constituents/dictionary.f90
 src/constituents/derived_quantities.f90
 grid_generator/src/vertical_grid/vertical_grid.f90
-grid_generator/src/namelists/grid_nml.f90
 grid_generator/src/foundations/geodesy.f90
 grid_generator/src/foundations/index_helpers.f90
 ../rte-rrtmgp/rrtmgp/mo_gas_optics.F90
