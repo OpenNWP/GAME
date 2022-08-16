@@ -24,6 +24,6 @@ extern int inner_product();
 extern double vertical_contravariant_corr();
 extern double remap_verpri2horpri_vector();
 extern double horizontal_covariant();
-int hor_momentum_diffusion(State *, Diagnostics *, Irreversible_quantities*, Config *, Grid *, Dualgrid *);
+extern int hor_momentum_diffusion();
 int vert_momentum_diffusion(State *, Diagnostics *, Irreversible_quantities*, Grid *, Config *, double);
 extern int simple_dissipation_rate();

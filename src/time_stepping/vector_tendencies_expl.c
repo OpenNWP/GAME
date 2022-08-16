@@ -59,7 +59,12 @@ int vector_tendencies_expl(State *state, State *state_tendency, Grid *grid, Dual
 		// horizontal momentum diffusion
 		if (config -> momentum_diff_h == 1)
 		{
-			hor_momentum_diffusion(state, diagnostics, irrev, config, grid, dualgrid);
+			hor_momentum_diffusion(state->wind,diagnostics->rel_vort_on_triangles,grid->z_vector,dualgrid->z_vector,diagnostics->rel_vort, &
+                                   dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,grid->normal_distance, &
+                                   dualgrid->area,grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,grid->inner_product_weights, &
+                                   grid->slope,diagnostics->temperature,irrev->friction_acc,grid->adjacent_signs_h,grid->adjacent_vector_indices_h,grid->area, &
+                                   irrev->molecular_diffusion_coeff,dualgrid->normal_distance,state->rho,irrev->tke,irrev->viscosity,irrev->viscosity_triangles, &
+                                   grid->volume,diagnostics->wind_div,irrev->viscosity_rhombi,diagnostics->vector_field_placeholder,diagnostics->curl_of_vorticity);
 		}
 		// vertical momentum diffusion
 		if (config -> momentum_diff_v == 1)
