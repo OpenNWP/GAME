@@ -140,8 +140,8 @@ module momentum_diff_diss
       ! at the surface
       if (layer_index==n_layers) then
         dv_hdz(ji) = wind(vector_index)/(z_vector(vector_index) &
-        - 0.5_wp*(z_vector(N_VECTORS - n_scalars_h + from_index(h_index)) &
-        + z_vector(N_VECTORS - n_scalars_h + to_index(h_index))))
+        - 0.5_wp*(z_vector(n_vectors - n_scalars_h + 1+from_index(h_index)) &
+        + z_vector(N_VECTORS - n_scalars_h + 1+to_index(h_index))))
       ! inner layers
       elseif (layer_index >= 1) then
         dv_hdz(ji) = (wind(vector_index) - wind(vector_index + n_vectors_per_layer)) &
@@ -163,10 +163,10 @@ module momentum_diff_diss
       layer_index = (ji-1)/n_vectors_h
       h_index = ji - layer_index*n_vectors_h
       vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
-      z_upper = 0.5_wp*(z_vector(layer_index*n_vectors_per_layer + from_index(h_index)) &
-      + z_vector(layer_index*n_vectors_per_layer + to_index(h_index)))
-      z_lower = 0.5_wp*(z_vector((layer_index+1)*n_vectors_per_layer + from_index(h_index)) &
-      + z_vector((layer_index+1)*n_vectors_per_layer + to_index(h_index)))
+      z_upper = 0.5_wp*(z_vector(layer_index*n_vectors_per_layer + 1+from_index(h_index)) &
+      + z_vector(layer_index*n_vectors_per_layer + 1+to_index(h_index)))
+      z_lower = 0.5_wp*(z_vector((layer_index+1)*n_vectors_per_layer + 1+from_index(h_index)) &
+      + z_vector((layer_index+1)*n_vectors_per_layer + 1+to_index(h_index)))
       delta_z = z_upper - z_lower
       friction_acc(vector_index) = friction_acc(vector_index) &
       + (vert_hor_viscosity(ji)*dv_hdz(ji) - vert_hor_viscosity(ji+n_vectors_h)*dv_hdz(ji+n_vectors_h))/delta_z &
@@ -211,8 +211,8 @@ module momentum_diff_diss
       do layer_index=0,n_layers-1
         vector_index = n_scalars_h + h_index + layer_index*n_vectors_per_layer
         vector_field_placeholder(vector_index) = 0.5_wp &
-        *(viscosity(layer_index*n_scalars_h + from_index(h_index)) &
-        + viscosity(layer_index*n_scalars_h + to_index(h_index))) &
+        *(viscosity(layer_index*n_scalars_h + 1+from_index(h_index)) &
+        + viscosity(layer_index*n_scalars_h + 1+to_index(h_index))) &
         *vector_field_placeholder(vector_index)
       enddo
     enddo
