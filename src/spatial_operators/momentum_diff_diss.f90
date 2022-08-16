@@ -10,7 +10,7 @@ module momentum_diff_diss
   use constants,          only: EPSILON_SECURITY
   use grid_nml,           only: n_scalars,n_vectors,n_scalars_h,n_h_vectors,n_oro_layers,radius, &
                                 n_dual_vectors_per_layer,n_dual_scalars_h,n_dual_vectors,n_vectors_h, &
-                                n_layers,n_vectors_per_layer
+                                n_layers,n_vectors_per_layer,n_dual_v_vectors
   use derived_quantities, only: density_total
   use constituents_nml,   only: n_constituents
   use mo_inner_product,   only: inner_product
@@ -28,7 +28,7 @@ module momentum_diff_diss
     
     integer,  intent(in)  :: from_index_dual(n_vectors_h),to_index_dual(n_vectors_h), &
                              vorticity_indices_triangles(3*n_dual_scalars_h)
-    real(wp), intent(in)  :: rel_vort_on_triangles(3*n_dual_scalars_h),normal_distance_dual(n_dual_vectors), &
+    real(wp), intent(in)  :: rel_vort_on_triangles(n_dual_v_vectors),normal_distance_dual(n_dual_vectors), &
                              z_vector(n_vectors),vorticity((2*n_layers+1)*n_vectors_h),area(n_vectors)
     real(wp), intent(out) :: out_field(n_vectors)
     
@@ -72,10 +72,10 @@ module momentum_diff_diss
       enddo
       ! adding the term damping the checkerboard pattern
       out_field(vector_index) = out_field(vector_index) &
-      + checkerboard_damping_weight*(rel_vort_on_triangles(layer_index*n_dual_scalars_h + to_index_dual(h_index)) &
-      *normal_distance_dual(base_index + to_index_dual(h_index)) &
-      - rel_vort_on_triangles(layer_index*n_dual_scalars_h + from_index_dual(h_index)) &
-      *normal_distance_dual(base_index + from_index_dual(h_index)))
+      + checkerboard_damping_weight*(rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+to_index_dual(h_index)) &
+      *normal_distance_dual(base_index + 1+to_index_dual(h_index)) &
+      - rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+from_index_dual(h_index)) &
+      *normal_distance_dual(base_index + 1+from_index_dual(h_index)))
       ! dividing by the area
       out_field(vector_index) = out_field(vector_index)/area(vector_index)
       
