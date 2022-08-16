@@ -312,12 +312,7 @@ Tab. \ref{tab:oro_id_definition} shows the definition of the orography IDs. Befo
 \chapter{Running the model}
 \label{chap:running_the_model}
 
-The configuration of the model must be set in two different files:
-%
-\begin{itemize}
-\item \texttt{src/game\_types.h}: modify \texttt{RES\_ID}, \texttt{NO\_OF\_LAYERS}, \texttt{NO\_OF\_GASEOUS\_CONSTITUENTS} and \texttt{NO\_OF\_CONDENSED\_CONSTITUENTS}. \texttt{RES\_ID} and \texttt{NO\_OF\_LAYERS} must conform with the grid file. It must be done before the compilation.
-\item The run script: one of the files contained in the directory \texttt{run\_scripts}. The comments in these files explain the meaning of the variables. This can be done at run time.
-\end{itemize}
+The model is configured via the namelist residing in the directory \texttt{src/namelists}. The default parameters can be modified in the run scripts, which are the files contained in the directory \texttt{run\_scripts}.
 
 \section{Dynamics configuration}
 \label{sec:dynamics_configuration}

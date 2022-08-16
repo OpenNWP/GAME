@@ -7,11 +7,11 @@ module grid_setup
 
   use iso_c_binding
   use netcdf
-  use constants,         only: t_0,r_e,M_PI
-  use definitions,        only: wp
-  use grid_nml,           only: n_vectors_per_layer,n_vectors,n_layers,n_scalars,n_scalars_h,n_latlon_io_points, &
-                                n_dual_vectors,n_vectors_h,n_dual_scalars_h
-  use surface_nml,        only: nsoillays
+  use constants,   only: t_0,r_e,M_PI
+  use definitions, only: wp
+  use grid_nml,    only: n_vectors_per_layer,n_vectors,n_layers,n_scalars,n_scalars_h,n_latlon_io_points, &
+                         n_dual_vectors,n_vectors_h,n_dual_scalars_h,oro_id,res_id
+  use surface_nml, only: nsoillays
 
   implicit none
   
@@ -24,7 +24,7 @@ module grid_setup
   real(wp) :: eff_hor_res          ! effective horizontal resolution
   
   contains
-
+  
   subroutine set_grid_properties(no_of_oro_layers,normal_distance,volume,area,z_scalar,z_vector, &
                                  gravity_potential,theta_v_bg,exner_bg, &
                                  layer_thickness,trsk_indices,trsk_modified_curl_indices,from_index, &
@@ -72,8 +72,13 @@ module grid_setup
                 interpol_weights_id,theta_v_bg_id,exner_bg_id,sfc_rho_c_id,sfc_albedo_id,roughness_length_id, &
                 is_land_id,t_conductivity_id,no_of_oro_layers_id,stretching_parameter_id,ji,layer_index,h_index
     real(wp) :: sigma_soil,rescale_factor
-    character(len=*), parameter :: grid_file_name = "../../grid_generator/grids/RES5_L26_ORO1.nc"
+    character(len=128) :: grid_file_name
     
+    ! determining the grid file
+    grid_file_name = "../../grid_generator/grids/RES" // "5" // "_L" // &
+                     trim(int2string(n_layers)) // "_ORO" // trim(int2string(oro_id)) // ".nc"
+                     
+    write(*,*) grid_file_name
     call nc_check(nf90_open(grid_file_name,NF90_CLOBBER,ncid))
     call nc_check(nf90_inq_varid(ncid,"no_of_oro_layers",no_of_oro_layers_id))
     call nc_check(nf90_inq_varid(ncid,"toa",toa_id))
@@ -218,6 +223,18 @@ module grid_setup
     end if
     
   end subroutine nc_check
+  
+  character(len=64) function int2string(input)
+  
+    ! This is a helper function which converts an integer to a string.
+  
+    integer, intent(in) :: input
+    
+    write(int2string,*) input
+    int2string = adjustl(int2string)
+    
+  end function int2string
+
 
 end module grid_setup
 
