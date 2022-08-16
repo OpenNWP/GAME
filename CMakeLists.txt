@@ -35,7 +35,7 @@ src/spatial_operators/averaging.f90
 src/spatial_operators/linear_combine_two_states.f90
 src/io/set_initial_state.c
 src/io/write_output.c
-src/io/set_grid_properties.c
+src/io/set_grid_properties.f90
 src/io/spatial_ops_for_output.f90
 src/subgrid_scale/effective_diff_coeffs.f90
 src/subgrid_scale/tke.f90
