@@ -3,11 +3,11 @@
 
 module grid_setup
   
-  ! This module contains functions for reading the grid properties as well as setting the time step.
+  ! This module reads the grid properties and sets some further grid quantities.
 
   use iso_c_binding
   use netcdf
-  use constants,          only: t_0,r_e,M_PI
+  use constants,         only: t_0,r_e,M_PI
   use definitions,        only: wp
   use grid_nml,           only: n_vectors_per_layer,n_vectors,n_layers,n_scalars,n_scalars_h,n_latlon_io_points, &
                                 n_dual_vectors,n_vectors_h,n_dual_scalars_h
@@ -15,14 +15,13 @@ module grid_setup
 
   implicit none
   
-  integer  :: res_id                   ! resolution_id
-  real(wp) :: toa                      ! top of atmosphere in meters above MSL
-  integer  :: n_oro_layers             ! number of layers following the orography
-  real(wp) :: stretching_parameter     ! vertical grid stretching parameter
-  real(wp) :: radius_rescale           ! radius rescaling factor
-  real(wp) :: radius                   ! radius of the planet to construct the grid for
-  real(wp) :: mean_velocity_area       ! the area that can be attributed to one horizontal vector grid point
-  real(wp) :: eff_hor_res              ! effective horizontal resolution
+  real(wp) :: toa                  ! top of atmosphere in meters above MSL
+  integer  :: n_oro_layers         ! number of layers following the orography
+  real(wp) :: stretching_parameter ! vertical grid stretching parameter
+  real(wp) :: radius_rescale       ! radius rescaling factor
+  real(wp) :: radius               ! radius of the planet to construct the grid for
+  real(wp) :: mean_velocity_area   ! the area that can be attributed to one horizontal vector grid point
+  real(wp) :: eff_hor_res          ! effective horizontal resolution
   
   contains
 
