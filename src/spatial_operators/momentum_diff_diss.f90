@@ -83,6 +83,7 @@ module momentum_diff_diss
     enddo
     !$omp end parallel do
     
+    ! rel_vort_on_triangles is a misuse of name
     !$omp parallel workshare
     rel_vort_on_triangles = viscosity_triangles*rel_vort_on_triangles
     !$omp end parallel workshare
