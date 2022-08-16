@@ -69,7 +69,10 @@ int vector_tendencies_expl(State *state, State *state_tendency, Grid *grid, Dual
 		// vertical momentum diffusion
 		if (config -> momentum_diff_v == 1)
 		{
-			vert_momentum_diffusion(state, diagnostics, irrev, grid, config, delta_t);
+			vert_momentum_diffusion(state->wind,grid->z_vector,grid->normal_distance,grid->from_index,grid->to_index,grid->inner_product_weights, &
+                                    grid->slope,irrev->friction_acc,grid->adjacent_signs_h,grid->adjacent_vector_indices_h,grid->area, &
+                                    irrev->molecular_diffusion_coeff,state->rho,irrev->tke,irrev->viscosity,grid->volume,diagnostics->vector_field_placeholder, &
+                                    diagnostics->scalar_field_placeholder,grid->layer_thickness,diagnostics->n_squared,diagnostics->dv_hdz,irrev->vert_hor_viscosity);
 		}
 		// planetary boundary layer
 		if (config -> pbl_scheme > 0)

@@ -10,14 +10,14 @@ module momentum_diff_diss
   use constants,             only: EPSILON_SECURITY
   use grid_nml,              only: n_scalars,n_vectors,n_scalars_h,n_h_vectors,n_oro_layers,radius, &
                                    n_dual_vectors_per_layer,n_dual_scalars_h,n_dual_vectors,n_vectors_h, &
-                                   n_layers,n_vectors_per_layer,n_dual_v_vectors
+                                   n_layers,n_vectors_per_layer,n_dual_v_vectors,n_v_vectors
   use derived_quantities,    only: density_total
   use constituents_nml,      only: n_constituents
   use mo_inner_product,      only: inner_product
-  use divergences,           only: div_h
+  use divergences,           only: div_h,add_vertical_div
   use vorticities,           only: calc_rel_vort
-  use gradient_operators,    only: grad_hor
-  use effective_diff_coeffs, only: hor_viscosity
+  use gradient_operators,    only: grad_hor,grad_vert_cov
+  use effective_diff_coeffs, only: hor_viscosity,vert_vert_mom_viscosity,vert_hor_mom_viscosity
 
   implicit none
   
@@ -106,6 +106,139 @@ module momentum_diff_diss
     !$omp end parallel do
   
   end subroutine hor_momentum_diffusion
+  
+  subroutine vert_momentum_diffusion(wind,z_vector,normal_distance,from_index,to_index,inner_product_weights, &
+                                     slope,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
+                                     molecular_diffusion_coeff,rho,tke,viscosity,volume,vector_field_placeholder, &
+                                     scalar_field_placeholder,layer_thickness,n_squared,dv_hdz,vert_hor_viscosity) &
+  bind(c,name = "vert_momentum_diffusion")
+  
+    ! This subroutine is the vertical momentum diffusion. The horizontal diffusion has already been called at this points, so we can add the new tendencies.
+    
+    real(wp), intent(in)    :: wind(n_vectors),z_vector(n_vectors),normal_distance(n_vectors), &
+                               inner_product_weights(8*n_scalars),slope(n_vectors), &
+                               area(n_vectors),volume(n_scalars),layer_thickness(n_scalars), &
+                               rho(n_constituents*n_scalars),tke(n_scalars),n_squared(n_scalars)
+    integer,  intent(in)    :: from_index(n_vectors_h),to_index(n_vectors_h), &
+                               adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h)
+    real(wp), intent(out)   :: friction_acc(n_vectors),molecular_diffusion_coeff(n_scalars),viscosity(n_scalars), &
+                               vector_field_placeholder(n_vectors),scalar_field_placeholder(n_scalars), &
+                               dv_hdz(n_h_vectors+n_vectors_h),vert_hor_viscosity(n_h_vectors+n_vectors_h)
+    
+    ! local variables
+    integer  :: ji,layer_index,h_index,vector_index
+    real(wp) :: z_upper,z_lower,delta_z
+    
+    ! 1.) vertical diffusion of horizontal velocity
+    ! ---------------------------------------------
+    ! calculating the vertical gradient of the horizontal velocity at half levels
+    !$omp parallel do private(ji,layer_index,h_index,vector_index)
+    do ji=n_vectors_h+1,n_h_vectors+n_vectors_h
+      layer_index = (ji-1)/n_vectors_h
+      h_index = ji - layer_index*n_vectors_h
+      vector_index = n_scalars_h + h_index + (layer_index-1)*n_vectors_per_layer
+      ! at the surface
+      if (layer_index==n_layers) then
+        dv_hdz(ji) = wind(vector_index)/(z_vector(vector_index) &
+        - 0.5_wp*(z_vector(N_VECTORS - n_scalars_h + from_index(h_index)) &
+        + z_vector(N_VECTORS - n_scalars_h + to_index(h_index))))
+      ! inner layers
+      elseif (layer_index >= 1) then
+        dv_hdz(ji) = (wind(vector_index) - wind(vector_index + n_vectors_per_layer)) &
+        /(z_vector(vector_index) - z_vector(vector_index + n_vectors_per_layer))
+      endif
+      ! the second derivative is assumed to vanish at the TOA
+      if (layer_index==1) then
+        dv_hdz(ji-n_vectors_h) = dv_hdz(ji)
+      endif
+    enddo
+   
+    ! calculating the respective diffusion coefficient
+    call vert_hor_mom_viscosity(tke,layer_thickness,from_index,to_index,vert_hor_viscosity,n_squared,rho, &
+                                molecular_diffusion_coeff)
+                           
+    ! now, the second derivative needs to be taken
+    !$omp parallel do private(ji,layer_index,h_index,vector_index,z_upper,z_lower,delta_z)
+    do ji=1,n_h_vectors
+      layer_index = (ji-1)/n_vectors_h
+      h_index = ji - layer_index*n_vectors_h
+      vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
+      z_upper = 0.5_wp*(z_vector(layer_index*n_vectors_per_layer + from_index(h_index)) &
+      + z_vector(layer_index*n_vectors_per_layer + to_index(h_index)))
+      z_lower = 0.5_wp*(z_vector((layer_index+1)*n_vectors_per_layer + from_index(h_index)) &
+      + z_vector((layer_index+1)*n_vectors_per_layer + to_index(h_index)))
+      delta_z = z_upper - z_lower
+      friction_acc(vector_index) = friction_acc(vector_index) &
+      + (vert_hor_viscosity(ji)*dv_hdz(ji) - vert_hor_viscosity(ji+n_vectors_h)*dv_hdz(ji+n_vectors_h))/delta_z &
+      /(0.5_wp*(density_total(rho,layer_index*n_scalars_h + from_index(h_index)) &
+      + density_total(rho,layer_index*n_scalars_h + to_index(h_index))))
+    enddo
+    
+    ! 2.) vertical diffusion of vertical velocity
+    ! -------------------------------------------
+    ! resetting the placeholder field
+    !$omp parallel workshare
+    scalar_field_placeholder = 0._wp
+    !$omp end parallel workshare
+    
+    ! computing something like dw/dz
+    call add_vertical_div(wind,scalar_field_placeholder,area,volume)
+    ! computing and multiplying by the respective diffusion coefficient
+    call vert_vert_mom_viscosity(rho,tke,n_squared,layer_thickness,scalar_field_placeholder, molecular_diffusion_coeff)
+    ! taking the second derivative to compute the diffusive tendency
+    call grad_vert_cov(scalar_field_placeholder,friction_acc,normal_distance)
+    
+    ! 3.) horizontal diffusion of vertical velocity
+    ! ---------------------------------------------
+    ! averaging the vertical velocity vertically to cell centers, using the inner product weights
+    !$omp parallel do private(h_index,layer_index,ji)
+    do h_index=1,n_scalars_h
+      do layer_index=0,n_layers-1
+        ji = layer_index*n_scalars_h + h_index
+        scalar_field_placeholder(ji) = &
+        inner_product_weights(8*(ji-1)+7)*wind(h_index + layer_index*n_vectors_per_layer) &
+        + inner_product_weights(8*(ji-1)+8)*wind(h_index + (layer_index+1)*n_vectors_per_layer)
+      enddo
+    enddo
+    !$omp end parallel do
+    
+    ! computing the horizontal gradient of the vertical velocity field
+    call grad_hor(scalar_field_placeholder, vector_field_placeholder,from_index,to_index, &
+                  normal_distance,inner_product_weights,slope)
+    ! multiplying by the already computed diffusion coefficient
+    !$omp parallel do private(h_index,layer_index,vector_index)
+    do h_index=1,n_vectors_h
+      do layer_index=0,n_layers-1
+        vector_index = n_scalars_h + h_index + layer_index*n_vectors_per_layer
+        vector_field_placeholder(vector_index) = 0.5_wp &
+        *(viscosity(layer_index*n_scalars_h + from_index(h_index)) &
+        + viscosity(layer_index*n_scalars_h + to_index(h_index))) &
+        *vector_field_placeholder(vector_index)
+      enddo
+    enddo
+    !$omp end parallel do
+    
+    ! the divergence of the diffusive flux density results in the diffusive acceleration
+    call div_h(vector_field_placeholder,scalar_field_placeholder, &
+               adjacent_signs_h,adjacent_vector_indices_h,inner_product_weights,slope,area,volume)
+    ! vertically averaging the divergence to half levels and dividing by the density
+    !$omp parallel do private(layer_index,h_index,vector_index)
+    do ji=1,n_v_vectors-2*n_scalars_h
+      layer_index = (ji-1)/n_scalars_h
+      h_index = ji - layer_index*n_scalars_h
+      vector_index = h_index + (layer_index+1)*n_vectors_per_layer
+      ! finally adding the result
+      friction_acc(vector_index) = friction_acc(vector_index) + 0.5_wp*( &
+      scalar_field_placeholder(h_index + layer_index*n_scalars_h) &
+      + scalar_field_placeholder(h_index + (layer_index+1)*n_scalars_h))
+      ! dividing by the density
+      friction_acc(vector_index) = friction_acc(vector_index) &
+      /(0.5_wp*(density_total(rho,-1+h_index+layer_index*n_scalars_h) &
+      + density_total(rho,-1+h_index+(layer_index+1)*n_scalars_h)))
+    enddo
+    !$omp end parallel do
+  
+  end subroutine vert_momentum_diffusion
 
   subroutine hor_calc_curl_of_vorticity(from_index_dual,to_index_dual,normal_distance_dual,out_field, &
                                         z_vector,vorticity,rel_vort_on_triangles,vorticity_indices_triangles, &
