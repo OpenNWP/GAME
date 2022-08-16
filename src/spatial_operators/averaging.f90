@@ -34,7 +34,6 @@ module averaging
     vertical_contravariant_corr = 0._wp
     
     n_edges = 6
-    
     if (h_index<n_pentagons) then
       n_edges = 5
     endif

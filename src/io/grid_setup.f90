@@ -78,7 +78,6 @@ module grid_setup
     grid_file_name = "../../grid_generator/grids/RES" // "5" // "_L" // &
                      trim(int2string(n_layers)) // "_ORO" // trim(int2string(oro_id)) // ".nc"
                      
-    write(*,*) grid_file_name
     call nc_check(nf90_open(grid_file_name,NF90_CLOBBER,ncid))
     call nc_check(nf90_inq_varid(ncid,"no_of_oro_layers",no_of_oro_layers_id))
     call nc_check(nf90_inq_varid(ncid,"toa",toa_id))
