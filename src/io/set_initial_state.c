@@ -15,7 +15,6 @@ In this file, the initial state of the simulation is set.
 #include "../game_constants.h"
 #include "../spatial_operators/spatial_operators.h"
 #include "../constituents/constituents.h"
-#include "../../grid_generator/src/standard.h"
 #define NCERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(2);}
 
 extern int baroclinic_wave_test();
