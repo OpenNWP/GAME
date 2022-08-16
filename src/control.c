@@ -31,69 +31,178 @@ int read_argv(int argc, char *argv[], Config *config, Config_io *config_io, Grid
 	/*
 	This function reads the command-line arguments.
 	*/
-    int agv_counter = 1;
-    config -> total_run_span_min = strtod(argv[agv_counter], NULL);
-    argv++;
-    config_io -> write_out_interval_min = strtod(argv[agv_counter], NULL);
-    argv++;
-    config -> momentum_diff_h = strtod(argv[agv_counter], NULL);
-    argv++;
-    config -> momentum_diff_v = strtod(argv[agv_counter], NULL);
-    argv++;
-    config -> rad_on = strtod(argv[agv_counter], NULL);
-    argv++;
-    config -> prog_soil_temp = strtod(argv[agv_counter], NULL);
-    argv++;
-    config_io -> write_out_integrals = strtod(argv[agv_counter], NULL);
-    argv++;
-    config -> temperature_diff_h = strtod(argv[agv_counter], NULL);
-    argv++;
-    config_io -> year = strtod(argv[agv_counter], NULL);
-    argv++;
-    config_io -> month = strtod(argv[agv_counter], NULL);
-    strcpy(config_io -> month_string, argv[agv_counter]);
-    argv++;
-    config_io -> day = strtod(argv[agv_counter], NULL);
-    strcpy(config_io -> day_string, argv[agv_counter]);
-    argv++;
-    config_io -> hour = strtod(argv[agv_counter], NULL);
-    strcpy(config_io -> hour_string, argv[agv_counter]);
-    argv++;
-    config -> temperature_diff_v = strtod(argv[agv_counter], NULL);
-    argv++;
-    strcpy(config_io -> run_id, argv[agv_counter]);
-    argv++;
-	grid -> oro_id = strtod(argv[agv_counter], NULL);
-    argv++;
-    config_io -> ideal_input_id = strtod(argv[agv_counter], NULL);
-    argv++;
-	config_io -> pressure_level_output_switch = strtod(argv[agv_counter], NULL);
-    argv++;
-	config_io -> model_level_output_switch = strtod(argv[agv_counter], NULL);
-    argv++;
-	config_io -> surface_output_switch = strtod(argv[agv_counter], NULL);
-    argv++;
-	config -> time_to_next_analysis_min = strtod(argv[agv_counter], NULL);
-    argv++;
-	config -> pbl_scheme = strtod(argv[agv_counter], NULL);
-    argv++;
-	config -> mass_diff_h = strtod(argv[agv_counter], NULL);
-    argv++;
-	config -> mass_diff_v = strtod(argv[agv_counter], NULL);
-    argv++;
-	config -> sfc_phase_trans = strtod(argv[agv_counter], NULL);
-    argv++;
-	config -> sfc_sensible_heat_flux = strtod(argv[agv_counter], NULL);
-    argv++;
+    int argv_counter = 1;
+    config -> total_run_span_min = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+    config_io -> write_out_interval_min = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+    config -> momentum_diff_h = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+    config -> momentum_diff_v = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+    config -> rad_on = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+    config -> prog_soil_temp = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+    config_io -> write_out_integrals = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+    config -> temperature_diff_h = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+    config_io -> year = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+    config_io -> month = strtod(argv[argv_counter], NULL);
+    strcpy(config_io -> month_string, argv[argv_counter]);
+    argv_counter++;
+    config_io -> day = strtod(argv[argv_counter], NULL);
+    strcpy(config_io -> day_string, argv[argv_counter]);
+    argv_counter++;
+    config_io -> hour = strtod(argv[argv_counter], NULL);
+    strcpy(config_io -> hour_string, argv[argv_counter]);
+    argv_counter++;
+    config -> temperature_diff_v = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+    strcpy(config_io -> run_id, argv[argv_counter]);
+    argv_counter++;
+	grid -> oro_id = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+    config_io -> ideal_input_id = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+	config_io -> pressure_level_output_switch = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+	config_io -> model_level_output_switch = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+	config_io -> surface_output_switch = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+	config -> time_to_next_analysis_min = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+	config -> pbl_scheme = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+	config -> mass_diff_h = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+	config -> mass_diff_v = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+	config -> sfc_phase_trans = strtod(argv[argv_counter], NULL);
+    argv_counter++;
+	config -> sfc_sensible_heat_flux = strtod(argv[argv_counter], NULL);
+    argv_counter++;
 	return 0;
 }
 
-int readback_config(Config *config, Config_io *config_io, Grid *grid, char grid_file[], char init_state_file[], char stars[])
+int main(int argc, char *argv[])
 {
-	/*
-	This function gives the user some additional information on the model configuration.
-	*/
-
+    // taking the timestamp to measure the performance
+    clock_t begin = clock();
+    
+    /*
+    allocating memory
+    ------------------
+    */
+    Grid *grid = calloc(1, sizeof(Grid));
+    Dualgrid *dualgrid = calloc(1, sizeof(Dualgrid));
+    Config *config = calloc(1, sizeof(Config));
+    Irreversible_quantities *irrev = calloc(1, sizeof(Irreversible_quantities));
+    Config_io *config_io = calloc(1, sizeof(Config_io));
+    Diagnostics *diagnostics = calloc(1, sizeof(Diagnostics));
+    Forcings *forcings = calloc(1, sizeof(Forcings));
+    State *state_write = calloc(1, sizeof(State));
+    State *state_2 = calloc(1, sizeof(State));
+    State *state_tendency = calloc(1, sizeof(State));
+    State *state_1 = calloc(1, sizeof(State));
+    
+    /*
+    reading command line input
+    --------------------------
+    */
+	read_argv(argc, argv, config, config_io, grid, irrev);
+	// setting the implicit weight of the thermodynamic vertical time stepping
+	config -> impl_thermo_weight = 0.75;
+	// setting hte vertical swamp layer properties
+	config -> damping_start_height_over_toa = 0.53;
+	config -> damping_coeff_max = 0.25;
+	
+	grid_nml_setup();
+	run_nml_setup();
+	rad_nml_setup();
+	constituents_nml_setup();
+	diff_nml_setup();
+	surface_nml_setup();
+	
+    /*
+	Determining the name of the grid file from the RES_ID, N_LAYERS and so on.
+    ------------------------------------------------------------------------------
+    */
+    char grid_file_pre[200];
+	sprintf(grid_file_pre, "../../grid_generator/grids/RES%d_L%d_ORO%d.nc", RES_ID, N_LAYERS, grid -> oro_id);
+    char grid_file[strlen(grid_file_pre) + 1];
+    strcpy(grid_file, grid_file_pre);
+    
+	// Determining the name of the init state file from the IDEAL_INPUT_ID, RES_ID, N_LAYERS and so on.
+    char init_state_file_pre[200];
+    // the NWP case
+    if (config_io -> ideal_input_id == -1)
+    {
+    	sprintf(init_state_file_pre, "../../nwp_init/%d%s%s%s.nc", config_io -> year, config_io -> month_string, config_io -> day_string, config_io -> hour_string);
+    }
+    // the idealized input case
+    else
+    {	
+    	sprintf(init_state_file_pre, "placeholder");
+    }
+    char init_state_file[strlen(init_state_file_pre) + 1];
+    strcpy(init_state_file, init_state_file_pre);
+    
+    /*
+    Determining the Unix time stamp of the initialization (UTC).
+    ------------------------------------------------------------
+    */
+    struct tm init_tm;
+    init_tm.tm_year = config_io -> year - 1900;
+    init_tm.tm_mon = config_io -> month - 1;
+    init_tm.tm_mday = config_io -> day;
+    init_tm.tm_hour = config_io -> hour;
+    init_tm.tm_min = 0;
+    init_tm.tm_sec = 0;
+    // turning off DST
+    init_tm.tm_isdst = 0;
+    time_t init_time = mktime(&init_tm);
+    // converting to double in UTC
+    double t_init = (double) init_time + init_tm.tm_gmtoff;
+    
+    // console output
+    char *stars  = malloc(83*sizeof(char));
+    for (int i = 0; i < 81; ++i)
+    {
+        stars[i] = '*';
+    }
+    stars[81] = '\n';
+    stars[82] = '\0';
+    printf("%s", stars);
+    printf("*\t\t\t\t\t\t\t\t\t\t*\n");
+    printf("*\t\t\t\tThis is the GAME\t\t\t\t*\n");
+    printf("*\t\t\tGeophysical Fluids Modeling Framework\t\t\t*\n");
+    printf("*\t\t\t\t\t\t\t\t\t\t*\n");
+    printf("%s", stars);
+    printf("Released under the MIT license, visit https://github.com/OpenNWP/GAME for more information.\n");
+    printf("%s", stars);
+	printf("What you want to do:\n");
+	printf("Run_id:\t\t\t\t\t%s\n", config_io -> run_id);
+	printf("Run time span:\t\t\t\t%d days\n", config -> total_run_span_min/(24*60));
+	printf("Grid properties file:\t\t\t%s\n", grid_file);
+	
+    // reading the grid
+	printf("Reading grid data ...\n");
+    set_grid_properties(grid, dualgrid, grid_file);
+    printf("Grid loaded successfully.\n");
+    
+    // rescaling times for small Earth experiments
+    double radius_rescale = grid -> radius/RADIUS;
+    config -> total_run_span_min = radius_rescale*config -> total_run_span_min;
+    config_io -> write_out_interval_min = radius_rescale*config_io -> write_out_interval_min;
+    
+    /*
+    Giving the user some additional information on the run to about to be executed.
+    --------------------------------------------------------------------
+    */
 	printf("Small Earth rescaling factor:\t\t%lf\n", grid -> radius/RADIUS);
 	printf("Top of atmosphere:\t\t\t%lf m\n", grid -> toa);
 	printf("Stretching parameter:\t\t\t%lf\n", grid -> stretching_parameter);
@@ -264,125 +373,6 @@ int readback_config(Config *config, Config_io *config_io, Grid *grid, char grid_
 	printf("%s", stars);
 	printf("Model is fully configured now. Starting to read external data.\n");
 	printf("%s", stars);
-	return 0;
-}
-
-int main(int argc, char *argv[])
-{
-    // taking the timestamp to measure the performance
-    clock_t begin = clock();
-    
-    /*
-    allocating memory
-    ------------------
-    */
-    Grid *grid = calloc(1, sizeof(Grid));
-    Dualgrid *dualgrid = calloc(1, sizeof(Dualgrid));
-    Config *config = calloc(1, sizeof(Config));
-    Irreversible_quantities *irrev = calloc(1, sizeof(Irreversible_quantities));
-    Config_io *config_io = calloc(1, sizeof(Config_io));
-    Diagnostics *diagnostics = calloc(1, sizeof(Diagnostics));
-    Forcings *forcings = calloc(1, sizeof(Forcings));
-    State *state_write = calloc(1, sizeof(State));
-    State *state_2 = calloc(1, sizeof(State));
-    State *state_tendency = calloc(1, sizeof(State));
-    State *state_1 = calloc(1, sizeof(State));
-    
-    /*
-    reading command line input
-    --------------------------
-    */
-	read_argv(argc, argv, config, config_io, grid, irrev);
-	// setting the implicit weight of the thermodynamic vertical time stepping
-	config -> impl_thermo_weight = 0.75;
-	// setting hte vertical swamp layer properties
-	config -> damping_start_height_over_toa = 0.53;
-	config -> damping_coeff_max = 0.25;
-	
-	grid_nml_setup();
-	run_nml_setup();
-	rad_nml_setup();
-	constituents_nml_setup();
-	diff_nml_setup();
-	surface_nml_setup();
-	
-    /*
-	Determining the name of the grid file from the RES_ID, N_LAYERS and so on.
-    ------------------------------------------------------------------------------
-    */
-    char grid_file_pre[200];
-	sprintf(grid_file_pre, "../../grid_generator/grids/RES%d_L%d_ORO%d.nc", RES_ID, N_LAYERS, grid -> oro_id);
-    char grid_file[strlen(grid_file_pre) + 1];
-    strcpy(grid_file, grid_file_pre);
-    
-	// Determining the name of the init state file from the IDEAL_INPUT_ID, RES_ID, N_LAYERS and so on.
-    char init_state_file_pre[200];
-    // the NWP case
-    if (config_io -> ideal_input_id == -1)
-    {
-    	sprintf(init_state_file_pre, "../../nwp_init/%d%s%s%s.nc", config_io -> year, config_io -> month_string, config_io -> day_string, config_io -> hour_string);
-    }
-    // the idealized input case
-    else
-    {	
-    	sprintf(init_state_file_pre, "placeholder");
-    }
-    char init_state_file[strlen(init_state_file_pre) + 1];
-    strcpy(init_state_file, init_state_file_pre);
-    
-    /*
-    Determining the Unix time stamp of the initialization (UTC).
-    ------------------------------------------------------------
-    */
-    struct tm init_tm;
-    init_tm.tm_year = config_io -> year - 1900;
-    init_tm.tm_mon = config_io -> month - 1;
-    init_tm.tm_mday = config_io -> day;
-    init_tm.tm_hour = config_io -> hour;
-    init_tm.tm_min = 0;
-    init_tm.tm_sec = 0;
-    // turning off DST
-    init_tm.tm_isdst = 0;
-    time_t init_time = mktime(&init_tm);
-    // converting to double in UTC
-    double t_init = (double) init_time + init_tm.tm_gmtoff;
-    
-    // console output
-    char *stars  = malloc(83*sizeof(char));
-    for (int i = 0; i < 81; ++i)
-    {
-        stars[i] = '*';
-    }
-    stars[81] = '\n';
-    stars[82] = '\0';
-    printf("%s", stars);
-    printf("*\t\t\t\t\t\t\t\t\t\t*\n");
-    printf("*\t\t\t\tThis is the GAME\t\t\t\t*\n");
-    printf("*\t\t\tGeophysical Fluids Modeling Framework\t\t\t*\n");
-    printf("*\t\t\t\t\t\t\t\t\t\t*\n");
-    printf("%s", stars);
-    printf("Released under the MIT license, visit https://github.com/OpenNWP/GAME for more information.\n");
-    printf("%s", stars);
-	printf("What you want to do:\n");
-	printf("Run_id:\t\t\t\t\t%s\n", config_io -> run_id);
-	printf("Run time span:\t\t\t\t%d days\n", config -> total_run_span_min/(24*60));
-	printf("Grid properties file:\t\t\t%s\n", grid_file);
-	
-    // reading the grid
-	printf("Reading grid data ...\n");
-    set_grid_properties(grid, dualgrid, grid_file);
-    printf("Grid loaded successfully.\n");
-    
-    // rescaling times for small Earth experiments
-    double radius_rescale = grid -> radius/RADIUS;
-    config -> total_run_span_min = radius_rescale*config -> total_run_span_min;
-    config_io -> write_out_interval_min = radius_rescale*config_io -> write_out_interval_min;
-    
-    /*
-    Giving the user some additional information on the run to about to be executed.
-    --------------------------------------------------------------------
-    */
-	readback_config(config, config_io, grid, grid_file, init_state_file, stars);
     // Reading and processing user input finished.
     
     printf("Setting initial state ...\n");
