@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
     // reading the grid
 	printf("Reading grid data ...\n");
     set_grid_properties(&grid->no_of_oro_layers,grid->normal_distance,grid->volume,grid->area,grid->z_scalar,grid->z_vector, &
-                        grid->gravity_potential,grid->gravity_m,grid->slope,grid->theta_v_bg,grid->exner_bg,grid->exner_bg_grad, &
+                        grid->gravity_potential,grid->gravity_m,grid->theta_v_bg,grid->exner_bg,grid->exner_bg_grad, &
                         grid->layer_thickness,grid->trsk_indices,grid->trsk_modified_curl_indices,grid->from_index, &
                         grid->to_index,grid->adjacent_vector_indices_h,grid->adjacent_signs_h,grid->density_to_rhombi_indices, &
                         grid->latitude_scalar,grid->longitude_scalar,grid->inner_product_weights,grid->direction, &

@@ -27,7 +27,7 @@ module grid_setup
   contains
 
   subroutine set_grid_properties(no_of_oro_layers,normal_distance,volume,area,z_scalar,z_vector, &
-                                 gravity_potential,gravity_m,slope,theta_v_bg,exner_bg,exner_bg_grad, &
+                                 gravity_potential,theta_v_bg,exner_bg, &
                                  layer_thickness,trsk_indices,trsk_modified_curl_indices,from_index, &
                                  to_index,adjacent_vector_indices_h,adjacent_signs_h,density_to_rhombi_indices, &
                                  latitude_scalar,longitude_scalar,inner_product_weights,direction, &
@@ -43,8 +43,8 @@ module grid_setup
     
     real(wp), intent(out) :: normal_distance(n_vectors),volume(n_scalars),area(n_vectors), &
                              z_scalar(n_scalars),z_vector(n_vectors),gravity_potential(n_scalars), &
-                             gravity_m(n_vectors),slope(n_vectors),theta_v_bg(n_scalars),exner_bg(n_scalars), &
-                             exner_bg_grad(n_vectors),layer_thickness(n_scalars),latitude_scalar(n_scalars_h), &
+                             theta_v_bg(n_scalars),exner_bg(n_scalars), &
+                             layer_thickness(n_scalars),latitude_scalar(n_scalars_h), &
                              longitude_scalar(n_scalars_h),inner_product_weights(8*n_scalars), &
                              direction(n_vectors_h),density_to_rhombi_weights(4*n_vectors_h), &
                              trsk_weights(10*n_vectors_h),sfc_albedo(n_scalars_h),sfc_rho_c(n_scalars_h), &
