@@ -76,13 +76,37 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 		{
 			calc_pressure_grad_condensates_v(irrev -> pressure_gradient_decel_factor,state_old -> rho,grid -> gravity_m,forcings -> pressure_grad_condensates_v);
 			// Only the horizontal momentum is a forward tendency.
-			vector_tendencies_expl(state_old, state_tendency, grid, dualgrid, diagnostics, forcings, irrev, config, rk_step, delta_t);
+			vector_tendencies_expl(state_old->wind,diagnostics->rel_vort_on_triangles,grid->z_vector,dualgrid->z_vector,diagnostics->rel_vort, &
+                                   dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,grid->normal_distance, &
+                                   dualgrid->area,grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,grid->inner_product_weights, &
+                                   grid->slope,diagnostics->temperature,irrev->friction_acc,grid->adjacent_signs_h,grid->adjacent_vector_indices_h,grid->area, &
+                                   irrev->molecular_diffusion_coeff,dualgrid->normal_distance,state_old->rho,irrev->tke,irrev->viscosity,irrev->viscosity_triangles, &
+                                   grid->volume,diagnostics->wind_div,irrev->viscosity_rhombi,diagnostics->vector_field_placeholder,diagnostics->curl_of_vorticity, &
+                                   grid->gravity_m,grid->theta_v_bg,state_old->theta_v_pert,diagnostics->scalar_field_placeholder,diagnostics->n_squared,state_tendency->wind, &
+                                   grid->density_to_rhombi_indices,grid->density_to_rhombi_weights,diagnostics->dv_hdz,grid->exner_bg, &
+                                   state_old->exner_pert,dualgrid->f_vec,diagnostics->flux_density,irrev->heating_diss,grid->layer_thickness,diagnostics->monin_obukhov_length, &
+                                   diagnostics->pot_vort,grid->roughness_length,grid->trsk_indices,grid->trsk_modified_curl_indices,grid->trsk_weights, &
+                                   diagnostics->v_squared,irrev->vert_hor_viscosity,grid->z_scalar,forcings->pot_vort_tend,forcings->v_squared_grad, &
+                                   forcings->pressure_gradient_acc_neg_nl,forcings->pressure_gradient_acc_neg_l,forcings->pgrad_acc_old, &
+                                   forcings->pressure_grad_condensates_v,&rk_step,&config -> totally_first_step_bool);
 	    }
 		if (rk_step == 1)
 		{
 			calc_pressure_grad_condensates_v(irrev -> pressure_gradient_decel_factor,state_new -> rho,grid -> gravity_m,forcings -> pressure_grad_condensates_v);
 			// Only the horizontal momentum is a forward tendency.
-			vector_tendencies_expl(state_new, state_tendency, grid, dualgrid, diagnostics, forcings, irrev, config, rk_step, delta_t);
+			vector_tendencies_expl(state_new->wind,diagnostics->rel_vort_on_triangles,grid->z_vector,dualgrid->z_vector,diagnostics->rel_vort, &
+                                   dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,grid->normal_distance, &
+                                   dualgrid->area,grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,grid->inner_product_weights, &
+                                   grid->slope,diagnostics->temperature,irrev->friction_acc,grid->adjacent_signs_h,grid->adjacent_vector_indices_h,grid->area, &
+                                   irrev->molecular_diffusion_coeff,dualgrid->normal_distance,state_new->rho,irrev->tke,irrev->viscosity,irrev->viscosity_triangles, &
+                                   grid->volume,diagnostics->wind_div,irrev->viscosity_rhombi,diagnostics->vector_field_placeholder,diagnostics->curl_of_vorticity, &
+                                   grid->gravity_m,grid->theta_v_bg,state_new->theta_v_pert,diagnostics->scalar_field_placeholder,diagnostics->n_squared,state_tendency->wind, &
+                                   grid->density_to_rhombi_indices,grid->density_to_rhombi_weights,diagnostics->dv_hdz,grid->exner_bg, &
+                                   state_new->exner_pert,dualgrid->f_vec,diagnostics->flux_density,irrev->heating_diss,grid->layer_thickness,diagnostics->monin_obukhov_length, &
+                                   diagnostics->pot_vort,grid->roughness_length,grid->trsk_indices,grid->trsk_modified_curl_indices,grid->trsk_weights, &
+                                   diagnostics->v_squared,irrev->vert_hor_viscosity,grid->z_scalar,forcings->pot_vort_tend,forcings->v_squared_grad, &
+                                   forcings->pressure_gradient_acc_neg_nl,forcings->pressure_gradient_acc_neg_l,forcings->pgrad_acc_old, &
+                                   forcings->pressure_grad_condensates_v,&rk_step,&config -> totally_first_step_bool);
 	    }
 	    
 	    // time stepping for the horizontal momentum can be directly executed

@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module tke
+module mo_tke
 
   ! In this module, turbulence-related quantities are computed.
 
@@ -65,7 +65,7 @@ module tke
     
   end subroutine tke_update
   
-end module tke
+end module mo_tke
 
 
 
