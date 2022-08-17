@@ -19,7 +19,6 @@ module diff_nml
   logical  :: lmass_diff_v ! vertical mass diffusion switch
   real(wp) :: karman       ! von Karman's constant
   
-  
   namelist /diff/lmom_diff_h,lmom_diff_v,ltemp_diff_h,ltemp_diff_v,lmass_diff_h,lmass_diff_v,h_prandtl,karman
   
   contains

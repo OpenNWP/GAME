@@ -17,6 +17,8 @@ module constituents_nml
   real(wp) :: rain_velocity            ! sedimentation velocity of rain
   real(wp) :: cloud_droplets_velocity  ! sedimentation velocity of cloud droplets
 
+  namelist /constituents/lmoist
+
   contains
 
   subroutine constituents_nml_setup() &
@@ -33,6 +35,12 @@ module constituents_nml
     rain_velocity = 10._wp
     cloud_droplets_velocity = .01_wp
     n_constituents = n_condensed_constituents + n_gaseous_constituents
+    
+    if (lmoist) then
+      write(*,*) "Moisture is turned on."
+    else
+      write(*,*) "Moisture is turned off."
+    endif
     
   end subroutine constituents_nml_setup
   
