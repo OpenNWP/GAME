@@ -33,7 +33,8 @@ module multiplications
   
     ! This subroutine multiplies a vector field by a scalar field at the horizontal gridpoints.
     
-    real(wp), intent(in)  :: scalar_field(n_scalars),vector_field(n_vectors)
+    real(wp), intent(in)  :: scalar_field(n_scalars)
+    real(wp)              :: vector_field(n_vectors)
     integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
     real(wp), intent(out) :: out_field(n_vectors)
     

@@ -22,7 +22,7 @@ src/namelists/grid_nml.f90
 src/time_stepping/manage_pchevi.c
 src/time_stepping/manage_pressure_gradient.f90
 src/time_stepping/vector_tendencies_expl.f90
-src/time_stepping/scalar_tendencies_expl.c
+src/time_stepping/scalar_tendencies_expl.f90
 src/time_stepping/column_solvers.c
 src/time_stepping/column_solvers.f90
 src/spatial_operators/vorticity_flux.f90

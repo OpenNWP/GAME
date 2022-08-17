@@ -125,11 +125,29 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 		// -----------------------------------------------------------
 		if (rk_step == 0)
 		{
-			scalar_tendencies_expl(state_old, state_new, state_tendency, grid, dualgrid, delta_t, diagnostics, forcings, irrev, config, rk_step);
+			scalar_tendencies_expl(state_old->rho,irrev->mass_diff_tendency,diagnostics->scalar_field_placeholder,grid->adjacent_vector_indices_h, &
+                                   state_tendency->rhotheta_v,grid->adjacent_signs_h,grid->area,diagnostics->flux_density,grid->from_index,grid->to_index, &
+                                   grid->inner_product_weights,grid->layer_thickness,irrev->mass_diffusion_coeff_numerical_h, &
+                                   irrev->mass_diffusion_coeff_numerical_v,irrev->molecular_diffusion_coeff,diagnostics->n_squared, &
+                                   grid->normal_distance,state_old->rhotheta_v,grid->slope,irrev->temp_diffusion_coeff_numerical_h, &
+                                   irrev->temp_diffusion_coeff_numerical_v,diagnostics->temperature,irrev->tke,diagnostics->vector_field_placeholder, &
+                                   irrev->viscosity,irrev->viscosity_rhombi,irrev->viscosity_triangles,grid->volume,dualgrid->vorticity_indices_triangles, &
+                                   state_new->wind,irrev->temperature_diffusion_heating,diagnostics->flux_density_div,state_tendency->rho,irrev->phase_trans_rates, &
+                                   state_old->exner_pert,grid->exner_bg,irrev->condensates_sediment_heat,irrev->phase_trans_heating_rate, &
+                                   forcings->radiation_tendency,irrev->heating_diss,&rk_step);
 		}
 		if (rk_step == 1)
 		{
-			scalar_tendencies_expl(state_new, state_new, state_tendency, grid, dualgrid, delta_t, diagnostics, forcings, irrev, config, rk_step);
+			scalar_tendencies_expl(state_new->rho,irrev->mass_diff_tendency,diagnostics->scalar_field_placeholder,grid->adjacent_vector_indices_h, &
+                                   state_tendency->rhotheta_v,grid->adjacent_signs_h,grid->area,diagnostics->flux_density,grid->from_index,grid->to_index, &
+                                   grid->inner_product_weights,grid->layer_thickness,irrev->mass_diffusion_coeff_numerical_h, &
+                                   irrev->mass_diffusion_coeff_numerical_v,irrev->molecular_diffusion_coeff,diagnostics->n_squared, &
+                                   grid->normal_distance,state_new->rhotheta_v,grid->slope,irrev->temp_diffusion_coeff_numerical_h, &
+                                   irrev->temp_diffusion_coeff_numerical_v,diagnostics->temperature,irrev->tke,diagnostics->vector_field_placeholder, &
+                                   irrev->viscosity,irrev->viscosity_rhombi,irrev->viscosity_triangles,grid->volume,dualgrid->vorticity_indices_triangles, &
+                                   state_new->wind,irrev->temperature_diffusion_heating,diagnostics->flux_density_div,state_tendency->rho,irrev->phase_trans_rates, &
+                                   state_new->exner_pert,grid->exner_bg,irrev->condensates_sediment_heat,irrev->phase_trans_heating_rate, &
+                                   forcings->radiation_tendency,irrev->heating_diss,&rk_step);
 		}
 
 		// 3.) vertical sound wave solver
