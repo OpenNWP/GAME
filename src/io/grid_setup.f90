@@ -76,7 +76,7 @@ module grid_setup
     character(len=128) :: grid_file_name
     
     ! determining the grid file
-    grid_file_name = "../../grid_generator/grids/RES" // "5" // "_L" // &
+    grid_file_name = "../../grid_generator/grids/RES" // trim(int2string(res_id)) // "_L" // &
                      trim(int2string(n_layers)) // "_ORO" // trim(int2string(oro_id)) // ".nc"
                      
     call nc_check(nf90_open(grid_file_name,NF90_CLOBBER,ncid))

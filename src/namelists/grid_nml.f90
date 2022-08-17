@@ -7,7 +7,6 @@ module grid_nml
   
   use iso_c_binding
   use definitions, only: wp
-  use constants,   only: r_e,M_PI
   
   implicit none
   
