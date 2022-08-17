@@ -51,6 +51,11 @@ module grid_nml
     res_id = 5
     n_layers = 26
     oro_id = 1
+    
+    write(*,*) "resolution ID:", res_id
+    write(*,*) "number of layers:", n_layers
+    write(*,*) "orography ID:", oro_id
+    
     ! depend on the resolution
     n_pentagons = 12
     n_hexagons = 10*(2**(2*res_id)-1)

@@ -36,6 +36,37 @@ module diff_nml
     lmass_diff_h = .true.
     lmass_diff_v = .true.
     karman=0.4_wp
+    
+    if (lmom_diff_h) then
+      write(*,*) "Horizontal momentum diffusion is turned on."
+    else
+      write(*,*) "Horizontal momentum diffusion is turned off."
+    endif
+    if (lmom_diff_v) then
+      write(*,*) "Vertical momentum diffusion is turned on."
+    else
+      write(*,*) "Vertical momentum diffusion is turned off."
+    endif
+    if (ltemp_diff_h) then
+      write(*,*) "Horizontal temperature diffusion is turned on."
+    else
+      write(*,*) "Horizontal temperature diffusion is turned off."
+    endif
+    if (ltemp_diff_v) then
+      write(*,*) "Vertical temperature diffusion is turned on."
+    else
+      write(*,*) "Vertical temperature diffusion is turned off."
+    endif
+    if (lmass_diff_h) then
+      write(*,*) "Horizontal mass diffusion is turned on."
+    else
+      write(*,*) "Horizontal mass diffusion is turned off."
+    endif
+    if (lmass_diff_v) then
+      write(*,*) "Vertical mass diffusion is turned on."
+    else
+      write(*,*) "Vertical mass diffusion is turned off."
+    endif
   
   end subroutine diff_nml_setup
   

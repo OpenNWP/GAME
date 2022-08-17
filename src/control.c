@@ -93,6 +93,24 @@ int main(int argc, char *argv[])
     // taking the timestamp to measure the performance
     clock_t begin = clock();
     
+    
+    // console output
+    char *stars  = malloc(83*sizeof(char));
+    for (int i = 0; i < 81; ++i)
+    {
+        stars[i] = '*';
+    }
+    stars[81] = '\n';
+    stars[82] = '\0';
+    printf("%s", stars);
+    printf("*\t\t\t\t\t\t\t\t\t\t*\n");
+    printf("*\t\t\t\tThis is the GAME\t\t\t\t*\n");
+    printf("*\t\t\tGeophysical Fluids Modeling Framework\t\t\t*\n");
+    printf("*\t\t\t\t\t\t\t\t\t\t*\n");
+    printf("%s", stars);
+    printf("Released under the MIT license, visit https://github.com/OpenNWP/GAME for more information.\n");
+    printf("%s", stars);
+    
     /*
     allocating memory
     ------------------
@@ -167,27 +185,6 @@ int main(int argc, char *argv[])
     time_t init_time = mktime(&init_tm);
     // converting to double in UTC
     double t_init = (double) init_time + init_tm.tm_gmtoff;
-    
-    // console output
-    char *stars  = malloc(83*sizeof(char));
-    for (int i = 0; i < 81; ++i)
-    {
-        stars[i] = '*';
-    }
-    stars[81] = '\n';
-    stars[82] = '\0';
-    printf("%s", stars);
-    printf("*\t\t\t\t\t\t\t\t\t\t*\n");
-    printf("*\t\t\t\tThis is the GAME\t\t\t\t*\n");
-    printf("*\t\t\tGeophysical Fluids Modeling Framework\t\t\t*\n");
-    printf("*\t\t\t\t\t\t\t\t\t\t*\n");
-    printf("%s", stars);
-    printf("Released under the MIT license, visit https://github.com/OpenNWP/GAME for more information.\n");
-    printf("%s", stars);
-	printf("What you want to do:\n");
-	printf("Run_id:\t\t\t\t\t%s\n", config_io -> run_id);
-	printf("Run time span:\t\t\t\t%d days\n", config -> total_run_span_min/(24*60));
-	printf("Grid properties file:\t\t\t%s\n", grid_file);
 	
     // reading the grid
 	printf("Reading grid data ...\n");
