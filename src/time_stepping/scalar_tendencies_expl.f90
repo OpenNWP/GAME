@@ -41,7 +41,8 @@ module mo_explicit_scalar_tend
                                volume(n_scalars),wind(n_vectors),phase_trans_rates((n_condensed_constituents+1)*n_scalars), &
                                exner_pert(n_scalars),exner_bg(n_scalars),condensates_sediment_heat(n_scalars), &
                                phase_trans_heating_rate(n_scalars),radiation_tendency(n_scalars),heating_diss(n_scalars)
-    real(wp), intent(out)   :: mass_diff_tendency(n_scalars),rhotheta_v_tend(n_scalars),scalar_field_placeholder(n_scalars), &
+    real(wp), intent(out)   :: mass_diff_tendency(n_constituents*n_scalars),rhotheta_v_tend(n_scalars), &
+                               scalar_field_placeholder(n_scalars), &
                                flux_density(n_vectors),mass_diffusion_coeff_numerical_h(n_scalars), &
                                mass_diffusion_coeff_numerical_v(n_scalars),molecular_diffusion_coeff(n_scalars), &
                                temp_diffusion_coeff_numerical_h(n_scalars),temp_diffusion_coeff_numerical_v(n_scalars), &
@@ -97,22 +98,21 @@ module mo_explicit_scalar_tend
     if (lmass_diff_h .and. rk_step==0) then
       ! loop over all constituents
       do j_constituent=1,n_constituents
-        scalar_shift_index = j_constituent*n_scalars
+        scalar_shift_index = (j_constituent-1)*n_scalars
 
         ! The diffusion of the tracer density depends on its gradient.
-        call grad(rho(scalar_shift_index+1:scalar_shift_index+1+n_scalars),vector_field_placeholder, &
+        call grad(rho(scalar_shift_index+1:scalar_shift_index+n_scalars),vector_field_placeholder, &
                   from_index,to_index,normal_distance,inner_product_weights,slope)
         ! Now the diffusive mass flux density can be obtained.
         call scalar_times_vector_h(mass_diffusion_coeff_numerical_h, &
                                    vector_field_placeholder,vector_field_placeholder,from_index,to_index)
         ! The divergence of the diffusive mass flux density is the diffusive mass source rate.
-        call div_h(vector_field_placeholder,mass_diff_tendency(scalar_shift_index+1:scalar_shift_index+1+n_scalars), &
+        call div_h(vector_field_placeholder,mass_diff_tendency(1:n_scalars), &
                    adjacent_signs_h,adjacent_vector_indices_h,inner_product_weights,slope,area,volume)
         ! vertical mass diffusion
         if (lmass_diff_v) then
           call scalar_times_vector_v(mass_diffusion_coeff_numerical_v,vector_field_placeholder,vector_field_placeholder)
-          call add_vertical_div(vector_field_placeholder, &
-                                mass_diff_tendency(scalar_shift_index+1:scalar_shift_index+1+n_scalars),area,volume)
+          call add_vertical_div(vector_field_placeholder,mass_diff_tendency(1:n_scalars),area,volume)
         endif
       enddo
     endif
@@ -122,7 +122,7 @@ module mo_explicit_scalar_tend
     
     ! loop over all constituents
     do j_constituent=1,n_constituents
-      scalar_shift_index = j_constituent*n_scalars
+      scalar_shift_index = (j_constituent-1)*n_scalars
       scalar_shift_index_phase_trans = scalar_shift_index
       if (lmoist .and. j_constituent==n_condensed_constituents+2) then
         scalar_shift_index_phase_trans = scalar_shift_index - n_scalars
@@ -132,13 +132,14 @@ module mo_explicit_scalar_tend
         ! -------------------------------------------------------------------------------
         ! moist air
       if (j_constituent==n_condensed_constituents+1) then
-        call scalar_times_vector_h(rho(scalar_shift_index:scalar_shift_index+n_scalars),wind,flux_density,from_index,to_index)
+        call scalar_times_vector_h(rho(scalar_shift_index+1:scalar_shift_index+n_scalars),wind,flux_density,from_index,to_index)
         call div_h(flux_density,flux_density_div, &
         adjacent_signs_h,adjacent_vector_indices_h,inner_product_weights,slope,area,volume)
       ! all other constituents
       else
-        call scalar_times_vector_h_upstream(rho(scalar_shift_index),wind,flux_density,from_index,to_index)
-        call div_h_tracer(flux_density,rho(scalar_shift_index),wind,flux_density_div, &
+        call scalar_times_vector_h_upstream(rho(scalar_shift_index+1:scalar_shift_index+n_scalars), &
+                                            wind,flux_density,from_index,to_index)
+        call div_h_tracer(flux_density,rho(scalar_shift_index+1:scalar_shift_index+n_scalars),wind,flux_density_div, &
                           adjacent_signs_h,adjacent_vector_indices_h,inner_product_weights,slope,area,volume)
       endif
       
@@ -147,8 +148,8 @@ module mo_explicit_scalar_tend
       do ji=1,n_scalars
         scalar_index = scalar_shift_index + ji
         rho_tend(scalar_index) &
-        = old_weight(ji)*rho(scalar_index) &
-        + new_weight(ji)*( &
+        = old_weight(j_constituent)*rho(scalar_index) &
+        + new_weight(j_constituent)*( &
         ! the advection
         -flux_density_div(ji) &
         ! the diffusion
@@ -164,7 +165,7 @@ module mo_explicit_scalar_tend
       if (j_constituent==n_condensed_constituents+1) then
         ! determining the virtual potential temperature
         !$omp parallel workshare
-        scalar_field_placeholder = rhotheta_v/rho(scalar_shift_index+1:scalar_shift_index+n_scalars+1)
+        scalar_field_placeholder = rhotheta_v/rho(scalar_shift_index+1:scalar_shift_index+n_scalars)
         !$omp end parallel workshare
         
         call scalar_times_vector_h(scalar_field_placeholder,flux_density,flux_density,from_index,to_index)
@@ -174,8 +175,8 @@ module mo_explicit_scalar_tend
         !$omp parallel do private(ji)
         do ji=1,n_scalars
           rhotheta_v_tend(ji) &
-          = old_weight(ji)*rhotheta_v_tend(ji) &
-          + new_weight(ji)*( &
+          = old_weight(j_constituent)*rhotheta_v_tend(ji) &
+          + new_weight(j_constituent)*( &
           ! the advection (resolved transport)
           -flux_density_div(ji) &
           ! the diabatic forcings
