@@ -150,10 +150,10 @@ module mo_explicit_wind_tend
       layer_index = (ji-1)/n_vectors_per_layer
       h_index = ji - layer_index*n_vectors_per_layer
       ! upper and lower boundary
-      if (ji<=n_scalars_h .or. ji >= n_vectors-n_scalars_h+1) then
+      if (ji<=n_scalars_h .or. ji>=n_vectors-n_scalars_h+1) then
         wind_tend(ji) = 0._wp
       ! horizontal case
-      elseif (h_index>=n_scalars_h) then
+      elseif (h_index>=n_scalars_h+1) then
         wind_tend(ji) = &
         old_weight*wind_tend(ji) + new_weight*( &
         ! explicit component of pressure gradient acceleration
@@ -168,7 +168,7 @@ module mo_explicit_wind_tend
         ! momentum diffusion
         + friction_acc(ji))
       ! vertical case
-      elseif (h_index<n_scalars_h) then
+      elseif (h_index<=n_scalars_h) then
         wind_tend(ji) = &
         old_weight*wind_tend(ji) + new_weight*( &
         ! explicit component of pressure gradient acceleration
