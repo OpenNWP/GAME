@@ -78,7 +78,8 @@ module grid_setup
     ! determining the grid file
     grid_file_name = "../../grid_generator/grids/RES" // trim(int2string(res_id)) // "_L" // &
                      trim(int2string(n_layers)) // "_ORO" // trim(int2string(oro_id)) // ".nc"
-                     
+    write(*,*) "Grid filename:", grid_file_name
+    
     call nc_check(nf90_open(grid_file_name,NF90_CLOBBER,ncid))
     call nc_check(nf90_inq_varid(ncid,"no_of_oro_layers",no_of_oro_layers_id))
     call nc_check(nf90_inq_varid(ncid,"toa",toa_id))
@@ -164,8 +165,8 @@ module grid_setup
     
     radius_rescale = radius/r_e
     no_of_oro_layers = n_oro_layers
-    mean_velocity_area = 2._wp/3._wp*4*M_PI*radius**2/n_scalars_h
-    eff_hor_res = sqrt(4*M_PI*radius**2/n_scalars_h)
+    mean_velocity_area = 2._wp/3._wp*4._wp*M_PI*radius**2/n_scalars_h
+    eff_hor_res = sqrt(4._wp*M_PI*radius**2/n_scalars_h)
     
     !$omp parallel do private(ji)
     do ji=1,6*n_scalars_h
@@ -200,7 +201,7 @@ module grid_setup
     do ji=2,nsoillays+1
       z_soil_interface(ji) = z_soil_interface(ji-1) + sigma_soil**(nsoillays+1-ji)
     enddo
-    rescale_factor = z_t_const/z_soil_interface(nsoillays)
+    rescale_factor = z_t_const/z_soil_interface(nsoillays+1)
     do ji=2,nsoillays+1
       z_soil_interface(ji) = rescale_factor*z_soil_interface(ji)
     enddo

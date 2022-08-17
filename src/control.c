@@ -526,7 +526,7 @@ int main(int argc, char *argv[])
     write_out(state_1, wind_h_lowest_layer, min_no_of_10m_wind_avg_steps, t_init, t_write,
     diagnostics, forcings, grid, dualgrid, config_io, config, irrev);
     
-    t_write += 60*config_io -> write_out_interval_min;
+    t_write += 60.0*config_io -> write_out_interval_min;
     printf("Run progress: %f h\n", (t_init - t_init)/3600);
     int time_step_counter = 0;
     clock_t first_time, second_time;
@@ -615,17 +615,17 @@ int main(int argc, char *argv[])
 				new_weight = (t_write - t_0)/delta_t;
 				old_weight = 1.0 - new_weight;
 				linear_combine_two_states(state_1 -> rho, state_1 -> rhotheta_v, state_1 -> exner_pert, state_1 -> wind, state_1 -> temperature_soil,
-				state_1 -> rho, state_1 -> rhotheta_v, state_1 -> exner_pert, state_1 -> wind, state_1 -> temperature_soil,
-				state_2 -> rho, state_2 -> rhotheta_v, state_2 -> theta_v_pert, state_2 -> exner_pert, state_2 -> wind, state_2 -> temperature_soil,
+				state_2 -> rho, state_2 -> rhotheta_v, state_2 -> exner_pert, state_2 -> wind, state_2 -> temperature_soil,
+				state_write -> rho, state_write -> rhotheta_v, state_write -> theta_v_pert, state_write -> exner_pert, state_write -> wind, state_write -> temperature_soil,
 				&old_weight, &new_weight, grid -> theta_v_bg);
         	}
 			else
 			{
 				new_weight = (t_write - t_0)/delta_t;
 				old_weight = 1.0 - new_weight;
-				linear_combine_two_states(state_1 -> rho, state_1 -> rhotheta_v, state_1 -> exner_pert, state_1 -> wind, state_1 -> temperature_soil,
+				linear_combine_two_states(state_2 -> rho, state_2 -> rhotheta_v, state_2 -> exner_pert, state_2 -> wind, state_2 -> temperature_soil,
 				state_1 -> rho, state_1 -> rhotheta_v, state_1 -> exner_pert, state_1 -> wind, state_1 -> temperature_soil,
-				state_2 -> rho, state_2 -> rhotheta_v, state_2 -> theta_v_pert, state_2 -> exner_pert, state_2 -> wind, state_2 -> temperature_soil,
+				state_write -> rho, state_write -> rhotheta_v, state_write -> theta_v_pert, state_write -> exner_pert, state_write -> wind, state_write -> temperature_soil,
 				&old_weight, &new_weight, grid -> theta_v_bg);
         	}
     	}
@@ -662,7 +662,7 @@ int main(int argc, char *argv[])
             write_out(state_write, wind_h_lowest_layer, min_no_of_10m_wind_avg_steps, t_init, t_write, diagnostics, forcings,
             grid, dualgrid, config_io, config, irrev);
             // setting the next output time
-            t_write += 60*config_io -> write_out_interval_min;
+            t_write += 60.0*config_io -> write_out_interval_min;
             
             // Calculating the speed of the model.
             second_time = clock();
