@@ -107,12 +107,13 @@ module mo_explicit_scalar_tend
         call scalar_times_vector_h(mass_diffusion_coeff_numerical_h, &
                                    vector_field_placeholder,vector_field_placeholder,from_index,to_index)
         ! The divergence of the diffusive mass flux density is the diffusive mass source rate.
-        call div_h(vector_field_placeholder,mass_diff_tendency(1:n_scalars), &
+        call div_h(vector_field_placeholder,mass_diff_tendency(scalar_shift_index+1:scalar_shift_index+n_scalars), &
                    adjacent_signs_h,adjacent_vector_indices_h,inner_product_weights,slope,area,volume)
         ! vertical mass diffusion
         if (lmass_diff_v) then
           call scalar_times_vector_v(mass_diffusion_coeff_numerical_v,vector_field_placeholder,vector_field_placeholder)
-          call add_vertical_div(vector_field_placeholder,mass_diff_tendency(1:n_scalars),area,volume)
+          call add_vertical_div(vector_field_placeholder,mass_diff_tendency(scalar_shift_index+1:scalar_shift_index+n_scalars), &
+                                area,volume)
         endif
       enddo
     endif
@@ -134,7 +135,7 @@ module mo_explicit_scalar_tend
       if (j_constituent==n_condensed_constituents+1) then
         call scalar_times_vector_h(rho(scalar_shift_index+1:scalar_shift_index+n_scalars),wind,flux_density,from_index,to_index)
         call div_h(flux_density,flux_density_div, &
-        adjacent_signs_h,adjacent_vector_indices_h,inner_product_weights,slope,area,volume)
+                   adjacent_signs_h,adjacent_vector_indices_h,inner_product_weights,slope,area,volume)
       ! all other constituents
       else
         call scalar_times_vector_h_upstream(rho(scalar_shift_index+1:scalar_shift_index+n_scalars), &
@@ -148,7 +149,7 @@ module mo_explicit_scalar_tend
       do ji=1,n_scalars
         scalar_index = scalar_shift_index + ji
         rho_tend(scalar_index) &
-        = old_weight(j_constituent)*rho(scalar_index) &
+        = old_weight(j_constituent)*rho_tend(scalar_index) &
         + new_weight(j_constituent)*( &
         ! the advection
         -flux_density_div(ji) &
