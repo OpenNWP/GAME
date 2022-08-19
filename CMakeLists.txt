@@ -35,6 +35,7 @@ src/spatial_operators/inner_product.f90
 src/spatial_operators/averaging.f90
 src/spatial_operators/linear_combine_two_states.f90
 src/io/set_initial_state.c
+src/io/set_initial_state.f90
 src/io/write_output.c
 src/io/grid_setup.f90
 src/io/spatial_ops_for_output.f90
