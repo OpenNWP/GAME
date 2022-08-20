@@ -78,12 +78,12 @@ module derived_quantities
     real(wp)            :: density_total ! the result
     
     ! local variables
-    integer :: j_constituent
+    integer :: jc
     
     density_total = 0._wp
     
-    do j_constituent=0,n_constituents-1
-      density_total = density_total + rho(1+ji+j_constituent*n_scalars)
+    do jc=0,n_constituents-1
+      density_total = density_total + rho(1+ji+jc*n_scalars)
     enddo
     
   end function density_total
@@ -150,14 +150,14 @@ module derived_quantities
     real(wp) :: c_v_mass_weighted_air
     
     ! local variables
-    integer :: j_constituent
+    integer :: jc
     
     c_v_mass_weighted_air = 0._wp
-    do j_constituent=0,n_condensed_constituents-1
+    do jc=0,n_condensed_constituents-1
       ! It is correct to use c_p here because the compression of the condensates has almost no effect on the air pressure.
       c_v_mass_weighted_air = c_v_mass_weighted_air &
-                              +rho(j_constituent*n_scalars+1+grid_point_index) &
-                              *c_p_cond(j_constituent,temperature(1+grid_point_index))
+                              +rho(jc*n_scalars+1+grid_point_index) &
+                              *c_p_cond(jc,temperature(1+grid_point_index))
     enddo
     c_v_mass_weighted_air = rho(n_condensed_constituents*n_scalars+1+grid_point_index)*c_d_v
     if (lmoist) then

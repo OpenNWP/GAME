@@ -57,7 +57,7 @@ module set_initial_state
                              is_land(n_scalars_h)
     
     ! local variables
-    integer               :: ji,jl,j_const,layer_index,h_index,scalar_index,ncid_grid,latitude_vector_id, &
+    integer               :: ji,jl,jc,layer_index,h_index,scalar_index,ncid_grid,latitude_vector_id, &
                              longitude_vector_id
     real(wp)              :: dummy_0,dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,lat,lon,z_height,u,v, &
                              pressure_value,specific_humidity,dry_density,b,c,small_atmos_rescale
@@ -249,11 +249,11 @@ module set_initial_state
     theta_v_pert = theta_v_pert - theta_v_bg
     !$omp end parallel workshare
     
-    !$omp parallel do private(ji,j_const)
+    !$omp parallel do private(ji,jc)
     do ji=1,n_scalars
-      do j_const=0,n_condensed_constituents-1
+      do jc=0,n_condensed_constituents-1
         ! condensed densities are zero in all test states
-        rho(j_const*n_scalars + ji) = 0._wp
+        rho(jc*n_scalars + ji) = 0._wp
       enddo
       ! the moist air density
       rho(n_condensed_constituents*n_scalars + ji) = scalar_field_placeholder(ji)

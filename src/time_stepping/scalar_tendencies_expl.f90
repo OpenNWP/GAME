@@ -54,19 +54,19 @@ module mo_explicit_scalar_tend
     real(wp), intent(inout) :: viscosity(n_scalars),viscosity_rhombi(n_vectors),viscosity_triangles(n_dual_v_vectors)
     
     ! local variables
-    integer  :: ji,j_constituent,scalar_shift_index,scalar_shift_index_phase_trans,scalar_index
+    integer  :: ji,jc,scalar_shift_index,scalar_shift_index_phase_trans,scalar_index
     real(wp) :: old_weight(n_constituents),new_weight(n_constituents)
     
     ! Firstly,some things need to prepared.
     ! --------------------------------------
     
     ! determining the RK weights
-    do j_constituent=1,n_constituents
-      new_weight(j_constituent) = 1._wp
-      if (rk_step==1 .and. j_constituent/=n_condensed_constituents+1) then
-        new_weight(j_constituent) = 0.5_wp
+    do jc=1,n_constituents
+      new_weight(jc) = 1._wp
+      if (rk_step==1 .and. jc/=n_condensed_constituents+1) then
+        new_weight(jc) = 0.5_wp
       endif
-      old_weight(j_constituent) = 1._wp-new_weight(j_constituent)
+      old_weight(jc) = 1._wp-new_weight(jc)
     enddo
     
     ! updating the scalar diffusion coefficient if required
@@ -97,8 +97,8 @@ module mo_explicit_scalar_tend
     ! Mass diffusion gets updated at the first RK step if required.
     if (lmass_diff_h .and. rk_step==0) then
       ! loop over all constituents
-      do j_constituent=1,n_constituents
-        scalar_shift_index = (j_constituent-1)*n_scalars
+      do jc=1,n_constituents
+        scalar_shift_index = (jc-1)*n_scalars
 
         ! The diffusion of the tracer density depends on its gradient.
         call grad(rho(scalar_shift_index+1:scalar_shift_index+n_scalars),vector_field_placeholder, &
@@ -122,17 +122,17 @@ module mo_explicit_scalar_tend
     ! --------------------------------------------------
     
     ! loop over all constituents
-    do j_constituent=1,n_constituents
-      scalar_shift_index = (j_constituent-1)*n_scalars
+    do jc=1,n_constituents
+      scalar_shift_index = (jc-1)*n_scalars
       scalar_shift_index_phase_trans = scalar_shift_index
-      if (lmoist .and. j_constituent==n_condensed_constituents+2) then
+      if (lmoist .and. jc==n_condensed_constituents+2) then
         scalar_shift_index_phase_trans = scalar_shift_index - n_scalars
       endif
       
         ! This is the mass advection,which needs to be carried out for all constituents.
         ! -------------------------------------------------------------------------------
         ! moist air
-      if (j_constituent==n_condensed_constituents+1) then
+      if (jc==n_condensed_constituents+1) then
         call scalar_times_vector_h(rho(scalar_shift_index+1:scalar_shift_index+n_scalars),wind,flux_density,from_index,to_index)
         call div_h(flux_density,flux_density_div, &
                    adjacent_signs_h,adjacent_vector_indices_h,inner_product_weights,slope,area,volume)
@@ -149,8 +149,8 @@ module mo_explicit_scalar_tend
       do ji=1,n_scalars
         scalar_index = scalar_shift_index + ji
         rho_tend(scalar_index) &
-        = old_weight(j_constituent)*rho_tend(scalar_index) &
-        + new_weight(j_constituent)*( &
+        = old_weight(jc)*rho_tend(scalar_index) &
+        + new_weight(jc)*( &
         ! the advection
         -flux_density_div(ji) &
         ! the diffusion
@@ -163,7 +163,7 @@ module mo_explicit_scalar_tend
       ! Explicit component of the rho*theta_v integration
       ! -------------------------------------------------
       
-      if (j_constituent==n_condensed_constituents+1) then
+      if (jc==n_condensed_constituents+1) then
         ! determining the virtual potential temperature
         !$omp parallel workshare
         scalar_field_placeholder = rhotheta_v/rho(scalar_shift_index+1:scalar_shift_index+n_scalars)
@@ -176,8 +176,8 @@ module mo_explicit_scalar_tend
         !$omp parallel do private(ji)
         do ji=1,n_scalars
           rhotheta_v_tend(ji) &
-          = old_weight(j_constituent)*rhotheta_v_tend(ji) &
-          + new_weight(j_constituent)*( &
+          = old_weight(jc)*rhotheta_v_tend(ji) &
+          + new_weight(jc)*( &
           ! the advection (resolved transport)
           -flux_density_div(ji) &
           ! the diabatic forcings
