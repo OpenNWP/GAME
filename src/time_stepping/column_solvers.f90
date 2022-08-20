@@ -101,7 +101,7 @@ module column_solvers
           
           ! filling up the original vectors
           do j=1,n_layers-1
-            base_index = i + j*n_scalars_h
+            base_index = i + (j-1)*n_scalars_h
             if (vertical_flux_vector_impl(j)>=0._wp) then
               c_vector(j) = 0._wp
               e_vector(j) = -impl_weight*dtime/volume(base_index)*vertical_flux_vector_impl(j)
@@ -111,14 +111,14 @@ module column_solvers
             endif
           enddo
           do j=1,n_layers
-            base_index = i + j*n_scalars_h
+            base_index = i + (j-1)*n_scalars_h
             if (j==1) then
               if (vertical_flux_vector_impl(1)>=0._wp) then
                 d_vector(j) = 1._wp
               else
                 d_vector(j) = 1._wp - impl_weight*dtime/volume(base_index)*vertical_flux_vector_impl(1)
               endif
-            elseif (j==n_layers - 1) then
+            elseif (j==n_layers) then
               if (vertical_flux_vector_impl(j-1)>=0._wp) then
                 d_vector(j) = 1._wp + impl_weight*dtime/volume(base_index)*vertical_flux_vector_impl(j-1)
               else
@@ -223,8 +223,8 @@ module column_solvers
           enddo
           
           ! writing the result into the new state
-          do j=0,n_layers-1
-            base_index = i + j*n_scalars_h
+          do j=1,n_layers
+            base_index = i + (j-1)*n_scalars_h
             rho_new(k*n_scalars + base_index) = solution_vector(j)
           enddo
         enddo ! horizontal index
