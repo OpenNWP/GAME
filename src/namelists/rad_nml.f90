@@ -6,7 +6,8 @@ module rad_nml
   ! This is the namelists the configures the basic run properties of a model integration.
   
   use iso_c_binding
-  use grid_nml,     only: n_scalars,n_scalars_h
+  use definitions, only: wp
+  use grid_nml,    only: n_scalars,n_scalars_h,eff_hor_res
   
   implicit none
   
@@ -14,6 +15,7 @@ module rad_nml
   integer            :: n_rad_blocks                ! number of radiation domains
   integer            :: n_scals_rad                 ! number of scalars per radiation domain
   integer            :: n_scals_rad_h               ! numbers of horizontal scalars per layer of the radiaiton domain
+  real(wp)           :: radiation_dtime             ! radiation_dtime
   character(len=128) :: rrtmgp_coefficients_file_sw ! the name of the short wave data file
   character(len=128) :: rrtmgp_coefficients_file_lw ! the name of the long wave data file
   character(len=128) :: cloud_coefficients_file_sw  ! the name of the short wave cloud optics file
@@ -30,6 +32,7 @@ module rad_nml
     n_rad_blocks = 18
     n_scals_rad = n_scalars/n_rad_blocks
     n_scals_rad_h = n_scalars_h/n_rad_blocks
+    radiation_dtime = 60.0*1e-3*eff_hor_res
     rrtmgp_coefficients_file_sw = &
     "/home/max/code/rte-rrtmgp/rrtmgp/data/rrtmgp-data-sw-g112-210809.nc"
     rrtmgp_coefficients_file_lw = &

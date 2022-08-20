@@ -154,11 +154,27 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 		// ------------------------------
 		if (rk_step == 0)
 		{
-			three_band_solver_ver_waves(state_old, state_old, state_new, state_tendency, diagnostics, forcings, config, delta_t, grid, rk_step);
+			three_band_solver_ver_waves(grid->z_vector,grid->area,grid->volume,diagnostics->scalar_flux_resistance,state_new->theta_v_pert, &
+                                        state_new->rho,state_old->rhotheta_v,state_old->rho,state_old->rho,state_old->theta_v_pert,grid->theta_v_bg, &
+                                        state_old->exner_pert,grid->exner_bg,state_old->theta_v_pert,state_old->exner_pert, &
+                                        diagnostics->power_flux_density_sensible,state_old->temperature_soil,state_old->temperature_soil, &
+                                        state_tendency->rhotheta_v,grid->is_land,state_tendency->rho,state_old->rhotheta_v,state_old->wind, &
+                                        grid->z_scalar,state_tendency->wind,grid->z_soil_center,grid->t_conduc_soil,grid->sfc_rho_c, &
+                                        forcings->sfc_lw_out,forcings->sfc_sw_in,grid->t_const_soil,grid->z_soil_interface, &
+                                        diagnostics->power_flux_density_latent,state_new->rhotheta_v,state_new->exner_pert, &
+                                        state_new->wind,state_new->temperature_soil,&grid->z_t_const,&rk_step);
 		}
 		if (rk_step == 1)
 		{
-			three_band_solver_ver_waves(state_old, state_new, state_new, state_tendency, diagnostics, forcings, config, delta_t, grid, rk_step);
+			three_band_solver_ver_waves(grid->z_vector,grid->area,grid->volume,diagnostics->scalar_flux_resistance,state_new->theta_v_pert, &
+                                        state_new->rho,state_new->rhotheta_v,state_new->rho,state_old->rho,state_old->theta_v_pert,grid->theta_v_bg, &
+                                        state_old->exner_pert,grid->exner_bg,state_new->theta_v_pert,state_new->exner_pert, &
+                                        diagnostics->power_flux_density_sensible,state_new->temperature_soil,state_old->temperature_soil, &
+                                        state_tendency->rhotheta_v,grid->is_land,state_tendency->rho,state_old->rhotheta_v,state_old->wind, &
+                                        grid->z_scalar,state_tendency->wind,grid->z_soil_center,grid->t_conduc_soil,grid->sfc_rho_c, &
+                                        forcings->sfc_lw_out,forcings->sfc_sw_in,grid->t_const_soil,grid->z_soil_interface, &
+                                        diagnostics->power_flux_density_latent,state_new->rhotheta_v,state_new->exner_pert, &
+                                        state_new->wind,state_new->temperature_soil,&grid->z_t_const,&rk_step);
 		}
 		
 		// 4.) vertical tracer advection
