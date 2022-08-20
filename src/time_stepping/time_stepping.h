@@ -9,7 +9,7 @@ extern int calc_pressure_grad_condensates_v();
 extern int vector_tendencies_expl();
 extern int scalar_tendencies_expl();
 int three_band_solver_ver_waves(State *, State *, State *, State *, Diagnostics *, Forcings *, Config *, double, Grid *, int);
-int three_band_solver_gen_densities(State *, State *, State *, Diagnostics *, Irreversible_quantities *, Config *, double, int, Grid *);
+extern int three_band_solver_gen_densities();
 
 
 

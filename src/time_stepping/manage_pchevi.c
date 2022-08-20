@@ -165,7 +165,8 @@ Irreversible_quantities *irrev, Config *config, double delta_t, double time_coor
 		// -----------------------------
 		if (N_CONSTITUENTS > 1)
 		{
-			three_band_solver_gen_densities(state_old, state_new, state_tendency, diagnostics, irrev, config, delta_t, rk_step, grid);
+			three_band_solver_gen_densities(state_old -> wind,state_new -> wind,grid -> volume,state_tendency -> rho,state_old -> rho,state_new -> rho, &
+                                            irrev->condensates_sediment_heat,grid -> area,diagnostics -> temperature,&rk_step);
 		}
     }
     
