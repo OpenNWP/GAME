@@ -180,7 +180,7 @@ module set_initial_state
     
     ! setting the vertical wind field equal to zero
     !$omp parallel do private(ji,jl)
-    do ji=1,n_scalars
+    do ji=1,n_scalars_h
       do jl=0,n_levels-1
         wind(jl*n_vectors_per_layer + ji) = 0._wp
       enddo
