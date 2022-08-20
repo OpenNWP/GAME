@@ -10,9 +10,10 @@ module run_nml
   
   implicit none
   
-  character(len=64) :: run_id ! ID of this run
-  real(wp)          :: dtime  ! time step
-  logical           :: lmoist ! moisture switch
+  character(len=64) :: run_id         ! ID of this run
+  real(wp)          :: dtime          ! time step
+  logical           :: lmoist         ! moisture switch
+  integer           :: ideal_input_id ! ideal input identifier
   
   namelist /run/run_id,lmoist
 
@@ -24,6 +25,7 @@ module run_nml
     run_id = "ideal"
     dtime = 360.312923_wp
     lmoist = .true.
+    ideal_input_id = 2
   
   end subroutine run_nml_setup
   

@@ -4,8 +4,7 @@ Github repository: https://github.com/OpenNWP/GAME
 */
 
 extern int set_grid_properties();
-int calc_delta_t_and_related(double, double *, Grid *, Dualgrid *, State *, Config *);
-int set_ideal_init(State *, Grid *, Dualgrid *, Diagnostics *, Forcings *, Config *, int, char[]);
+extern int set_ideal_init();
 extern int read_init_data();
 int write_out(State *, double [], int, double, double, Diagnostics *, Forcings *, Grid *, Dualgrid *, Config_io *, Config *,
 Irreversible_quantities *);

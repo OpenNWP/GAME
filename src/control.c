@@ -216,7 +216,14 @@ int main(int argc, char *argv[])
     // ideal test case
     if (config_io -> ideal_input_id != -1)
     {
-    	set_ideal_init(state_1, grid, dualgrid, diagnostics, forcings, config, config_io -> ideal_input_id, grid_file);
+    	set_ideal_init(state_1->exner_pert,state_1->theta_v_pert,diagnostics->scalar_field_placeholder,grid->exner_bg,grid->theta_v_bg,grid->adjacent_vector_indices_h,
+                       dualgrid->area,grid->density_to_rhombi_indices,grid->density_to_rhombi_weights,dualgrid->f_vec,diagnostics->flux_density,
+                       grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,state_1->rho,grid->inner_product_weights,grid->normal_distance,
+                       forcings->pot_vort_tend,grid->z_scalar,state_1->rhotheta_v,state_1->wind,diagnostics->v_squared,grid->direction,grid->latitude_scalar,grid->longitude_scalar,
+                       grid->z_vector,grid->slope,grid->gravity_potential,diagnostics->pot_vort,diagnostics->rel_vort,
+                       diagnostics->rel_vort_on_triangles,grid->trsk_indices,grid->trsk_weights,
+                       grid->trsk_modified_curl_indices,dualgrid->z_vector,dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,
+                       grid->t_const_soil,grid->is_land,state_1->temperature_soil,grid->z_t_const);
 	}
 	// NWP mode
     else
