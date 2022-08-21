@@ -8,7 +8,8 @@ module mo_manage_pchevi
   use iso_c_binding
   use mo_definitions,   only: wp
   use constituents_nml, only: n_constituents
-  use grid_nml,         only: n_layers,n_vectors_per_layer,n_scalars_h,n_vectors,n_dual_vectors,n_scalars
+  use grid_nml,         only: n_layers,n_vectors_per_layer,n_scalars_h,n_vectors,n_dual_vectors,n_scalars, &
+                              n_dual_scalars_h,n_dual_v_vectors
   use run_nml,          only: dtime
   use column_solvers,   only: three_band_solver_ver_waves,three_band_solver_gen_densities
   use surface_nml,      only: nsoillays
@@ -18,21 +19,25 @@ module mo_manage_pchevi
   contains
   
   subroutine manage_pchevi(adjacent_signs_h,adjacent_vector_indices_h,area,layer_thickness, &
-                           z_scalar,z_vector,volume,z_t_const,z_soil_center,z_soil_interface, &
+                           z_scalar,z_vector,volume,vorticity_indices_triangles,vorticity_signs_triangles, &
+                           z_t_const,z_soil_center,z_soil_interface, &
                            area_dual,z_vector_dual,wind_old,wind_tend,wind_new, &
-                           temperature,wind_div, &
+                           temperature,wind_div,viscosity_triangles,viscosity,viscosity_rhombi, &
                            condensates_sediment_heat, &
                            totally_first_step_bool) &
   bind(c,name = "manage_pchevi")
     
     real(wp), intent(out) :: wind_new(n_vectors),wind_tend(n_vectors),condensates_sediment_heat(n_scalars), &
-                             wind_old(n_vectors),temperature(n_scalars),wind_div(n_scalars)
+                             wind_old(n_vectors),temperature(n_scalars),wind_div(n_scalars), &
+                             viscosity_rhombi(n_vectors),viscosity(n_scalars)
     integer,  intent(in)  :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h), &
-                             totally_first_step_bool
+                             totally_first_step_bool,vorticity_indices_triangles(3*n_dual_scalars_h), &
+                             vorticity_signs_triangles(3*n_dual_scalars_h)
     real(wp), intent(in)  :: area(n_vectors),latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h), &
                              area_dual(n_dual_vectors),layer_thickness(n_scalars),z_vector(n_vectors), &
                              z_vector_dual(n_dual_vectors),z_t_const,z_soil_center(nsoillays), &
-                             z_soil_interface(nsoillays+1),z_scalar(n_scalars),volume(n_scalars)
+                             z_soil_interface(nsoillays+1),z_scalar(n_scalars),volume(n_scalars), &
+                             viscosity_triangles(n_dual_v_vectors)
     
     ! local variabels
     integer :: h_index,layer_index,vector_index,rk_step
