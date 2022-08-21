@@ -20,9 +20,9 @@ module mo_manage_pchevi
   
   subroutine manage_pchevi(adjacent_signs_h,adjacent_vector_indices_h,area,layer_thickness, &
                            z_scalar,z_vector,volume,vorticity_indices_triangles,vorticity_signs_triangles, &
-                           z_t_const,z_soil_center,z_soil_interface,v_squared, &
-                           from_index,to_index,from_index_dual,to_index_dual, &
-                           area_dual,z_vector_dual,wind_old,wind_tend,wind_new, &
+                           z_t_const,z_soil_center,z_soil_interface,v_squared,trsk_weights, &
+                           from_index,to_index,from_index_dual,to_index_dual,trsk_modified_curl_indices, &
+                           area_dual,z_vector_dual,wind_old,wind_tend,wind_new,trsk_indices, &
                            temperature,wind_div,viscosity_triangles,viscosity,viscosity_rhombi, &
                            condensates_sediment_heat,molecular_diffusion_coeff,v_squared_grad, &
                            time_coordinate,vert_hor_viscosity,vector_field_placeholder, &
@@ -36,14 +36,15 @@ module mo_manage_pchevi
                              vector_field_placeholder(n_vectors),v_squared_grad(n_vectors),v_squared(n_scalars)
     integer,  intent(in)  :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h), &
                              totally_first_step_bool,vorticity_indices_triangles(3*n_dual_scalars_h), &
-                             vorticity_signs_triangles(3*n_dual_scalars_h), &
+                             vorticity_signs_triangles(3*n_dual_scalars_h),trsk_indices(10*n_vectors_h), &
                              from_index(n_vectors_h),to_index(n_vectors_h),from_index_dual(n_vectors_h), &
-                             to_index_dual(n_vectors_h)
+                             to_index_dual(n_vectors_h),trsk_modified_curl_indices(10*n_vectors_h)
     real(wp), intent(in)  :: area(n_vectors),latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h), &
                              area_dual(n_dual_vectors),layer_thickness(n_scalars),z_vector(n_vectors), &
                              z_vector_dual(n_dual_vectors),z_t_const,z_soil_center(nsoillays), &
                              z_soil_interface(nsoillays+1),z_scalar(n_scalars),volume(n_scalars), &
-                             viscosity_triangles(n_dual_v_vectors),time_coordinate,gravity_m(n_vectors)
+                             viscosity_triangles(n_dual_v_vectors),time_coordinate,gravity_m(n_vectors), &
+                             trsk_weights(10*n_vectors_h)
     
     ! local variabels
     integer :: h_index,layer_index,vector_index,rk_step
