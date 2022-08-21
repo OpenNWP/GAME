@@ -37,7 +37,6 @@ module grid_nml
   integer  :: n_lon_io_points          ! number of points of the post-processing lat-lon grid in lon direction
   integer  :: n_latlon_io_points       ! number of points of the post-processing lat-lon grid
   integer  :: no_of_avg_points         ! number of points used for smoothing the orography
-  real(wp) :: eff_hor_res              ! effective horizontal resolution
   
   real(wp), parameter :: orth_criterion_deg = 89.99_wp ! used for checking grid orthogonality
   

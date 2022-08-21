@@ -7,7 +7,8 @@ module rad_nml
   
   use iso_c_binding
   use definitions, only: wp
-  use grid_nml,    only: n_scalars,n_scalars_h,eff_hor_res
+  use grid_nml,    only: n_scalars,n_scalars_h
+  use grid_setup,  only: eff_hor_res
   
   implicit none
   

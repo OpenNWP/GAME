@@ -140,7 +140,6 @@ int main(int argc, char *argv[])
 	
 	grid_nml_setup();
 	run_nml_setup();
-	rad_nml_setup();
 	constituents_nml_setup();
 	diff_nml_setup();
 	surface_nml_setup();
@@ -204,6 +203,8 @@ int main(int argc, char *argv[])
     grad(grid->gravity_potential,grid->gravity_m,grid->from_index,grid->to_index,grid->normal_distance,grid->inner_product_weights,grid->slope);
     grad(grid->exner_bg,grid->exner_bg_grad,grid->from_index,grid->to_index,grid->normal_distance,grid->inner_product_weights,grid->slope);
     printf("Grid loaded successfully.\n");
+    
+	rad_nml_setup();
     
     // rescaling times for small Earth experiments
     double radius_rescale = grid -> radius/RADIUS;

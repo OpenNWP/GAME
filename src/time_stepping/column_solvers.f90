@@ -209,19 +209,19 @@ module column_solvers
           = -sfc_rho_c(i)*t_conduc_soil(i)*(temperature_soil(i + (j-1)*n_scalars_h) &
           - temperature_soil(i + j*n_scalars_h))/(z_soil_center(j) - z_soil_center(j+1))
         enddo
-        heat_flux_density_expl(nsoillays-1) &
+        heat_flux_density_expl(nsoillays) &
         = -sfc_rho_c(i)*t_conduc_soil(i)*(temperature_soil(i + (nsoillays-1)*n_scalars_h) - t_const_soil(i)) &
-        /(2._wp*(z_soil_center(nsoillays-1) - z_t_const))
+        /(2._wp*(z_soil_center(nsoillays) - z_t_const))
         
         radiation_flux_density = sfc_sw_in(i) - sfc_lw_out(i)
         resulting_temperature_change = radiation_flux_density/((z_soil_interface(1) - z_soil_interface(2)) &
         *sfc_rho_c(i))*radiation_dtime
-        if (abs(resulting_temperature_change) > max_rad_temp_change) then
+        if (abs(resulting_temperature_change)>max_rad_temp_change) then
           radiation_flux_density = max_rad_temp_change/abs(resulting_temperature_change)*radiation_flux_density
         endif
         
         ! calculating the explicit part of the temperature change
-        r_vector(n_layers-1) &
+        r_vector(n_layers) &
         ! old temperature
         = temperature_soil(i) &
         ! sensible heat flux
@@ -241,15 +241,15 @@ module column_solvers
           ! old temperature
           = temperature_soil(i + (j-1)*n_scalars_h) &
           ! heat conduction from above
-          + 0.5_wp*(-heat_flux_density_expl(j - 1) &
+          + 0.5_wp*(-heat_flux_density_expl(j-1) &
           ! heat conduction from below
           + heat_flux_density_expl(j)) &
           /((z_soil_interface(j) - z_soil_interface(j+1))*sfc_rho_c(i))*dtime
         enddo
         
         ! the diagonal component
-        do j=2,nsoillays
-          if (j==2) then
+        do j=1,nsoillays
+          if (j==1) then
             d_vector(j + n_layers - 1) = 1._wp + 0.5_wp*dtime*sfc_rho_c(i)*t_conduc_soil(i) &
             /((z_soil_interface(j) - z_soil_interface(j+1))*sfc_rho_c(i)) &
             *1._wp/(z_soil_center(j) - z_soil_center(j+1))
@@ -276,7 +276,6 @@ module column_solvers
           /(z_soil_center(j) - z_soil_center(j+1))
         enddo
       endif
-      
       
       ! calling the algorithm to solve the system of linear equations
       call thomas_algorithm(c_vector,d_vector,e_vector,r_vector,solution_vector,n_layers-1+soil_switch*nsoillays)
@@ -354,7 +353,7 @@ module column_solvers
         enddo
       endif
       
-    enddo ! end of the column (index i) loop
+    enddo ! end of the column loop
     !$omp end parallel do
     
   end subroutine three_band_solver_ver_waves
@@ -436,7 +435,7 @@ module column_solvers
             *temperature_old_at_interface*vertical_flux_vector_rhs(jl)
           enddo
           if (rk_step==0 .and. jc==0) then
-            condensates_sediment_heat((n_layers - 1)*n_scalars_h + ji) = 0._wp
+            condensates_sediment_heat((n_layers-1)*n_scalars_h + ji) = 0._wp
           endif
           
           ! Now we proceed to solving the vertical tridiagonal problems.

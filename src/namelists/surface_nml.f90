@@ -5,6 +5,8 @@ module surface_nml
 
   ! This namelist defines the surface properties.
 
+  use iso_c_binding
+
   implicit none
   
   integer :: nsoillays               ! number of soil layers
