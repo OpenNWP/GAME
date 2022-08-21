@@ -440,7 +440,7 @@ module column_solvers
           endif
           
           ! Now we proceed to solving the vertical tridiagonal problems.
-          write(*,*) cloud_droplets_velocity
+          
           ! filling up the original vectors
           do jl=1,n_layers-1
             base_index = ji + (jl-1)*n_scalars_h
