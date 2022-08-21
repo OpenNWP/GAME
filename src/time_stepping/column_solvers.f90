@@ -77,11 +77,7 @@ module column_solvers
     
     ! calculating the sensible power flux density
     if (lsfc_sensible_heat_flux) then
-      !$omp parallel do private(i,j,base_index,temperature_gas_lowest_layer_old,temperature_gas_lowest_layer_new, &
-      !$omp radiation_flux_density,resulting_temperature_change,c_vector,d_vector, &
-      !$omp e_vector,r_vector,rho_expl,rhotheta_v_expl,theta_v_pert_expl,exner_pert_expl,theta_v_int_new, &
-      !$omp solution_vector,rho_int_old,rho_int_expl,alpha_old,beta_old,gamma_old,alpha_new,beta_new, &
-      !$omp gamma_new,alpha,beta,gamma_,density_interface_new,heat_flux_density_expl)
+      !$omp parallel do private(i,j,base_index,temperature_gas_lowest_layer_old,temperature_gas_lowest_layer_new)
       do i=1,n_scalars_h
         base_index = n_scalars - n_scalars_h + i
         
@@ -106,7 +102,11 @@ module column_solvers
     endif
     
     ! loop over all columns
-    !$omp parallel do private(lower_index,damping_coeff,z_above_damping,base_index,soil_switch)
+    !$omp parallel do private(i,j,base_index,lower_index,damping_coeff,z_above_damping,soil_switch, &
+    !$omp radiation_flux_density,resulting_temperature_change,c_vector,d_vector, &
+    !$omp e_vector,r_vector,rho_expl,rhotheta_v_expl,theta_v_pert_expl,exner_pert_expl,theta_v_int_new, &
+    !$omp solution_vector,rho_int_old,rho_int_expl,alpha_old,beta_old,gamma_old,alpha_new,beta_new, &
+    !$omp gamma_new,alpha,beta,gamma_,density_interface_new,heat_flux_density_expl)
     do i=1,n_scalars_h
       
       if (lprog_soil_temp) then
@@ -155,7 +155,7 @@ module column_solvers
       enddo
       
       ! determining the interface values
-      do j=1,n_layers
+      do j=1,n_layers-1
         base_index = i + (j-1)*n_scalars_h
         lower_index = i + j*n_scalars_h
         rho_int_old(j) = 0.5_wp*(rho_old(gas_phase_first_index + base_index) + rho_old(gas_phase_first_index + lower_index))
@@ -189,9 +189,9 @@ module column_solvers
         lower_index = i + j*n_scalars_h
         ! lower diagonal
         c_vector(j) = theta_v_int_new(j+1)*gamma_(j+1)*theta_v_int_new(j) &
-        + 0.5_wp*(exner_bg(lower_index) - exner_bg((j+2)*n_scalars_h + i)) &
+        + 0.5_wp*(exner_bg(lower_index) - exner_bg((j+1)*n_scalars_h + i)) &
         *(alpha(j+1) + beta(j+1)*theta_v_int_new(j)) &
-        - (z_scalar(lower_index) - z_scalar((j+2)*n_scalars_h + i))/(impl_weight*dtime*c_d_p)*0.5_wp &
+        - (z_scalar(lower_index) - z_scalar((j+1)*n_scalars_h + i))/(impl_weight*dtime*c_d_p)*0.5_wp &
         *wind_old(i + (j+2)*n_vectors_per_layer)/(volume(lower_index)*rho_int_old(j+1))
         ! upper diagonal
         e_vector(j) = theta_v_int_new(j)*gamma_(j+1)*theta_v_int_new(j+1) &
@@ -209,9 +209,9 @@ module column_solvers
           = -sfc_rho_c(i)*t_conduc_soil(i)*(temperature_soil(i + (j-1)*n_scalars_h) &
           - temperature_soil(i + j*n_scalars_h))/(z_soil_center(j) - z_soil_center(j+1))
         enddo
-        heat_flux_density_expl(nsoillays - 1) &
-        = -sfc_rho_c(i)*t_conduc_soil(i)*(temperature_soil(i + (nsoillays - 1)*n_scalars_h) - t_const_soil(i)) &
-        /(2*(z_soil_center(nsoillays - 1) - z_t_const))
+        heat_flux_density_expl(nsoillays-1) &
+        = -sfc_rho_c(i)*t_conduc_soil(i)*(temperature_soil(i + (nsoillays-1)*n_scalars_h) - t_const_soil(i)) &
+        /(2._wp*(z_soil_center(nsoillays-1) - z_t_const))
         
         radiation_flux_density = sfc_sw_in(i) - sfc_lw_out(i)
         resulting_temperature_change = radiation_flux_density/((z_soil_interface(1) - z_soil_interface(2)) &
@@ -312,7 +312,7 @@ module column_solvers
       enddo
       ! virtual potential temperature density
       do j=1,n_layers
-        base_index = i + j*n_scalars_h
+        base_index = i + (j-1)*n_scalars_h
         if (j==1) then
           rhotheta_v_target(base_index) &
           = rhotheta_v_expl(j) + dtime*(theta_v_int_new(j)*solution_vector(j))/volume(base_index)
@@ -327,7 +327,7 @@ module column_solvers
       enddo
       ! vertical velocity
       do j=1,n_layers-1
-        base_index = i + j*n_scalars_h
+        base_index = i + (j-1)*n_scalars_h
         density_interface_new = 0.5_wp*(rho_target(gas_phase_first_index + base_index) &
         + rho_target(gas_phase_first_index + i + j*n_scalars_h))
         wind_target(i + (j+1)*n_vectors_per_layer) &
