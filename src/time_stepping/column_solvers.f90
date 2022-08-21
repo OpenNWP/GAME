@@ -24,7 +24,7 @@ module column_solvers
   subroutine three_band_solver_ver_waves(z_vector,area,volume,scalar_flux_resistance,theta_v_pert_target, &
                                          rho_target,rhotheta_v_new,rho_new,rho_old,theta_v_pert_old,theta_v_bg, &
                                          exner_pert_old,exner_bg,theta_v_pert_new,exner_pert_new, &
-                                         power_flux_density_sensible,temperature_soil_new,temperature_soil, &
+                                         power_flux_density_sensible,temperature_soil_new,temperature_soil_old, &
                                          rhotheta_v_tend,is_land,rho_tend,rhotheta_v_old,wind_old, &
                                          z_scalar,wind_tend,z_soil_center,t_conduc_soil,sfc_rho_c, &
                                          sfc_lw_out,sfc_sw_in,t_const_soil,z_soil_interface, &
@@ -33,22 +33,23 @@ module column_solvers
   bind(c,name = "three_band_solver_ver_waves")
     
     ! This subroutine is the implicit vertical solver for the main fluid constituent.
-    real(wp), intent(in)  :: z_vector(n_vectors),area(n_vectors),volume(n_scalars), &
-                             scalar_flux_resistance(n_scalars),rho_old(n_constituents*n_scalars), &
-                             rhotheta_v_new(n_scalars),rho_new(n_constituents*n_scalars),z_t_const, &
-                             theta_v_pert_old(n_scalars),theta_v_bg(n_scalars),exner_pert_old(n_scalars), &
-                             exner_bg(n_scalars),theta_v_pert_new(n_scalars),exner_pert_new(n_scalars), &
-                             temperature_soil_new(nsoillays*n_scalars_h),temperature_soil(nsoillays*n_scalars_h), &
-                             rho_tend(n_constituents*n_scalars),rhotheta_v_old(n_scalars),wind_old(n_vectors), &
-                             z_scalar(n_scalars),wind_tend(n_vectors),z_soil_center(nsoillays), &
-                             t_conduc_soil(n_scalars_h),sfc_rho_c(n_scalars_h),t_const_soil(n_scalars_h), &
-                             sfc_lw_out(n_scalars_h),sfc_sw_in(n_scalars_h),z_soil_interface(nsoillays+1), &
-                             power_flux_density_latent(n_scalars_h)
-    real(wp), intent(out) :: theta_v_pert_target(n_scalars),rho_target(n_constituents*n_scalars), &
-                             power_flux_density_sensible(n_scalars),rhotheta_v_tend(n_scalars), &
-                             rhotheta_v_target(n_scalars),exner_pert_target(n_scalars),wind_target(n_vectors), &
-                             temperature_soil_target(nsoillays*n_scalars_h)
-    integer,  intent(in)  :: rk_step,is_land(n_scalars_h)
+    real(wp), intent(in)    :: z_vector(n_vectors),area(n_vectors),volume(n_scalars), &
+                               scalar_flux_resistance(n_scalars_h),rho_old(n_constituents*n_scalars), &
+                               rhotheta_v_new(n_scalars),rho_new(n_constituents*n_scalars),z_t_const, &
+                               theta_v_pert_old(n_scalars),theta_v_bg(n_scalars),exner_pert_old(n_scalars), &
+                               exner_bg(n_scalars),theta_v_pert_new(n_scalars),exner_pert_new(n_scalars), &
+                               temperature_soil_new(nsoillays*n_scalars_h),temperature_soil_old(nsoillays*n_scalars_h), &
+                               rho_tend(n_constituents*n_scalars),rhotheta_v_old(n_scalars),wind_old(n_vectors), &
+                               z_scalar(n_scalars),wind_tend(n_vectors),z_soil_center(nsoillays), &
+                               t_conduc_soil(n_scalars_h),sfc_rho_c(n_scalars_h),t_const_soil(n_scalars_h), &
+                               sfc_lw_out(n_scalars_h),sfc_sw_in(n_scalars_h),z_soil_interface(nsoillays+1), &
+                               power_flux_density_latent(n_scalars_h)
+    real(wp), intent(out)   :: theta_v_pert_target(n_scalars),rho_target(n_constituents*n_scalars), &
+                               power_flux_density_sensible(n_scalars_h), &
+                               rhotheta_v_target(n_scalars),exner_pert_target(n_scalars),wind_target(n_vectors), &
+                               temperature_soil_target(nsoillays*n_scalars_h)
+    real(wp), intent(inout) :: rhotheta_v_tend(n_scalars)
+    integer,  intent(in)    :: rk_step,is_land(n_scalars_h)
     
     ! local variables
     integer  :: i,j,lower_index,base_index,soil_switch,gas_phase_first_index
@@ -66,7 +67,7 @@ module column_solvers
     impl_weight = 0.75_wp
     
     ! the maximum temperature change induced by radiation between two radiation time steps in the uppermost soil layer
-    max_rad_temp_change = 30._wp
+    max_rad_temp_change = 25._wp
     
     damping_start_height = klemp_begin_rel*z_vector(1)
     
@@ -77,7 +78,7 @@ module column_solvers
     
     ! calculating the sensible power flux density
     if (lsfc_sensible_heat_flux) then
-      !$omp parallel do private(i,j,base_index,temperature_gas_lowest_layer_old,temperature_gas_lowest_layer_new)
+      !$omp parallel do private(i,base_index,temperature_gas_lowest_layer_old,temperature_gas_lowest_layer_new)
       do i=1,n_scalars_h
         base_index = n_scalars - n_scalars_h + i
         
@@ -89,7 +90,7 @@ module column_solvers
         
         ! the sensible power flux density
         power_flux_density_sensible(i) = 0.5_wp*c_d_v*(rho_new(gas_phase_first_index + base_index) &
-        *(temperature_gas_lowest_layer_old - temperature_soil(i)) &
+        *(temperature_gas_lowest_layer_old - temperature_soil_old(i)) &
         + rho_old(gas_phase_first_index + base_index) &
         *(temperature_gas_lowest_layer_new - temperature_soil_new(i)))/scalar_flux_resistance(i)
         
@@ -173,16 +174,16 @@ module column_solvers
         + 0.5_wp*(exner_bg(base_index) - exner_bg(lower_index)) &
         *(alpha(j+1) - alpha(j) + theta_v_int_new(j)*(beta(j+1) - beta(j))) &
         - (z_scalar(base_index) - z_scalar(lower_index))/(impl_weight*dtime**2*c_d_p*rho_int_old(j)) &
-        *(2._wp/area(i + (j+1)*n_vectors_per_layer) + dtime*wind_old(i + (j+1)*n_vectors_per_layer)*0.5_wp &
+        *(2._wp/area(i + j*n_vectors_per_layer) + dtime*wind_old(i + j*n_vectors_per_layer)*0.5_wp &
         *(-1._wp/volume(base_index) + 1._wp/volume(lower_index)))
         ! right hand side
-        r_vector(j) = -(wind_old(i + (j+1)*n_vectors_per_layer) + dtime*wind_tend(i + (j+1)*n_vectors_per_layer)) &
+        r_vector(j) = -(wind_old(i + j*n_vectors_per_layer) + dtime*wind_tend(i + j*n_vectors_per_layer)) &
         *(z_scalar(base_index) - z_scalar(lower_index)) &
         /(impl_weight*dtime**2*c_d_p) &
         + theta_v_int_new(j)*(exner_pert_expl(j) - exner_pert_expl(j+1))/dtime &
         + 0.5_wp/dtime*(theta_v_pert_expl(j) + theta_v_pert_expl(j+1))*(exner_bg(base_index) - exner_bg(lower_index)) &
         - (z_scalar(base_index) - z_scalar(lower_index))/(impl_weight*dtime**2*c_d_p) &
-        *wind_old(i + (j+1)*n_vectors_per_layer)*rho_int_expl(j)/rho_int_old(j)
+        *wind_old(i + j*n_vectors_per_layer)*rho_int_expl(j)/rho_int_old(j)
       enddo
       do j=1,n_layers-2
         base_index = i + (j-1)*n_scalars_h
@@ -192,13 +193,13 @@ module column_solvers
         + 0.5_wp*(exner_bg(lower_index) - exner_bg((j+1)*n_scalars_h + i)) &
         *(alpha(j+1) + beta(j+1)*theta_v_int_new(j)) &
         - (z_scalar(lower_index) - z_scalar((j+1)*n_scalars_h + i))/(impl_weight*dtime*c_d_p)*0.5_wp &
-        *wind_old(i + (j+2)*n_vectors_per_layer)/(volume(lower_index)*rho_int_old(j+1))
+        *wind_old(i + (j+1)*n_vectors_per_layer)/(volume(lower_index)*rho_int_old(j+1))
         ! upper diagonal
         e_vector(j) = theta_v_int_new(j)*gamma_(j+1)*theta_v_int_new(j+1) &
         - 0.5_wp*(exner_bg(base_index) - exner_bg(lower_index)) &
         *(alpha(j+1) + beta(j+1)*theta_v_int_new(j+1)) &
         + (z_scalar(base_index) - z_scalar(lower_index))/(impl_weight*dtime*c_d_p)*0.5_wp &
-        *wind_old(i + (j+1)*n_vectors_per_layer)/(volume(lower_index)*rho_int_old(j))
+        *wind_old(i + j*n_vectors_per_layer)/(volume(lower_index)*rho_int_old(j))
       enddo
       
       ! soil components of the matrix
@@ -206,11 +207,11 @@ module column_solvers
         ! calculating the explicit part of the heat flux density
         do j=1,nsoillays-1
           heat_flux_density_expl(j) &
-          = -sfc_rho_c(i)*t_conduc_soil(i)*(temperature_soil(i + (j-1)*n_scalars_h) &
-          - temperature_soil(i + j*n_scalars_h))/(z_soil_center(j) - z_soil_center(j+1))
+          = -sfc_rho_c(i)*t_conduc_soil(i)*(temperature_soil_old(i + (j-1)*n_scalars_h) &
+          - temperature_soil_old(i + j*n_scalars_h))/(z_soil_center(j) - z_soil_center(j+1))
         enddo
         heat_flux_density_expl(nsoillays) &
-        = -sfc_rho_c(i)*t_conduc_soil(i)*(temperature_soil(i + (nsoillays-1)*n_scalars_h) - t_const_soil(i)) &
+        = -sfc_rho_c(i)*t_conduc_soil(i)*(temperature_soil_old(i + (nsoillays-1)*n_scalars_h) - t_const_soil(i)) &
         /(2._wp*(z_soil_center(nsoillays) - z_t_const))
         
         radiation_flux_density = sfc_sw_in(i) - sfc_lw_out(i)
@@ -223,7 +224,7 @@ module column_solvers
         ! calculating the explicit part of the temperature change
         r_vector(n_layers) &
         ! old temperature
-        = temperature_soil(i) &
+        = temperature_soil_old(i) &
         ! sensible heat flux
         + (power_flux_density_sensible(i) &
         ! latent heat flux
@@ -239,7 +240,7 @@ module column_solvers
           
           r_vector(j + n_layers - 1) &
           ! old temperature
-          = temperature_soil(i + (j-1)*n_scalars_h) &
+          = temperature_soil_old(i + (j-1)*n_scalars_h) &
           ! heat conduction from above
           + 0.5_wp*(-heat_flux_density_expl(j-1) &
           ! heat conduction from below
@@ -256,11 +257,11 @@ module column_solvers
           elseif (j==nsoillays) then
             d_vector(j + n_layers - 1) = 1._wp + 0.5_wp*dtime*sfc_rho_c(i)*t_conduc_soil(i) &
             /((z_soil_interface(j) - z_soil_interface(j+1))*sfc_rho_c(i)) &
-            *1._wp/(z_soil_center(j - 1) - z_soil_center(j))
+            *1._wp/(z_soil_center(j-1) - z_soil_center(j))
           else
             d_vector(j + n_layers - 1) = 1._wp + 0.5_wp*dtime*sfc_rho_c(i)*t_conduc_soil(i) &
             /((z_soil_interface(j) - z_soil_interface(j+1))*sfc_rho_c(i)) &
-            *(1._wp/(z_soil_center(j - 1) - z_soil_center(j)) &
+            *(1._wp/(z_soil_center(j-1) - z_soil_center(j)) &
             + 1._wp/(z_soil_center(j) - z_soil_center(j+1)))
           endif
         enddo
@@ -329,7 +330,7 @@ module column_solvers
         base_index = i + (j-1)*n_scalars_h
         density_interface_new = 0.5_wp*(rho_target(gas_phase_first_index + base_index) &
         + rho_target(gas_phase_first_index + i + j*n_scalars_h))
-        wind_target(i + (j+1)*n_vectors_per_layer) &
+        wind_target(i + j*n_vectors_per_layer) &
         = (2._wp*solution_vector(j)/area(i + j*n_vectors_per_layer) &
         - density_interface_new*wind_old(i + j*n_vectors_per_layer))/rho_int_old(j)
       enddo
