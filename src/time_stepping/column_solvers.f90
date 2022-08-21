@@ -405,7 +405,7 @@ module column_solvers
             ! preparing the vertical interpolation
             lower_index = ji + jl*n_scalars_h
             upper_index = base_index
-            ! For condensed constituents,a sink velocity must be added.
+            ! For condensed constituents, a sink velocity must be added.
             ! precipitation
             ! snow
             if (jc<n_condensed_constituents/4) then
@@ -440,7 +440,7 @@ module column_solvers
           endif
           
           ! Now we proceed to solving the vertical tridiagonal problems.
-          
+          write(*,*) cloud_droplets_velocity
           ! filling up the original vectors
           do jl=1,n_layers-1
             base_index = ji + (jl-1)*n_scalars_h
