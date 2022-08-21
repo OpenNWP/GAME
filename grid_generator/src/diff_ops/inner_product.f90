@@ -6,9 +6,9 @@ module inner_product
   ! In this file, the inner product weights are computed.
 
   use iso_c_binding
-  use definitions, only: wp
-  use grid_nml,    only: n_scalars_h,n_scalars,n_vectors_per_layer, &
-                         n_vectors,n_layers,n_pentagons,grid_nml_setup
+  use mo_definitions, only: wp
+  use grid_nml,       only: n_scalars_h,n_scalars,n_vectors_per_layer, &
+                            n_vectors,n_layers,n_pentagons,grid_nml_setup
   
   implicit none
   

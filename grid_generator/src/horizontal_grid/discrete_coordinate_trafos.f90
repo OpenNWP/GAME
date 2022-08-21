@@ -8,7 +8,7 @@ module discrete_coordinate_trafos
   use iso_c_binding
   use netcdf
   use phys_sfc_properties, only: nc_check
-  use definitions,         only: wp
+  use mo_definitions,      only: wp
   use grid_nml,            only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
                                  no_of_lloyd_iterations,n_vectors,n_dual_vectors,res_id,n_pentagons,n_basic_edges, &
                                  n_points_per_edge

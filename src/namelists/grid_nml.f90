@@ -6,7 +6,7 @@ module grid_nml
   ! This is the namelists the configures the basic run properties of a model integration.
   
   use iso_c_binding
-  use definitions, only: wp
+  use mo_definitions, only: wp
   
   implicit none
   

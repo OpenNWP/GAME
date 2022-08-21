@@ -6,7 +6,7 @@ module spatial_ops_for_output
   ! In this module, those spatial operators are collected which are only needed for the output.
   
   use iso_c_binding
-  use definitions,        only: wp
+  use mo_definitions,     only: wp
   use grid_nml,           only: n_scalars_h,n_scalars,n_vectors_h,n_layers,n_vectors_per_layer,n_vectors, &
                                 n_pentagons,n_h_vectors
   use gradient_operators, only: grad

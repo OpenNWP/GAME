@@ -6,11 +6,11 @@ module divergences
   ! In this module, divergences get computed.
   
   use iso_c_binding
-  use definitions, only: wp
-  use grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer, &
-                         n_v_vectors,n_pentagons
-  use grid_setup,  only: n_oro_layers
-  use averaging,   only: vertical_contravariant_corr
+  use mo_definitions, only: wp
+  use grid_nml,       only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer, &
+                            n_v_vectors,n_pentagons
+  use grid_setup,     only: n_oro_layers
+  use averaging,      only: vertical_contravariant_corr
   
   implicit none
   

@@ -6,8 +6,8 @@ module rrtmgp_coupler
   ! This module is a coupler to RTE+RRTMGP.
   
   use iso_c_binding,
-  use definitions,                only: wp
-  use constants,                  only: EPSILON_SECURITY,r_d,r_v
+  use mo_definitions,             only: wp
+  use mo_constants,               only: EPSILON_SECURITY,r_d,r_v
   use dictionary,                 only: molar_fraction_in_dry_air,calc_o3_vmr
   use mo_rrtmgp_util_string,      only: lower_case
   use mo_gas_optics_rrtmgp,       only: ty_gas_optics_rrtmgp

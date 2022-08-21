@@ -6,10 +6,10 @@ module phase_trans
   ! This file contains functions calculating everything related to phase transition rates.
 
   use iso_c_binding
-  use definitions,        only: wp
+  use mo_definitions,     only: wp
   use run_nml,            only: dtime
   use grid_nml,           only: n_scalars,n_scalars_h,n_layers
-  use constants,          only: r_v,t_0,r_d
+  use mo_constants,       only: r_v,t_0,r_d
   use constituents_nml,   only: n_condensed_constituents,n_constituents
   use dictionary,         only: saturation_pressure_over_water,saturation_pressure_over_ice, &
                                 dsaturation_pressure_over_water_dT,dsaturation_pressure_over_ice_dT, &

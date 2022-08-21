@@ -6,8 +6,8 @@ module planetary_boundary_layer
   ! In this module, quantities referring to the planetary boundary layer are computed.
 
   use iso_c_binding
-  use constants,          only: EPSILON_SECURITY,M_PI,gravity,p_0,c_d_p,r_d
-  use definitions,        only: wp
+  use mo_constants,       only: EPSILON_SECURITY,M_PI,gravity,p_0,c_d_p,r_d
+  use mo_definitions,     only: wp
   use run_nml,            only: dtime
   use diff_nml,           only: h_prandtl,karman
   use grid_nml,           only: n_scalars,n_scalars_h,n_vectors_per_layer,n_layers,n_vectors,n_vectors_h,n_vectors_per_layer, &

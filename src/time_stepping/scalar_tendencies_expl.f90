@@ -6,8 +6,8 @@ module mo_explicit_scalar_tend
   ! This module contains the horizontal (explicit) part of the constituent integration.
 
   use iso_c_binding
-  use definitions,           only: wp
-  use constants,             only: c_d_v,c_d_p
+  use mo_definitions,        only: wp
+  use mo_constants,          only: c_d_v,c_d_p
   use grid_nml,              only: n_scalars,n_scalars_h,n_vectors,n_vectors_h,n_dual_v_vectors,n_dual_scalars_h
   use constituents_nml,      only: n_constituents,n_condensed_constituents,lmoist
   use derived_quantities,    only: c_v_mass_weighted_air

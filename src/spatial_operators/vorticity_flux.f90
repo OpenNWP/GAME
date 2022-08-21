@@ -6,8 +6,8 @@ module mo_vorticity_flux
   ! In this module, the vorticity flux term of the Lamb tansformation gets computed.
 
   use iso_c_binding
-  use definitions, only: wp
-  use grid_nml,    only: n_vectors_per_layer,n_layers,n_pentagons,n_vectors_h,n_vectors,n_scalars_h,n_scalars
+  use mo_definitions, only: wp
+  use grid_nml,       only: n_vectors_per_layer,n_layers,n_pentagons,n_vectors_h,n_vectors,n_scalars_h,n_scalars
   
   implicit none
   

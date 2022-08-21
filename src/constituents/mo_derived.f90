@@ -5,9 +5,9 @@ module derived_quantities
 
   ! This module contains look-up functions for properties of the atmosphere.
 
-  use definitions,      only: wp
+  use mo_definitions,   only: wp
   use run_nml,          only: lmoist
-  use constants,        only: m_d,n_a,k_b,M_PI,t_0,r_v,c_d_v,c_v_v,r_d,m_v
+  use mo_constants,     only: m_d,n_a,k_b,M_PI,t_0,r_v,c_d_v,c_v_v,r_d,m_v
   use dictionary,       only: saturation_pressure_over_water,saturation_pressure_over_ice,c_p_cond
   use grid_nml,         only: n_scalars
   use constituents_nml, only: n_constituents,n_condensed_constituents

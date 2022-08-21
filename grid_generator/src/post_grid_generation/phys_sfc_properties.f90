@@ -7,8 +7,8 @@ module phys_sfc_properties
 
   use iso_c_binding
   use netcdf
-  use constants,       only: M_PI,rho_h2o
-  use definitions,     only: wp
+  use mo_constants,    only: M_PI,rho_h2o
+  use mo_definitions,  only: wp
   use grid_nml,        only: res_id,n_scalars_h,no_of_avg_points
   use geodesy,         only: deg2rad,calculate_distance_h
   use various_helpers, only: nc_check,int2string,find_min_index,find_min_index_exclude

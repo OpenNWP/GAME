@@ -7,8 +7,8 @@ module set_initial_state
 
   use iso_c_binding
   use netcdf
-  use definitions,        only: wp
-  use constants,          only: p_0,r_d,c_d_p,m_d,m_v
+  use mo_definitions,     only: wp
+  use mo_constants,       only: p_0,r_d,c_d_p,m_d,m_v
   use grid_nml,           only: n_scalars,n_scalars_h,n_vectors,n_vectors_per_layer,n_vectors_h,n_levels,n_dual_vectors, &
                                 n_layers,oro_id,res_id,n_dual_v_vectors,n_dual_scalars_h
   use constituents_nml,   only: n_condensed_constituents,n_constituents

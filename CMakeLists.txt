@@ -11,8 +11,8 @@ enable_language(Fortran)
 add_executable(
 game
 src/control.c
-src/constants.f90
-src/definitions.f90
+src/mo_constants.f90
+src/mo_definitions.f90
 src/namelists/run_nml.f90
 src/namelists/rad_nml.f90
 src/namelists/constituents_nml.f90
@@ -45,7 +45,7 @@ src/radiation/held_suar.f90
 src/radiation/rterrtmgp_coupler.f90
 src/constituents/phase_trans.f90
 src/constituents/dictionary.f90
-src/constituents/derived_quantities.f90
+src/constituents/mo_derived.f90
 shared/geodesy.f90
 shared/various_helpers.f90
 ../rte-rrtmgp/rrtmgp/mo_gas_optics.F90

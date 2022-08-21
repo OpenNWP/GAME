@@ -7,8 +7,8 @@ module grid_setup
 
   use iso_c_binding
   use netcdf
-  use constants,       only: t_0,r_e,M_PI
-  use definitions,     only: wp
+  use mo_constants,    only: t_0,r_e,M_PI
+  use mo_definitions,  only: wp
   use grid_nml,        only: n_vectors_per_layer,n_vectors,n_layers,n_scalars,n_scalars_h,n_latlon_io_points, &
                              n_dual_vectors,n_vectors_h,n_dual_scalars_h,oro_id,res_id
   use surface_nml,     only: nsoillays

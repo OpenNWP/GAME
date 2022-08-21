@@ -6,7 +6,7 @@ module run_nml
   ! This is the namelist that configures the basic run properties of a model integration.
   
   use iso_c_binding
-  use definitions, only: wp
+  use mo_definitions, only: wp
   
   implicit none
   

@@ -7,7 +7,7 @@ module various_helpers
 
   use iso_c_binding
   use netcdf
-  use definitions, only: wp
+  use mo_definitions, only: wp
   
   implicit none
   

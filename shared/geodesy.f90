@@ -6,8 +6,8 @@ module geodesy
   ! This file contains functions calculating geodesic operations.
 
   use iso_c_binding
-  use definitions,     only: wp
-  use constants,       only: M_PI
+  use mo_definitions,  only: wp
+  use mo_constants,    only: M_PI
   use various_helpers, only: find_min_index,in_bool_checker
   
   implicit none

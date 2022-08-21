@@ -6,7 +6,7 @@ module linear_combination
   ! This module  contains a function for linearly combining two states.
 
   use iso_c_binding,
-  use definitions,      only: wp
+  use mo_definitions,   only: wp
   use grid_nml,         only: n_scalars,n_vectors,n_scalars_h
   use surface_nml,      only: nsoillays
   use constituents_nml, only: n_constituents,n_condensed_constituents

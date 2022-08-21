@@ -6,12 +6,12 @@ module derived_hor_quantities
   ! This module contains helper functions concerned with simple algebraic operations on vectors.
 
   use iso_c_binding
-  use definitions,     only: wp
+  use mo_definitions,  only: wp
   use grid_nml,        only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
                              no_of_lloyd_iterations,radius,n_vectors,n_dual_vectors,n_pentagons
   use geodesy,         only: find_turn_angle,rad2deg,find_geodetic_direction,find_global_normal,find_geos, &
                              find_between_point,rel_on_line,calc_spherical_polygon_area
-  use constants,       only: omega,EPSILON_SECURITY,M_PI
+  use mo_constants,    only: omega,EPSILON_SECURITY,M_PI
   use various_helpers, only: in_bool_checker
   
   implicit none

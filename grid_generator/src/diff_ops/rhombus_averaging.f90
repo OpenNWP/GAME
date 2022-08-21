@@ -6,8 +6,8 @@ module mo_rhombus_averaging
   ! In this file, remapping indices and weights to rhombi are computed.
 
   use iso_c_binding
-  use definitions,     only: wp
-  use constants,       only: EPSILON_SECURITY
+  use mo_definitions,  only: wp
+  use mo_constants,    only: EPSILON_SECURITY
   use grid_nml,        only: n_vectors_h,radius,n_scalars_h,n_dual_scalars_h,n_dual_vectors,n_vectors
   use geodesy,         only: calc_triangle_area
   use various_helpers, only: in_bool_checker

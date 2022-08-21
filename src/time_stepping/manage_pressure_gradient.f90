@@ -6,9 +6,9 @@ module mo_pgrad
   ! In this module, the explicit component of the pressure gradient acceleration is managed.
 
   use iso_c_binding
-  use definitions,        only: wp
+  use mo_definitions,     only: wp
   use grid_nml,           only: n_scalars,n_vectors,n_scalars_h
-  use constants,          only: c_d_p
+  use mo_constants,       only: c_d_p
   use gradient_operators, only: grad
   use multiplications,    only: scalar_times_vector,scalar_times_vector_v
   use constituents_nml,   only: n_condensed_constituents,n_constituents

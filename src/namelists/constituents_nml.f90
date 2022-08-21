@@ -5,8 +5,8 @@ module constituents_nml
 
   ! This namelist defines the constituents of the model atmosphere.
 
-  use definitions, only: wp
-  use run_nml,     only: lmoist
+  use mo_definitions, only: wp
+  use run_nml,        only: lmoist
 
   implicit none
   

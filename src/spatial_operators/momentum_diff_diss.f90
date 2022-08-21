@@ -6,8 +6,8 @@ module momentum_diff_diss
   ! The momentum diffusion acceleration is computed here (apart from the diffusion coefficients).
 
   use iso_c_binding
-  use definitions,           only: wp
-  use constants,             only: EPSILON_SECURITY
+  use mo_definitions,        only: wp
+  use mo_constants,          only: EPSILON_SECURITY
   use grid_nml,              only: n_scalars,n_vectors,n_scalars_h,n_h_vectors, &
                                    n_dual_vectors_per_layer,n_dual_scalars_h,n_dual_vectors,n_vectors_h, &
                                    n_layers,n_vectors_per_layer,n_dual_v_vectors,n_v_vectors

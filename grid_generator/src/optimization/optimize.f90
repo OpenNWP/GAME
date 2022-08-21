@@ -6,7 +6,7 @@ module optimize
   ! The Lloyd algorithm is implemented here.
 
   use iso_c_binding
-  use definitions,     only: wp
+  use mo_definitions,  only: wp
   use grid_nml,        only: n_scalars_h,n_pentagons,n_vectors_h,n_dual_scalars_h
   use geodesy,         only: calc_triangle_area,find_global_normal,sort_vertex_indices,find_geos
   use various_helpers, only: in_bool_checker

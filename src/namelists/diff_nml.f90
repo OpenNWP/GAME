@@ -6,7 +6,7 @@ module diff_nml
   ! In this namelist, the diffusion properties are configured.
   
   use iso_c_binding
-  use definitions, only: wp
+  use mo_definitions, only: wp
   
   implicit none
   

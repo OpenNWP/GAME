@@ -6,7 +6,7 @@ module mo_explicit_wind_tend
   ! In this module, the calculation of the explicit part of the momentum equation is managed.
   
   use iso_c_binding
-  use definitions,              only: wp
+  use mo_definitions,           only: wp
   use grid_nml,                 only: n_vectors_per_layer,n_vectors,n_scalars_h,n_scalars,n_dual_vectors,n_vectors_h, &
                                       n_dual_scalars_h,n_dual_v_vectors,n_layers,n_h_vectors
   use gradient_operators,       only: grad

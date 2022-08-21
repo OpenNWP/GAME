@@ -1,11 +1,11 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module constants
+module mo_constants
 
   ! This is a collection of some quantities that are hardly ever changed.
   
-  use definitions, only: wp
+  use mo_definitions, only: wp
   
   implicit none
   
@@ -42,7 +42,7 @@ module constants
   real(wp), parameter :: t_grad_inv = 0.001_wp     ! temperature gradient above the inversion
   real(wp), parameter :: p_0_standard = 101325._wp ! reference pressure of the standard atmosphere
 
-end module constants
+end module mo_constants
 
 
 
