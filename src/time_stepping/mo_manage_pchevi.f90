@@ -28,7 +28,8 @@ module mo_manage_pchevi
                            time_coordinate,vert_hor_viscosity,vector_field_placeholder, &
                            totally_first_step_bool,gravity_m,curl_of_vorticity,tke, &
                            theta_v_pert_old,theta_v_pert_new,theta_v_bg,temperature_soil_new, &
-                           temperature_soil_old,temperature_diffusion_heating) &
+                           temperature_soil_old,temperature_diffusion_heating, &
+                           temp_diffusion_coeff_numerical_h,temp_diffusion_coeff_numerical_v) &
   bind(c,name = "manage_pchevi")
     
     real(wp), intent(out) :: wind_new(n_vectors),wind_tend(n_vectors),condensates_sediment_heat(n_scalars), &
@@ -36,7 +37,8 @@ module mo_manage_pchevi
                              viscosity_rhombi(n_vectors),viscosity(n_scalars),curl_of_vorticity(n_vectors), &
                              molecular_diffusion_coeff(n_scalars),vert_hor_viscosity(n_h_vectors+n_vectors_h), &
                              vector_field_placeholder(n_vectors),v_squared_grad(n_vectors),v_squared(n_scalars), &
-                             tke(n_scalars),theta_v_pert_new(n_scalars),temperature_diffusion_heating(n_scalars)
+                             tke(n_scalars),theta_v_pert_new(n_scalars),temperature_diffusion_heating(n_scalars), &
+                             temp_diffusion_coeff_numerical_h(n_scalars),temp_diffusion_coeff_numerical_v(n_scalars)
     integer,  intent(in)  :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h), &
                              totally_first_step_bool,vorticity_indices_triangles(3*n_dual_scalars_h), &
                              vorticity_signs_triangles(3*n_dual_scalars_h),trsk_indices(10*n_vectors_h), &
