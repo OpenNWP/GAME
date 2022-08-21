@@ -27,15 +27,16 @@ module mo_manage_pchevi
                            condensates_sediment_heat,molecular_diffusion_coeff,v_squared_grad, &
                            time_coordinate,vert_hor_viscosity,vector_field_placeholder, &
                            totally_first_step_bool,gravity_m,curl_of_vorticity,tke, &
-                           theta_v_pert_old,theta_v_pert_new,theta_v_bg) &
+                           theta_v_pert_old,theta_v_pert_new,theta_v_bg,temperature_soil_new, &
+                           temperature_soil_old) &
   bind(c,name = "manage_pchevi")
     
     real(wp), intent(out) :: wind_new(n_vectors),wind_tend(n_vectors),condensates_sediment_heat(n_scalars), &
-                             wind_old(n_vectors),temperature(n_scalars),wind_div(n_scalars), &
+                             temperature(n_scalars),wind_div(n_scalars),temperature_soil_new(nsoillays*n_scalars_h), &
                              viscosity_rhombi(n_vectors),viscosity(n_scalars),curl_of_vorticity(n_vectors), &
                              molecular_diffusion_coeff(n_scalars),vert_hor_viscosity(n_h_vectors+n_vectors_h), &
                              vector_field_placeholder(n_vectors),v_squared_grad(n_vectors),v_squared(n_scalars), &
-                             tke(n_scalars),theta_v_pert_old(n_scalars),theta_v_pert_new(n_scalars)
+                             tke(n_scalars),theta_v_pert_new(n_scalars)
     integer,  intent(in)  :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h), &
                              totally_first_step_bool,vorticity_indices_triangles(3*n_dual_scalars_h), &
                              vorticity_signs_triangles(3*n_dual_scalars_h),trsk_indices(10*n_vectors_h), &
@@ -46,7 +47,8 @@ module mo_manage_pchevi
                              z_vector_dual(n_dual_vectors),z_t_const,z_soil_center(nsoillays), &
                              z_soil_interface(nsoillays+1),z_scalar(n_scalars),volume(n_scalars), &
                              viscosity_triangles(n_dual_v_vectors),time_coordinate,gravity_m(n_vectors), &
-                             trsk_weights(10*n_vectors_h),theta_v_bg(n_scalars)
+                             trsk_weights(10*n_vectors_h),theta_v_bg(n_scalars),theta_v_pert_old(n_scalars), &
+                             wind_old(n_vectors),temperature_soil_old(nsoillays*n_scalars_h)
     
     ! local variabels
     integer :: h_index,layer_index,vector_index,rk_step
