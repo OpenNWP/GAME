@@ -28,7 +28,7 @@ module mo_manage_pchevi
                            time_coordinate,vert_hor_viscosity,vector_field_placeholder, &
                            totally_first_step_bool,gravity_m,curl_of_vorticity,tke, &
                            theta_v_pert_old,theta_v_pert_new,theta_v_bg,temperature_soil_new, &
-                           temperature_soil_old,temperature_diffusion_heating, &
+                           temperature_soil_old,temperature_diffusion_heating,slope, &
                            temp_diffusion_coeff_numerical_h,temp_diffusion_coeff_numerical_v) &
   bind(c,name = "manage_pchevi")
     
@@ -50,7 +50,7 @@ module mo_manage_pchevi
                              z_soil_interface(nsoillays+1),z_scalar(n_scalars),volume(n_scalars), &
                              viscosity_triangles(n_dual_v_vectors),time_coordinate,gravity_m(n_vectors), &
                              trsk_weights(10*n_vectors_h),theta_v_bg(n_scalars),theta_v_pert_old(n_scalars), &
-                             wind_old(n_vectors),temperature_soil_old(nsoillays*n_scalars_h)
+                             wind_old(n_vectors),temperature_soil_old(nsoillays*n_scalars_h),slope(n_vectors)
     
     ! local variabels
     integer :: h_index,layer_index,vector_index,rk_step
