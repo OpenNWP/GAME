@@ -27,7 +27,7 @@ module mo_manage_pchevi
                            condensates_sediment_heat,molecular_diffusion_coeff,v_squared_grad, &
                            time_coordinate,vert_hor_viscosity,vector_field_placeholder, &
                            totally_first_step_bool,gravity_m,curl_of_vorticity,tke, &
-                           theta_v_pert_old,theta_v_pert_new) &
+                           theta_v_pert_old,theta_v_pert_new,theta_v_bg) &
   bind(c,name = "manage_pchevi")
     
     real(wp), intent(out) :: wind_new(n_vectors),wind_tend(n_vectors),condensates_sediment_heat(n_scalars), &
@@ -46,7 +46,7 @@ module mo_manage_pchevi
                              z_vector_dual(n_dual_vectors),z_t_const,z_soil_center(nsoillays), &
                              z_soil_interface(nsoillays+1),z_scalar(n_scalars),volume(n_scalars), &
                              viscosity_triangles(n_dual_v_vectors),time_coordinate,gravity_m(n_vectors), &
-                             trsk_weights(10*n_vectors_h)
+                             trsk_weights(10*n_vectors_h),theta_v_bg(n_scalars)
     
     ! local variabels
     integer :: h_index,layer_index,vector_index,rk_step
