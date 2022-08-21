@@ -338,12 +338,12 @@ module planetary_boundary_layer
 
   end function calc_roughness_velocity
 
-  function psi_h(eff,l)
+  function psi_h(z_eff,l)
 
     ! This is a helper function for the correction to the surface scalar flux resistance for non-neutral conditions.
 
     ! input variables
-    real(wp), intent(in) :: eff   ! effective height above the surface
+    real(wp), intent(in) :: z_eff ! effective height above the surface
     real(wp), intent(in) :: l     ! Monin-Obukhov length
     ! output variable
     real(wp)             :: psi_h ! the value of the helper function
@@ -360,21 +360,21 @@ module planetary_boundary_layer
 
     ! unstable conditions
     if (l_local<0._wp) then
-      x = (1._wp-15._wp*eff/l_local)**0.25_wp
-      psi_h = 2._wp*log((1._wp + x**2)/2._wp)     
+      x = (1._wp-15._wp*z_eff/l_local)**0.25_wp
+      psi_h = 2._wp*log((1._wp + x**2)/2._wp)
     ! neutral and stable conditions
     else
-      psi_h = -4._wp*eff/l_local
+      psi_h = -4.7_wp*z_eff/l_local
     endif
     
   end function psi_h
 
-  function psi_m(eff,l)
+  function psi_m(z_eff,l)
 
     ! This is a helper function for the correction to the surface momentum flux resistance for non-neutral conditions.
 
     ! input variables
-    real(wp), intent(in) :: eff   ! effective height above the surface
+    real(wp), intent(in) :: z_eff ! effective height above the surface
     real(wp), intent(in) :: l     ! Monin-Obukhov length
     ! output variable
     real(wp)             :: psi_m ! the value of the helper function
@@ -391,12 +391,12 @@ module planetary_boundary_layer
 
     ! unstable conditions
     if (l_local<0._wp) then
-      x = (1._wp-15._wp*eff/l_local)**0.25_wp
+      x = (1._wp-15._wp*z_eff/l_local)**0.25_wp
 
       psi_m = 2.0_wp*log((1._wp + x)/2._wp) + log((1._wp + x**2)/2._wp)-2._wp*atan(x) + M_PI/2._wp
     ! neutral and stable conditions
     else
-      psi_m = -4.7_wp*eff/l_local
+      psi_m = -4.7_wp*z_eff/l_local
     endif
     
  end function psi_m
