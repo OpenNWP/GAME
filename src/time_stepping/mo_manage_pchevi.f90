@@ -7,9 +7,9 @@ module mo_manage_pchevi
   
   use iso_c_binding
   use mo_definitions,   only: wp
-  use constituents_nml, only: n_constituents
+  use constituents_nml, only: n_constituents,lmoist
   use grid_nml,         only: n_layers,n_vectors_per_layer,n_scalars_h,n_vectors,n_dual_vectors,n_scalars, &
-                              n_dual_scalars_h,n_dual_v_vectors
+                              n_dual_scalars_h,n_dual_v_vectors,n_h_vectors,n_vectors_h
   use run_nml,          only: dtime
   use column_solvers,   only: three_band_solver_ver_waves,three_band_solver_gen_densities
   use surface_nml,      only: nsoillays
@@ -20,24 +20,30 @@ module mo_manage_pchevi
   
   subroutine manage_pchevi(adjacent_signs_h,adjacent_vector_indices_h,area,layer_thickness, &
                            z_scalar,z_vector,volume,vorticity_indices_triangles,vorticity_signs_triangles, &
-                           z_t_const,z_soil_center,z_soil_interface, &
+                           z_t_const,z_soil_center,z_soil_interface,v_squared, &
+                           from_index,to_index,from_index_dual,to_index_dual, &
                            area_dual,z_vector_dual,wind_old,wind_tend,wind_new, &
                            temperature,wind_div,viscosity_triangles,viscosity,viscosity_rhombi, &
-                           condensates_sediment_heat, &
-                           totally_first_step_bool) &
+                           condensates_sediment_heat,molecular_diffusion_coeff,v_squared_grad, &
+                           time_coordinate,vert_hor_viscosity,vector_field_placeholder, &
+                           totally_first_step_bool,gravity_m,curl_of_vorticity) &
   bind(c,name = "manage_pchevi")
     
     real(wp), intent(out) :: wind_new(n_vectors),wind_tend(n_vectors),condensates_sediment_heat(n_scalars), &
                              wind_old(n_vectors),temperature(n_scalars),wind_div(n_scalars), &
-                             viscosity_rhombi(n_vectors),viscosity(n_scalars)
+                             viscosity_rhombi(n_vectors),viscosity(n_scalars),curl_of_vorticity(n_vectors), &
+                             molecular_diffusion_coeff(n_scalars),vert_hor_viscosity(n_h_vectors+n_vectors_h), &
+                             vector_field_placeholder(n_vectors),v_squared_grad(n_vectors),v_squared(n_scalars)
     integer,  intent(in)  :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h), &
                              totally_first_step_bool,vorticity_indices_triangles(3*n_dual_scalars_h), &
-                             vorticity_signs_triangles(3*n_dual_scalars_h)
+                             vorticity_signs_triangles(3*n_dual_scalars_h), &
+                             from_index(n_vectors_h),to_index(n_vectors_h),from_index_dual(n_vectors_h), &
+                             to_index_dual(n_vectors_h)
     real(wp), intent(in)  :: area(n_vectors),latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h), &
                              area_dual(n_dual_vectors),layer_thickness(n_scalars),z_vector(n_vectors), &
                              z_vector_dual(n_dual_vectors),z_t_const,z_soil_center(nsoillays), &
                              z_soil_interface(nsoillays+1),z_scalar(n_scalars),volume(n_scalars), &
-                             viscosity_triangles(n_dual_v_vectors)
+                             viscosity_triangles(n_dual_v_vectors),time_coordinate,gravity_m(n_vectors)
     
     ! local variabels
     integer :: h_index,layer_index,vector_index,rk_step
@@ -55,7 +61,7 @@ module mo_manage_pchevi
     endif
     
     ! cloud microphysics
-    if (MOISTURE_ON==1) then
+    if (lmoist) then
       call calc_h2otracers_source_rates(rho_old,temperature,layer_thickness,temperature_soil_old, &
                                         phase_trans_rates,phase_trans_heating_rate, &
                                         scalar_flux_resistance,is_land,power_flux_density_latent)
