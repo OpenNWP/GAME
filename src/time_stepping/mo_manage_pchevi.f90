@@ -36,7 +36,7 @@ module mo_manage_pchevi
                            pot_vort_tend,normal_distance,n_squared,inner_product_weights,exner_bg_grad, &
                            normal_distance_dual,power_flux_density_latent,power_flux_density_sensible, &
                            density_to_rhombi_weights,density_to_rhombi_indices,rel_vort_on_triangles, &
-                           phase_trans_heating_rate,exner_pert_new,exner_pert_old) &
+                           phase_trans_heating_rate,exner_pert_new,exner_pert_old,rel_vort,f_vec) &
   bind(c,name = "manage_pchevi")
     
     real(wp), intent(out) :: wind_new(n_vectors),wind_tend(n_vectors),condensates_sediment_heat(n_scalars), &
@@ -53,7 +53,8 @@ module mo_manage_pchevi
                              radiation_tendency(n_scalars),pot_vort_tend(n_vectors),n_squared(n_scalars), &
                              power_flux_density_latent(n_scalars_h),power_flux_density_sensible(n_scalars_h), &
                              rel_vort_on_triangles(n_dual_v_vectors),friction_acc(n_vectors), &
-                             phase_trans_heating_rate(n_scalars),exner_pert_new(n_scalars)
+                             phase_trans_heating_rate(n_scalars),exner_pert_new(n_scalars), &
+                             rel_vort((2*n_layers+1)*n_vectors_h)
     integer,  intent(in)  :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h), &
                              totally_first_step_bool,vorticity_indices_triangles(3*n_dual_scalars_h), &
                              vorticity_signs_triangles(3*n_dual_scalars_h),trsk_indices(10*n_vectors_h), &
@@ -70,7 +71,7 @@ module mo_manage_pchevi
                              t_const_soil(n_scalars_h),t_conduc_soil(n_scalars_h),sfc_rho_c(n_scalars_h), &
                              sfc_albedo(n_scalars_h),rhotheta_v_old(n_scalars),rho_old(n_scalars*n_constituents), &
                              exner_bg(n_scalars),normal_distance(n_vectors),inner_product_weights(8*n_scalars), &
-                             exner_bg_grad(n_vectors),normal_distance_dual(n_dual_vectors), &
+                             exner_bg_grad(n_vectors),normal_distance_dual(n_dual_vectors),f_vec(2*n_vectors_h), &
                              density_to_rhombi_weights(4*n_vectors_h),exner_pert_old(n_scalars)
     
     ! local variabels
