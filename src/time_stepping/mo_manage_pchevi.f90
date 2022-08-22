@@ -29,13 +29,14 @@ module mo_manage_pchevi
                            totally_first_step_bool,gravity_m,curl_of_vorticity,tke,t_const_soil, &
                            theta_v_pert_old,theta_v_pert_new,theta_v_bg,temperature_soil_new,sfc_lw_out, &
                            temperature_soil_old,temperature_diffusion_heating,slope,t_conduc_soil, &
-                           temp_diffusion_coeff_numerical_h,temp_diffusion_coeff_numerical_v, &
+                           temp_diffusion_coeff_numerical_h,temp_diffusion_coeff_numerical_v,friction_acc, &
                            sfc_rho_c,sfc_albedo,scalar_flux_resistance,scalar_field_placeholder, &
                            roughness_velocity,roughness_length,rhotheta_v_tend,rhotheta_v_old, &
                            rhotheta_v_new,rho_tend,rho_old,rho_new,radiation_tendency,exner_bg, &
                            pot_vort_tend,normal_distance,n_squared,inner_product_weights,exner_bg_grad, &
                            normal_distance_dual,power_flux_density_latent,power_flux_density_sensible, &
-                           density_to_rhombi_weights,density_to_rhombi_indices) &
+                           density_to_rhombi_weights,density_to_rhombi_indices,rel_vort_on_triangles, &
+                           phase_trans_heating_rate,exner_pert_new,exner_pert_old) &
   bind(c,name = "manage_pchevi")
     
     real(wp), intent(out) :: wind_new(n_vectors),wind_tend(n_vectors),condensates_sediment_heat(n_scalars), &
@@ -50,7 +51,9 @@ module mo_manage_pchevi
                              roughness_length(n_scalars_h),rhotheta_v_tend(n_scalars),rhotheta_v_new(n_scalars), &
                              rho_tend(n_scalars*n_constituents),rho_new(n_scalars*n_constituents), &
                              radiation_tendency(n_scalars),pot_vort_tend(n_vectors),n_squared(n_scalars), &
-                             power_flux_density_latent(n_scalars_h),power_flux_density_sensible(n_scalars_h)
+                             power_flux_density_latent(n_scalars_h),power_flux_density_sensible(n_scalars_h), &
+                             rel_vort_on_triangles(n_dual_v_vectors),friction_acc(n_vectors), &
+                             phase_trans_heating_rate(n_scalars),exner_pert_new(n_scalars)
     integer,  intent(in)  :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h), &
                              totally_first_step_bool,vorticity_indices_triangles(3*n_dual_scalars_h), &
                              vorticity_signs_triangles(3*n_dual_scalars_h),trsk_indices(10*n_vectors_h), &
@@ -68,7 +71,7 @@ module mo_manage_pchevi
                              sfc_albedo(n_scalars_h),rhotheta_v_old(n_scalars),rho_old(n_scalars*n_constituents), &
                              exner_bg(n_scalars),normal_distance(n_vectors),inner_product_weights(8*n_scalars), &
                              exner_bg_grad(n_vectors),normal_distance_dual(n_dual_vectors), &
-                             density_to_rhombi_weights(4*n_vectors_h)
+                             density_to_rhombi_weights(4*n_vectors_h),exner_pert_old(n_scalars)
     
     ! local variabels
     integer :: h_index,layer_index,vector_index,rk_step
