@@ -30,7 +30,8 @@ module mo_manage_pchevi
                            theta_v_pert_old,theta_v_pert_new,theta_v_bg,temperature_soil_new,sfc_lw_out, &
                            temperature_soil_old,temperature_diffusion_heating,slope,t_conduc_soil, &
                            temp_diffusion_coeff_numerical_h,temp_diffusion_coeff_numerical_v, &
-                           sfc_rho_c,sfc_albedo,scalar_flux_resistance) &
+                           sfc_rho_c,sfc_albedo,scalar_flux_resistance,scalar_field_placeholder, &
+                           roughness_velocity,roughness_length) &
   bind(c,name = "manage_pchevi")
     
     real(wp), intent(out) :: wind_new(n_vectors),wind_tend(n_vectors),condensates_sediment_heat(n_scalars), &
@@ -40,7 +41,9 @@ module mo_manage_pchevi
                              vector_field_placeholder(n_vectors),v_squared_grad(n_vectors),v_squared(n_scalars), &
                              tke(n_scalars),theta_v_pert_new(n_scalars),temperature_diffusion_heating(n_scalars), &
                              temp_diffusion_coeff_numerical_h(n_scalars),temp_diffusion_coeff_numerical_v(n_scalars), &
-                             sfc_sw_in(n_scalars_h),sfc_lw_out(n_scalars_h),scalar_flux_resistance(n_scalars_h)
+                             sfc_sw_in(n_scalars_h),sfc_lw_out(n_scalars_h),scalar_flux_resistance(n_scalars_h), &
+                             scalar_field_placeholder(n_scalars),roughness_velocity(n_scalars_h), &
+                             roughness_length(n_scalars_h)
     integer,  intent(in)  :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h), &
                              totally_first_step_bool,vorticity_indices_triangles(3*n_dual_scalars_h), &
                              vorticity_signs_triangles(3*n_dual_scalars_h),trsk_indices(10*n_vectors_h), &
