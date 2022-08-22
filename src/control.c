@@ -26,7 +26,7 @@ extern int constituents_nml_setup();
 extern int diff_nml_setup();
 extern int surface_nml_setup();
 
-int read_argv(int argc, char *argv[], Config *config, Config_io *config_io, Grid *grid, Irreversible_quantities *irrev)
+int read_argv(int argc, char *argv[], Config *config, Config_io *config_io, Grid *grid)
 {
 	/*
 	This function reads the command-line arguments.
@@ -118,7 +118,6 @@ int main(int argc, char *argv[])
     Grid *grid = calloc(1, sizeof(Grid));
     Dualgrid *dualgrid = calloc(1, sizeof(Dualgrid));
     Config *config = calloc(1, sizeof(Config));
-    Irreversible_quantities *irrev = calloc(1, sizeof(Irreversible_quantities));
     Config_io *config_io = calloc(1, sizeof(Config_io));
     Diagnostics *diagnostics = calloc(1, sizeof(Diagnostics));
     Forcings *forcings = calloc(1, sizeof(Forcings));
@@ -131,7 +130,7 @@ int main(int argc, char *argv[])
     reading command line input
     --------------------------
     */
-	read_argv(argc, argv, config, config_io, grid, irrev);
+	read_argv(argc, argv, config, config_io, grid);
 	// setting the implicit weight of the thermodynamic vertical time stepping
 	config -> impl_thermo_weight = 0.75;
 	// setting hte vertical swamp layer properties
@@ -229,7 +228,7 @@ int main(int argc, char *argv[])
 	// NWP mode
     else
     {
-    	read_init_data(init_state_file, state_1, irrev, grid);
+    	read_init_data();
 	}
 	printf("Initial state set successfully.\n");
 	printf("%s", stars);
@@ -355,7 +354,7 @@ int main(int argc, char *argv[])
     config -> totally_first_step_bool = 1;
     // writing out the initial state of the model run
     write_out(state_1, wind_h_lowest_layer, min_no_of_10m_wind_avg_steps, t_init, t_write,
-    diagnostics, forcings, grid, dualgrid, config_io, config, irrev);
+    diagnostics, forcings, grid, dualgrid, config_io, config);
     
     t_write += 60.0*config_io -> write_out_interval_min;
     printf("Run progress: %f h\n", (t_init - t_init)/3600);
@@ -411,25 +410,25 @@ int main(int argc, char *argv[])
                           &grid->z_t_const,grid->z_soil_center,grid->z_soil_interface,diagnostics->v_squared,grid->trsk_weights,
                           grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,grid->trsk_modified_curl_indices,
                           dualgrid->area,dualgrid->z_vector,state_1->wind,state_tendency->wind,state_2->wind,grid->trsk_indices,
-                          diagnostics->temperature,diagnostics->wind_div,irrev->viscosity_triangles,irrev->viscosity,irrev->viscosity_rhombi,
-                          irrev->condensates_sediment_heat,irrev->molecular_diffusion_coeff,forcings->v_squared_grad,
-                          &t_0,irrev->vert_hor_viscosity,diagnostics->vector_field_placeholder,forcings->sfc_sw_in,
-                          &config->totally_first_step_bool,grid->gravity_m,diagnostics->curl_of_vorticity,irrev->tke,grid->t_const_soil,
+                          diagnostics->temperature,diagnostics->wind_div,diagnostics->viscosity_triangles,diagnostics->viscosity,diagnostics->viscosity_rhombi,
+                          diagnostics->condensates_sediment_heat,diagnostics->molecular_diffusion_coeff,forcings->v_squared_grad,
+                          &t_0,diagnostics->vert_hor_viscosity,diagnostics->vector_field_placeholder,forcings->sfc_sw_in,
+                          &config->totally_first_step_bool,grid->gravity_m,diagnostics->curl_of_vorticity,diagnostics->tke,grid->t_const_soil,
                           state_1->theta_v_pert,state_2->theta_v_pert,grid->theta_v_bg,state_2->temperature_soil,forcings->sfc_lw_out,
-                          state_1->temperature_soil,irrev->temperature_diffusion_heating,grid->slope,grid->t_conduc_soil,
-                          irrev->temp_diffusion_coeff_numerical_h,irrev->temp_diffusion_coeff_numerical_v,irrev->friction_acc,
+                          state_1->temperature_soil,diagnostics->temperature_diffusion_heating,grid->slope,grid->t_conduc_soil,
+                          diagnostics->temp_diffusion_coeff_numerical_h,diagnostics->temp_diffusion_coeff_numerical_v,diagnostics->friction_acc,
                           grid->sfc_rho_c,grid->sfc_albedo,diagnostics->scalar_flux_resistance,diagnostics->scalar_field_placeholder,
                           diagnostics->roughness_velocity,grid->roughness_length,state_tendency->rhotheta_v,state_1->rhotheta_v, 
                           state_2->rhotheta_v,state_tendency->rho,state_1->rho,state_2->rho,forcings->radiation_tendency,grid->exner_bg,
                           forcings->pot_vort_tend,grid->normal_distance,diagnostics->n_squared,grid->inner_product_weights,grid->exner_bg_grad,
                           dualgrid->normal_distance,diagnostics->power_flux_density_latent,diagnostics->power_flux_density_sensible,
                           grid->density_to_rhombi_weights,grid->density_to_rhombi_indices,diagnostics->rel_vort_on_triangles,
-                          irrev->phase_trans_heating_rate,state_2->exner_pert,state_1->exner_pert,diagnostics->rel_vort,dualgrid->f_vec,&config->rad_update,
-                          irrev->pressure_gradient_decel_factor,forcings->pressure_gradient_acc_neg_l,forcings->pressure_gradient_acc_neg_nl,
+                          diagnostics->phase_trans_heating_rate,state_2->exner_pert,state_1->exner_pert,diagnostics->rel_vort,dualgrid->f_vec,&config->rad_update,
+                          diagnostics->pressure_gradient_decel_factor,forcings->pressure_gradient_acc_neg_l,forcings->pressure_gradient_acc_neg_nl,
                           diagnostics->pot_vort,diagnostics->flux_density,forcings->pressure_grad_condensates_v,diagnostics->flux_density_div,diagnostics->dv_hdz,
-                          diagnostics->monin_obukhov_length,irrev->heating_diss,grid->is_land,forcings->pgrad_acc_old,irrev->mass_diff_tendency,
-                          grid->latitude_scalar,grid->longitude_scalar,irrev->mass_diffusion_coeff_numerical_h,
-                          irrev->mass_diffusion_coeff_numerical_v,irrev->phase_trans_rates);
+                          diagnostics->monin_obukhov_length,diagnostics->heating_diss,grid->is_land,forcings->pgrad_acc_old,diagnostics->mass_diff_tendency,
+                          grid->latitude_scalar,grid->longitude_scalar,diagnostics->mass_diffusion_coeff_numerical_h,
+                          diagnostics->mass_diffusion_coeff_numerical_v,diagnostics->phase_trans_rates);
     	}
     	else
     	{
@@ -438,25 +437,25 @@ int main(int argc, char *argv[])
                           &grid->z_t_const,grid->z_soil_center,grid->z_soil_interface,diagnostics->v_squared,grid->trsk_weights,
                           grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,grid->trsk_modified_curl_indices,
                           dualgrid->area,dualgrid->z_vector,state_2->wind,state_tendency->wind,state_1->wind,grid->trsk_indices,
-                          diagnostics->temperature,diagnostics->wind_div,irrev->viscosity_triangles,irrev->viscosity,irrev->viscosity_rhombi,
-                          irrev->condensates_sediment_heat,irrev->molecular_diffusion_coeff,forcings->v_squared_grad,
-                          &t_0,irrev->vert_hor_viscosity,diagnostics->vector_field_placeholder,forcings->sfc_sw_in,
-                          &config->totally_first_step_bool,grid->gravity_m,diagnostics->curl_of_vorticity,irrev->tke,grid->t_const_soil,
+                          diagnostics->temperature,diagnostics->wind_div,diagnostics->viscosity_triangles,diagnostics->viscosity,diagnostics->viscosity_rhombi,
+                          diagnostics->condensates_sediment_heat,diagnostics->molecular_diffusion_coeff,forcings->v_squared_grad,
+                          &t_0,diagnostics->vert_hor_viscosity,diagnostics->vector_field_placeholder,forcings->sfc_sw_in,
+                          &config->totally_first_step_bool,grid->gravity_m,diagnostics->curl_of_vorticity,diagnostics->tke,grid->t_const_soil,
                           state_2->theta_v_pert,state_1->theta_v_pert,grid->theta_v_bg,state_1->temperature_soil,forcings->sfc_lw_out,
-                          state_2->temperature_soil,irrev->temperature_diffusion_heating,grid->slope,grid->t_conduc_soil,
-                          irrev->temp_diffusion_coeff_numerical_h,irrev->temp_diffusion_coeff_numerical_v,irrev->friction_acc,
+                          state_2->temperature_soil,diagnostics->temperature_diffusion_heating,grid->slope,grid->t_conduc_soil,
+                          diagnostics->temp_diffusion_coeff_numerical_h,diagnostics->temp_diffusion_coeff_numerical_v,diagnostics->friction_acc,
                           grid->sfc_rho_c,grid->sfc_albedo,diagnostics->scalar_flux_resistance,diagnostics->scalar_field_placeholder,
                           diagnostics->roughness_velocity,grid->roughness_length,state_tendency->rhotheta_v,state_2->rhotheta_v, 
                           state_1->rhotheta_v,state_tendency->rho,state_2->rho,state_1->rho,forcings->radiation_tendency,grid->exner_bg,
                           forcings->pot_vort_tend,grid->normal_distance,diagnostics->n_squared,grid->inner_product_weights,grid->exner_bg_grad,
                           dualgrid->normal_distance,diagnostics->power_flux_density_latent,diagnostics->power_flux_density_sensible,
                           grid->density_to_rhombi_weights,grid->density_to_rhombi_indices,diagnostics->rel_vort_on_triangles,
-                          irrev->phase_trans_heating_rate,state_1->exner_pert,state_2->exner_pert,diagnostics->rel_vort,dualgrid->f_vec,&config->rad_update,
-                          irrev->pressure_gradient_decel_factor,forcings->pressure_gradient_acc_neg_l,forcings->pressure_gradient_acc_neg_nl,
+                          diagnostics->phase_trans_heating_rate,state_1->exner_pert,state_2->exner_pert,diagnostics->rel_vort,dualgrid->f_vec,&config->rad_update,
+                          diagnostics->pressure_gradient_decel_factor,forcings->pressure_gradient_acc_neg_l,forcings->pressure_gradient_acc_neg_nl,
                           diagnostics->pot_vort,diagnostics->flux_density,forcings->pressure_grad_condensates_v,diagnostics->flux_density_div,diagnostics->dv_hdz,
-                          diagnostics->monin_obukhov_length,irrev->heating_diss,grid->is_land,forcings->pgrad_acc_old,irrev->mass_diff_tendency,
-                          grid->latitude_scalar,grid->longitude_scalar,irrev->mass_diffusion_coeff_numerical_h,
-                          irrev->mass_diffusion_coeff_numerical_v,irrev->phase_trans_rates);
+                          diagnostics->monin_obukhov_length,diagnostics->heating_diss,grid->is_land,forcings->pgrad_acc_old,diagnostics->mass_diff_tendency,
+                          grid->latitude_scalar,grid->longitude_scalar,diagnostics->mass_diffusion_coeff_numerical_h,
+                          diagnostics->mass_diffusion_coeff_numerical_v,diagnostics->phase_trans_rates);
     	}
 		
 		/*
@@ -537,7 +536,7 @@ int main(int argc, char *argv[])
         {
         	// here, output is actually written
             write_out(state_write, wind_h_lowest_layer, min_no_of_10m_wind_avg_steps, t_init, t_write, diagnostics, forcings,
-            grid, dualgrid, config_io, config, irrev);
+            grid, dualgrid, config_io, config);
             // setting the next output time
             t_write += 60.0*config_io -> write_out_interval_min;
             
@@ -575,7 +574,6 @@ int main(int argc, char *argv[])
     Clean-up.
     ---------
     */
-    free(irrev);
     free(config_io);
     free(diagnostics);
     free(forcings);

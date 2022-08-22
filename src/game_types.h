@@ -157,6 +157,24 @@ double power_flux_density_sensible[N_SCALS_H];
 double power_flux_density_latent[N_SCALS_H];
 double roughness_velocity[N_SCALS_H];
 double monin_obukhov_length[N_SCALS_H];
+Scalar_field temperature_diffusion_heating;
+Vector_field friction_acc;
+Scalar_field heating_diss;
+Scalar_field molecular_diffusion_coeff;
+Scalar_field mass_diffusion_coeff_numerical_h;
+Scalar_field mass_diffusion_coeff_numerical_v;
+Scalar_field temp_diffusion_coeff_numerical_h;
+Scalar_field temp_diffusion_coeff_numerical_v;
+Scalar_field pressure_gradient_decel_factor;
+Scalar_field condensates_sediment_heat;
+double mass_diff_tendency[N_CONSTITUENTS*N_SCALARS];
+double phase_trans_rates[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS];
+double phase_trans_heating_rate[N_SCALARS];
+Scalar_field viscosity;
+Vector_field viscosity_rhombi;
+double viscosity_triangles[N_DUAL_V_VECTORS];
+double vert_hor_viscosity[N_H_VECTORS + N_VECS_H];
+Scalar_field tke;
 } Diagnostics;
 
 // Collects forcings.
@@ -197,28 +215,6 @@ double rain_velocity;
 double snow_velocity;
 double radiation_delta_t;
 } Config;
-
-// Contains everything on turbulence parametrizations as well as constituent-related quantities.
-typedef struct irreversible_quantities {
-Scalar_field temperature_diffusion_heating;
-Vector_field friction_acc;
-Scalar_field heating_diss;
-Scalar_field molecular_diffusion_coeff;
-Scalar_field mass_diffusion_coeff_numerical_h;
-Scalar_field mass_diffusion_coeff_numerical_v;
-Scalar_field temp_diffusion_coeff_numerical_h;
-Scalar_field temp_diffusion_coeff_numerical_v;
-Scalar_field pressure_gradient_decel_factor;
-Scalar_field condensates_sediment_heat;
-double mass_diff_tendency[N_CONSTITUENTS*N_SCALARS];
-double phase_trans_rates[(N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS];
-double phase_trans_heating_rate[N_SCALARS];
-Scalar_field viscosity;
-Vector_field viscosity_rhombi;
-double viscosity_triangles[N_DUAL_V_VECTORS];
-double vert_hor_viscosity[N_H_VECTORS + N_VECS_H];
-Scalar_field tke;
-} Irreversible_quantities;
 
 // Info on input and output is collected here.
 typedef struct config_io {

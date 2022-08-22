@@ -253,7 +253,7 @@ double pseudopotential_temperature(State *state, Diagnostics *diagnostics, Grid 
 	return result;
 }
 
-int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int min_no_of_output_steps, double t_init, double t_write, Diagnostics *diagnostics, Forcings *forcings, Grid *grid, Dualgrid *dualgrid, Config_io *config_io, Config *config, Irreversible_quantities *irrev)
+int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int min_no_of_output_steps, double t_init, double t_write, Diagnostics *diagnostics, Forcings *forcings, Grid *grid, Dualgrid *dualgrid, Config_io *config_io, Config *config)
 {
 	printf("Writing output ...\n");
 	
@@ -1015,7 +1015,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 		NCCHECK(nc_put_var_double(ncid, densities_id, &state_write_out -> rho[0]));
 		NCCHECK(nc_put_var_double(ncid, temperature_id, &diagnostics -> temperature[0]));
 		NCCHECK(nc_put_var_double(ncid, wind_id, &state_write_out -> wind[0]));
-		NCCHECK(nc_put_var_double(ncid, tke_id, &irrev -> tke[0]));
+		NCCHECK(nc_put_var_double(ncid, tke_id, &diagnostics -> tke[0]));
 		NCCHECK(nc_put_var_double(ncid, soil_id, &state_write_out -> temperature_soil[0]));
 		
 		// closing the netcdf file
