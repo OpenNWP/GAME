@@ -408,7 +408,7 @@ int main(int argc, char *argv[])
     	{
     		manage_pchevi(grid->adjacent_signs_h,grid->adjacent_vector_indices_h,grid->area,grid->layer_thickness,
                           grid->z_scalar,grid->z_vector,grid->volume,dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,
-                          grid->z_t_const,grid->z_soil_center,grid->z_soil_interface,diagnostics->v_squared,grid->trsk_weights,
+                          &grid->z_t_const,grid->z_soil_center,grid->z_soil_interface,diagnostics->v_squared,grid->trsk_weights,
                           grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,grid->trsk_modified_curl_indices,
                           dualgrid->area,dualgrid->z_vector,state_1->wind,state_tendency->wind,state_2->wind,grid->trsk_indices,
                           diagnostics->temperature,diagnostics->wind_div,irrev->viscosity_triangles,irrev->viscosity,irrev->viscosity_rhombi,
@@ -435,7 +435,7 @@ int main(int argc, char *argv[])
     	{
     		manage_pchevi(grid->adjacent_signs_h,grid->adjacent_vector_indices_h,grid->area,grid->layer_thickness,
                           grid->z_scalar,grid->z_vector,grid->volume,dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,
-                          grid->z_t_const,grid->z_soil_center,grid->z_soil_interface,diagnostics->v_squared,grid->trsk_weights,
+                          &grid->z_t_const,grid->z_soil_center,grid->z_soil_interface,diagnostics->v_squared,grid->trsk_weights,
                           grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,grid->trsk_modified_curl_indices,
                           dualgrid->area,dualgrid->z_vector,state_1->wind,state_tendency->wind,state_1->wind,grid->trsk_indices,
                           diagnostics->temperature,diagnostics->wind_div,irrev->viscosity_triangles,irrev->viscosity,irrev->viscosity_rhombi,
