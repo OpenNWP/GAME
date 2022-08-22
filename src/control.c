@@ -120,7 +120,6 @@ int main(int argc, char *argv[])
     Config *config = calloc(1, sizeof(Config));
     Config_io *config_io = calloc(1, sizeof(Config_io));
     Diagnostics *diagnostics = calloc(1, sizeof(Diagnostics));
-    Forcings *forcings = calloc(1, sizeof(Forcings));
     State *state_write = calloc(1, sizeof(State));
     State *state_2 = calloc(1, sizeof(State));
     State *state_tendency = calloc(1, sizeof(State));
@@ -219,7 +218,7 @@ int main(int argc, char *argv[])
     	set_ideal_init(state_1->exner_pert,state_1->theta_v_pert,diagnostics->scalar_field_placeholder,grid->exner_bg,grid->theta_v_bg,grid->adjacent_vector_indices_h,
                        dualgrid->area,grid->density_to_rhombi_indices,grid->density_to_rhombi_weights,dualgrid->f_vec,diagnostics->flux_density,
                        grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,state_1->rho,grid->inner_product_weights,grid->normal_distance,
-                       forcings->pot_vort_tend,grid->z_scalar,state_1->rhotheta_v,state_1->wind,diagnostics->v_squared,grid->direction,grid->latitude_scalar,grid->longitude_scalar,
+                       diagnostics->pot_vort_tend,grid->z_scalar,state_1->rhotheta_v,state_1->wind,diagnostics->v_squared,grid->direction,grid->latitude_scalar,grid->longitude_scalar,
                        grid->z_vector,grid->slope,grid->gravity_potential,diagnostics->pot_vort,diagnostics->rel_vort,
                        diagnostics->rel_vort_on_triangles,grid->trsk_indices,grid->trsk_weights,
                        grid->trsk_modified_curl_indices,dualgrid->z_vector,dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,
@@ -343,8 +342,8 @@ int main(int argc, char *argv[])
     		radiation_init();
     	}
     	call_radiation(grid -> latitude_scalar,grid -> longitude_scalar,state_1 -> temperature_soil,grid -> sfc_albedo,grid -> z_scalar, &
-                       grid -> z_vector,state_1 -> rho,diagnostics -> temperature,forcings -> radiation_tendency, &
-                       forcings -> sfc_sw_in, forcings -> sfc_lw_out, &t_0);
+                       grid -> z_vector,state_1 -> rho,diagnostics -> temperature,diagnostics -> radiation_tendency, &
+                       diagnostics -> sfc_sw_in, diagnostics -> sfc_lw_out, &t_0);
     	config -> rad_update = 1;
     	t_rad_update += config -> radiation_delta_t;
     }
@@ -354,7 +353,7 @@ int main(int argc, char *argv[])
     config -> totally_first_step_bool = 1;
     // writing out the initial state of the model run
     write_out(state_1, wind_h_lowest_layer, min_no_of_10m_wind_avg_steps, t_init, t_write,
-    diagnostics, forcings, grid, dualgrid, config_io, config);
+    diagnostics, grid, dualgrid, config_io, config);
     
     t_write += 60.0*config_io -> write_out_interval_min;
     printf("Run progress: %f h\n", (t_init - t_init)/3600);
@@ -411,22 +410,22 @@ int main(int argc, char *argv[])
                           grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,grid->trsk_modified_curl_indices,
                           dualgrid->area,dualgrid->z_vector,state_1->wind,state_tendency->wind,state_2->wind,grid->trsk_indices,
                           diagnostics->temperature,diagnostics->wind_div,diagnostics->viscosity_triangles,diagnostics->viscosity,diagnostics->viscosity_rhombi,
-                          diagnostics->condensates_sediment_heat,diagnostics->molecular_diffusion_coeff,forcings->v_squared_grad,
-                          &t_0,diagnostics->vert_hor_viscosity,diagnostics->vector_field_placeholder,forcings->sfc_sw_in,
+                          diagnostics->condensates_sediment_heat,diagnostics->molecular_diffusion_coeff,diagnostics->v_squared_grad,
+                          &t_0,diagnostics->vert_hor_viscosity,diagnostics->vector_field_placeholder,diagnostics->sfc_sw_in,
                           &config->totally_first_step_bool,grid->gravity_m,diagnostics->curl_of_vorticity,diagnostics->tke,grid->t_const_soil,
-                          state_1->theta_v_pert,state_2->theta_v_pert,grid->theta_v_bg,state_2->temperature_soil,forcings->sfc_lw_out,
+                          state_1->theta_v_pert,state_2->theta_v_pert,grid->theta_v_bg,state_2->temperature_soil,diagnostics->sfc_lw_out,
                           state_1->temperature_soil,diagnostics->temperature_diffusion_heating,grid->slope,grid->t_conduc_soil,
                           diagnostics->temp_diffusion_coeff_numerical_h,diagnostics->temp_diffusion_coeff_numerical_v,diagnostics->friction_acc,
                           grid->sfc_rho_c,grid->sfc_albedo,diagnostics->scalar_flux_resistance,diagnostics->scalar_field_placeholder,
                           diagnostics->roughness_velocity,grid->roughness_length,state_tendency->rhotheta_v,state_1->rhotheta_v, 
-                          state_2->rhotheta_v,state_tendency->rho,state_1->rho,state_2->rho,forcings->radiation_tendency,grid->exner_bg,
-                          forcings->pot_vort_tend,grid->normal_distance,diagnostics->n_squared,grid->inner_product_weights,grid->exner_bg_grad,
+                          state_2->rhotheta_v,state_tendency->rho,state_1->rho,state_2->rho,diagnostics->radiation_tendency,grid->exner_bg,
+                          diagnostics->pot_vort_tend,grid->normal_distance,diagnostics->n_squared,grid->inner_product_weights,grid->exner_bg_grad,
                           dualgrid->normal_distance,diagnostics->power_flux_density_latent,diagnostics->power_flux_density_sensible,
                           grid->density_to_rhombi_weights,grid->density_to_rhombi_indices,diagnostics->rel_vort_on_triangles,
                           diagnostics->phase_trans_heating_rate,state_2->exner_pert,state_1->exner_pert,diagnostics->rel_vort,dualgrid->f_vec,&config->rad_update,
-                          diagnostics->pressure_gradient_decel_factor,forcings->pressure_gradient_acc_neg_l,forcings->pressure_gradient_acc_neg_nl,
-                          diagnostics->pot_vort,diagnostics->flux_density,forcings->pressure_grad_condensates_v,diagnostics->flux_density_div,diagnostics->dv_hdz,
-                          diagnostics->monin_obukhov_length,diagnostics->heating_diss,grid->is_land,forcings->pgrad_acc_old,diagnostics->mass_diff_tendency,
+                          diagnostics->pressure_gradient_decel_factor,diagnostics->pressure_gradient_acc_neg_l,diagnostics->pressure_gradient_acc_neg_nl,
+                          diagnostics->pot_vort,diagnostics->flux_density,diagnostics->pressure_grad_condensates_v,diagnostics->flux_density_div,diagnostics->dv_hdz,
+                          diagnostics->monin_obukhov_length,diagnostics->heating_diss,grid->is_land,diagnostics->pgrad_acc_old,diagnostics->mass_diff_tendency,
                           grid->latitude_scalar,grid->longitude_scalar,diagnostics->mass_diffusion_coeff_numerical_h,
                           diagnostics->mass_diffusion_coeff_numerical_v,diagnostics->phase_trans_rates);
     	}
@@ -438,22 +437,22 @@ int main(int argc, char *argv[])
                           grid->from_index,grid->to_index,dualgrid->from_index,dualgrid->to_index,grid->trsk_modified_curl_indices,
                           dualgrid->area,dualgrid->z_vector,state_2->wind,state_tendency->wind,state_1->wind,grid->trsk_indices,
                           diagnostics->temperature,diagnostics->wind_div,diagnostics->viscosity_triangles,diagnostics->viscosity,diagnostics->viscosity_rhombi,
-                          diagnostics->condensates_sediment_heat,diagnostics->molecular_diffusion_coeff,forcings->v_squared_grad,
-                          &t_0,diagnostics->vert_hor_viscosity,diagnostics->vector_field_placeholder,forcings->sfc_sw_in,
+                          diagnostics->condensates_sediment_heat,diagnostics->molecular_diffusion_coeff,diagnostics->v_squared_grad,
+                          &t_0,diagnostics->vert_hor_viscosity,diagnostics->vector_field_placeholder,diagnostics->sfc_sw_in,
                           &config->totally_first_step_bool,grid->gravity_m,diagnostics->curl_of_vorticity,diagnostics->tke,grid->t_const_soil,
-                          state_2->theta_v_pert,state_1->theta_v_pert,grid->theta_v_bg,state_1->temperature_soil,forcings->sfc_lw_out,
+                          state_2->theta_v_pert,state_1->theta_v_pert,grid->theta_v_bg,state_1->temperature_soil,diagnostics->sfc_lw_out,
                           state_2->temperature_soil,diagnostics->temperature_diffusion_heating,grid->slope,grid->t_conduc_soil,
                           diagnostics->temp_diffusion_coeff_numerical_h,diagnostics->temp_diffusion_coeff_numerical_v,diagnostics->friction_acc,
                           grid->sfc_rho_c,grid->sfc_albedo,diagnostics->scalar_flux_resistance,diagnostics->scalar_field_placeholder,
                           diagnostics->roughness_velocity,grid->roughness_length,state_tendency->rhotheta_v,state_2->rhotheta_v, 
-                          state_1->rhotheta_v,state_tendency->rho,state_2->rho,state_1->rho,forcings->radiation_tendency,grid->exner_bg,
-                          forcings->pot_vort_tend,grid->normal_distance,diagnostics->n_squared,grid->inner_product_weights,grid->exner_bg_grad,
+                          state_1->rhotheta_v,state_tendency->rho,state_2->rho,state_1->rho,diagnostics->radiation_tendency,grid->exner_bg,
+                          diagnostics->pot_vort_tend,grid->normal_distance,diagnostics->n_squared,grid->inner_product_weights,grid->exner_bg_grad,
                           dualgrid->normal_distance,diagnostics->power_flux_density_latent,diagnostics->power_flux_density_sensible,
                           grid->density_to_rhombi_weights,grid->density_to_rhombi_indices,diagnostics->rel_vort_on_triangles,
                           diagnostics->phase_trans_heating_rate,state_1->exner_pert,state_2->exner_pert,diagnostics->rel_vort,dualgrid->f_vec,&config->rad_update,
-                          diagnostics->pressure_gradient_decel_factor,forcings->pressure_gradient_acc_neg_l,forcings->pressure_gradient_acc_neg_nl,
-                          diagnostics->pot_vort,diagnostics->flux_density,forcings->pressure_grad_condensates_v,diagnostics->flux_density_div,diagnostics->dv_hdz,
-                          diagnostics->monin_obukhov_length,diagnostics->heating_diss,grid->is_land,forcings->pgrad_acc_old,diagnostics->mass_diff_tendency,
+                          diagnostics->pressure_gradient_decel_factor,diagnostics->pressure_gradient_acc_neg_l,diagnostics->pressure_gradient_acc_neg_nl,
+                          diagnostics->pot_vort,diagnostics->flux_density,diagnostics->pressure_grad_condensates_v,diagnostics->flux_density_div,diagnostics->dv_hdz,
+                          diagnostics->monin_obukhov_length,diagnostics->heating_diss,grid->is_land,diagnostics->pgrad_acc_old,diagnostics->mass_diff_tendency,
                           grid->latitude_scalar,grid->longitude_scalar,diagnostics->mass_diffusion_coeff_numerical_h,
                           diagnostics->mass_diffusion_coeff_numerical_v,diagnostics->phase_trans_rates);
     	}
@@ -535,7 +534,7 @@ int main(int argc, char *argv[])
         if(t_0 + delta_t >= t_write + radius_rescale*300 && t_0 <= t_write + radius_rescale*300)
         {
         	// here, output is actually written
-            write_out(state_write, wind_h_lowest_layer, min_no_of_10m_wind_avg_steps, t_init, t_write, diagnostics, forcings,
+            write_out(state_write, wind_h_lowest_layer, min_no_of_10m_wind_avg_steps, t_init, t_write, diagnostics,
             grid, dualgrid, config_io, config);
             // setting the next output time
             t_write += 60.0*config_io -> write_out_interval_min;
@@ -576,7 +575,6 @@ int main(int argc, char *argv[])
     */
     free(config_io);
     free(diagnostics);
-    free(forcings);
     free(state_tendency);
     free(grid);
     free(dualgrid);

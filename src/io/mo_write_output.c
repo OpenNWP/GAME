@@ -253,7 +253,7 @@ double pseudopotential_temperature(State *state, Diagnostics *diagnostics, Grid 
 	return result;
 }
 
-int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int min_no_of_output_steps, double t_init, double t_write, Diagnostics *diagnostics, Forcings *forcings, Grid *grid, Dualgrid *dualgrid, Config_io *config_io, Config *config)
+int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int min_no_of_output_steps, double t_init, double t_write, Diagnostics *diagnostics, Grid *grid, Dualgrid *dualgrid, Config_io *config_io, Config *config)
 {
 	printf("Writing output ...\n");
 	
@@ -400,7 +400,7 @@ int write_out(State *state_write_out, double wind_h_lowest_layer_array[], int mi
 				z_height = grid -> z_scalar[layer_index*N_SCALS_H + i];
 			}
 			
-			sfc_sw_down[i] = forcings -> sfc_sw_in[i]/(1.0 - grid -> sfc_albedo[i] + EPSILON_SECURITY);
+			sfc_sw_down[i] = diagnostics -> sfc_sw_in[i]/(1.0 - grid -> sfc_albedo[i] + EPSILON_SECURITY);
 		    
 		    // Now come the hydrometeors.
 		    // Calculation of the total cloud cover

@@ -175,10 +175,6 @@ Vector_field viscosity_rhombi;
 double viscosity_triangles[N_DUAL_V_VECTORS];
 double vert_hor_viscosity[N_H_VECTORS + N_VECS_H];
 Scalar_field tke;
-} Diagnostics;
-
-// Collects forcings.
-typedef struct forcings {
 Vector_field pgrad_acc_old;
 Vector_field pressure_gradient_acc_neg_nl;
 Vector_field pressure_gradient_acc_neg_l;
@@ -188,7 +184,7 @@ Vector_field pot_vort_tend;
 double sfc_sw_in[N_SCALS_H];
 double sfc_lw_out[N_SCALS_H];
 Scalar_field radiation_tendency;
-} Forcings;
+} Diagnostics;
 
 // Info on the run configuration is collected here.
 typedef struct config {
