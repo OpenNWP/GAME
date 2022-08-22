@@ -32,7 +32,10 @@ module mo_manage_pchevi
                            temp_diffusion_coeff_numerical_h,temp_diffusion_coeff_numerical_v, &
                            sfc_rho_c,sfc_albedo,scalar_flux_resistance,scalar_field_placeholder, &
                            roughness_velocity,roughness_length,rhotheta_v_tend,rhotheta_v_old, &
-                           rhotheta_v_new,rho_tend,rho_old,rho_new) &
+                           rhotheta_v_new,rho_tend,rho_old,rho_new,radiation_tendency,exner_bg, &
+                           pot_vort_tend,normal_distance,n_squared,inner_product_weights,exner_bg_grad, &
+                           normal_distance_dual,power_flux_density_latent,power_flux_density_sensible, &
+                           density_to_rhombi_weights,density_to_rhombi_indices) &
   bind(c,name = "manage_pchevi")
     
     real(wp), intent(out) :: wind_new(n_vectors),wind_tend(n_vectors),condensates_sediment_heat(n_scalars), &
@@ -45,12 +48,15 @@ module mo_manage_pchevi
                              sfc_sw_in(n_scalars_h),sfc_lw_out(n_scalars_h),scalar_flux_resistance(n_scalars_h), &
                              scalar_field_placeholder(n_scalars),roughness_velocity(n_scalars_h), &
                              roughness_length(n_scalars_h),rhotheta_v_tend(n_scalars),rhotheta_v_new(n_scalars), &
-                             rho_tend(n_scalars*n_constituents),rho_new(n_scalars*n_constituents)
+                             rho_tend(n_scalars*n_constituents),rho_new(n_scalars*n_constituents), &
+                             radiation_tendency(n_scalars),pot_vort_tend(n_vectors),n_squared(n_scalars), &
+                             power_flux_density_latent(n_scalars_h),power_flux_density_sensible(n_scalars_h)
     integer,  intent(in)  :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h), &
                              totally_first_step_bool,vorticity_indices_triangles(3*n_dual_scalars_h), &
                              vorticity_signs_triangles(3*n_dual_scalars_h),trsk_indices(10*n_vectors_h), &
                              from_index(n_vectors_h),to_index(n_vectors_h),from_index_dual(n_vectors_h), &
-                             to_index_dual(n_vectors_h),trsk_modified_curl_indices(10*n_vectors_h)
+                             to_index_dual(n_vectors_h),trsk_modified_curl_indices(10*n_vectors_h), &
+                             density_to_rhombi_indices(4*n_vectors_h)
     real(wp), intent(in)  :: area(n_vectors),latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h), &
                              area_dual(n_dual_vectors),layer_thickness(n_scalars),z_vector(n_vectors), &
                              z_vector_dual(n_dual_vectors),z_t_const,z_soil_center(nsoillays), &
@@ -59,7 +65,10 @@ module mo_manage_pchevi
                              trsk_weights(10*n_vectors_h),theta_v_bg(n_scalars),theta_v_pert_old(n_scalars), &
                              wind_old(n_vectors),temperature_soil_old(nsoillays*n_scalars_h),slope(n_vectors), &
                              t_const_soil(n_scalars_h),t_conduc_soil(n_scalars_h),sfc_rho_c(n_scalars_h), &
-                             sfc_albedo(n_scalars_h),rhotheta_v_old(n_scalars),rho_old(n_scalars*n_constituents)
+                             sfc_albedo(n_scalars_h),rhotheta_v_old(n_scalars),rho_old(n_scalars*n_constituents), &
+                             exner_bg(n_scalars),normal_distance(n_vectors),inner_product_weights(8*n_scalars), &
+                             exner_bg_grad(n_vectors),normal_distance_dual(n_dual_vectors), &
+                             density_to_rhombi_weights(4*n_vectors_h)
     
     ! local variabels
     integer :: h_index,layer_index,vector_index,rk_step
