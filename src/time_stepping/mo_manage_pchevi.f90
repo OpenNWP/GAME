@@ -20,6 +20,7 @@ module mo_manage_pchevi
   use mo_explicit_scalar_tend, only: scalar_tendencies_expl
   use mo_explicit_wind_tend,   only: vector_tendencies_expl
   use phase_trans, only: calc_h2otracers_source_rates
+  use manage_radiation_calls, only: call_radiation
   
   implicit none
   
@@ -142,7 +143,7 @@ module mo_manage_pchevi
       endif
       
       if (rk_step==0) then
-       call alc_pressure_grad_condensates_v(pressure_gradient_decel_factor,rho_old,gravity_m,pressure_grad_condensates_v)
+       call calc_pressure_grad_condensates_v(pressure_gradient_decel_factor,rho_old,gravity_m,pressure_grad_condensates_v)
         ! Only the horizontal momentum is a forward tendency.
        call  vector_tendencies_expl(wind_old,rel_vort_on_triangles,z_vector,z_vector_dual,rel_vort, &
                                     vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
