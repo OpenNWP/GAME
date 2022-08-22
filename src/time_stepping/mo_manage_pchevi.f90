@@ -12,7 +12,7 @@ module mo_manage_pchevi
                               n_dual_scalars_h,n_dual_v_vectors,n_h_vectors,n_vectors_h
   use run_nml,          only: dtime
   use column_solvers,   only: three_band_solver_ver_waves,three_band_solver_gen_densities
-  use surface_nml,      only: nsoillays
+  use surface_nml,      only: nsoillays,lsfc_sensible_heat_flux
   
   implicit none
   
@@ -29,7 +29,8 @@ module mo_manage_pchevi
                            totally_first_step_bool,gravity_m,curl_of_vorticity,tke,t_const_soil, &
                            theta_v_pert_old,theta_v_pert_new,theta_v_bg,temperature_soil_new,sfc_lw_out, &
                            temperature_soil_old,temperature_diffusion_heating,slope,t_conduc_soil, &
-                           temp_diffusion_coeff_numerical_h,temp_diffusion_coeff_numerical_v) &
+                           temp_diffusion_coeff_numerical_h,temp_diffusion_coeff_numerical_v, &
+                           sfc_rho_c) &
   bind(c,name = "manage_pchevi")
     
     real(wp), intent(out) :: wind_new(n_vectors),wind_tend(n_vectors),condensates_sediment_heat(n_scalars), &
@@ -52,7 +53,7 @@ module mo_manage_pchevi
                              viscosity_triangles(n_dual_v_vectors),time_coordinate,gravity_m(n_vectors), &
                              trsk_weights(10*n_vectors_h),theta_v_bg(n_scalars),theta_v_pert_old(n_scalars), &
                              wind_old(n_vectors),temperature_soil_old(nsoillays*n_scalars_h),slope(n_vectors), &
-                             t_const_soil(n_scalars_h),t_conduc_soil(n_scalars_h)
+                             t_const_soil(n_scalars_h),t_conduc_soil(n_scalars_h),sfc_rho_c(n_scalars_h)
     
     ! local variabels
     integer :: h_index,layer_index,vector_index,rk_step
@@ -64,7 +65,7 @@ module mo_manage_pchevi
     call  temperature_diagnostics(temperature,theta_v_bg,theta_v_pert_old,exner_bg,exner_pert_old,rho_old)
     
     ! updating surface-related turbulence quantities if it is necessary
-    if (sfc_sensible_heat_flux==1 .or. sfc_phase_trans==1 .or. pbl_scheme==1) then
+    if (lsfc_sensible_heat_flux .or. sfc_phase_trans==1 .or. pbl_scheme==1) then
       call update_sfc_turb_quantities(is_land,roughness_length,monin_obukhov_length,z_scalar,z_vector, &
                                       theta_v_bg,theta_v_pert_old,v_squared,roughness_velocity,scalar_flux_resistance)
     endif
