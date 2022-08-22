@@ -16,6 +16,7 @@ module phase_trans
                                 phase_trans_heat,enhancement_factor_over_water,enhancement_factor_over_ice
   use derived_quantities, only: c_v_mass_weighted_air
   use surface_nml,        only: nsoillays,lsfc_phase_trans
+  use manage_radiation_calls, only: call_radiation
 
   implicit none
   

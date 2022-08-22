@@ -7,12 +7,19 @@ module mo_manage_pchevi
   
   use iso_c_binding
   use mo_definitions,   only: wp
-  use constituents_nml, only: n_constituents,lmoist
+  use constituents_nml, only: n_constituents,lmoist,n_condensed_constituents
   use grid_nml,         only: n_layers,n_vectors_per_layer,n_scalars_h,n_vectors,n_dual_vectors,n_scalars, &
                               n_dual_scalars_h,n_dual_v_vectors,n_h_vectors,n_vectors_h
   use run_nml,          only: dtime
   use column_solvers,   only: three_band_solver_ver_waves,three_band_solver_gen_densities
-  use surface_nml,      only: nsoillays,lsfc_sensible_heat_flux,lsfc_phase_trans
+  use surface_nml,      only: nsoillays,lsfc_sensible_heat_flux,lsfc_phase_trans,pbl_scheme
+  use rad_nml,          only: rad_config
+  use mo_pgrad,         only: manage_pressure_gradient,calc_pressure_grad_condensates_v
+  use derived_quantities, only: temperature_diagnostics
+  use planetary_boundary_layer, only: update_sfc_turb_quantities
+  use mo_explicit_scalar_tend, only: scalar_tendencies_expl
+  use mo_explicit_wind_tend,   only: vector_tendencies_expl
+  use phase_trans, only: calc_h2otracers_source_rates
   
   implicit none
   
@@ -36,7 +43,12 @@ module mo_manage_pchevi
                            pot_vort_tend,normal_distance,n_squared,inner_product_weights,exner_bg_grad, &
                            normal_distance_dual,power_flux_density_latent,power_flux_density_sensible, &
                            density_to_rhombi_weights,density_to_rhombi_indices,rel_vort_on_triangles, &
-                           phase_trans_heating_rate,exner_pert_new,exner_pert_old,rel_vort,f_vec) &
+                           phase_trans_heating_rate,exner_pert_new,exner_pert_old,rel_vort,f_vec,rad_update, &
+                           pressure_gradient_decel_factor,pressure_gradient_acc_neg_l,pressure_gradient_acc_neg_nl, &
+                           pot_vort,flux_density,pressure_grad_condensates_v,flux_density_div,dv_hdz, &
+                           monin_obukhov_length,heating_diss,is_land,pgrad_acc_old,mass_diff_tendency, &
+                           latitude_scalar,longitude_scalar,mass_diffusion_coeff_numerical_h, &
+                           mass_diffusion_coeff_numerical_v,phase_trans_rates) &
   bind(c,name = "manage_pchevi")
     
     real(wp), intent(out) :: wind_new(n_vectors),wind_tend(n_vectors),condensates_sediment_heat(n_scalars), &
@@ -54,18 +66,25 @@ module mo_manage_pchevi
                              power_flux_density_latent(n_scalars_h),power_flux_density_sensible(n_scalars_h), &
                              rel_vort_on_triangles(n_dual_v_vectors),friction_acc(n_vectors), &
                              phase_trans_heating_rate(n_scalars),exner_pert_new(n_scalars), &
-                             rel_vort((2*n_layers+1)*n_vectors_h)
+                             rel_vort((2*n_layers+1)*n_vectors_h),pressure_gradient_decel_factor(n_scalars), &
+                             pressure_gradient_acc_neg_l(n_vectors),pressure_gradient_acc_neg_nl(n_vectors), &
+                             pot_vort((2*n_layers+1)*n_vectors_h),flux_density(n_vectors), &
+                             pressure_grad_condensates_v(n_vectors),flux_density_div(n_scalars), &
+                             monin_obukhov_length(n_scalars_h),heating_diss(n_scalars),pgrad_acc_old(n_vectors), &
+                             mass_diff_tendency(n_scalars),mass_diffusion_coeff_numerical_h(n_scalars), &
+                             mass_diffusion_coeff_numerical_v(n_scalars),dv_hdz(n_h_vectors+n_vectors_h), &
+                             phase_trans_rates((n_condensed_constituents+1)*n_scalars),viscosity_triangles(n_dual_v_vectors)
     integer,  intent(in)  :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h), &
                              totally_first_step_bool,vorticity_indices_triangles(3*n_dual_scalars_h), &
                              vorticity_signs_triangles(3*n_dual_scalars_h),trsk_indices(10*n_vectors_h), &
                              from_index(n_vectors_h),to_index(n_vectors_h),from_index_dual(n_vectors_h), &
                              to_index_dual(n_vectors_h),trsk_modified_curl_indices(10*n_vectors_h), &
-                             density_to_rhombi_indices(4*n_vectors_h)
+                             density_to_rhombi_indices(4*n_vectors_h),rad_update,is_land(n_scalars_h)
     real(wp), intent(in)  :: area(n_vectors),latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h), &
                              area_dual(n_dual_vectors),layer_thickness(n_scalars),z_vector(n_vectors), &
                              z_vector_dual(n_dual_vectors),z_t_const,z_soil_center(nsoillays), &
                              z_soil_interface(nsoillays+1),z_scalar(n_scalars),volume(n_scalars), &
-                             viscosity_triangles(n_dual_v_vectors),time_coordinate,gravity_m(n_vectors), &
+                             time_coordinate,gravity_m(n_vectors), &
                              trsk_weights(10*n_vectors_h),theta_v_bg(n_scalars),theta_v_pert_old(n_scalars), &
                              wind_old(n_vectors),temperature_soil_old(nsoillays*n_scalars_h),slope(n_vectors), &
                              t_const_soil(n_scalars_h),t_conduc_soil(n_scalars_h),sfc_rho_c(n_scalars_h), &
@@ -97,7 +116,7 @@ module mo_manage_pchevi
     endif
     
     ! Radiation is updated here.
-    if (rad_on>0 .and. rad_update==1) then
+    if (rad_config>0 .and. rad_update==1) then
       call call_radiation(latitude_scalar,longitude_scalar,temperature_soil_old,sfc_albedo,z_scalar, &
                           z_vector,rho_old,temperature,radiation_tendency, &
                           sfc_sw_in,sfc_lw_out,time_coordinate)
