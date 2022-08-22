@@ -25,10 +25,10 @@ module mo_manage_pchevi
                            area_dual,z_vector_dual,wind_old,wind_tend,wind_new,trsk_indices, &
                            temperature,wind_div,viscosity_triangles,viscosity,viscosity_rhombi, &
                            condensates_sediment_heat,molecular_diffusion_coeff,v_squared_grad, &
-                           time_coordinate,vert_hor_viscosity,vector_field_placeholder, &
-                           totally_first_step_bool,gravity_m,curl_of_vorticity,tke, &
-                           theta_v_pert_old,theta_v_pert_new,theta_v_bg,temperature_soil_new, &
-                           temperature_soil_old,temperature_diffusion_heating,slope, &
+                           time_coordinate,vert_hor_viscosity,vector_field_placeholder,sfc_sw_in, &
+                           totally_first_step_bool,gravity_m,curl_of_vorticity,tke,t_const_soil, &
+                           theta_v_pert_old,theta_v_pert_new,theta_v_bg,temperature_soil_new,sfc_lw_out, &
+                           temperature_soil_old,temperature_diffusion_heating,slope,t_conduc_soil, &
                            temp_diffusion_coeff_numerical_h,temp_diffusion_coeff_numerical_v) &
   bind(c,name = "manage_pchevi")
     
@@ -38,7 +38,8 @@ module mo_manage_pchevi
                              molecular_diffusion_coeff(n_scalars),vert_hor_viscosity(n_h_vectors+n_vectors_h), &
                              vector_field_placeholder(n_vectors),v_squared_grad(n_vectors),v_squared(n_scalars), &
                              tke(n_scalars),theta_v_pert_new(n_scalars),temperature_diffusion_heating(n_scalars), &
-                             temp_diffusion_coeff_numerical_h(n_scalars),temp_diffusion_coeff_numerical_v(n_scalars)
+                             temp_diffusion_coeff_numerical_h(n_scalars),temp_diffusion_coeff_numerical_v(n_scalars), &
+                             sfc_sw_in(n_scalars_h),sfc_lw_out(n_scalars_h)
     integer,  intent(in)  :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h), &
                              totally_first_step_bool,vorticity_indices_triangles(3*n_dual_scalars_h), &
                              vorticity_signs_triangles(3*n_dual_scalars_h),trsk_indices(10*n_vectors_h), &
@@ -50,7 +51,8 @@ module mo_manage_pchevi
                              z_soil_interface(nsoillays+1),z_scalar(n_scalars),volume(n_scalars), &
                              viscosity_triangles(n_dual_v_vectors),time_coordinate,gravity_m(n_vectors), &
                              trsk_weights(10*n_vectors_h),theta_v_bg(n_scalars),theta_v_pert_old(n_scalars), &
-                             wind_old(n_vectors),temperature_soil_old(nsoillays*n_scalars_h),slope(n_vectors)
+                             wind_old(n_vectors),temperature_soil_old(nsoillays*n_scalars_h),slope(n_vectors), &
+                             t_const_soil(n_scalars_h),t_conduc_soil(n_scalars_h)
     
     ! local variabels
     integer :: h_index,layer_index,vector_index,rk_step
