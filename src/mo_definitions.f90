@@ -138,6 +138,15 @@ module mo_definitions
     real(wp), allocatable :: viscosity_triangles(:)
     real(wp), allocatable :: vert_hor_viscosity(:)
     real(wp), allocatable :: tke(:)
+    real(wp), allocatable :: pgrad_acc_old(:)
+    real(wp), allocatable :: pressure_gradient_acc_neg_nl(:)
+    real(wp), allocatable :: pressure_gradient_acc_neg_l(:)
+    real(wp), allocatable :: pressure_grad_condensates_v(:)
+    real(wp), allocatable :: v_squared_grad(:)
+    real(wp), allocatable :: pot_vort_tend(:)
+    real(wp), allocatable :: sfc_sw_in(:)
+    real(wp), allocatable :: sfc_lw_out(:)
+    real(wp), allocatable :: radiation_tendency(:)
   
   end type t_diag
   
@@ -156,20 +165,6 @@ module mo_definitions
     real(wp), allocatable :: rad_tend(:)
   
   end type t_radiation
-  
-  type t_forcings
-    
-    real(wp), allocatable :: pgrad_acc_old(:)
-    real(wp), allocatable :: pressure_gradient_acc_neg_nl(:)
-    real(wp), allocatable :: pressure_gradient_acc_neg_l(:)
-    real(wp), allocatable :: pressure_grad_condensates_v(:)
-    real(wp), allocatable :: v_squared_grad(:)
-    real(wp), allocatable :: pot_vort_tend(:)
-    real(wp), allocatable :: sfc_sw_in(:)
-    real(wp), allocatable :: sfc_lw_out(:)
-    real(wp), allocatable :: radiation_tendency(:)
-  
-  end type t_forcings
 
 end module mo_definitions
 
