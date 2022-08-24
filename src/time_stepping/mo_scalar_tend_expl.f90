@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME),which is released under the MIT license.
 ! Github repository: https:!github.com/OpenNWP/GAME
   
-module mo_scalar_tendencies_expl
+module mo_scalar_tend_expl
   
   ! This module contains the horizontal (explicit) part of the constituent integration.
 
@@ -205,7 +205,7 @@ module mo_scalar_tendencies_expl
   
   end subroutine scalar_tendencies_expl
 
-end module mo_scalar_tendencies_expl
+end module mo_scalar_tend_expl
 
 
 

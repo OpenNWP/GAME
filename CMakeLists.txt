@@ -21,8 +21,8 @@ src/namelists/mo_surface_nml.f90
 src/namelists/mo_grid_nml.f90
 src/time_stepping/mo_manage_pchevi.f90
 src/time_stepping/mo_pgrad.f90
-src/time_stepping/mo_vector_tendencies_expl.f90
-src/time_stepping/mo_scalar_tendencies_expl.f90
+src/time_stepping/mo_vector_tend_expl.f90
+src/time_stepping/mo_scalar_tend_expl.f90
 src/time_stepping/mo_column_solvers.f90
 src/spatial_operators/mo_vorticity_flux.f90
 src/spatial_operators/mo_vorticities.f90
