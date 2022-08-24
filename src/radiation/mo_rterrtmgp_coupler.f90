@@ -22,11 +22,11 @@ module rrtmgp_coupler
                                         ty_optical_props_arry
   use mo_cloud_optics,            only: ty_cloud_optics
   use mo_load_cloud_coefficients, only: load_cld_lutcoeff, load_cld_padecoeff
-  use rad_nml,                    only: n_scals_rad_h,n_scals_rad,rrtmgp_coefficients_file_sw, &
+  use mo_rad_nml,                 only: n_scals_rad_h,n_scals_rad,rrtmgp_coefficients_file_sw, &
                                         rrtmgp_coefficients_file_lw,cloud_coefficients_file_sw, &
                                         cloud_coefficients_file_lw
-  use grid_nml,                   only: n_layers
-  use constituents_nml,           only: n_constituents,n_condensed_constituents
+  use mo_grid_nml,                only: n_layers
+  use mo_constituents_nml,        only: n_constituents,n_condensed_constituents
   
   implicit none
   

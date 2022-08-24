@@ -7,7 +7,7 @@ module mo_averaging
 
   use iso_c_binding
   use mo_definitions, only: wp
-  use grid_nml,       only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer, &
+  use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer, &
                             n_v_vectors,n_pentagons,n_h_vectors
   use mo_grid_setup,  only: n_oro_layers
   use geodesy,        only: passive_turn

@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module grid_nml
+module mo_grid_nml
 
   ! This is the namelists the configures the basic run properties of a model integration.
   
@@ -83,7 +83,7 @@ module grid_nml
   
   end subroutine grid_nml_setup
   
-end module grid_nml
+end module mo_grid_nml
 
 
 

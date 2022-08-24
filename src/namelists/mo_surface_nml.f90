@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module surface_nml
+module mo_surface_nml
 
   ! This namelist defines the surface properties.
 
@@ -31,7 +31,7 @@ module surface_nml
   
   end subroutine surface_nml_setup
 
-end module surface_nml
+end module mo_surface_nml
 
 
 

@@ -7,7 +7,7 @@ module mo_multiplications
   
   use iso_c_binding
   use mo_definitions, only: wp
-  use grid_nml,       only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer
+  use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer
   
   implicit none
   

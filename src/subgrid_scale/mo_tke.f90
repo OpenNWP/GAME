@@ -7,9 +7,9 @@ module mo_tke
 
   use iso_c_binding
   use mo_definitions,        only: wp
-  use grid_nml,              only: n_scalars,n_vectors,n_vectors_h,n_scalars_h
-  use constituents_nml,      only: n_condensed_constituents,n_constituents
-  use run_nml,               only: dtime
+  use mo_grid_nml,           only: n_scalars,n_vectors,n_vectors_h,n_scalars_h
+  use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
+  use mo_run_nml,            only: dtime
   use mo_constants,          only: M_PI
   use mo_gradient_operators, only: grad
   use mo_inner_product,      only: inner_product

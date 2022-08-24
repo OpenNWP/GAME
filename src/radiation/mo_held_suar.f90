@@ -6,10 +6,10 @@ module held_suarez
   ! This module calculates the Held-Suarez radiative forcing.
   
   use iso_c_binding
-  use mo_definitions,   only: wp
-  use mo_constants,     only: c_d_v,r_d,p_0
-  use constituents_nml, only: n_constituents,n_condensed_constituents
-  use rad_nml,          only: n_scals_rad,n_scals_rad_h
+  use mo_definitions,      only: wp
+  use mo_constants,        only: c_d_v,r_d,p_0
+  use mo_constituents_nml, only: n_constituents,n_condensed_constituents
+  use mo_rad_nml,          only: n_scals_rad,n_scals_rad_h
   
   implicit none
   

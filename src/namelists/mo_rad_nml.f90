@@ -1,14 +1,14 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module rad_nml
+module mo_rad_nml
 
   ! This is the namelists the configures the basic run properties of a model integration.
   
   use iso_c_binding
   use mo_definitions, only: wp
-  use grid_nml,    only: n_scalars,n_scalars_h
-  use mo_grid_setup,     only: eff_hor_res
+  use mo_grid_nml,    only: n_scalars,n_scalars_h
+  use mo_grid_setup,  only: eff_hor_res
   
   implicit none
   
@@ -51,7 +51,7 @@ module rad_nml
   
   end subroutine rad_nml_setup
   
-end module rad_nml
+end module mo_rad_nml
 
 
 

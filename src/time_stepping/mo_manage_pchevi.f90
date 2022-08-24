@@ -7,13 +7,13 @@ module mo_manage_pchevi
   
   use iso_c_binding
   use mo_definitions,            only: wp
-  use constituents_nml,          only: n_constituents,lmoist,n_condensed_constituents
-  use grid_nml,                  only: n_layers,n_vectors_per_layer,n_scalars_h,n_vectors,n_dual_vectors,n_scalars, &
+  use mo_constituents_nml,       only: n_constituents,lmoist,n_condensed_constituents
+  use mo_grid_nml,               only: n_layers,n_vectors_per_layer,n_scalars_h,n_vectors,n_dual_vectors,n_scalars, &
                                        n_dual_scalars_h,n_dual_v_vectors,n_h_vectors,n_vectors_h
-  use run_nml,                   only: dtime
+  use mo_run_nml,                only: dtime
   use mo_column_solvers,         only: three_band_solver_ver_waves,three_band_solver_gen_densities
-  use surface_nml,               only: nsoillays,lsfc_sensible_heat_flux,lsfc_phase_trans,pbl_scheme
-  use rad_nml,                   only: rad_config
+  use mo_surface_nml,            only: nsoillays,lsfc_sensible_heat_flux,lsfc_phase_trans,pbl_scheme
+  use mo_rad_nml,                only: rad_config
   use mo_pgrad,                  only: manage_pressure_gradient,calc_pressure_grad_condensates_v
   use derived_quantities,        only: temperature_diagnostics
   use planetary_boundary_layer,  only: update_sfc_turb_quantities

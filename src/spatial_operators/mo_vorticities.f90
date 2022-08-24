@@ -7,7 +7,7 @@ module mo_vorticities
 
   use iso_c_binding
   use mo_definitions,  only: wp
-  use grid_nml,        only: n_layers,n_vectors_h,n_vectors,n_layers,n_dual_vectors_per_layer,n_dual_v_vectors, &
+  use mo_grid_nml,     only: n_layers,n_vectors_h,n_vectors,n_layers,n_dual_vectors_per_layer,n_dual_v_vectors, &
                              n_dual_scalars_h,n_scalars_h,n_vectors_per_layer,n_vectors_h,n_dual_vectors, &
                              n_scalars
   use mo_grid_setup,   only: n_oro_layers,radius

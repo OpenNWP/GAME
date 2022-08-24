@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module run_nml
+module mo_run_nml
 
   ! This is the namelist that configures the basic run properties of a model integration.
   
@@ -29,7 +29,7 @@ module run_nml
   
   end subroutine run_nml_setup
   
-end module run_nml
+end module mo_run_nml
 
 
 

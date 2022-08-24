@@ -6,13 +6,13 @@ module manage_radiation_calls
   ! This module manages the calls to the radiation routines.
 
   use iso_c_binding
-  use mo_definitions,   only: wp,t_radiation
-  use grid_nml,         only: n_scalars,n_scalars_h,n_vectors_per_layer,n_vectors,n_layers
-  use rad_nml,          only: n_scals_rad_h,n_scals_rad,n_rad_blocks,rad_config
-  use constituents_nml, only: n_constituents,n_condensed_constituents
-  use surface_nml,      only: nsoillays
-  use held_suarez,      only: held_suar
-  use rrtmgp_coupler,   only: calc_radiative_flux_convergence
+  use mo_definitions,      only: wp,t_radiation
+  use mo_grid_nml,         only: n_scalars,n_scalars_h,n_vectors_per_layer,n_vectors,n_layers
+  use mo_rad_nml,          only: n_scals_rad_h,n_scals_rad,n_rad_blocks,rad_config
+  use mo_constituents_nml, only: n_constituents,n_condensed_constituents
+  use mo_surface_nml,      only: nsoillays
+  use held_suarez,         only: held_suar
+  use rrtmgp_coupler,      only: calc_radiative_flux_convergence
 
   implicit none
   

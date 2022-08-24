@@ -8,11 +8,11 @@ module mo_momentum_diff_diss
   use iso_c_binding
   use mo_definitions,        only: wp
   use mo_constants,          only: EPSILON_SECURITY
-  use grid_nml,              only: n_scalars,n_vectors,n_scalars_h,n_h_vectors, &
+  use mo_grid_nml,           only: n_scalars,n_vectors,n_scalars_h,n_h_vectors, &
                                    n_dual_vectors_per_layer,n_dual_scalars_h,n_dual_vectors,n_vectors_h, &
                                    n_layers,n_vectors_per_layer,n_dual_v_vectors,n_v_vectors
   use derived_quantities,    only: density_total
-  use constituents_nml,      only: n_constituents
+  use mo_constituents_nml,   only: n_constituents
   use mo_inner_product,      only: inner_product
   use mo_divergences,        only: div_h,add_vertical_div
   use mo_vorticities,        only: calc_rel_vort

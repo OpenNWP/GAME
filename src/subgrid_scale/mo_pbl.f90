@@ -6,15 +6,15 @@ module planetary_boundary_layer
   ! In this module, quantities referring to the planetary boundary layer are computed.
 
   use iso_c_binding
-  use mo_constants,       only: EPSILON_SECURITY,M_PI,gravity,p_0,c_d_p,r_d
-  use mo_definitions,     only: wp
-  use run_nml,            only: dtime
-  use diff_nml,           only: h_prandtl,karman
-  use grid_nml,           only: n_scalars,n_scalars_h,n_vectors_per_layer,n_layers,n_vectors,n_vectors_h,n_vectors_per_layer, &
-                                n_h_vectors
-  use surface_nml,        only: lprog_soil_temp,pbl_scheme
-  use constituents_nml,   only: n_constituents
-  use derived_quantities, only: gas_constant_diagnostics
+  use mo_constants,        only: EPSILON_SECURITY,M_PI,gravity,p_0,c_d_p,r_d
+  use mo_definitions,      only: wp
+  use mo_run_nml,          only: dtime
+  use mo_diff_nml,         only: h_prandtl,karman
+  use mo_grid_nml,         only: n_scalars,n_scalars_h,n_vectors_per_layer,n_layers,n_vectors,n_vectors_h,n_vectors_per_layer, &
+                                 n_h_vectors
+  use mo_surface_nml,      only: lprog_soil_temp,pbl_scheme
+  use mo_constituents_nml, only: n_constituents
+  use derived_quantities,  only: gas_constant_diagnostics
   
   implicit none
   

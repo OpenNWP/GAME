@@ -7,7 +7,7 @@ module mo_vorticity_flux
 
   use iso_c_binding
   use mo_definitions, only: wp
-  use grid_nml,       only: n_vectors_per_layer,n_layers,n_pentagons,n_vectors_h,n_vectors,n_scalars_h,n_scalars
+  use mo_grid_nml,    only: n_vectors_per_layer,n_layers,n_pentagons,n_vectors_h,n_vectors,n_scalars_h,n_scalars
   
   implicit none
   
