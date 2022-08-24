@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME),which is released under the MIT license.
 ! Github repository: https:!github.com/OpenNWP/GAME
 
-module column_solvers
+module mo_column_solvers
 
   ! This module contains the implicit vertical routines (implicit part of the HEVI scheme).
 
@@ -612,7 +612,7 @@ module column_solvers
   
   end subroutine thomas_algorithm
 
-end module column_solvers
+end module mo_column_solvers
 
 
 
