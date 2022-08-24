@@ -20,7 +20,7 @@ src/namelists/mo_diff_nml.f90
 src/namelists/mo_surface_nml.f90
 src/namelists/mo_grid_nml.f90
 src/time_stepping/mo_manage_pchevi.f90
-src/time_stepping/mo_manage_pressure_gradient.f90
+src/time_stepping/mo_pgrad.f90
 src/time_stepping/mo_vector_tendencies_expl.f90
 src/time_stepping/mo_scalar_tendencies_expl.f90
 src/time_stepping/mo_column_solvers.f90
