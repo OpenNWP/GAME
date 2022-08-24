@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https:!github.com/OpenNWP/GAME
 
-module planetary_boundary_layer
+module mo_pbl
 
   ! In this module, quantities referring to the planetary boundary layer are computed.
 
@@ -401,7 +401,7 @@ module planetary_boundary_layer
     
  end function psi_m
     
-end module planetary_boundary_layer
+end module mo_pbl
     
     
     

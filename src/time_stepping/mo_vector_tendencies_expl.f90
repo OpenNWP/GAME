@@ -18,8 +18,8 @@ module mo_vector_tendencies_expl
   use mo_tke,                   only: tke_update
   use mo_momentum_diff_diss,    only: hor_momentum_diffusion,vert_momentum_diffusion,simple_dissipation_rate
   use mo_multiplications,       only: scalar_times_vector
-  use planetary_boundary_layer, only: pbl_wind_tendency
-  use effective_diff_coeffs,    only: update_n_squared
+  use mo_pbl,                   only: pbl_wind_tendency
+  use mo_effective_diff_coeffs, only: update_n_squared
   use mo_vorticities,           only: calc_pot_vort
   
   implicit none

@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME),which is released under the MIT license.
 ! Github repository: https:!github.com/OpenNWP/GAME
 
-module effective_diff_coeffs
+module mo_effective_diff_coeffs
   
   ! This module computes the effective diffusion coefficients.
   
@@ -352,7 +352,7 @@ module effective_diff_coeffs
     
   end subroutine update_n_squared
   
-end module effective_diff_coeffs
+end module mo_effective_diff_coeffs
 
 
 

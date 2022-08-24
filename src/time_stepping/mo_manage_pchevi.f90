@@ -16,7 +16,7 @@ module mo_manage_pchevi
   use mo_rad_nml,                only: rad_config
   use mo_pgrad,                  only: manage_pressure_gradient,calc_pressure_grad_condensates_v
   use derived_quantities,        only: temperature_diagnostics
-  use planetary_boundary_layer,  only: update_sfc_turb_quantities
+  use mo_pbl,                    only: update_sfc_turb_quantities
   use mo_scalar_tendencies_expl, only: scalar_tendencies_expl
   use mo_vector_tendencies_expl, only: vector_tendencies_expl
   use phase_trans,               only: calc_h2otracers_source_rates
