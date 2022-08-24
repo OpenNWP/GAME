@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME),which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module manage_radiation_calls
+module mo_manage_radiation_calls
 
   ! This module manages the calls to the radiation routines.
 
@@ -11,8 +11,8 @@ module manage_radiation_calls
   use mo_rad_nml,          only: n_scals_rad_h,n_scals_rad,n_rad_blocks,rad_config
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents
   use mo_surface_nml,      only: nsoillays
-  use held_suarez,         only: held_suar
-  use rrtmgp_coupler,      only: calc_radiative_flux_convergence
+  use mo_held_suarez,      only: held_suar
+  use mo_rrtmgp_coupler,   only: calc_radiative_flux_convergence
 
   implicit none
   
@@ -236,7 +236,7 @@ module manage_radiation_calls
   
   end subroutine remap_to_original_scalar_h
 
-end module manage_radiation_calls
+end module mo_manage_radiation_calls
 
 
 

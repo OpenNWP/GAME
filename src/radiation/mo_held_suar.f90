@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME),which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module held_suarez
+module mo_held_suarez
 
   ! This module calculates the Held-Suarez radiative forcing.
   
@@ -74,7 +74,7 @@ module held_suarez
   
   end function k_t
 
-end module held_suarez
+end module mo_held_suarez
 
 
 

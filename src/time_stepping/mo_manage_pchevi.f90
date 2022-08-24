@@ -20,7 +20,7 @@ module mo_manage_pchevi
   use mo_scalar_tendencies_expl, only: scalar_tendencies_expl
   use mo_vector_tendencies_expl, only: vector_tendencies_expl
   use phase_trans,               only: calc_h2otracers_source_rates
-  use manage_radiation_calls,    only: call_radiation
+  use mo_manage_radiation_calls, only: call_radiation
   
   implicit none
   
