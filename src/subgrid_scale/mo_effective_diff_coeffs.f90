@@ -6,15 +6,15 @@ module effective_diff_coeffs
   ! This module computes the effective diffusion coefficients.
   
   use iso_c_binding
-  use mo_definitions,     only: wp
-  use gradient_operators, only: grad_vert_cov
-  use multiplications,    only: scalar_times_vector_v
-  use grid_nml,           only: n_scalars_h,n_layers,n_scalars,n_vectors_per_layer,n_vectors,n_v_vectors, &
-                                n_vectors_h,n_h_vectors,n_dual_scalars_h,n_dual_v_vectors
-  use constituents_nml,   only: n_condensed_constituents,n_constituents
-  use derived_quantities, only: c_v_mass_weighted_air,calc_diffusion_coeff
-  use diff_nml,           only: lmom_diff_h
-  use grid_setup,         only: eff_hor_res
+  use mo_definitions,        only: wp
+  use mo_gradient_operators, only: grad_vert_cov
+  use mo_multiplications,    only: scalar_times_vector_v
+  use grid_nml,              only: n_scalars_h,n_layers,n_scalars,n_vectors_per_layer,n_vectors,n_v_vectors, &
+                                   n_vectors_h,n_h_vectors,n_dual_scalars_h,n_dual_v_vectors
+  use constituents_nml,      only: n_condensed_constituents,n_constituents
+  use derived_quantities,    only: c_v_mass_weighted_air,calc_diffusion_coeff
+  use diff_nml,              only: lmom_diff_h
+  use grid_setup,            only: eff_hor_res
   
   implicit none
   

@@ -12,9 +12,9 @@ module mo_explicit_scalar_tend
   use constituents_nml,      only: n_constituents,n_condensed_constituents,lmoist
   use derived_quantities,    only: c_v_mass_weighted_air
   use diff_nml,              only: lmass_diff_h,lmass_diff_v,ltemp_diff_h,ltemp_diff_v
-  use multiplications,       only: scalar_times_vector_h,scalar_times_vector_v,scalar_times_vector_h_upstream
-  use divergences,           only: div_h_tracer,div_h,add_vertical_div
-  use gradient_operators,    only: grad
+  use mo_multiplications,    only: scalar_times_vector_h,scalar_times_vector_v,scalar_times_vector_h_upstream
+  use mo_divergences,        only: div_h_tracer,div_h,add_vertical_div
+  use mo_gradient_operators, only: grad
   use effective_diff_coeffs, only: scalar_diffusion_coeffs
 
   implicit none

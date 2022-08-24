@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module averaging
+module mo_averaging
 
   ! This file contains functions that perform averagings.
 
@@ -155,7 +155,7 @@ module averaging
    
   end function horizontal_covariant
 
-end module averaging
+end module mo_averaging
 
 
 

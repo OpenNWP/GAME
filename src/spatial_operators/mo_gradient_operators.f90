@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module gradient_operators
+module mo_gradient_operators
 
   ! This module contains the gradient operators.
   
@@ -9,7 +9,7 @@ module gradient_operators
   use mo_definitions, only: wp
   use grid_nml,       only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer, &
                             n_v_vectors,n_v_vectors
-  use averaging,      only: vector_field_hor_cov_to_con
+  use mo_averaging,   only: vector_field_hor_cov_to_con
   
   implicit none
   
@@ -129,7 +129,7 @@ module gradient_operators
     
   end subroutine grad_hor
 
-end module gradient_operators
+end module mo_gradient_operators
 
 
 

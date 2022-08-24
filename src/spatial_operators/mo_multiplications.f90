@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module multiplications
+module mo_multiplications
 
   ! In this module, algebraic multiplications of fields are collected.
   
@@ -113,7 +113,7 @@ module multiplications
   
   end subroutine scalar_times_vector_v
 
-end module multiplications
+end module mo_multiplications
 
 
 

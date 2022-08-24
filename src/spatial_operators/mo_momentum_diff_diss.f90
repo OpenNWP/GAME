@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https:!github.com/OpenNWP/GAME
 
-module momentum_diff_diss
+module mo_momentum_diff_diss
 
   ! The momentum diffusion acceleration is computed here (apart from the diffusion coefficients).
 
@@ -14,9 +14,9 @@ module momentum_diff_diss
   use derived_quantities,    only: density_total
   use constituents_nml,      only: n_constituents
   use mo_inner_product,      only: inner_product
-  use divergences,           only: div_h,add_vertical_div
-  use vorticities,           only: calc_rel_vort
-  use gradient_operators,    only: grad_hor,grad_vert_cov
+  use mo_divergences,        only: div_h,add_vertical_div
+  use mo_vorticities,        only: calc_rel_vort
+  use mo_gradient_operators, only: grad_hor,grad_vert_cov
   use effective_diff_coeffs, only: hor_viscosity,vert_vert_mom_viscosity,vert_hor_mom_viscosity
   use grid_setup,            only: n_oro_layers,radius
 
@@ -356,4 +356,11 @@ module momentum_diff_diss
   
   end subroutine simple_dissipation_rate
 
-end module momentum_diff_diss
+end module mo_momentum_diff_diss
+
+
+
+
+
+
+

@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module divergences
+module mo_divergences
 
   ! In this module, divergences get computed.
   
@@ -10,7 +10,7 @@ module divergences
   use grid_nml,       only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer, &
                             n_v_vectors,n_pentagons
   use grid_setup,     only: n_oro_layers
-  use averaging,      only: vertical_contravariant_corr
+  use mo_averaging,   only: vertical_contravariant_corr
   
   implicit none
   
@@ -180,7 +180,7 @@ module divergences
   
   end subroutine add_vertical_div
 
-end module divergences
+end module mo_divergences
 
 
 

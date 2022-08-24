@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module linear_combination
+module mo_linear_combination
 
   ! This module  contains a function for linearly combining two states.
 
@@ -39,7 +39,7 @@ module linear_combination
     
   end subroutine linear_combine_two_states
 
-end module linear_combination
+end module mo_linear_combination
 
 
 

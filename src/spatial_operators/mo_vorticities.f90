@@ -1,4 +1,7 @@
-module vorticities
+! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
+! Github repository: https:!github.com/OpenNWP/GAME
+
+module mo_vorticities
 
   ! Here, vorticities are calculated. The word "vorticity" hereby refers to both vertical and tangential components.
 
@@ -8,7 +11,7 @@ module vorticities
                              n_dual_scalars_h,n_scalars_h,n_vectors_per_layer,n_vectors_h,n_dual_vectors, &
                              n_scalars
   use grid_setup,      only: n_oro_layers,radius
-  use averaging,       only: horizontal_covariant
+  use mo_averaging,    only: horizontal_covariant
   
   implicit none
   
@@ -259,4 +262,24 @@ module vorticities
   
   end subroutine add_f_to_rel_vort
   
-end module vorticities
+end module mo_vorticities
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

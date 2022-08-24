@@ -19,8 +19,8 @@ module set_initial_state
   use run_nml,            only: ideal_input_id
   use rad_nml,            only: rad_config
   use baroclinic_wave,    only: baroclinic_wave_test
-  use multiplications,    only: scalar_times_vector
-  use vorticities,        only: calc_pot_vort
+  use mo_multiplications, only: scalar_times_vector
+  use mo_vorticities,     only: calc_pot_vort
   use mo_vorticity_flux,  only: vorticity_flux
   use mo_inner_product,   only: inner_product
   
