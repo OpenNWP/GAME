@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https:!github.com/OpenNWP/GAME
 
-module phase_trans
+module mo_phase_trans
 
   ! This file contains functions calculating everything related to phase transition rates.
 
@@ -11,10 +11,10 @@ module phase_trans
   use mo_grid_nml,               only: n_scalars,n_scalars_h,n_layers
   use mo_constants,              only: r_v,t_0,r_d
   use mo_constituents_nml,       only: n_condensed_constituents,n_constituents
-  use dictionary,                only: saturation_pressure_over_water,saturation_pressure_over_ice, &
+  use mo_dictionary,             only: saturation_pressure_over_water,saturation_pressure_over_ice, &
                                        dsaturation_pressure_over_water_dT,dsaturation_pressure_over_ice_dT, &
                                        phase_trans_heat,enhancement_factor_over_water,enhancement_factor_over_ice
-  use derived_quantities,        only: c_v_mass_weighted_air
+  use mo_derived,                only: c_v_mass_weighted_air
   use mo_surface_nml,            only: nsoillays,lsfc_phase_trans
   use mo_manage_radiation_calls, only: call_radiation
 
@@ -291,7 +291,7 @@ module phase_trans
   
   end subroutine calc_h2otracers_source_rates
 
-end module phase_trans
+end module mo_phase_trans
 
 
 

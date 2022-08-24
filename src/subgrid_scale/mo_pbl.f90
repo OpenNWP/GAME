@@ -14,7 +14,7 @@ module mo_pbl
                                  n_h_vectors
   use mo_surface_nml,      only: lprog_soil_temp,pbl_scheme
   use mo_constituents_nml, only: n_constituents
-  use derived_quantities,  only: gas_constant_diagnostics
+  use mo_derived,          only: gas_constant_diagnostics
   
   implicit none
   

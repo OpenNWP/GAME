@@ -12,7 +12,7 @@ module mo_column_solvers
   use mo_grid_nml,         only: n_scalars,n_layers,n_scalars_h,n_vectors_per_layer,n_vectors
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents,cloud_droplets_velocity,rain_velocity,&
                                  snow_velocity
-  use dictionary,          only: c_p_cond
+  use mo_dictionary,       only: c_p_cond
   use mo_surface_nml,      only: nsoillays,lprog_soil_temp,lsfc_sensible_heat_flux
   use mo_diff_nml,         only: klemp_damp_max,klemp_begin_rel
   use mo_rad_nml,          only: radiation_dtime

@@ -13,7 +13,7 @@ module mo_set_initial_state
                                  n_layers,oro_id,res_id,n_dual_v_vectors,n_dual_scalars_h
   use mo_constituents_nml, only: n_condensed_constituents,n_constituents
   use mo_surface_nml,      only: nsoillays
-  use derived_quantities,  only: rel_humidity
+  use mo_derived,          only: rel_humidity
   use various_helpers,     only: nc_check,int2string
   use mo_grid_setup,       only: radius_rescale
   use mo_run_nml,          only: ideal_input_id

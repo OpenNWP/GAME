@@ -12,7 +12,7 @@ module mo_effective_diff_coeffs
   use mo_grid_nml,           only: n_scalars_h,n_layers,n_scalars,n_vectors_per_layer,n_vectors,n_v_vectors, &
                                    n_vectors_h,n_h_vectors,n_dual_scalars_h,n_dual_v_vectors
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
-  use derived_quantities,    only: c_v_mass_weighted_air,calc_diffusion_coeff
+  use mo_derived,            only: c_v_mass_weighted_air,calc_diffusion_coeff
   use mo_diff_nml,           only: lmom_diff_h
   use mo_grid_setup,         only: eff_hor_res
   

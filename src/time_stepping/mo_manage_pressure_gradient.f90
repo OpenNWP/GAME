@@ -12,7 +12,7 @@ module mo_pgrad
   use mo_gradient_operators, only: grad
   use mo_multiplications,    only: scalar_times_vector,scalar_times_vector_v
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
-  use derived_quantities,    only: density_total
+  use mo_derived,            only: density_total
 
   implicit none
   
