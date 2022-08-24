@@ -10,7 +10,7 @@ module mo_spatial_ops_for_output
   use mo_grid_nml,           only: n_scalars_h,n_scalars,n_vectors_h,n_layers,n_vectors_per_layer,n_vectors, &
                                    n_pentagons,n_h_vectors
   use mo_gradient_operators, only: grad
-  use geodesy,               only: passive_turn
+  use mo_geodesy,            only: passive_turn
   
   implicit none
   

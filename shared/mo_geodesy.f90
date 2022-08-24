@@ -1,14 +1,14 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module geodesy
+module mo_geodesy
   
   ! This file contains functions calculating geodesic operations.
 
   use iso_c_binding
-  use mo_definitions,  only: wp
-  use mo_constants,    only: M_PI
-  use various_helpers, only: find_min_index,in_bool_checker
+  use mo_definitions,     only: wp
+  use mo_constants,       only: M_PI
+  use mo_various_helpers, only: find_min_index,in_bool_checker
   
   implicit none
   
@@ -639,7 +639,7 @@ module geodesy
 
   end function calc_spherical_polygon_area
 
-end module geodesy
+end module mo_geodesy
 
 
 

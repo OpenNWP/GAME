@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module various_helpers
+module mo_various_helpers
   
   ! This module contains helper functions and subroutines.
 
@@ -153,7 +153,7 @@ module various_helpers
     
   end function int2string
 
-end module various_helpers
+end module mo_various_helpers
 
 
 

@@ -1,18 +1,18 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module horizontal_generation
+module mo_horizontal_generation
   
   ! In this file, the horizontal grid generation procedure is stored.
 
   use iso_c_binding
   use netcdf
-  use phys_sfc_properties, only: nc_check
-  use mo_definitions,      only: wp
-  use grid_nml,            only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
-                                 no_of_lloyd_iterations,n_vectors,n_dual_vectors
-  use geodesy,             only: find_geodetic_direction,find_between_point,normalize_cartesian,find_geos, &
-                                 rad2deg,find_turn_angle
+  use mo_phys_sfc_properties, only: nc_check
+  use mo_definitions,         only: wp
+  use mo_grid_nml,            only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
+                                    no_of_lloyd_iterations,n_vectors,n_dual_vectors
+  use mo_geodesy,             only: find_geodetic_direction,find_between_point,normalize_cartesian,find_geos, &
+                                    rad2deg,find_turn_angle
   
   implicit none
   
@@ -139,7 +139,7 @@ module horizontal_generation
     
   end subroutine read_horizontal_explicit
 
-end module horizontal_generation
+end module mo_horizontal_generation
 
 
 

@@ -1,18 +1,18 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module discrete_coordinate_trafos
+module mo_discrete_coordinate_trafos
   
   ! This module contains discrete coordinate transformations on the icosahedral grid.
 
   use iso_c_binding
   use netcdf
-  use phys_sfc_properties, only: nc_check
-  use mo_definitions,      only: wp
-  use grid_nml,            only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
-                                 no_of_lloyd_iterations,n_vectors,n_dual_vectors,res_id,n_pentagons,n_basic_edges, &
-                                 n_points_per_edge
-  use various_helpers,     only: in_bool_checker
+  use mo_phys_sfc_properties, only: nc_check
+  use mo_definitions,         only: wp
+  use mo_grid_nml,            only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
+                                    no_of_lloyd_iterations,n_vectors,n_dual_vectors,res_id,n_pentagons,n_basic_edges, &
+                                    n_points_per_edge
+  use mo_various_helpers,     only: in_bool_checker
   
   implicit none
   
@@ -236,7 +236,7 @@ module discrete_coordinate_trafos
   
   end subroutine find_triangle_on_face_index_from_dual_scalar_on_face_index
 
-end module discrete_coordinate_trafos
+end module mo_discrete_coordinate_trafos
 
 
 

@@ -9,11 +9,11 @@ module vertical_grid
   use mo_definitions, only: wp
   use mo_constants,   only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv,r_d, &
                             p_0_standard,c_d_p,p_0
-  use grid_nml,       only: n_scalars_h,n_scalars,n_vectors_per_layer,n_layers,n_levels, &
+  use mo_grid_nml,    only: n_scalars_h,n_scalars,n_vectors_per_layer,n_layers,n_levels, &
                             n_vectors,n_dual_scalars_h,n_dual_scalars,n_vectors_h, &
                             n_dual_vectors,n_dual_vectors_per_layer,toa,n_oro_layers,stretching_parameter, &
                             radius
-  use geodesy,        only: calculate_vertical_area,calculate_distance_h
+  use mo_geodesy,     only: calculate_vertical_area,calculate_distance_h
   
   implicit none
   

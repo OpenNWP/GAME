@@ -1,17 +1,17 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module phys_sfc_properties
+module mo_phys_sfc_properties
 
   ! In this module, the physical surface properties are set.
 
   use iso_c_binding
   use netcdf
-  use mo_constants,    only: M_PI,rho_h2o
-  use mo_definitions,  only: wp
-  use grid_nml,        only: res_id,n_scalars_h,no_of_avg_points
-  use geodesy,         only: deg2rad,calculate_distance_h
-  use various_helpers, only: nc_check,int2string,find_min_index,find_min_index_exclude
+  use mo_constants,       only: M_PI,rho_h2o
+  use mo_definitions,     only: wp
+  use mo_grid_nml,        only: res_id,n_scalars_h,no_of_avg_points
+  use mo_geodesy,         only: deg2rad,calculate_distance_h
+  use mo_various_helpers, only: nc_check,int2string,find_min_index,find_min_index_exclude
 
   implicit none
   
@@ -197,7 +197,7 @@ module phys_sfc_properties
   
   end subroutine
   
-end module phys_sfc_properties
+end module mo_phys_sfc_properties
 
 
 

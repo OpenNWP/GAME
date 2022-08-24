@@ -1,16 +1,16 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module interpolation_ll
+module mo_interpolation_ll
 
   ! This file contains functions that compute properties of the vertical grid.
 
   use iso_c_binding
-  use mo_definitions,  only: wp
-  use mo_constants,    only: M_PI,EPSILON_SECURITY
-  use grid_nml,        only: n_scalars_h,n_lat_io_points,n_lon_io_points,n_latlon_io_points
-  use geodesy,         only: calculate_distance_h
-  use various_helpers, only: find_min_index_exclude
+  use mo_definitions,     only: wp
+  use mo_constants,       only: M_PI,EPSILON_SECURITY
+  use mo_grid_nml,        only: n_scalars_h,n_lat_io_points,n_lon_io_points,n_latlon_io_points
+  use mo_geodesy,         only: calculate_distance_h
+  use mo_various_helpers, only: find_min_index_exclude
   
   implicit none
   
@@ -73,7 +73,7 @@ module interpolation_ll
     
   end subroutine interpolate_ll
 
-end module interpolation_ll
+end module mo_interpolation_ll
 
 
 

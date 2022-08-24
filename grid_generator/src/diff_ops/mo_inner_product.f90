@@ -7,7 +7,7 @@ module inner_product
 
   use iso_c_binding
   use mo_definitions, only: wp
-  use grid_nml,       only: n_scalars_h,n_scalars,n_vectors_per_layer, &
+  use mo_grid_nml,    only: n_scalars_h,n_scalars,n_vectors_per_layer, &
                             n_vectors,n_layers,n_pentagons,grid_nml_setup
   
   implicit none

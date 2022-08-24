@@ -6,12 +6,12 @@ module mo_coriolis
   ! In this module, everything that is needed for calculating the vorticity flux term is prepared.
 
   use iso_c_binding
-  use mo_definitions,  only: wp
-  use mo_constants,    only: EPSILON_SECURITY
-  use grid_nml,        only: radius,n_vectors_h,n_dual_vectors,n_vectors,n_dual_scalars_h,n_scalars_h, &
-                             n_pentagons,n_scalars
-  use geodesy,         only: calc_triangle_area,sort_vertex_indices
-  use various_helpers, only: in_bool_checker
+  use mo_definitions,     only: wp
+  use mo_constants,       only: EPSILON_SECURITY
+  use mo_grid_nml,        only: radius,n_vectors_h,n_dual_vectors,n_vectors,n_dual_scalars_h,n_scalars_h, &
+                                n_pentagons,n_scalars
+  use mo_geodesy,         only: calc_triangle_area,sort_vertex_indices
+  use mo_various_helpers, only: in_bool_checker
   
   implicit none
   

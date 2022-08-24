@@ -14,7 +14,7 @@ module mo_set_initial_state
   use mo_constituents_nml, only: n_condensed_constituents,n_constituents
   use mo_surface_nml,      only: nsoillays
   use mo_derived,          only: rel_humidity
-  use various_helpers,     only: nc_check,int2string
+  use mo_various_helpers,  only: nc_check,int2string
   use mo_grid_setup,       only: radius_rescale
   use mo_run_nml,          only: ideal_input_id
   use mo_rad_nml,          only: rad_config
