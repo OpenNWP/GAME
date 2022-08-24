@@ -10,7 +10,7 @@ module mo_vorticities
   use grid_nml,        only: n_layers,n_vectors_h,n_vectors,n_layers,n_dual_vectors_per_layer,n_dual_v_vectors, &
                              n_dual_scalars_h,n_scalars_h,n_vectors_per_layer,n_vectors_h,n_dual_vectors, &
                              n_scalars
-  use grid_setup,      only: n_oro_layers,radius
+  use mo_grid_setup,   only: n_oro_layers,radius
   use mo_averaging,    only: horizontal_covariant
   
   implicit none

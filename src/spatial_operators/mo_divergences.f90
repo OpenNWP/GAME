@@ -9,7 +9,7 @@ module mo_divergences
   use mo_definitions, only: wp
   use grid_nml,       only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer, &
                             n_v_vectors,n_pentagons
-  use grid_setup,     only: n_oro_layers
+  use mo_grid_setup,  only: n_oro_layers
   use mo_averaging,   only: vertical_contravariant_corr
   
   implicit none

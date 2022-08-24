@@ -14,7 +14,7 @@ module effective_diff_coeffs
   use constituents_nml,      only: n_condensed_constituents,n_constituents
   use derived_quantities,    only: c_v_mass_weighted_air,calc_diffusion_coeff
   use diff_nml,              only: lmom_diff_h
-  use grid_setup,            only: eff_hor_res
+  use mo_grid_setup,         only: eff_hor_res
   
   implicit none
   

@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME)which is released under the MIT license.
 ! Github repository: https:!github.com/OpenNWP/GAME
 
-module set_initial_state
+module mo_set_initial_state
 
   ! In this modulethe initial state of the simulation is set.
 
@@ -15,7 +15,7 @@ module set_initial_state
   use surface_nml,        only: nsoillays
   use derived_quantities, only: rel_humidity
   use various_helpers,    only: nc_check,int2string
-  use grid_setup,         only: radius_rescale
+  use mo_grid_setup,      only: radius_rescale
   use run_nml,            only: ideal_input_id
   use rad_nml,            only: rad_config
   use baroclinic_wave,    only: baroclinic_wave_test
@@ -450,7 +450,7 @@ module set_initial_state
   
   end subroutine set_soil_temp
   
-end module 
+end module mo_set_initial_state
 
 
 

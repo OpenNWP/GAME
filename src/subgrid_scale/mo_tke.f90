@@ -13,7 +13,7 @@ module mo_tke
   use mo_constants,          only: M_PI
   use mo_gradient_operators, only: grad
   use mo_inner_product,      only: inner_product
-  use grid_setup,            only: mean_velocity_area
+  use mo_grid_setup,         only: mean_velocity_area
 
   implicit none
   

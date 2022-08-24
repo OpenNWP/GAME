@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https:!github.com/OpenNWP/GAME
 
-module spatial_ops_for_output
+module mo_spatial_ops_for_output
 
   ! In this module, those spatial operators are collected which are only needed for the output.
   
@@ -309,7 +309,7 @@ module spatial_ops_for_output
     
   end subroutine curl_field_to_cells
 
-end module spatial_ops_for_output
+end module mo_spatial_ops_for_output
 
 
 

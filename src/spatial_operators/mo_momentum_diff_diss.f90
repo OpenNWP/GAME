@@ -18,7 +18,7 @@ module mo_momentum_diff_diss
   use mo_vorticities,        only: calc_rel_vort
   use mo_gradient_operators, only: grad_hor,grad_vert_cov
   use effective_diff_coeffs, only: hor_viscosity,vert_vert_mom_viscosity,vert_hor_mom_viscosity
-  use grid_setup,            only: n_oro_layers,radius
+  use mo_grid_setup,         only: n_oro_layers,radius
 
   implicit none
   

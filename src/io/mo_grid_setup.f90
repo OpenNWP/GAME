@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https:!github.com/OpenNWP/GAME
 
-module grid_setup
+module mo_grid_setup
   
   ! This module reads the grid properties and sets some further grid quantities.
 
@@ -211,7 +211,7 @@ module grid_setup
     
   end subroutine set_grid_properties
 
-end module grid_setup
+end module mo_grid_setup
 
 
 
