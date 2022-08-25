@@ -21,17 +21,17 @@ module mo_scalar_tend_expl
   
   contains
 
-  subroutine scalar_tendencies_expl(rho,mass_diff_tendency,scalar_field_placeholder,adjacent_vector_indices_h, &
-                                    rhotheta_v_tend,adjacent_signs_h,area,flux_density,from_index,to_index, &
-                                    inner_product_weights,layer_thickness,mass_diffusion_coeff_numerical_h, &
-                                    mass_diffusion_coeff_numerical_v,molecular_diffusion_coeff,n_squared, &
-                                    normal_distance,rhotheta_v,slope,temp_diffusion_coeff_numerical_h, &
-                                    temp_diffusion_coeff_numerical_v,temperature,tke,vector_field_placeholder, &
-                                    viscosity,viscosity_rhombi,viscosity_triangles,volume,vorticity_indices_triangles, &
-                                    wind,temperature_diffusion_heating,flux_density_div,rho_tend,phase_trans_rates, &
-                                    exner_pert,exner_bg,condensates_sediment_heat,phase_trans_heating_rate, &
-                                    radiation_tendency,heating_diss,rk_step) &
-  bind(c,name = "scalar_tendencies_expl")
+  subroutine scalar_tend_expl(rho,mass_diff_tendency,scalar_field_placeholder,adjacent_vector_indices_h, &
+                              rhotheta_v_tend,adjacent_signs_h,area,flux_density,from_index,to_index, &
+                              inner_product_weights,layer_thickness,mass_diffusion_coeff_numerical_h, &
+                              mass_diffusion_coeff_numerical_v,molecular_diffusion_coeff,n_squared, &
+                              normal_distance,rhotheta_v,slope,temp_diffusion_coeff_numerical_h, &
+                              temp_diffusion_coeff_numerical_v,temperature,tke,vector_field_placeholder, &
+                              viscosity,viscosity_rhombi,viscosity_triangles,volume,vorticity_indices_triangles, &
+                              wind,temperature_diffusion_heating,flux_density_div,rho_tend,phase_trans_rates, &
+                              exner_pert,exner_bg,condensates_sediment_heat,phase_trans_heating_rate, &
+                              radiation_tendency,heating_diss,rk_step) &
+  bind(c,name = "scalar_tend_expl")
     
     ! This subroutine manages the calculation of the explicit part of the scalar tendencies.
     
@@ -203,7 +203,7 @@ module mo_scalar_tend_expl
       endif
     enddo
   
-  end subroutine scalar_tendencies_expl
+  end subroutine scalar_tend_expl
 
 end module mo_scalar_tend_expl
 

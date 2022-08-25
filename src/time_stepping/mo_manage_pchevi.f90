@@ -17,8 +17,8 @@ module mo_manage_pchevi
   use mo_pgrad,                  only: manage_pressure_gradient,calc_pressure_grad_condensates_v
   use mo_derived,                only: temperature_diagnostics
   use mo_pbl,                    only: update_sfc_turb_quantities
-  use mo_scalar_tend_expl,       only: scalar_tendencies_expl
-  use mo_vector_tend_expl,       only: vector_tendencies_expl
+  use mo_scalar_tend_expl,       only: scalar_tend_expl
+  use mo_vector_tend_expl,       only: vector_tend_expl
   use mo_phase_trans,            only: calc_h2otracers_source_rates
   use mo_manage_radiation_calls, only: call_radiation
   
@@ -145,36 +145,36 @@ module mo_manage_pchevi
       if (rk_step==0) then
        call calc_pressure_grad_condensates_v(pressure_gradient_decel_factor,rho_old,gravity_m,pressure_grad_condensates_v)
         ! Only the horizontal momentum is a forward tendency.
-       call  vector_tendencies_expl(wind_old,rel_vort_on_triangles,z_vector,z_vector_dual,rel_vort, &
-                                    vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
-                                    area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
-                                    slope,temperature,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
-                                    molecular_diffusion_coeff,normal_distance_dual,rho_old,tke,viscosity,viscosity_triangles, &
-                                    volume,wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity, &
-                                    gravity_m,theta_v_bg,theta_v_pert_old,scalar_field_placeholder,n_squared,wind_tend, &
-                                    density_to_rhombi_indices,density_to_rhombi_weights,dv_hdz,exner_bg, &
-                                    exner_pert_old,f_vec,flux_density,heating_diss,layer_thickness,monin_obukhov_length, &
-                                    pot_vort,roughness_length,trsk_indices,trsk_modified_curl_indices,trsk_weights, &
-                                    v_squared,vert_hor_viscosity,z_scalar,pot_vort_tend,v_squared_grad, &
-                                    pressure_gradient_acc_neg_nl,pressure_gradient_acc_neg_l,pgrad_acc_old, &
-                                    pressure_grad_condensates_v,rk_step,totally_first_step_bool)
+       call  vector_tend_expl(wind_old,rel_vort_on_triangles,z_vector,z_vector_dual,rel_vort, &
+                              vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
+                              area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
+                              slope,temperature,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
+                              molecular_diffusion_coeff,normal_distance_dual,rho_old,tke,viscosity,viscosity_triangles, &
+                              volume,wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity, &
+                              gravity_m,theta_v_bg,theta_v_pert_old,scalar_field_placeholder,n_squared,wind_tend, &
+                              density_to_rhombi_indices,density_to_rhombi_weights,dv_hdz,exner_bg, &
+                              exner_pert_old,f_vec,flux_density,heating_diss,layer_thickness,monin_obukhov_length, &
+                              pot_vort,roughness_length,trsk_indices,trsk_modified_curl_indices,trsk_weights, &
+                              v_squared,vert_hor_viscosity,z_scalar,pot_vort_tend,v_squared_grad, &
+                              pressure_gradient_acc_neg_nl,pressure_gradient_acc_neg_l,pgrad_acc_old, &
+                              pressure_grad_condensates_v,rk_step,totally_first_step_bool)
       endif
       if (rk_step==1) then
         call calc_pressure_grad_condensates_v(pressure_gradient_decel_factor,rho_new,gravity_m,pressure_grad_condensates_v)
         ! Only the horizontal momentum is a forward tendency.
-        call vector_tendencies_expl(wind_new,rel_vort_on_triangles,z_vector,z_vector_dual,rel_vort, &
-                                    vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
-                                    area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
-                                    slope,temperature,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
-                                    molecular_diffusion_coeff,normal_distance_dual,rho_new,tke,viscosity,viscosity_triangles, &
-                                    volume,wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity, &
-                                    gravity_m,theta_v_bg,theta_v_pert_new,scalar_field_placeholder,n_squared,wind_tend, &
-                                    density_to_rhombi_indices,density_to_rhombi_weights,dv_hdz,exner_bg, &
-                                    exner_pert_new,f_vec,flux_density,heating_diss,layer_thickness,monin_obukhov_length, &
-                                    pot_vort,roughness_length,trsk_indices,trsk_modified_curl_indices,trsk_weights, &
-                                    v_squared,vert_hor_viscosity,z_scalar,pot_vort_tend,v_squared_grad, &
-                                    pressure_gradient_acc_neg_nl,pressure_gradient_acc_neg_l,pgrad_acc_old, &
-                                    pressure_grad_condensates_v,rk_step,totally_first_step_bool)
+        call vector_tend_expl(wind_new,rel_vort_on_triangles,z_vector,z_vector_dual,rel_vort, &
+                              vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
+                              area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
+                              slope,temperature,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
+                              molecular_diffusion_coeff,normal_distance_dual,rho_new,tke,viscosity,viscosity_triangles, &
+                              volume,wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity, &
+                              gravity_m,theta_v_bg,theta_v_pert_new,scalar_field_placeholder,n_squared,wind_tend, &
+                              density_to_rhombi_indices,density_to_rhombi_weights,dv_hdz,exner_bg, &
+                              exner_pert_new,f_vec,flux_density,heating_diss,layer_thickness,monin_obukhov_length, &
+                              pot_vort,roughness_length,trsk_indices,trsk_modified_curl_indices,trsk_weights, &
+                              v_squared,vert_hor_viscosity,z_scalar,pot_vort_tend,v_squared_grad, &
+                              pressure_gradient_acc_neg_nl,pressure_gradient_acc_neg_l,pgrad_acc_old, &
+                              pressure_grad_condensates_v,rk_step,totally_first_step_bool)
       endif
       
       ! time stepping for the horizontal momentum can be directly executed
@@ -191,28 +191,28 @@ module mo_manage_pchevi
       ! 2.) explicit component of the generalized density equations
       ! -----------------------------------------------------------
       if (rk_step==0) then
-        call scalar_tendencies_expl(rho_old,mass_diff_tendency,scalar_field_placeholder,adjacent_vector_indices_h, &
-                                    rhotheta_v_tend,adjacent_signs_h,area,flux_density,from_index,to_index, &
-                                    inner_product_weights,layer_thickness,mass_diffusion_coeff_numerical_h, &
-                                    mass_diffusion_coeff_numerical_v,molecular_diffusion_coeff,n_squared, &
-                                    normal_distance,rhotheta_v_old,slope,temp_diffusion_coeff_numerical_h, &
-                                    temp_diffusion_coeff_numerical_v,temperature,tke,vector_field_placeholder, &
-                                    viscosity,viscosity_rhombi,viscosity_triangles,volume,vorticity_indices_triangles, &
-                                    wind_new,temperature_diffusion_heating,flux_density_div,rho_tend,phase_trans_rates, &
-                                    exner_pert_old,exner_bg,condensates_sediment_heat,phase_trans_heating_rate, &
-                                    radiation_tendency,heating_diss,rk_step)
+        call scalar_tend_expl(rho_old,mass_diff_tendency,scalar_field_placeholder,adjacent_vector_indices_h, &
+                              rhotheta_v_tend,adjacent_signs_h,area,flux_density,from_index,to_index, &
+                              inner_product_weights,layer_thickness,mass_diffusion_coeff_numerical_h, &
+                              mass_diffusion_coeff_numerical_v,molecular_diffusion_coeff,n_squared, &
+                              normal_distance,rhotheta_v_old,slope,temp_diffusion_coeff_numerical_h, &
+                              temp_diffusion_coeff_numerical_v,temperature,tke,vector_field_placeholder, &
+                              viscosity,viscosity_rhombi,viscosity_triangles,volume,vorticity_indices_triangles, &
+                              wind_new,temperature_diffusion_heating,flux_density_div,rho_tend,phase_trans_rates, &
+                              exner_pert_old,exner_bg,condensates_sediment_heat,phase_trans_heating_rate, &
+                              radiation_tendency,heating_diss,rk_step)
       endif
       if (rk_step==1) then
-        call scalar_tendencies_expl(rho_new,mass_diff_tendency,scalar_field_placeholder,adjacent_vector_indices_h, &
-                                    rhotheta_v_tend,adjacent_signs_h,area,flux_density,from_index,to_index, &
-                                    inner_product_weights,layer_thickness,mass_diffusion_coeff_numerical_h, &
-                                    mass_diffusion_coeff_numerical_v,molecular_diffusion_coeff,n_squared, &
-                                    normal_distance,rhotheta_v_new,slope,temp_diffusion_coeff_numerical_h, &
-                                    temp_diffusion_coeff_numerical_v,temperature,tke,vector_field_placeholder, &
-                                    viscosity,viscosity_rhombi,viscosity_triangles,volume,vorticity_indices_triangles, &
-                                    wind_new,temperature_diffusion_heating,flux_density_div,rho_tend,phase_trans_rates, &
-                                    exner_pert_new,exner_bg,condensates_sediment_heat,phase_trans_heating_rate, &
-                                    radiation_tendency,heating_diss,rk_step)
+        call scalar_tend_expl(rho_new,mass_diff_tendency,scalar_field_placeholder,adjacent_vector_indices_h, &
+                              rhotheta_v_tend,adjacent_signs_h,area,flux_density,from_index,to_index, &
+                              inner_product_weights,layer_thickness,mass_diffusion_coeff_numerical_h, &
+                              mass_diffusion_coeff_numerical_v,molecular_diffusion_coeff,n_squared, &
+                              normal_distance,rhotheta_v_new,slope,temp_diffusion_coeff_numerical_h, &
+                              temp_diffusion_coeff_numerical_v,temperature,tke,vector_field_placeholder, &
+                              viscosity,viscosity_rhombi,viscosity_triangles,volume,vorticity_indices_triangles, &
+                              wind_new,temperature_diffusion_heating,flux_density_div,rho_tend,phase_trans_rates, &
+                              exner_pert_new,exner_bg,condensates_sediment_heat,phase_trans_heating_rate, &
+                              radiation_tendency,heating_diss,rk_step)
       endif
 
       ! 3.) vertical sound wave solver

@@ -28,20 +28,20 @@ module mo_vector_tend_expl
   
   contains
 
-  subroutine vector_tendencies_expl(wind,rel_vort_on_triangles,z_vector,z_vector_dual,rel_vort, &
-                                    vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
-                                    area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
-                                    slope,temperature,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
-                                    molecular_diffusion_coeff,normal_distance_dual,rho,tke,viscosity,viscosity_triangles, &
-                                    volume,wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity, &
-                                    gravity_m,theta_v_bg,theta_v_pert,scalar_field_placeholder,n_squared,wind_tend, &
-                                    density_to_rhombi_indices,density_to_rhombi_weights,dv_hdz,exner_bg, &
-                                    exner_pert,f_vec,flux_density,heating_diss,layer_thickness,monin_obukhov_length, &
-                                    pot_vort,roughness_length,trsk_indices,trsk_modified_curl_indices,trsk_weights, &
-                                    v_squared,vert_hor_viscosity,z_scalar,pot_vort_tend,v_squared_grad, &
-                                    pressure_gradient_acc_neg_nl,pressure_gradient_acc_neg_l,pgrad_acc_old, &
-                                    pressure_grad_condensates_v,rk_step,totally_first_step_bool) &
-  bind(c,name = "vector_tendencies_expl")
+  subroutine vector_tend_expl(wind,rel_vort_on_triangles,z_vector,z_vector_dual,rel_vort, &
+                              vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
+                              area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
+                              slope,temperature,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
+                              molecular_diffusion_coeff,normal_distance_dual,rho,tke,viscosity,viscosity_triangles, &
+                              volume,wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity, &
+                              gravity_m,theta_v_bg,theta_v_pert,scalar_field_placeholder,n_squared,wind_tend, &
+                              density_to_rhombi_indices,density_to_rhombi_weights,dv_hdz,exner_bg, &
+                              exner_pert,f_vec,flux_density,heating_diss,layer_thickness,monin_obukhov_length, &
+                              pot_vort,roughness_length,trsk_indices,trsk_modified_curl_indices,trsk_weights, &
+                              v_squared,vert_hor_viscosity,z_scalar,pot_vort_tend,v_squared_grad, &
+                              pressure_gradient_acc_neg_nl,pressure_gradient_acc_neg_l,pgrad_acc_old, &
+                              pressure_grad_condensates_v,rk_step,totally_first_step_bool) &
+  bind(c,name = "vector_tend_expl")
   
     real(wp), intent(in)    :: wind(n_vectors),z_vector(n_vectors),z_vector_dual(n_dual_vectors),normal_distance(n_vectors), &
                                area_dual(n_dual_vectors),inner_product_weights(8*n_scalars),slope(n_vectors), &
@@ -186,7 +186,7 @@ module mo_vector_tend_expl
     enddo
     !$omp end parallel do
   
-  end subroutine vector_tendencies_expl
+  end subroutine vector_tend_expl
 
 end module mo_vector_tend_expl
     
