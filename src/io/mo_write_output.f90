@@ -8,6 +8,7 @@ module mo_write_output
   
   use iso_c_binding
   use netcdf
+  use mo_definitions,      only: wp
   use mo_constants,        only: c_d_p,r_d,t_0
   use mo_grid_nml,         only: n_scalars,n_scalars_h,n_vectors_per_layer,n_vectors_h,n_constituents
   use mo_various_helpers,  only: nc_check,find_min_index
@@ -45,13 +46,17 @@ module mo_write_output
   
   end subroutine interpolate_to_ll
 
-  subroutine write_out_integral(time_since_init,integral_id)
-  
+  subroutine write_out_integral(volume,time_since_init,integral_id)
     
     ! integral_id:
     ! 0: dry mass
     ! 1: entropy
     ! 2: energy
+   
+    real(wp), intent(in) :: volume(n_scalars)
+    
+    ! local variables
+    integer :: ji
     
     if (integral_id<0 .or. integral_id>2) then
       printf("integral_id can only be 0,1 or 2.\n")
@@ -209,6 +214,9 @@ module mo_write_output
   end function pseudopotential_temperature
 
   subroutine write_out()
+  
+    ! local variables
+    integer :: ji
   
     write(*,*) "Writing output ..."
     
