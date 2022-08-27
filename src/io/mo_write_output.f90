@@ -8,8 +8,10 @@ module mo_write_output
   
   use iso_c_binding
   use netcdf
-  use grid_nml,           only: n_scalars_h,n_vectors_per_layer
-  use mo_various_helpers, only: nc_check
+  use constants,          only: c_d_p,r_d
+  use grid_nml,           only: n_scalars,n_scalars_h,n_vectors_per_layer
+  use mo_various_helpers, only: nc_check,find_min_index
+  use constituents_nml,   only; n_condensed_constituents
   
   implicit none
   
@@ -54,7 +56,7 @@ module mo_write_output
     if (integral_id<0 .or. integral_id>2) then
       printf("integral_id can only be 0,1 or 2.\n")
       printf("Aborting.\n")
-      exit(1)
+      call exit(1)
     endif
     
     double global_integral = 0.0
@@ -80,11 +82,11 @@ module mo_write_output
       fprintf(global_integral_file,"%lf\t",time_since_init)
       do (int const_id = 0 const_id<N_CONSTITUENTS ++const_id)
         !$omp parallel do
-        do (int i = 0 i<N_SCALARS ++i)
-          scalar_field_placeholder(i) = rho(const_id*N_SCALARS + i)
+        do (int i = 0 i<n_scalars ++i)
+          scalar_field_placeholder(i) = rho(const_id*n_scalars + i)
         enddo
         global_integral = 0._wp
-        do (int i = 0 i<N_SCALARS ++i)
+        do (int i = 0 i<n_scalars ++i)
           global_integral = global_integral + scalar_field_placeholder(i)*volume(i)
         enddo
         if (const_id==N_CONSTITUENTS - 1) 
@@ -99,7 +101,7 @@ module mo_write_output
       ! density times virtual potential temperature
       global_integral_file = fopen(integral_file,"a")
       global_integral = 0._wp
-      do (int i = 0 i<N_SCALARS ++i)
+      do (int i = 0 i<n_scalars ++i)
         global_integral = global_integral + rhotheta_v(i)*volume(i)
       enddo
       fprintf(global_integral_file,"%lf\t%lf\n",time_since_init,global_integral)
@@ -111,39 +113,39 @@ module mo_write_output
       Scalar_field *e_kin_density = malloc(sizeof(Scalar_field))
       inner_product(wind,wind,*e_kin_density,adjacent_vector_indices_h,inner_product_weights)
       !$omp parallel do
-      do (int i = 0 i<N_SCALARS ++i)
-        scalar_field_placeholder(i) = rho(N_CONDENSED_CONSTITUENTS*N_SCALARS + i)
+      do (int i = 0 i<n_scalars ++i)
+        scalar_field_placeholder(i) = rho(n_condensed_constituents*n_scalars + i)
       enddo
       !$omp end parallel do
       !$omp parallel do
-      do (int i = 0 i<N_SCALARS ++i)
+      do (int i = 0 i<n_scalars ++i)
         (*e_kin_density,i) = scalar_field_placeholder(i)*(*e_kin_density,i)
       enddo
       !$omp end parallel do
       kinetic_integral = 0._wp
-      do (int i = 0 i<N_SCALARS ++i)
+      do (int i = 0 i<n_scalars ++i)
         kinetic_integral = kinetic_integral + (*e_kin_density,i)*volume(i)
       enddo
       deallocate(e_kin_density)
       Scalar_field *pot_energy_density = malloc(sizeof(Scalar_field))
       !$omp parallel do
-      do (int i = 0 i<N_SCALARS ++i)
+      do (int i = 0 i<n_scalars ++i)
         (*pot_energy_density,i) = scalar_field_placeholder(i)*gravity_potential(i)
       enddo
       !$omp end parallel do
       potential_integral = 0._wp
-      do (int i = 0 i<N_SCALARS ++i)
+      do (int i = 0 i<n_scalars ++i)
         potential_integral = potential_integral + (*pot_energy_density,i)*volume(i)
       enddo
       deallocate(pot_energy_density)
       Scalar_field *int_energy_density = malloc(sizeof(Scalar_field))
       !$omp parallel do
-      do (int i = 0 i<N_SCALARS ++i)
+      do (int i = 0 i<n_scalars ++i)
         (*int_energy_density,i) = scalar_field_placeholder(i)*temperature(i)
       enddo
       !$omp end parallel do
       internal_integral = 0._wp
-      do (int i = 0 i<N_SCALARS ++i)
+      do (int i = 0 i<n_scalars ++i)
         internal_integral = internal_integral + (*int_energy_density,i)*volume(i)
       enddo
       fprintf(global_integral_file,"%lf\t%lf\t%lf\t%lf\n",time_since_init,0.5_wp*kinetic_integral,potential_integral,C_D_V*internal_integral)
@@ -171,16 +173,16 @@ module mo_write_output
       double vapour_pressure,saturation_pressure,rel_hum
       
       ! the mixing ratio
-      r = rho((N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + scalar_index)
-      /(rho(N_CONDENSED_CONSTITUENTS*N_SCALARS + scalar_index)
-      - rho((N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + scalar_index))
+      r = rho((n_condensed_constituents + 1)*n_scalars + scalar_index)
+      /(rho(n_condensed_constituents*n_scalars + scalar_index)
+      - rho((n_condensed_constituents + 1)*n_scalars + scalar_index))
       
       ! now,the first two required parameters can already be computed
       alpha_1 = 0.2854_wp*(1._wp - 0.28e-3_wp*r)
       alpha_3 = r*(1._wp + 0.81e-3_wp*r)
       
       ! calculating the pressure
-      pressure = P_0*pow(exner_bg(scalar_index) + exner_pert(scalar_index),C_D_P/R_D)
+      pressure = P_0*(exner_bg(scalar_index) + exner_pert(scalar_index))**(c_d_p/r_d)
       
       ! computing the temperature t_lcl of the air parcel after raising it to the lifted condensation level (LCL)
       ! therefore we firstly compute the saturation pressure,the vapour pressure and the relative humidity
@@ -189,7 +191,7 @@ module mo_write_output
       else
         saturation_pressure = saturation_pressure_over_ice(temperature(scalar_index))
       endif
-      vapour_pressure = rho((N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + scalar_index)*R_V*temperature(scalar_index)
+      vapour_pressure = rho((n_condensed_constituents + 1)*n_scalars + scalar_index)*R_V*temperature(scalar_index)
       rel_hum = vapour_pressure/saturation_pressure
       ! we compute t_lcl using Eq. (22) of Bolton (1980)
       t_lcl = 1._wp/(1._wp/(temperature(scalar_index) - 55._wp) - log(rel_hum)/2840._wp) + 55._wp
@@ -198,7 +200,7 @@ module mo_write_output
       alpha_2 = 3.376_wp/t_lcl - 0.00254_wp
       
       ! the final formula by Bolton
-      result = temperature(scalar_index)*pow(P_0/pressure,alpha_1)*exp(alpha_2*alpha_3)
+      result = temperature(scalar_index)*(P_0/pressure)**alpha_1*exp(alpha_2*alpha_3)
     enddo
     
   end function pseudopotential_temperature
@@ -279,17 +281,17 @@ module mo_write_output
         ! Now the aim is to determine the value of the mslp.
         temp_lowest_layer = temperature((n_layers - 1)*n_scalars_h + i)
         int index = (n_layers - 1)*n_scalars_h + i
-        pressure_value = rho(N_CONDENSED_CONSTITUENTS*N_SCALARS + (n_layers - 1)*n_scalars_h + i)
+        pressure_value = rho(n_condensed_constituents*n_scalars + (n_layers - 1)*n_scalars_h + i)
         *gas_constant_diagnostics(rho,index)
         *temp_lowest_layer
         temp_mslp = temp_lowest_layer + standard_vert_lapse_rate*z_scalar(i + (n_layers - 1)*n_scalars_h)
-        mslp_factor = pow(1 - (temp_mslp - temp_lowest_layer)/temp_mslp,gravity_m((n_layers - 1)*n_vectors_per_layer + i)/
+        mslp_factor = (1._wp - (temp_mslp - temp_lowest_layer)/temp_mslp)**(gravity_m((n_layers - 1)*n_vectors_per_layer + i)/
         (gas_constant_diagnostics(rho,index)*standard_vert_lapse_rate))
         mslp(i) = pressure_value/mslp_factor
         
         ! Now the aim is to determine the value of the surface pressure.
         temp_surface = temp_lowest_layer + standard_vert_lapse_rate*(z_scalar(i + (n_layers - 1)*n_scalars_h) - z_vector(n_vectors - n_scalars_h + i))
-        sp_factor = pow(1.0 - (temp_surface - temp_lowest_layer)/temp_surface,gravity_m((n_layers - 1)*n_vectors_per_layer + i)/
+        sp_factor = (1._wp - (temp_surface - temp_lowest_layer)/temp_surface)**(gravity_m((n_layers - 1)*n_vectors_per_layer + i)/
         (gas_constant_diagnostics(rho,index)*standard_vert_lapse_rate))
         sp(i) = pressure_value/sp_factor
         
@@ -344,13 +346,13 @@ module mo_write_output
         
         ! Now come the hydrometeors.
         ! Calculation of the total cloud cover
-        if (N_CONDENSED_CONSTITUENTS==4) then
+        if (n_condensed_constituents==4) then
           ! calculating the cloud water content in this column
           cloud_water_content = 0._wp
           do (int k = 0 k<n_layers ++k)
             if (z_scalar(k*n_scalars_h + i)<z_tropopause) then
-              cloud_water_content = cloud_water_content + (rho(2*N_SCALARS + k*n_scalars_h + i)
-              + rho(3*N_SCALARS + k*n_scalars_h + i))
+              cloud_water_content = cloud_water_content + (rho(2*n_scalars + k*n_scalars_h + i)
+              + rho(3*n_scalars + k*n_scalars_h + i))
               *(z_vector(i + k*n_vectors_per_layer) - z_vector(i + (k + 1)*n_vectors_per_layer))
             endif
           enddo
@@ -366,13 +368,13 @@ module mo_write_output
           endif
           ! solid precipitation rate
           sprate(i) = 0._wp
-          if (N_CONDENSED_CONSTITUENTS==4) then
+          if (n_condensed_constituents==4) then
             sprate(i) = snow_velocity*rho((n_layers - 1)*n_scalars_h + i)
           endif
           ! liquid precipitation rate
           rprate(i) = 0._wp
-          if (N_CONDENSED_CONSTITUENTS==4) then
-            rprate(i) = rain_velocity*rho(N_SCALARS + (n_layers - 1)*n_scalars_h + i)
+          if (n_condensed_constituents==4) then
+            rprate(i) = rain_velocity*rho(n_scalars + (n_layers - 1)*n_scalars_h + i)
           endif
           ! setting very small values to zero
           if (rprate(i)<min_precip_rate) then
@@ -457,8 +459,8 @@ module mo_write_output
         if ((sfc_sensible_heat_flux==1 .or. sfc_phase_trans==1 .or. pbl_scheme==1)
         .and. abs(monin_obukhov_length(i))>EPSILON_SECURITY) then
           ! This follows IFS DOCUMENTATION – Cy43r1 - Operational implementation 22 Nov 2016 - PART IV: PHYSICAL PROCESSES.
-          wind_10_m_gusts_speed_at_cell(i) = pow(pow(wind_10_m_mean_u_at_cell(i),2) + pow(wind_10_m_mean_v_at_cell(i),2),0.5_wp)
-          + 7.71*roughness_velocity(i)*pow(max(1._wp - 0.5_wp/12._wp*1000._wp/monin_obukhov_length(i),0._wp),1._wp/3._wp)
+          wind_10_m_gusts_speed_at_cell(i) = sqrt(wind_10_m_mean_u_at_cell(i)**2 + wind_10_m_mean_v_at_cell(i)**2)
+          + 7.71*roughness_velocity(i)*(max(1._wp - 0.5_wp/12._wp*1000._wp/monin_obukhov_length(i),0._wp))**(1._wp/3._wp)
           ! calculating the wind speed in a height representing 850 hPa
           do (int j = 0 j<n_layers ++j)
             vector_to_minimize(j) = abs(z_scalar(j*n_scalars_h + i) - (z_vector(n_vectors - n_scalars_h + i) + u_850_proxy_height))
@@ -469,8 +471,8 @@ module mo_write_output
           .and. z_scalar(closest_index*n_scalars_h + i) - z_vector(n_vectors - n_scalars_h + i)>u_850_proxy_height) then
             second_closest_index = closest_index + 1
           endif
-          u_850_surrogate = pow(v_squared(i + closest_index*n_scalars_h),0.5_wp)
-          + (pow(v_squared(i + closest_index*n_scalars_h),0.5_wp) - pow(v_squared(i + second_closest_index*n_scalars_h),0.5_wp))
+          u_850_surrogate = sqrt(v_squared(i + closest_index*n_scalars_h))
+          + (sqrt(v_squared(i + closest_index*n_scalars_h)) - sqrt(v_squared(i + second_closest_index*n_scalars_h)))
           /(z_scalar(i + closest_index*n_scalars_h) - z_scalar(i + second_closest_index*n_scalars_h))
           *(z_vector(n_vectors - n_scalars_h + i) + u_850_proxy_height - z_scalar(i + closest_index*n_scalars_h))
           ! calculating the wind speed in a height representing 950 hPa
@@ -483,16 +485,16 @@ module mo_write_output
           .and. z_scalar(closest_index*n_scalars_h + i) - z_vector(n_vectors - n_scalars_h + i)>u_950_proxy_height) then
             second_closest_index = closest_index + 1
           endif
-          u_950_surrogate = pow(v_squared(i + closest_index*n_scalars_h),0.5_wp)
-          + (pow(v_squared(i + closest_index*n_scalars_h),0.5_wp) - pow(v_squared(i + second_closest_index*n_scalars_h),0.5_wp))
+          u_950_surrogate = sqrt(v_squared(i + closest_index*n_scalars_h))
+          + (sqrt(v_squared(i + closest_index*n_scalars_h),) - sqrt(v_squared(i + second_closest_index*n_scalars_h)))
           /(z_scalar(i + closest_index*n_scalars_h) - z_scalar(i + second_closest_index*n_scalars_h))
           *(z_vector(n_vectors - n_scalars_h + i) + u_950_proxy_height - z_scalar(i + closest_index*n_scalars_h))
           ! adding the baroclinic and convective component to the gusts
           wind_10_m_gusts_speed_at_cell(i) = wind_10_m_gusts_speed_at_cell(i) + 0.6_wp*max(0._wp,u_850_surrogate - u_950_surrogate)
-          wind_10_m_gusts_speed_at_cell(i) = min(wind_10_m_gusts_speed_at_cell(i),3._wp*pow(pow(wind_10_m_mean_u_at_cell(i),2) + pow(wind_10_m_mean_v_at_cell(i),2),0.5_wp))
+          wind_10_m_gusts_speed_at_cell(i) = min(wind_10_m_gusts_speed_at_cell(i),3._wp*sqrt(wind_10_m_mean_u_at_cell(i)**2 + wind_10_m_mean_v_at_cell(i)**2))
         ! This is used if the turbulence quantities are not populated.
         else
-          wind_10_m_gusts_speed_at_cell(i) = 1.67_wp*pow(pow(wind_10_m_mean_u_at_cell(i),2) + pow(wind_10_m_mean_v_at_cell(i),2),0.5_wp)
+          wind_10_m_gusts_speed_at_cell(i) = 1.67_wp*sqrt(wind_10_m_mean_u_at_cell(i)**2 + wind_10_m_mean_v_at_cell(i)**2)
         endif
 
       enddo
@@ -607,17 +609,17 @@ module mo_write_output
     Scalar_field *epv = calloc(1,sizeof(Scalar_field))
     Scalar_field *pressure = calloc(1,sizeof(Scalar_field))
     !$omp parallel do
-    do (int i = 0 i<N_SCALARS ++i)
+    do (int i = 0 i<n_scalars ++i)
       if (N_CONSTITUENTS >= 4) then
-        (*rh,i) = 100._wp*rel_humidity(rho((N_CONDENSED_CONSTITUENTS + 1)*N_SCALARS + i),temperature(i))
+        (*rh,i) = 100._wp*rel_humidity(rho((n_condensed_constituents + 1)*n_scalars + i),temperature(i))
       endif
-      (*pressure,i) = rho(N_CONDENSED_CONSTITUENTS*N_SCALARS + i)*gas_constant_diagnostics(rho,i)*temperature(i)
+      (*pressure,i) = rho(n_condensed_constituents*n_scalars + i)*gas_constant_diagnostics(rho,i)*temperature(i)
     enddo
     !$omp end parallel do
     
     !$omp parallel do
-    do (int i = 0 i<N_SCALARS ++i)
-      scalar_field_placeholder(i) = rho(N_CONDENSED_CONSTITUENTS*N_SCALARS + i)
+    do (int i = 0 i<n_scalars ++i)
+      scalar_field_placeholder(i) = rho(n_condensed_constituents*n_scalars + i)
     enddo
     !$omp end parallel do
     calc_pot_vort(wind,rel_vort_on_triangles,z_vector,z_vector_dual,rel_vort,
@@ -897,10 +899,10 @@ module mo_write_output
       
       call nc_check(nf90_create(OUTPUT_FILE,NC_CLOBBER,ncid))
       call nc_check(nf90_def_dim(ncid,"single_int_index",1,single_int_dimid))
-      call nc_check(nf90_def_dim(ncid,"scalar_index",N_SCALARS,scalar_dimid))
+      call nc_check(nf90_def_dim(ncid,"scalar_index",n_scalars,scalar_dimid))
       call nc_check(nf90_def_dim(ncid,"soil_index",N_SOIL_LAYERS*n_scalars_h,soil_dimid))
       call nc_check(nf90_def_dim(ncid,"vector_index",n_vectors,vector_dimid))
-      call nc_check(nf90_def_dim(ncid,"densities_index",N_CONSTITUENTS*N_SCALARS,densities_dimid))
+      call nc_check(nf90_def_dim(ncid,"densities_index",N_CONSTITUENTS*n_scalars,densities_dimid))
       
       ! Defining the variables.
       call nc_check(nf90_def_var(ncid,"start_day",NC_INT,1,single_int_dimid,start_day_id))
