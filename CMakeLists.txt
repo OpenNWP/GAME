@@ -18,6 +18,7 @@ src/namelists/mo_rad_nml.f90
 src/namelists/mo_constituents_nml.f90
 src/namelists/mo_diff_nml.f90
 src/namelists/mo_surface_nml.f90
+src/namelists/mo_io_nml.f90
 src/namelists/mo_grid_nml.f90
 src/time_stepping/mo_manage_pchevi.f90
 src/time_stepping/mo_pgrad.f90

@@ -10,16 +10,18 @@ module mo_write_output
   use netcdf
   use mo_definitions,      only: wp
   use mo_constants,        only: c_d_p,r_d,t_0
-  use mo_grid_nml,         only: n_scalars,n_scalars_h,n_vectors_per_layer,n_vectors_h,n_constituents
+  use mo_grid_nml,         only: n_scalars,n_scalars_h,n_vectors_per_layer,n_vectors_h,n_constituents, &
+                                 n_lat_io_points,n_lon_io_points
   use mo_various_helpers,  only: nc_check,find_min_index
-  use mo_constituents_nml, only; n_condensed_constituents
+  use mo_constituents_nml, only: n_condensed_constituents
+  use mo_io_nml,           only: n_pressure_levels
   
   implicit none
   
   contains
 
   ! the number of pressure levels for the pressure level output
-  const int N_PRESSURE_LEVELS = 6
+  const int n_pressure_levels = 6
 
   subroutine interpolate_to_ll(double in_field(),double out_field(,N_LON_IO_POINTS),Grid *grid)
   
@@ -320,7 +322,7 @@ module mo_write_output
         ! no real radiation
         else
           second_closest_index = closest_index - 1
-          if (z_scalar(i + closest_index*n_scalars_h)>z_vector(n_layers*n_vectors_per_layer + i) + 2 .and. closest_index<n_layers - 1) then
+          if (z_scalar(i + closest_index*n_scalars_h)>z_vector(n_layers*n_vectors_per_layer + i)+2._wp .and. closest_index<n_layers-1) then
             second_closest_index = closest_index + 1
           endif
           temp_second_closest = temperature(second_closest_index*n_scalars_h + i)
@@ -644,7 +646,7 @@ module mo_write_output
     ! pressure level output
     double closest_weight
     if (pressure_level_output_switch==1) then
-      double *pressure_levels = malloc(sizeof(double)*N_PRESSURE_LEVELS)
+      double *pressure_levels = malloc(sizeof(double)*n_pressure_levels)
       pressure_levels(1) = 20000._wp
       pressure_levels(2) = 30000._wp
       pressure_levels(3) = 50000._wp
@@ -652,17 +654,17 @@ module mo_write_output
       pressure_levels(5) = 85000._wp
       pressure_levels(6) = 92500._wp
       ! allocating memory for the variables on pressure levels
-      double (*geopotential_height,n_scalars_h) = malloc(sizeof(double(N_PRESSURE_LEVELS,n_scalars_h)))
-      double (*t_on_pressure_levels,n_scalars_h) = malloc(sizeof(double(N_PRESSURE_LEVELS,n_scalars_h)))
-      double (*rh_on_pressure_levels,n_scalars_h) = malloc(sizeof(double(N_PRESSURE_LEVELS,n_scalars_h)))
-      double (*epv_on_pressure_levels,n_scalars_h) = malloc(sizeof(double(N_PRESSURE_LEVELS,n_scalars_h)))
-      double (*u_on_pressure_levels,n_scalars_h) = malloc(sizeof(double(N_PRESSURE_LEVELS,n_scalars_h)))
-      double (*v_on_pressure_levels,n_scalars_h) = malloc(sizeof(double(N_PRESSURE_LEVELS,n_scalars_h)))
-      double (*rel_vort_on_pressure_levels,n_scalars_h) = malloc(sizeof(double(N_PRESSURE_LEVELS,n_scalars_h)))
+      double (*geopotential_height,n_scalars_h) = malloc(sizeof(double(n_pressure_levels,n_scalars_h)))
+      double (*t_on_pressure_levels,n_scalars_h) = malloc(sizeof(double(n_pressure_levels,n_scalars_h)))
+      double (*rh_on_pressure_levels,n_scalars_h) = malloc(sizeof(double(n_pressure_levels,n_scalars_h)))
+      double (*epv_on_pressure_levels,n_scalars_h) = malloc(sizeof(double(n_pressure_levels,n_scalars_h)))
+      double (*u_on_pressure_levels,n_scalars_h) = malloc(sizeof(double(n_pressure_levels,n_scalars_h)))
+      double (*v_on_pressure_levels,n_scalars_h) = malloc(sizeof(double(n_pressure_levels,n_scalars_h)))
+      double (*rel_vort_on_pressure_levels,n_scalars_h) = malloc(sizeof(double(n_pressure_levels,n_scalars_h)))
       
       ! vertical interpolation to the pressure levels
       !$omp parallel do private(vector_to_minimize,closest_index,second_closest_index,closest_weight)
-      do (int j = 0 j<N_PRESSURE_LEVELS ++j)
+      do (int j = 0 j<n_pressure_levels ++j)
         do ji=1,n_scalars_h
           do (int k = 0 k<n_layers ++k)
             
@@ -723,9 +725,9 @@ module mo_write_output
       char *OUTPUT_FILE_PRESSURE_LEVEL = malloc((OUTPUT_FILE_PRESSURE_LEVEL_LENGTH + 1)*sizeof(char))
       sprintf(OUTPUT_FILE_PRESSURE_LEVEL,"%s+%dmin_pressure_levels.nc",run_id,time_since_init_min)
       
-      int gh_ids(N_PRESSURE_LEVELS),temp_p_ids(N_PRESSURE_LEVELS),rh_p_ids(N_PRESSURE_LEVELS),
-      wind_u_p_ids(N_PRESSURE_LEVELS),wind_v_p_ids(N_PRESSURE_LEVELS),
-      epv_p_ids(N_PRESSURE_LEVELS),rel_vort_p_ids(N_PRESSURE_LEVELS)
+      int gh_ids(n_pressure_levels),temp_p_ids(n_pressure_levels),rh_p_ids(n_pressure_levels),
+      wind_u_p_ids(n_pressure_levels),wind_v_p_ids(n_pressure_levels),
+      epv_p_ids(n_pressure_levels),rel_vort_p_ids(n_pressure_levels)
       
       
       call nc_check(nf90_create(OUTPUT_FILE_PRESSURE_LEVEL,NC_CLOBBER,ncid))
@@ -744,7 +746,7 @@ module mo_write_output
       call nc_check(nf90_def_var(ncid,"lon",NC_DOUBLE,1,lon_dimid,lon_id))
       
       char varname(100)
-      do (int i = 0 i<N_PRESSURE_LEVELS ++i)
+      do (int i = 0 i<n_pressure_levels ++i)
         int pressure_level_hpa = (int) pressure_levels(ji)/100._wp
         sprintf(varname,"geopot_layer_%d",pressure_level_hpa)
         call nc_check(nf90_def_var(ncid,varname,NC_DOUBLE,2,lat_lon_dimids,gh_ids(ji)))
@@ -776,7 +778,7 @@ module mo_write_output
       call nc_check(nf90_put_var(ncid,start_hour_id,init_time))
       call nc_check(nf90_put_var(ncid,lat_id,lat_vector(0)))
       call nc_check(nf90_put_var(ncid,lon_id,lon_vector(0)))
-      do (int i = 0 i<N_PRESSURE_LEVELS ++i)
+      do (int i = 0 i<n_pressure_levels ++i)
         
         call interpolate_to_ll(geopotential_height(i,0),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,gh_ids(ji),lat_lon_output_field(0,0)))
