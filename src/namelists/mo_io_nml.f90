@@ -5,17 +5,25 @@ module mo_io_nml
 
   ! This nameslist configures the IO behaviour of the model.
   
+  use mo_definitions, only: wp
+  
   implicit none
   
-  integer :: n_pressure_levels ! number of pressure levels for the output
+  integer, parameter  :: n_pressure_levels = 6 ! number of pressure levels for the output
+  real(wp)            :: pressure_levels(n_pressure_levels),test
   
-  namelist /io/n_pressure_levels
+  namelist /io/test
 
   contains
 
   subroutine io_nml_setup
     
-    n_pressure_levels = 6
+    pressure_levels(1) = 20000._wp
+    pressure_levels(2) = 30000._wp
+    pressure_levels(3) = 50000._wp
+    pressure_levels(4) = 70000._wp
+    pressure_levels(5) = 85000._wp
+    pressure_levels(6) = 92500._wp
   
   end subroutine io_nml_setup
   

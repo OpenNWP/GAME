@@ -14,7 +14,7 @@ module mo_write_output
                                  n_lat_io_points,n_lon_io_points
   use mo_various_helpers,  only: nc_check,find_min_index
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents,lmoist
-  use mo_io_nml,           only: n_pressure_levels
+  use mo_io_nml,           only: n_pressure_levels,pressure_levels
   use mo_dictionary,       only: saturation_pressure_over_ice,saturation_pressure_over_water
   
   implicit none
@@ -45,7 +45,7 @@ module mo_write_output
                                *in_field(latlon_interpol_indices(5*(j + n_lon_io_points*i) + k))
           else
             out_field(ji,jk) = 9999
-            break
+            exit
           endif
         enddo
       enddo
@@ -54,14 +54,15 @@ module mo_write_output
   
   end subroutine interpolate_to_ll
 
-  subroutine write_out_integral(volume,time_since_init,integral_id)
+  subroutine write_out_integral(scalar_field_placeholder,rhotheta_v,volume,time_since_init,integral_id)
     
     ! integral_id:
     ! 0: dry mass
     ! 1: entropy
     ! 2: energy
    
-    real(wp), intent(in) :: volume(n_scalars)
+    real(wp), intent(in)  :: volume(n_scalars),rhotheta_v(n_scalars)
+    real(wp), intent(out) :: scalar_field_placeholder(n_scalars)
     
     ! local variables
     integer :: ji
@@ -102,7 +103,7 @@ module mo_write_output
         do ji=1,n_scalars
           global_integral = global_integral + scalar_field_placeholder(ji)*volume(ji)
         enddo
-        if (const_id==n_constituents - 1) 
+        if (const_id==n_constituents-1) then
           fprintf(global_integral_file,"%lf\n",global_integral)
         else
           fprintf(global_integral_file,"%lf\t",global_integral)
@@ -168,9 +169,11 @@ module mo_write_output
     
   end subroutine write_out_integral
 
-  function pseudopotential_temperature(State *state,Diagnostics *diagnostics,Grid *grid,int scalar_index)
+  function pseudopotential_temperature(theta_v_bg,theta_v_pert,scalar_index)
     
     ! This function returns the pseudopotential temperature,which is needed for diagnozing CAPE.
+    
+    real(wp), intent(in) :: theta_v_bg(n_scalars),theta_v_pert(n_scalars)
     
     ! local variables
     real(wp) :: r,alpha_1,alpha_2,alpha_3,r,pressure,t_lcl,vapour_pressure,saturation_pressure,rel_hum
@@ -217,25 +220,28 @@ module mo_write_output
     
   end function pseudopotential_temperature
 
-  subroutine write_out()
+  subroutine write_out(scalar_field_placeholder,wind)
+  
+    real(wp), intent(out) :: scalar_field_placeholder(n_scalars)
+    real(wp), intent(in)  :: wind(n_vectors)
   
     ! local variables
-    integer :: ji
+    integer  :: ji,lat_lon_dimids(2),ncid,single_int_dimid,lat_dimid,lon_dimid,start_day_id,start_hour_id, &
+                lat_id,lon_id,layer_index,closest_index,second_closest_index
+    real(wp) :: delta_latitude,delta_longitude,lat_vector(n_lat_io_points),lon_vector(n_lon_io_points), &
+                min_precip_rate_mmh,min_precip_rate,cloud_water2cloudiness
   
     write(*,*) "Writing output ..."
     
-    int no_of_layers = n_layers
-    
     ! latitude resolution of the grid
-    double delta_latitude = M_PI/n_lat_io_points
+    delta_latitude = M_PI/n_lat_io_points
     ! longitude resolution of the grid
-    double delta_longitude = 2._wp*M_PI/n_lon_io_points
+    delta_longitude = 2._wp*M_PI/n_lon_io_points
     
-    double lat_vector(n_lat_io_points)
     do ji=1,n_lat_io_points
       lat_vector(ji) = M_PI/2._wp - 0.5_wp*delta_latitude - (ji-1)*delta_latitude
     enddo
-    double lon_vector(n_lon_io_points)
+    lon_vector(n_lon_io_points)
     do ji=1,n_lon_io_points
       lon_vector(ji) = (ji-1)*delta_longitude
     enddo
@@ -252,12 +258,11 @@ module mo_write_output
     int init_time = 100*init_hour
     
     ! precipitation rates smaller than this value are set to zero to not confuse users
-    double min_precip_rate_mmh = 0.01_wp
-    double min_precip_rate = min_precip_rate_mmh/(1000._wp*3600._wp/1024._wp)
+    min_precip_rate_mmh = 0.01_wp
+    min_precip_rate = min_precip_rate_mmh/(1000._wp*3600._wp/1024._wp)
     ! this heuristic coefficient converts the cloud water content to cloud cover
-    double cloud_water2cloudiness = 10._wp
+    cloud_water2cloudiness = 10._wp
     
-    int layer_index,closest_index,second_closest_index
     double cloud_water_content
     double vector_to_minimize(n_layers)
     
@@ -268,9 +273,6 @@ module mo_write_output
     
     int time_since_init_min = (int) (t_write - t_init)
     time_since_init_min = time_since_init_min/60._wp
-    
-    ! needed for netcdf
-    int ncid,single_int_dimid,lat_dimid,lon_dimid,start_day_id,start_hour_id,lat_id,lon_id
     
     ! Surface output including diagnostics.
     ! -------------------------------------
@@ -295,26 +297,25 @@ module mo_write_output
       do ji=1,n_scalars_h
         ! Now the aim is to determine the value of the mslp.
         temp_lowest_layer = temperature((n_layers-1)*n_scalars_h + i)
-        int index = (n_layers-1)*n_scalars_h + i
         pressure_value = rho(n_condensed_constituents*n_scalars + (n_layers-1)*n_scalars_h + i)
-        *gas_constant_diagnostics(rho,index)
+        *gas_constant_diagnostics(rho,(n_layers-1)*n_scalars_h + i)
         *temp_lowest_layer
         temp_mslp = temp_lowest_layer + standard_vert_lapse_rate*z_scalar(i + (n_layers-1)*n_scalars_h)
         mslp_factor = (1._wp - (temp_mslp - temp_lowest_layer)/temp_mslp)**(gravity_m((n_layers-1)*n_vectors_per_layer + i)/
-        (gas_constant_diagnostics(rho,index)*standard_vert_lapse_rate))
+        (gas_constant_diagnostics(rho,(n_layers-1)*n_scalars_h + i)*standard_vert_lapse_rate))
         mslp(ji) = pressure_value/mslp_factor
         
         ! Now the aim is to determine the value of the surface pressure.
         temp_surface = temp_lowest_layer + standard_vert_lapse_rate*(z_scalar(i + (n_layers-1)*n_scalars_h) - z_vector(n_vectors - n_scalars_h + i))
         sp_factor = (1._wp - (temp_surface - temp_lowest_layer)/temp_surface)**(gravity_m((n_layers-1)*n_vectors_per_layer + i)/
-        (gas_constant_diagnostics(rho,index)*standard_vert_lapse_rate))
+        (gas_constant_diagnostics(rho,(n_layers-1)*n_scalars_h + i)*standard_vert_lapse_rate))
         sp(ji) = pressure_value/sp_factor
         
         ! Now the aim is to calculate the 2 m temperature.
         do (int j = 0 j<n_layers ++j)
           vector_to_minimize(j) = abs(z_vector(n_layers*n_vectors_per_layer + i) + 2._wp - z_scalar(i + j*n_scalars_h))
         enddo
-        closest_index = find_min_index(vector_to_minimize,no_of_layers)
+        closest_index = find_min_index(vector_to_minimize,n_layers)
         temp_closest = temperature(closest_index*n_scalars_h + i)
         delta_z_temp = z_vector(n_layers*n_vectors_per_layer + i) + 2._wp - z_scalar(i + closest_index*n_scalars_h)
         ! real radiation
@@ -347,8 +348,7 @@ module mo_write_output
           ! thickness of the gridbox
           delta_z = layer_thickness(layer_index*n_scalars_h + i)
           ! this is the candidate that we might want to add to the integral
-          cape_integrand
-          = gravity_m(layer_index*n_vectors_per_layer + i)*(theta_e - theta_v)/theta_v
+          cape_integrand = gravity_m(layer_index*n_vectors_per_layer + i)*(theta_e - theta_v)/theta_v
           ! we do not add negative values to CAPE (see the definition of CAPE)
           if (cape_integrand>0._wp) then
             cape(ji) = cape(ji) + cape_integrand*delta_z
@@ -481,7 +481,7 @@ module mo_write_output
           do (int j = 0 j<n_layers ++j)
             vector_to_minimize(j) = abs(z_scalar(j*n_scalars_h + i) - (z_vector(n_vectors - n_scalars_h + i) + u_850_proxy_height))
           enddo
-          closest_index = find_min_index(vector_to_minimize,no_of_layers)
+          closest_index = find_min_index(vector_to_minimize,n_layers)
           second_closest_index = closest_index - 1
           if (closest_index<n_layers - 1
           .and. z_scalar(closest_index*n_scalars_h + i) - z_vector(n_vectors - n_scalars_h + i)>u_850_proxy_height) then
@@ -495,7 +495,7 @@ module mo_write_output
           do (int j = 0 j<n_layers ++j)
             vector_to_minimize(j) = abs(z_scalar(j*n_scalars_h + ji) - (z_vector(n_vectors - n_scalars_h + ji) + u_950_proxy_height))
           enddo
-          closest_index = find_min_index(vector_to_minimize,no_of_layers)
+          closest_index = find_min_index(vector_to_minimize,n_layers)
           second_closest_index = closest_index - 1
           if (closest_index<n_layers - 1
           .and. z_scalar(closest_index*n_scalars_h + i) - z_vector(n_vectors - n_scalars_h + ji)>u_950_proxy_height) then
@@ -650,13 +650,6 @@ module mo_write_output
     ! pressure level output
     double closest_weight
     if (pressure_level_output_switch==1) then
-      double *pressure_levels = malloc(sizeof(double)*n_pressure_levels)
-      pressure_levels(1) = 20000._wp
-      pressure_levels(2) = 30000._wp
-      pressure_levels(3) = 50000._wp
-      pressure_levels(4) = 70000._wp
-      pressure_levels(5) = 85000._wp
-      pressure_levels(6) = 92500._wp
       ! allocating memory for the variables on pressure levels
       double (*geopotential_height,n_scalars_h) = malloc(sizeof(double(n_pressure_levels,n_scalars_h)))
       double (*t_on_pressure_levels,n_scalars_h) = malloc(sizeof(double(n_pressure_levels,n_scalars_h)))
@@ -679,7 +672,7 @@ module mo_write_output
             vector_to_minimize(k) = abs(log(pressure_levels(j)/(*pressure,k*n_scalars_h + i)))
           enddo
           ! finding the model layer that is the closest to the desired pressure level
-          closest_index = find_min_index(vector_to_minimize,no_of_layers)
+          closest_index = find_min_index(vector_to_minimize,n_layers)
           ! first guess for the other layer that will be used for the interpolation
           second_closest_index = closest_index + 1
           ! in this case,the layer above the closest layer will be used for the interpolation
@@ -811,7 +804,6 @@ module mo_write_output
       deallocate(u_on_pressure_levels)
       deallocate(v_on_pressure_levels)
       deallocate(epv_on_pressure_levels)
-      deallocate(pressure_levels)
     endif
 
     ! model level output
@@ -831,9 +823,8 @@ module mo_write_output
       call nc_check(nf90_def_dim(ncid,"lat_index",n_lat_io_points,lat_dimid))
       call nc_check(nf90_def_dim(ncid,"lon_index",n_lon_io_points,lon_dimid))
         
-      int lat_lon_dimids(2)
-      lat_lon_dimids(0) = lat_dimid
-      lat_lon_dimids(1) = lon_dimid
+      lat_lon_dimids(1) = lat_dimid
+      lat_lon_dimids(2) = lon_dimid
       
       ! defining the variables
       call nc_check(nf90_def_var(ncid,"start_day",NF90_INT,1,single_int_dimid,start_day_id))
