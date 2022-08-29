@@ -21,7 +21,7 @@ module mo_write_output
   
   contains
 
-  subroutine interpolate_to_ll(in_field,out_fieldlatlon_interpol_indices,latlon_interpol_weights)
+  subroutine interpolate_to_ll(in_field,out_field,latlon_interpol_indices,latlon_interpol_weights)
   
     ! This subroutine interpolates a single-layer scalar field to a lat-lon grid.
     
@@ -68,9 +68,10 @@ module mo_write_output
     
     ! local variables
     integer               :: ji
-    real(wp)              :: global_integral
+    real(wp)              :: global_integral,kinetic_integral,potential_integral,internal_integral
     real(wp), allocatable :: int_energy_density(n_scalars),pot_energy_density(n_scalars), &
                              e_kin_density(n_scalars)
+    character(len=64)     :: integral_filename
     
     global_integral = 0._wp
     
@@ -80,26 +81,21 @@ module mo_write_output
       call exit(1)
     endif
     
-    FILE *global_integral_file
-    
-    char integral_file_pre(200)
-    
+    ! determining the filename
     if (integral_id==0) then
-      sprintf(integral_file_pre,"%s","masses")
+      integral_filename = "masses"
     endif
     if (integral_id==1) then
-      sprintf(integral_file_pre,"%s","potential_temperature_density")
+      integral_filename = "potential_temperature_density"
     endif
     if (integral_id==2) then
-      sprintf(integral_file_pre,"%s","energy")
+      integral_filename = "energy"
     endif
-    char integral_file(strlen(integral_file_pre) + 1)
-    strcpy(integral_file,integral_file_pre)
-    sprintf(integral_file,"%s",integral_file_pre)
+    
     if (integral_id==0) then
       ! masses
-      global_integral_file = fopen(integral_file,"a")
-      fprintf(global_integral_file,"%lf\t",time_since_init)
+      open(1,file=trim(integral_filename))
+      write(1,fmt="(F6.3)") time_since_init
       do const_id=1,n_constituents
         !$omp parallel do private(ji)
         do ji=1,n_scalars
@@ -110,26 +106,26 @@ module mo_write_output
           global_integral = global_integral + scalar_field_placeholder(ji)*volume(ji)
         enddo
         if (const_id==n_constituents-1) then
-          fprintf(global_integral_file,"%lf\n",global_integral)
+          write(1,fmt="(F6.3)") global_integral
         else
-          fprintf(global_integral_file,"%lf\t",global_integral)
+          write(1,fmt="(F6.3)") global_integral
         endif
       enddo
-      fclose(global_integral_file)
+      close(1)
     endif
     if (integral_id==1) then
       ! density times virtual potential temperature
+      open(1,file=trim(integral_filename))
       global_integral_file = fopen(integral_file,"a")
       global_integral = 0._wp
       do ji=1,n_scalars
         global_integral = global_integral + rhotheta_v(ji)*volume(ji)
       enddo
-      fprintf(global_integral_file,"%lf\t%lf\n",time_since_init,global_integral)
-      fclose(global_integral_file)
+      write(1,fmt="(F6.3)") time_since_init,global_integral
+      close(1)
     endif
     if (integral_id==2) then
-      double kinetic_integral,potential_integral,internal_integral
-      global_integral_file = fopen(integral_file,"a")
+      open(1,file=trim(integral_filename))
       allocate(e_kin_density(n_scalars))
       call inner_product(wind,wind,e_kin_density,adjacent_vector_indices_h,inner_product_weights)
       !$omp parallel do private(ji)
@@ -168,77 +164,35 @@ module mo_write_output
       do ji=1,n_scalars
         internal_integral = internal_integral + int_energy_density(ji)*volume(ji)
       enddo
-      fprintf(global_integral_file,"%lf\t%lf\t%lf\t%lf\n",time_since_init,0.5_wp*kinetic_integral,potential_integral, &
-              c_d_v*internal_integral)
+      write(1,fmt="(F6.3)") time_since_init,0.5_wp*kinetic_integral,potential_integral, &
+                            c_d_v*internal_integral
       deallocate(int_energy_density)
-      fclose(global_integral_file)
+      close(1)
     endif
     
   end subroutine write_out_integral
 
-  function pseudopotential_temperature(theta_v_bg,theta_v_pert,scalar_index)
-    
-    ! This function returns the pseudopotential temperature,which is needed for diagnozing CAPE.
-    
-    real(wp), intent(in) :: theta_v_bg(n_scalars),theta_v_pert(n_scalars)
-    real(wp)             :: pseudopotential_temperature
-    
-    ! local variables
-    real(wp) :: r,alpha_1,alpha_2,alpha_3,pressure,t_lcl,vapour_pressure,saturation_pressure,rel_hum
-    
-    pseudopotential_temperature = 0._wp
-    ! the dry case
-    if (lmoist) then
-      pseudopotential_temperature = theta_v_bg(scalar_index) + theta_v_pert(scalar_index)
-    ! This is the moist case,based on
-    ! Bolton,D. (1980). The Computation of Equivalent Potential Temperature,Monthly Weather Review,108(7),1046-1053.
-    else
-      
-      ! the mixing ratio
-      r = rho((n_condensed_constituents + 1)*n_scalars + scalar_index) &
-      /(rho(n_condensed_constituents*n_scalars + scalar_index) &
-      - rho((n_condensed_constituents + 1)*n_scalars + scalar_index))
-      
-      ! now,the first two required parameters can already be computed
-      alpha_1 = 0.2854_wp*(1._wp - 0.28e-3_wp*r)
-      alpha_3 = r*(1._wp + 0.81e-3_wp*r)
-      
-      ! calculating the pressure
-      pressure = p_0*(exner_bg(scalar_index) + exner_pert(scalar_index))**(c_d_p/r_d)
-      
-      ! computing the temperature t_lcl of the air parcel after raising it to the lifted condensation level (LCL)
-      ! therefore we firstly compute the saturation pressure,the vapour pressure and the relative humidity
-      if (temperature(scalar_index)>=t_0) then
-        saturation_pressure = saturation_pressure_over_water(temperature(scalar_index))
-      else
-        saturation_pressure = saturation_pressure_over_ice(temperature(scalar_index))
-      endif
-      vapour_pressure = rho((n_condensed_constituents + 1)*n_scalars + scalar_index)*R_V*temperature(scalar_index)
-      rel_hum = vapour_pressure/saturation_pressure
-      ! we compute t_lcl using Eq. (22) of Bolton (1980)
-      t_lcl = 1._wp/(1._wp/(temperature(scalar_index) - 55._wp) - log(rel_hum)/2840._wp) + 55._wp
-      
-      ! the last remaining parameter can be computed now
-      alpha_2 = 3.376_wp/t_lcl - 0.00254_wp
-      
-      ! the final formula by Bolton
-      pseudopotential_temperature = temperature(scalar_index)*(p_0/pressure)**alpha_1*exp(alpha_2*alpha_3)
-    endif
-    
-  end function pseudopotential_temperature
-
-  subroutine write_out(scalar_field_placeholder,wind)
+  subroutine write_out(scalar_field_placeholder,wind,latlon_interpol_indices,latlon_interpol_weights)
+  
+    ! This subroutine is the central subroutine for writing the output.
   
     real(wp), intent(out) :: scalar_field_placeholder(n_scalars)
     real(wp), intent(in)  :: wind(n_vectors)
   
     ! local variables
-    integer  :: ji,lat_lon_dimids(2),ncid,single_int_dimid,lat_dimid,lon_dimid,start_day_id,start_hour_id, &
-                lat_id,lon_id,layer_index,closest_index,second_closest_index,temperature_ids(n_layers), &
-                pressure_ids(n_layers),rel_hum_ids(n_layers),wind_u_ids(n_layers),wind_v_ids(n_layers), &
-                rel_vort_ids(n_layers),div_h_ids(n_layers),wind_w_ids(n_levels),h_index
-    real(wp) :: delta_latitude,delta_longitude,lat_vector(n_lat_io_points),lon_vector(n_lon_io_points), &
-                min_precip_rate_mmh,min_precip_rate,cloud_water2cloudiness
+    integer               :: ji,lat_lon_dimids(2),ncid,single_int_dimid,lat_dimid,lon_dimid,start_day_id,start_hour_id, &
+                             lat_id,lon_id,layer_index,closest_index,second_closest_index,temperature_ids(n_layers), &
+                             pressure_ids(n_layers),rel_hum_ids(n_layers),wind_u_ids(n_layers),wind_v_ids(n_layers), &
+                             rel_vort_ids(n_layers),div_h_ids(n_layers),wind_w_ids(n_levels),h_index, &
+                             latlon_interpol_indices(5*n_scalars_h)
+    real(wp)              :: delta_latitude,delta_longitude,lat_vector(n_lat_io_points),lon_vector(n_lon_io_points), &
+                             min_precip_rate_mmh,min_precip_rate,cloud_water2cloudiness,temp_lowest_layer, &
+                             pressure_value,mslp_factor,sp_factor,temp_mslp,temp_surface,z_height,theta_v, &
+                             cape_integrand,delta_z,temp_closest,temp_second_closest,delta_z_temp,temperature_gradient, &
+                             theta_e,u_850_surrogate,u_950_surrogate,u_850_proxy_height,u_950_proxy_height, &
+                             wind_tangential,wind_u_value,wind_v_value,latlon_interpol_weights(5*n_scalars_h), &
+                             roughness_length_extrapolation,actual_roughness_length,z_sfc,z_agl,rescale_factor, &
+                             cloud_water_content,vector_to_minimize(n_layers),closest_weight
     real(wp), allocatable :: wind_10_m_mean_u(n_vectors_h),wind_10_m_mean_v(n_vectors_h)
   
     write(*,*) "Writing output ..."
@@ -251,30 +205,22 @@ module mo_write_output
     do ji=1,n_lat_io_points
       lat_vector(ji) = M_PI/2._wp - 0.5_wp*delta_latitude - (ji-1)*delta_latitude
     enddo
-    lon_vector(n_lon_io_points)
     do ji=1,n_lon_io_points
       lon_vector(ji) = (ji-1)*delta_longitude
     enddo
     
-    ! Time stuff.
-    time_t t_init_t = (time_t) t_init
-    ! t_init is in UTC
-    struct tm *p_init_time = gmtime(t_init_t)
-    int init_year = p_init_time -> tm_year
-    int init_month = p_init_time -> tm_mon
-    int init_day = p_init_time -> tm_mday
-    int init_hour = p_init_time -> tm_hour
-    int init_date = 10000*(init_year + 1900) + 100*(init_month + 1) + init_day
-    int init_time = 100*init_hour
+    init_year = p_init_time -> tm_year
+    init_month = p_init_time -> tm_mon
+    init_day = p_init_time -> tm_mday
+    init_hour = p_init_time -> tm_hour
+    init_date = 10000*(init_year + 1900) + 100*(init_month + 1) + init_day
+    init_time = 100*init_hour
     
     ! precipitation rates smaller than this value are set to zero to not confuse users
     min_precip_rate_mmh = 0.01_wp
     min_precip_rate = min_precip_rate_mmh/(1000._wp*3600._wp/1024._wp)
     ! this heuristic coefficient converts the cloud water content to cloud cover
     cloud_water2cloudiness = 10._wp
-    
-    double cloud_water_content
-    double vector_to_minimize(n_layers)
     
     double (*lat_lon_output_field,n_lon_io_points) = malloc(sizeof(double(n_lat_io_points,n_lon_io_points)))
     
@@ -297,8 +243,6 @@ module mo_write_output
       double *sprate = malloc(n_scalars_h*sizeof(double))
       double *cape = malloc(n_scalars_h*sizeof(double))
       double *sfc_sw_down = malloc(n_scalars_h*sizeof(double))
-      double temp_lowest_layer,pressure_value,mslp_factor,sp_factor,temp_mslp,temp_surface,z_height,theta_v,
-      cape_integrand,delta_z,temp_closest,temp_second_closest,delta_z_temp,temperature_gradient,theta_e
       double z_tropopause = 12e3_wp
       double standard_vert_lapse_rate = 0.0065_wp
       !$omp parallel do private(temp_lowest_layer,pressure_value,mslp_factor,sp_factor,temp_mslp,temp_surface, &
@@ -418,8 +362,6 @@ module mo_write_output
       ! 10 m wind diagnostics
       ! ---------------------
       
-      double wind_tangential,wind_u_value,wind_v_value
-      int j
       allocate(wind_10_m_mean_u(n_vectors_h))
       allocate(wind_10_m_mean_v(n_vectors_h))
       ! temporal average over the ten minutes output interval
@@ -440,14 +382,12 @@ module mo_write_output
           wind_10_m_mean_v(h_index) = wind_10_m_mean_v(h_index) + 1._wp/min_no_of_output_steps*wind_tangential
         enddo
         ! passive turn to obtain the u- and v-components of the wind
-        double m_direction = -direction(h_index)
-        call passive_turn(wind_10_m_mean_u(h_index),wind_10_m_mean_v(h_index),m_direction,wind_u_value,wind_v_value)
+        call passive_turn(wind_10_m_mean_u(h_index),wind_10_m_mean_v(h_index),-direction(h_index),wind_u_value,wind_v_value)
         wind_10_m_mean_u(h_index) = wind_u_value
         wind_10_m_mean_v(h_index) = wind_v_value
       enddo
       !$omp end parallel do
       ! vertically extrapolating to ten meters above the surface
-      double roughness_length_extrapolation,actual_roughness_length,z_sfc,z_agl,rescale_factor
       !$omp parallel do private(ji,roughness_length_extrapolation,actual_roughness_length,z_sfc,z_agl,rescale_factor)
       do ji=1,n_vectors_h
         actual_roughness_length = 0.5_wp*(roughness_length(from_index(ji)) + roughness_length(to_index(ji)))
@@ -476,9 +416,8 @@ module mo_write_output
       deallocate(wind_10_m_mean_v)
       
       ! gust diagnostics
-      double u_850_surrogate,u_950_surrogate
-      double u_850_proxy_height = 8000._wp*log(1000._wp/850._wp)
-      double u_950_proxy_height = 8000._wp*log(1000._wp/950._wp)
+      u_850_proxy_height = 8000._wp*log(1000._wp/850._wp)
+      u_950_proxy_height = 8000._wp*log(1000._wp/950._wp)
       double *wind_10_m_gusts_speed_at_cell = malloc(n_scalars_h*sizeof(double))
       !$omp parallel do private(ji,closest_index,second_closest_index,u_850_surrogate,u_950_surrogate)
       do ji=1,n_scalars_h
@@ -618,6 +557,7 @@ module mo_write_output
       deallocate(tcc)
       deallocate(cape)
       deallocate(sfc_sw_down)
+      
     endif
     
     ! Diagnostics of quantities that are not surface-specific.    
@@ -662,7 +602,6 @@ module mo_write_output
                          adjacent_vector_indices_h,slope,normal_distance,theta_v_bg,theta_v_pert,z_vector)
     
     ! pressure level output
-    double closest_weight
     if (pressure_level_output_switch==1) then
       ! allocating memory for the variables on pressure levels
       double (*geopotential_height,n_scalars_h) = malloc(sizeof(double(n_pressure_levels,n_scalars_h)))
@@ -791,19 +730,26 @@ module mo_write_output
       call nc_check(nf90_put_var(ncid,lon_id,lon_vector))
       do jl=1,n_pressure_levels
         
-        call interpolate_to_ll(geopotential_height(:,jl),lat_lon_output_field,latlon_interpol_indices,latlon_interpol_weights)
+        call interpolate_to_ll(geopotential_height(:,jl),lat_lon_output_field, &
+        latlon_interpol_indices,latlon_interpol_weights)
         call nc_check(nf90_put_var(ncid,gh_ids(ji),lat_lon_output_field))
-        call interpolate_to_ll(t_on_pressure_levels(:,jl),lat_lon_output_field,latlon_interpol_indices,latlon_interpol_weights)
+        call interpolate_to_ll(t_on_pressure_levels(:,jl),lat_lon_output_field, &
+        latlon_interpol_indices,latlon_interpol_weights)
         call nc_check(nf90_put_var(ncid,temp_p_ids(ji),lat_lon_output_field))
-        call interpolate_to_ll(rh_on_pressure_levels(:,jl),lat_lon_output_field,latlon_interpol_indices,latlon_interpol_weights)
+        call interpolate_to_ll(rh_on_pressure_levels(:,jl),lat_lon_output_field, &
+        latlon_interpol_indices,latlon_interpol_weights)
         call nc_check(nf90_put_var(ncid,rh_p_ids(ji),lat_lon_output_field))
-        call interpolate_to_ll(u_on_pressure_levels(:,jl),lat_lon_output_field,latlon_interpol_indices,latlon_interpol_weights)
+        call interpolate_to_ll(u_on_pressure_levels(:,jl),lat_lon_output_field, &
+        latlon_interpol_indices,latlon_interpol_weights)
         call nc_check(nf90_put_var(ncid,wind_u_p_ids(ji),lat_lon_output_field))
-        call interpolate_to_ll(v_on_pressure_levels(:,jl),lat_lon_output_field,latlon_interpol_indices,latlon_interpol_weights)
+        call interpolate_to_ll(v_on_pressure_levels(:,jl),lat_lon_output_field, &
+        latlon_interpol_indices,latlon_interpol_weights)
         call nc_check(nf90_put_var(ncid,wind_v_p_ids(ji),lat_lon_output_field))
-        call interpolate_to_ll(epv_on_pressure_levels(:,jl),lat_lon_output_field,latlon_interpol_indices,latlon_interpol_weights)
+        call interpolate_to_ll(epv_on_pressure_levels(:,jl),lat_lon_output_field, &
+        latlon_interpol_indices,latlon_interpol_weights)
         call nc_check(nf90_put_var(ncid,epv_p_ids(ji),lat_lon_output_field))
-        call interpolate_to_ll(rel_vort_on_pressure_levels(:,jl),lat_lon_output_field,latlon_interpol_indices,latlon_interpol_weights)
+        call interpolate_to_ll(rel_vort_on_pressure_levels(:,jl),lat_lon_output_field, &
+        latlon_interpol_indices,latlon_interpol_weights)
         call nc_check(nf90_put_var(ncid,rel_vort_p_ids(ji),lat_lon_output_field))
       
       enddo
@@ -879,19 +825,26 @@ module mo_write_output
       call nc_check(nf90_put_var(ncid,lat_id,lat_vector))
       call nc_check(nf90_put_var(ncid,lon_id,lon_vector))
       do (int i = 0 i<n_layers ++i)
-        call interpolate_to_ll(temperature(i*n_scalars_h),lat_lon_output_field,latlon_interpol_indices,latlon_interpol_weights)
+        call interpolate_to_ll(temperature(i*n_scalars_h),lat_lon_output_field, &
+                               latlon_interpol_indices,latlon_interpol_weights)
         call nc_check(nf90_put_var(ncid,temperature_ids(ji),lat_lon_output_field))
-        call interpolate_to_ll((*pressure,i*n_scalars_h),lat_lon_output_field,latlon_interpol_indices,latlon_interpol_weights)
+        call interpolate_to_ll((*pressure,i*n_scalars_h),lat_lon_output_field, &
+                               latlon_interpol_indices,latlon_interpol_weights)
         call nc_check(nf90_put_var(ncid,pressure_ids(ji),lat_lon_output_field))
-        call interpolate_to_ll((*rh,i*n_scalars_h),lat_lon_output_field,latlon_interpol_indices,latlon_interpol_weights)
+        call interpolate_to_ll((*rh,i*n_scalars_h),lat_lon_output_field, &
+                               latlon_interpol_indices,latlon_interpol_weights)
         call nc_check(nf90_put_var(ncid,rel_hum_ids(ji),lat_lon_output_field))
-        call interpolate_to_ll( u_at_cell(i*n_scalars_h),lat_lon_output_field,latlon_interpol_indices,latlon_interpol_weights)
+        call interpolate_to_ll(u_at_cell(i*n_scalars_h),lat_lon_output_field, &
+                               latlon_interpol_indices,latlon_interpol_weights)
         call nc_check(nf90_put_var(ncid,wind_u_ids(ji),lat_lon_output_field))
-        call interpolate_to_ll( v_at_cell(i*n_scalars_h),lat_lon_output_field,latlon_interpol_indices,latlon_interpol_weights)
+        call interpolate_to_ll(v_at_cell(i*n_scalars_h),lat_lon_output_field, &
+                               latlon_interpol_indices,latlon_interpol_weights)
         call nc_check(nf90_put_var(ncid,wind_v_ids(ji),lat_lon_output_field))
-        call interpolate_to_ll((*rel_vort,i*n_scalars_h),lat_lon_output_field,latlon_interpol_indices,latlon_interpol_weights)
+        call interpolate_to_ll((*rel_vort,i*n_scalars_h),lat_lon_output_field, &
+                               latlon_interpol_indices,latlon_interpol_weights)
         call nc_check(nf90_put_var(ncid,rel_vort_ids(ji),lat_lon_output_field))
-        call interpolate_to_ll((*div_h_all_layers,i*n_scalars_h),lat_lon_output_field,latlon_interpol_indices,latlon_interpol_weights)
+        call interpolate_to_ll((*div_h_all_layers,i*n_scalars_h),lat_lon_output_field, &
+                               latlon_interpol_indices,latlon_interpol_weights)
         call nc_check(nf90_put_var(ncid,div_h_ids(ji),lat_lon_output_field))
       enddo
       
@@ -940,11 +893,11 @@ module mo_write_output
       ! setting the variables
       call nc_check(nf90_put_var(ncid,start_day_id,init_date))
       call nc_check(nf90_put_var(ncid,start_hour_id,init_time))
-      call nc_check(nf90_put_var(ncid,densities_id,rho(0)))
-      call nc_check(nf90_put_var(ncid,temperature_id,temperature(0)))
-      call nc_check(nf90_put_var(ncid,wind_id,wind(0)))
-      call nc_check(nf90_put_var(ncid,tke_id,tke(0)))
-      call nc_check(nf90_put_var(ncid,soil_id,temperature_soil(0)))
+      call nc_check(nf90_put_var(ncid,densities_id,rho))
+      call nc_check(nf90_put_var(ncid,temperature_id,temperature))
+      call nc_check(nf90_put_var(ncid,wind_id,wind))
+      call nc_check(nf90_put_var(ncid,tke_id,tke))
+      call nc_check(nf90_put_var(ncid,soil_id,temperature_soil))
       
       ! closing the netcdf file
       call nc_check(nf90_close(ncid))
@@ -960,7 +913,57 @@ module mo_write_output
     
   end subroutine write_out
 
-
+  function pseudopotential_temperature(theta_v_bg,theta_v_pert,scalar_index)
+    
+    ! This function returns the pseudopotential temperature,which is needed for diagnozing CAPE.
+    
+    real(wp), intent(in) :: theta_v_bg(n_scalars),theta_v_pert(n_scalars)
+    real(wp)             :: pseudopotential_temperature
+    
+    ! local variables
+    real(wp) :: r,alpha_1,alpha_2,alpha_3,pressure,t_lcl,vapour_pressure,saturation_pressure,rel_hum
+    
+    pseudopotential_temperature = 0._wp
+    ! the dry case
+    if (lmoist) then
+      pseudopotential_temperature = theta_v_bg(scalar_index) + theta_v_pert(scalar_index)
+    ! This is the moist case,based on
+    ! Bolton,D. (1980). The Computation of Equivalent Potential Temperature,Monthly Weather Review,108(7),1046-1053.
+    else
+      
+      ! the mixing ratio
+      r = rho((n_condensed_constituents + 1)*n_scalars + scalar_index) &
+      /(rho(n_condensed_constituents*n_scalars + scalar_index) &
+      - rho((n_condensed_constituents + 1)*n_scalars + scalar_index))
+      
+      ! now,the first two required parameters can already be computed
+      alpha_1 = 0.2854_wp*(1._wp - 0.28e-3_wp*r)
+      alpha_3 = r*(1._wp + 0.81e-3_wp*r)
+      
+      ! calculating the pressure
+      pressure = p_0*(exner_bg(scalar_index) + exner_pert(scalar_index))**(c_d_p/r_d)
+      
+      ! computing the temperature t_lcl of the air parcel after raising it to the lifted condensation level (LCL)
+      ! therefore we firstly compute the saturation pressure,the vapour pressure and the relative humidity
+      if (temperature(scalar_index)>=t_0) then
+        saturation_pressure = saturation_pressure_over_water(temperature(scalar_index))
+      else
+        saturation_pressure = saturation_pressure_over_ice(temperature(scalar_index))
+      endif
+      vapour_pressure = rho((n_condensed_constituents + 1)*n_scalars + scalar_index)*R_V*temperature(scalar_index)
+      rel_hum = vapour_pressure/saturation_pressure
+      ! we compute t_lcl using Eq. (22) of Bolton (1980)
+      t_lcl = 1._wp/(1._wp/(temperature(scalar_index) - 55._wp) - log(rel_hum)/2840._wp) + 55._wp
+      
+      ! the last remaining parameter can be computed now
+      alpha_2 = 3.376_wp/t_lcl - 0.00254_wp
+      
+      ! the final formula by Bolton
+      pseudopotential_temperature = temperature(scalar_index)*(p_0/pressure)**alpha_1*exp(alpha_2*alpha_3)
+    endif
+    
+  end function pseudopotential_temperature
+  
 end module mo_write_output
 
 
