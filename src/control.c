@@ -352,8 +352,15 @@ int main(int argc, char *argv[])
     // in the time stepping and in writing the output.
     config -> totally_first_step_bool = 1;
     // writing out the initial state of the model run
-    write_out(state_1, wind_h_lowest_layer, min_no_of_10m_wind_avg_steps, t_init, t_write,
-    diagnostics, grid, dualgrid, config_io, config);
+    write_out(diagnostics->scalar_field_placeholder,state_1->wind,grid->latlon_interpol_indices,grid->latlon_interpol_weights,grid->exner_bg,
+              grid->inner_product_weights,grid->volume,grid->gravity_potential,grid->from_index,grid->to_index,grid->z_vector,dualgrid->f_vec,diagnostics->temperature,
+              state_1->temperature_soil,grid->area,state_1->rho,grid->z_scalar,grid->slope,grid->gravity_m,grid->adjacent_signs_h,grid->adjacent_vector_indices_h,
+              dualgrid->area,grid->density_to_rhombi_indices,grid->density_to_rhombi_weights,state_1->exner_pert,diagnostics->tke,&t_init,&t_write,
+              dualgrid->from_index,dualgrid->to_index,diagnostics->v_squared,grid->is_land,diagnostics->monin_obukhov_length,diagnostics->roughness_velocity,
+              grid->roughness_length,grid->direction,grid->trsk_indices,grid->sfc_albedo,diagnostics->sfc_sw_in,grid->layer_thickness,state_1->theta_v_pert,
+              grid->theta_v_bg,dualgrid->z_vector,dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,grid->trsk_weights,
+              &config->totally_first_step_bool,wind_h_lowest_layer,diagnostics->rel_vort_on_triangles,diagnostics->rel_vort,diagnostics->pot_vort,
+              grid->normal_distance);
     
     t_write += 60.0*config_io -> write_out_interval_min;
     printf("Run progress: %f h\n", (t_init - t_init)/3600);
@@ -362,9 +369,8 @@ int main(int argc, char *argv[])
     first_time = clock();
     if (config_io -> write_out_integrals == 1)
     {
-		write_out_integral(state_1, time_step_counter, grid, dualgrid, diagnostics, 0);
-		write_out_integral(state_1, time_step_counter, grid, dualgrid, diagnostics, 1);
-		write_out_integral(state_1, time_step_counter, grid, dualgrid, diagnostics, 2);
+		write_out_integral(state_1 -> wind, diagnostics -> scalar_field_placeholder, state_1 -> rhotheta_v, diagnostics -> temperature, state_1 -> rho,
+		                   grid -> volume, grid -> inner_product_weights, grid -> gravity_potential, grid -> adjacent_vector_indices_h, 0);
 	}
 	
 	/*
@@ -465,15 +471,13 @@ int main(int argc, char *argv[])
         {
 			if (fmod(time_step_counter, 2) == 0)
 			{
-				write_out_integral(state_2, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 0);
-				write_out_integral(state_2, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 1);
-				write_out_integral(state_2, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 2);
+		        write_out_integral(state_2 -> wind, diagnostics -> scalar_field_placeholder, state_2 -> rhotheta_v, diagnostics -> temperature, state_2 -> rho,
+		                           grid -> volume, grid -> inner_product_weights, grid -> gravity_potential, grid -> adjacent_vector_indices_h, t_0 + delta_t - t_init);
 			}
 			else
 			{
-				write_out_integral(state_1, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 0);
-				write_out_integral(state_1, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 1);
-				write_out_integral(state_1, t_0 + delta_t - t_init, grid, dualgrid, diagnostics, 2);
+		        write_out_integral(state_1 -> wind, diagnostics -> scalar_field_placeholder, state_1 -> rhotheta_v, diagnostics -> temperature, state_1 -> rho,
+		                           grid -> volume, grid -> inner_product_weights, grid -> gravity_potential, grid -> adjacent_vector_indices_h, t_0 + delta_t - t_init);
 			}
     	}
 		
@@ -534,8 +538,15 @@ int main(int argc, char *argv[])
         if(t_0 + delta_t >= t_write + radius_rescale*300 && t_0 <= t_write + radius_rescale*300)
         {
         	// here, output is actually written
-            write_out(state_write, wind_h_lowest_layer, min_no_of_10m_wind_avg_steps, t_init, t_write, diagnostics,
-            grid, dualgrid, config_io, config);
+    		write_out(diagnostics->scalar_field_placeholder,state_write->wind,grid->latlon_interpol_indices,grid->latlon_interpol_weights,grid->exner_bg,
+            		  grid->inner_product_weights,grid->volume,grid->gravity_potential,grid->from_index,grid->to_index,grid->z_vector,dualgrid->f_vec,diagnostics->temperature,
+                      state_write->temperature_soil,grid->area,state_write->rho,grid->z_scalar,grid->slope,grid->gravity_m,grid->adjacent_signs_h,grid->adjacent_vector_indices_h,
+  		              dualgrid->area,grid->density_to_rhombi_indices,grid->density_to_rhombi_weights,state_write->exner_pert,diagnostics->tke,&t_init,&t_write,
+  		              dualgrid->from_index,dualgrid->to_index,diagnostics->v_squared,grid->is_land,diagnostics->monin_obukhov_length,diagnostics->roughness_velocity,
+  		              grid->roughness_length,grid->direction,grid->trsk_indices,grid->sfc_albedo,diagnostics->sfc_sw_in,grid->layer_thickness,state_write->theta_v_pert,
+  		              grid->theta_v_bg,dualgrid->z_vector,dualgrid->vorticity_indices_triangles,dualgrid->vorticity_signs_triangles,grid->trsk_weights,
+  		              &config->totally_first_step_bool,wind_h_lowest_layer,diagnostics->rel_vort_on_triangles,diagnostics->rel_vort,diagnostics->pot_vort,
+  		              grid->normal_distance);
             // setting the next output time
             t_write += 60.0*config_io -> write_out_interval_min;
             

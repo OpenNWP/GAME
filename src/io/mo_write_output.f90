@@ -66,7 +66,7 @@ module mo_write_output
   end subroutine interpolate_to_ll
 
   subroutine write_out_integral(wind,scalar_field_placeholder,rhotheta_v,temperature,rho,volume,inner_product_weights, &
-                                gravity_potential,adjacent_vector_indices_h,time_since_init,integral_id) &
+                                gravity_potential,adjacent_vector_indices_h,time_since_init) &
   bind(c,name = "write_out_integral")
     
     ! integral_id:
@@ -77,110 +77,107 @@ module mo_write_output
     real(wp), intent(in)  :: volume(n_scalars),rhotheta_v(n_scalars),temperature(n_scalars), &
                              gravity_potential(n_scalars),rho(n_constituents*n_scalars),time_since_init, &
                              wind(n_vectors),inner_product_weights(8*n_scalars)
-    integer,  intent(in)  :: integral_id,adjacent_vector_indices_h(6*n_scalars_h)
+    integer,  intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h)
     real(wp), intent(out) :: scalar_field_placeholder(n_scalars)
     
     ! local variables
-    integer               :: ji,const_id
+    integer               :: ji,const_id,integral_id
     real(wp)              :: global_integral,kinetic_integral,potential_integral,internal_integral
     real(wp), allocatable :: int_energy_density(:),pot_energy_density(:),e_kin_density(:)
     character(len=64)     :: integral_filename
     
     global_integral = 0._wp
     
-    if (integral_id<0 .or. integral_id>2) then
-      write(*,*) "integral_id can only be 0,1 or 2."
-      write(*,*) "Aborting."
-      call exit(1)
-    endif
+    do integral_id=0,2
     
-    ! determining the filename
-    if (integral_id==0) then
-      integral_filename = "masses"
-    endif
-    if (integral_id==1) then
-      integral_filename = "potential_temperature_density"
-    endif
-    if (integral_id==2) then
-      integral_filename = "energy"
-    endif
+      ! determining the filename
+      if (integral_id==0) then
+        integral_filename = "masses"
+      endif
+      if (integral_id==1) then
+        integral_filename = "potential_temperature_density"
+      endif
+      if (integral_id==2) then
+        integral_filename = "energy"
+      endif
     
-    if (integral_id==0) then
-      ! masses
-      open(1,file=trim(integral_filename))
-      write(1,fmt="(F6.3)") time_since_init
-      do const_id=1,n_constituents
-        !$omp parallel do private(ji)
-        do ji=1,n_scalars
-          scalar_field_placeholder(ji) = rho(const_id*n_scalars + ji)
+      if (integral_id==0) then
+        ! masses
+        open(1,file=trim(integral_filename))
+        write(1,fmt="(F6.3)") time_since_init
+        do const_id=1,n_constituents
+          !$omp parallel do private(ji)
+          do ji=1,n_scalars
+            scalar_field_placeholder(ji) = rho(const_id*n_scalars + ji)
+          enddo
+          global_integral = 0._wp
+          do ji=1,n_scalars
+            global_integral = global_integral + scalar_field_placeholder(ji)*volume(ji)
+          enddo
+          if (const_id==n_constituents-1) then
+            write(1,fmt="(F6.3)") global_integral
+          else
+            write(1,fmt="(F6.3)") global_integral
+          endif
         enddo
+        close(1)
+      endif
+      if (integral_id==1) then
+        ! density times virtual potential temperature
+        open(1,file=trim(integral_filename))
         global_integral = 0._wp
         do ji=1,n_scalars
-          global_integral = global_integral + scalar_field_placeholder(ji)*volume(ji)
+          global_integral = global_integral + rhotheta_v(ji)*volume(ji)
         enddo
-        if (const_id==n_constituents-1) then
-          write(1,fmt="(F6.3)") global_integral
-        else
-          write(1,fmt="(F6.3)") global_integral
-        endif
-      enddo
-      close(1)
-    endif
-    if (integral_id==1) then
-      ! density times virtual potential temperature
-      open(1,file=trim(integral_filename))
-      global_integral = 0._wp
-      do ji=1,n_scalars
-        global_integral = global_integral + rhotheta_v(ji)*volume(ji)
-      enddo
-      write(1,fmt="(F6.3)") time_since_init,global_integral
-      close(1)
-    endif
-    if (integral_id==2) then
-      open(1,file=trim(integral_filename))
-      allocate(e_kin_density(n_scalars))
-      call inner_product(wind,wind,e_kin_density,adjacent_vector_indices_h,inner_product_weights)
-      !$omp parallel do private(ji)
-      do ji=1,n_scalars
-        scalar_field_placeholder(ji) = rho(n_condensed_constituents*n_scalars + ji)
-      enddo
-      !$omp end parallel do
-      !$omp parallel do private(ji)
-      do ji=1,n_scalars
-        e_kin_density(ji) = scalar_field_placeholder(ji)*e_kin_density(ji)
-      enddo
-      !$omp end parallel do
-      kinetic_integral = 0._wp
-      do ji=1,n_scalars
-        kinetic_integral = kinetic_integral + e_kin_density(ji)*volume(ji)
-      enddo
-      deallocate(e_kin_density)
-      allocate(pot_energy_density(n_scalars))
-      !$omp parallel do private(ji)
-      do ji=1,n_scalars
-        pot_energy_density(ji) = scalar_field_placeholder(ji)*gravity_potential(ji)
-      enddo
-      !$omp end parallel do
-      potential_integral = 0._wp
-      do ji=1,n_scalars
-        potential_integral = potential_integral + pot_energy_density(ji)*volume(ji)
-      enddo
-      deallocate(pot_energy_density)
-      allocate(int_energy_density(n_scalars))
-      !$omp parallel do private(ji)
-      do ji=1,n_scalars
-        int_energy_density(ji) = scalar_field_placeholder(ji)*temperature(ji)
-      enddo
-      !$omp end parallel do
-      internal_integral = 0._wp
-      do ji=1,n_scalars
-        internal_integral = internal_integral+int_energy_density(ji)*volume(ji)
-      enddo
-      write(1,fmt="(F6.3)") time_since_init,0.5_wp*kinetic_integral,potential_integral, &
-                            c_d_v*internal_integral
-      deallocate(int_energy_density)
-      close(1)
-    endif
+        write(1,fmt="(F6.3)") time_since_init,global_integral
+        close(1)
+      endif
+      if (integral_id==2) then
+        open(1,file=trim(integral_filename))
+        allocate(e_kin_density(n_scalars))
+        call inner_product(wind,wind,e_kin_density,adjacent_vector_indices_h,inner_product_weights)
+        !$omp parallel do private(ji)
+        do ji=1,n_scalars
+          scalar_field_placeholder(ji) = rho(n_condensed_constituents*n_scalars + ji)
+        enddo
+        !$omp end parallel do
+        !$omp parallel do private(ji)
+        do ji=1,n_scalars
+          e_kin_density(ji) = scalar_field_placeholder(ji)*e_kin_density(ji)
+        enddo
+        !$omp end parallel do
+        kinetic_integral = 0._wp
+        do ji=1,n_scalars
+          kinetic_integral = kinetic_integral + e_kin_density(ji)*volume(ji)
+        enddo
+        deallocate(e_kin_density)
+        allocate(pot_energy_density(n_scalars))
+        !$omp parallel do private(ji)
+        do ji=1,n_scalars
+          pot_energy_density(ji) = scalar_field_placeholder(ji)*gravity_potential(ji)
+        enddo
+        !$omp end parallel do
+        potential_integral = 0._wp
+        do ji=1,n_scalars
+          potential_integral = potential_integral + pot_energy_density(ji)*volume(ji)
+        enddo
+        deallocate(pot_energy_density)
+        allocate(int_energy_density(n_scalars))
+        !$omp parallel do private(ji)
+        do ji=1,n_scalars
+          int_energy_density(ji) = scalar_field_placeholder(ji)*temperature(ji)
+        enddo
+        !$omp end parallel do
+        internal_integral = 0._wp
+        do ji=1,n_scalars
+          internal_integral = internal_integral+int_energy_density(ji)*volume(ji)
+        enddo
+        write(1,fmt="(F6.3)") time_since_init,0.5_wp*kinetic_integral,potential_integral, &
+                              c_d_v*internal_integral
+        deallocate(int_energy_density)
+        close(1)
+      endif
+    enddo
     
   end subroutine write_out_integral
 
