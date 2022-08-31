@@ -367,10 +367,11 @@ int main(int argc, char *argv[])
     int time_step_counter = 0;
     clock_t first_time, second_time;
     first_time = clock();
+    double time = 0.0;
     if (config_io -> write_out_integrals == 1)
     {
 		write_out_integral(state_1 -> wind, diagnostics -> scalar_field_placeholder, state_1 -> rhotheta_v, diagnostics -> temperature, state_1 -> rho,
-		                   grid -> volume, grid -> inner_product_weights, grid -> gravity_potential, grid -> adjacent_vector_indices_h, 0);
+		                   grid -> volume, grid -> inner_product_weights, grid -> gravity_potential, grid -> adjacent_vector_indices_h, &time);
 	}
 	
 	/*
@@ -469,15 +470,16 @@ int main(int argc, char *argv[])
 		*/
 		if (config_io -> write_out_integrals == 1)
         {
+			time = t_0 + delta_t - t_init;
 			if (fmod(time_step_counter, 2) == 0)
 			{
 		        write_out_integral(state_2 -> wind, diagnostics -> scalar_field_placeholder, state_2 -> rhotheta_v, diagnostics -> temperature, state_2 -> rho,
-		                           grid -> volume, grid -> inner_product_weights, grid -> gravity_potential, grid -> adjacent_vector_indices_h, t_0 + delta_t - t_init);
+		                           grid -> volume, grid -> inner_product_weights, grid -> gravity_potential, grid -> adjacent_vector_indices_h, &time);
 			}
 			else
 			{
 		        write_out_integral(state_1 -> wind, diagnostics -> scalar_field_placeholder, state_1 -> rhotheta_v, diagnostics -> temperature, state_1 -> rho,
-		                           grid -> volume, grid -> inner_product_weights, grid -> gravity_potential, grid -> adjacent_vector_indices_h, t_0 + delta_t - t_init);
+		                           grid -> volume, grid -> inner_product_weights, grid -> gravity_potential, grid -> adjacent_vector_indices_h, &time);
 			}
     	}
 		
