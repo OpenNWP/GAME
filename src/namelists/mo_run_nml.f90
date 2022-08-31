@@ -17,6 +17,7 @@ module mo_run_nml
   integer           :: start_year     ! year of the model run beginning
   integer           :: start_month    ! month of the model run beginning
   integer           :: start_day      ! day of the model run beginning
+  integer           :: start_date     ! date of the model run beginning
   integer           :: start_hour     ! hour of the model run beginning
   integer           :: start_minute   ! minute of the model run beginning
   
@@ -34,6 +35,7 @@ module mo_run_nml
     start_year = 2000
     start_month = 1
     start_day = 1
+    start_date = 1000000*start_year + 100*start_month + start_day
     start_hour = 0
     start_minute = 0
   
