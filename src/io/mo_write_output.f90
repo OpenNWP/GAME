@@ -308,24 +308,24 @@ module mo_write_output
         do jl=1,n_layers
           vector_to_minimize(jl) = abs(z_vector(n_layers*n_vectors_per_layer + ji)+2._wp - z_scalar(ji + (jl-1)*n_scalars_h))
         enddo
-        closest_index = find_min_index(vector_to_minimize,n_layers)
-        temp_closest = temperature(closest_index*n_scalars_h+ji)
-        delta_z_temp = z_vector(n_layers*n_vectors_per_layer+ji)+2._wp - z_scalar(ji + closest_index*n_scalars_h)
+        closest_index = find_min_index(vector_to_minimize,n_layers)+1
+        temp_closest = temperature((closest_index-1)*n_scalars_h+ji)
+        delta_z_temp = z_vector(n_layers*n_vectors_per_layer+ji)+2._wp - z_scalar(ji + (closest_index-1)*n_scalars_h)
         ! real radiation
         if (lprog_soil_temp) then
           temperature_gradient = (temp_closest - temperature_soil(ji))/ &
-                                 (z_scalar(ji + closest_index*n_scalars_h) - z_vector(n_layers*n_vectors_per_layer + ji))
+                                 (z_scalar(ji + (closest_index-1)*n_scalars_h) - z_vector(n_layers*n_vectors_per_layer + ji))
         ! no real radiation
         else
           second_closest_index = closest_index - 1
-          if (z_scalar(ji + closest_index*n_scalars_h)>z_vector(n_layers*n_vectors_per_layer + ji)+2._wp &
-              .and. closest_index<n_layers-1) then
+          if (z_scalar(ji + (closest_index-1)*n_scalars_h)>z_vector(n_layers*n_vectors_per_layer + ji)+2._wp &
+              .and. closest_index<n_layers) then
             second_closest_index = closest_index + 1
           endif
-          temp_second_closest = temperature(second_closest_index*n_scalars_h+ji)
+          temp_second_closest = temperature((second_closest_index-1)*n_scalars_h+ji)
           ! calculating the vertical temperature gradient that will be used for the extrapolation
           temperature_gradient = (temp_closest - temp_second_closest) &
-                                 /(z_scalar(ji + closest_index*n_scalars_h) - z_scalar(ji + second_closest_index*n_scalars_h))
+                                 /(z_scalar(ji+(closest_index-1)*n_scalars_h) - z_scalar(ji+(second_closest_index-1)*n_scalars_h))
         endif
         ! performing the interpolation / extrapolation to two meters above the surface
         t2(ji) = temp_closest + delta_z_temp*temperature_gradient
@@ -473,31 +473,31 @@ module mo_write_output
             vector_to_minimize(jl) = abs(z_scalar((jl-1)*n_scalars_h+ji) &
                                          - (z_vector(n_vectors-n_scalars_h+ji) + u_850_proxy_height))
           enddo
-          closest_index = find_min_index(vector_to_minimize,n_layers)
+          closest_index = find_min_index(vector_to_minimize,n_layers)+1
           second_closest_index = closest_index - 1
           if (closest_index<n_layers-1 &
-              .and. z_scalar(closest_index*n_scalars_h+ji) - z_vector(n_vectors - n_scalars_h+ji)>u_850_proxy_height) then
+              .and. z_scalar((closest_index-1)*n_scalars_h+ji) - z_vector(n_vectors - n_scalars_h+ji)>u_850_proxy_height) then
             second_closest_index = closest_index + 1
           endif
-          u_850_surrogate = sqrt(v_squared(ji + closest_index*n_scalars_h)) &
-          + (sqrt(v_squared(ji + closest_index*n_scalars_h)) - sqrt(v_squared(ji + second_closest_index*n_scalars_h))) &
-          /(z_scalar(ji + closest_index*n_scalars_h) - z_scalar(ji + second_closest_index*n_scalars_h)) &
-          *(z_vector(n_vectors - n_scalars_h+ji) + u_850_proxy_height - z_scalar(ji + closest_index*n_scalars_h))
+          u_850_surrogate = sqrt(v_squared(ji + (closest_index-1)*n_scalars_h)) &
+          + (sqrt(v_squared(ji + (closest_index-1)*n_scalars_h)) - sqrt(v_squared(ji + (second_closest_index-1)*n_scalars_h))) &
+          /(z_scalar(ji + (closest_index-1)*n_scalars_h) - z_scalar(ji + (second_closest_index-1)*n_scalars_h)) &
+          *(z_vector(n_vectors - n_scalars_h+ji) + u_850_proxy_height - z_scalar(ji + (closest_index-1)*n_scalars_h))
           ! calculating the wind speed in a height representing 950 hPa
           do jl=1,n_layers
             vector_to_minimize(jl) = abs(z_scalar((jl-1)*n_scalars_h + ji) &
                                          - (z_vector(n_vectors - n_scalars_h + ji) + u_950_proxy_height))
           enddo
-          closest_index = find_min_index(vector_to_minimize,n_layers)
+          closest_index = find_min_index(vector_to_minimize,n_layers)+1
           second_closest_index = closest_index - 1
-          if (closest_index<n_layers-1 &
-              .and. z_scalar(closest_index*n_scalars_h+ji) - z_vector(n_vectors - n_scalars_h + ji)>u_950_proxy_height) then
+          if (closest_index<n_layers &
+              .and. z_scalar((closest_index-1)*n_scalars_h+ji) - z_vector(n_vectors - n_scalars_h + ji)>u_950_proxy_height) then
             second_closest_index = closest_index + 1
           endif
           u_950_surrogate = sqrt(v_squared(ji + closest_index*n_scalars_h)) &
-          + (sqrt(v_squared(ji + closest_index*n_scalars_h)) - sqrt(v_squared(ji + second_closest_index*n_scalars_h))) &
-          /(z_scalar(ji + closest_index*n_scalars_h) - z_scalar(ji + second_closest_index*n_scalars_h)) &
-          *(z_vector(n_vectors - n_scalars_h+ji) + u_950_proxy_height - z_scalar(ji + closest_index*n_scalars_h))
+          + (sqrt(v_squared(ji + (closest_index-1)*n_scalars_h)) - sqrt(v_squared(ji + (second_closest_index-1)*n_scalars_h))) &
+          /(z_scalar(ji + (closest_index-1)*n_scalars_h) - z_scalar(ji + (second_closest_index-1)*n_scalars_h)) &
+          *(z_vector(n_vectors - n_scalars_h+ji) + u_950_proxy_height - z_scalar(ji + (closest_index-1)*n_scalars_h))
           ! adding the baroclinic and convective component to the gusts
           wind_10_m_gusts_speed_at_cell(ji) = wind_10_m_gusts_speed_at_cell(ji) &
                                               + 0.6_wp*max(0._wp,u_850_surrogate - u_950_surrogate)
@@ -664,15 +664,15 @@ module mo_write_output
             vector_to_minimize(jm) = abs(log(pressure_levels(jl)/(pressure((jm-1)*n_scalars_h+ji))))
           enddo
           ! finding the model layer that is the closest to the desired pressure level
-          closest_index = find_min_index(vector_to_minimize,n_layers)
+          closest_index = find_min_index(vector_to_minimize,n_layers)+1
           ! first guess for the other layer that will be used for the interpolation
           second_closest_index = closest_index + 1
           ! in this case,the layer above the closest layer will be used for the interpolation
-          if (pressure_levels(jl)<pressure(closest_index*n_scalars_h+ji)) then
+          if (pressure_levels(jl)<pressure((closest_index-1)*n_scalars_h+ji)) then
             second_closest_index = closest_index - 1
           endif
           ! in this case,a missing value will be written
-          if ((closest_index==n_layers - 1 .and. second_closest_index==n_layers) &
+          if ((closest_index==n_layers .and. second_closest_index==n_layers+1) &
               .or. (closest_index<0 .or. second_closest_index<0)) then
             geopotential_height(ji,jl) = 9999
             t_on_p_levels(ji,jl) = 9999
@@ -686,22 +686,23 @@ module mo_write_output
             ! closest_weight = 1 - abs((delta z)_{closest})/(abs(z_{closest} - z_{other}))
             
             closest_weight = 1._wp - vector_to_minimize(closest_index)/ &
-            (abs(log(pressure(closest_index*n_scalars_h+ji)/pressure(second_closest_index*n_scalars_h+ji)))+EPSILON_SECURITY)
-            geopotential_height(ji,jl) = closest_weight*gravity_potential(closest_index*n_scalars_h+ji) &
-            + (1._wp - closest_weight)*gravity_potential(second_closest_index*n_scalars_h+ji)
+            (abs(log(pressure((closest_index-1)*n_scalars_h+ji)/pressure((second_closest_index-1)*n_scalars_h+ji))) &
+            +EPSILON_SECURITY)
+            geopotential_height(ji,jl) = closest_weight*gravity_potential((closest_index-1)*n_scalars_h+ji) &
+            + (1._wp - closest_weight)*gravity_potential((second_closest_index-1)*n_scalars_h+ji)
             geopotential_height(ji,jl) = geopotential_height(ji,jl)/gravity
-            t_on_p_levels(ji,jl) = closest_weight*temperature(closest_index*n_scalars_h+ji) &
-            + (1._wp - closest_weight)*temperature(second_closest_index*n_scalars_h+ji)
-            rh_on_p_levels(ji,jl) = closest_weight*rh(closest_index*n_scalars_h+ji) &
-            + (1._wp - closest_weight)*rh(second_closest_index*n_scalars_h+ji)
-            epv_on_p_levels(ji,jl) = closest_weight*epv(closest_index*n_scalars_h+ji) &
-            + (1._wp - closest_weight)*epv(second_closest_index*n_scalars_h+ji)
-            zeta_on_p_levels(ji,jl) = closest_weight*rel_vort_scalar_field(closest_index*n_scalars_h+ji) &
-            + (1._wp - closest_weight)*rel_vort_scalar_field(second_closest_index*n_scalars_h+ji)
-            u_on_p_levels(ji,jl) = closest_weight*u_at_cell(closest_index*n_scalars_h+ji) &
-            + (1._wp - closest_weight)*u_at_cell(second_closest_index*n_scalars_h+ji)
-            v_on_p_levels(ji,jl) = closest_weight*v_at_cell(closest_index*n_scalars_h+ji) &
-            + (1._wp - closest_weight)*v_at_cell(second_closest_index*n_scalars_h+ji)
+            t_on_p_levels(ji,jl) = closest_weight*temperature((closest_index-1)*n_scalars_h+ji) &
+            + (1._wp - closest_weight)*temperature((second_closest_index-1)*n_scalars_h+ji)
+            rh_on_p_levels(ji,jl) = closest_weight*rh((closest_index-1)*n_scalars_h+ji) &
+            + (1._wp - closest_weight)*rh((second_closest_index-1)*n_scalars_h+ji)
+            epv_on_p_levels(ji,jl) = closest_weight*epv((closest_index-1)*n_scalars_h+ji) &
+            + (1._wp - closest_weight)*epv((second_closest_index-1)*n_scalars_h+ji)
+            zeta_on_p_levels(ji,jl) = closest_weight*rel_vort_scalar_field((closest_index-1)*n_scalars_h+ji) &
+            + (1._wp - closest_weight)*rel_vort_scalar_field((second_closest_index-1)*n_scalars_h+ji)
+            u_on_p_levels(ji,jl) = closest_weight*u_at_cell((closest_index-1)*n_scalars_h+ji) &
+            + (1._wp - closest_weight)*u_at_cell((second_closest_index-1)*n_scalars_h+ji)
+            v_on_p_levels(ji,jl) = closest_weight*v_at_cell((closest_index-1)*n_scalars_h+ji) &
+            + (1._wp - closest_weight)*v_at_cell((second_closest_index-1)*n_scalars_h+ji)
           endif
         enddo
       enddo

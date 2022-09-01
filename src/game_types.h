@@ -80,6 +80,14 @@ Scalar_field theta_v_bg;
 Scalar_field exner_bg;
 Vector_field exner_bg_grad;
 Scalar_field layer_thickness;
+Curl_field area_dual;
+Dual_vector_field z_vector_dual;
+Dual_vector_field normal_distance_dual;
+int from_index_dual[N_VECS_H];
+int to_index_dual[N_VECS_H];
+int vorticity_indices_triangles[3*N_DUAL_SCALS_H];
+int vorticity_signs_triangles[3*N_DUAL_SCALS_H];
+double f_vec[2*N_VECS_H];
 int trsk_indices[10*N_VECS_H];
 int trsk_modified_curl_indices[10*N_VECS_H];
 int from_index[N_VECS_H];
@@ -110,18 +118,6 @@ double stretching_parameter;
 double radius;
 double eff_hor_res;
 } Grid;
-
-// Contains properties of the dual grid.
-typedef struct dualgrid {
-Curl_field area;
-Dual_vector_field z_vector;
-Dual_vector_field normal_distance;
-int from_index[N_VECS_H];
-int to_index[N_VECS_H];
-int vorticity_indices_triangles[3*N_DUAL_SCALS_H];
-int vorticity_signs_triangles[3*N_DUAL_SCALS_H];
-double f_vec[2*N_VECS_H];
-} Dualgrid;
 
 typedef struct state {
 Mass_densities rho; // density order: solid, liquid, vapour
