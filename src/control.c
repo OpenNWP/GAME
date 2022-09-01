@@ -25,6 +25,7 @@ extern int rad_nml_setup();
 extern int constituents_nml_setup();
 extern int diff_nml_setup();
 extern int surface_nml_setup();
+extern int io_nml_setup();
 
 int read_argv(int argc, char *argv[], Config *config, Config_io *config_io, Grid *grid)
 {
@@ -141,6 +142,7 @@ int main(int argc, char *argv[])
 	constituents_nml_setup();
 	diff_nml_setup();
 	surface_nml_setup();
+	io_nml_setup();
 	
     /*
 	Determining the name of the grid file from the RES_ID, N_LAYERS and so on.

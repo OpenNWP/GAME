@@ -12,12 +12,12 @@ module mo_write_output
   use mo_constants,              only: c_d_p,r_d,t_0,EPSILON_SECURITY,c_d_v,r_v,p_0,M_PI,gravity
   use mo_grid_nml,               only: n_scalars,n_scalars_h,n_vectors_per_layer,n_vectors_h,n_dual_vectors, &
                                        n_lat_io_points,n_lon_io_points,n_vectors,n_levels,n_layers,n_dual_scalars_h, &
-                                       n_dual_v_vectors
+                                       n_dual_v_vectors,n_latlon_io_points
   use mo_various_helpers,        only: nc_check,find_min_index,int2string
   use mo_geodesy,                only: passive_turn
   use mo_constituents_nml,       only: n_constituents,n_condensed_constituents,lmoist,rain_velocity,snow_velocity
   use mo_io_nml,                 only: n_pressure_levels,pressure_levels,time_to_next_analysis_min,lmodel_level_output, &
-                                       lsurface_output,lpressure_level_output,min_n_output_steps
+                                       lsurface_output,lpressure_level_output,n_output_steps_10m_wind
   use mo_dictionary,             only: saturation_pressure_over_ice,saturation_pressure_over_water
   use mo_surface_nml,            only: nsoillays,lprog_soil_temp,pbl_scheme,lsfc_sensible_heat_flux,lsfc_phase_trans
   use mo_derived,                only: rel_humidity,gas_constant_diagnostics,temperature_diagnostics
@@ -36,9 +36,9 @@ module mo_write_output
   
     ! This subroutine interpolates a single-layer scalar field to a lat-lon grid.
     
-    real(wp), intent(in)  :: in_field(n_scalars_h),latlon_interpol_weights(5*n_scalars_h)
+    real(wp), intent(in)  :: in_field(n_scalars_h),latlon_interpol_weights(5*n_latlon_io_points)
     real(wp), intent(out) :: out_field(n_lat_io_points,n_lon_io_points)
-    integer,  intent(in)  :: latlon_interpol_indices(5*n_scalars_h)
+    integer,  intent(in)  :: latlon_interpol_indices(5*n_latlon_io_points)
     
     ! local variables
     integer :: ji,jk,jm
@@ -51,9 +51,9 @@ module mo_write_output
         out_field(ji,jk) = 0._wp
         ! 1/r-average
         do jm=1,5
-          if (in_field(latlon_interpol_indices(5*(jk + n_lon_io_points*ji) + jm))/=9999) then
-            out_field(ji,jk) = out_field(ji,jk) + latlon_interpol_weights(5*(jk + n_lon_io_points*ji) + jm) &
-                               *in_field(latlon_interpol_indices(5*(jk + n_lon_io_points*ji) + jm))
+          if (in_field(1+latlon_interpol_indices(5*(jk-1 + n_lon_io_points*(ji-1)) + jm))/=9999) then
+            out_field(ji,jk) = out_field(ji,jk) + latlon_interpol_weights(5*(jk-1 + n_lon_io_points*(ji-1)) + jm) &
+                               *in_field(1+latlon_interpol_indices(5*(jk-1 + n_lon_io_points*(ji-1)) + jm))
           else
             out_field(ji,jk) = 9999
             exit
@@ -108,7 +108,7 @@ module mo_write_output
         do const_id=1,n_constituents
           !$omp parallel do private(ji)
           do ji=1,n_scalars
-            scalar_field_placeholder(ji) = rho(const_id*n_scalars + ji)
+            scalar_field_placeholder(ji) = rho((const_id-1)*n_scalars + ji)
           enddo
           global_integral = 0._wp
           do ji=1,n_scalars
@@ -197,7 +197,7 @@ module mo_write_output
     real(wp), intent(out) :: scalar_field_placeholder(n_scalars),temperature(n_scalars),rel_vort_on_triangles(n_dual_v_vectors), &
                              rel_vort((2*n_layers+1)*n_vectors_h),pot_vort((2*n_layers+1)*n_vectors_h)
     real(wp), intent(in)  :: wind(n_vectors),inner_product_weights(8*n_scalars),volume(n_scalars),f_vec(2*n_vectors_h), &
-                             latlon_interpol_weights(5*n_scalars_h),gravity_potential(n_scalars),z_vector(n_vectors), &
+                             latlon_interpol_weights(5*n_latlon_io_points),gravity_potential(n_scalars),z_vector(n_vectors), &
                              exner_bg(n_scalars),temperature_soil(nsoillays*n_scalars_h),area(n_vectors), &
                              rho(n_constituents*n_scalars),z_scalar(n_scalars),slope(n_vectors),gravity_m(n_vectors), &
                              area_dual(n_dual_vectors),exner_pert(n_scalars),tke(n_scalars),v_squared(n_scalars), &
@@ -206,8 +206,8 @@ module mo_write_output
                              direction(n_vectors_h),sfc_albedo(n_scalars_h),sfc_sw_in(n_scalars_h), &
                              layer_thickness(n_scalars),theta_v_pert(n_scalars),theta_v_bg(n_scalars), &
                              z_vector_dual(n_dual_vectors),trsk_weights(10*n_vectors_h), &
-                             wind_h_lowest_layer_array(min_n_output_steps*n_vectors_h),normal_distance(n_vectors)
-    integer,  intent(in)  :: latlon_interpol_indices(5*n_scalars_h),from_index(n_vectors_h),to_index(n_vectors_h), &
+                             wind_h_lowest_layer_array(n_output_steps_10m_wind*n_vectors_h),normal_distance(n_vectors)
+    integer,  intent(in)  :: latlon_interpol_indices(5*n_latlon_io_points),from_index(n_vectors_h),to_index(n_vectors_h), &
                              adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h), &
                              density_to_rhombi_indices(4*n_vectors_h),from_index_dual(n_vectors_h), &
                              to_index_dual(n_vectors_h),is_land(n_scalars_h),trsk_indices(10*n_vectors_h), &
@@ -240,8 +240,7 @@ module mo_write_output
                              wind_10_m_mean_u_at_cell(:),wind_10_m_mean_v_at_cell(:),wind_10_m_gusts_speed_at_cell(:), &
                              div_h_all_layers(:),rel_vort_scalar_field(:),rh(:),epv(:),pressure(:),lat_lon_output_field(:,:), &
                              u_at_cell(:),v_at_cell(:),u_at_edge(:),v_at_edge(:)
-    character(len=64)     :: output_file,output_file_p_level
-    character(len=8)      :: varname
+    character(len=64)     :: output_file,output_file_p_level,varname
   
     write(*,*) "Writing output ..."
     
@@ -273,7 +272,6 @@ module mo_write_output
     
     ! Surface output including diagnostics.
     ! -------------------------------------
-    
     if (lsurface_output) then
     
       allocate(mslp(n_scalars_h))
@@ -293,17 +291,17 @@ module mo_write_output
         ! Now the aim is to determine the value of the mslp.
         temp_lowest_layer = temperature((n_layers-1)*n_scalars_h+ji)
         pressure_value = rho(n_condensed_constituents*n_scalars + (n_layers-1)*n_scalars_h + ji) &
-        *gas_constant_diagnostics(rho,(n_layers-1)*n_scalars_h+ji)*temp_lowest_layer
+        *gas_constant_diagnostics(rho,(n_layers-1)*n_scalars_h+ji-1)*temp_lowest_layer
         temp_mslp = temp_lowest_layer + standard_vert_lapse_rate*z_scalar((n_layers-1)*n_scalars_h + ji)
         mslp_factor = (1._wp - (temp_mslp - temp_lowest_layer)/temp_mslp)**(gravity_m((n_layers-1)*n_vectors_per_layer + ji)/ &
-        (gas_constant_diagnostics(rho,(n_layers-1)*n_scalars_h+ji)*standard_vert_lapse_rate))
+        (gas_constant_diagnostics(rho,(n_layers-1)*n_scalars_h+ji-1)*standard_vert_lapse_rate))
         mslp(ji) = pressure_value/mslp_factor
         
         ! Now the aim is to determine the value of the surface pressure.
         temp_surface = temp_lowest_layer + standard_vert_lapse_rate &
         *(z_scalar(ji + (n_layers-1)*n_scalars_h) - z_vector(n_vectors - n_scalars_h+ji))
         sp_factor = (1._wp - (temp_surface - temp_lowest_layer)/temp_surface)**(gravity_m((n_layers-1)*n_vectors_per_layer + ji)/ &
-        (gas_constant_diagnostics(rho,(n_layers-1)*n_scalars_h+ji)*standard_vert_lapse_rate))
+        (gas_constant_diagnostics(rho,(n_layers-1)*n_scalars_h+ji-1)*standard_vert_lapse_rate))
         sp(ji) = pressure_value/sp_factor
         
         ! Now the aim is to calculate the 2 m temperature.
@@ -413,15 +411,15 @@ module mo_write_output
         wind_10_m_mean_u(h_index) = 0._wp
         wind_10_m_mean_v(h_index) = 0._wp
         ! loop over the time steps
-        do time_step_10_m_wind=1,min_n_output_steps
-          jk = time_step_10_m_wind*n_vectors_h + h_index
+        do time_step_10_m_wind=1,n_output_steps_10m_wind
+          jk = (time_step_10_m_wind-1)*n_vectors_h + h_index
           wind_tangential = 0._wp
           do ji=1,10
-            wind_tangential = wind_tangential + trsk_weights(10*h_index+ji) &
-                              *wind_h_lowest_layer_array(time_step_10_m_wind*n_vectors_h + trsk_indices(10*h_index + ji))
+            wind_tangential = wind_tangential + trsk_weights(10*(h_index-1)+ji) &
+                              *wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_vectors_h + 1+trsk_indices(10*(h_index-1) + ji))
           enddo
-          wind_10_m_mean_u(h_index) = wind_10_m_mean_u(h_index) + 1._wp/min_n_output_steps*wind_h_lowest_layer_array(jk)
-          wind_10_m_mean_v(h_index) = wind_10_m_mean_v(h_index) + 1._wp/min_n_output_steps*wind_tangential
+          wind_10_m_mean_u(h_index) = wind_10_m_mean_u(h_index) + 1._wp/n_output_steps_10m_wind*wind_h_lowest_layer_array(jk)
+          wind_10_m_mean_v(h_index) = wind_10_m_mean_v(h_index) + 1._wp/n_output_steps_10m_wind*wind_tangential
         enddo
         ! passive turn to obtain the u- and v-components of the wind
         call passive_turn(wind_10_m_mean_u(h_index),wind_10_m_mean_v(h_index),-direction(h_index),wind_u_value,wind_v_value)
@@ -432,7 +430,7 @@ module mo_write_output
       ! vertically extrapolating to ten meters above the surface
       !$omp parallel do private(ji,roughness_length_extrapolation,actual_roughness_length,z_sfc,z_agl,rescale_factor)
       do ji=1,n_vectors_h
-        actual_roughness_length = 0.5_wp*(roughness_length(from_index(ji)) + roughness_length(to_index(ji)))
+        actual_roughness_length = 0.5_wp*(roughness_length(1+from_index(ji)) + roughness_length(1+to_index(ji)))
         ! roughness length of grass according to WMO
         roughness_length_extrapolation = 0.02_wp
         if (is_land(from_index(ji)+1)==0) then
@@ -608,8 +606,8 @@ module mo_write_output
     call curl_field_to_cells(rel_vort,rel_vort_scalar_field,adjacent_vector_indices_h,inner_product_weights)
     
     ! Diagnozing the u and v wind components at the vector points.
-    allocate(u_at_edge(n_vectors_h))
-    allocate(v_at_edge(n_vectors_h))
+    allocate(u_at_edge(n_vectors))
+    allocate(v_at_edge(n_vectors))
     call calc_uv_at_edge(wind,u_at_edge,v_at_edge,trsk_indices,trsk_weights,direction)
     ! Averaging to cell centers for output.
     allocate(u_at_cell(n_scalars))
@@ -624,7 +622,7 @@ module mo_write_output
       if (n_constituents>=4) then
         rh(ji) = 100._wp*rel_humidity(rho((n_condensed_constituents + 1)*n_scalars+ji),temperature(ji))
       endif
-      pressure(ji) = rho(n_condensed_constituents*n_scalars+ji)*gas_constant_diagnostics(rho,ji)*temperature(ji)
+      pressure(ji) = rho(n_condensed_constituents*n_scalars+ji)*gas_constant_diagnostics(rho,ji-1)*temperature(ji)
     enddo
     !$omp end parallel do
     
@@ -633,6 +631,7 @@ module mo_write_output
       scalar_field_placeholder(ji) = rho(n_condensed_constituents*n_scalars+ji)
     enddo
     !$omp end parallel do
+    
     call calc_pot_vort(wind,rel_vort_on_triangles,z_vector,z_vector_dual,rel_vort, &
                        vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
                        area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
@@ -755,6 +754,7 @@ module mo_write_output
         varname = "epv_layer_" // trim(int2string(pressure_level_hpa))
         call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,epv_p_ids(jl)))
         call nc_check(nf90_put_att(ncid,epv_p_ids(jl),"units","PVU"))
+        
       enddo
       
       call nc_check(nf90_enddef(ncid))
@@ -764,35 +764,36 @@ module mo_write_output
       call nc_check(nf90_put_var(ncid,start_hour_id,start_hour))
       call nc_check(nf90_put_var(ncid,lat_id,lat_vector))
       call nc_check(nf90_put_var(ncid,lon_id,lon_vector))
+      
       do jl=1,n_pressure_levels
         
         call interpolate_to_ll(geopotential_height(:,jl),lat_lon_output_field, &
         latlon_interpol_indices,latlon_interpol_weights)
-        call nc_check(nf90_put_var(ncid,gh_ids(ji),lat_lon_output_field))
+        call nc_check(nf90_put_var(ncid,gh_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(t_on_p_levels(:,jl),lat_lon_output_field, &
         latlon_interpol_indices,latlon_interpol_weights)
-        call nc_check(nf90_put_var(ncid,temp_p_ids(ji),lat_lon_output_field))
+        call nc_check(nf90_put_var(ncid,temp_p_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(rh_on_p_levels(:,jl),lat_lon_output_field, &
         latlon_interpol_indices,latlon_interpol_weights)
-        call nc_check(nf90_put_var(ncid,rh_p_ids(ji),lat_lon_output_field))
+        call nc_check(nf90_put_var(ncid,rh_p_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(u_on_p_levels(:,jl),lat_lon_output_field, &
         latlon_interpol_indices,latlon_interpol_weights)
-        call nc_check(nf90_put_var(ncid,wind_u_p_ids(ji),lat_lon_output_field))
+        call nc_check(nf90_put_var(ncid,wind_u_p_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(v_on_p_levels(:,jl),lat_lon_output_field, &
         latlon_interpol_indices,latlon_interpol_weights)
-        call nc_check(nf90_put_var(ncid,wind_v_p_ids(ji),lat_lon_output_field))
+        call nc_check(nf90_put_var(ncid,wind_v_p_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(zeta_on_p_levels(:,jl),lat_lon_output_field, &
         latlon_interpol_indices,latlon_interpol_weights)
-        call nc_check(nf90_put_var(ncid,rel_vort_p_ids(ji),lat_lon_output_field))
+        call nc_check(nf90_put_var(ncid,rel_vort_p_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(epv_on_p_levels(:,jl),lat_lon_output_field, &
         latlon_interpol_indices,latlon_interpol_weights)
-        call nc_check(nf90_put_var(ncid,epv_p_ids(ji),lat_lon_output_field))
+        call nc_check(nf90_put_var(ncid,epv_p_ids(jl),lat_lon_output_field))
       
       enddo
       
@@ -826,34 +827,44 @@ module mo_write_output
       call nc_check(nf90_def_var(ncid,"lat",NF90_REAL,lat_dimid,lat_id))
       call nc_check(nf90_def_var(ncid,"lon",NF90_REAL,lon_dimid,lon_id))
       
-      do jl=1,n_levels
+      do jl=1,n_layers
+      
         varname = "temperature_layer_" // trim(int2string(jl))
         call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,temperature_ids(jl)))
         call nc_check(nf90_put_att(ncid,temperature_ids(jl),"units","K"))
+        
         varname = "pressure_layer_" // trim(int2string(jl))
         call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,pressure_ids(jl)))
         call nc_check(nf90_put_att(ncid,temperature_ids(jl),"units","Pa"))
+        
         varname = "rel_hum_layer_" // trim(int2string(jl))
         call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,rel_hum_ids(jl)))
         call nc_check(nf90_put_att(ncid,temperature_ids(jl),"units","%"))
+        
         varname = "wind_u_layer_" // trim(int2string(jl))
         call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,wind_u_ids(jl)))
         call nc_check(nf90_put_att(ncid,wind_u_ids(jl),"units","m/s"))
+        
         varname = "wind_v_layer_" // trim(int2string(jl))
         call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,wind_v_ids(jl)))
         call nc_check(nf90_put_att(ncid,wind_v_ids(jl),"units","m/s"))
+        
         varname = "rel_vort_layer_" // trim(int2string(jl))
         call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,rel_vort_ids(jl)))
         call nc_check(nf90_put_att(ncid,rel_vort_ids(jl),"units","1/s"))
+        
         varname = "div_h_layer_" // trim(int2string(jl))
         call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,div_h_ids(jl)))
         call nc_check(nf90_put_att(ncid,div_h_ids(jl),"units","1/s"))
+        
       enddo
+      
       do jl=1,n_levels
         varname = "wind_w_layer_" // trim(int2string(jl))
         call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,wind_w_ids(jl)))
         call nc_check(nf90_put_att(ncid,wind_w_ids(jl),"units","m/s"))
       enddo
+      
       call nc_check(nf90_enddef(ncid))
       
       ! writing the variables
@@ -862,27 +873,35 @@ module mo_write_output
       call nc_check(nf90_put_var(ncid,lat_id,lat_vector))
       call nc_check(nf90_put_var(ncid,lon_id,lon_vector))
       do jl=1,n_layers
+      
         call interpolate_to_ll(temperature(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
                                latlon_interpol_indices,latlon_interpol_weights)
-        call nc_check(nf90_put_var(ncid,temperature_ids(ji),lat_lon_output_field))
+        call nc_check(nf90_put_var(ncid,temperature_ids(jl),lat_lon_output_field))
+        
         call interpolate_to_ll(pressure(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
                                latlon_interpol_indices,latlon_interpol_weights)
-        call nc_check(nf90_put_var(ncid,pressure_ids(ji),lat_lon_output_field))
+        call nc_check(nf90_put_var(ncid,pressure_ids(jl),lat_lon_output_field))
+        
         call interpolate_to_ll(rh(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
                                latlon_interpol_indices,latlon_interpol_weights)
-        call nc_check(nf90_put_var(ncid,rel_hum_ids(ji),lat_lon_output_field))
+        call nc_check(nf90_put_var(ncid,rel_hum_ids(jl),lat_lon_output_field))
+        
         call interpolate_to_ll(u_at_cell(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
                                latlon_interpol_indices,latlon_interpol_weights)
-        call nc_check(nf90_put_var(ncid,wind_u_ids(ji),lat_lon_output_field))
+        call nc_check(nf90_put_var(ncid,wind_u_ids(jl),lat_lon_output_field))
+        
         call interpolate_to_ll(v_at_cell(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
                                latlon_interpol_indices,latlon_interpol_weights)
-        call nc_check(nf90_put_var(ncid,wind_v_ids(ji),lat_lon_output_field))
+        call nc_check(nf90_put_var(ncid,wind_v_ids(jl),lat_lon_output_field))
+        
         call interpolate_to_ll(rel_vort_scalar_field(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
                                latlon_interpol_indices,latlon_interpol_weights)
-        call nc_check(nf90_put_var(ncid,rel_vort_ids(ji),lat_lon_output_field))
+        call nc_check(nf90_put_var(ncid,rel_vort_ids(jl),lat_lon_output_field))
+        
         call interpolate_to_ll(div_h_all_layers(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
                                latlon_interpol_indices,latlon_interpol_weights)
-        call nc_check(nf90_put_var(ncid,div_h_ids(ji),lat_lon_output_field))
+        call nc_check(nf90_put_var(ncid,div_h_ids(jl),lat_lon_output_field))
+        
       enddo
       
       do jl=1,n_levels

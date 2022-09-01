@@ -6,34 +6,36 @@ module mo_io_nml
   ! This nameslist configures the IO behaviour of the model.
   
   use mo_definitions, only: wp
+  use mo_run_nml,     only: dtime
   
   implicit none
   
-  logical             :: lmodel_level_output                ! model level output switch
-  logical             :: lpressure_level_output             ! pressure level output switch
-  logical             :: lsurface_output                    ! surface level output switch
-  integer             :: time_to_next_analysis_min          ! time to next analysis time in minutes (relevant only for NWP)
-  integer             :: min_n_output_steps                 ! number of time steps for 10 m wind averaging
-  integer, parameter  :: n_pressure_levels = 6              ! number of pressure levels for the output
-  integer             :: pressure_levels(n_pressure_levels) ! pressure levels for output
+  logical            :: lmodel_level_output                ! model level output switch
+  logical            :: lpressure_level_output             ! pressure level output switch
+  logical            :: lsurface_output                    ! surface level output switch
+  integer            :: time_to_next_analysis_min          ! time to next analysis time in minutes (relevant only for NWP)
+  integer            :: n_output_steps_10m_wind            ! number of time steps for 10 m wind averaging
+  integer, parameter :: n_pressure_levels = 6              ! number of pressure levels for the output
+  integer            :: pressure_levels(n_pressure_levels) ! pressure levels for output
   
   namelist /io/lmodel_level_output,lpressure_level_output,lsurface_output,time_to_next_analysis_min
 
   contains
 
-  subroutine io_nml_setup
+  subroutine io_nml_setup() &
+  bind(c,name = "io_nml_setup")
     
     lmodel_level_output = .true.
     lpressure_level_output = .true.
     lsurface_output = .true.
     time_to_next_analysis_min = 360
-    min_n_output_steps = 2
     pressure_levels(1) = 20000
     pressure_levels(2) = 30000
     pressure_levels(3) = 50000
     pressure_levels(4) = 70000
     pressure_levels(5) = 85000
     pressure_levels(6) = 92500
+    n_output_steps_10m_wind = int(600/dtime)
   
   end subroutine io_nml_setup
   
