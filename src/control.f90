@@ -56,17 +56,17 @@ program control
   allocate(diagnostics%flux_density(n_vectors))
   allocate(diagnostics%flux_density_div(n_scalars))
   allocate(diagnostics%rel_vort_on_triangles(n_vectors))
-  allocate(diagnostics%rel_vort(n_vectors))
-  allocate(diagnostics%rel_vort(n_vectors))
-  allocate(diagnostics%rel_vort(n_vectors))
-  allocate(diagnostics%rel_vort(n_vectors))
-  allocate(diagnostics%rel_vort(n_vectors))
-  allocate(diagnostics%rel_vort(n_vectors))
-  allocate(diagnostics%rel_vort(n_vectors))
-  allocate(diagnostics%rel_vort(n_vectors))
-  allocate(diagnostics%rel_vort(n_vectors))
-  allocate(diagnostics%rel_vort(n_vectors))
-  allocate(diagnostics%rel_vort(n_vectors))
+  allocate(diagnostics%rel_vort((2*n_layers+1)*n_vectors_h))
+  allocate(diagnostics%pot_vort((2*n_layers+1)*n_vectors_h))
+  allocate(diagnostics%temperature(n_scalars))
+  allocate(diagnostics%c_g_p_field(n_scalars))
+  allocate(diagnostics%v_squared(n_scalars))
+  allocate(diagnostics%wind_div(n_scalars))
+  allocate(diagnostics%curl_of_vorticity(n_vectors))
+  allocate(diagnostics%scalar_field_placeholder(n_scalars))
+  allocate(diagnostics%vector_field_placeholder(n_vectors))
+  allocate(diagnostics%u_at_edge(n_vectors))
+  allocate(diagnostics%v_at_edge(n_vectors))
   allocate(diagnostics%rel_vort(n_vectors))
   allocate(diagnostics%rel_vort(n_vectors))
   allocate(diagnostics%rel_vort(n_vectors))
@@ -110,32 +110,13 @@ program control
   allocate(state_write%wind(n_vectors))
   allocate(state_write%temperature_soil(nsoillays*n_scalars_h))
 
+  ! setting up the namelists (model configuration)
   call grid_nml_setup()
   call run_nml_setup()
   call constituents_nml_setup()
   call diff_nml_setup()
   call surface_nml_setup()
   call io_nml_setup()
-  
-  ! Determining the name of the grid file from the RES_ID,n_layers and so on.
-  ! ------------------------------------------------------------------------------
-  
-  char grid_file_pre(200)
-  swrite(*,*) grid_file_pre,"../../grid_generator/grids/RES%d_L%d_ORO%d.nc",RES_ID,n_layers,grid%oro_id)
-  char grid_file(strlen(grid_file_pre) + 1)
-  strcpy(grid_file,grid_file_pre)
-  
-  ! Determining the name of the init state file from the IDEAL_INPUT_ID,RES_ID,n_layers and so on.
-  char init_state_file_pre(200)
-  ! the NWP case
-  if (config_io%ideal_input_id == -1) then
-    write(*,*) init_state_file_pre,"../../nwp_init/%d%s%s%s.nc",config_io%year,config_io%month_string,config_io%day_string,config_io%hour_string)
-  ! the idealized input case
-  else
-    swrite(*,*) init_state_file_pre,"placeholder")
-  endif
-  char init_state_file(strlen(init_state_file_pre) + 1)
-  strcpy(init_state_file,init_state_file_pre)
   
   ! reading the grid
   write(*,*) "Reading grid data ..."
@@ -160,15 +141,15 @@ program control
   
   ! rescaling times for small Earth experiments
   double radius_rescale = grid%radius/RADIUS
-  config%total_run_span_min = radius_rescale*config%total_run_span_min
-  config_io%write_out_interval_min = radius_rescale*config_io%write_out_interval_min
+  total_run_span_min = radius_rescale*total_run_span_min
+  write_out_interval_min = radius_rescale*write_out_interval_min
   
   ! Reading and processing user input finished.
   
   write(*,*) "Setting initial state ..."
   
   ! ideal test case
-  if (config_io%ideal_input_id/=-1) then
+  if (ideal_input_id/=-1) then
     call set_ideal_init(state_1%exner_pert,state_1%theta_v_pert,diagnostics%scalar_field_placeholder,grid%exner_bg, &
                         grid%theta_v_bg,grid%adjacent_vector_indices_h,grid%area_dual,grid%density_to_rhombi_indices, &
                         grid%density_to_rhombi_weights,grid%f_vec,diagnostics%flux_density,grid%from_index,grid%to_index, &
@@ -187,32 +168,32 @@ program control
   write(*,*) "Initial state set successfully."
   write(*,*) "%s",stars)
   
-  if (config%rad_config>0) then
-    write(*,*) "Radiation time step: %lf s\n", config%radiation_delta_t
+  if (rad_config>0) then
+    write(*,*) "Radiation time step: %lf s\n", radiation_delta_t
   endif
   
   ! finding the minimum horizontal grid distance
   double normal_dist_min_hor = grid%eff_hor_res
-  do (int i = 0 i < n_vectors_h ++i)
-    if (grid%normal_distance(n_vectors - n_vectors_per_layer + i) < normal_dist_min_hor) then
-      normal_dist_min_hor = grid%normal_distance(n_vectors - n_vectors_per_layer + i)
+  do ji=1,n_vectors_h
+    if (grid%normal_distance(n_vectors - n_vectors_per_layer + ji) < normal_dist_min_hor) then
+      normal_dist_min_hor = grid%normal_distance(n_vectors - n_vectors_per_layer + ji)
     endif
   enddo
   ! finding the minimum vertical grid distance
   double normal_dist_min_vert = grid%z_vector(1)/n_layers
-  do (int i = 0 i < n_scalars_h ++i)
-    if (grid%normal_distance(n_vectors - n_vectors_per_layer - n_scalars_h + i) < normal_dist_min_vert) then
-      normal_dist_min_vert = grid%normal_distance(n_vectors - n_vectors_per_layer - n_scalars_h + i)
+  do ji=1,n_scalars_h
+    if (grid%normal_distance(n_vectors - n_vectors_per_layer - n_scalars_h + ji) < normal_dist_min_vert) then
+      normal_dist_min_vert = grid%normal_distance(n_vectors - n_vectors_per_layer - n_scalars_h + ji)
     endif
   enddo
   
   ! setting the hydrometeor falling velcotities
-  config%cloud_droplets_velocity = 0._wp1
-  config%rain_velocity = 10._wp
-  config%snow_velocity = 5._wp
-  write(*,*) "Cloud droplets falling velocity set to %lf m/s.\n",config%cloud_droplets_velocity
-  write(*,*) "Rain falling velocity set to %lf m/s.\n",config%rain_velocity
-  write(*,*) "Snow falling velocity set to %lf m/s.\n",config%snow_velocity
+  cloud_droplets_velocity = 0._wp1
+  rain_velocity = 10._wp
+  snow_velocity = 5._wp
+  write(*,*) "Cloud droplets falling velocity set to %lf m/s.\n",cloud_droplets_velocity
+  write(*,*) "Rain falling velocity set to %lf m/s.\n",rain_velocity
+  write(*,*) "Snow falling velocity set to %lf m/s.\n",snow_velocity
   
   write(*,*) "Effective horizontal resolution: %lf km\n",1e-3*grid%eff_hor_res
   write(*,*) "Minimum horizontal normal distance: %lf km\n",1e-3*normal_dist_min_hor
@@ -227,9 +208,9 @@ program control
   double *wind_h_lowest_layer = calloc(1,min_no_of_10m_wind_avg_steps*n_vectors_h*sizeof(double))
   double t_write = t_init
   #pragma omp parallel for
-  do (int h_index = 0 h_index < n_vectors_h ++h_index)
+  do h_index=1,n_vectors_h
     ! here,for all output time steps,the initial value is used
-    do (int time_step_10_m_wind = 0 time_step_10_m_wind < min_no_of_10m_wind_avg_steps ++time_step_10_m_wind)
+    do time_step_10_m_wind=1,min_no_of_10m_wind_avg_steps
       wind_h_lowest_layer(time_step_10_m_wind*n_vectors_h + h_index) = state_1%wind(n_vectors - n_vectors_per_layer + h_index)
     enddo
   enddo
@@ -241,22 +222,22 @@ program control
   t_0 = t_init
   
   ! configuring radiation and calculating radiative fluxes for the first time
-  config%rad_update = 1
+  rad_update = 1
   double t_rad_update = t_0
-  if (config%rad_config>0) then
-    if (config%rad_config==1) then
+  if (rad_config>0) then
+    if (rad_config==1) then
       call radiation_init()
     endif
     call call_radiation(grid%latitude_scalar,grid%longitude_scalar,state_1%temperature_soil,grid%sfc_albedo,grid%z_scalar, &
                         grid%z_vector,state_1%rho,diagnostics%temperature,diagnostics%radiation_tendency, &
                         diagnostics%sfc_sw_in,diagnostics%sfc_lw_out,&t_0)
-    config%rad_update = 1
-    t_rad_update = t_rad_update + config%radiation_delta_t
+    rad_update = 1
+    t_rad_update = t_rad_update + radiation_delta_t
   endif
   
   ! This is necessary because at the very first step of the model integration,some things are handled differently
   ! in the time stepping and in writing the output.
-  config%totally_first_step_bool = 1
+  totally_first_step_bool = 1
   ! writing out the initial state of the model run
   call write_out(diagnostics%scalar_field_placeholder,state_1%wind,grid%latlon_interpol_indices,grid%latlon_interpol_weights,grid%exner_bg,
                  grid%inner_product_weights,grid%volume,grid%gravity_potential,grid%from_index,grid%to_index,grid%z_vector,grid%f_vec,diagnostics%temperature,
@@ -268,20 +249,20 @@ program control
                  totally_first_step_bool,wind_h_lowest_layer,diagnostics%rel_vort_on_triangles,diagnostics%rel_vort,diagnostics%pot_vort,
                  grid%normal_distance)
   
-  t_write = t_write + 60._wp*config_io%write_out_interval_min
+  t_write = t_write + 60._wp*write_out_interval_min
   write(*,*) "Run progress: %f h\n",(t_init - t_init)/3600)
-  int time_step_counter = 0
+  time_step_counter = 0
   clock_t first_time,second_time
   first_time = clock()
   double time = 0._wp
-  if (config_io%write_out_integrals == 1) then
+  if (write_out_integrals == 1) then
     call write_out_integral(state_1%wind,state_1%rhotheta_v,diagnostics%temperature,state_1%rho, &
                             grid%volume,grid%inner_product_weights,grid%gravity_potential,grid%adjacent_vector_indices_h,&time)
   endif
   
   ! Preparation of the actual integration.
   ! --------------------------------------
-  int wind_lowest_layer_step_counter = 0
+  wind_lowest_layer_step_counter = 0
   call linear_combine_two_states(state_1%rho,state_1%rhotheta_v,state_1%exner_pert,state_1%wind,state_1%temperature_soil, &
                                  state_1%rho,state_1%rhotheta_v,state_1%exner_pert,state_1%wind,state_1%temperature_soil, &
                                  state_2%rho,state_2%rhotheta_v,state_2%theta_v_pert,state_2%exner_pert,state_2%wind, &
@@ -290,17 +271,17 @@ program control
   ! This is the loop over the time steps.
   ! -------------------------------------
   ! this is to store the speed of the model integration
-  double speed
-  while (t_0 < t_init + 60*config%total_run_span_min + radius_rescale*300)
+  speed
+  while (t_0<t_init + 60*total_run_span_min + radius_rescale*300)
     
     ! Checking if the radiative fluxes need to be updated:
     ! ----------------------------------------------------
     
-    if (t_0 <= t_rad_update .and. t_0 + delta_t >= t_rad_update .and. config%totally_first_step_bool/=1) then
-      config%rad_update = 1
-      t_rad_update += config%radiation_delta_t
+    if (t_0 <= t_rad_update .and. t_0 + delta_t >= t_rad_update .and. totally_first_step_bool/=1) then
+      rad_update = 1
+      t_rad_update += radiation_delta_t
     else
-      config%rad_update = 0
+      rad_update = 0
     endif
     
     ! Time step integration.
@@ -325,7 +306,7 @@ program control
                          grid%normal_distance_dual,diagnostics%power_flux_density_latent,diagnostics%power_flux_density_sensible, &
                          grid%density_to_rhombi_weights,grid%density_to_rhombi_indices,diagnostics%rel_vort_on_triangles, &
                          diagnostics%phase_trans_heating_rate,state_2%exner_pert,state_1%exner_pert,diagnostics%rel_vort, &
-                         grid%f_vec,&config%rad_update, &
+                         grid%f_vec,&rad_update, &
                          diagnostics%pressure_gradient_decel_factor,diagnostics%pressure_gradient_acc_neg_l, &
                          diagnostics%pressure_gradient_acc_neg_nl, &
                          diagnostics%pot_vort,diagnostics%flux_density,diagnostics%pressure_grad_condensates_v, &
@@ -355,7 +336,7 @@ program control
                          grid%normal_distance_dual,diagnostics%power_flux_density_latent,diagnostics%power_flux_density_sensible, &
                          grid%density_to_rhombi_weights,grid%density_to_rhombi_indices,diagnostics%rel_vort_on_triangles, &
                          diagnostics%phase_trans_heating_rate,state_1%exner_pert,state_2%exner_pert,diagnostics%rel_vort, &
-                         grid%f_vec,&config%rad_update, &
+                         grid%f_vec,&rad_update, &
                          diagnostics%pressure_gradient_decel_factor,diagnostics%pressure_gradient_acc_neg_l, &
                          diagnostics%pressure_gradient_acc_neg_nl, &
                          diagnostics%pot_vort,diagnostics%flux_density,diagnostics%pressure_grad_condensates_v, &
@@ -369,7 +350,7 @@ program control
     ! Writing out integrals over the model domain if requested by the user.
     ! ---------------------------------------------------------------------
   
-    if (config_io%write_out_integrals == 1) then
+    if (write_out_integrals == 1) then
       if (mod(time_step_counter%2)==0) then
         call write_out_integral(state_2%wind,state_2%rhotheta_v,diagnostics%temperature,state_2%rho,
                                 grid%volume,grid%inner_product_weights,grid%gravity_potential,grid%adjacent_vector_indices_h,t_0+delta_t-t_init)
@@ -442,11 +423,11 @@ program control
                      totally_first_step_bool,wind_h_lowest_layer,diagnostics%rel_vort_on_triangles,diagnostics%rel_vort, &
                      diagnostics%pot_vort,grid%normal_distance)
       ! setting the next output time
-      t_write = t_write + 60._wp*config_io%write_out_interval_min
+      t_write = t_write + 60._wp*write_out_interval_min
       
       ! Calculating the speed of the model.
       second_time = clock()
-      speed = CLOCKS_PER_SEC*60*config_io%write_out_interval_min/((double) second_time - first_time)
+      speed = CLOCKS_PER_SEC*60*write_out_interval_min/((double) second_time - first_time)
       write(*,*) "Current speed: %lf\n",speed)
       first_time = clock()
       write(*,*) "Run progress: %f h\n",(t_0 + delta_t - t_init)/3600)
@@ -464,7 +445,7 @@ program control
     
     
     ! This switch can be set to zero now and remains there.
-    config%totally_first_step_bool = 0
+    totally_first_step_bool = 0
 
     time_step_counter += 1
   
@@ -488,7 +469,7 @@ program control
   write(*,*) "%s",stars
   deallocate(stars)
   clock_t end = clock()
-  speed = CLOCKS_PER_SEC*(60*config%total_run_span_min + 300)/((double) end - begin)
+  speed = CLOCKS_PER_SEC*(60*total_run_span_min + 300)/((double) end - begin)
   deallocate(config)
   write(*,*) "Average speed: %lf\n",speed)
   write(*,*) "GAME over.\n")

@@ -3,68 +3,6 @@ This source file is part of the Geophysical Fluids Modeling Framework (GAME), wh
 Github repository: https://github.com/OpenNWP/GAME
 */
 
-/*
-In this file, integer constants and types are defined.
-*/
-
-#include <math.h>
-
-enum grid_integers {
-// This determines the horizontal resolution.
-RES_ID = 5,
-// This has to conform with the grid file and the initialization state file.
-N_LAYERS = 26,
-// moisture switch
-MOISTURE_ON = 1,
-// the number of soil layers
-N_SOIL_LAYERS = 5,
-// the number of blocks into which the arrays will be split up for the radiation calculation
-// (N_SCALS_H must be divisible by this number)
-N_RAD_BLOCKS = 18,
-
-/*
-Nothing should be changed by the user below this line.
-------------------------------------------------------
-*/
-
-N_GASEOUS_CONSTITUENTS = 1 + MOISTURE_ON,
-N_CONDENSED_CONSTITUENTS = MOISTURE_ON*4,
-N_CONSTITUENTS = (N_GASEOUS_CONSTITUENTS + N_CONDENSED_CONSTITUENTS),
-N_BASIC_TRIANGLES = 20,
-N_PENTAGONS = 12,
-N_HEXAGONS = (int) (10*(pow(2, 2*RES_ID) - 1)),
-N_EDGES = 3*N_BASIC_TRIANGLES/2,
-N_LEVELS = N_LAYERS + 1,
-N_SCALS_H = N_PENTAGONS + N_HEXAGONS,
-N_VECS_H = (5*N_PENTAGONS/2 + 6/2*N_HEXAGONS),
-N_H_VECTORS = N_LAYERS*N_VECS_H,
-N_V_VECTORS = N_LEVELS*N_SCALS_H,
-N_VECS_PER_LAYER = N_VECS_H + N_SCALS_H,
-N_TRIANGLES = (int) (N_BASIC_TRIANGLES*(pow(4, RES_ID))),
-N_SCALARS = N_SCALS_H*N_LAYERS,
-N_VECTORS = N_H_VECTORS + N_V_VECTORS,
-N_SCALS_RAD = N_SCALARS/N_RAD_BLOCKS,
-N_SCALS_RAD_PER_LAYER = N_SCALS_RAD/N_LAYERS,
-N_DUAL_SCALS_H = N_TRIANGLES,
-N_DUAL_H_VECTORS = N_LEVELS*N_VECS_H,
-N_DUAL_V_VECTORS = N_LAYERS*N_DUAL_SCALS_H,
-N_DUAL_VECS_PER_LAYER = N_VECS_H + N_DUAL_SCALS_H,
-N_DUAL_SCALARS = N_LEVELS*N_DUAL_SCALS_H,
-N_DUAL_VECTORS = N_DUAL_H_VECTORS + N_DUAL_V_VECTORS,
-N_LON_IO_POINTS = (int) (4*(pow(2, RES_ID))),
-N_LAT_IO_POINTS = (int) (2*(pow(2, RES_ID))),
-N_LATLON_IO_POINTS = N_LON_IO_POINTS*N_LAT_IO_POINTS,
-POINTS_PER_EDGE = (int) (pow(2, RES_ID) - 1),
-TRIANGLES_PER_FACE = N_TRIANGLES/N_BASIC_TRIANGLES,
-VECTOR_POINTS_PER_INNER_FACE = (int) (1.5*(pow(2, RES_ID) - 1)*pow(2, RES_ID))};
-
-typedef double Scalar_field[N_SCALARS];
-typedef double Vector_field[N_VECTORS];
-typedef double Dual_vector_field[N_DUAL_VECTORS];
-typedef double Curl_field[N_LAYERS*2*N_VECS_H + N_VECS_H];
-// all constituents have a mass density
-typedef double Mass_densities[N_CONSTITUENTS*N_SCALARS];
-
 // Contains properties of the primal grid.
 typedef struct grid {
 Vector_field normal_distance;
@@ -117,15 +55,6 @@ double stretching_parameter;
 double radius;
 double eff_hor_res;
 } Grid;
-
-typedef struct state {
-Mass_densities rho; // density order: solid, liquid, vapour
-Scalar_field rhotheta_v;
-Scalar_field theta_v_pert;
-Scalar_field exner_pert;
-Vector_field wind;
-double temperature_soil[N_SOIL_LAYERS*N_SCALS_H];
-} State;
 
 // Collects diagnostic quantities. Note: in fact, forcings are also diagnostic quantities.
 typedef struct diagnostics {
@@ -180,50 +109,6 @@ double sfc_sw_in[N_SCALS_H];
 double sfc_lw_out[N_SCALS_H];
 Scalar_field radiation_tendency;
 } Diagnostics;
-
-// Info on the run configuration is collected here.
-typedef struct config {
-int totally_first_step_bool;
-int temperature_diff_h;
-int temperature_diff_v;
-int momentum_diff_h;
-int momentum_diff_v;
-int mass_diff_h;
-int mass_diff_v;
-int rad_on;
-int prog_soil_temp;
-int sfc_phase_trans;
-int sfc_sensible_heat_flux;
-int rad_update;
-int time_to_next_analysis_min;
-int pbl_scheme;
-int total_run_span_min;
-double damping_start_height_over_toa;
-double damping_coeff_max;
-double impl_thermo_weight;
-double cloud_droplets_velocity;
-double rain_velocity;
-double snow_velocity;
-double radiation_delta_t;
-} Config;
-
-// Info on input and output is collected here.
-typedef struct config_io {
-int pressure_level_output_switch;
-int model_level_output_switch;
-int surface_output_switch;
-int write_out_interval_min;
-int write_out_integrals;
-int year;
-int month;
-int day;
-int hour;
-char run_id[100];
-char month_string[3];
-char day_string[3];
-char hour_string[3];
-int ideal_input_id;
-} Config_io;
 
 
 
