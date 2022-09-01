@@ -6,12 +6,13 @@ program control
   ! This program organizes the model, manages the time stepping, calls model output, collects the lowest model layer wind for 10 m wind mean and so on.
   ! All the memory needed for the integration is allocated and freed here.
 
-  use mo_definitions,        only: t_grid
+  use mo_definitions,        only: t_grid,t_state
   use mo_gradient_operators, only: grad
 
   implicit none
   
-  type(t_grid) :: grid
+  type(t_state) :: state_1,state_2,state_tendency,state_write
+  type(t_grid)  :: grid
 
   ! taking the timestamp to measure the performance
   ! clock_t begin = clock()
