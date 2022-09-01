@@ -67,7 +67,6 @@ typedef double Mass_densities[N_CONSTITUENTS*N_SCALARS];
 
 // Contains properties of the primal grid.
 typedef struct grid {
-int no_of_oro_layers;
 Vector_field normal_distance;
 Scalar_field volume;
 Vector_field area;

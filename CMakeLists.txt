@@ -10,7 +10,7 @@ project(game VERSION ${version})
 enable_language(Fortran)
 add_executable(
 game
-src/control.c
+src/control.f90
 src/mo_constants.f90
 src/mo_definitions.f90
 src/namelists/mo_run_nml.f90
