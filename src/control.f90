@@ -186,7 +186,7 @@ program control
   write(*,*) "Initial state set successfully."
   write(*,*) "%s",stars)
   
-  if (config%rad_on>0) then
+  if (config%rad_config>0) then
     write(*,*) "Radiation time step: %lf s\n", config%radiation_delta_t
   endif
   
@@ -209,18 +209,18 @@ program control
   config%cloud_droplets_velocity = 0._wp1
   config%rain_velocity = 10._wp
   config%snow_velocity = 5._wp
-  write(*,*) "Cloud droplets falling velocity set to %lf m/s.\n",config%cloud_droplets_velocity)
-  write(*,*) "Rain falling velocity set to %lf m/s.\n",config%rain_velocity)
-  write(*,*) "Snow falling velocity set to %lf m/s.\n",config%snow_velocity)
+  write(*,*) "Cloud droplets falling velocity set to %lf m/s.\n",config%cloud_droplets_velocity
+  write(*,*) "Rain falling velocity set to %lf m/s.\n",config%rain_velocity
+  write(*,*) "Snow falling velocity set to %lf m/s.\n",config%snow_velocity
   
-  write(*,*) "Effective horizontal resolution: %lf km\n",1e-3*grid%eff_hor_res)
-  write(*,*) "Minimum horizontal normal distance: %lf km\n",1e-3*normal_dist_min_hor)
+  write(*,*) "Effective horizontal resolution: %lf km\n",1e-3*grid%eff_hor_res
+  write(*,*) "Minimum horizontal normal distance: %lf km\n",1e-3*normal_dist_min_hor
   double max_speed_hor = 100._wp
-  write(*,*) "Horizontal advective Courant number: %lf\n",delta_t/normal_dist_min_hor*max_speed_hor)
+  write(*,*) "Horizontal advective Courant number: %lf\n",delta_t/normal_dist_min_hor*max_speed_hor
   double max_speed_vert = 0.1_wp
-  write(*,*) "Vertical advective Courant number: %lf\n",delta_t/normal_dist_min_vert*max_speed_vert)
+  write(*,*) "Vertical advective Courant number: %lf\n",delta_t/normal_dist_min_vert*max_speed_vert
   write(*,*) "%s",stars)
-  write(*,*) "It begins.\n")
+  write(*,*) "It begins."
   write(*,*) "%s",stars)
   
   double *wind_h_lowest_layer = calloc(1,min_no_of_10m_wind_avg_steps*n_vectors_h*sizeof(double))
@@ -242,9 +242,9 @@ program control
   ! configuring radiation and calculating radiative fluxes for the first time
   config%rad_update = 1
   double t_rad_update = t_0
-  if (config%rad_on>0) then
-    if (config%rad_on==1) then
-      radiation_init()
+  if (config%rad_config>0) then
+    if (config%rad_config==1) then
+      call radiation_init()
     endif
     call call_radiation(grid%latitude_scalar,grid%longitude_scalar,state_1%temperature_soil,grid%sfc_albedo,grid%z_scalar, &
                         grid%z_vector,state_1%rho,diagnostics%temperature,diagnostics%radiation_tendency, &
@@ -402,50 +402,44 @@ program control
     endif
   
     ! 5 minutes before the output time,the wind in the lowest layer needs to be collected for 10 m wind diagnostics.
-    if (t_0 >= t_write - radius_rescale*300)
-    {
-      if (wind_lowest_layer_step_counter < min_no_of_10m_wind_avg_steps)
-      {
-    if (fmod(time_step_counter,2) == 0)
-    {
-      #pragma omp parallel for
-      for (int h_index = 0 h_index < n_vectors_h ++h_index)
-       {
-      wind_h_lowest_layer(wind_lowest_layer_step_counter*n_vectors_h + h_index) = state_1%wind(N_VECTORS - n_vectors_per_layer + h_index)
-      }
-    }
-    else
-    {
-       #pragma omp parallel for
-      for (int h_index = 0 h_index < n_vectors_h ++h_index)
-       {
-      wind_h_lowest_layer(wind_lowest_layer_step_counter*n_vectors_h + h_index) = state_2%wind(N_VECTORS - n_vectors_per_layer + h_index)
-      }
-    }
-    wind_lowest_layer_step_counter += 1
-      }
-    }
+    if (t_0 >= t_write - radius_rescale*300) then
+      if (wind_lowest_layer_step_counter < min_no_of_10m_wind_avg_steps) then
+        if (mod(time_step_counter%2)==0) then
+          !$omp parallel private(h_index)
+          do h_index=1,n_vectors_h
+            wind_h_lowest_layer(wind_lowest_layer_step_counter*n_vectors_h + h_index) = state_1%wind(N_VECTORS - n_vectors_per_layer + h_index)
+          enddo
+          !$omp end parallel do
+        else
+          !$omp parallel do private(h_index)
+          do h_index=1,n_vectors_h
+            wind_h_lowest_layer(wind_lowest_layer_step_counter*n_vectors_h + h_index) = state_2%wind(N_VECTORS - n_vectors_per_layer + h_index)
+          enddo
+          !$omp end parallel do
+        endif
+        wind_lowest_layer_step_counter += 1
+      endif
+    endif
   
     ! 5 minutes after the output time,the 10 m wind diagnostics can be executed,so output can actually be written
-    if(t_0 + delta_t >= t_write + radius_rescale*300 .and. t_0 <= t_write + radius_rescale*300)
-    {
+    if(t_0+delta_t>=t_write+radius_rescale*300 .and. t_0<=t_write + radius_rescale*300) then
       ! here,output is actually written
-    call write_out(diagnostics%scalar_field_placeholder,state_write%wind,grid%latlon_interpol_indices, &
-                   grid%latlon_interpol_weights,grid%exner_bg, &
-                   grid%inner_product_weights,grid%volume,grid%gravity_potential,grid%from_index,grid%to_index, &
-                   grid%z_vector,grid%f_vec,diagnostics%temperature, &
-                   state_write%temperature_soil,grid%area,state_write%rho,grid%z_scalar,grid%slope,grid%gravity_m, &
-                   grid%adjacent_signs_h,grid%adjacent_vector_indices_h, &
-                   grid%area_dual,grid%density_to_rhombi_indices,grid%density_to_rhombi_weights,state_write%exner_pert, &
-                   diagnostics%tke,&t_init,&t_write, &
-                   grid%from_index_dual,grid%to_index_dual,diagnostics%v_squared,grid%is_land, &
-                   diagnostics%monin_obukhov_length,diagnostics%roughness_velocity, &
-                   grid%roughness_length,grid%direction,grid%trsk_indices,grid%sfc_albedo,diagnostics%sfc_sw_in, &
-                   grid%layer_thickness,state_write%theta_v_pert, &
-                   grid%theta_v_bg,grid%z_vector_dual,grid%vorticity_indices_triangles,grid%vorticity_signs_triangles, &
-                   grid%trsk_weights, &
-                   totally_first_step_bool,wind_h_lowest_layer,diagnostics%rel_vort_on_triangles,diagnostics%rel_vort, &
-                   diagnostics%pot_vort,grid%normal_distance)
+      call write_out(diagnostics%scalar_field_placeholder,state_write%wind,grid%latlon_interpol_indices, &
+                     grid%latlon_interpol_weights,grid%exner_bg, &
+                     grid%inner_product_weights,grid%volume,grid%gravity_potential,grid%from_index,grid%to_index, &
+                     grid%z_vector,grid%f_vec,diagnostics%temperature, &
+                     state_write%temperature_soil,grid%area,state_write%rho,grid%z_scalar,grid%slope,grid%gravity_m, &
+                     grid%adjacent_signs_h,grid%adjacent_vector_indices_h, &
+                     grid%area_dual,grid%density_to_rhombi_indices,grid%density_to_rhombi_weights,state_write%exner_pert, &
+                     diagnostics%tke,&t_init,&t_write, &
+                     grid%from_index_dual,grid%to_index_dual,diagnostics%v_squared,grid%is_land, &
+                     diagnostics%monin_obukhov_length,diagnostics%roughness_velocity, &
+                     grid%roughness_length,grid%direction,grid%trsk_indices,grid%sfc_albedo,diagnostics%sfc_sw_in, &
+                     grid%layer_thickness,state_write%theta_v_pert, &
+                     grid%theta_v_bg,grid%z_vector_dual,grid%vorticity_indices_triangles,grid%vorticity_signs_triangles, &
+                     grid%trsk_weights, &
+                     totally_first_step_bool,wind_h_lowest_layer,diagnostics%rel_vort_on_triangles,diagnostics%rel_vort, &
+                     diagnostics%pot_vort,grid%normal_distance)
       ! setting the next output time
       t_write = t_write + 60._wp*config_io%write_out_interval_min
       
@@ -457,27 +451,29 @@ program control
       write(*,*) "Run progress: %f h\n",(t_0 + delta_t - t_init)/3600)
       
       ! resetting the wind in the lowest layer to zero
-      #pragma omp parallel for
-      for (int i = 0 i < min_no_of_10m_wind_avg_steps*n_vectors_h ++i)
-      {
-        wind_h_lowest_layer(i) = 0
-      }
+      !$omp parallel do private(ji)
+      do ji=1,min_no_of_10m_wind_avg_steps*n_vectors_h
+        wind_h_lowest_layer(ji) = 0._wp
+      enddo
+      !$omp end parallel do
       wind_lowest_layer_step_counter = 0
-    }
+    
+    endif
     
     
     
     ! This switch can be set to zero now and remains there.
     config%totally_first_step_bool = 0
 
-  time_step_counter += 1
+    time_step_counter += 1
   
     ! giving the user information on the run progress
     write(*,*) "Step %d completed.\n",time_step_counter)
     
     ! updating the model time
-    t_0 += delta_t
-  }
+    t_0 = t_0 + delta_t
+  
+  enddo
   
   ! Clean-up.
   ! ---------
