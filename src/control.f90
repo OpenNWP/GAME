@@ -14,7 +14,7 @@ program control
   use mo_inner_product,          only: inner_product
   use mo_constituents_nml,       only: cloud_droplets_velocity,rain_velocity,snow_velocity,n_constituents, &
                                        n_condensed_constituents,constituents_nml_setup
-  use mo_run_nml,                only: dtime,ideal_input_id,total_run_span_min,run_nml_setup
+  use mo_run_nml,                only: dtime,ideal_input_id,total_run_span_min,run_nml_setup,t_init
   use mo_grid_setup,             only: eff_hor_res,radius_rescale,set_grid_properties
   use mo_io_nml,                 only: n_output_steps_10m_wind,lwrite_integrals,write_out_interval_min, &
                                        io_nml_setup
@@ -36,7 +36,7 @@ program control
   type(t_grid)          :: grid
   integer               :: ji,time_step_counter,h_index,rad_update,wind_lowest_layer_step_counter,time_step_10_m_wind, &
                            totally_first_step_bool
-  real(wp)              :: t_init,t_0,t_write,t_rad_update,new_weight,old_weight,max_speed_hor,max_speed_ver, &
+  real(wp)              :: t_0,t_write,t_rad_update,new_weight,old_weight,max_speed_hor,max_speed_ver, &
                            normal_dist_min_hor,normal_dist_min_ver
   real(wp), allocatable :: wind_h_lowest_layer(:)
   character(len=82)     :: stars
@@ -63,7 +63,6 @@ program control
   call diff_nml_setup()
   call surface_nml_setup()
   call io_nml_setup()
-  call rad_nml_setup()
   
   ! Allocating memory
   ! ------------------
@@ -199,6 +198,8 @@ program control
                            grid%t_const_soil, &
                            grid%area_dual,grid%z_vector_dual,grid%normal_distance_dual,grid%from_index_dual, &
                            grid%to_index_dual,grid%vorticity_indices_triangles,grid%vorticity_signs_triangles,grid%f_vec)
+
+  call rad_nml_setup()
   
   call grad_hor_cov(grid%z_scalar,grid%slope,grid%from_index,grid%to_index,grid%normal_distance)
   call grad(grid%gravity_potential,grid%gravity_m,grid%from_index,grid%to_index, &
@@ -239,7 +240,7 @@ program control
   write(*,*) stars
   
   if (rad_config>0) then
-    write(*,*) "Radiation time step: %lf s\n",radiation_dtime
+    write(*,*) "Radiation time step:",radiation_dtime,"s"
   endif
   
   ! finding the minimum horizontal grid distance

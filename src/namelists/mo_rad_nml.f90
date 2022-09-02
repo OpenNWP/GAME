@@ -31,7 +31,11 @@ module mo_rad_nml
     n_rad_blocks = 18
     n_scals_rad = n_scalars/n_rad_blocks
     n_scals_rad_h = n_scalars_h/n_rad_blocks
-    radiation_dtime = 60.0*1e-3*eff_hor_res
+    radiation_dtime = 60._wp*1e-3_wp*eff_hor_res
+    ! the radiation time step is never longer then three hours
+    if (radiation_dtime>10800._wp) then
+      radiation_dtime = 10800._wp
+    endif
     rrtmgp_coefficients_file_sw = &
     "/home/max/code/rte-rrtmgp/rrtmgp/data/rrtmgp-data-sw-g112-210809.nc"
     rrtmgp_coefficients_file_lw = &
