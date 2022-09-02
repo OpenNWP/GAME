@@ -5,7 +5,6 @@ module mo_rrtmgp_coupler
 
   ! This module is a coupler to RTE+RRTMGP.
   
-  use iso_c_binding,
   use mo_definitions,             only: wp
   use mo_constants,               only: EPSILON_SECURITY,r_d,r_v
   use mo_dictionary,              only: molar_fraction_in_dry_air,calc_o3_vmr
@@ -44,8 +43,7 @@ module mo_rrtmgp_coupler
   
   contains
   
-  subroutine radiation_init() &
-  bind(c,name = "radiation_init")
+  subroutine radiation_init()
     ! This is called only once, in the beginning.
     
     ! local variables

@@ -5,7 +5,6 @@ module mo_pbl
 
   ! In this module, quantities referring to the planetary boundary layer are computed.
 
-  use iso_c_binding
   use mo_constants,        only: EPSILON_SECURITY,M_PI,gravity,p_0,c_d_p,r_d
   use mo_definitions,      only: wp
   use mo_run_nml,          only: dtime
@@ -22,8 +21,7 @@ module mo_pbl
   
   subroutine pbl_wind_tendency(wind,z_vector,monin_obukhov_length,exner_bg,exner_pert,v_squared, &
                                from_index,to_index,friction_acc,gravity_m,roughness_length,rho, &
-                               temperature,z_scalar) &
-  bind(c,name = "pbl_wind_tendency")
+                               temperature,z_scalar)
   
     ! This subroutine computes the interaction of the horizontal wind with the surface.
   
@@ -139,8 +137,7 @@ module mo_pbl
   end subroutine 
   
   subroutine update_sfc_turb_quantities(is_land,roughness_length,monin_obukhov_length,z_scalar,z_vector, &
-                                        theta_v_bg,theta_v_pert,v_squared,roughness_velocity,scalar_flux_resistance) &
-  bind(c,name = "update_sfc_turb_quantities")
+                                        theta_v_bg,theta_v_pert,v_squared,roughness_velocity,scalar_flux_resistance)
   
     ! This subroutine updates surface-related turbulence quantities.
     
@@ -219,8 +216,7 @@ module mo_pbl
     
   end subroutine update_sfc_turb_quantities
 
-  function roughness_length_from_u10_sea(u10) &
-  bind(c,name = "roughness_length_from_u10_sea")
+  function roughness_length_from_u10_sea(u10)
   
     ! This function returns the roughness length as a function of the mean wind speed at 10 m above a fully developed sea.
     ! refer to Stensrud,Parameterization schemes (2007), p.130
@@ -250,8 +246,7 @@ module mo_pbl
     
   end function roughness_length_from_u10_sea
 
-  function calc_scalar_flux_resistance(roughness_velocity_value,z_agl,roughness_length_value,monin_obukhov_length_value) &
-  bind(c,name = "calc_scalar_flux_resistance")
+  function calc_scalar_flux_resistance(roughness_velocity_value,z_agl,roughness_length_value,monin_obukhov_length_value)
 
     ! This function returns the surface flux resistance for scalar quantities.
 
@@ -281,8 +276,7 @@ module mo_pbl
     
   end function calc_scalar_flux_resistance
 
-  function momentum_flux_resistance(wind_h_lowest_layer,z_agl,roughness_length_value,monin_obukhov_length_value) &
-  bind(c,name = "momentum_flux_resistance")
+  function momentum_flux_resistance(wind_h_lowest_layer,z_agl,roughness_length_value,monin_obukhov_length_value)
 
     ! This function returns the surface flux resistance for momentum.
 
@@ -310,8 +304,7 @@ module mo_pbl
 
   end function momentum_flux_resistance
 
-  function calc_roughness_velocity(wind_speed,z_agl,roughness_length_value) &
-  bind(c,name = "calc_roughness_velocity")
+  function calc_roughness_velocity(wind_speed,z_agl,roughness_length_value)
 
     ! This function returns the roughness velocity.
 

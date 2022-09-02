@@ -5,7 +5,6 @@ module mo_multiplications
 
   ! In this module, algebraic multiplications of fields are collected.
   
-  use iso_c_binding
   use mo_definitions, only: wp
   use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer
   
@@ -13,8 +12,7 @@ module mo_multiplications
   
   contains
 
-  subroutine scalar_times_vector(scalar_field,vector_field,out_field,from_index,to_index) &
-  bind(c,name = "scalar_times_vector")
+  subroutine scalar_times_vector(scalar_field,vector_field,out_field,from_index,to_index)
   
     ! This subroutine multiplies the vector field vector_field by the scalar field scalar_field.
     
@@ -28,8 +26,7 @@ module mo_multiplications
   
   end subroutine scalar_times_vector
 
-  subroutine scalar_times_vector_h(scalar_field,vector_field,out_field,from_index,to_index) &
-  bind(c,name = "scalar_times_vector_h")
+  subroutine scalar_times_vector_h(scalar_field,vector_field,out_field,from_index,to_index)
   
     ! This subroutine multiplies a vector field by a scalar field at the horizontal gridpoints.
     
@@ -56,8 +53,7 @@ module mo_multiplications
   
   end subroutine scalar_times_vector_h
 
-  subroutine scalar_times_vector_h_upstream(scalar_field,vector_field,out_field,from_index,to_index) &
-  bind(c,name = "scalar_times_vector_h_upstream")
+  subroutine scalar_times_vector_h_upstream(scalar_field,vector_field,out_field,from_index,to_index)
   
     ! This subroutine multiplies a vector field by a scalar field.
     ! The scalar field value from the upstream gridpoint is used.
@@ -86,8 +82,7 @@ module mo_multiplications
   
   end subroutine scalar_times_vector_h_upstream
 
-  subroutine scalar_times_vector_v(scalar_field,vector_field,out_field) &
-  bind(c,name = "scalar_times_vector_v")
+  subroutine scalar_times_vector_v(scalar_field,vector_field,out_field)
   
     ! This subroutine multiplies a vector field by a scalar field at the vertical gridpoints.
     

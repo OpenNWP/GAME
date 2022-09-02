@@ -5,7 +5,6 @@ module mo_pgrad
 
   ! In this module, the explicit component of the pressure gradient acceleration is managed.
 
-  use iso_c_binding
   use mo_definitions,        only: wp
   use mo_grid_nml,           only: n_scalars,n_vectors,n_scalars_h
   use mo_constants,          only: c_d_p
@@ -22,8 +21,7 @@ module mo_pgrad
                                       pressure_gradient_decel_factor,scalar_field_placeholder, &
                                       exner_pert,theta_v_bg,rho,pgrad_acc_old, &
                                       theta_v_pert,from_index,to_index,normal_distance,exner_bg_grad, &
-                                      inner_product_weights,slope,totally_first_step_bool) &
-  bind(c,name = "manage_pressure_gradient")
+                                      inner_product_weights,slope,totally_first_step_bool)
     
     ! This subroutine computes the pressure gradient acceleration.
     
@@ -89,8 +87,7 @@ module mo_pgrad
     
   end subroutine manage_pressure_gradient
 
-  subroutine calc_pressure_grad_condensates_v(pressure_gradient_decel_factor,rho,gravity_m,pressure_grad_condensates_v) &
-  bind(c,name = "calc_pressure_grad_condensates_v")
+  subroutine calc_pressure_grad_condensates_v(pressure_gradient_decel_factor,rho,gravity_m,pressure_grad_condensates_v)
     
     ! This subroutine computes the correction to the vertical pressure gradient acceleration due to condensates.
     

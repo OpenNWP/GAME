@@ -5,7 +5,6 @@ module mo_vector_tend_expl
 
   ! In this module, the calculation of the explicit part of the momentum equation is managed.
   
-  use iso_c_binding
   use mo_definitions,           only: wp
   use mo_grid_nml,              only: n_vectors_per_layer,n_vectors,n_scalars_h,n_scalars,n_dual_vectors,n_vectors_h, &
                                       n_dual_scalars_h,n_dual_v_vectors,n_layers,n_h_vectors
@@ -40,8 +39,7 @@ module mo_vector_tend_expl
                               pot_vort,roughness_length,trsk_indices,trsk_modified_curl_indices,trsk_weights, &
                               v_squared,vert_hor_viscosity,z_scalar,pot_vort_tend,v_squared_grad, &
                               pressure_gradient_acc_neg_nl,pressure_gradient_acc_neg_l,pgrad_acc_old, &
-                              pressure_grad_condensates_v,rk_step,totally_first_step_bool) &
-  bind(c,name = "vector_tend_expl")
+                              pressure_grad_condensates_v,rk_step,totally_first_step_bool)
   
     real(wp), intent(in)    :: wind(n_vectors),z_vector(n_vectors),z_vector_dual(n_dual_vectors),normal_distance(n_vectors), &
                                area_dual(n_dual_vectors),inner_product_weights(8*n_scalars),slope(n_vectors), &

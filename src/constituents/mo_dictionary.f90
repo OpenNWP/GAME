@@ -12,8 +12,7 @@ module mo_dictionary
   
   contains
   
-  function molar_fraction_in_dry_air(gas_number) &
-  bind(c,name = "molar_fraction_in_dry_air")
+  function molar_fraction_in_dry_air(gas_number)
     
     ! This function returns the molar fraction of certain gases in dry air.
     
@@ -68,8 +67,7 @@ module mo_dictionary
   
   end function molar_fraction_in_dry_air
   
-  function calc_o3_vmr(height) &
-  bind(c,name = "calc_o3_vmr")
+  function calc_o3_vmr(height)
 
     ! This function calculates the ozone VMR as a function of height.
     ! assumes a Gaussian distribution
@@ -91,8 +89,7 @@ module mo_dictionary
     
   end function calc_o3_vmr
 
-  function phase_trans_heat(direction,temperature) &
-  bind(c,name = "phase_trans_heat")
+  function phase_trans_heat(direction,temperature)
     
     ! This function calculates the phase transition heat.
 
@@ -120,8 +117,7 @@ module mo_dictionary
     
   end function phase_trans_heat
   
-  function c_p_water(temperature) &
-  bind(c,name = "c_p_water")
+  function c_p_water(temperature)
 
     ! This function returns c_p of water.
   
@@ -156,8 +152,7 @@ module mo_dictionary
   
   end function c_p_water
   
-  function c_p_ice(temperature) &
-  bind(c,name = "c_p_ice")
+  function c_p_ice(temperature)
   
     ! This function returns c_p of ice.
     ! It follows Eq. (4) in Murphy DM, Koop T. Review of the vapour pressures of ice and supercooled water for atmospheric applications.
@@ -185,8 +180,7 @@ module mo_dictionary
     
   end function c_p_ice
 
-  function c_p_cond(const_id,temperature) &
-  bind(c,name = "c_p_cond")
+  function c_p_cond(const_id,temperature)
   
     ! This function resturns c_p of a specific condensed constituent.
     
@@ -267,8 +261,7 @@ module mo_dictionary
   
   end function enthalpy_sublimation
   
-  function saturation_pressure_over_water(temperature) &
-  bind(c,name = "saturation_pressure_over_water")
+  function saturation_pressure_over_water(temperature)
 
     ! This function returns the saturation pressure in Pa over liquid water as a function of the temperature in K.
     ! It uses the formula by Huang: A Simple Accurate Formula for Calculating Saturation Vapor Pressure of Water and Ice, 2018, DOI: 10.1175/JAMC-D-17-0334.1.
@@ -305,8 +298,7 @@ module mo_dictionary
 
   end function saturation_pressure_over_water
   
-  function dsaturation_pressure_over_water_dT(temperature) &
-  bind(c,name = "dsaturation_pressure_over_water_dT")
+  function dsaturation_pressure_over_water_dT(temperature)
   
     ! This function returns the derivative of the saturation pressure in Pa of pure water vapour over plane liquid water
     ! as a function of the temperature in K.
@@ -333,8 +325,7 @@ module mo_dictionary
   
   end function dsaturation_pressure_over_water_dT
 
-  function saturation_pressure_over_ice(temperature) &
-  bind(c,name = "saturation_pressure_over_ice")
+  function saturation_pressure_over_ice(temperature)
     
     ! This function returns the saturation pressure in Pa over ice as a function of the temperature in K.
     ! It uses the formula by Huang: A Simple Accurate Formula for Calculating Saturation Vapor Pressure of Water and Ice, 2018, DOI: 10.1175/JAMC-D-17-0334.1.
@@ -359,8 +350,7 @@ module mo_dictionary
     
   end function saturation_pressure_over_ice
   
-  function dsaturation_pressure_over_ice_dT(temperature) &
-  bind(c,name = "dsaturation_pressure_over_ice_dT")
+  function dsaturation_pressure_over_ice_dT(temperature)
 
     ! This function returns derivative of the the saturation pressure in Pa of pure water vapour over plane ice
     ! as a function of the temperature in K.
@@ -388,8 +378,7 @@ module mo_dictionary
 
   end function dsaturation_pressure_over_ice_dT
   
-  function enhancement_factor_over_water(air_pressure) &
-  bind(c,name = "enhancement_factor_over_water")
+  function enhancement_factor_over_water(air_pressure)
 
     ! This function calculates the enhancement factor over water, which accounts for the fact the the saturation vapour pressure is different in moist air compared to pure water vapour.
     ! It uses the formula by Huang: A Simple Accurate Formula for Calculating Saturation Vapor Pressure of Water and Ice, 2018, DOI: 10.1175/JAMC-D-17-0334.1.
@@ -401,8 +390,7 @@ module mo_dictionary
 
     end function enhancement_factor_over_water
   
-  function enhancement_factor_over_ice(air_pressure) &
-  bind(c,name = "enhancement_factor_over_ice")
+  function enhancement_factor_over_ice(air_pressure)
 
     ! This function calculates the enhancement factor over ice, which accounts for the fact the the saturation vapour pressure is different in moist air compared to pure water vapour.
     ! It uses the formula by Huang: A Simple Accurate Formula for Calculating Saturation Vapor Pressure of Water and Ice, 2018, DOI: 10.1175/JAMC-D-17-0334.1.

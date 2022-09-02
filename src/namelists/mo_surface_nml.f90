@@ -5,8 +5,6 @@ module mo_surface_nml
 
   ! This namelist defines the surface properties.
 
-  use iso_c_binding
-
   implicit none
   
   integer :: nsoillays               ! number of soil layers
@@ -19,8 +17,7 @@ module mo_surface_nml
   
   contains
   
-  subroutine surface_nml_setup() &
-  bind(c,name = "surface_nml_setup")
+  subroutine surface_nml_setup()
     
     ! default values
     nsoillays = 5

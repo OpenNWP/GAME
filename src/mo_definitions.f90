@@ -5,8 +5,6 @@ module mo_definitions
 
   ! This file contains some definitions.
   
-  use iso_c_binding
-  
   implicit none
   
   ! setting the floating pointeger :: precision

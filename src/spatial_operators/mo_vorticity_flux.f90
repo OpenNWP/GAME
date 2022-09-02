@@ -5,7 +5,6 @@ module mo_vorticity_flux
 
   ! In this module, the vorticity flux term of the Lamb tansformation gets computed.
 
-  use iso_c_binding
   use mo_definitions, only: wp
   use mo_grid_nml,    only: n_vectors_per_layer,n_layers,n_pentagons,n_vectors_h,n_vectors,n_scalars_h,n_scalars
   
@@ -14,8 +13,7 @@ module mo_vorticity_flux
   contains
 
   subroutine vorticity_flux(from_index,to_index,out_field,trsk_indices,trsk_modified_curl_indices,trsk_weights, &
-                            mass_flux_density,pot_vorticity,inner_product_weights,adjacent_vector_indices_h) &
-  bind(c,name = "vorticity_flux")
+                            mass_flux_density,pot_vorticity,inner_product_weights,adjacent_vector_indices_h)
     
     ! This subroutine computes the vorticity flux term.
     

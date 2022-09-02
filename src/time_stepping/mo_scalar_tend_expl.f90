@@ -5,7 +5,6 @@ module mo_scalar_tend_expl
   
   ! This module contains the horizontal (explicit) part of the constituent integration.
 
-  use iso_c_binding
   use mo_definitions,           only: wp
   use mo_constants,             only: c_d_v,c_d_p
   use mo_grid_nml,              only: n_scalars,n_scalars_h,n_vectors,n_vectors_h,n_dual_v_vectors,n_dual_scalars_h
@@ -30,8 +29,7 @@ module mo_scalar_tend_expl
                               viscosity,viscosity_rhombi,viscosity_triangles,volume,vorticity_indices_triangles, &
                               wind,temperature_diffusion_heating,flux_density_div,rho_tend,phase_trans_rates, &
                               exner_pert,exner_bg,condensates_sediment_heat,phase_trans_heating_rate, &
-                              radiation_tendency,heating_diss,rk_step) &
-  bind(c,name = "scalar_tend_expl")
+                              radiation_tendency,heating_diss,rk_step)
     
     ! This subroutine manages the calculation of the explicit part of the scalar tendencies.
     

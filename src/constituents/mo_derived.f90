@@ -16,8 +16,7 @@ module mo_derived
   
   contains
   
-  function rel_humidity(abs_humidity,temperature) &
-  bind(c,name = "rel_humidity")
+  function rel_humidity(abs_humidity,temperature)
     
     ! This function returns the relative humidity as a function of the absolute humidity in kg/m^3 and the temperature in K.
     
@@ -42,8 +41,7 @@ module mo_derived
     
   end function rel_humidity
   
-  function calc_diffusion_coeff(temperature,density) &
-  bind(c,name = "calc_diffusion_coeff")
+  function calc_diffusion_coeff(temperature,density)
   
     ! This function calculates the molecular diffusion coefficient.
   
@@ -66,8 +64,7 @@ module mo_derived
     
   end function calc_diffusion_coeff
   
-  function density_total(rho,ji) &
-  bind(c,name = "density_total")
+  function density_total(rho,ji)
   
     ! This function calculates the total density of the air at a certain gridpoint.
     
@@ -88,8 +85,7 @@ module mo_derived
     
   end function density_total
 
-  subroutine temperature_diagnostics(temperature,theta_v_bg,theta_v_pert,exner_bg,exner_pert,rho) &
-  bind(c,name = "temperature_diagnostics")
+  subroutine temperature_diagnostics(temperature,theta_v_bg,theta_v_pert,exner_bg,exner_pert,rho)
     
     ! This subroutine diagnoses the temperature of the gas phase.
     
@@ -118,8 +114,7 @@ module mo_derived
     
   end subroutine temperature_diagnostics
 
-  function gas_constant_diagnostics(rho,grid_point_index) &
-  bind(c,name = "gas_constant_diagnostics")
+  function gas_constant_diagnostics(rho,grid_point_index)
     
     ! This function calculates the specific gas constant of the gas phase.
     
@@ -140,8 +135,7 @@ module mo_derived
   
   end function 
 
-  function c_v_mass_weighted_air(rho,temperature,grid_point_index) &
-  bind(c,name = "c_v_mass_weighted_air")
+  function c_v_mass_weighted_air(rho,temperature,grid_point_index)
   
     ! This function calculates the mass-weighted c_v of the air.
     

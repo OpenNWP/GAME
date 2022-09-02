@@ -3,7 +3,6 @@
 
 module mo_inner_product
 
-  use iso_c_binding
   use mo_definitions, only: wp
   use mo_grid_nml,    only: n_vectors,n_scalars,n_scalars_h,n_pentagons,n_vectors_per_layer,n_layers
 
@@ -11,8 +10,7 @@ module mo_inner_product
   
   contains
 
-  subroutine inner_product(in_field_1,in_field_2,out_field,adjacent_vector_indices_h,inner_product_weights) &
-  bind(c,name = "inner_product")
+  subroutine inner_product(in_field_1,in_field_2,out_field,adjacent_vector_indices_h,inner_product_weights)
     
     ! This subroutine computes the inner product of the two vector fields in_field_1 and in_field_2. This is needed for computing the dissipation due to momentum diffusion (friction).
     

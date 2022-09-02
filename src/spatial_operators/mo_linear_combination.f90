@@ -5,7 +5,6 @@ module mo_linear_combination
 
   ! This module  contains a function for linearly combining two states.
 
-  use iso_c_binding,
   use mo_definitions,      only: wp
   use mo_grid_nml,         only: n_scalars,n_vectors,n_scalars_h
   use mo_surface_nml,      only: nsoillays
@@ -18,8 +17,7 @@ module mo_linear_combination
   subroutine linear_combine_two_states(rho_1,rhotheta_v_1,exner_pert_1,wind_1,temperature_soil_1, &
                                        rho_2,rhotheta_v_2,exner_pert_2,wind_2,temperature_soil_2, &
                                        rho,rhotheta_v,theta_v_pert,exner_pert,wind,temperature_soil, &
-                                       coeff_1,coeff_2,theta_v_bg) &
-  bind(c,name = "linear_combine_two_states")
+                                       coeff_1,coeff_2,theta_v_bg)
   
     real(wp), intent(in)  :: rho_1(n_constituents*n_scalars),rhotheta_v_1(n_scalars),exner_pert_1(n_scalars),wind_1(n_vectors), &
                              temperature_soil_1(nsoillays*n_scalars_h),rho_2(n_constituents*n_scalars),rhotheta_v_2(n_scalars), &

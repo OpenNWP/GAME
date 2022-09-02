@@ -4,8 +4,7 @@
 module mo_run_nml
 
   ! This is the namelist that configures the basic run properties of a model integration.
-  
-  use iso_c_binding
+
   use mo_definitions, only: wp
   
   implicit none
@@ -26,8 +25,7 @@ module mo_run_nml
 
   contains
 
-  subroutine run_nml_setup() &
-  bind(c,name = "run_nml_setup")
+  subroutine run_nml_setup()
   
     run_id = "ideal"
     dtime = 360.312923_wp

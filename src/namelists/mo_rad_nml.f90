@@ -5,7 +5,6 @@ module mo_rad_nml
 
   ! This is the namelists the configures the basic run properties of a model integration.
   
-  use iso_c_binding
   use mo_definitions, only: wp
   use mo_grid_nml,    only: n_scalars,n_scalars_h
   use mo_grid_setup,  only: eff_hor_res
@@ -26,8 +25,7 @@ module mo_rad_nml
 
   contains
 
-  subroutine rad_nml_setup() &
-  bind(c,name = "rad_nml_setup")
+  subroutine rad_nml_setup()
   
     rad_config = 1
     n_rad_blocks = 18

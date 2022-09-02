@@ -5,7 +5,6 @@ module mo_held_suarez
 
   ! This module calculates the Held-Suarez radiative forcing.
   
-  use iso_c_binding
   use mo_definitions,      only: wp
   use mo_constants,        only: c_d_v,r_d,p_0
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents
@@ -15,8 +14,7 @@ module mo_held_suarez
   
   contains
 
-  subroutine held_suar(latitude_scalar,mass_densities,temperature_gas,radiation_tendency) &
-  bind(c,name = "held_suar")
+  subroutine held_suar(latitude_scalar,mass_densities,temperature_gas,radiation_tendency)
   
     real(wp), intent(in)  :: latitude_scalar(n_scals_rad_h), &
                              mass_densities(n_constituents*n_scals_rad),temperature_gas(n_scals_rad)

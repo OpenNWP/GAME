@@ -5,7 +5,6 @@ module mo_diff_nml
   
   ! In this namelist, the diffusion properties are configured.
   
-  use iso_c_binding
   use mo_definitions, only: wp
   
   implicit none
@@ -26,8 +25,7 @@ module mo_diff_nml
   
   contains
   
-  subroutine diff_nml_setup() &
-  bind(c,name = "diff_nml_setup")
+  subroutine diff_nml_setup()
     
     ! default values
     h_prandtl = 100._wp

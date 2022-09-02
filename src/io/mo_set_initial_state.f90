@@ -5,7 +5,6 @@ module mo_set_initial_state
 
   ! In this modulethe initial state of the simulation is set.
 
-  use iso_c_binding
   use netcdf
   use mo_definitions,      only: wp
   use mo_constants,        only: p_0,r_d,c_d_p,m_d,m_v
@@ -34,8 +33,7 @@ module mo_set_initial_state
                             pot_vort_tend,z_scalar,rhotheta_v,wind,v_squared,direction,latitude_scalar,longitude_scalar, &
                             z_vector,slope,gravity_potential,pot_vort,rel_vort,rel_vort_on_triangles,trsk_indices,trsk_weights, &
                             trsk_modified_curl_indices,z_vector_dual,vorticity_indices_triangles,vorticity_signs_triangles, &
-                            t_const_soil,is_land,temperature_soil) &
-  bind(c,name = "set_ideal_init")
+                            t_const_soil,is_land,temperature_soil)
   
     ! This subroutine sets the initial state of the model atmosphere for idealized test cases.
   

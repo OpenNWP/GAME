@@ -5,7 +5,6 @@ module mo_divergences
 
   ! In this module, divergences get computed.
   
-  use iso_c_binding
   use mo_definitions, only: wp
   use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer, &
                             n_v_vectors,n_pentagons
@@ -16,8 +15,7 @@ module mo_divergences
   
   contains
   
-  subroutine div_h(in_field,out_field,adjacent_signs_h,adjacent_vector_indices_h,inner_product_weights,slope,area,volume) &
-  bind(c,name = "div_h")
+  subroutine div_h(in_field,out_field,adjacent_signs_h,adjacent_vector_indices_h,inner_product_weights,slope,area,volume)
   
     ! This subroutine computes the divergence of a horizontal vector field.
     
@@ -70,8 +68,7 @@ module mo_divergences
   end subroutine div_h
 
   subroutine div_h_tracer(in_field,density_field,wind_field,out_field,adjacent_signs_h, &
-                          adjacent_vector_indices_h,inner_product_weights,slope,area,volume) &
-  bind(c,name = "div_h_tracer")
+                          adjacent_vector_indices_h,inner_product_weights,slope,area,volume)
   
     ! This subroutine computes the divergence of a horizontal tracer flux density field.
     
@@ -145,8 +142,7 @@ module mo_divergences
     
   end subroutine div_h_tracer
 
-  subroutine add_vertical_div(in_field,out_field,area,volume) &
-  bind(c,name = "add_vertical_div")
+  subroutine add_vertical_div(in_field,out_field,area,volume)
     
     ! This adds the divergence of the vertical component of a vector field to the input scalar field.  
     

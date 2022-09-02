@@ -5,7 +5,6 @@ module mo_vorticities
 
   ! Here, vorticities are calculated. The word "vorticity" hereby refers to both vertical and tangential components.
 
-  use iso_c_binding
   use mo_definitions,  only: wp
   use mo_grid_nml,     only: n_layers,n_vectors_h,n_vectors,n_layers,n_dual_vectors_per_layer,n_dual_v_vectors, &
                              n_dual_scalars_h,n_scalars_h,n_vectors_per_layer,n_vectors_h,n_dual_vectors, &
@@ -21,8 +20,7 @@ module mo_vorticities
                            vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
                            area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
                            slope,f_vec,pot_vort,density_to_rhombi_indices,density_to_rhombi_weights, &
-                           density_field) &
-  bind(c,name = "calc_pot_vort")
+                           density_field)
   
     ! This subroutine calculates the potential vorticity.
     ! It is called "potential vorticity", but it is not Ertel's potential vorticity. It is the absolute vorticity divided by the density.
@@ -110,8 +108,7 @@ module mo_vorticities
   end subroutine calc_pot_vort
 
   subroutine calc_rel_vort_on_triangles(velocity_field,out_field,vorticity_indices_triangles,area_dual, &
-                                        z_vector,z_vector_dual,vorticity_signs_triangles,normal_distance) &
-  bind(c,name = "calc_rel_vort_on_triangles")
+                                        z_vector,z_vector_dual,vorticity_signs_triangles,normal_distance)
     
     ! This subroutine calculates the vertical relative vorticity on triangles.
     
@@ -172,8 +169,7 @@ module mo_vorticities
   subroutine calc_rel_vort(velocity_field,rel_vort_on_triangles,z_vector,z_vector_dual,rel_vort, &
                            vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
                            area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
-                           slope) &
-  bind(c,name = "calc_rel_vort")
+                           slope)
     
     ! This subroutine averages the vorticities on triangles to rhombi and calculates horizontal (tangential) vorticities.
     
@@ -242,8 +238,7 @@ module mo_vorticities
   
   end subroutine calc_rel_vort
 
-  subroutine add_f_to_rel_vort(rel_vort,f_vec,out_field) &
-  bind(c,name = "add_f_to_rel_vort")
+  subroutine add_f_to_rel_vort(rel_vort,f_vec,out_field)
   
     ! This subroutine adds the Coriolis parameter to the relative vorticity.
     

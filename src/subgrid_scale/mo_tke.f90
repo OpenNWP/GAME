@@ -5,7 +5,6 @@ module mo_tke
 
   ! In this module, turbulence-related quantities are computed.
 
-  use iso_c_binding
   use mo_definitions,        only: wp
   use mo_grid_nml,           only: n_scalars,n_vectors,n_vectors_h,n_scalars_h
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
@@ -20,8 +19,7 @@ module mo_tke
   contains
 
   subroutine tke_update(rho,viscosity,heating_diss,tke,vector_field_placeholder,wind,scalar_field_placeholder,from_index,to_index, &
-                        adjacent_vector_indices_h,normal_distance,inner_product_weights,slope) &
-  bind(c,name = "tke_update")
+                        adjacent_vector_indices_h,normal_distance,inner_product_weights,slope)
   
     ! This subroutine updates the specific turbulent kinetic energy (TKE), unit: J/kg.
     

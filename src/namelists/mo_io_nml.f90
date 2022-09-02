@@ -25,8 +25,7 @@ module mo_io_nml
 
   contains
 
-  subroutine io_nml_setup() &
-  bind(c,name = "io_nml_setup")
+  subroutine io_nml_setup()
     
     write_out_interval_min = 180._wp
     lmodel_level_output = .true.

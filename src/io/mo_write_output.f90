@@ -6,7 +6,6 @@ module mo_write_output
   ! In this module,the output is written to netCDF files and integrals are written to text files if configured that way.
   ! In addition to that,some postprocessing diagnostics are also calculated here.
   
-  use iso_c_binding
   use netcdf
   use mo_definitions,            only: wp
   use mo_constants,              only: c_d_p,r_d,t_0,EPSILON_SECURITY,c_d_v,r_v,p_0,M_PI,gravity
@@ -66,8 +65,7 @@ module mo_write_output
   end subroutine interpolate_to_ll
 
   subroutine write_out_integrals(wind,rhotheta_v,temperature,rho,volume,inner_product_weights, &
-                                gravity_potential,adjacent_vector_indices_h,time_since_init) &
-  bind(c,name = "write_out_integrals")
+                                gravity_potential,adjacent_vector_indices_h,time_since_init)
     
     ! integral_id:
     ! 0: dry mass
@@ -173,8 +171,7 @@ module mo_write_output
                        roughness_length,direction,trsk_indices,sfc_albedo,sfc_sw_in,layer_thickness,theta_v_pert, &
                        theta_v_bg,z_vector_dual,vorticity_indices_triangles,vorticity_signs_triangles,trsk_weights, &
                        totally_first_step_bool,wind_h_lowest_layer_array,rel_vort_on_triangles,rel_vort,pot_vort, &
-                       normal_distance) &
-  bind(c,name = "write_out")
+                       normal_distance)
   
     ! This subroutine is the central subroutine for writing the output.
   

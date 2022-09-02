@@ -5,7 +5,6 @@ module mo_manage_pchevi
 
   ! This module manages the predictor-corrector HEVI time stepping.
   
-  use iso_c_binding
   use mo_definitions,            only: wp
   use mo_constituents_nml,       only: n_constituents,lmoist,n_condensed_constituents
   use mo_grid_nml,               only: n_layers,n_vectors_per_layer,n_scalars_h,n_vectors,n_dual_vectors,n_scalars, &
@@ -49,8 +48,7 @@ module mo_manage_pchevi
                            pot_vort,flux_density,pressure_grad_condensates_v,flux_density_div,dv_hdz, &
                            monin_obukhov_length,heating_diss,is_land,pgrad_acc_old,mass_diff_tendency, &
                            latitude_scalar,longitude_scalar,mass_diffusion_coeff_numerical_h, &
-                           mass_diffusion_coeff_numerical_v,phase_trans_rates) &
-  bind(c,name = "manage_pchevi")
+                           mass_diffusion_coeff_numerical_v,phase_trans_rates)
     
     real(wp), intent(out) :: wind_new(n_vectors),wind_tend(n_vectors),condensates_sediment_heat(n_scalars), &
                              temperature(n_scalars),wind_div(n_scalars),temperature_soil_new(nsoillays*n_scalars_h), &

@@ -21,8 +21,7 @@ module mo_constituents_nml
 
   contains
 
-  subroutine constituents_nml_setup() &
-  bind(c,name = "constituents_nml_setup")
+  subroutine constituents_nml_setup()
     
     n_condensed_constituents = 4
     n_gaseous_constituents = 2

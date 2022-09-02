@@ -5,7 +5,6 @@ module mo_momentum_diff_diss
 
   ! The momentum diffusion acceleration is computed here (apart from the diffusion coefficients).
 
-  use iso_c_binding
   use mo_definitions,           only: wp
   use mo_constants,             only: EPSILON_SECURITY
   use mo_grid_nml,              only: n_scalars,n_vectors,n_scalars_h,n_h_vectors, &
@@ -29,8 +28,7 @@ module mo_momentum_diff_diss
                                     area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
                                     slope,temperature,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
                                     molecular_diffusion_coeff,normal_distance_dual,rho,tke,viscosity,viscosity_triangles, &
-                                    volume,wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity) &
-  bind(c,name = "hor_momentum_diffusion")
+                                    volume,wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity)
     
     ! This subroutine is the horizontal momentum diffusion operator (horizontal diffusion of horizontal velocity).
     
@@ -111,8 +109,7 @@ module mo_momentum_diff_diss
   subroutine vert_momentum_diffusion(wind,z_vector,normal_distance,from_index,to_index,inner_product_weights, &
                                      slope,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
                                      molecular_diffusion_coeff,rho,tke,viscosity,volume,vector_field_placeholder, &
-                                     scalar_field_placeholder,layer_thickness,n_squared,dv_hdz,vert_hor_viscosity) &
-  bind(c,name = "vert_momentum_diffusion")
+                                     scalar_field_placeholder,layer_thickness,n_squared,dv_hdz,vert_hor_viscosity)
   
     ! This subroutine is the vertical momentum diffusion. The horizontal diffusion has already been called at this points, so we can add the new tendencies.
     
@@ -243,8 +240,7 @@ module mo_momentum_diff_diss
 
   subroutine hor_calc_curl_of_vorticity(from_index_dual,to_index_dual,normal_distance_dual,out_field, &
                                         z_vector,vorticity,rel_vort_on_triangles,vorticity_indices_triangles, &
-                                        area) &
-  bind(c,name = "hor_calc_curl_of_vorticity")
+                                        area)
   
     ! This subroutine calculates the curl of the vertical vorticity.
     
@@ -334,8 +330,7 @@ module mo_momentum_diff_diss
   end subroutine hor_calc_curl_of_vorticity
 
   subroutine simple_dissipation_rate(wind,friction_acc,heating_diss, &
-                                     adjacent_vector_indices_h,inner_product_weights,rho) &
-  bind(c,name = "simple_dissipation_rate")
+                                     adjacent_vector_indices_h,inner_product_weights,rho)
     
     ! This subroutine calculates a simplified dissipation rate.
     

@@ -5,7 +5,6 @@ module mo_phase_trans
 
   ! This file contains functions calculating everything related to phase transition rates.
 
-  use iso_c_binding
   use mo_definitions,            only: wp
   use mo_run_nml,                only: dtime
   use mo_grid_nml,               only: n_scalars,n_scalars_h,n_layers
@@ -24,8 +23,7 @@ module mo_phase_trans
 
   subroutine calc_h2otracers_source_rates(rho,temperature,layer_thickness,temperature_soil, &
                                           phase_trans_rates,phase_trans_heating_rate, &
-                                          scalar_flux_resistance,is_land,power_flux_density_latent) &
-  bind(c,name = "calc_h2otracers_source_rates")
+                                          scalar_flux_resistance,is_land,power_flux_density_latent)
     
     ! This subroutine calculates phase transition rates and associated heat source rates.
     ! It assumes the following order for the constituents:

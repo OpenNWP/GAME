@@ -5,7 +5,6 @@ module mo_manage_radiation_calls
 
   ! This module manages the calls to the radiation routines.
 
-  use iso_c_binding
   use mo_definitions,      only: wp,t_radiation
   use mo_grid_nml,         only: n_scalars,n_scalars_h,n_vectors_per_layer,n_vectors,n_layers
   use mo_rad_nml,          only: n_scals_rad_h,n_scals_rad,n_rad_blocks,rad_config
@@ -19,8 +18,7 @@ module mo_manage_radiation_calls
   contains
   
   subroutine call_radiation(latitude_scalar,longitude_scalar,temperature_soil,sfc_albedo,z_scalar, &
-                            z_vector,rho,temperature,radiation_tendency,sfc_sw_in,sfc_lw_out,time_coordinate) &
-  bind(c,name = "call_radiation")
+                            z_vector,rho,temperature,radiation_tendency,sfc_sw_in,sfc_lw_out,time_coordinate)
   
     real(wp), intent(in)  :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h), &
                              temperature_soil(nsoillays*n_scalars_h),sfc_albedo(n_scalars_h), &
@@ -110,8 +108,7 @@ module mo_manage_radiation_calls
   
   end subroutine call_radiation
   
-  subroutine create_rad_array_scalar(in_array,out_array,rad_block_index) &
-  bind(c,name = "create_rad_array_scalar")
+  subroutine create_rad_array_scalar(in_array,out_array,rad_block_index)
 
     ! This subroutine cuts out a slice of a scalar field for hand-over to the radiation routine (done for RAM efficiency reasons).
     
@@ -131,8 +128,7 @@ module mo_manage_radiation_calls
   
   end subroutine create_rad_array_scalar
   
-  subroutine create_rad_array_scalar_h(in_array,out_array,rad_block_index) &
-  bind(c,name = "create_rad_array_scalar_h")
+  subroutine create_rad_array_scalar_h(in_array,out_array,rad_block_index)
 
     ! This subroutine cuts out a slice of a horizontal scalar field for hand-over to the radiation routine (done for RAM efficiency reasons).
     
@@ -150,8 +146,7 @@ module mo_manage_radiation_calls
   
   end subroutine create_rad_array_scalar_h
 
-  subroutine create_rad_array_vector(in_array,out_array,rad_block_index) &
-  bind(c,name = "create_rad_array_vector")
+  subroutine create_rad_array_vector(in_array,out_array,rad_block_index)
 
     ! This subroutine cuts out a slice of a vector field for hand-over to the radiation routine (done for RAM efficiency reasons).
   ! Only the vertical vector points are taken into account since only they are needed by the radiation.
@@ -171,8 +166,7 @@ module mo_manage_radiation_calls
   
   end subroutine create_rad_array_vector
   
-  subroutine create_rad_array_mass_den(in_array,out_array,rad_block_index) &
-  bind(c,name = "create_rad_array_mass_den")
+  subroutine create_rad_array_mass_den(in_array,out_array,rad_block_index)
 
     ! This subroutine does same thing as create_rad_array_scalar,only for a mass density field.
     
@@ -196,8 +190,7 @@ module mo_manage_radiation_calls
   
   end subroutine create_rad_array_mass_den
 
-  subroutine remap_to_original(in_array,out_array,rad_block_index) &
-  bind(c,name = "remap_to_original")
+  subroutine remap_to_original(in_array,out_array,rad_block_index)
 
     ! This subroutine reverses what create_rad_array_scalar has done.
     
@@ -217,8 +210,7 @@ module mo_manage_radiation_calls
   
   end subroutine remap_to_original
 
-  subroutine remap_to_original_scalar_h(in_array,out_array,rad_block_index) &
-  bind(c,name = "remap_to_original_scalar_h")
+  subroutine remap_to_original_scalar_h(in_array,out_array,rad_block_index)
 
     ! This subroutine reverses what create_rad_array_scalar_h has done.
     

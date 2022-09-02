@@ -5,7 +5,6 @@ module mo_gradient_operators
 
   ! This module contains the gradient operators.
   
-  use iso_c_binding
   use mo_definitions, only: wp
   use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer, &
                             n_v_vectors,n_v_vectors
@@ -15,8 +14,7 @@ module mo_gradient_operators
   
   contains
 
-  subroutine grad_hor_cov(in_field,out_field,from_index,to_index,normal_distance) &
-  bind(c,name = "grad_hor_cov")
+  subroutine grad_hor_cov(in_field,out_field,from_index,to_index,normal_distance)
   
     ! This subroutine calculates the horizontal covariant gradient
     
@@ -43,8 +41,7 @@ module mo_gradient_operators
     
   end subroutine grad_hor_cov
   
-  subroutine grad_vert_cov(in_field,out_field,normal_distance) &
-  bind(c,name = "grad_vert_cov")
+  subroutine grad_vert_cov(in_field,out_field,normal_distance)
   
     ! This subroutine calculates the vertical covariant gradient.
     
@@ -69,8 +66,7 @@ module mo_gradient_operators
   
   end subroutine grad_vert_cov  
   
-  subroutine grad_cov(in_field,out_field,from_index,to_index,normal_distance) &
-  bind(c,name = "grad_cov")
+  subroutine grad_cov(in_field,out_field,from_index,to_index,normal_distance)
   
     ! This subroutine calculates the horizontal covariant gradient
     
@@ -87,8 +83,7 @@ module mo_gradient_operators
   
   end subroutine grad_cov
   
-  subroutine grad(in_field,out_field,from_index,to_index,normal_distance,inner_product_weights,slope) &
-  bind(c,name = "grad")
+  subroutine grad(in_field,out_field,from_index,to_index,normal_distance,inner_product_weights,slope)
     
     ! This subroutine calculates the gradient (horizontally contravariant, vertically covariant).
     
@@ -103,8 +98,7 @@ module mo_gradient_operators
     
   end subroutine grad
 
-  subroutine grad_hor(in_field,out_field,from_index,to_index,normal_distance,inner_product_weights,slope) &
-  bind(c,name = "grad_hor")
+  subroutine grad_hor(in_field,out_field,from_index,to_index,normal_distance,inner_product_weights,slope)
     
     ! This function calculates the horizontal contravariant gradient.
     

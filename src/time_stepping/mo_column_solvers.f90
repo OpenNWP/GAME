@@ -5,7 +5,6 @@ module mo_column_solvers
 
   ! This module contains the implicit vertical routines (implicit part of the HEVI scheme).
 
-  use iso_c_binding
   use mo_definitions,      only: wp
   use mo_constants,        only: r_d,c_d_v,c_d_p,M_PI
   use mo_run_nml,          only: dtime
@@ -30,8 +29,7 @@ module mo_column_solvers
                                          z_scalar,wind_tend,z_soil_center,t_conduc_soil,sfc_rho_c, &
                                          sfc_lw_out,sfc_sw_in,t_const_soil,z_soil_interface, &
                                          power_flux_density_latent,rhotheta_v_target,exner_pert_target, &
-                                         wind_target,temperature_soil_target,rk_step) &
-  bind(c,name = "three_band_solver_ver_waves")
+                                         wind_target,temperature_soil_target,rk_step)
     
     ! This subroutine is the implicit vertical solver for the main fluid constituent.
     real(wp), intent(in)    :: z_vector(n_vectors),area(n_vectors),volume(n_scalars), &
@@ -361,8 +359,7 @@ module mo_column_solvers
   end subroutine three_band_solver_ver_waves
 
   subroutine three_band_solver_gen_densities(wind_old,wind_new,volume,rho_tend,rho_old,rho_new,&
-                                             condensates_sediment_heat,area,temperature,rk_step) &
-  bind(c,name = "three_band_solver_gen_densities")
+                                             condensates_sediment_heat,area,temperature,rk_step)
   
     ! This subroutine contains the vertical advection of mass densities (of tracers) with 3-band matrices.
     
@@ -576,8 +573,7 @@ module mo_column_solvers
     
   end subroutine three_band_solver_gen_densities
 
-  subroutine thomas_algorithm(c_vector,d_vector,e_vector,r_vector,solution_vector,solution_length) &
-  bind(c,name = "thomas_algorithm")
+  subroutine thomas_algorithm(c_vector,d_vector,e_vector,r_vector,solution_vector,solution_length)
 
     ! This subroutine solves a system of linear equations with a three-band matrix.
     

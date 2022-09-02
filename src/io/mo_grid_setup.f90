@@ -5,7 +5,6 @@ module mo_grid_setup
   
   ! This module reads the grid properties and sets some further grid quantities.
 
-  use iso_c_binding
   use netcdf
   use mo_constants,       only: t_0,r_e,M_PI
   use mo_definitions,     only: wp
@@ -37,8 +36,7 @@ module mo_grid_setup
                                  latlon_interpol_weights,z_soil_interface,z_soil_center, &
                                  t_const_soil, &
                                  area_dual,z_vector_dual,normal_distance_dual,from_index_dual, &
-                                 to_index_dual,vorticity_indices_triangles,vorticity_signs_triangles,f_vec) &
-  bind(c,name = "set_grid_properties")
+                                 to_index_dual,vorticity_indices_triangles,vorticity_signs_triangles,f_vec)
     
     ! This subroutine reads all the grid properties from the grid netCDF file.
     

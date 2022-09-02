@@ -5,7 +5,6 @@ module mo_spatial_ops_for_output
 
   ! In this module, those spatial operators are collected which are only needed for the output.
   
-  use iso_c_binding
   use mo_definitions,        only: wp
   use mo_grid_nml,           only: n_scalars_h,n_scalars,n_vectors_h,n_layers,n_vectors_per_layer,n_vectors, &
                                    n_pentagons,n_h_vectors
@@ -16,8 +15,7 @@ module mo_spatial_ops_for_output
   
   contains
 
-  function tangential_wind(in_field,layer_index,h_index,trsk_indices,trsk_weights) &
-  bind(c,name = "tangential_wind")
+  function tangential_wind(in_field,layer_index,h_index,trsk_indices,trsk_weights)
   
     ! This function computes the tangential component *component of the vector field in_field at edge h_index in layer layer_index
     ! using the TRSK weights.
@@ -40,8 +38,7 @@ module mo_spatial_ops_for_output
   end function tangential_wind
 
   subroutine inner_product_tangential(in_field_1,in_field_2,out_field,adjacent_vector_indices_h, &
-                                      inner_product_weights,trsk_indices,trsk_weights) &
-  bind(c,name = "inner_product_tangential")
+                                      inner_product_weights,trsk_indices,trsk_weights)
   
     ! This subroutine computes the inner product of the two vector fields in_field_1 and in_field_2.
     ! The difference to the normal inner product is, that in_field_1 is given in tangential components.
@@ -78,8 +75,7 @@ module mo_spatial_ops_for_output
   end subroutine inner_product_tangential
 
   subroutine epv_diagnostics(epv,from_index,to_index,inner_product_weights,pot_vort,trsk_indices,trsk_weights, &
-                             adjacent_vector_indices_h,slope,normal_distance,theta_v_bg,theta_v_pert,z_vector) &
-  bind(c,name = "epv_diagnostics")
+                             adjacent_vector_indices_h,slope,normal_distance,theta_v_bg,theta_v_pert,z_vector)
     
     ! This subroutine diagnozes Ertel's potential vorticity (EPV).
     
@@ -181,8 +177,7 @@ module mo_spatial_ops_for_output
   
   end subroutine epv_diagnostics
 
-  subroutine edges_to_cells_lowest_layer(in_field,out_field,adjacent_vector_indices_h,inner_product_weights) &
-  bind(c,name = "edges_to_cells_lowest_layer")
+  subroutine edges_to_cells_lowest_layer(in_field,out_field,adjacent_vector_indices_h,inner_product_weights)
     
     ! This subroutine averages a horizontal vector field (defined in the lowest layer) from edges to centers.
     
@@ -213,8 +208,7 @@ module mo_spatial_ops_for_output
     
   end subroutine edges_to_cells_lowest_layer
 
-  subroutine calc_uv_at_edge(in_field,out_field_u,out_field_v,trsk_indices,trsk_weights,direction) &
-  bind(c,name = "calc_uv_at_edge")
+  subroutine calc_uv_at_edge(in_field,out_field_u,out_field_v,trsk_indices,trsk_weights,direction)
   
     ! This subroutine diagnozes eastward and northward components of a vector field at edges.
     
@@ -242,8 +236,7 @@ module mo_spatial_ops_for_output
     
   end subroutine calc_uv_at_edge
 
-  subroutine edges_to_cells(in_field,out_field,adjacent_vector_indices_h,inner_product_weights) &
-  bind(c,name = "edges_to_cells")
+  subroutine edges_to_cells(in_field,out_field,adjacent_vector_indices_h,inner_product_weights)
     
     ! This subroutine averages a vector field from edges to cell centers.
     
@@ -276,8 +269,7 @@ module mo_spatial_ops_for_output
     
   end subroutine edges_to_cells
   
-  subroutine curl_field_to_cells(in_field,out_field,adjacent_vector_indices_h,inner_product_weights) &
-  bind(c,name = "curl_field_to_cells")
+  subroutine curl_field_to_cells(in_field,out_field,adjacent_vector_indices_h,inner_product_weights)
     
     ! This subroutine averages a curl field from edges to cell centers.
     

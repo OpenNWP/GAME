@@ -5,7 +5,6 @@ module mo_effective_diff_coeffs
   
   ! This module computes the effective diffusion coefficients.
   
-  use iso_c_binding
   use mo_definitions,        only: wp
   use mo_gradient_operators, only: grad_vert_cov
   use mo_multiplications,    only: scalar_times_vector_v
@@ -21,8 +20,7 @@ module mo_effective_diff_coeffs
   contains
   
   subroutine hor_viscosity(temperature,tke,rho,from_index,to_index,vorticity_indices_triangles, &
-                           molecular_diffusion_coeff,viscosity_triangles,viscosity,viscosity_rhombi) &
-  bind(c,name = "hor_viscosity")
+                           molecular_diffusion_coeff,viscosity_triangles,viscosity,viscosity_rhombi)
     
     ! This subroutine computes the effective diffusion coefficient (molecular + turbulent).
     
@@ -115,8 +113,7 @@ module mo_effective_diff_coeffs
                            molecular_diffusion_coeff,viscosity_triangles,viscosity,viscosity_rhombi, &
                            mass_diffusion_coeff_numerical_h,mass_diffusion_coeff_numerical_v, &
                            temp_diffusion_coeff_numerical_h,temp_diffusion_coeff_numerical_v, &
-                           n_squared,layer_thickness) &
-  bind(c,name = "scalar_diffusion_coeffs")
+                           n_squared,layer_thickness)
   
     ! This subroutine computes the scalar diffusion coefficients (including eddies).
     
@@ -163,8 +160,7 @@ module mo_effective_diff_coeffs
   
   end subroutine
   
-  function tke2hor_diff_coeff(tke,effective_resolution) &
-  bind(c,name = "tke2hor_diff_coeff")
+  function tke2hor_diff_coeff(tke,effective_resolution)
   
     ! This function returns the horizontal kinematic eddy viscosity as a function of the specific TKE.
     
@@ -180,8 +176,7 @@ module mo_effective_diff_coeffs
   
   end function tke2hor_diff_coeff
 
-  function tke2vert_diff_coeff(tke,n_squared,layer_thickness) &
-  bind(c,name = "tke2vert_diff_coeff")
+  function tke2vert_diff_coeff(tke,n_squared,layer_thickness)
 
     ! This function returns the vertical kinematic eddy viscosity as a function of the specific TKE and the Brunt-Väisälä frequency.
     
@@ -203,8 +198,7 @@ module mo_effective_diff_coeffs
     
   end function tke2vert_diff_coeff
 
-  subroutine vert_vert_mom_viscosity(rho,tke,n_squared,layer_thickness,scalar_field_placeholder,molecular_diffusion_coeff) &
-  bind(c,name = "vert_vert_mom_viscosity")
+  subroutine vert_vert_mom_viscosity(rho,tke,n_squared,layer_thickness,scalar_field_placeholder,molecular_diffusion_coeff)
   
     real(wp), intent(in)    :: rho(n_constituents*n_scalars),tke(n_scalars), &
                                n_squared(n_scalars),layer_thickness(n_scalars),molecular_diffusion_coeff(n_scalars)
@@ -233,8 +227,7 @@ module mo_effective_diff_coeffs
   end subroutine vert_vert_mom_viscosity
   
   subroutine vert_hor_mom_viscosity(tke,layer_thickness,from_index,to_index,vert_hor_viscosity,n_squared,rho, &
-                                    molecular_diffusion_coeff) &
-  bind(c,name = "vert_hor_mom_viscosity")
+                                    molecular_diffusion_coeff)
     
     ! This subroutine computes the effective viscosity (eddy + molecular viscosity) for the vertical diffusion of horizontal velocity.
     ! This quantity is located at the half level edges.
@@ -296,8 +289,7 @@ module mo_effective_diff_coeffs
   end subroutine vert_hor_mom_viscosity
   
   subroutine update_n_squared(theta_v_bg,theta_v_pert,normal_distance,inner_product_weights,gravity_m, &
-                              scalar_field_placeholder,vector_field_placeholder,n_squared) &
-  bind(c,name = "update_n_squared")
+                              scalar_field_placeholder,vector_field_placeholder,n_squared)
     
     ! This subroutine calculates the Brunt-Väisälä frequency.
     

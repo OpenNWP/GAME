@@ -5,7 +5,6 @@ module mo_averaging
 
   ! This file contains functions that perform averagings.
 
-  use iso_c_binding
   use mo_definitions, only: wp
   use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer, &
                             n_v_vectors,n_pentagons,n_h_vectors
@@ -16,8 +15,7 @@ module mo_averaging
 
   contains
 
-  function vertical_contravariant_corr(vector_field,layer_index,h_index,adjacent_vector_indices_h,inner_product_weights,slope) &
-  bind(c,name = "vertical_contravariant_corr")
+  function vertical_contravariant_corr(vector_field,layer_index,h_index,adjacent_vector_indices_h,inner_product_weights,slope)
   
     ! This function calculates (the vertical contravariant component - the vertical covariant component)
     ! of a vector field out of the horizontal contravariant components.
@@ -72,8 +70,7 @@ module mo_averaging
   
   end function vertical_contravariant_corr
 
-  function remap_verpri2horpri_vector(vector_field,layer_index,h_index,from_index,to_index,inner_product_weights) &
-  bind(c,name = "remap_verpri2horpri_vector")
+  function remap_verpri2horpri_vector(vector_field,layer_index,h_index,from_index,to_index,inner_product_weights)
     
     ! This function reconstructs the vertical vector component at edge h_index in layer layer_index.
     
@@ -102,8 +99,7 @@ module mo_averaging
   
   end function remap_verpri2horpri_vector
 
-  subroutine vector_field_hor_cov_to_con(cov_to_con_field,from_index,to_index,inner_product_weights,slope) &
-  bind(c,name = "vector_field_hor_cov_to_con")
+  subroutine vector_field_hor_cov_to_con(cov_to_con_field,from_index,to_index,inner_product_weights,slope)
   
     ! This subroutine transforms the covariant horizontal measure numbers of a vector field to
     ! contravariant measure numbers.
@@ -130,8 +126,7 @@ module mo_averaging
     
   end subroutine vector_field_hor_cov_to_con
   
-  function horizontal_covariant(vector_field,layer_index,h_index,from_index,to_index,inner_product_weights,slope) &
-  bind(c,name = "horizontal_covariant")
+  function horizontal_covariant(vector_field,layer_index,h_index,from_index,to_index,inner_product_weights,slope)
     
     ! This function calculates the horizontal covariant component of a vector field out of the horizontal contravariant and the vertical covariant components
     ! contravariant measure numbers.
