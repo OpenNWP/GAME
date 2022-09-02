@@ -187,17 +187,7 @@ program control
   
   ! reading the grid
   write(*,*) "Reading grid data ..."
-  call set_grid_properties(grid%normal_distance,grid%volume,grid%area,grid%z_scalar,grid%z_vector, &
-                           grid%gravity_potential,grid%theta_v_bg,grid%exner_bg, &
-                           grid%layer_thickness,grid%trsk_indices,grid%trsk_modified_curl_indices,grid%from_index, &
-                           grid%to_index,grid%adjacent_vector_indices_h,grid%adjacent_signs_h,grid%density_to_rhombi_indices, &
-                           grid%latitude_scalar,grid%longitude_scalar,grid%inner_product_weights,grid%direction, &
-                           grid%density_to_rhombi_weights,grid%trsk_weights,grid%sfc_albedo,grid%sfc_rho_c, &
-                           grid%t_conduc_soil,grid%roughness_length,grid%is_land,grid%latlon_interpol_indices, &
-                           grid%latlon_interpol_weights,grid%z_soil_interface,grid%z_soil_center, &
-                           grid%t_const_soil, &
-                           grid%area_dual,grid%z_vector_dual,grid%normal_distance_dual,grid%from_index_dual, &
-                           grid%to_index_dual,grid%vorticity_indices_triangles,grid%vorticity_signs_triangles,grid%f_vec)
+  call set_grid_properties(grid)
 
   call rad_nml_setup()
   
@@ -357,65 +347,57 @@ program control
     
     ! time step integration
     if (mod(time_step_counter,2)==0) then
-      call manage_pchevi(grid%adjacent_signs_h,grid%adjacent_vector_indices_h,grid%area,grid%layer_thickness, &
-                         grid%z_scalar,grid%z_vector,grid%volume,grid%vorticity_indices_triangles,grid%vorticity_signs_triangles, &
-                         grid%z_soil_center,grid%z_soil_interface,diag%v_squared,grid%trsk_weights, &
-                         grid%from_index,grid%to_index,grid%from_index_dual,grid%to_index_dual,grid%trsk_modified_curl_indices, &
-                         grid%area_dual,grid%z_vector_dual,state_1%wind,state_tendency%wind,state_2%wind,grid%trsk_indices, &
+      call manage_pchevi(diag%v_squared,state_1%wind,state_tendency%wind,state_2%wind, &
                          diag%temperature,diag%wind_div,diag%viscosity_triangles,diag%viscosity, &
                          diag%viscosity_rhombi, &
                          diag%condensates_sediment_heat,diag%molecular_diffusion_coeff,diag%v_squared_grad, &
                          t_0,diag%vert_hor_viscosity,diag%vector_field_placeholder,diag%sfc_sw_in, &
-                         totally_first_step_bool,grid%gravity_m,diag%curl_of_vorticity,diag%tke,grid%t_const_soil, &
-                         state_1%theta_v_pert,state_2%theta_v_pert,grid%theta_v_bg,state_2%temperature_soil,diag%sfc_lw_out, &
-                         state_1%temperature_soil,diag%temperature_diffusion_heating,grid%slope,grid%t_conduc_soil, &
+                         totally_first_step_bool,diag%curl_of_vorticity,diag%tke, &
+                         state_1%theta_v_pert,state_2%theta_v_pert,state_2%temperature_soil,diag%sfc_lw_out, &
+                         state_1%temperature_soil,diag%temperature_diffusion_heating, &
                          diag%temp_diffusion_coeff_numerical_h,diag%temp_diffusion_coeff_numerical_v,diag%friction_acc, &
-                         grid%sfc_rho_c,grid%sfc_albedo,diag%scalar_flux_resistance,diag%scalar_field_placeholder, &
-                         diag%roughness_velocity,grid%roughness_length,state_tendency%rhotheta_v,state_1%rhotheta_v, &
-                         state_2%rhotheta_v,state_tendency%rho,state_1%rho,state_2%rho,diag%radiation_tendency,grid%exner_bg, &
-                         diag%pot_vort_tend,grid%normal_distance,diag%n_squared,grid%inner_product_weights,grid%exner_bg_grad, &
-                         grid%normal_distance_dual,diag%power_flux_density_latent,diag%power_flux_density_sensible, &
-                         grid%density_to_rhombi_weights,grid%density_to_rhombi_indices,diag%rel_vort_on_triangles, &
+                         diag%scalar_flux_resistance,diag%scalar_field_placeholder, &
+                         diag%roughness_velocity,state_tendency%rhotheta_v,state_1%rhotheta_v, &
+                         state_2%rhotheta_v,state_tendency%rho,state_1%rho,state_2%rho,diag%radiation_tendency, &
+                         diag%pot_vort_tend,diag%n_squared, &
+                         diag%power_flux_density_latent,diag%power_flux_density_sensible, &
+                         diag%rel_vort_on_triangles, &
                          diag%phase_trans_heating_rate,state_2%exner_pert,state_1%exner_pert,diag%rel_vort, &
-                         grid%f_vec,rad_update, &
+                         rad_update, &
                          diag%pressure_gradient_decel_factor,diag%pressure_gradient_acc_neg_l, &
                          diag%pressure_gradient_acc_neg_nl, &
                          diag%pot_vort,diag%flux_density,diag%pressure_grad_condensates_v, &
                          diag%flux_density_div,diag%dv_hdz, &
-                         diag%monin_obukhov_length,diag%heating_diss,grid%is_land,diag%pgrad_acc_old, &
+                         diag%monin_obukhov_length,diag%heating_diss,diag%pgrad_acc_old, &
                          diag%mass_diff_tendency, &
-                         grid%latitude_scalar,grid%longitude_scalar,diag%mass_diffusion_coeff_numerical_h, &
-                         diag%mass_diffusion_coeff_numerical_v,diag%phase_trans_rates)
+                         diag%mass_diffusion_coeff_numerical_h, &
+                         diag%mass_diffusion_coeff_numerical_v,diag%phase_trans_rates,grid)
     else
-      call manage_pchevi(grid%adjacent_signs_h,grid%adjacent_vector_indices_h,grid%area,grid%layer_thickness, &
-                         grid%z_scalar,grid%z_vector,grid%volume,grid%vorticity_indices_triangles,grid%vorticity_signs_triangles, &
-                         grid%z_soil_center,grid%z_soil_interface,diag%v_squared,grid%trsk_weights, &
-                         grid%from_index,grid%to_index,grid%from_index_dual,grid%to_index_dual,grid%trsk_modified_curl_indices, &
-                         grid%area_dual,grid%z_vector_dual,state_2%wind,state_tendency%wind,state_1%wind,grid%trsk_indices, &
+      call manage_pchevi(diag%v_squared,state_2%wind,state_tendency%wind,state_1%wind, &
                          diag%temperature,diag%wind_div,diag%viscosity_triangles,diag%viscosity, &
                          diag%viscosity_rhombi, &
                          diag%condensates_sediment_heat,diag%molecular_diffusion_coeff,diag%v_squared_grad, &
                          t_0,diag%vert_hor_viscosity,diag%vector_field_placeholder,diag%sfc_sw_in, &
-                         totally_first_step_bool,grid%gravity_m,diag%curl_of_vorticity,diag%tke,grid%t_const_soil, &
-                         state_2%theta_v_pert,state_1%theta_v_pert,grid%theta_v_bg,state_1%temperature_soil,diag%sfc_lw_out, &
-                         state_2%temperature_soil,diag%temperature_diffusion_heating,grid%slope,grid%t_conduc_soil, &
+                         totally_first_step_bool,diag%curl_of_vorticity,diag%tke, &
+                         state_2%theta_v_pert,state_1%theta_v_pert,state_1%temperature_soil,diag%sfc_lw_out, &
+                         state_2%temperature_soil,diag%temperature_diffusion_heating, &
                          diag%temp_diffusion_coeff_numerical_h,diag%temp_diffusion_coeff_numerical_v,diag%friction_acc, &
-                         grid%sfc_rho_c,grid%sfc_albedo,diag%scalar_flux_resistance,diag%scalar_field_placeholder, &
-                         diag%roughness_velocity,grid%roughness_length,state_tendency%rhotheta_v,state_2%rhotheta_v, &
-                         state_1%rhotheta_v,state_tendency%rho,state_2%rho,state_1%rho,diag%radiation_tendency,grid%exner_bg, &
-                         diag%pot_vort_tend,grid%normal_distance,diag%n_squared,grid%inner_product_weights,grid%exner_bg_grad, &
-                         grid%normal_distance_dual,diag%power_flux_density_latent,diag%power_flux_density_sensible, &
-                         grid%density_to_rhombi_weights,grid%density_to_rhombi_indices,diag%rel_vort_on_triangles, &
+                         diag%scalar_flux_resistance,diag%scalar_field_placeholder, &
+                         diag%roughness_velocity,state_tendency%rhotheta_v,state_2%rhotheta_v, &
+                         state_1%rhotheta_v,state_tendency%rho,state_2%rho,state_1%rho,diag%radiation_tendency, &
+                         diag%pot_vort_tend,diag%n_squared, &
+                         diag%power_flux_density_latent,diag%power_flux_density_sensible, &
+                         diag%rel_vort_on_triangles, &
                          diag%phase_trans_heating_rate,state_1%exner_pert,state_2%exner_pert,diag%rel_vort, &
-                         grid%f_vec,rad_update, &
+                         rad_update, &
                          diag%pressure_gradient_decel_factor,diag%pressure_gradient_acc_neg_l, &
                          diag%pressure_gradient_acc_neg_nl, &
                          diag%pot_vort,diag%flux_density,diag%pressure_grad_condensates_v, &
                          diag%flux_density_div,diag%dv_hdz, &
-                         diag%monin_obukhov_length,diag%heating_diss,grid%is_land,diag%pgrad_acc_old, &
+                         diag%monin_obukhov_length,diag%heating_diss,diag%pgrad_acc_old, &
                          diag%mass_diff_tendency, &
-                         grid%latitude_scalar,grid%longitude_scalar,diag%mass_diffusion_coeff_numerical_h, &
-                         diag%mass_diffusion_coeff_numerical_v,diag%phase_trans_rates)
+                         diag%mass_diffusion_coeff_numerical_h, &
+                         diag%mass_diffusion_coeff_numerical_v,diag%phase_trans_rates,grid)
     endif
   
     ! Writing out integrals over the model domain if requested by the user.

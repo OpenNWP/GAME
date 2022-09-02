@@ -7,7 +7,7 @@ module mo_grid_setup
 
   use netcdf
   use mo_constants,       only: t_0,r_e,M_PI
-  use mo_definitions,     only: wp
+  use mo_definitions,     only: wp,t_grid
   use mo_grid_nml,        only: n_vectors_per_layer,n_vectors,n_layers,n_scalars,n_scalars_h,n_latlon_io_points, &
                                 n_dual_vectors,n_vectors_h,n_dual_scalars_h,oro_id,res_id
   use mo_surface_nml,     only: nsoillays
@@ -26,40 +26,11 @@ module mo_grid_setup
   
   contains
   
-  subroutine set_grid_properties(normal_distance,volume,area,z_scalar,z_vector, &
-                                 gravity_potential,theta_v_bg,exner_bg, &
-                                 layer_thickness,trsk_indices,trsk_modified_curl_indices,from_index, &
-                                 to_index,adjacent_vector_indices_h,adjacent_signs_h,density_to_rhombi_indices, &
-                                 latitude_scalar,longitude_scalar,inner_product_weights,direction, &
-                                 density_to_rhombi_weights,trsk_weights,sfc_albedo,sfc_rho_c, &
-                                 t_conduc_soil,roughness_length,is_land,latlon_interpol_indices, &
-                                 latlon_interpol_weights,z_soil_interface,z_soil_center, &
-                                 t_const_soil, &
-                                 area_dual,z_vector_dual,normal_distance_dual,from_index_dual, &
-                                 to_index_dual,vorticity_indices_triangles,vorticity_signs_triangles,f_vec)
+  subroutine set_grid_properties(grid)
     
     ! This subroutine reads all the grid properties from the grid netCDF file.
     
-    real(wp), intent(out) :: normal_distance(n_vectors),volume(n_scalars),area(n_vectors), &
-                             z_scalar(n_scalars),z_vector(n_vectors),gravity_potential(n_scalars), &
-                             theta_v_bg(n_scalars),exner_bg(n_scalars), &
-                             layer_thickness(n_scalars),latitude_scalar(n_scalars_h), &
-                             longitude_scalar(n_scalars_h),inner_product_weights(8*n_scalars), &
-                             direction(n_vectors_h),density_to_rhombi_weights(4*n_vectors_h), &
-                             trsk_weights(10*n_vectors_h),sfc_albedo(n_scalars_h),sfc_rho_c(n_scalars_h), &
-                             t_conduc_soil(n_scalars_h),roughness_length(n_scalars_h), &
-                             latlon_interpol_weights(5*n_latlon_io_points),z_soil_interface(nsoillays+1), &
-                             z_soil_center(nsoillays),t_const_soil(n_scalars_h),f_vec(2*n_vectors_h), &
-                             z_vector_dual(n_dual_vectors),normal_distance_dual(n_dual_vectors), &
-                             area_dual(n_dual_vectors)
-    integer,  intent(out) :: trsk_indices(10*n_vectors_h), &
-                             trsk_modified_curl_indices(10*n_vectors_h),from_index(n_vectors_h), &
-                             to_index(n_vectors_h),adjacent_vector_indices_h(6*n_scalars_h), &
-                             adjacent_signs_h(6*n_scalars_h),density_to_rhombi_indices(4*n_vectors_h), &
-                             is_land(n_scalars_h),latlon_interpol_indices(5*n_latlon_io_points), &
-                             from_index_dual(n_vectors_h),to_index_dual(n_vectors_h), &
-                             vorticity_indices_triangles(3*n_dual_scalars_h), &
-                             vorticity_signs_triangles(3*n_dual_scalars_h)
+    type(t_grid), intent(inout) :: grid
     
     ! local variables
     integer  :: ncid,normal_distance_id,volume_id,area_id,z_scalar_id,z_vector_id,trsk_weights_id, &
@@ -124,42 +95,42 @@ module mo_grid_setup
     call nc_check(nf90_get_var(ncid,toa_id,toa))
     call nc_check(nf90_get_var(ncid,radius_id,radius))
     call nc_check(nf90_get_var(ncid,stretching_parameter_id,stretching_parameter))
-    call nc_check(nf90_get_var(ncid,normal_distance_id,normal_distance))
-    call nc_check(nf90_get_var(ncid,inner_product_weights_id,inner_product_weights))
-    call nc_check(nf90_get_var(ncid,volume_id,volume))
-    call nc_check(nf90_get_var(ncid,area_id,area))
-    call nc_check(nf90_get_var(ncid,z_scalar_id,z_scalar))
-    call nc_check(nf90_get_var(ncid,theta_v_bg_id,theta_v_bg))
-    call nc_check(nf90_get_var(ncid,exner_bg_id,exner_bg))
-    call nc_check(nf90_get_var(ncid,gravity_potential_id,gravity_potential))
-    call nc_check(nf90_get_var(ncid,z_vector_id,z_vector))
-    call nc_check(nf90_get_var(ncid,trsk_weights_id,trsk_weights))
-    call nc_check(nf90_get_var(ncid,area_dual_id,area_dual))
-    call nc_check(nf90_get_var(ncid,z_vector_dual_id,z_vector_dual))
-    call nc_check(nf90_get_var(ncid,direction_id,direction))
-    call nc_check(nf90_get_var(ncid,f_vec_id,f_vec))
-    call nc_check(nf90_get_var(ncid,density_to_rhombi_weights_id,density_to_rhombi_weights))
-    call nc_check(nf90_get_var(ncid,normal_distance_dual_id,normal_distance_dual))
-    call nc_check(nf90_get_var(ncid,latitude_scalar_id,latitude_scalar))
-    call nc_check(nf90_get_var(ncid,longitude_scalar_id,longitude_scalar))
-    call nc_check(nf90_get_var(ncid,interpol_weights_id,latlon_interpol_weights))
-    call nc_check(nf90_get_var(ncid,from_index_id,from_index))
-    call nc_check(nf90_get_var(ncid,to_index_id,to_index))
-    call nc_check(nf90_get_var(ncid,from_index_dual_id,from_index_dual))
-    call nc_check(nf90_get_var(ncid,to_index_dual_id,to_index_dual))
-    call nc_check(nf90_get_var(ncid,adjacent_vector_indices_h_id,adjacent_vector_indices_h))
-    call nc_check(nf90_get_var(ncid,vorticity_indices_triangles_id,vorticity_indices_triangles))
-    call nc_check(nf90_get_var(ncid,vorticity_signs_triangles_id,vorticity_signs_triangles))
-    call nc_check(nf90_get_var(ncid,trsk_indices_id,trsk_indices))
-    call nc_check(nf90_get_var(ncid,trsk_modified_curl_indices_id,trsk_modified_curl_indices))
-    call nc_check(nf90_get_var(ncid,adjacent_signs_h_id,adjacent_signs_h))
-    call nc_check(nf90_get_var(ncid,density_to_rhombi_indices_id,density_to_rhombi_indices))
-    call nc_check(nf90_get_var(ncid,interpol_indices_id,latlon_interpol_indices))
-    call nc_check(nf90_get_var(ncid,sfc_rho_c_id,sfc_rho_c))
-    call nc_check(nf90_get_var(ncid,sfc_albedo_id,sfc_albedo))
-    call nc_check(nf90_get_var(ncid,roughness_length_id,roughness_length))
-    call nc_check(nf90_get_var(ncid,t_conductivity_id,t_conduc_soil))
-    call nc_check(nf90_get_var(ncid,is_land_id,is_land))
+    call nc_check(nf90_get_var(ncid,normal_distance_id,grid%normal_distance))
+    call nc_check(nf90_get_var(ncid,inner_product_weights_id,grid%inner_product_weights))
+    call nc_check(nf90_get_var(ncid,volume_id,grid%volume))
+    call nc_check(nf90_get_var(ncid,area_id,grid%area))
+    call nc_check(nf90_get_var(ncid,z_scalar_id,grid%z_scalar))
+    call nc_check(nf90_get_var(ncid,theta_v_bg_id,grid%theta_v_bg))
+    call nc_check(nf90_get_var(ncid,exner_bg_id,grid%exner_bg))
+    call nc_check(nf90_get_var(ncid,gravity_potential_id,grid%gravity_potential))
+    call nc_check(nf90_get_var(ncid,z_vector_id,grid%z_vector))
+    call nc_check(nf90_get_var(ncid,trsk_weights_id,grid%trsk_weights))
+    call nc_check(nf90_get_var(ncid,area_dual_id,grid%area_dual))
+    call nc_check(nf90_get_var(ncid,z_vector_dual_id,grid%z_vector_dual))
+    call nc_check(nf90_get_var(ncid,direction_id,grid%direction))
+    call nc_check(nf90_get_var(ncid,f_vec_id,grid%f_vec))
+    call nc_check(nf90_get_var(ncid,density_to_rhombi_weights_id,grid%density_to_rhombi_weights))
+    call nc_check(nf90_get_var(ncid,normal_distance_dual_id,grid%normal_distance_dual))
+    call nc_check(nf90_get_var(ncid,latitude_scalar_id,grid%latitude_scalar))
+    call nc_check(nf90_get_var(ncid,longitude_scalar_id,grid%longitude_scalar))
+    call nc_check(nf90_get_var(ncid,interpol_weights_id,grid%latlon_interpol_weights))
+    call nc_check(nf90_get_var(ncid,from_index_id,grid%from_index))
+    call nc_check(nf90_get_var(ncid,to_index_id,grid%to_index))
+    call nc_check(nf90_get_var(ncid,from_index_dual_id,grid%from_index_dual))
+    call nc_check(nf90_get_var(ncid,to_index_dual_id,grid%to_index_dual))
+    call nc_check(nf90_get_var(ncid,adjacent_vector_indices_h_id,grid%adjacent_vector_indices_h))
+    call nc_check(nf90_get_var(ncid,vorticity_indices_triangles_id,grid%vorticity_indices_triangles))
+    call nc_check(nf90_get_var(ncid,vorticity_signs_triangles_id,grid%vorticity_signs_triangles))
+    call nc_check(nf90_get_var(ncid,trsk_indices_id,grid%trsk_indices))
+    call nc_check(nf90_get_var(ncid,trsk_modified_curl_indices_id,grid%trsk_modified_curl_indices))
+    call nc_check(nf90_get_var(ncid,adjacent_signs_h_id,grid%adjacent_signs_h))
+    call nc_check(nf90_get_var(ncid,density_to_rhombi_indices_id,grid%density_to_rhombi_indices))
+    call nc_check(nf90_get_var(ncid,interpol_indices_id,grid%latlon_interpol_indices))
+    call nc_check(nf90_get_var(ncid,sfc_rho_c_id,grid%sfc_rho_c))
+    call nc_check(nf90_get_var(ncid,sfc_albedo_id,grid%sfc_albedo))
+    call nc_check(nf90_get_var(ncid,roughness_length_id,grid%roughness_length))
+    call nc_check(nf90_get_var(ncid,t_conductivity_id,grid%t_conduc_soil))
+    call nc_check(nf90_get_var(ncid,is_land_id,grid%is_land))
     call nc_check(nf90_close(ncid))
     
     radius_rescale = radius/r_e
@@ -168,8 +139,8 @@ module mo_grid_setup
     
     !$omp parallel do private(ji)
     do ji=1,6*n_scalars_h
-      if (adjacent_vector_indices_h(ji)==-1) then
-        adjacent_vector_indices_h(ji) = 0
+      if (grid%adjacent_vector_indices_h(ji)==-1) then
+        grid%adjacent_vector_indices_h(ji) = 0
       endif
     enddo
     !$omp end parallel do
@@ -179,15 +150,15 @@ module mo_grid_setup
     do ji=1,n_scalars
       layer_index = (ji-1)/n_scalars_h
       h_index = ji - layer_index*n_scalars_h
-      layer_thickness(ji) = z_vector(h_index + layer_index*n_vectors_per_layer) &
-      - z_vector(h_index + (layer_index+1)*n_vectors_per_layer)
+      grid%layer_thickness(ji) = grid%z_vector(h_index + layer_index*n_vectors_per_layer) &
+      - grid%z_vector(h_index + (layer_index+1)*n_vectors_per_layer)
     enddo
     !$omp end parallel do
     
     ! fundamental SFC properties
     z_t_const = -10._wp
     !$omp parallel workshare
-    t_const_soil = t_0 + 25._wp*cos(2._wp*latitude_scalar)
+    grid%t_const_soil = t_0 + 25._wp*cos(2._wp*grid%latitude_scalar)
     !$omp end parallel workshare
         
     ! constructing the soil grid
@@ -195,16 +166,16 @@ module mo_grid_setup
     sigma_soil = 0.352_wp
     
     ! the surface is always at zero
-    z_soil_interface(1) = 0._wp
+    grid%z_soil_interface(1) = 0._wp
     do ji=2,nsoillays+1
-      z_soil_interface(ji) = z_soil_interface(ji-1) + sigma_soil**(nsoillays+1-ji)
+      grid%z_soil_interface(ji) = grid%z_soil_interface(ji-1) + sigma_soil**(nsoillays+1-ji)
     enddo
-    rescale_factor = z_t_const/z_soil_interface(nsoillays+1)
+    rescale_factor = z_t_const/grid%z_soil_interface(nsoillays+1)
     do ji=2,nsoillays+1
-      z_soil_interface(ji) = rescale_factor*z_soil_interface(ji)
+      grid%z_soil_interface(ji) = rescale_factor*grid%z_soil_interface(ji)
     enddo
     do ji=1,nsoillays
-      z_soil_center(ji) = 0.5_wp*(z_soil_interface(ji) + z_soil_interface(ji+1))
+      grid%z_soil_center(ji) = 0.5_wp*(grid%z_soil_interface(ji) + grid%z_soil_interface(ji+1))
     enddo
     
   end subroutine set_grid_properties
