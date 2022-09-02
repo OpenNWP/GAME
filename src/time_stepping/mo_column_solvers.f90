@@ -32,12 +32,13 @@ module mo_column_solvers
                                          wind_target,temperature_soil_target,rk_step)
     
     ! This subroutine is the implicit vertical solver for the main fluid constituent.
+    real(wp)                :: rho_new(n_constituents*n_scalars),rhotheta_v_new(n_scalars),exner_pert_new(n_scalars), &
+                               theta_v_pert_new(n_scalars),temperature_soil_new(nsoillays*n_scalars_h)
     real(wp), intent(in)    :: z_vector(n_vectors),area(n_vectors),volume(n_scalars), &
                                scalar_flux_resistance(n_scalars_h),rho_old(n_constituents*n_scalars), &
-                               rhotheta_v_new(n_scalars),rho_new(n_constituents*n_scalars), &
                                theta_v_pert_old(n_scalars),theta_v_bg(n_scalars),exner_pert_old(n_scalars), &
-                               exner_bg(n_scalars),theta_v_pert_new(n_scalars),exner_pert_new(n_scalars), &
-                               temperature_soil_new(nsoillays*n_scalars_h),temperature_soil_old(nsoillays*n_scalars_h), &
+                               exner_bg(n_scalars), &
+                               temperature_soil_old(nsoillays*n_scalars_h), &
                                rho_tend(n_constituents*n_scalars),rhotheta_v_old(n_scalars),wind_old(n_vectors), &
                                z_scalar(n_scalars),wind_tend(n_vectors),z_soil_center(nsoillays), &
                                t_conduc_soil(n_scalars_h),sfc_rho_c(n_scalars_h),t_const_soil(n_scalars_h), &
