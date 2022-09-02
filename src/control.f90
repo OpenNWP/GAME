@@ -54,6 +54,15 @@ program control
   write(*,*) "Released under the MIT license,visit https://github.com/OpenNWP/GAME for more information."
   write(*,*) "*****************************************************************"
   
+  ! setting up the namelists (model configuration)
+  call grid_nml_setup()
+  call run_nml_setup()
+  call constituents_nml_setup()
+  call diff_nml_setup()
+  call surface_nml_setup()
+  call io_nml_setup()
+  call rad_nml_setup()
+  
   ! Allocating memory
   ! ------------------
   
@@ -62,7 +71,7 @@ program control
   allocate(grid%area(n_vectors))
   allocate(grid%z_scalar(n_scalars))
   allocate(grid%z_vector(n_vectors))
-  allocate(grid%gravity_potential(n_vectors))
+  allocate(grid%gravity_potential(n_scalars))
   allocate(grid%gravity_m(n_vectors))
   allocate(grid%slope(n_vectors))
   allocate(grid%theta_v_bg(n_scalars))
@@ -174,15 +183,6 @@ program control
   allocate(state_write%exner_pert(n_scalars))
   allocate(state_write%wind(n_vectors))
   allocate(state_write%temperature_soil(nsoillays*n_scalars_h))
-
-  ! setting up the namelists (model configuration)
-  call grid_nml_setup()
-  call run_nml_setup()
-  call constituents_nml_setup()
-  call diff_nml_setup()
-  call surface_nml_setup()
-  call io_nml_setup()
-  call rad_nml_setup()
   
   ! reading the grid
   write(*,*) "Reading grid data ..."
@@ -274,7 +274,7 @@ program control
   do h_index=1,n_vectors_h
     ! here,for all output time steps,the initial value is used
     do time_step_10_m_wind=1,n_output_steps_10m_wind
-      wind_h_lowest_layer(time_step_10_m_wind*n_vectors_h + h_index) = state_1%wind(n_vectors - n_vectors_per_layer + h_index)
+      wind_h_lowest_layer((time_step_10_m_wind-1)*n_vectors_h + h_index) = state_1%wind(n_vectors - n_vectors_per_layer + h_index)
     enddo
   enddo
   !$omp end parallel do
