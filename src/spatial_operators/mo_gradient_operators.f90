@@ -5,7 +5,7 @@ module mo_gradient_operators
 
   ! This module contains the gradient operators.
   
-  use mo_definitions, only: wp
+  use mo_definitions, only: wp,t_grid
   use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer, &
                             n_v_vectors,n_v_vectors
   use mo_averaging,   only: vector_field_hor_cov_to_con
@@ -98,20 +98,19 @@ module mo_gradient_operators
     
   end subroutine grad
 
-  subroutine grad_hor(in_field,out_field,from_index,to_index,normal_distance,inner_product_weights,slope)
+  subroutine grad_hor(in_field,out_field,grid)
     
     ! This function calculates the horizontal contravariant gradient.
     
-    real(wp), intent(in)  :: in_field(n_scalars)
-    real(wp), intent(out) :: out_field(n_vectors)
-    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
-    real(wp), intent(in)  :: normal_distance(n_vectors)
-    real(wp), intent(in)  :: inner_product_weights(8*n_scalars),slope(n_vectors)
+    real(wp),     intent(in)  :: in_field(n_scalars)
+    real(wp),     intent(out) :: out_field(n_vectors)
+    type(t_grid), intent(in)  :: grid
     
     ! local variables
     integer :: ji,layer_index,h_index
     
-    call grad(in_field,out_field,from_index,to_index,normal_distance,inner_product_weights,slope)
+    call grad(in_field,out_field,grid%from_index,grid%to_index,grid%normal_distance, &
+              grid%inner_product_weights,grid%slope)
     
     !$omp parallel do private(ji,layer_index,h_index)
     do ji=1,n_v_vectors

@@ -5,7 +5,7 @@ module mo_vector_tend_expl
 
   ! In this module, the calculation of the explicit part of the momentum equation is managed.
   
-  use mo_definitions,           only: wp
+  use mo_definitions,           only: wp,t_grid
   use mo_grid_nml,              only: n_vectors_per_layer,n_vectors,n_scalars_h,n_scalars,n_dual_vectors,n_vectors_h, &
                                       n_dual_scalars_h,n_dual_v_vectors,n_layers,n_h_vectors
   use mo_gradient_operators,    only: grad
@@ -39,7 +39,7 @@ module mo_vector_tend_expl
                               pot_vort,roughness_length,trsk_indices,trsk_modified_curl_indices,trsk_weights, &
                               v_squared,vert_hor_viscosity,z_scalar,pot_vort_tend,v_squared_grad, &
                               pressure_gradient_acc_neg_nl,pressure_gradient_acc_neg_l,pgrad_acc_old, &
-                              pressure_grad_condensates_v,rk_step,totally_first_step_bool)
+                              pressure_grad_condensates_v,rk_step,totally_first_step_bool,grid)
   
     real(wp), intent(in)    :: wind(n_vectors),z_vector(n_vectors),z_vector_dual(n_dual_vectors),normal_distance(n_vectors), &
                                area_dual(n_dual_vectors),inner_product_weights(8*n_scalars),slope(n_vectors), &
@@ -64,6 +64,7 @@ module mo_vector_tend_expl
                                dv_hdz(n_h_vectors+n_vectors_h),flux_density(n_vectors),pot_vort((2*n_layers+1)*n_vectors_h), &
                                vert_hor_viscosity(n_h_vectors+n_vectors_h),pot_vort_tend(n_vectors),v_squared_grad(n_vectors)
     real(wp), intent(inout) :: heating_diss(n_scalars),tke(n_scalars)
+    type(t_grid), intent(in) :: grid
                                
     ! local variables
     integer  :: ji,layer_index,h_index
@@ -111,14 +112,14 @@ module mo_vector_tend_expl
                                     area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
                                     slope,temperature,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
                                     molecular_diffusion_coeff,normal_distance_dual,rho,tke,viscosity,viscosity_triangles, &
-                                    volume,wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity)
+                                    volume,wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity,grid)
       endif
       ! vertical momentum diffusion
       if (lmom_diff_v) then
         call vert_momentum_diffusion(wind,z_vector,normal_distance,from_index,to_index,inner_product_weights, &
                                      slope,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
                                      molecular_diffusion_coeff,rho,tke,viscosity,volume,vector_field_placeholder, &
-                                     scalar_field_placeholder,layer_thickness,n_squared,dv_hdz,vert_hor_viscosity)
+                                     scalar_field_placeholder,layer_thickness,n_squared,dv_hdz,vert_hor_viscosity,grid)
       endif
       ! planetary boundary layer
       if (pbl_scheme>0) then

@@ -121,7 +121,7 @@ module mo_manage_pchevi
                               grid%trsk_weights, &
                               diag%v_squared,diag%vert_hor_viscosity,grid%z_scalar,diag%pot_vort_tend,diag%v_squared_grad, &
                               diag%pressure_gradient_acc_neg_nl,diag%pressure_gradient_acc_neg_l,diag%pgrad_acc_old, &
-                              diag%pressure_grad_condensates_v,rk_step,totally_first_step_bool)
+                              diag%pressure_grad_condensates_v,rk_step,totally_first_step_bool,grid)
       endif
       if (rk_step==1) then
         call calc_pressure_grad_condensates_v(diag%pressure_gradient_decel_factor, &
@@ -146,7 +146,7 @@ module mo_manage_pchevi
                               grid%trsk_weights, &
                               diag%v_squared,diag%vert_hor_viscosity,grid%z_scalar,diag%pot_vort_tend,diag%v_squared_grad, &
                               diag%pressure_gradient_acc_neg_nl,diag%pressure_gradient_acc_neg_l,diag%pgrad_acc_old, &
-                              diag%pressure_grad_condensates_v,rk_step,totally_first_step_bool)
+                              diag%pressure_grad_condensates_v,rk_step,totally_first_step_bool,grid)
       endif
       
       ! time stepping for the horizontal momentum can be directly executed

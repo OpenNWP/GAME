@@ -5,7 +5,7 @@ module mo_momentum_diff_diss
 
   ! The momentum diffusion acceleration is computed here (apart from the diffusion coefficients).
 
-  use mo_definitions,           only: wp
+  use mo_definitions,           only: wp,t_grid
   use mo_constants,             only: EPSILON_SECURITY
   use mo_grid_nml,              only: n_scalars,n_vectors,n_scalars_h,n_h_vectors, &
                                       n_dual_vectors_per_layer,n_dual_scalars_h,n_dual_vectors,n_vectors_h, &
@@ -28,7 +28,7 @@ module mo_momentum_diff_diss
                                     area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
                                     slope,temperature,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
                                     molecular_diffusion_coeff,normal_distance_dual,rho,tke,viscosity,viscosity_triangles, &
-                                    volume,wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity)
+                                    volume,wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity,grid)
     
     ! This subroutine is the horizontal momentum diffusion operator (horizontal diffusion of horizontal velocity).
     
@@ -45,6 +45,7 @@ module mo_momentum_diff_diss
                                viscosity_triangles(n_dual_v_vectors),wind_div(n_scalars),viscosity_rhombi(n_vectors), &
                                vector_field_placeholder(n_vectors),rel_vort((2*n_layers+1)*n_vectors_h), &
                                rel_vort_on_triangles(n_dual_v_vectors),curl_of_vorticity(n_vectors)
+    type(t_grid), intent(in) :: grid
     
     ! local variables
     integer :: h_index,layer_index,vector_index,scalar_index_from,scalar_index_to
@@ -67,7 +68,7 @@ module mo_momentum_diff_diss
     wind_div = viscosity*wind_div
     !$omp end parallel workshare
     
-    call grad_hor(wind_div,vector_field_placeholder,from_index,to_index,normal_distance,inner_product_weights,slope)
+    call grad_hor(wind_div,vector_field_placeholder,grid)
     
     ! off-diagonal component
     !$omp parallel do private(h_index,layer_index)
@@ -109,7 +110,7 @@ module mo_momentum_diff_diss
   subroutine vert_momentum_diffusion(wind,z_vector,normal_distance,from_index,to_index,inner_product_weights, &
                                      slope,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
                                      molecular_diffusion_coeff,rho,tke,viscosity,volume,vector_field_placeholder, &
-                                     scalar_field_placeholder,layer_thickness,n_squared,dv_hdz,vert_hor_viscosity)
+                                     scalar_field_placeholder,layer_thickness,n_squared,dv_hdz,vert_hor_viscosity,grid)
   
     ! This subroutine is the vertical momentum diffusion. The horizontal diffusion has already been called at this points, so we can add the new tendencies.
     
@@ -122,6 +123,7 @@ module mo_momentum_diff_diss
     real(wp), intent(out)   :: friction_acc(n_vectors),molecular_diffusion_coeff(n_scalars),viscosity(n_scalars), &
                                vector_field_placeholder(n_vectors),scalar_field_placeholder(n_scalars), &
                                dv_hdz(n_h_vectors+n_vectors_h),vert_hor_viscosity(n_h_vectors+n_vectors_h)
+    type(t_grid), intent(in) :: grid
     
     ! local variables
     integer  :: ji,layer_index,h_index,vector_index
@@ -201,8 +203,7 @@ module mo_momentum_diff_diss
     !$omp end parallel do
     
     ! computing the horizontal gradient of the vertical velocity field
-    call grad_hor(scalar_field_placeholder,vector_field_placeholder,from_index,to_index, &
-                  normal_distance,inner_product_weights,slope)
+    call grad_hor(scalar_field_placeholder,vector_field_placeholder,grid)
     ! multiplying by the already computed diffusion coefficient
     !$omp parallel do private(h_index,layer_index,vector_index)
     do h_index=1,n_vectors_h
