@@ -49,10 +49,11 @@ program control
   stars = "**********************************************************************************"
   write(*,*) stars
   write(*,*) "*                                                                                *"
-  write(*,*) "*                                This is the GAME                                *"
+  write(*,*) "*                                  This is GAME                                  *"
   write(*,*) "*                      Geophysical Fluids Modeling Framework                     *"
   write(*,*) "*                                                                                *"
-  write(*,*) "Released under the MIT license,visit https://github.com/OpenNWP/GAME for more information."
+  write(*,*) "*                         Released under the MIT license.                        *"
+  write(*,*) "*          Visit https://github.com/OpenNWP/GAME for more information.           *"
   write(*,*) "*                                                                                *"
   write(*,*) stars
   
@@ -296,7 +297,7 @@ program control
   totally_first_step_bool = 1
   ! writing out the initial state of the model run
   call write_out(diag%scalar_field_placeholder,state_1%wind,grid%latlon_interpol_indices, &
-  grid%latlon_interpol_weights,grid%exner_bg, &
+                 grid%latlon_interpol_weights,grid%exner_bg, &
                  grid%inner_product_weights,grid%volume,grid%gravity_potential, &
                  grid%from_index,grid%to_index,grid%z_vector,grid%f_vec,diag%temperature, &
                  state_1%temperature_soil,grid%area,state_1%rho,grid%z_scalar,grid%slope, &
@@ -347,57 +348,23 @@ program control
     
     ! time step integration
     if (mod(time_step_counter,2)==0) then
-      call manage_pchevi(diag%v_squared,state_1%wind,state_tendency%wind,state_2%wind, &
-                         diag%temperature,diag%wind_div,diag%viscosity_triangles,diag%viscosity, &
-                         diag%viscosity_rhombi, &
-                         diag%condensates_sediment_heat,diag%molecular_diffusion_coeff,diag%v_squared_grad, &
-                         t_0,diag%vert_hor_viscosity,diag%vector_field_placeholder,diag%sfc_sw_in, &
-                         totally_first_step_bool,diag%curl_of_vorticity,diag%tke, &
-                         state_1%theta_v_pert,state_2%theta_v_pert,state_2%temperature_soil,diag%sfc_lw_out, &
-                         state_1%temperature_soil,diag%temperature_diffusion_heating, &
-                         diag%temp_diffusion_coeff_numerical_h,diag%temp_diffusion_coeff_numerical_v,diag%friction_acc, &
-                         diag%scalar_flux_resistance,diag%scalar_field_placeholder, &
-                         diag%roughness_velocity,state_tendency%rhotheta_v,state_1%rhotheta_v, &
-                         state_2%rhotheta_v,state_tendency%rho,state_1%rho,state_2%rho,diag%radiation_tendency, &
-                         diag%pot_vort_tend,diag%n_squared, &
-                         diag%power_flux_density_latent,diag%power_flux_density_sensible, &
-                         diag%rel_vort_on_triangles, &
-                         diag%phase_trans_heating_rate,state_2%exner_pert,state_1%exner_pert,diag%rel_vort, &
-                         rad_update, &
-                         diag%pressure_gradient_decel_factor,diag%pressure_gradient_acc_neg_l, &
-                         diag%pressure_gradient_acc_neg_nl, &
-                         diag%pot_vort,diag%flux_density,diag%pressure_grad_condensates_v, &
-                         diag%flux_density_div,diag%dv_hdz, &
-                         diag%monin_obukhov_length,diag%heating_diss,diag%pgrad_acc_old, &
-                         diag%mass_diff_tendency, &
-                         diag%mass_diffusion_coeff_numerical_h, &
-                         diag%mass_diffusion_coeff_numerical_v,diag%phase_trans_rates,grid)
+      call manage_pchevi(state_1%wind,state_tendency%wind,state_2%wind,t_0, &
+                         totally_first_step_bool, &
+                         state_1%theta_v_pert,state_2%theta_v_pert,state_2%temperature_soil, &
+                         state_1%temperature_soil, &
+                         state_tendency%rhotheta_v,state_1%rhotheta_v, &
+                         state_2%rhotheta_v,state_tendency%rho,state_1%rho,state_2%rho, &
+                         state_2%exner_pert,state_1%exner_pert, &
+                         rad_update,diag,grid)
     else
-      call manage_pchevi(diag%v_squared,state_2%wind,state_tendency%wind,state_1%wind, &
-                         diag%temperature,diag%wind_div,diag%viscosity_triangles,diag%viscosity, &
-                         diag%viscosity_rhombi, &
-                         diag%condensates_sediment_heat,diag%molecular_diffusion_coeff,diag%v_squared_grad, &
-                         t_0,diag%vert_hor_viscosity,diag%vector_field_placeholder,diag%sfc_sw_in, &
-                         totally_first_step_bool,diag%curl_of_vorticity,diag%tke, &
-                         state_2%theta_v_pert,state_1%theta_v_pert,state_1%temperature_soil,diag%sfc_lw_out, &
-                         state_2%temperature_soil,diag%temperature_diffusion_heating, &
-                         diag%temp_diffusion_coeff_numerical_h,diag%temp_diffusion_coeff_numerical_v,diag%friction_acc, &
-                         diag%scalar_flux_resistance,diag%scalar_field_placeholder, &
-                         diag%roughness_velocity,state_tendency%rhotheta_v,state_2%rhotheta_v, &
-                         state_1%rhotheta_v,state_tendency%rho,state_2%rho,state_1%rho,diag%radiation_tendency, &
-                         diag%pot_vort_tend,diag%n_squared, &
-                         diag%power_flux_density_latent,diag%power_flux_density_sensible, &
-                         diag%rel_vort_on_triangles, &
-                         diag%phase_trans_heating_rate,state_1%exner_pert,state_2%exner_pert,diag%rel_vort, &
-                         rad_update, &
-                         diag%pressure_gradient_decel_factor,diag%pressure_gradient_acc_neg_l, &
-                         diag%pressure_gradient_acc_neg_nl, &
-                         diag%pot_vort,diag%flux_density,diag%pressure_grad_condensates_v, &
-                         diag%flux_density_div,diag%dv_hdz, &
-                         diag%monin_obukhov_length,diag%heating_diss,diag%pgrad_acc_old, &
-                         diag%mass_diff_tendency, &
-                         diag%mass_diffusion_coeff_numerical_h, &
-                         diag%mass_diffusion_coeff_numerical_v,diag%phase_trans_rates,grid)
+      call manage_pchevi(state_2%wind,state_tendency%wind,state_1%wind,t_0, &
+                         totally_first_step_bool, &
+                         state_2%theta_v_pert,state_1%theta_v_pert,state_1%temperature_soil, &
+                         state_2%temperature_soil, &
+                         state_tendency%rhotheta_v,state_2%rhotheta_v, &
+                         state_1%rhotheta_v,state_tendency%rho,state_2%rho,state_1%rho,  &
+                         state_1%exner_pert,state_2%exner_pert, &
+                         rad_update,diag,grid)
     endif
   
     ! Writing out integrals over the model domain if requested by the user.
