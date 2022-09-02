@@ -39,20 +39,22 @@ program control
   real(wp)              :: t_init,t_0,t_write,t_rad_update,new_weight,old_weight,max_speed_hor,max_speed_ver, &
                            normal_dist_min_hor,normal_dist_min_ver
   real(wp), allocatable :: wind_h_lowest_layer(:)
+  character(len=82)     :: stars
   character(len=128)    :: init_state_file
 
   ! taking the timestamp to measure the performance
   ! clock_t begin = clock()
   
   ! console output
-  write(*,*) "*****************************************************************"
-  write(*,*) "*\t\t\t\t\t\t\t\t\t\t*\n"
-  write(*,*) "*\t\t\t\tThis is the GAME\t\t\t\t*\n"
-  write(*,*) "*\t\t\tGeophysical Fluids Modeling Framework\t\t\t*\n"
-  write(*,*) "*\t\t\t\t\t\t\t\t\t\t*\n"
-  write(*,*) "*****************************************************************"
+  stars = "**********************************************************************************"
+  write(*,*) stars
+  write(*,*) "*                                                                                *"
+  write(*,*) "*                                This is the GAME                                *"
+  write(*,*) "*                      Geophysical Fluids Modeling Framework                     *"
+  write(*,*) "*                                                                                *"
   write(*,*) "Released under the MIT license,visit https://github.com/OpenNWP/GAME for more information."
-  write(*,*) "*****************************************************************"
+  write(*,*) "*                                                                                *"
+  write(*,*) stars
   
   ! setting up the namelists (model configuration)
   call grid_nml_setup()
@@ -234,7 +236,7 @@ program control
   endif
   
   write(*,*) "Initial state set successfully."
-  write(*,*) "**"
+  write(*,*) stars
   
   if (rad_config>0) then
     write(*,*) "Radiation time step: %lf s\n",radiation_dtime
@@ -255,19 +257,19 @@ program control
     endif
   enddo
   
-  write(*,*) "Cloud droplets falling velocity set to %lf m/s.\n",cloud_droplets_velocity
-  write(*,*) "Rain falling velocity set to %lf m/s.\n",rain_velocity
-  write(*,*) "Snow falling velocity set to %lf m/s.\n",snow_velocity
+  write(*,*) "Cloud droplets falling velocity set to",cloud_droplets_velocity,"m/s."
+  write(*,*) "Rain falling velocity set to",rain_velocity,"m/s."
+  write(*,*) "Snow falling velocity set to",snow_velocity,"m/s."
   
-  write(*,*) "Effective horizontal resolution: %lf km\n",1e-3*eff_hor_res
-  write(*,*) "Minimum horizontal normal distance: %lf km\n",1e-3*normal_dist_min_hor
+  write(*,*) "Effective horizontal resolution:",1e-3*eff_hor_res
+  write(*,*) "Minimum horizontal normal distance:",1e-3*normal_dist_min_hor,"km"
   max_speed_hor = 100._wp
-  write(*,*) "Horizontal advective Courant number: %lf\n",dtime/normal_dist_min_hor*max_speed_hor
+  write(*,*) "Horizontal advective Courant number:",dtime/normal_dist_min_hor*max_speed_hor
   max_speed_ver = 0.1_wp
-  write(*,*) "Vertical advective Courant number: %lf\n",dtime/normal_dist_min_ver*max_speed_ver
-  write(*,*) "**"
+  write(*,*) "Vertical advective Courant number:",dtime/normal_dist_min_ver*max_speed_ver
+  write(*,*) stars
   write(*,*) "It begins."
-  write(*,*) "**"
+  write(*,*) stars
   
   allocate(wind_h_lowest_layer(n_output_steps_10m_wind*n_vectors_h))
   !$omp parallel do private(h_index)
@@ -339,6 +341,7 @@ program control
   ! This is the loop over the time steps.
   ! -------------------------------------
   ! this is to store the speed of the model integration
+  time_step_counter = 0
   do while (t_0<t_init+60._wp*total_run_span_min+radius_rescale*300._wp)
     
     ! Checking if the radiative fluxes need to be updated:
@@ -646,7 +649,7 @@ program control
   deallocate(state_write%exner_pert)
   deallocate(state_write%wind)
   deallocate(state_write%temperature_soil)
-  write(*,*) "**"
+  write(*,*) stars
   ! clock_t end = clock()
   ! speed = CLOCKS_PER_SEC*(60*total_run_span_min + 300)/((double) end - begin)
   ! write(*,*) "Average speed: %lf",speed
