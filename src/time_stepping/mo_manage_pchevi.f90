@@ -28,7 +28,7 @@ module mo_manage_pchevi
   
   subroutine manage_pchevi(adjacent_signs_h,adjacent_vector_indices_h,area,layer_thickness, &
                            z_scalar,z_vector,volume,vorticity_indices_triangles,vorticity_signs_triangles, &
-                           z_t_const,z_soil_center,z_soil_interface,v_squared,trsk_weights, &
+                           z_soil_center,z_soil_interface,v_squared,trsk_weights, &
                            from_index,to_index,from_index_dual,to_index_dual,trsk_modified_curl_indices, &
                            area_dual,z_vector_dual,wind_old,wind_tend,wind_new,trsk_indices, &
                            temperature,wind_div,viscosity_triangles,viscosity,viscosity_rhombi, &
@@ -83,7 +83,7 @@ module mo_manage_pchevi
                              density_to_rhombi_indices(4*n_vectors_h),rad_update,is_land(n_scalars_h)
     real(wp), intent(in)  :: area(n_vectors),latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h), &
                              area_dual(n_dual_vectors),layer_thickness(n_scalars),z_vector(n_vectors), &
-                             z_vector_dual(n_dual_vectors),z_t_const,z_soil_center(nsoillays), &
+                             z_vector_dual(n_dual_vectors),z_soil_center(nsoillays), &
                              z_soil_interface(nsoillays+1),z_scalar(n_scalars),volume(n_scalars), &
                              time_coordinate,gravity_m(n_vectors), &
                              trsk_weights(10*n_vectors_h),theta_v_bg(n_scalars),theta_v_pert_old(n_scalars), &
@@ -226,7 +226,7 @@ module mo_manage_pchevi
                                          z_scalar,wind_tend,z_soil_center,t_conduc_soil,sfc_rho_c, &
                                          sfc_lw_out,sfc_sw_in,t_const_soil,z_soil_interface, &
                                          power_flux_density_latent,rhotheta_v_new,exner_pert_new, &
-                                         wind_new,temperature_soil_new,z_t_const,rk_step)
+                                         wind_new,temperature_soil_new,rk_step)
       endif
       if (rk_step==1) then
         call three_band_solver_ver_waves(z_vector,area,volume,scalar_flux_resistance,theta_v_pert_new, &
@@ -237,7 +237,7 @@ module mo_manage_pchevi
                                          z_scalar,wind_tend,z_soil_center,t_conduc_soil,sfc_rho_c, &
                                          sfc_lw_out,sfc_sw_in,t_const_soil,z_soil_interface, &
                                          power_flux_density_latent,rhotheta_v_new,exner_pert_new, &
-                                         wind_new,temperature_soil_new,z_t_const,rk_step)
+                                         wind_new,temperature_soil_new,rk_step)
       endif
       
       ! 4.) vertical tracer advection

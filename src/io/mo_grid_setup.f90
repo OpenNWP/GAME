@@ -23,10 +23,11 @@ module mo_grid_setup
   real(wp) :: radius               ! radius of the planet to construct the grid for
   real(wp) :: mean_velocity_area   ! the area that can be attributed to one horizontal vector grid point
   real(wp) :: eff_hor_res          ! effective horizontal resolution
+  real(wp) :: z_t_const            ! soil depth of constant temperature
   
   contains
   
-  subroutine set_grid_properties(no_of_oro_layers,normal_distance,volume,area,z_scalar,z_vector, &
+  subroutine set_grid_properties(normal_distance,volume,area,z_scalar,z_vector, &
                                  gravity_potential,theta_v_bg,exner_bg, &
                                  layer_thickness,trsk_indices,trsk_modified_curl_indices,from_index, &
                                  to_index,adjacent_vector_indices_h,adjacent_signs_h,density_to_rhombi_indices, &
@@ -34,7 +35,7 @@ module mo_grid_setup
                                  density_to_rhombi_weights,trsk_weights,sfc_albedo,sfc_rho_c, &
                                  t_conduc_soil,roughness_length,is_land,latlon_interpol_indices, &
                                  latlon_interpol_weights,z_soil_interface,z_soil_center, &
-                                 t_const_soil,z_t_const,toa,stretching_parameter,radius, &
+                                 t_const_soil, &
                                  area_dual,z_vector_dual,normal_distance_dual,from_index_dual, &
                                  to_index_dual,vorticity_indices_triangles,vorticity_signs_triangles,f_vec) &
   bind(c,name = "set_grid_properties")
@@ -52,8 +53,8 @@ module mo_grid_setup
                              latlon_interpol_weights(5*n_latlon_io_points),z_soil_interface(nsoillays+1), &
                              z_soil_center(nsoillays),t_const_soil(n_scalars_h),f_vec(2*n_vectors_h), &
                              z_vector_dual(n_dual_vectors),normal_distance_dual(n_dual_vectors), &
-                             area_dual(n_dual_vectors),z_t_const,toa,stretching_parameter,radius
-    integer,  intent(out) :: no_of_oro_layers,trsk_indices(10*n_vectors_h), &
+                             area_dual(n_dual_vectors)
+    integer,  intent(out) :: trsk_indices(10*n_vectors_h), &
                              trsk_modified_curl_indices(10*n_vectors_h),from_index(n_vectors_h), &
                              to_index(n_vectors_h),adjacent_vector_indices_h(6*n_scalars_h), &
                              adjacent_signs_h(6*n_scalars_h),density_to_rhombi_indices(4*n_vectors_h), &
@@ -71,7 +72,7 @@ module mo_grid_setup
                 normal_distance_dual_id,vorticity_indices_triangles_id,vorticity_signs_triangles_id, &
                 latitude_scalar_id,longitude_scalar_id,toa_id,radius_id,interpol_indices_id, &
                 interpol_weights_id,theta_v_bg_id,exner_bg_id,sfc_rho_c_id,sfc_albedo_id,roughness_length_id, &
-                is_land_id,t_conductivity_id,no_of_oro_layers_id,stretching_parameter_id,ji,layer_index,h_index
+                is_land_id,t_conductivity_id,n_oro_layers_id,stretching_parameter_id,ji,layer_index,h_index
     real(wp) :: sigma_soil,rescale_factor
     character(len=128) :: grid_file_name
     
@@ -81,7 +82,7 @@ module mo_grid_setup
     write(*,*) "Grid filename:", grid_file_name
     
     call nc_check(nf90_open(grid_file_name,NF90_CLOBBER,ncid))
-    call nc_check(nf90_inq_varid(ncid,"no_of_oro_layers",no_of_oro_layers_id))
+    call nc_check(nf90_inq_varid(ncid,"no_of_oro_layers",n_oro_layers_id))
     call nc_check(nf90_inq_varid(ncid,"toa",toa_id))
     call nc_check(nf90_inq_varid(ncid,"radius",radius_id))
     call nc_check(nf90_inq_varid(ncid,"stretching_parameter",stretching_parameter_id))
@@ -121,7 +122,7 @@ module mo_grid_setup
     call nc_check(nf90_inq_varid(ncid,"roughness_length",roughness_length_id))
     call nc_check(nf90_inq_varid(ncid,"t_conductivity",t_conductivity_id))
     call nc_check(nf90_inq_varid(ncid,"is_land",is_land_id))
-    call nc_check(nf90_get_var(ncid,no_of_oro_layers_id,n_oro_layers))
+    call nc_check(nf90_get_var(ncid,n_oro_layers_id,n_oro_layers))
     call nc_check(nf90_get_var(ncid,toa_id,toa))
     call nc_check(nf90_get_var(ncid,radius_id,radius))
     call nc_check(nf90_get_var(ncid,stretching_parameter_id,stretching_parameter))
@@ -164,7 +165,6 @@ module mo_grid_setup
     call nc_check(nf90_close(ncid))
     
     radius_rescale = radius/r_e
-    no_of_oro_layers = n_oro_layers
     mean_velocity_area = 2._wp/3._wp*4._wp*M_PI*radius**2/n_scalars_h
     eff_hor_res = sqrt(4._wp*M_PI*radius**2/n_scalars_h)
     

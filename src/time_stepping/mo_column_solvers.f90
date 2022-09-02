@@ -10,6 +10,7 @@ module mo_column_solvers
   use mo_constants,        only: r_d,c_d_v,c_d_p,M_PI
   use mo_run_nml,          only: dtime
   use mo_grid_nml,         only: n_scalars,n_layers,n_scalars_h,n_vectors_per_layer,n_vectors
+  use mo_grid_setup,       only: z_t_const
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents,cloud_droplets_velocity,rain_velocity,&
                                  snow_velocity
   use mo_dictionary,       only: c_p_cond
@@ -29,13 +30,13 @@ module mo_column_solvers
                                          z_scalar,wind_tend,z_soil_center,t_conduc_soil,sfc_rho_c, &
                                          sfc_lw_out,sfc_sw_in,t_const_soil,z_soil_interface, &
                                          power_flux_density_latent,rhotheta_v_target,exner_pert_target, &
-                                         wind_target,temperature_soil_target,z_t_const,rk_step) &
+                                         wind_target,temperature_soil_target,rk_step) &
   bind(c,name = "three_band_solver_ver_waves")
     
     ! This subroutine is the implicit vertical solver for the main fluid constituent.
     real(wp), intent(in)    :: z_vector(n_vectors),area(n_vectors),volume(n_scalars), &
                                scalar_flux_resistance(n_scalars_h),rho_old(n_constituents*n_scalars), &
-                               rhotheta_v_new(n_scalars),rho_new(n_constituents*n_scalars),z_t_const, &
+                               rhotheta_v_new(n_scalars),rho_new(n_constituents*n_scalars), &
                                theta_v_pert_old(n_scalars),theta_v_bg(n_scalars),exner_pert_old(n_scalars), &
                                exner_bg(n_scalars),theta_v_pert_new(n_scalars),exner_pert_new(n_scalars), &
                                temperature_soil_new(nsoillays*n_scalars_h),temperature_soil_old(nsoillays*n_scalars_h), &

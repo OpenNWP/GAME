@@ -60,29 +60,16 @@ module mo_definitions
     real(wp), allocatable :: z_soil_interface(:)
     real(wp), allocatable :: z_soil_center(:)
     real(wp), allocatable :: t_const_soil(:)
-    real(wp)              :: mean_velocity_area
-    real(wp)              :: z_t_const
-    real(wp)              :: toa
-    integer               :: oro_id
-    real(wp)              :: stretching_parameter
-    real(wp)              :: radius
-    real(wp)              :: eff_hor_res
-    integer               :: no_of_oro_layers
-  
-  end type t_grid
-  
-  type t_dual_grid
-  
-    real(wp), allocatable :: area(:)
-    real(wp), allocatable :: z_vector(:)
-    real(wp), allocatable :: normal_distance(:)
-    integer,  allocatable :: from_index(:)
-    integer,  allocatable :: to_index(:)
+    real(wp), allocatable :: area_dual(:)
+    real(wp), allocatable :: z_vector_dual(:)
+    real(wp), allocatable :: normal_distance_dual(:)
+    integer,  allocatable :: from_index_dual(:)
+    integer,  allocatable :: to_index_dual(:)
     integer,  allocatable :: vorticity_indices_triangles(:)
     integer,  allocatable :: vorticity_signs_triangles(:)
     real(wp), allocatable :: f_vec(:)
   
-  end type t_dual_grid
+  end type t_grid
   
   type t_state
     

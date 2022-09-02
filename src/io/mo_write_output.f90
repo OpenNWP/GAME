@@ -65,9 +65,9 @@ module mo_write_output
   
   end subroutine interpolate_to_ll
 
-  subroutine write_out_integral(wind,rhotheta_v,temperature,rho,volume,inner_product_weights, &
+  subroutine write_out_integrals(wind,rhotheta_v,temperature,rho,volume,inner_product_weights, &
                                 gravity_potential,adjacent_vector_indices_h,time_since_init) &
-  bind(c,name = "write_out_integral")
+  bind(c,name = "write_out_integrals")
     
     ! integral_id:
     ! 0: dry mass
@@ -163,7 +163,7 @@ module mo_write_output
     deallocate(int_energy_density)
     close(1)
     
-  end subroutine write_out_integral
+  end subroutine write_out_integrals
 
   subroutine write_out(scalar_field_placeholder,wind,latlon_interpol_indices,latlon_interpol_weights,exner_bg, &
                        inner_product_weights,volume,gravity_potential,from_index,to_index,z_vector,f_vec,temperature, &

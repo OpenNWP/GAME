@@ -15,7 +15,7 @@ module mo_set_initial_state
   use mo_surface_nml,      only: nsoillays
   use mo_derived,          only: rel_humidity
   use mo_various_helpers,  only: nc_check,int2string
-  use mo_grid_setup,       only: radius_rescale
+  use mo_grid_setup,       only: radius_rescale,z_t_const
   use mo_run_nml,          only: ideal_input_id
   use mo_rad_nml,          only: rad_config
   use baroclinic_wave,     only: baroclinic_wave_test
@@ -34,7 +34,7 @@ module mo_set_initial_state
                             pot_vort_tend,z_scalar,rhotheta_v,wind,v_squared,direction,latitude_scalar,longitude_scalar, &
                             z_vector,slope,gravity_potential,pot_vort,rel_vort,rel_vort_on_triangles,trsk_indices,trsk_weights, &
                             trsk_modified_curl_indices,z_vector_dual,vorticity_indices_triangles,vorticity_signs_triangles, &
-                            t_const_soil,is_land,temperature_soil,z_t_const) &
+                            t_const_soil,is_land,temperature_soil) &
   bind(c,name = "set_ideal_init")
   
     ! This subroutine sets the initial state of the model atmosphere for idealized test cases.
@@ -44,7 +44,7 @@ module mo_set_initial_state
                              inner_product_weights(8*n_scalars),normal_distance(n_vectors), &
                              direction(n_vectors_h),latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h), &
                              z_vector(n_vectors),slope(n_vectors),gravity_potential(n_scalars),trsk_weights(10*n_vectors_h), &
-                             z_vector_dual(n_dual_vectors),t_const_soil(n_scalars_h),z_t_const
+                             z_vector_dual(n_dual_vectors),t_const_soil(n_scalars_h)
     real(wp), intent(out) :: exner_pert(n_scalars),theta_v_pert(n_scalars),scalar_field_placeholder(n_scalars), &
                              flux_density(n_vectors),rho(n_constituents*n_scalars),rhotheta_v(n_scalars),wind(n_vectors), &
                              v_squared(n_scalars),pot_vort((2*n_layers+1)*n_vectors_h),rel_vort((2*n_layers+1)*n_vectors_h), &
@@ -267,22 +267,21 @@ module mo_set_initial_state
     deallocate(water_vapour_density)
     
     ! setting the soil temperature
-    call set_soil_temp(is_land,"NONE",t_const_soil,z_t_const,temperature,temperature_soil)
+    call set_soil_temp(is_land,"NONE",t_const_soil,temperature,temperature_soil)
     deallocate(temperature)
     
   end subroutine set_ideal_init
 
   subroutine read_init_data(init_state_file,rho,wind,rhotheta_v,theta_v_pert,exner_pert,t_const_soil,tke, &
-                            temperature_soil,is_land,z_t_const,theta_v_bg,exner_bg) &
-  bind(c,name = "read_init_data")
+                            temperature_soil,is_land,theta_v_bg,exner_bg)
     
     ! This subroutine reads the initial state of the model atmosphere from a netCDF file.
     
-    character(len=1), intent(in)  :: init_state_file
-    real(wp),         intent(out) :: rho(n_constituents*n_scalars),wind(n_vectors),temperature_soil(nsoillays*n_scalars_h), &
-                                     rhotheta_v(n_scalars),theta_v_pert(n_scalars),exner_pert(n_scalars),tke(n_scalars)
-    real(wp),         intent(in)  :: t_const_soil(n_scalars_h),z_t_const,theta_v_bg(n_scalars),exner_bg(n_scalars)
-    integer,          intent(in)  :: is_land(n_scalars_h)
+    character(len=128), intent(in)  :: init_state_file
+    real(wp),           intent(out) :: rho(n_constituents*n_scalars),wind(n_vectors),temperature_soil(nsoillays*n_scalars_h), &
+                                       rhotheta_v(n_scalars),theta_v_pert(n_scalars),exner_pert(n_scalars),tke(n_scalars)
+    real(wp),           intent(in)  :: t_const_soil(n_scalars_h),theta_v_bg(n_scalars),exner_bg(n_scalars)
+    integer,            intent(in)  :: is_land(n_scalars_h)
     
     ! local variables
     integer               :: ji,ncid,tke_id,tke_avail,densities_id,temperature_id,wind_id
@@ -351,19 +350,19 @@ module mo_set_initial_state
     !$omp end parallel do
     
     ! setting the soil temperature
-    call set_soil_temp(is_land,init_state_file,t_const_soil,z_t_const,temperature,temperature_soil)
+    call set_soil_temp(is_land,init_state_file,t_const_soil,temperature,temperature_soil)
     
     deallocate(temperature)
     
   end subroutine read_init_data
 
-  subroutine set_soil_temp(is_land,init_state_file,t_const_soil,z_t_const,temperature,temperature_soil)
+  subroutine set_soil_temp(is_land,init_state_file,t_const_soil,temperature,temperature_soil)
     
     ! This subroutine sets the soil and SST temperature.
     
     integer,          intent(in)  :: is_land(n_scalars_h)
     character(len=*), intent(in)  :: init_state_file
-    real(wp),         intent(in)  :: t_const_soil(n_scalars_h),temperature(n_scalars),z_t_const
+    real(wp),         intent(in)  :: t_const_soil(n_scalars_h),temperature(n_scalars)
     real(wp),         intent(out) :: temperature_soil(nsoillays*n_scalars_h)
     
     ! local variables
