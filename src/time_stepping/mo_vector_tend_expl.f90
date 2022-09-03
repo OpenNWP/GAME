@@ -36,7 +36,7 @@ module mo_vector_tend_expl
                               theta_v_bg,theta_v_pert,scalar_field_placeholder,n_squared,wind_tend, &
                               density_to_rhombi_indices,density_to_rhombi_weights,dv_hdz,exner_bg, &
                               exner_pert,f_vec,flux_density,heating_diss,layer_thickness,monin_obukhov_length, &
-                              pot_vort,roughness_length,trsk_indices,trsk_modified_curl_indices,trsk_weights, &
+                              pot_vort,roughness_length,trsk_indices,trsk_modified_curl_indices, &
                               v_squared,vert_hor_viscosity,z_scalar,pot_vort_tend,v_squared_grad, &
                               pressure_gradient_acc_neg_nl,pressure_gradient_acc_neg_l,pgrad_acc_old, &
                               pressure_grad_condensates_v,totally_first_step_bool,grid,rk_step)
@@ -47,7 +47,7 @@ module mo_vector_tend_expl
                                normal_distance_dual(n_dual_vectors),rho(n_constituents*n_scalars), &
                                theta_v_bg(n_scalars),theta_v_pert(n_scalars),density_to_rhombi_weights(4*n_vectors_h), &
                                exner_bg(n_scalars),exner_pert(n_scalars),f_vec(2*n_vectors_h),layer_thickness(n_scalars), &
-                               monin_obukhov_length(n_scalars_h),roughness_length(n_scalars_h),trsk_weights(10*n_vectors_h), &
+                               monin_obukhov_length(n_scalars_h),roughness_length(n_scalars_h), &
                                z_scalar(n_scalars),pressure_gradient_acc_neg_nl(n_vectors),pressure_gradient_acc_neg_l(n_vectors), &
                                pgrad_acc_old(n_vectors),pressure_grad_condensates_v(n_vectors)
     integer,  intent(in)    :: vorticity_indices_triangles(3*n_dual_scalars_h),density_to_rhombi_indices(4*n_vectors_h), &
@@ -84,7 +84,7 @@ module mo_vector_tend_expl
                          slope,f_vec,pot_vort,density_to_rhombi_indices,density_to_rhombi_weights, &
                          rho(n_condensed_constituents*n_scalars))
       ! Now, the generalized Coriolis term is evaluated.
-      call vorticity_flux(from_index,to_index,pot_vort_tend,trsk_indices,trsk_modified_curl_indices,trsk_weights, &
+      call vorticity_flux(from_index,to_index,pot_vort_tend,trsk_indices,trsk_modified_curl_indices,grid%trsk_weights, &
                           flux_density,pot_vort,inner_product_weights,adjacent_vector_indices_h)
       ! Kinetic energy is prepared for the gradient term of the Lamb transformation.
       call inner_product(state%wind,state%wind,v_squared,grid)

@@ -118,7 +118,6 @@ module mo_manage_pchevi
                               state_old%exner_pert,grid%f_vec,diag%flux_density,diag%heating_diss,grid%layer_thickness, &
                               diag%monin_obukhov_length, &
                               diag%pot_vort,grid%roughness_length,grid%trsk_indices,grid%trsk_modified_curl_indices, &
-                              grid%trsk_weights, &
                               diag%v_squared,diag%vert_hor_viscosity,grid%z_scalar,diag%pot_vort_tend,diag%v_squared_grad, &
                               diag%pressure_gradient_acc_neg_nl,diag%pressure_gradient_acc_neg_l,diag%pgrad_acc_old, &
                               diag%pressure_grad_condensates_v,totally_first_step_bool,grid,rk_step)
@@ -143,7 +142,6 @@ module mo_manage_pchevi
                               state_new%exner_pert,grid%f_vec,diag%flux_density,diag%heating_diss,grid%layer_thickness, &
                               diag%monin_obukhov_length, &
                               diag%pot_vort,grid%roughness_length,grid%trsk_indices,grid%trsk_modified_curl_indices, &
-                              grid%trsk_weights, &
                               diag%v_squared,diag%vert_hor_viscosity,grid%z_scalar,diag%pot_vort_tend,diag%v_squared_grad, &
                               diag%pressure_gradient_acc_neg_nl,diag%pressure_gradient_acc_neg_l,diag%pgrad_acc_old, &
                               diag%pressure_grad_condensates_v,totally_first_step_bool,grid,rk_step)
