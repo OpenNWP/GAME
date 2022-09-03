@@ -221,7 +221,7 @@ module mo_write_output
     allocate(lat_lon_output_field(n_lat_io_points,n_lon_io_points))
     
     ! diagnosing the temperature
-    call temperature_diagnostics(diag%temperature,grid%theta_v_bg,state%theta_v_pert,grid%exner_bg,state%exner_pert,state%rho)
+    call temperature_diagnostics(diag%temperature,state%theta_v_pert,state%exner_pert,state%rho,grid)
     
     time_since_init_min = int(t_write - t_init)
     time_since_init_min = time_since_init_min/60

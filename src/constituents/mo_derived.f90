@@ -5,7 +5,7 @@ module mo_derived
 
   ! This module contains look-up functions for properties of the atmosphere.
 
-  use mo_definitions,      only: wp
+  use mo_definitions,      only: wp,t_grid
   use mo_run_nml,          only: lmoist
   use mo_constants,        only: m_d,n_a,k_b,M_PI,t_0,r_v,c_d_v,c_v_v,r_d,m_v
   use mo_dictionary,       only: saturation_pressure_over_water,saturation_pressure_over_ice,c_p_cond
@@ -85,13 +85,14 @@ module mo_derived
     
   end function density_total
 
-  subroutine temperature_diagnostics(temperature,theta_v_bg,theta_v_pert,exner_bg,exner_pert,rho)
+  subroutine temperature_diagnostics(temperature,theta_v_pert,exner_pert,rho,grid)
     
     ! This subroutine diagnoses the temperature of the gas phase.
     
     real(wp), intent(out) :: temperature(n_scalars)
-    real(wp), intent(in)  :: theta_v_bg(n_scalars),theta_v_pert(n_scalars),exner_bg(n_scalars),exner_pert(n_scalars), &
+    real(wp), intent(in)  :: theta_v_pert(n_scalars),exner_pert(n_scalars), &
                              rho(n_constituents*n_scalars)
+    type(t_grid), intent(in) :: grid
     
     ! local variables
     integer :: ji
@@ -99,14 +100,14 @@ module mo_derived
     if (.not. lmoist) then
      !$omp parallel do private(ji)
       do ji=1,n_scalars
-        temperature(ji) = (theta_v_bg(ji)+theta_v_pert(ji))*(exner_bg(ji)+exner_pert(ji))
+        temperature(ji) = (grid%theta_v_bg(ji)+theta_v_pert(ji))*(grid%exner_bg(ji)+exner_pert(ji))
       enddo
       !$omp end parallel do
     endif
     if (lmoist) then
      !$omp parallel do private(ji)
       do ji=1,n_scalars
-        temperature(ji) = (theta_v_bg(ji)+theta_v_pert(ji))*(exner_bg(ji)+exner_pert(ji)) &
+        temperature(ji) = (grid%theta_v_bg(ji)+theta_v_pert(ji))*(grid%exner_bg(ji)+exner_pert(ji)) &
         /(1._wp+rho((n_condensed_constituents+1)*n_scalars+ji)/rho(n_condensed_constituents*n_scalars+ji)*(m_d/m_v - 1.0))
       enddo
       !$omp end parallel do

@@ -42,8 +42,7 @@ module mo_manage_pchevi
     ! ------------
     
     ! diagnosing the temperature
-    call  temperature_diagnostics(diag%temperature,grid%theta_v_bg,state_old%theta_v_pert,grid%exner_bg, &
-                                  state_old%exner_pert,state_old%rho)
+    call  temperature_diagnostics(diag%temperature,state_old%theta_v_pert,state_old%exner_pert,state_old%rho,grid)
     
     ! updating surface-related turbulence quantities if it is necessary
     if (lsfc_sensible_heat_flux .or. lsfc_phase_trans .or. pbl_scheme==1) then

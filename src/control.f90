@@ -263,7 +263,7 @@ program control
     enddo
   enddo
   !$omp end parallel do
-  call temperature_diagnostics(diag%temperature,grid%theta_v_bg,state_1%theta_v_pert,grid%exner_bg,state_1%exner_pert,state_1%rho)
+  call temperature_diagnostics(diag%temperature,state_1%theta_v_pert,state_1%exner_pert,state_1%rho,grid)
   call inner_product(state_1%wind,state_1%wind,diag%v_squared,grid)
   
   ! time coordinate of the old RK step
