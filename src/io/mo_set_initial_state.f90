@@ -6,7 +6,7 @@ module mo_set_initial_state
   ! In this modulethe initial state of the simulation is set.
 
   use netcdf
-  use mo_definitions,      only: wp
+  use mo_definitions,      only: wp,t_grid
   use mo_constants,        only: p_0,r_d,c_d_p,m_d,m_v
   use mo_grid_nml,         only: n_scalars,n_scalars_h,n_vectors,n_vectors_per_layer,n_vectors_h,n_levels,n_dual_vectors, &
                                  n_layers,oro_id,res_id,n_dual_v_vectors,n_dual_scalars_h
@@ -27,32 +27,26 @@ module mo_set_initial_state
   
   contains
   
-  subroutine set_ideal_init(exner_pert,theta_v_pert,scalar_field_placeholder,exner_bg,theta_v_bg,adjacent_vector_indices_h, &
-                            area_dual,density_to_rhombi_indices,density_to_rhombi_weights,f_vec,flux_density, &
-                            from_index,to_index,from_index_dual,to_index_dual,rho,inner_product_weights,normal_distance, &
-                            pot_vort_tend,z_scalar,rhotheta_v,wind,v_squared,direction,latitude_scalar,longitude_scalar, &
-                            z_vector,slope,gravity_potential,pot_vort,rel_vort,rel_vort_on_triangles,trsk_indices,trsk_weights, &
-                            trsk_modified_curl_indices,z_vector_dual,vorticity_indices_triangles,vorticity_signs_triangles, &
-                            t_const_soil,is_land,temperature_soil)
+  subroutine set_ideal_init(exner_pert,theta_v_pert,scalar_field_placeholder,theta_v_bg,adjacent_vector_indices_h, &
+                            flux_density, &
+                            rho, &
+                            pot_vort_tend,rhotheta_v,wind,v_squared,direction,latitude_scalar,longitude_scalar, &
+                            gravity_potential,pot_vort,rel_vort,rel_vort_on_triangles,vorticity_signs_triangles, &
+                            temperature_soil,grid)
   
     ! This subroutine sets the initial state of the model atmosphere for idealized test cases.
   
-    real(wp), intent(in)  :: exner_bg(n_scalars),theta_v_bg(n_scalars),area_dual(n_dual_vectors), &
-                             density_to_rhombi_weights(4*n_vectors_h),f_vec(2*n_vectors_h),z_scalar(n_scalars), &
-                             inner_product_weights(8*n_scalars),normal_distance(n_vectors), &
+    real(wp), intent(in)  :: theta_v_bg(n_scalars), &
                              direction(n_vectors_h),latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h), &
-                             z_vector(n_vectors),slope(n_vectors),gravity_potential(n_scalars),trsk_weights(10*n_vectors_h), &
-                             z_vector_dual(n_dual_vectors),t_const_soil(n_scalars_h)
+                             gravity_potential(n_scalars)
     real(wp), intent(out) :: exner_pert(n_scalars),theta_v_pert(n_scalars),scalar_field_placeholder(n_scalars), &
                              flux_density(n_vectors),rho(n_constituents*n_scalars),rhotheta_v(n_scalars),wind(n_vectors), &
                              v_squared(n_scalars),pot_vort((2*n_layers+1)*n_vectors_h),rel_vort((2*n_layers+1)*n_vectors_h), &
                              rel_vort_on_triangles(n_dual_v_vectors),temperature_soil(nsoillays*n_scalars_h), &
                              pot_vort_tend(n_vectors)
-    integer,  intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h),density_to_rhombi_indices(4*n_vectors_h), &
-                             from_index(n_vectors_h),to_index(n_vectors_h),from_index_dual(n_vectors_h), &
-                             to_index_dual(n_vectors_h),trsk_indices(10*n_vectors_h),trsk_modified_curl_indices(10*n_vectors_h), &
-                             vorticity_indices_triangles(3*n_dual_scalars_h),vorticity_signs_triangles(3*n_dual_scalars_h), &
-                             is_land(n_scalars_h)
+    integer,  intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h), &
+                             vorticity_signs_triangles(3*n_dual_scalars_h)
+    type(t_grid), intent(in)  :: grid
     
     ! local variables
     integer               :: ji,jl,jc,layer_index,h_index,scalar_index,ncid_grid,latitude_vector_id, &
@@ -97,12 +91,12 @@ module mo_set_initial_state
       h_index = ji - layer_index*n_scalars_h
         lat = latitude_scalar(h_index)
         lon = longitude_scalar(h_index)
-        z_height = z_scalar(ji)
+        z_height = grid%z_scalar(ji)
         ! standard atmosphere
         if (ideal_input_id==0) then
-          temperature(ji) = theta_v_bg(ji)* exner_bg(ji)
+          temperature(ji) = theta_v_bg(ji)*grid%exner_bg(ji)
           temperature_v(ji) = temperature(ji)
-          pressure(ji) = p_0*exner_bg(ji)**(c_d_p/r_d)
+          pressure(ji) = p_0*grid%exner_bg(ji)**(c_d_p/r_d)
         endif
         ! dry Ullrich test
         if (ideal_input_id==1) then
@@ -146,7 +140,7 @@ module mo_set_initial_state
       do jl=0,n_layers-1
         lat = latitude_vector(ji)
         lon = longitude_vector(ji)
-        z_height = z_vector(n_scalars_h + ji + jl*n_vectors_per_layer)
+        z_height = grid%z_vector(n_scalars_h + ji + jl*n_vectors_per_layer)
         ! standard atmosphere: no wind
         if (ideal_input_id==0) then
           wind(n_scalars_h + jl*n_vectors_per_layer + ji) = 0._wp          
@@ -190,19 +184,21 @@ module mo_set_initial_state
     scalar_field_placeholder = pressure/(r_d*temperature_v)
     !$omp end parallel workshare
     
-    call scalar_times_vector(scalar_field_placeholder,wind,flux_density,from_index,to_index)
+    call scalar_times_vector(scalar_field_placeholder,wind,flux_density,grid%from_index,grid%to_index)
     ! Nowthe potential vorticity is evaluated.
-    call calc_pot_vort(wind,rel_vort_on_triangles,z_vector,z_vector_dual,rel_vort, &
-                       vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
-                       area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
-                       slope,f_vec,pot_vort,density_to_rhombi_indices,density_to_rhombi_weights, &
+    call calc_pot_vort(wind,rel_vort_on_triangles,grid%z_vector,grid%z_vector_dual,rel_vort, &
+                       grid%vorticity_indices_triangles,vorticity_signs_triangles,grid%normal_distance, &
+                       grid%area_dual,grid%from_index,grid%to_index,grid%from_index_dual,grid%to_index_dual, &
+                       grid%inner_product_weights, &
+                       grid%slope,grid%f_vec,pot_vort,grid%density_to_rhombi_indices,grid%density_to_rhombi_weights, &
                        scalar_field_placeholder)
     ! Nowthe generalized Coriolis term is evaluated.
-    call vorticity_flux(from_index,to_index,pot_vort_tend,trsk_indices,trsk_modified_curl_indices,trsk_weights, &
-                        flux_density,pot_vort,inner_product_weights,adjacent_vector_indices_h)
+    call vorticity_flux(grid%from_index,grid%to_index,pot_vort_tend,grid%trsk_indices,grid%trsk_modified_curl_indices, &
+                        grid%trsk_weights, &
+                        flux_density,pot_vort,grid%inner_product_weights,adjacent_vector_indices_h)
     
     ! Kinetic energy is prepared for the gradient term of the Lamb transformation.
-    call inner_product(wind,wind,v_squared,adjacent_vector_indices_h,inner_product_weights)
+    call inner_product(wind,wind,v_squared,grid)
     
     ! density is determined out of the hydrostatic equation
     ! theta_v_pert and exner_pert are a misuse of name herethey contain the full values here
@@ -222,7 +218,8 @@ module mo_set_initial_state
           *(temperature_v(scalar_index) - temperature_v(scalar_index + n_scalars_h) &
           + 2._wp/c_d_p*(gravity_potential(scalar_index) - gravity_potential(scalar_index + n_scalars_h) &
           + 0.5_wp*v_squared(scalar_index) - 0.5_wp*v_squared(scalar_index + n_scalars_h) &
-          - (z_scalar(scalar_index) - z_scalar(scalar_index + n_scalars_h))*pot_vort_tend(ji + (jl+1)*n_vectors_per_layer)))
+          - (grid%z_scalar(scalar_index) - grid%z_scalar(scalar_index + n_scalars_h)) &
+          *pot_vort_tend(ji + (jl+1)*n_vectors_per_layer)))
           c = exner_pert(scalar_index + n_scalars_h)**2*temperature_v(scalar_index)/temperature_v(scalar_index + n_scalars_h)
           exner_pert(scalar_index) = b + (b**2+c)**0.5_wp
         endif
@@ -243,7 +240,7 @@ module mo_set_initial_state
     
     ! substracting the background state
     !$omp parallel workshare
-    exner_pert = exner_pert - exner_bg
+    exner_pert = exner_pert - grid%exner_bg
     theta_v_pert = theta_v_pert - theta_v_bg
     !$omp end parallel workshare
     
@@ -265,7 +262,7 @@ module mo_set_initial_state
     deallocate(water_vapour_density)
     
     ! setting the soil temperature
-    call set_soil_temp(is_land,"NONE",t_const_soil,temperature,temperature_soil)
+    call set_soil_temp(grid%is_land,"NONE",grid%t_const_soil,temperature,temperature_soil)
     deallocate(temperature)
     
   end subroutine set_ideal_init

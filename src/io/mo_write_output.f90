@@ -7,7 +7,7 @@ module mo_write_output
   ! In addition to that,some postprocessing diagnostics are also calculated here.
   
   use netcdf
-  use mo_definitions,            only: wp
+  use mo_definitions,            only: wp,t_grid,t_state,t_diag
   use mo_constants,              only: c_d_p,r_d,t_0,EPSILON_SECURITY,c_d_v,r_v,p_0,M_PI,gravity
   use mo_grid_nml,               only: n_scalars,n_scalars_h,n_vectors_per_layer,n_vectors_h,n_dual_vectors, &
                                        n_lat_io_points,n_lon_io_points,n_vectors,n_levels,n_layers,n_dual_scalars_h, &
@@ -64,18 +64,14 @@ module mo_write_output
   
   end subroutine interpolate_to_ll
 
-  subroutine write_out_integrals(wind,rhotheta_v,temperature,rho,volume,inner_product_weights, &
-                                gravity_potential,adjacent_vector_indices_h,time_since_init)
+  subroutine write_out_integrals(state,diag,grid,time_since_init)
     
-    ! integral_id:
-    ! 0: dry mass
-    ! 1: entropy
-    ! 2: energy
+    ! This subroutine writes out fundamental integral properties of the atmosphere to a text file.
    
-    real(wp), intent(in)  :: volume(n_scalars),rhotheta_v(n_scalars),temperature(n_scalars), &
-                             gravity_potential(n_scalars),rho(n_constituents*n_scalars),time_since_init, &
-                             wind(n_vectors),inner_product_weights(8*n_scalars)
-    integer,  intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h)
+    type(t_grid),  intent(in) :: grid            ! grid properties
+    type(t_diag),  intent(in) :: diag            ! diagnostic quantities
+    type(t_state), intent(in) :: state           ! the state to use for writing the integrals
+    real(wp),      intent(in) :: time_since_init ! the time since model initialization
     
     ! local variables
     integer               :: ji,const_id
@@ -94,7 +90,7 @@ module mo_write_output
     do const_id=1,n_constituents
       global_integral = 0._wp
       do ji=1,n_scalars
-        global_integral = global_integral + rho((const_id-1)*n_scalars + ji)*volume(ji)
+        global_integral = global_integral + state%rho((const_id-1)*n_scalars + ji)*grid%volume(ji)
       enddo
       if (const_id==n_constituents) then
         write(1,fmt="(F6.3)") global_integral
@@ -112,7 +108,7 @@ module mo_write_output
     endif
     global_integral = 0._wp
     do ji=1,n_scalars
-      global_integral = global_integral + rhotheta_v(ji)*volume(ji)
+      global_integral = global_integral + state%rhotheta_v(ji)*grid%volume(ji)
     enddo
     write(1,fmt="(F6.3,F6.3)") time_since_init,global_integral
     close(1)
@@ -124,37 +120,37 @@ module mo_write_output
       open(1,file="energy",status="old",position="append",action="write")
     endif
     allocate(e_kin_density(n_scalars))
-    call inner_product(wind,wind,e_kin_density,adjacent_vector_indices_h,inner_product_weights)
+    call inner_product(state%wind,state%wind,e_kin_density,grid)
     !$omp parallel do private(ji)
     do ji=1,n_scalars
-      e_kin_density(ji) = rho(n_condensed_constituents*n_scalars + ji)*e_kin_density(ji)
+      e_kin_density(ji) = state%rho(n_condensed_constituents*n_scalars + ji)*e_kin_density(ji)
     enddo
     !$omp end parallel do
     kinetic_integral = 0._wp
     do ji=1,n_scalars
-      kinetic_integral = kinetic_integral + e_kin_density(ji)*volume(ji)
+      kinetic_integral = kinetic_integral + e_kin_density(ji)*grid%volume(ji)
     enddo
     deallocate(e_kin_density)
     allocate(pot_energy_density(n_scalars))
     !$omp parallel do private(ji)
     do ji=1,n_scalars
-      pot_energy_density(ji) = rho(n_condensed_constituents*n_scalars + ji)*gravity_potential(ji)
+      pot_energy_density(ji) = state%rho(n_condensed_constituents*n_scalars + ji)*grid%gravity_potential(ji)
     enddo
     !$omp end parallel do
     potential_integral = 0._wp
     do ji=1,n_scalars
-      potential_integral = potential_integral + pot_energy_density(ji)*volume(ji)
+      potential_integral = potential_integral + pot_energy_density(ji)*grid%volume(ji)
      enddo
     deallocate(pot_energy_density)
     allocate(int_energy_density(n_scalars))
     !$omp parallel do private(ji)
     do ji=1,n_scalars
-      int_energy_density(ji) = rho(n_condensed_constituents*n_scalars + ji)*temperature(ji)
+      int_energy_density(ji) = state%rho(n_condensed_constituents*n_scalars + ji)*diag%temperature(ji)
     enddo
     !$omp end parallel do
     internal_integral = 0._wp
     do ji=1,n_scalars
-      internal_integral = internal_integral+int_energy_density(ji)*volume(ji)
+      internal_integral = internal_integral+int_energy_density(ji)*grid%volume(ji)
     enddo
     write(1,fmt="(F6.3,F6.3,F6.3,F6.3)") time_since_init,0.5_wp*kinetic_integral,potential_integral, &
                           c_d_v*internal_integral

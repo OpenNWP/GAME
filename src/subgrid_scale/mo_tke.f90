@@ -5,7 +5,7 @@ module mo_tke
 
   ! In this module, turbulence-related quantities are computed.
 
-  use mo_definitions,        only: wp
+  use mo_definitions,        only: wp,t_grid
   use mo_grid_nml,           only: n_scalars,n_vectors,n_vectors_h,n_scalars_h
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
   use mo_run_nml,            only: dtime
@@ -18,23 +18,24 @@ module mo_tke
   
   contains
 
-  subroutine tke_update(rho,viscosity,heating_diss,tke,vector_field_placeholder,wind,scalar_field_placeholder,from_index,to_index, &
-                        adjacent_vector_indices_h,normal_distance,inner_product_weights,slope)
+  subroutine tke_update(rho,viscosity,heating_diss,tke,vector_field_placeholder,wind,scalar_field_placeholder, &
+                        grid)
   
     ! This subroutine updates the specific turbulent kinetic energy (TKE), unit: J/kg.
     
     real(wp), intent(out) :: tke(n_scalars),vector_field_placeholder(n_vectors),scalar_field_placeholder(n_scalars)
-    real(wp), intent(in)  :: wind(n_vectors),normal_distance(n_vectors),inner_product_weights(8*n_scalars), &
-                             slope(n_vectors),rho(n_constituents*n_scalars),viscosity(n_scalars),heating_diss(n_scalars)
-    integer,  intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h),from_index(n_vectors_h),to_index(n_vectors_h)
+    real(wp), intent(in)  :: wind(n_vectors), &
+                             rho(n_constituents*n_scalars),viscosity(n_scalars),heating_diss(n_scalars)
+    type(t_grid), intent(in) :: grid
     
     ! local variables
     integer  :: ji
     real(wp) :: decay_constant
     
     ! computing the advection
-    call grad(tke,vector_field_placeholder,from_index,to_index,normal_distance,inner_product_weights,slope)
-    call inner_product(vector_field_placeholder,wind,scalar_field_placeholder,adjacent_vector_indices_h,inner_product_weights)
+    call grad(tke,vector_field_placeholder,grid%from_index,grid%to_index, &
+              grid%normal_distance,grid%inner_product_weights,grid%slope)
+    call inner_product(vector_field_placeholder,wind,scalar_field_placeholder,grid)
     
     ! loop over all scalar gridpoints
     !$omp parallel do private(ji,decay_constant)

@@ -5,7 +5,7 @@ module mo_vector_tend_expl
 
   ! In this module, the calculation of the explicit part of the momentum equation is managed.
   
-  use mo_definitions,           only: wp,t_grid
+  use mo_definitions,           only: wp,t_grid,t_state
   use mo_grid_nml,              only: n_vectors_per_layer,n_vectors,n_scalars_h,n_scalars,n_dual_vectors,n_vectors_h, &
                                       n_dual_scalars_h,n_dual_v_vectors,n_layers,n_h_vectors
   use mo_gradient_operators,    only: grad
@@ -27,23 +27,23 @@ module mo_vector_tend_expl
   
   contains
 
-  subroutine vector_tend_expl(wind,rel_vort_on_triangles,z_vector,z_vector_dual,rel_vort, &
+  subroutine vector_tend_expl(state,rel_vort_on_triangles,rel_vort, &
                               vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
                               area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
                               slope,temperature,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
                               molecular_diffusion_coeff,normal_distance_dual,rho,tke,viscosity,viscosity_triangles, &
-                              volume,wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity, &
+                              wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity, &
                               gravity_m,theta_v_bg,theta_v_pert,scalar_field_placeholder,n_squared,wind_tend, &
                               density_to_rhombi_indices,density_to_rhombi_weights,dv_hdz,exner_bg, &
                               exner_pert,f_vec,flux_density,heating_diss,layer_thickness,monin_obukhov_length, &
                               pot_vort,roughness_length,trsk_indices,trsk_modified_curl_indices,trsk_weights, &
                               v_squared,vert_hor_viscosity,z_scalar,pot_vort_tend,v_squared_grad, &
                               pressure_gradient_acc_neg_nl,pressure_gradient_acc_neg_l,pgrad_acc_old, &
-                              pressure_grad_condensates_v,rk_step,totally_first_step_bool,grid)
+                              pressure_grad_condensates_v,totally_first_step_bool,grid,rk_step)
   
-    real(wp), intent(in)    :: wind(n_vectors),z_vector(n_vectors),z_vector_dual(n_dual_vectors),normal_distance(n_vectors), &
+    real(wp), intent(in)    :: normal_distance(n_vectors), &
                                area_dual(n_dual_vectors),inner_product_weights(8*n_scalars),slope(n_vectors), &
-                               temperature(n_scalars),area(n_vectors),volume(n_scalars),gravity_m(n_vectors), &
+                               temperature(n_scalars),area(n_vectors),gravity_m(n_vectors), &
                                normal_distance_dual(n_dual_vectors),rho(n_constituents*n_scalars), &
                                theta_v_bg(n_scalars),theta_v_pert(n_scalars),density_to_rhombi_weights(4*n_vectors_h), &
                                exner_bg(n_scalars),exner_pert(n_scalars),f_vec(2*n_vectors_h),layer_thickness(n_scalars), &
@@ -65,6 +65,7 @@ module mo_vector_tend_expl
                                vert_hor_viscosity(n_h_vectors+n_vectors_h),pot_vort_tend(n_vectors),v_squared_grad(n_vectors)
     real(wp), intent(inout) :: heating_diss(n_scalars),tke(n_scalars)
     type(t_grid), intent(in) :: grid
+    type(t_state), intent(in) :: state ! state to use for calculating the tendencies
                                
     ! local variables
     integer  :: ji,layer_index,h_index
@@ -75,9 +76,9 @@ module mo_vector_tend_expl
     
     if (rk_step==1 .or. totally_first_step_bool==1) then
       call scalar_times_vector(rho(n_condensed_constituents*n_scalars+1:(n_condensed_constituents+1)*n_scalars), &
-                               wind,flux_density,from_index,to_index)
+                               state%wind,flux_density,from_index,to_index)
       ! Now, the "potential vorticity" is evaluated.
-      call calc_pot_vort(wind,rel_vort_on_triangles,z_vector,z_vector_dual,rel_vort, &
+      call calc_pot_vort(state%wind,rel_vort_on_triangles,grid%z_vector,grid%z_vector_dual,rel_vort, &
                          vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
                          area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
                          slope,f_vec,pot_vort,density_to_rhombi_indices,density_to_rhombi_weights, &
@@ -86,7 +87,7 @@ module mo_vector_tend_expl
       call vorticity_flux(from_index,to_index,pot_vort_tend,trsk_indices,trsk_modified_curl_indices,trsk_weights, &
                           flux_density,pot_vort,inner_product_weights,adjacent_vector_indices_h)
       ! Kinetic energy is prepared for the gradient term of the Lamb transformation.
-      call inner_product(wind,wind,v_squared,adjacent_vector_indices_h,inner_product_weights)
+      call inner_product(state%wind,state%wind,v_squared,grid)
       ! Taking the gradient of the kinetic energy
       call grad(v_squared,v_squared_grad,from_index,to_index,normal_distance,inner_product_weights,slope)
     endif
@@ -100,37 +101,35 @@ module mo_vector_tend_expl
         call update_n_squared(theta_v_bg,theta_v_pert,normal_distance,inner_product_weights,gravity_m, &
                               scalar_field_placeholder,vector_field_placeholder,n_squared)
         call tke_update(rho,viscosity,heating_diss, &
-                        tke,vector_field_placeholder,wind,scalar_field_placeholder,from_index,to_index, &
-                        adjacent_vector_indices_h,normal_distance,inner_product_weights,slope)
+                        tke,vector_field_placeholder,state%wind,scalar_field_placeholder,grid)
       endif
       
       ! momentum diffusion and dissipation (only updated at the first RK step)
       ! horizontal momentum diffusion
       if (lmom_diff_h) then
-        call hor_momentum_diffusion(wind,rel_vort_on_triangles,z_vector,z_vector_dual,rel_vort, &
+        call hor_momentum_diffusion(state%wind,rel_vort_on_triangles,grid%z_vector,grid%z_vector_dual,rel_vort, &
                                     vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
                                     area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
                                     slope,temperature,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
                                     molecular_diffusion_coeff,normal_distance_dual,rho,tke,viscosity,viscosity_triangles, &
-                                    volume,wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity,grid)
+                                    grid%volume,wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity,grid)
       endif
       ! vertical momentum diffusion
       if (lmom_diff_v) then
-        call vert_momentum_diffusion(wind,z_vector,normal_distance,from_index,to_index,inner_product_weights, &
+        call vert_momentum_diffusion(state%wind,grid%z_vector,normal_distance,from_index,to_index,inner_product_weights, &
                                      slope,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
-                                     molecular_diffusion_coeff,rho,tke,viscosity,volume,vector_field_placeholder, &
+                                     molecular_diffusion_coeff,rho,tke,viscosity,grid%volume,vector_field_placeholder, &
                                      scalar_field_placeholder,layer_thickness,n_squared,dv_hdz,vert_hor_viscosity,grid)
       endif
       ! planetary boundary layer
       if (pbl_scheme>0) then
-        call pbl_wind_tendency(wind,z_vector,monin_obukhov_length,exner_bg,exner_pert,v_squared, &
+        call pbl_wind_tendency(state%wind,grid%z_vector,monin_obukhov_length,exner_bg,exner_pert,v_squared, &
                                from_index,to_index,friction_acc,gravity_m,roughness_length,rho, &
                                temperature,z_scalar)
       endif
       ! calculation of the dissipative heating rate
       if (lmom_diff_h .or. pbl_scheme>0) then
-        call simple_dissipation_rate(wind,friction_acc,heating_diss, &
-                                     adjacent_vector_indices_h,inner_product_weights,rho)
+        call simple_dissipation_rate(state,friction_acc,heating_diss,grid)
       endif
     endif
     

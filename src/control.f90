@@ -10,8 +10,6 @@ program control
   use mo_grid_nml,               only: n_scalars,n_layers,n_scalars_h,n_vectors,n_vectors_h,n_dual_vectors, &
                                        n_dual_scalars_h,n_dual_v_vectors,n_h_vectors,n_latlon_io_points, &
                                        n_vectors_per_layer,grid_nml_setup
-  use mo_gradient_operators,     only: grad_hor_cov,grad
-  use mo_inner_product,          only: inner_product
   use mo_constituents_nml,       only: cloud_droplets_velocity,rain_velocity,snow_velocity,n_constituents, &
                                        n_condensed_constituents,constituents_nml_setup
   use mo_run_nml,                only: dtime,ideal_input_id,total_run_span_min,run_nml_setup,t_init
@@ -24,10 +22,12 @@ program control
   use mo_set_initial_state,      only: set_ideal_init,read_init_data
   use mo_derived,                only: temperature_diagnostics
   use mo_write_output,           only: write_out,write_out_integrals
-  use mo_linear_combination,     only: linear_combine_two_states
   use mo_manage_radiation_calls, only: call_radiation
   use mo_rrtmgp_coupler,         only: radiation_init
   use mo_manage_pchevi,          only: manage_pchevi
+  use mo_linear_combination,     only: linear_combine_two_states
+  use mo_gradient_operators,     only: grad_hor_cov,grad
+  use mo_inner_product,          only: inner_product
 
   implicit none
   
@@ -209,16 +209,15 @@ program control
   
   ! ideal test case
   if (ideal_input_id/=-1) then
-    call set_ideal_init(state_1%exner_pert,state_1%theta_v_pert,diag%scalar_field_placeholder,grid%exner_bg, &
-                        grid%theta_v_bg,grid%adjacent_vector_indices_h,grid%area_dual,grid%density_to_rhombi_indices, &
-                        grid%density_to_rhombi_weights,grid%f_vec,diag%flux_density,grid%from_index,grid%to_index, &
-                        grid%from_index_dual,grid%to_index_dual,state_1%rho,grid%inner_product_weights,grid%normal_distance, &
-                        diag%pot_vort_tend,grid%z_scalar,state_1%rhotheta_v,state_1%wind,diag%v_squared, &
-                        grid%direction,grid%latitude_scalar,grid%longitude_scalar,grid%z_vector,grid%slope, &
+    call set_ideal_init(state_1%exner_pert,state_1%theta_v_pert,diag%scalar_field_placeholder, &
+                        grid%theta_v_bg,grid%adjacent_vector_indices_h, &
+                        diag%flux_density, &
+                        state_1%rho, &
+                        diag%pot_vort_tend,state_1%rhotheta_v,state_1%wind,diag%v_squared, &
+                        grid%direction,grid%latitude_scalar,grid%longitude_scalar, &
                         grid%gravity_potential,diag%pot_vort,diag%rel_vort,diag%rel_vort_on_triangles, &
-                        grid%trsk_indices,grid%trsk_weights,grid%trsk_modified_curl_indices,grid%z_vector_dual, &
-                        grid%vorticity_indices_triangles,grid%vorticity_signs_triangles,grid%t_const_soil, &
-                        grid%is_land,state_1%temperature_soil)
+                        grid%vorticity_signs_triangles, &
+                        state_1%temperature_soil,grid)
   ! NWP mode
   else
     init_state_file = "a"
@@ -273,7 +272,7 @@ program control
   enddo
   !$omp end parallel do
   call temperature_diagnostics(diag%temperature,grid%theta_v_bg,state_1%theta_v_pert,grid%exner_bg,state_1%exner_pert,state_1%rho)
-  call inner_product(state_1%wind,state_1%wind,diag%v_squared,grid%adjacent_vector_indices_h,grid%inner_product_weights)
+  call inner_product(state_1%wind,state_1%wind,diag%v_squared,grid)
   
   ! time coordinate of the old RK step
   t_0 = t_init
@@ -318,8 +317,7 @@ program control
   ! clock_t first_time,second_time
   ! first_time = clock()
   if (lwrite_integrals) then
-    call write_out_integrals(state_1%wind,state_1%rhotheta_v,diag%temperature,state_1%rho, &
-                             grid%volume,grid%inner_product_weights,grid%gravity_potential,grid%adjacent_vector_indices_h,0._wp)
+    call write_out_integrals(state_1,diag,grid,0._wp)
   endif
   
   ! Preparation of the actual integration.
@@ -348,22 +346,20 @@ program control
     
     ! time step integration
     if (mod(time_step_counter,2)==0) then
-      call manage_pchevi(state_1%wind,state_tendency%wind,state_2%wind,t_0, &
+      call manage_pchevi(state_1,state_2,state_tendency%wind,state_2%wind,t_0, &
                          totally_first_step_bool, &
                          state_1%theta_v_pert,state_2%theta_v_pert,state_2%temperature_soil, &
                          state_1%temperature_soil, &
                          state_tendency%rhotheta_v,state_1%rhotheta_v, &
                          state_2%rhotheta_v,state_tendency%rho,state_1%rho,state_2%rho, &
-                         state_2%exner_pert,state_1%exner_pert, &
                          rad_update,diag,grid)
     else
-      call manage_pchevi(state_2%wind,state_tendency%wind,state_1%wind,t_0, &
+      call manage_pchevi(state_2,state_1,state_tendency%wind,state_1%wind,t_0, &
                          totally_first_step_bool, &
                          state_2%theta_v_pert,state_1%theta_v_pert,state_1%temperature_soil, &
                          state_2%temperature_soil, &
                          state_tendency%rhotheta_v,state_2%rhotheta_v, &
                          state_1%rhotheta_v,state_tendency%rho,state_2%rho,state_1%rho,  &
-                         state_1%exner_pert,state_2%exner_pert, &
                          rad_update,diag,grid)
     endif
   
@@ -372,13 +368,9 @@ program control
   
     if (lwrite_integrals) then
       if (mod(time_step_counter,2)==0) then
-        call write_out_integrals(state_2%wind,state_2%rhotheta_v,diag%temperature,state_2%rho, &
-                                 grid%volume,grid%inner_product_weights,grid%gravity_potential, &
-                                 grid%adjacent_vector_indices_h,t_0+dtime-t_init)
+        call write_out_integrals(state_2,diag,grid,t_0+dtime-t_init)
       else
-        call write_out_integrals(state_1%wind,state_1%rhotheta_v,diag%temperature,state_1%rho, &
-                                 grid%volume,grid%inner_product_weights,grid%gravity_potential, &
-                                 grid%adjacent_vector_indices_h,t_0+dtime-t_init)
+        call write_out_integrals(state_1,diag,grid,t_0+dtime-t_init)
       endif
     endif
   

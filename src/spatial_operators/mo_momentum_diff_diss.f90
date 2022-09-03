@@ -5,7 +5,7 @@ module mo_momentum_diff_diss
 
   ! The momentum diffusion acceleration is computed here (apart from the diffusion coefficients).
 
-  use mo_definitions,           only: wp,t_grid
+  use mo_definitions,           only: wp,t_grid,t_state
   use mo_constants,             only: EPSILON_SECURITY
   use mo_grid_nml,              only: n_scalars,n_vectors,n_scalars_h,n_h_vectors, &
                                       n_dual_vectors_per_layer,n_dual_scalars_h,n_dual_vectors,n_vectors_h, &
@@ -330,23 +330,22 @@ module mo_momentum_diff_diss
   
   end subroutine hor_calc_curl_of_vorticity
 
-  subroutine simple_dissipation_rate(wind,friction_acc,heating_diss, &
-                                     adjacent_vector_indices_h,inner_product_weights,rho)
+  subroutine simple_dissipation_rate(state,friction_acc,heating_diss,grid)
     
     ! This subroutine calculates a simplified dissipation rate.
     
-    real(wp), intent(in)    :: wind(n_vectors),friction_acc(n_vectors),inner_product_weights(8*n_scalars), &
-                               rho(n_constituents*n_scalars)
+    real(wp), intent(in)    :: friction_acc(n_vectors)
     real(wp), intent(inout) :: heating_diss(n_scalars)
-    integer,  intent(in)    :: adjacent_vector_indices_h(6*n_scalars_h)
+    type(t_state), intent(in) :: state ! state to use for calculating the dissipation rate
+    type(t_grid),  intent(in) :: grid  ! grid properties
     
     ! local variables
     integer :: ji
     
-    call inner_product(wind,friction_acc,heating_diss,adjacent_vector_indices_h,inner_product_weights)
+    call inner_product(state%wind,friction_acc,heating_diss,grid)
     !$omp parallel do private(ji)
     do ji=1,n_scalars
-      heating_diss(ji) = -density_total(rho,ji-1)*heating_diss(ji)
+      heating_diss(ji) = -density_total(state%rho,ji-1)*heating_diss(ji)
     enddo
     !$omp end parallel do
   
