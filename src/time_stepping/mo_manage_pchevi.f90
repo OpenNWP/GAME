@@ -127,34 +127,13 @@ module mo_manage_pchevi
       ! 2.) explicit component of the generalized density equations
       ! -----------------------------------------------------------
       if (rk_step==1) then
-        call scalar_tend_expl(rho_old,diag%mass_diff_tendency,diag%scalar_field_placeholder,grid%adjacent_vector_indices_h, &
-                              rhotheta_v_tend,grid%adjacent_signs_h,grid%area,diag%flux_density,grid%from_index,grid%to_index, &
-                              grid%inner_product_weights,grid%layer_thickness,diag%mass_diffusion_coeff_numerical_h, &
-                              diag%mass_diffusion_coeff_numerical_v,diag%molecular_diffusion_coeff,diag%n_squared, &
-                              grid%normal_distance,rhotheta_v_old,grid%slope,diag%temp_diffusion_coeff_numerical_h, &
-                              diag%temp_diffusion_coeff_numerical_v,diag%temperature, &
-                              diag%tke,diag%vector_field_placeholder, &
-                              diag%viscosity,diag%viscosity_rhombi,diag%viscosity_triangles,grid%volume, &
-                              grid%vorticity_indices_triangles, &
-                              wind_new,diag%temperature_diffusion_heating,diag%flux_density_div,rho_tend, &
-                              diag%phase_trans_rates, &
-                              state_old%exner_pert,grid%exner_bg,diag%condensates_sediment_heat,diag%phase_trans_heating_rate, &
-                              diag%radiation_tendency,diag%heating_diss,rk_step)
+        call scalar_tend_expl(rho_old,rhotheta_v_tend,rhotheta_v_old,wind_new,rho_tend,state_old%exner_pert, &
+                              diag,grid,rk_step)
       endif
       if (rk_step==2) then
-        call scalar_tend_expl(rho_new,diag%mass_diff_tendency,diag%scalar_field_placeholder,grid%adjacent_vector_indices_h, &
-                              rhotheta_v_tend,grid%adjacent_signs_h,grid%area,diag%flux_density,grid%from_index,grid%to_index, &
-                              grid%inner_product_weights,grid%layer_thickness,diag%mass_diffusion_coeff_numerical_h, &
-                              diag%mass_diffusion_coeff_numerical_v,diag%molecular_diffusion_coeff,diag%n_squared, &
-                              grid%normal_distance,rhotheta_v_new,grid%slope,diag%temp_diffusion_coeff_numerical_h, &
-                              diag%temp_diffusion_coeff_numerical_v,diag%temperature, &
-                              diag%tke,diag%vector_field_placeholder, &
-                              diag%viscosity,diag%viscosity_rhombi,diag%viscosity_triangles, &
-                              grid%volume,grid%vorticity_indices_triangles, &
-                              wind_new,diag%temperature_diffusion_heating,diag%flux_density_div,rho_tend, &
-                              diag%phase_trans_rates, &
-                              state_new%exner_pert,grid%exner_bg,diag%condensates_sediment_heat,diag%phase_trans_heating_rate, &
-                              diag%radiation_tendency,diag%heating_diss,rk_step)
+        call scalar_tend_expl(rho_new,rhotheta_v_tend,rhotheta_v_new,wind_new,rho_tend, &
+                              state_new%exner_pert, &
+                              diag,grid,rk_step)
       endif
 
       ! 3.) vertical sound wave solver
