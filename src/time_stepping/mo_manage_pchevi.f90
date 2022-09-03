@@ -79,13 +79,10 @@ module mo_manage_pchevi
       ! -----------------------------------------------
       ! Update of the pressure gradient.
       if (rk_step==1) then
-        call manage_pressure_gradient(diag%pressure_gradient_acc_neg_nl,diag%pressure_gradient_acc_neg_l, &
-                                      diag%pressure_gradient_decel_factor,diag%scalar_field_placeholder, &
-                                      state_old%exner_pert,grid%theta_v_bg, &
-                                      state_old%rho,diag%pgrad_acc_old, &
+        call manage_pressure_gradient(state_old%exner_pert,grid%theta_v_bg,state_old%rho, &
                                       state_old%theta_v_pert,grid%from_index,grid%to_index, &
                                       grid%normal_distance,grid%exner_bg_grad, &
-                                      grid%inner_product_weights,grid%slope,totally_first_step_bool)
+                                      grid%inner_product_weights,grid%slope,diag,totally_first_step_bool)
       endif
       
       if (rk_step==1) then
