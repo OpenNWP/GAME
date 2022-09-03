@@ -102,49 +102,15 @@ module mo_manage_pchevi
        call calc_pressure_grad_condensates_v(diag%pressure_gradient_decel_factor, &
                                              rho_old,grid%gravity_m,diag%pressure_grad_condensates_v)
         ! Only the horizontal momentum is a forward tendency.
-       call  vector_tend_expl(state_old,diag%rel_vort_on_triangles,diag%rel_vort, &
-                              grid%vorticity_indices_triangles,grid%vorticity_signs_triangles,grid%normal_distance, &
-                              grid%area_dual,grid%from_index,grid%to_index,grid%from_index_dual, &
-                              grid%to_index_dual,grid%inner_product_weights, &
-                              grid%slope,diag%temperature,diag%friction_acc,grid%adjacent_signs_h, &
-                              grid%adjacent_vector_indices_h,grid%area, &
-                              diag%molecular_diffusion_coeff,grid%normal_distance_dual, &
-                              rho_old,diag%tke,diag%viscosity,diag%viscosity_triangles, &
-                              diag%wind_div,diag%viscosity_rhombi,diag%vector_field_placeholder, &
-                              diag%curl_of_vorticity, &
-                              grid%theta_v_bg,theta_v_pert_old, &
-                              diag%scalar_field_placeholder,diag%n_squared,wind_tend, &
-                              grid%density_to_rhombi_indices,grid%density_to_rhombi_weights,diag%dv_hdz,grid%exner_bg, &
-                              state_old%exner_pert,grid%f_vec,diag%flux_density,diag%heating_diss,grid%layer_thickness, &
-                              diag%monin_obukhov_length, &
-                              diag%pot_vort,grid%roughness_length,grid%trsk_indices,grid%trsk_modified_curl_indices, &
-                              diag%v_squared,diag%vert_hor_viscosity,grid%z_scalar,diag%pot_vort_tend,diag%v_squared_grad, &
-                              diag%pressure_gradient_acc_neg_nl,diag%pressure_gradient_acc_neg_l,diag%pgrad_acc_old, &
-                              diag%pressure_grad_condensates_v,totally_first_step_bool,grid,rk_step)
+       call  vector_tend_expl(state_old,rho_old,theta_v_pert_old,wind_tend,state_old%exner_pert, &
+                              totally_first_step_bool,diag,grid,rk_step)
       endif
       if (rk_step==1) then
         call calc_pressure_grad_condensates_v(diag%pressure_gradient_decel_factor, &
                                               rho_new,grid%gravity_m,diag%pressure_grad_condensates_v)
         ! Only the horizontal momentum is a forward tendency.
-        call vector_tend_expl(state_new,diag%rel_vort_on_triangles,diag%rel_vort, &
-                              grid%vorticity_indices_triangles,grid%vorticity_signs_triangles,grid%normal_distance, &
-                              grid%area_dual,grid%from_index,grid%to_index,grid%from_index_dual, &
-                              grid%to_index_dual,grid%inner_product_weights, &
-                              grid%slope,diag%temperature,diag%friction_acc,grid%adjacent_signs_h, &
-                              grid%adjacent_vector_indices_h,grid%area, &
-                              diag%molecular_diffusion_coeff,grid%normal_distance_dual, &
-                              rho_new,diag%tke,diag%viscosity,diag%viscosity_triangles, &
-                              diag%wind_div,diag%viscosity_rhombi, &
-                              diag%vector_field_placeholder,diag%curl_of_vorticity, &
-                              grid%theta_v_bg,theta_v_pert_new, &
-                              diag%scalar_field_placeholder,diag%n_squared,wind_tend, &
-                              grid%density_to_rhombi_indices,grid%density_to_rhombi_weights,diag%dv_hdz,grid%exner_bg, &
-                              state_new%exner_pert,grid%f_vec,diag%flux_density,diag%heating_diss,grid%layer_thickness, &
-                              diag%monin_obukhov_length, &
-                              diag%pot_vort,grid%roughness_length,grid%trsk_indices,grid%trsk_modified_curl_indices, &
-                              diag%v_squared,diag%vert_hor_viscosity,grid%z_scalar,diag%pot_vort_tend,diag%v_squared_grad, &
-                              diag%pressure_gradient_acc_neg_nl,diag%pressure_gradient_acc_neg_l,diag%pgrad_acc_old, &
-                              diag%pressure_grad_condensates_v,totally_first_step_bool,grid,rk_step)
+        call vector_tend_expl(state_new,rho_new,theta_v_pert_new,wind_tend,state_new%exner_pert, &
+                              totally_first_step_bool,diag,grid,rk_step)
       endif
       
       ! time stepping for the horizontal momentum can be directly executed
