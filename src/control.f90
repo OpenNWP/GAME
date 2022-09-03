@@ -34,7 +34,8 @@ program control
   type(t_state)         :: state_1,state_2,state_tend,state_write
   type(t_diag)          :: diag
   type(t_grid)          :: grid
-  integer               :: ji,time_step_counter,h_index,rad_update,wind_lowest_layer_step_counter,time_step_10_m_wind, &
+  logical               :: lrad_update
+  integer               :: ji,time_step_counter,h_index,wind_lowest_layer_step_counter,time_step_10_m_wind, &
                            totally_first_step_bool
   real(wp)              :: t_0,t_write,t_rad_update,new_weight,old_weight,max_speed_hor,max_speed_ver, &
                            normal_dist_min_hor,normal_dist_min_ver
@@ -270,7 +271,6 @@ program control
   t_0 = t_init
   
   ! configuring radiation and calculating radiative fluxes for the first time
-  rad_update = 1
   t_rad_update = t_0
   if (rad_config>0) then
     if (rad_config==1) then
@@ -279,7 +279,6 @@ program control
     call update_rad_fluxes(state_1%temperature_soil, &
                            state_1%rho,diag%temperature,diag%radiation_tendency, &
                            diag%sfc_sw_in,diag%sfc_lw_out,grid,t_0)
-    rad_update = 1
     t_rad_update = t_rad_update+radiation_dtime
   endif
   
@@ -312,17 +311,17 @@ program control
     ! ----------------------------------------------------
     
     if (t_0<=t_rad_update .and. t_0+dtime>=t_rad_update .and. totally_first_step_bool/=1) then
-      rad_update = 1
+      lrad_update = .true.
       t_rad_update = t_rad_update+radiation_dtime
     else
-      rad_update = 0
+      lrad_update = .false.
     endif
     
     ! time step integration
     if (mod(time_step_counter,2)==0) then
-      call manage_pchevi(state_1,state_2,state_tend,t_0,totally_first_step_bool,rad_update,diag,grid)
+      call manage_pchevi(state_1,state_2,state_tend,totally_first_step_bool,diag,grid,lrad_update,t_0)
     else
-      call manage_pchevi(state_2,state_1,state_tend,t_0,totally_first_step_bool,rad_update,diag,grid)
+      call manage_pchevi(state_2,state_1,state_tend,totally_first_step_bool,diag,grid,lrad_update,t_0)
     endif
   
     ! Writing out integrals over the model domain if requested by the user.
@@ -341,7 +340,7 @@ program control
     
     ! interpolating to the output time
     if(t_0+dtime>=t_write .and. t_0<=t_write) then
-      if (mod(time_step_counter,2) == 0) then
+      if (mod(time_step_counter,2)==0) then
         new_weight = (t_write-t_0)/dtime
         old_weight = 1._wp-new_weight
         call linear_combine_two_states(state_1,state_2,state_write,old_weight,new_weight,grid)

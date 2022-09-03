@@ -6,7 +6,7 @@ module mo_pbl
   ! In this module, quantities referring to the planetary boundary layer are computed.
 
   use mo_constants,        only: EPSILON_SECURITY,M_PI,gravity,p_0,c_d_p,r_d
-  use mo_definitions,      only: wp,t_grid
+  use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_run_nml,          only: dtime
   use mo_diff_nml,         only: h_prandtl,karman
   use mo_grid_nml,         only: n_scalars,n_scalars_h,n_vectors_per_layer,n_layers,n_vectors,n_vectors_h,n_vectors_per_layer, &
@@ -136,16 +136,13 @@ module mo_pbl
   
   end subroutine 
   
-  subroutine update_sfc_turb_quantities(monin_obukhov_length, &
-                                        theta_v_pert,v_squared,roughness_velocity,scalar_flux_resistance, &
-                                        grid)
+  subroutine update_sfc_turb_quantities(state,diag,grid)
   
     ! This subroutine updates surface-related turbulence quantities.
     
-    real(wp), intent(in)    :: theta_v_pert(n_scalars),v_squared(n_scalars)
-    real(wp), intent(out)   :: monin_obukhov_length(n_scalars_h),roughness_velocity(n_scalars_h), &
-                               scalar_flux_resistance(n_scalars_h)
-    type(t_grid), intent(inout) :: grid
+    type(t_state), intent(in)    :: state ! state
+    type(t_diag),  intent(inout) :: diag  ! type containing diagnostic quantities
+    type(t_grid),  intent(inout) :: grid  ! grid properties
     
     ! local variables
     integer  :: ji
@@ -161,7 +158,7 @@ module mo_pbl
       z_agl = grid%z_scalar(n_scalars-n_scalars_h+ji)-grid%z_vector(n_vectors-n_scalars_h+ji)
       
       ! wind speed in the lowest layer
-      u_lowest_layer = v_squared(n_scalars-n_scalars_h+ji)**0.5_wp
+      u_lowest_layer = diag%v_squared(n_scalars-n_scalars_h+ji)**0.5_wp
         
       ! calculating the 10 m wind velocity from the logarithmic wind profile
       u10 = u_lowest_layer*log(10._wp/grid%roughness_length(ji))/log(z_agl/grid%roughness_length(ji))
@@ -173,12 +170,12 @@ module mo_pbl
       endif
       
       ! updating the roughness velocity
-      roughness_velocity(ji) = calc_roughness_velocity(u_lowest_layer,z_agl,grid%roughness_length(ji))
+      diag%roughness_velocity(ji) = calc_roughness_velocity(u_lowest_layer,z_agl,grid%roughness_length(ji))
       
       ! theta_v in the lowest layer
-      theta_v_lowest_layer = grid%theta_v_bg(n_scalars-n_scalars_h+ji) + theta_v_pert(n_scalars-n_scalars_h+ji)
+      theta_v_lowest_layer = grid%theta_v_bg(n_scalars-n_scalars_h+ji) + state%theta_v_pert(n_scalars-n_scalars_h+ji)
       ! theta_v in the second-lowest layer
-      theta_v_second_layer = grid%theta_v_bg(n_scalars-2*n_scalars_h+ji) + theta_v_pert(n_scalars-2*n_scalars_h+ji)
+      theta_v_second_layer = grid%theta_v_bg(n_scalars-2*n_scalars_h+ji) + state%theta_v_pert(n_scalars-2*n_scalars_h+ji)
       
       ! delta z
       dz = grid%z_scalar(n_scalars-2*n_scalars_h+ji)-grid%z_scalar(n_scalars-n_scalars_h+ji)
@@ -198,7 +195,7 @@ module mo_pbl
       endif
       
       ! finally computing the Monin-Obukhov length
-      monin_obukhov_length(ji) = -theta_v_lowest_layer*roughness_velocity(ji)**3/(karman*gravity*w_pert_theta_v_pert_avg)
+      diag%monin_obukhov_length(ji) = -theta_v_lowest_layer*diag%roughness_velocity(ji)**3/(karman*gravity*w_pert_theta_v_pert_avg)
     enddo
     !$omp end parallel do
     
@@ -206,9 +203,9 @@ module mo_pbl
     if (lprog_soil_temp) then
       !$omp parallel do private(ji)
       do ji=1,n_scalars_h
-        scalar_flux_resistance(ji) = calc_scalar_flux_resistance(roughness_velocity(ji), &
+        diag%scalar_flux_resistance(ji) = calc_scalar_flux_resistance(diag%roughness_velocity(ji), &
                                            grid%z_scalar(n_scalars-n_scalars_h+ji)-grid%z_vector(n_layers*n_vectors_per_layer+ji), &
-                                           grid%roughness_length(ji),monin_obukhov_length(ji))
+                                           grid%roughness_length(ji),diag%monin_obukhov_length(ji))
       enddo
       !$omp end parallel do
     endif

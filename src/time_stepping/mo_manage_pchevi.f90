@@ -25,7 +25,7 @@ module mo_manage_pchevi
   
   contains
   
-  subroutine manage_pchevi(state_old,state_new,state_tend,time_coordinate,totally_first_step_bool,rad_update,diag,grid)
+  subroutine manage_pchevi(state_old,state_new,state_tend,totally_first_step_bool,diag,grid,lrad_update,time_coordinate)
 
     ! This subroutine manages the predictor-corrector HEVI time stepping.
     
@@ -34,7 +34,8 @@ module mo_manage_pchevi
     type(t_state), intent(inout) :: state_new
     type(t_state), intent(inout) :: state_tend
     type(t_diag),  intent(inout) :: diag
-    integer,       intent(in)    :: totally_first_step_bool,rad_update
+    integer,       intent(in)    :: totally_first_step_bool
+    logical,       intent(in)    :: lrad_update
     real(wp),      intent(in)    :: time_coordinate
     
     ! local variabels
@@ -48,20 +49,16 @@ module mo_manage_pchevi
     
     ! updating surface-related turbulence quantities if it is necessary
     if (lsfc_sensible_heat_flux .or. lsfc_phase_trans .or. pbl_scheme==1) then
-      call update_sfc_turb_quantities(diag%monin_obukhov_length, &
-                                      state_old%theta_v_pert,diag%v_squared,diag%roughness_velocity, &
-                                      diag%scalar_flux_resistance,grid)
+      call update_sfc_turb_quantities(state_old,diag,grid)
     endif
     
     ! cloud microphysics
     if (lmoist) then
-      call calc_h2otracers_source_rates(state_old%rho,diag%temperature,grid%layer_thickness,state_old%temperature_soil, &
-                                        diag%phase_trans_rates,diag%phase_trans_heating_rate, &
-                                        diag%scalar_flux_resistance,grid%is_land,diag%power_flux_density_latent)
+      call calc_h2otracers_source_rates(state_old,diag,grid)
     endif
     
     ! Radiation is updated here.
-    if (rad_config>0 .and. rad_update==1) then
+    if (rad_config>0 .and. lrad_update) then
       call update_rad_fluxes(state_old%temperature_soil,state_old%rho,diag%temperature,diag%radiation_tendency, &
                              diag%sfc_sw_in,diag%sfc_lw_out,grid,time_coordinate)
     endif
