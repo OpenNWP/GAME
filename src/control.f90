@@ -12,7 +12,7 @@ program control
                                        n_vectors_per_layer,grid_nml_setup
   use mo_constituents_nml,       only: cloud_droplets_velocity,rain_velocity,snow_velocity,n_constituents, &
                                        n_condensed_constituents,constituents_nml_setup
-  use mo_run_nml,                only: dtime,ideal_input_id,total_run_span_min,run_nml_setup,t_init
+  use mo_run_nml,                only: dtime,ideal_input_id,run_span_min,run_nml_setup,t_init
   use mo_grid_setup,             only: eff_hor_res,radius_rescale,set_grid_properties
   use mo_io_nml,                 only: n_output_steps_10m_wind,lwrite_integrals,write_out_interval_min, &
                                        io_nml_setup
@@ -200,7 +200,7 @@ program control
   write(*,*) "Grid loaded successfully."
   
   ! rescaling times for small Earth experiments
-  total_run_span_min = radius_rescale*total_run_span_min
+  run_span_min = radius_rescale*run_span_min
   write_out_interval_min = radius_rescale*write_out_interval_min
   
   ! Reading and processing user input finished.
@@ -324,7 +324,7 @@ program control
   ! -------------------------------------
   ! this is to store the speed of the model integration
   time_step_counter = 0
-  do while (t_0<t_init+60._wp*total_run_span_min+radius_rescale*300._wp)
+  do while (t_0<t_init+60._wp*run_span_min+radius_rescale*300._wp)
     
     ! Checking if the radiative fluxes need to be updated:
     ! ----------------------------------------------------
@@ -585,7 +585,7 @@ program control
   deallocate(state_write%temperature_soil)
   write(*,*) stars
   ! clock_t end = clock()
-  ! speed = CLOCKS_PER_SEC*(60*total_run_span_min + 300)/((double) end - begin)
+  ! speed = CLOCKS_PER_SEC*(60*run_span_min + 300)/((double) end - begin)
   ! write(*,*) "Average speed: %lf",speed
   write(*,*) "GAME over."
 

@@ -21,16 +21,18 @@ export OMP_NUM_THREADS=4
 
 cat > namelist.nml << EOF
 
+&grid
+orography_id=1
+/
+
 &run
-game_home_dir=/home/max/code/GAME
 ideal_input_id=0
-run_id=$run_id
+run_id="$run_id"
 run_span_min=$((0*24*60))
 start_year=2000
 start_month=1
 start_day=1
 start_hour=0
-orography_id=1
 /
 
 &run

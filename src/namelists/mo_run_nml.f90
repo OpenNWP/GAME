@@ -9,28 +9,32 @@ module mo_run_nml
   
   implicit none
   
-  character(len=64) :: run_id             ! ID of this run
-  real(wp)          :: dtime              ! time step
-  real(wp)          :: total_run_span_min ! run span in minutes
-  real(wp)          :: t_init             ! epoch time stamp of the initialization
-  logical           :: lmoist             ! moisture switch
-  integer           :: ideal_input_id     ! ideal input identifier
-  integer           :: start_year         ! year of the model run beginning
-  integer           :: start_month        ! month of the model run beginning
-  integer           :: start_day          ! day of the model run beginning
-  integer           :: start_date         ! date of the model run beginning
-  integer           :: start_hour         ! hour of the model run beginning
-  integer           :: start_minute       ! minute of the model run beginning
+  character(len=64) :: run_id         ! ID of this run
+  real(wp)          :: dtime          ! time step
+  real(wp)          :: run_span_min   ! run span in minutes
+  real(wp)          :: t_init         ! epoch time stamp of the initialization
+  logical           :: lmoist         ! moisture switch
+  integer           :: ideal_input_id ! ideal input identifier
+  integer           :: start_year     ! year of the model run beginning
+  integer           :: start_month    ! month of the model run beginning
+  integer           :: start_day      ! day of the model run beginning
+  integer           :: start_date     ! date of the model run beginning
+  integer           :: start_hour     ! hour of the model run beginning
+  integer           :: start_minute   ! minute of the model run beginning
   
-  namelist /run/run_id,total_run_span_min,lmoist,start_year,start_month,start_day,start_hour,start_minute
+  namelist /run/run_id,ideal_input_id,run_span_min,lmoist, &
+                start_year,start_month,start_day,start_hour,start_minute
 
   contains
 
   subroutine run_nml_setup()
   
+    ! local variables
+    integer :: fileunit
+  
     run_id = "ideal"
     dtime = 360.312923_wp
-    total_run_span_min = 100._wp*24._wp*60._wp
+    run_span_min = 100._wp*24._wp*60._wp
     lmoist = .true.
     ideal_input_id = 2
     start_year = 2000
@@ -39,6 +43,12 @@ module mo_run_nml
     start_date = 1000000*start_year + 100*start_month + start_day
     start_hour = 0
     start_minute = 0
+    
+    ! open and read namelist file
+    open(action="read",file="namelist.nml",newunit=fileunit)
+    read(nml=run,unit=fileunit)
+        
+    close(fileunit)
     
     ! calculating the Unix time of the model start
     t_init = (start_year-1970)*365*24*3600 + leap_year_correction(start_year)*24*3600 &

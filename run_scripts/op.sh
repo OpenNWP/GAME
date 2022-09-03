@@ -15,22 +15,24 @@
 # 1			real data interpolated to the model grid
 # See handbook for more information.
 
-game_home_dir=/home/max/code/GAME
+game_home_dir=${BASH_ARGV[4]}
 run_id=${BASH_ARGV[6]}
 export OMP_NUM_THREADS=${BASH_ARGV[9]}
 
 cat > namelist.nml << EOF
 
+&grid
+orography_id=${BASH_ARGV[7]}
+/
+
 &run
-game_home_dir=${BASH_ARGV[4]}
 ideal_input_id=-1
-run_id=$run_id
+run_id="$run_id"
 run_span_min=${BASH_ARGV[5]}
 start_year=${BASH_ARGV[3]}
 start_month=${BASH_ARGV[2]}
 start_day=${BASH_ARGV[1]}
 start_hour=${BASH_ARGV[0]}
-orography_id=${BASH_ARGV[7]}
 /
 
 &diff
