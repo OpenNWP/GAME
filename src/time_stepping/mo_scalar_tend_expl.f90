@@ -61,14 +61,14 @@ module mo_scalar_tend_expl
     ! determining the RK weights
     do jc=1,n_constituents
       new_weight(jc) = 1._wp
-      if (rk_step==1 .and. jc/=n_condensed_constituents+1) then
+      if (rk_step==2 .and. jc/=n_condensed_constituents+1) then
         new_weight(jc) = 0.5_wp
       endif
       old_weight(jc) = 1._wp-new_weight(jc)
     enddo
     
     ! updating the scalar diffusion coefficient if required
-    if (rk_step==0 .and. (lmass_diff_h .or. ltemp_diff_h)) then
+    if (rk_step==1 .and. (lmass_diff_h .or. ltemp_diff_h)) then
       call scalar_diffusion_coeffs(temperature,tke,rho,from_index,to_index,vorticity_indices_triangles, &
                                    molecular_diffusion_coeff,viscosity_triangles,viscosity,viscosity_rhombi, &
                                    mass_diffusion_coeff_numerical_h,mass_diffusion_coeff_numerical_v, &
@@ -77,7 +77,7 @@ module mo_scalar_tend_expl
     endif
     
     ! Temperature diffusion gets updated at the first RK step if required.
-    if (ltemp_diff_h .and. rk_step==0) then
+    if (ltemp_diff_h .and. rk_step==1) then
       ! The diffusion of the temperature depends on its gradient.
       call grad(temperature,vector_field_placeholder,from_index,to_index,normal_distance,inner_product_weights,slope)
       ! Now the diffusive temperature flux density can be obtained.
@@ -93,7 +93,7 @@ module mo_scalar_tend_expl
     endif
     
     ! Mass diffusion gets updated at the first RK step if required.
-    if (lmass_diff_h .and. rk_step==0) then
+    if (lmass_diff_h .and. rk_step==1) then
       ! loop over all constituents
       do jc=1,n_constituents
         scalar_shift_index = (jc-1)*n_scalars

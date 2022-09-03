@@ -124,7 +124,7 @@ module mo_column_solvers
         + dtime*rho_tend(gas_phase_first_index + base_index)
         ! explicit virtual potential temperature density
         rhotheta_v_expl(j) = rhotheta_v_old(base_index) + dtime*rhotheta_v_tend(base_index)
-        if (rk_step==0) then
+        if (rk_step==1) then
           ! old time step partial derivatives of theta_v and Pi (divided by the volume)
           alpha(j) = -rhotheta_v_old(base_index)/rho_old(gas_phase_first_index + base_index)**2 &
           /volume(base_index)
@@ -395,7 +395,7 @@ module mo_column_solvers
           ! diagnozing the vertical fluxes
           do jl=1,n_layers-1
             ! resetting the vertical enthalpy flux density divergence
-            if (rk_step==0 .and. jc==0) then
+            if (rk_step==1 .and. jc==0) then
               condensates_sediment_heat((jl-1)*n_scalars_h + ji) = 0._wp
             endif
             base_index = ji + (jl-1)*n_scalars_h
@@ -434,7 +434,7 @@ module mo_column_solvers
             vertical_enthalpy_flux_vector(jl) = c_p_cond(jc,temperature_old_at_interface) &
             *temperature_old_at_interface*vertical_flux_vector_rhs(jl)
           enddo
-          if (rk_step==0 .and. jc==0) then
+          if (rk_step==1 .and. jc==0) then
             condensates_sediment_heat((n_layers-1)*n_scalars_h + ji) = 0._wp
           endif
           
@@ -494,13 +494,13 @@ module mo_column_solvers
             ! adding the explicit part of the vertical flux divergence
             if (jl==1) then
               r_vector(jl) = r_vector(jl) + expl_weight*dtime*vertical_flux_vector_rhs(jl)/volume(base_index)
-              if (rk_step==0 .and. jc<n_condensed_constituents) then
+              if (rk_step==1 .and. jc<n_condensed_constituents) then
                 condensates_sediment_heat(base_index) = condensates_sediment_heat(base_index) &
                 + vertical_enthalpy_flux_vector(jl)/volume(base_index)
               endif
             elseif (jl==n_layers) then
               r_vector(jl) = r_vector(jl) - expl_weight*dtime*vertical_flux_vector_rhs(jl-1)/volume(base_index)
-              if (rk_step==0 .and. jc<n_condensed_constituents) then
+              if (rk_step==1 .and. jc<n_condensed_constituents) then
                 condensates_sediment_heat(base_index) = condensates_sediment_heat(base_index) &
                 - vertical_enthalpy_flux_vector(jl-1)/volume(base_index)
               endif
@@ -510,7 +510,7 @@ module mo_column_solvers
                 r_vector(jl) = r_vector(jl) - expl_weight*snow_velocity*dtime &
                 *rho_old(jc*n_scalars + ji + n_scalars - n_scalars_h) &
                 *area(ji + n_vectors - n_scalars_h)/volume(base_index)
-                if (rk_step==0) then
+                if (rk_step==1) then
                   condensates_sediment_heat(base_index) = condensates_sediment_heat(base_index) &
                   - snow_velocity &
                   *temperature(ji + n_scalars - n_scalars_h)*c_p_cond(jc,temperature(ji + n_scalars - n_scalars_h)) &
@@ -522,7 +522,7 @@ module mo_column_solvers
                 r_vector(jl) = r_vector(jl) - expl_weight*rain_velocity*dtime &
                 *rho_old(jc*n_scalars + ji + n_scalars - n_scalars_h) &
                 *area(ji + n_vectors - n_scalars_h)/volume(base_index)
-                if (rk_step==0) then
+                if (rk_step==1) then
                   condensates_sediment_heat(base_index) = condensates_sediment_heat(base_index) &
                   -rain_velocity &
                   *temperature(ji + n_scalars - n_scalars_h)*c_p_cond(jc,temperature(ji + n_scalars - n_scalars_h)) &
@@ -534,7 +534,7 @@ module mo_column_solvers
                 r_vector(jl) = r_vector(jl) - expl_weight*cloud_droplets_velocity*dtime &
                 *rho_old(jc*n_scalars + ji + n_scalars - n_scalars_h) &
                 *area(ji + n_vectors - n_scalars_h)/volume(base_index)
-                if (rk_step==0) then
+                if (rk_step==1) then
                   condensates_sediment_heat(base_index) = condensates_sediment_heat(base_index) &
                   -cloud_droplets_velocity &
                   *temperature(ji + n_scalars - n_scalars_h)*c_p_cond(jc,temperature(ji + n_scalars - n_scalars_h)) &
@@ -545,7 +545,7 @@ module mo_column_solvers
             else
               r_vector(jl) = r_vector(jl) + expl_weight*dtime &
               *(-vertical_flux_vector_rhs(jl-1) + vertical_flux_vector_rhs(jl))/volume(base_index)
-              if (rk_step==0 .and. jc<n_condensed_constituents) then
+              if (rk_step==1 .and. jc<n_condensed_constituents) then
                 condensates_sediment_heat(base_index) = condensates_sediment_heat(base_index) &
                 + (-vertical_enthalpy_flux_vector(jl-1) + vertical_enthalpy_flux_vector(jl))/volume(base_index)
               endif

@@ -83,15 +83,15 @@ module mo_manage_pchevi
     ! Loop over the RK substeps
     ! -------------------------
     
-    do rk_step=0,1
+    do rk_step=1,2
     
       ! state_old remains unchanged the whole time.
-      ! At rk_step == 0, state_new contains garbage.
+      ! At rk_step == 1, state_new contains garbage.
     
       ! 1.) explicit component of the momentum equation
       ! -----------------------------------------------
       ! Update of the pressure gradient.
-      if (rk_step==0) then
+      if (rk_step==1) then
         call manage_pressure_gradient(diag%pressure_gradient_acc_neg_nl,diag%pressure_gradient_acc_neg_l, &
                                       diag%pressure_gradient_decel_factor,diag%scalar_field_placeholder, &
                                       state_old%exner_pert,grid%theta_v_bg, &
@@ -100,13 +100,13 @@ module mo_manage_pchevi
                                       grid%inner_product_weights,grid%slope,totally_first_step_bool)
       endif
       
-      if (rk_step==0) then
+      if (rk_step==1) then
        call calc_pressure_grad_condensates_v(diag%pressure_gradient_decel_factor, &
                                              rho_old,grid%gravity_m,diag%pressure_grad_condensates_v)
         ! Only the horizontal momentum is a forward tendency.
        call  vector_tend_expl(state_old,state_tend,totally_first_step_bool,diag,grid,rk_step)
       endif
-      if (rk_step==1) then
+      if (rk_step==2) then
         call calc_pressure_grad_condensates_v(diag%pressure_gradient_decel_factor, &
                                               rho_new,grid%gravity_m,diag%pressure_grad_condensates_v)
         ! Only the horizontal momentum is a forward tendency.
@@ -126,7 +126,7 @@ module mo_manage_pchevi
 
       ! 2.) explicit component of the generalized density equations
       ! -----------------------------------------------------------
-      if (rk_step==0) then
+      if (rk_step==1) then
         call scalar_tend_expl(rho_old,diag%mass_diff_tendency,diag%scalar_field_placeholder,grid%adjacent_vector_indices_h, &
                               rhotheta_v_tend,grid%adjacent_signs_h,grid%area,diag%flux_density,grid%from_index,grid%to_index, &
                               grid%inner_product_weights,grid%layer_thickness,diag%mass_diffusion_coeff_numerical_h, &
@@ -141,7 +141,7 @@ module mo_manage_pchevi
                               state_old%exner_pert,grid%exner_bg,diag%condensates_sediment_heat,diag%phase_trans_heating_rate, &
                               diag%radiation_tendency,diag%heating_diss,rk_step)
       endif
-      if (rk_step==1) then
+      if (rk_step==2) then
         call scalar_tend_expl(rho_new,diag%mass_diff_tendency,diag%scalar_field_placeholder,grid%adjacent_vector_indices_h, &
                               rhotheta_v_tend,grid%adjacent_signs_h,grid%area,diag%flux_density,grid%from_index,grid%to_index, &
                               grid%inner_product_weights,grid%layer_thickness,diag%mass_diffusion_coeff_numerical_h, &
@@ -159,7 +159,7 @@ module mo_manage_pchevi
 
       ! 3.) vertical sound wave solver
       ! ------------------------------
-      if (rk_step==0) then
+      if (rk_step==1) then
         call three_band_solver_ver_waves(grid%z_vector,grid%area,grid%volume,diag%scalar_flux_resistance,theta_v_pert_new, &
                                          rho_new,rhotheta_v_old,rho_old,rho_old,theta_v_pert_old,grid%theta_v_bg, &
                                          state_old%exner_pert,grid%exner_bg,theta_v_pert_old,state_old%exner_pert, &
@@ -170,7 +170,7 @@ module mo_manage_pchevi
                                          diag%power_flux_density_latent,rhotheta_v_new,state_new%exner_pert, &
                                          wind_new,temperature_soil_new,rk_step)
       endif
-      if (rk_step==1) then
+      if (rk_step==2) then
         call three_band_solver_ver_waves(grid%z_vector,grid%area,grid%volume,diag%scalar_flux_resistance,theta_v_pert_new, &
                                          rho_new,rhotheta_v_new,rho_new,rho_old,theta_v_pert_old,grid%theta_v_bg, &
                                          state_old%exner_pert,grid%exner_bg,theta_v_pert_new,state_new%exner_pert, &

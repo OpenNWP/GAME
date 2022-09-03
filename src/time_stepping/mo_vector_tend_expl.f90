@@ -42,7 +42,7 @@ module mo_vector_tend_expl
     ! Managing momentum advection
     ! ---------------------------
     
-    if (rk_step==1 .or. totally_first_step_bool==1) then
+    if (rk_step==2 .or. totally_first_step_bool==1) then
       call scalar_times_vector(state%rho(n_condensed_constituents*n_scalars+1:(n_condensed_constituents+1)*n_scalars), &
                                state%wind,diag%flux_density,grid%from_index,grid%to_index)
       ! Now, the "potential vorticity" is evaluated.
@@ -66,7 +66,7 @@ module mo_vector_tend_expl
     ! Managing momentum diffusion
     ! ---------------------------
     
-    if (rk_step==0) then
+    if (rk_step==1) then
       ! updating the Brunt-Väisälä frequency and the TKE if any diffusion is switched on because it is required for computing the diffusion coefficients
       if (lmom_diff_h .or. lmass_diff_h .or. ltemp_diff_h) then
         call update_n_squared(grid%theta_v_bg,state%theta_v_pert,grid%normal_distance,grid%inner_product_weights,grid%gravity_m, &
@@ -113,7 +113,7 @@ module mo_vector_tend_expl
     
     ! Now the explicit forces are added up.
     new_weight = 1._wp
-    if (rk_step==1) then
+    if (rk_step==2) then
       new_weight = 0.5_wp
     endif
     old_weight = 1._wp-new_weight
