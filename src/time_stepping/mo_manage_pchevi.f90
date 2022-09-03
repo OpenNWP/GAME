@@ -32,7 +32,7 @@ module mo_manage_pchevi
                            temperature_soil_old, &
                            rhotheta_v_tend,rhotheta_v_old, &
                            rhotheta_v_new,rho_tend,rho_old,rho_new, &
-                           rad_update,diag,grid)
+                           rad_update,state_tend,diag,grid)
     
     real(wp), intent(out) :: wind_new(n_vectors),wind_tend(n_vectors), &
                              temperature_soil_new(nsoillays*n_scalars_h), &
@@ -44,8 +44,9 @@ module mo_manage_pchevi
                              temperature_soil_old(nsoillays*n_scalars_h), &
                              rhotheta_v_old(n_scalars),rho_old(n_scalars*n_constituents)
     type(t_grid), intent(inout) :: grid
-    type(t_state), intent(in) :: state_old
+    type(t_state), intent(inout) :: state_old
     type(t_state), intent(inout) :: state_new
+    type(t_state), intent(inout) :: state_tend
     type(t_diag), intent(inout) :: diag
     
     ! local variabels
@@ -55,7 +56,8 @@ module mo_manage_pchevi
     ! ------------
     
     ! diagnosing the temperature
-    call  temperature_diagnostics(diag%temperature,grid%theta_v_bg,theta_v_pert_old,grid%exner_bg,state_old%exner_pert,rho_old)
+    call  temperature_diagnostics(diag%temperature,grid%theta_v_bg,theta_v_pert_old,grid%exner_bg, &
+                                  state_old%exner_pert,state_old%rho)
     
     ! updating surface-related turbulence quantities if it is necessary
     if (lsfc_sensible_heat_flux .or. lsfc_phase_trans .or. pbl_scheme==1) then
@@ -102,15 +104,13 @@ module mo_manage_pchevi
        call calc_pressure_grad_condensates_v(diag%pressure_gradient_decel_factor, &
                                              rho_old,grid%gravity_m,diag%pressure_grad_condensates_v)
         ! Only the horizontal momentum is a forward tendency.
-       call  vector_tend_expl(state_old,rho_old,theta_v_pert_old,wind_tend,state_old%exner_pert, &
-                              totally_first_step_bool,diag,grid,rk_step)
+       call  vector_tend_expl(state_old,state_tend,totally_first_step_bool,diag,grid,rk_step)
       endif
       if (rk_step==1) then
         call calc_pressure_grad_condensates_v(diag%pressure_gradient_decel_factor, &
                                               rho_new,grid%gravity_m,diag%pressure_grad_condensates_v)
         ! Only the horizontal momentum is a forward tendency.
-        call vector_tend_expl(state_new,rho_new,theta_v_pert_new,wind_tend,state_new%exner_pert, &
-                              totally_first_step_bool,diag,grid,rk_step)
+        call vector_tend_expl(state_new,state_tend,totally_first_step_bool,diag,grid,rk_step)
       endif
       
       ! time stepping for the horizontal momentum can be directly executed

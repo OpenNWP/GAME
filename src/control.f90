@@ -31,7 +31,7 @@ program control
 
   implicit none
   
-  type(t_state)         :: state_1,state_2,state_tendency,state_write
+  type(t_state)         :: state_1,state_2,state_tend,state_write
   type(t_diag)          :: diag
   type(t_grid)          :: grid
   integer               :: ji,time_step_counter,h_index,rad_update,wind_lowest_layer_step_counter,time_step_10_m_wind, &
@@ -123,12 +123,12 @@ program control
   allocate(state_2%exner_pert(n_scalars))
   allocate(state_2%wind(n_vectors))
   allocate(state_2%temperature_soil(nsoillays*n_scalars_h))
-  allocate(state_tendency%rho(n_constituents*n_scalars))
-  allocate(state_tendency%rhotheta_v(n_scalars))
-  allocate(state_tendency%theta_v_pert(n_scalars))
-  allocate(state_tendency%exner_pert(n_scalars))
-  allocate(state_tendency%wind(n_vectors))
-  allocate(state_tendency%temperature_soil(nsoillays*n_scalars_h))
+  allocate(state_tend%rho(n_constituents*n_scalars))
+  allocate(state_tend%rhotheta_v(n_scalars))
+  allocate(state_tend%theta_v_pert(n_scalars))
+  allocate(state_tend%exner_pert(n_scalars))
+  allocate(state_tend%wind(n_vectors))
+  allocate(state_tend%temperature_soil(nsoillays*n_scalars_h))
   allocate(diag%flux_density(n_vectors))
   allocate(diag%flux_density_div(n_scalars))
   allocate(diag%rel_vort_on_triangles(n_vectors))
@@ -346,21 +346,21 @@ program control
     
     ! time step integration
     if (mod(time_step_counter,2)==0) then
-      call manage_pchevi(state_1,state_2,state_tendency%wind,state_2%wind,t_0, &
+      call manage_pchevi(state_1,state_2,state_tend%wind,state_2%wind,t_0, &
                          totally_first_step_bool, &
                          state_1%theta_v_pert,state_2%theta_v_pert,state_2%temperature_soil, &
                          state_1%temperature_soil, &
-                         state_tendency%rhotheta_v,state_1%rhotheta_v, &
-                         state_2%rhotheta_v,state_tendency%rho,state_1%rho,state_2%rho, &
-                         rad_update,diag,grid)
+                         state_tend%rhotheta_v,state_1%rhotheta_v, &
+                         state_2%rhotheta_v,state_tend%rho,state_1%rho,state_2%rho, &
+                         rad_update,state_tend,diag,grid)
     else
-      call manage_pchevi(state_2,state_1,state_tendency%wind,state_1%wind,t_0, &
+      call manage_pchevi(state_2,state_1,state_tend%wind,state_1%wind,t_0, &
                          totally_first_step_bool, &
                          state_2%theta_v_pert,state_1%theta_v_pert,state_1%temperature_soil, &
                          state_2%temperature_soil, &
-                         state_tendency%rhotheta_v,state_2%rhotheta_v, &
-                         state_1%rhotheta_v,state_tendency%rho,state_2%rho,state_1%rho,  &
-                         rad_update,diag,grid)
+                         state_tend%rhotheta_v,state_2%rhotheta_v, &
+                         state_1%rhotheta_v,state_tend%rho,state_2%rho,state_1%rho,  &
+                         rad_update,state_tend,diag,grid)
     endif
   
     ! Writing out integrals over the model domain if requested by the user.
@@ -529,12 +529,12 @@ program control
   deallocate(state_2%exner_pert)
   deallocate(state_2%wind)
   deallocate(state_2%temperature_soil)
-  deallocate(state_tendency%rho)
-  deallocate(state_tendency%rhotheta_v)
-  deallocate(state_tendency%theta_v_pert)
-  deallocate(state_tendency%exner_pert)
-  deallocate(state_tendency%wind)
-  deallocate(state_tendency%temperature_soil)
+  deallocate(state_tend%rho)
+  deallocate(state_tend%rhotheta_v)
+  deallocate(state_tend%theta_v_pert)
+  deallocate(state_tend%exner_pert)
+  deallocate(state_tend%wind)
+  deallocate(state_tend%temperature_soil)
   deallocate(diag%flux_density)
   deallocate(diag%flux_density_div)
   deallocate(diag%rel_vort_on_triangles)
