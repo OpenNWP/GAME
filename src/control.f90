@@ -287,15 +287,7 @@ program control
   ! in the time stepping and in writing the output.
   totally_first_step_bool = 1
   ! writing out the initial state of the model run
-  call write_out(diag%scalar_field_placeholder,state_1%wind, &
-                 diag%temperature, &
-                 state_1%temperature_soil,state_1%rho, &
-                 state_1%exner_pert,diag%tke,t_init,t_write, &
-                 diag%v_squared, &
-                 diag%monin_obukhov_length,diag%roughness_velocity, &
-                 diag%sfc_sw_in,state_1%theta_v_pert, &
-                 totally_first_step_bool,wind_h_lowest_layer,diag%rel_vort_on_triangles,diag%rel_vort,diag%pot_vort, &
-                 grid)
+  call write_out(state_1,t_init,t_write,wind_h_lowest_layer,diag,grid,totally_first_step_bool)
   
   t_write = t_write + 60._wp*write_out_interval_min
   write(*,*) "Run progress:", (t_init - t_init)/3600._wp, "h"
@@ -397,17 +389,7 @@ program control
     ! 5 minutes after the output time,the 10 m wind diag can be executed,so output can actually be written
     if(t_0+dtime>=t_write+radius_rescale*300._wp .and. t_0<=t_write+radius_rescale*300._wp) then
       ! here,output is actually written
-      call write_out(diag%scalar_field_placeholder,state_write%wind, &
-                     diag%temperature, &
-                     state_write%temperature_soil,state_write%rho, &
-                     state_write%exner_pert, &
-                     diag%tke,t_init,t_write, &
-                     diag%v_squared, &
-                     diag%monin_obukhov_length,diag%roughness_velocity, &
-                     diag%sfc_sw_in, &
-                     state_write%theta_v_pert, &
-                     totally_first_step_bool,wind_h_lowest_layer,diag%rel_vort_on_triangles,diag%rel_vort, &
-                     diag%pot_vort,grid)
+      call write_out(state_write,t_init,t_write,wind_h_lowest_layer,diag,grid,totally_first_step_bool)
       ! setting the next output time
       t_write = t_write + 60._wp*write_out_interval_min
       
