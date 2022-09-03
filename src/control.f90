@@ -209,12 +209,7 @@ program control
   
   ! ideal test case
   if (ideal_input_id/=-1) then
-    call set_ideal_init(state_1%exner_pert,state_1%theta_v_pert,diag%scalar_field_placeholder, &
-                        diag%flux_density, &
-                        state_1%rho, &
-                        diag%pot_vort_tend,state_1%rhotheta_v,state_1%wind,diag%v_squared, &
-                        diag%pot_vort,diag%rel_vort,diag%rel_vort_on_triangles, &
-                        state_1%temperature_soil,grid)
+    call set_ideal_init(state_1,diag,grid)
   ! NWP mode
   else
     init_state_file = "a"

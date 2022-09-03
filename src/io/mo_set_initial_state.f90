@@ -6,7 +6,7 @@ module mo_set_initial_state
   ! In this modulethe initial state of the simulation is set.
 
   use netcdf
-  use mo_definitions,      only: wp,t_grid
+  use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_constants,        only: p_0,r_d,c_d_p,m_d,m_v
   use mo_grid_nml,         only: n_scalars,n_scalars_h,n_vectors,n_vectors_per_layer,n_vectors_h,n_levels,n_dual_vectors, &
                                  n_layers,oro_id,res_id,n_dual_v_vectors,n_dual_scalars_h
@@ -27,21 +27,13 @@ module mo_set_initial_state
   
   contains
   
-  subroutine set_ideal_init(exner_pert,theta_v_pert,scalar_field_placeholder, &
-                            flux_density, &
-                            rho, &
-                            pot_vort_tend,rhotheta_v,wind,v_squared, &
-                            pot_vort,rel_vort,rel_vort_on_triangles, &
-                            temperature_soil,grid)
+  subroutine set_ideal_init(state,diag,grid)
   
     ! This subroutine sets the initial state of the model atmosphere for idealized test cases.
     
-    real(wp), intent(out) :: exner_pert(n_scalars),theta_v_pert(n_scalars),scalar_field_placeholder(n_scalars), &
-                             flux_density(n_vectors),rho(n_constituents*n_scalars),rhotheta_v(n_scalars),wind(n_vectors), &
-                             v_squared(n_scalars),pot_vort((2*n_layers+1)*n_vectors_h),rel_vort((2*n_layers+1)*n_vectors_h), &
-                             rel_vort_on_triangles(n_dual_v_vectors),temperature_soil(nsoillays*n_scalars_h), &
-                             pot_vort_tend(n_vectors)
-    type(t_grid), intent(in)  :: grid
+    type(t_state), intent(inout) :: state
+    type(t_diag), intent(inout)  :: diag
+    type(t_grid), intent(in)     :: grid
     
     ! local variables
     integer               :: ji,jl,jc,layer_index,h_index,scalar_index,ncid_grid,latitude_vector_id, &
@@ -138,25 +130,25 @@ module mo_set_initial_state
         z_height = grid%z_vector(n_scalars_h + ji + jl*n_vectors_per_layer)
         ! standard atmosphere: no wind
         if (ideal_input_id==0) then
-          wind(n_scalars_h + jl*n_vectors_per_layer + ji) = 0._wp          
+          state%wind(n_scalars_h + jl*n_vectors_per_layer + ji) = 0._wp          
                 
           ! adding a "random" perturbation to the horizontal wind in the case of the Held-Suarez test case
           if (rad_config==2) then
-            wind(n_scalars_h + jl*n_vectors_per_layer + ji) &
-            = wind(n_scalars_h + jl*n_vectors_per_layer + ji) + 0.1_wp*mod(ji,17)/16._wp
+            state%wind(n_scalars_h + jl*n_vectors_per_layer + ji) &
+            = state%wind(n_scalars_h + jl*n_vectors_per_layer + ji) + 0.1_wp*mod(ji,17)/16._wp
           endif
         endif
         ! dry Ullrich test
         if (ideal_input_id==1) then
           call baroclinic_wave_test(1,0,1,small_atmos_rescale,lon,lat,dummy_0,z_height,1, &
                                     u,v,dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6)
-          wind(n_scalars_h + jl*n_vectors_per_layer + ji) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
+          state%wind(n_scalars_h + jl*n_vectors_per_layer + ji) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
         endif
         ! moist Ullrich test
         if (ideal_input_id==2) then
           call baroclinic_wave_test(1,1,1,small_atmos_rescale,lon,lat,dummy_0,z_height,1, &
                                     u,v,dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6)
-          wind(n_scalars_h + jl*n_vectors_per_layer + ji) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
+          state%wind(n_scalars_h + jl*n_vectors_per_layer + ji) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
         endif
       enddo
     enddo
@@ -169,31 +161,31 @@ module mo_set_initial_state
     !$omp parallel do private(ji,jl)
     do ji=1,n_scalars_h
       do jl=0,n_levels-1
-        wind(jl*n_vectors_per_layer + ji) = 0._wp
+        state%wind(jl*n_vectors_per_layer + ji) = 0._wp
       enddo
     enddo
     !$omp end parallel do
     
     ! this is the moist air density which has not yet been hydrostatically balanced
     !$omp parallel workshare
-    scalar_field_placeholder = pressure/(r_d*temperature_v)
+    diag%scalar_field_placeholder = pressure/(r_d*temperature_v)
     !$omp end parallel workshare
     
-    call scalar_times_vector(scalar_field_placeholder,wind,flux_density,grid%from_index,grid%to_index)
+    call scalar_times_vector(diag%scalar_field_placeholder,state%wind,diag%flux_density,grid%from_index,grid%to_index)
     ! Nowthe potential vorticity is evaluated.
-    call calc_pot_vort(wind,rel_vort_on_triangles,grid%z_vector,grid%z_vector_dual,rel_vort, &
+    call calc_pot_vort(state%wind,diag%rel_vort_on_triangles,grid%z_vector,grid%z_vector_dual,diag%rel_vort, &
                        grid%vorticity_indices_triangles,grid%vorticity_signs_triangles,grid%normal_distance, &
                        grid%area_dual,grid%from_index,grid%to_index,grid%from_index_dual,grid%to_index_dual, &
                        grid%inner_product_weights, &
-                       grid%slope,grid%f_vec,pot_vort,grid%density_to_rhombi_indices,grid%density_to_rhombi_weights, &
-                       scalar_field_placeholder)
+                       grid%slope,grid%f_vec,diag%pot_vort,grid%density_to_rhombi_indices,grid%density_to_rhombi_weights, &
+                       diag%scalar_field_placeholder)
     ! Nowthe generalized Coriolis term is evaluated.
-    call vorticity_flux(grid%from_index,grid%to_index,pot_vort_tend,grid%trsk_indices,grid%trsk_modified_curl_indices, &
+    call vorticity_flux(grid%from_index,grid%to_index,diag%pot_vort_tend,grid%trsk_indices,grid%trsk_modified_curl_indices, &
                         grid%trsk_weights, &
-                        flux_density,pot_vort,grid%inner_product_weights,grid%adjacent_vector_indices_h)
+                        diag%flux_density,diag%pot_vort,grid%inner_product_weights,grid%adjacent_vector_indices_h)
     
     ! Kinetic energy is prepared for the gradient term of the Lamb transformation.
-    call inner_product(wind,wind,v_squared,grid)
+    call inner_product(state%wind,state%wind,diag%v_squared,grid)
     
     ! density is determined out of the hydrostatic equation
     ! theta_v_pert and exner_pert are a misuse of name herethey contain the full values here
@@ -205,27 +197,28 @@ module mo_set_initial_state
         ! lowest layer
         if (jl==n_layers-1) then
           pressure_value = pressure(scalar_index)
-          exner_pert(scalar_index) = (pressure_value/p_0)**(r_d/c_d_p)
+          state%exner_pert(scalar_index) = (pressure_value/p_0)**(r_d/c_d_p)
         ! other layers
         else
           ! solving a quadratic equation for the Exner pressure
-          b = -0.5_wp*exner_pert(scalar_index + n_scalars_h)/temperature_v(scalar_index + n_scalars_h) &
+          b = -0.5_wp*state%exner_pert(scalar_index + n_scalars_h)/temperature_v(scalar_index + n_scalars_h) &
           *(temperature_v(scalar_index) - temperature_v(scalar_index + n_scalars_h) &
           + 2._wp/c_d_p*(grid%gravity_potential(scalar_index) - grid%gravity_potential(scalar_index + n_scalars_h) &
-          + 0.5_wp*v_squared(scalar_index) - 0.5_wp*v_squared(scalar_index + n_scalars_h) &
+          + 0.5_wp*diag%v_squared(scalar_index) - 0.5_wp*diag%v_squared(scalar_index + n_scalars_h) &
           - (grid%z_scalar(scalar_index) - grid%z_scalar(scalar_index + n_scalars_h)) &
-          *pot_vort_tend(ji + (jl+1)*n_vectors_per_layer)))
-          c = exner_pert(scalar_index + n_scalars_h)**2*temperature_v(scalar_index)/temperature_v(scalar_index + n_scalars_h)
-          exner_pert(scalar_index) = b + (b**2+c)**0.5_wp
+          *diag%pot_vort_tend(ji + (jl+1)*n_vectors_per_layer)))
+          c = state%exner_pert(scalar_index + n_scalars_h)**2*temperature_v(scalar_index)/temperature_v(scalar_index + n_scalars_h)
+          state%exner_pert(scalar_index) = b + (b**2+c)**0.5_wp
         endif
         ! this is the full virtual potential temperature here
-        theta_v_pert(scalar_index) = temperature_v(scalar_index)/exner_pert(scalar_index)
+        state%theta_v_pert(scalar_index) = temperature_v(scalar_index)/state%exner_pert(scalar_index)
         
         ! scalar_field_placeholder is the moist air gas density here
-        scalar_field_placeholder(scalar_index) = p_0*exner_pert(scalar_index)**(c_d_p/r_d)/(r_d*temperature_v(scalar_index))
+        diag%scalar_field_placeholder(scalar_index) = p_0*state%exner_pert(scalar_index)**(c_d_p/r_d) &
+                                                      /(r_d*temperature_v(scalar_index))
         
         ! setting rhotheta_v according to its definition
-        rhotheta_v(scalar_index) = scalar_field_placeholder(scalar_index)*theta_v_pert(scalar_index)
+        state%rhotheta_v(scalar_index) = diag%scalar_field_placeholder(scalar_index)*state%theta_v_pert(scalar_index)
       enddo
     enddo
     !$omp end parallel do
@@ -235,21 +228,21 @@ module mo_set_initial_state
     
     ! substracting the background state
     !$omp parallel workshare
-    exner_pert = exner_pert - grid%exner_bg
-    theta_v_pert = theta_v_pert - grid%theta_v_bg
+    state%exner_pert = state%exner_pert - grid%exner_bg
+    state%theta_v_pert = state%theta_v_pert - grid%theta_v_bg
     !$omp end parallel workshare
     
     !$omp parallel do private(ji,jc)
     do ji=1,n_scalars
       do jc=0,n_condensed_constituents-1
         ! condensed densities are zero in all test states
-        rho(jc*n_scalars + ji) = 0._wp
+        state%rho(jc*n_scalars + ji) = 0._wp
       enddo
       ! the moist air density
-      rho(n_condensed_constituents*n_scalars + ji) = scalar_field_placeholder(ji)
+      state%rho(n_condensed_constituents*n_scalars + ji) = diag%scalar_field_placeholder(ji)
       ! water vapour density
       if (n_condensed_constituents==4) then
-        rho((n_condensed_constituents+1)*n_scalars + ji) = water_vapour_density(ji)
+        state%rho((n_condensed_constituents+1)*n_scalars + ji) = water_vapour_density(ji)
       endif
     enddo
     !$omp end parallel do
@@ -257,7 +250,7 @@ module mo_set_initial_state
     deallocate(water_vapour_density)
     
     ! setting the soil temperature
-    call set_soil_temp(grid%is_land,"NONE",grid%t_const_soil,temperature,temperature_soil)
+    call set_soil_temp(grid%is_land,"NONE",grid%t_const_soil,temperature,state%temperature_soil)
     deallocate(temperature)
     
   end subroutine set_ideal_init
