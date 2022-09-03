@@ -19,7 +19,7 @@ module mo_manage_pchevi
   use mo_scalar_tend_expl,       only: scalar_tend_expl
   use mo_vector_tend_expl,       only: vector_tend_expl
   use mo_phase_trans,            only: calc_h2otracers_source_rates
-  use mo_manage_radiation_calls, only: call_radiation
+  use mo_manage_radiation_calls, only: update_rad_fluxes
   
   implicit none
   
@@ -61,10 +61,10 @@ module mo_manage_pchevi
     
     ! Radiation is updated here.
     if (rad_config>0 .and. rad_update==1) then
-      call call_radiation(grid%latitude_scalar,grid%longitude_scalar, &
-                          state_old%temperature_soil,grid%sfc_albedo,grid%z_scalar, &
-                          grid%z_vector,state_old%rho,diag%temperature,diag%radiation_tendency, &
-                          diag%sfc_sw_in,diag%sfc_lw_out,time_coordinate)
+      call update_rad_fluxes(grid%latitude_scalar,grid%longitude_scalar, &
+                             state_old%temperature_soil,grid%sfc_albedo,grid%z_scalar, &
+                             grid%z_vector,state_old%rho,diag%temperature,diag%radiation_tendency, &
+                             diag%sfc_sw_in,diag%sfc_lw_out,time_coordinate)
     endif
       
     ! Loop over the RK substeps
@@ -79,10 +79,8 @@ module mo_manage_pchevi
       ! -----------------------------------------------
       ! Update of the pressure gradient.
       if (rk_step==1) then
-        call manage_pressure_gradient(state_old%exner_pert,grid%theta_v_bg,state_old%rho, &
-                                      state_old%theta_v_pert,grid%from_index,grid%to_index, &
-                                      grid%normal_distance,grid%exner_bg_grad, &
-                                      grid%inner_product_weights,grid%slope,diag,totally_first_step_bool)
+        call manage_pressure_gradient(state_old%exner_pert,state_old%rho,state_old%theta_v_pert, &
+                                      diag,grid,totally_first_step_bool)
       endif
       
       if (rk_step==1) then

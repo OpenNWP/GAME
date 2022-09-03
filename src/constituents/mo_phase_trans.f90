@@ -15,7 +15,6 @@ module mo_phase_trans
                                        phase_trans_heat,enhancement_factor_over_water,enhancement_factor_over_ice
   use mo_derived,                only: c_v_mass_weighted_air
   use mo_surface_nml,            only: nsoillays,lsfc_phase_trans
-  use mo_manage_radiation_calls, only: call_radiation
 
   implicit none
   

@@ -22,7 +22,7 @@ program control
   use mo_set_initial_state,      only: set_ideal_init,read_init_data
   use mo_derived,                only: temperature_diagnostics
   use mo_write_output,           only: write_out,write_out_integrals
-  use mo_manage_radiation_calls, only: call_radiation
+  use mo_manage_radiation_calls, only: update_rad_fluxes
   use mo_rrtmgp_coupler,         only: radiation_init
   use mo_manage_pchevi,          only: manage_pchevi
   use mo_linear_combination,     only: linear_combine_two_states
@@ -276,9 +276,9 @@ program control
     if (rad_config==1) then
       call radiation_init()
     endif
-    call call_radiation(grid%latitude_scalar,grid%longitude_scalar,state_1%temperature_soil,grid%sfc_albedo,grid%z_scalar, &
-                        grid%z_vector,state_1%rho,diag%temperature,diag%radiation_tendency, &
-                        diag%sfc_sw_in,diag%sfc_lw_out,t_0)
+    call update_rad_fluxes(grid%latitude_scalar,grid%longitude_scalar,state_1%temperature_soil,grid%sfc_albedo,grid%z_scalar, &
+                           grid%z_vector,state_1%rho,diag%temperature,diag%radiation_tendency, &
+                           diag%sfc_sw_in,diag%sfc_lw_out,t_0)
     rad_update = 1
     t_rad_update = t_rad_update+radiation_dtime
   endif

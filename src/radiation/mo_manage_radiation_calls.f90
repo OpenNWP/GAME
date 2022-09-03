@@ -17,8 +17,8 @@ module mo_manage_radiation_calls
   
   contains
   
-  subroutine call_radiation(latitude_scalar,longitude_scalar,temperature_soil,sfc_albedo,z_scalar, &
-                            z_vector,rho,temperature,radiation_tendency,sfc_sw_in,sfc_lw_out,time_coordinate)
+  subroutine update_rad_fluxes(latitude_scalar,longitude_scalar,temperature_soil,sfc_albedo,z_scalar, &
+                               z_vector,rho,temperature,radiation_tendency,sfc_sw_in,sfc_lw_out,time_coordinate)
   
     real(wp), intent(in)  :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h), &
                              temperature_soil(nsoillays*n_scalars_h),sfc_albedo(n_scalars_h), &
@@ -106,7 +106,7 @@ module mo_manage_radiation_calls
       write(*,*) "Update of radiative fluxes completed."
     endif
   
-  end subroutine call_radiation
+  end subroutine update_rad_fluxes
   
   subroutine create_rad_array_scalar(in_array,out_array,rad_block_index)
 
