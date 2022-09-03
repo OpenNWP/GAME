@@ -79,8 +79,7 @@ module mo_manage_pchevi
       ! -----------------------------------------------
       ! Update of the pressure gradient.
       if (rk_step==1) then
-        call manage_pressure_gradient(state_old%exner_pert,state_old%rho,state_old%theta_v_pert, &
-                                      diag,grid,totally_first_step_bool)
+        call manage_pressure_gradient(state_old,diag,grid,totally_first_step_bool)
       endif
       
       if (rk_step==1) then
