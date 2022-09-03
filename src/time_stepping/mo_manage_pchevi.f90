@@ -121,30 +121,30 @@ module mo_manage_pchevi
       ! 3.) vertical sound wave solver
       ! ------------------------------
       if (rk_step==1) then
-        call three_band_solver_ver_waves(grid%z_vector,grid%area,grid%volume,diag%scalar_flux_resistance,state_new%theta_v_pert, &
+        call three_band_solver_ver_waves(diag%scalar_flux_resistance,state_new%theta_v_pert, &
                                          state_new%rho,state_old%rhotheta_v,state_old%rho, &
-                                         state_old%rho,state_old%theta_v_pert,grid%theta_v_bg, &
-                                         state_old%exner_pert,grid%exner_bg,state_old%theta_v_pert,state_old%exner_pert, &
+                                         state_old%rho,state_old%theta_v_pert, &
+                                         state_old%exner_pert,state_old%theta_v_pert,state_old%exner_pert, &
                                          diag%power_flux_density_sensible, &
                                          state_old%temperature_soil,state_old%temperature_soil, &
-                                         state_tend%rhotheta_v,grid%is_land,state_tend%rho,state_old%rhotheta_v,state_old%wind, &
-                                         grid%z_scalar,state_tend%wind,grid%z_soil_center,grid%t_conduc_soil,grid%sfc_rho_c, &
-                                         diag%sfc_lw_out,diag%sfc_sw_in,grid%t_const_soil,grid%z_soil_interface, &
+                                         state_tend%rhotheta_v,state_tend%rho,state_old%rhotheta_v,state_old%wind, &
+                                         state_tend%wind, &
+                                         diag%sfc_lw_out,diag%sfc_sw_in, &
                                          diag%power_flux_density_latent,state_new%rhotheta_v,state_new%exner_pert, &
-                                         state_new%wind,state_new%temperature_soil,rk_step)
+                                         state_new%wind,state_new%temperature_soil,grid,rk_step)
       endif
       if (rk_step==2) then
-        call three_band_solver_ver_waves(grid%z_vector,grid%area,grid%volume,diag%scalar_flux_resistance,state_new%theta_v_pert, &
+        call three_band_solver_ver_waves(diag%scalar_flux_resistance,state_new%theta_v_pert, &
                                          state_new%rho,state_new%rhotheta_v,state_new%rho, &
-                                         state_old%rho,state_old%theta_v_pert,grid%theta_v_bg, &
-                                         state_old%exner_pert,grid%exner_bg,state_new%theta_v_pert,state_new%exner_pert, &
+                                         state_old%rho,state_old%theta_v_pert, &
+                                         state_old%exner_pert,state_new%theta_v_pert,state_new%exner_pert, &
                                          diag%power_flux_density_sensible,state_new%temperature_soil, &
                                          state_old%temperature_soil, &
-                                         state_tend%rhotheta_v,grid%is_land,state_tend%rho,state_old%rhotheta_v,state_old%wind, &
-                                         grid%z_scalar,state_tend%wind,grid%z_soil_center,grid%t_conduc_soil,grid%sfc_rho_c, &
-                                         diag%sfc_lw_out,diag%sfc_sw_in,grid%t_const_soil,grid%z_soil_interface, &
+                                         state_tend%rhotheta_v,state_tend%rho,state_old%rhotheta_v,state_old%wind, &
+                                         state_tend%wind, &
+                                         diag%sfc_lw_out,diag%sfc_sw_in, &
                                          diag%power_flux_density_latent,state_new%rhotheta_v,state_new%exner_pert, &
-                                         state_new%wind,state_new%temperature_soil,rk_step)
+                                         state_new%wind,state_new%temperature_soil,grid,rk_step)
       endif
       
       ! 4.) vertical tracer advection
