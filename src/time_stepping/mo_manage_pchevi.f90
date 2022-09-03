@@ -112,7 +112,7 @@ module mo_manage_pchevi
                               rho_old,diag%tke,diag%viscosity,diag%viscosity_triangles, &
                               diag%wind_div,diag%viscosity_rhombi,diag%vector_field_placeholder, &
                               diag%curl_of_vorticity, &
-                              grid%gravity_m,grid%theta_v_bg,theta_v_pert_old, &
+                              grid%theta_v_bg,theta_v_pert_old, &
                               diag%scalar_field_placeholder,diag%n_squared,wind_tend, &
                               grid%density_to_rhombi_indices,grid%density_to_rhombi_weights,diag%dv_hdz,grid%exner_bg, &
                               state_old%exner_pert,grid%f_vec,diag%flux_density,diag%heating_diss,grid%layer_thickness, &
@@ -137,7 +137,7 @@ module mo_manage_pchevi
                               rho_new,diag%tke,diag%viscosity,diag%viscosity_triangles, &
                               diag%wind_div,diag%viscosity_rhombi, &
                               diag%vector_field_placeholder,diag%curl_of_vorticity, &
-                              grid%gravity_m,grid%theta_v_bg,theta_v_pert_new, &
+                              grid%theta_v_bg,theta_v_pert_new, &
                               diag%scalar_field_placeholder,diag%n_squared,wind_tend, &
                               grid%density_to_rhombi_indices,grid%density_to_rhombi_weights,diag%dv_hdz,grid%exner_bg, &
                               state_new%exner_pert,grid%f_vec,diag%flux_density,diag%heating_diss,grid%layer_thickness, &

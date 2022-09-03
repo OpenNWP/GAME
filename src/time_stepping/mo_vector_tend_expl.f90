@@ -33,7 +33,7 @@ module mo_vector_tend_expl
                               slope,temperature,friction_acc,adjacent_signs_h,adjacent_vector_indices_h,area, &
                               molecular_diffusion_coeff,normal_distance_dual,rho,tke,viscosity,viscosity_triangles, &
                               wind_div,viscosity_rhombi,vector_field_placeholder,curl_of_vorticity, &
-                              gravity_m,theta_v_bg,theta_v_pert,scalar_field_placeholder,n_squared,wind_tend, &
+                              theta_v_bg,theta_v_pert,scalar_field_placeholder,n_squared,wind_tend, &
                               density_to_rhombi_indices,density_to_rhombi_weights,dv_hdz,exner_bg, &
                               exner_pert,f_vec,flux_density,heating_diss,layer_thickness,monin_obukhov_length, &
                               pot_vort,roughness_length,trsk_indices,trsk_modified_curl_indices,trsk_weights, &
@@ -43,7 +43,7 @@ module mo_vector_tend_expl
   
     real(wp), intent(in)    :: normal_distance(n_vectors), &
                                area_dual(n_dual_vectors),inner_product_weights(8*n_scalars),slope(n_vectors), &
-                               temperature(n_scalars),area(n_vectors),gravity_m(n_vectors), &
+                               temperature(n_scalars),area(n_vectors), &
                                normal_distance_dual(n_dual_vectors),rho(n_constituents*n_scalars), &
                                theta_v_bg(n_scalars),theta_v_pert(n_scalars),density_to_rhombi_weights(4*n_vectors_h), &
                                exner_bg(n_scalars),exner_pert(n_scalars),f_vec(2*n_vectors_h),layer_thickness(n_scalars), &
@@ -98,7 +98,7 @@ module mo_vector_tend_expl
     if (rk_step==0) then
       ! updating the Brunt-Väisälä frequency and the TKE if any diffusion is switched on because it is required for computing the diffusion coefficients
       if (lmom_diff_h .or. lmass_diff_h .or. ltemp_diff_h) then
-        call update_n_squared(theta_v_bg,theta_v_pert,normal_distance,inner_product_weights,gravity_m, &
+        call update_n_squared(theta_v_bg,theta_v_pert,normal_distance,inner_product_weights,grid%gravity_m, &
                               scalar_field_placeholder,vector_field_placeholder,n_squared)
         call tke_update(rho,viscosity,heating_diss, &
                         tke,vector_field_placeholder,state%wind,scalar_field_placeholder,grid)
@@ -124,7 +124,7 @@ module mo_vector_tend_expl
       ! planetary boundary layer
       if (pbl_scheme>0) then
         call pbl_wind_tendency(state%wind,grid%z_vector,monin_obukhov_length,exner_bg,exner_pert,v_squared, &
-                               from_index,to_index,friction_acc,gravity_m,roughness_length,rho, &
+                               from_index,to_index,friction_acc,grid%gravity_m,roughness_length,rho, &
                                temperature,z_scalar)
       endif
       ! calculation of the dissipative heating rate
