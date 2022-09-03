@@ -5,7 +5,7 @@ module mo_column_solvers
 
   ! This module contains the implicit vertical routines (implicit part of the HEVI scheme).
 
-  use mo_definitions,      only: wp,t_grid
+  use mo_definitions,      only: wp,t_grid,t_diag
   use mo_constants,        only: r_d,c_d_v,c_d_p,M_PI
   use mo_run_nml,          only: dtime
   use mo_grid_nml,         only: n_scalars,n_layers,n_scalars_h,n_vectors_per_layer,n_vectors
@@ -21,33 +21,30 @@ module mo_column_solvers
   
   contains
   
-  subroutine three_band_solver_ver_waves(scalar_flux_resistance,theta_v_pert_target, &
+  subroutine three_band_solver_ver_waves(theta_v_pert_target, &
                                          rho_target,rhotheta_v_new,rho_new,rho_old,theta_v_pert_old, &
                                          exner_pert_old,theta_v_pert_new,exner_pert_new, &
-                                         power_flux_density_sensible,temperature_soil_new,temperature_soil_old, &
+                                         temperature_soil_new,temperature_soil_old, &
                                          rhotheta_v_tend,rho_tend,rhotheta_v_old,wind_old, &
                                          wind_tend, &
-                                         sfc_lw_out,sfc_sw_in, &
-                                         power_flux_density_latent,rhotheta_v_target,exner_pert_target, &
-                                         wind_target,temperature_soil_target,grid,rk_step)
+                                         rhotheta_v_target,exner_pert_target, &
+                                         wind_target,temperature_soil_target,diag,grid,rk_step)
     
     ! This subroutine is the implicit vertical solver for the main fluid constituent.
     real(wp)                :: rho_new(n_constituents*n_scalars),rhotheta_v_new(n_scalars),exner_pert_new(n_scalars), &
                                theta_v_pert_new(n_scalars),temperature_soil_new(nsoillays*n_scalars_h)
-    real(wp), intent(in)    :: scalar_flux_resistance(n_scalars_h),rho_old(n_constituents*n_scalars), &
+    real(wp), intent(in)    :: rho_old(n_constituents*n_scalars), &
                                theta_v_pert_old(n_scalars),exner_pert_old(n_scalars), &
                                temperature_soil_old(nsoillays*n_scalars_h), &
                                rho_tend(n_constituents*n_scalars),rhotheta_v_old(n_scalars),wind_old(n_vectors), &
-                               wind_tend(n_vectors), &
-                               sfc_lw_out(n_scalars_h),sfc_sw_in(n_scalars_h), &
-                               power_flux_density_latent(n_scalars_h)
+                               wind_tend(n_vectors)
     real(wp), intent(out)   :: theta_v_pert_target(n_scalars),rho_target(n_constituents*n_scalars), &
-                               power_flux_density_sensible(n_scalars_h), &
                                rhotheta_v_target(n_scalars),exner_pert_target(n_scalars),wind_target(n_vectors), &
                                temperature_soil_target(nsoillays*n_scalars_h)
     real(wp), intent(inout) :: rhotheta_v_tend(n_scalars)
+    type(t_diag), intent(inout) :: diag
+    type(t_grid), intent(in)    :: grid
     integer,  intent(in)    :: rk_step
-    type(t_grid), intent(in) :: grid
     
     ! local variables
     integer  :: i,j,lower_index,base_index,soil_switch,gas_phase_first_index
@@ -87,14 +84,14 @@ module mo_column_solvers
         *(grid%theta_v_bg(base_index) + theta_v_pert_new(base_index))
         
         ! the sensible power flux density
-        power_flux_density_sensible(i) = 0.5_wp*c_d_v*(rho_new(gas_phase_first_index + base_index) &
+        diag%power_flux_density_sensible(i) = 0.5_wp*c_d_v*(rho_new(gas_phase_first_index + base_index) &
         *(temperature_gas_lowest_layer_old - temperature_soil_old(i)) &
         + rho_old(gas_phase_first_index + base_index) &
-        *(temperature_gas_lowest_layer_new - temperature_soil_new(i)))/scalar_flux_resistance(i)
+        *(temperature_gas_lowest_layer_new - temperature_soil_new(i)))/diag%scalar_flux_resistance(i)
         
         ! contribution of sensible heat to rhotheta_v
         rhotheta_v_tend(base_index) = rhotheta_v_tend(base_index) &
-        - grid%area(n_layers*n_vectors_per_layer + i)*power_flux_density_sensible(i) &
+        - grid%area(n_layers*n_vectors_per_layer + i)*diag%power_flux_density_sensible(i) &
         /((grid%exner_bg(base_index) + exner_pert_new(base_index))*c_d_p)/grid%volume(base_index)
       enddo
       !$omp end parallel do
@@ -212,7 +209,7 @@ module mo_column_solvers
         = -grid%sfc_rho_c(i)*grid%t_conduc_soil(i)*(temperature_soil_old(i + (nsoillays-1)*n_scalars_h)-grid%t_const_soil(i)) &
         /(2._wp*(grid%z_soil_center(nsoillays) - z_t_const))
         
-        radiation_flux_density = sfc_sw_in(i) - sfc_lw_out(i)
+        radiation_flux_density = diag%sfc_sw_in(i) - diag%sfc_lw_out(i)
         resulting_temperature_change = radiation_flux_density/((grid%z_soil_interface(1) - grid%z_soil_interface(2)) &
         *grid%sfc_rho_c(i))*radiation_dtime
         if (abs(resulting_temperature_change)>max_rad_temp_change) then
@@ -224,9 +221,9 @@ module mo_column_solvers
         ! old temperature
         = temperature_soil_old(i) &
         ! sensible heat flux
-        + (power_flux_density_sensible(i) &
+        + (diag%power_flux_density_sensible(i) &
         ! latent heat flux
-        + power_flux_density_latent(i) &
+        + diag%power_flux_density_latent(i) &
         ! radiation
         + radiation_flux_density &
         ! heat conduction from below

@@ -26,6 +26,8 @@ module mo_manage_pchevi
   contains
   
   subroutine manage_pchevi(state_old,state_new,state_tend,time_coordinate,totally_first_step_bool,rad_update,diag,grid)
+
+    ! This subroutine manages the predictor-corrector HEVI time stepping.
     
     type(t_grid),  intent(inout) :: grid
     type(t_state), intent(inout) :: state_old
@@ -121,30 +123,27 @@ module mo_manage_pchevi
       ! 3.) vertical sound wave solver
       ! ------------------------------
       if (rk_step==1) then
-        call three_band_solver_ver_waves(diag%scalar_flux_resistance,state_new%theta_v_pert, &
+        call three_band_solver_ver_waves(state_new%theta_v_pert, &
                                          state_new%rho,state_old%rhotheta_v,state_old%rho, &
                                          state_old%rho,state_old%theta_v_pert, &
                                          state_old%exner_pert,state_old%theta_v_pert,state_old%exner_pert, &
-                                         diag%power_flux_density_sensible, &
                                          state_old%temperature_soil,state_old%temperature_soil, &
                                          state_tend%rhotheta_v,state_tend%rho,state_old%rhotheta_v,state_old%wind, &
                                          state_tend%wind, &
-                                         diag%sfc_lw_out,diag%sfc_sw_in, &
-                                         diag%power_flux_density_latent,state_new%rhotheta_v,state_new%exner_pert, &
-                                         state_new%wind,state_new%temperature_soil,grid,rk_step)
+                                         state_new%rhotheta_v,state_new%exner_pert, &
+                                         state_new%wind,state_new%temperature_soil,diag,grid,rk_step)
       endif
       if (rk_step==2) then
-        call three_band_solver_ver_waves(diag%scalar_flux_resistance,state_new%theta_v_pert, &
+        call three_band_solver_ver_waves(state_new%theta_v_pert, &
                                          state_new%rho,state_new%rhotheta_v,state_new%rho, &
                                          state_old%rho,state_old%theta_v_pert, &
                                          state_old%exner_pert,state_new%theta_v_pert,state_new%exner_pert, &
-                                         diag%power_flux_density_sensible,state_new%temperature_soil, &
+                                         state_new%temperature_soil, &
                                          state_old%temperature_soil, &
                                          state_tend%rhotheta_v,state_tend%rho,state_old%rhotheta_v,state_old%wind, &
                                          state_tend%wind, &
-                                         diag%sfc_lw_out,diag%sfc_sw_in, &
-                                         diag%power_flux_density_latent,state_new%rhotheta_v,state_new%exner_pert, &
-                                         state_new%wind,state_new%temperature_soil,grid,rk_step)
+                                         state_new%rhotheta_v,state_new%exner_pert, &
+                                         state_new%wind,state_new%temperature_soil,diag,grid,rk_step)
       endif
       
       ! 4.) vertical tracer advection
