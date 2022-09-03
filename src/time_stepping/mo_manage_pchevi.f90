@@ -25,29 +25,15 @@ module mo_manage_pchevi
   
   contains
   
-  subroutine manage_pchevi(state_old,state_new,wind_tend,wind_new, &
-                           time_coordinate, &
-                           totally_first_step_bool, &
-                           theta_v_pert_old,theta_v_pert_new,temperature_soil_new, &
-                           temperature_soil_old, &
-                           rhotheta_v_tend,rhotheta_v_old, &
-                           rhotheta_v_new,rho_tend,rho_old,rho_new, &
-                           rad_update,state_tend,diag,grid)
+  subroutine manage_pchevi(state_old,state_new,state_tend,time_coordinate,totally_first_step_bool,rad_update,diag,grid)
     
-    real(wp), intent(out) :: wind_new(n_vectors),wind_tend(n_vectors), &
-                             temperature_soil_new(nsoillays*n_scalars_h), &
-                             theta_v_pert_new(n_scalars), &
-                             rhotheta_v_tend(n_scalars),rhotheta_v_new(n_scalars), &
-                             rho_tend(n_scalars*n_constituents),rho_new(n_scalars*n_constituents)
-    integer,  intent(in)  :: totally_first_step_bool,rad_update
-    real(wp), intent(in)  :: time_coordinate,theta_v_pert_old(n_scalars), &
-                             temperature_soil_old(nsoillays*n_scalars_h), &
-                             rhotheta_v_old(n_scalars),rho_old(n_scalars*n_constituents)
-    type(t_grid), intent(inout) :: grid
+    type(t_grid),  intent(inout) :: grid
     type(t_state), intent(inout) :: state_old
     type(t_state), intent(inout) :: state_new
     type(t_state), intent(inout) :: state_tend
-    type(t_diag), intent(inout) :: diag
+    type(t_diag),  intent(inout) :: diag
+    integer,       intent(in)    :: totally_first_step_bool,rad_update
+    real(wp),      intent(in)    :: time_coordinate
     
     ! local variabels
     integer :: h_index,layer_index,vector_index,rk_step
@@ -56,27 +42,28 @@ module mo_manage_pchevi
     ! ------------
     
     ! diagnosing the temperature
-    call  temperature_diagnostics(diag%temperature,grid%theta_v_bg,theta_v_pert_old,grid%exner_bg, &
+    call  temperature_diagnostics(diag%temperature,grid%theta_v_bg,state_old%theta_v_pert,grid%exner_bg, &
                                   state_old%exner_pert,state_old%rho)
     
     ! updating surface-related turbulence quantities if it is necessary
     if (lsfc_sensible_heat_flux .or. lsfc_phase_trans .or. pbl_scheme==1) then
       call update_sfc_turb_quantities(grid%is_land,grid%roughness_length,diag%monin_obukhov_length,grid%z_scalar,grid%z_vector, &
-                                      grid%theta_v_bg,theta_v_pert_old,diag%v_squared,diag%roughness_velocity, &
+                                      grid%theta_v_bg,state_old%theta_v_pert,diag%v_squared,diag%roughness_velocity, &
                                       diag%scalar_flux_resistance)
     endif
     
     ! cloud microphysics
     if (lmoist) then
-      call calc_h2otracers_source_rates(rho_old,diag%temperature,grid%layer_thickness,temperature_soil_old, &
+      call calc_h2otracers_source_rates(state_old%rho,diag%temperature,grid%layer_thickness,state_old%temperature_soil, &
                                         diag%phase_trans_rates,diag%phase_trans_heating_rate, &
                                         diag%scalar_flux_resistance,grid%is_land,diag%power_flux_density_latent)
     endif
     
     ! Radiation is updated here.
     if (rad_config>0 .and. rad_update==1) then
-      call call_radiation(grid%latitude_scalar,grid%longitude_scalar,temperature_soil_old,grid%sfc_albedo,grid%z_scalar, &
-                          grid%z_vector,rho_old,diag%temperature,diag%radiation_tendency, &
+      call call_radiation(grid%latitude_scalar,grid%longitude_scalar, &
+                          state_old%temperature_soil,grid%sfc_albedo,grid%z_scalar, &
+                          grid%z_vector,state_old%rho,diag%temperature,diag%radiation_tendency, &
                           diag%sfc_sw_in,diag%sfc_lw_out,time_coordinate)
     endif
       
@@ -95,20 +82,21 @@ module mo_manage_pchevi
         call manage_pressure_gradient(diag%pressure_gradient_acc_neg_nl,diag%pressure_gradient_acc_neg_l, &
                                       diag%pressure_gradient_decel_factor,diag%scalar_field_placeholder, &
                                       state_old%exner_pert,grid%theta_v_bg, &
-                                      rho_old,diag%pgrad_acc_old, &
-                                      theta_v_pert_old,grid%from_index,grid%to_index,grid%normal_distance,grid%exner_bg_grad, &
+                                      state_old%rho,diag%pgrad_acc_old, &
+                                      state_old%theta_v_pert,grid%from_index,grid%to_index, &
+                                      grid%normal_distance,grid%exner_bg_grad, &
                                       grid%inner_product_weights,grid%slope,totally_first_step_bool)
       endif
       
       if (rk_step==1) then
        call calc_pressure_grad_condensates_v(diag%pressure_gradient_decel_factor, &
-                                             rho_old,grid%gravity_m,diag%pressure_grad_condensates_v)
+                                             state_old%rho,grid%gravity_m,diag%pressure_grad_condensates_v)
         ! Only the horizontal momentum is a forward tendency.
        call  vector_tend_expl(state_old,state_tend,totally_first_step_bool,diag,grid,rk_step)
       endif
       if (rk_step==2) then
         call calc_pressure_grad_condensates_v(diag%pressure_gradient_decel_factor, &
-                                              rho_new,grid%gravity_m,diag%pressure_grad_condensates_v)
+                                              state_new%rho,grid%gravity_m,diag%pressure_grad_condensates_v)
         ! Only the horizontal momentum is a forward tendency.
         call vector_tend_expl(state_new,state_tend,totally_first_step_bool,diag,grid,rk_step)
       endif
@@ -118,7 +106,7 @@ module mo_manage_pchevi
       do h_index=1,n_vectors_h
         do layer_index=0,n_layers-1
           vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
-          wind_new(vector_index) = state_old%wind(vector_index) + dtime*wind_tend(vector_index)
+          state_new%wind(vector_index) = state_old%wind(vector_index) + dtime*state_tend%wind(vector_index)
         enddo
       enddo
       !$omp end parallel do
@@ -127,43 +115,49 @@ module mo_manage_pchevi
       ! 2.) explicit component of the generalized density equations
       ! -----------------------------------------------------------
       if (rk_step==1) then
-        call scalar_tend_expl(rho_old,rhotheta_v_tend,rhotheta_v_old,wind_new,rho_tend,state_old%exner_pert, &
+        call scalar_tend_expl(state_old%rho,state_tend%rhotheta_v,state_old%rhotheta_v, &
+                              state_new%wind,state_tend%rho,state_old%exner_pert, &
                               diag,grid,rk_step)
       endif
       if (rk_step==2) then
-        call scalar_tend_expl(rho_new,rhotheta_v_tend,rhotheta_v_new,wind_new,rho_tend,state_new%exner_pert, &
+        call scalar_tend_expl(state_new%rho,state_tend%rhotheta_v,state_new%rhotheta_v, &
+                              state_new%wind,state_tend%rho,state_new%exner_pert, &
                               diag,grid,rk_step)
       endif
 
       ! 3.) vertical sound wave solver
       ! ------------------------------
       if (rk_step==1) then
-        call three_band_solver_ver_waves(grid%z_vector,grid%area,grid%volume,diag%scalar_flux_resistance,theta_v_pert_new, &
-                                         rho_new,rhotheta_v_old,rho_old,rho_old,theta_v_pert_old,grid%theta_v_bg, &
-                                         state_old%exner_pert,grid%exner_bg,theta_v_pert_old,state_old%exner_pert, &
-                                         diag%power_flux_density_sensible,temperature_soil_old,temperature_soil_old, &
-                                         rhotheta_v_tend,grid%is_land,rho_tend,rhotheta_v_old,state_old%wind, &
-                                         grid%z_scalar,wind_tend,grid%z_soil_center,grid%t_conduc_soil,grid%sfc_rho_c, &
+        call three_band_solver_ver_waves(grid%z_vector,grid%area,grid%volume,diag%scalar_flux_resistance,state_new%theta_v_pert, &
+                                         state_new%rho,state_old%rhotheta_v,state_old%rho, &
+                                         state_old%rho,state_old%theta_v_pert,grid%theta_v_bg, &
+                                         state_old%exner_pert,grid%exner_bg,state_old%theta_v_pert,state_old%exner_pert, &
+                                         diag%power_flux_density_sensible, &
+                                         state_old%temperature_soil,state_old%temperature_soil, &
+                                         state_tend%rhotheta_v,grid%is_land,state_tend%rho,state_old%rhotheta_v,state_old%wind, &
+                                         grid%z_scalar,state_tend%wind,grid%z_soil_center,grid%t_conduc_soil,grid%sfc_rho_c, &
                                          diag%sfc_lw_out,diag%sfc_sw_in,grid%t_const_soil,grid%z_soil_interface, &
-                                         diag%power_flux_density_latent,rhotheta_v_new,state_new%exner_pert, &
-                                         wind_new,temperature_soil_new,rk_step)
+                                         diag%power_flux_density_latent,state_new%rhotheta_v,state_new%exner_pert, &
+                                         state_new%wind,state_new%temperature_soil,rk_step)
       endif
       if (rk_step==2) then
-        call three_band_solver_ver_waves(grid%z_vector,grid%area,grid%volume,diag%scalar_flux_resistance,theta_v_pert_new, &
-                                         rho_new,rhotheta_v_new,rho_new,rho_old,theta_v_pert_old,grid%theta_v_bg, &
-                                         state_old%exner_pert,grid%exner_bg,theta_v_pert_new,state_new%exner_pert, &
-                                         diag%power_flux_density_sensible,temperature_soil_new,temperature_soil_old, &
-                                         rhotheta_v_tend,grid%is_land,rho_tend,rhotheta_v_old,state_old%wind, &
-                                         grid%z_scalar,wind_tend,grid%z_soil_center,grid%t_conduc_soil,grid%sfc_rho_c, &
+        call three_band_solver_ver_waves(grid%z_vector,grid%area,grid%volume,diag%scalar_flux_resistance,state_new%theta_v_pert, &
+                                         state_new%rho,state_new%rhotheta_v,state_new%rho, &
+                                         state_old%rho,state_old%theta_v_pert,grid%theta_v_bg, &
+                                         state_old%exner_pert,grid%exner_bg,state_new%theta_v_pert,state_new%exner_pert, &
+                                         diag%power_flux_density_sensible,state_new%temperature_soil, &
+                                         state_old%temperature_soil, &
+                                         state_tend%rhotheta_v,grid%is_land,state_tend%rho,state_old%rhotheta_v,state_old%wind, &
+                                         grid%z_scalar,state_tend%wind,grid%z_soil_center,grid%t_conduc_soil,grid%sfc_rho_c, &
                                          diag%sfc_lw_out,diag%sfc_sw_in,grid%t_const_soil,grid%z_soil_interface, &
-                                         diag%power_flux_density_latent,rhotheta_v_new,state_new%exner_pert, &
-                                         wind_new,temperature_soil_new,rk_step)
+                                         diag%power_flux_density_latent,state_new%rhotheta_v,state_new%exner_pert, &
+                                         state_new%wind,state_new%temperature_soil,rk_step)
       endif
       
       ! 4.) vertical tracer advection
       ! -----------------------------
       if (n_constituents>1) then
-        call three_band_solver_gen_densities(state_old%wind,wind_new,grid%volume,rho_tend,rho_old,rho_new, &
+        call three_band_solver_gen_densities(state_old%wind,state_new%wind,grid%volume,state_tend%rho,state_old%rho,state_new%rho, &
                                              diag%condensates_sediment_heat,grid%area,diag%temperature,rk_step)
       endif
       

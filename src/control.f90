@@ -320,21 +320,9 @@ program control
     
     ! time step integration
     if (mod(time_step_counter,2)==0) then
-      call manage_pchevi(state_1,state_2,state_tend%wind,state_2%wind,t_0, &
-                         totally_first_step_bool, &
-                         state_1%theta_v_pert,state_2%theta_v_pert,state_2%temperature_soil, &
-                         state_1%temperature_soil, &
-                         state_tend%rhotheta_v,state_1%rhotheta_v, &
-                         state_2%rhotheta_v,state_tend%rho,state_1%rho,state_2%rho, &
-                         rad_update,state_tend,diag,grid)
+      call manage_pchevi(state_1,state_2,state_tend,t_0,totally_first_step_bool,rad_update,diag,grid)
     else
-      call manage_pchevi(state_2,state_1,state_tend%wind,state_1%wind,t_0, &
-                         totally_first_step_bool, &
-                         state_2%theta_v_pert,state_1%theta_v_pert,state_1%temperature_soil, &
-                         state_2%temperature_soil, &
-                         state_tend%rhotheta_v,state_2%rhotheta_v, &
-                         state_1%rhotheta_v,state_tend%rho,state_2%rho,state_1%rho,  &
-                         rad_update,state_tend,diag,grid)
+      call manage_pchevi(state_2,state_1,state_tend,t_0,totally_first_step_bool,rad_update,diag,grid)
     endif
   
     ! Writing out integrals over the model domain if requested by the user.
