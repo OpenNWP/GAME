@@ -15,37 +15,49 @@
 # 1			real data interpolated to the model grid
 # See handbook for more information.
 
+game_home_dir=/home/max/code/GAME
+run_id="standard_oro1"
+export OMP_NUM_THREADS=4
+
 cat > namelist.nml << EOF
 
+&run
 game_home_dir=/home/max/code/GAME
 ideal_input_id=0
-run_id=standard_oro1
+run_id=$run_id
 run_span_min=$((0*24*60))
 start_year=2000
 start_month=1
 start_day=1
 start_hour=0
 orography_id=1
+/
 
+&run
 momentum_diff_h=0
 momentum_diff_v=0
 temperature_diff_h=0
 temperature_diff_v=0
 mass_diff_h=0
 mass_diff_v=0
+/
 
+&rad
 rad_on=0
 prog_soil_temp=0
 sfc_phase_trans=0
 sfc_sensible_heat_flux=0
 pbl_scheme=0
+/
 
+&io
 write_out_interval_min=1440
 write_out_integrals=0
 model_level_output_switch=1
 pressure_level_output_switch=0
 surface_output_switch=0
 time_to_next_analysis=0
+/
 
 EOF
 
