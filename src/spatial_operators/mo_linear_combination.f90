@@ -5,7 +5,7 @@ module mo_linear_combination
 
   ! This module  contains a function for linearly combining two states.
 
-  use mo_definitions,      only: wp
+  use mo_definitions,      only: wp,t_state,t_grid
   use mo_grid_nml,         only: n_scalars,n_vectors,n_scalars_h
   use mo_surface_nml,      only: nsoillays
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents
@@ -14,25 +14,22 @@ module mo_linear_combination
   
   contains
 
-  subroutine linear_combine_two_states(rho_1,rhotheta_v_1,exner_pert_1,wind_1,temperature_soil_1, &
-                                       rho_2,rhotheta_v_2,exner_pert_2,wind_2,temperature_soil_2, &
-                                       rho,rhotheta_v,theta_v_pert,exner_pert,wind,temperature_soil, &
-                                       coeff_1,coeff_2,theta_v_bg)
+  subroutine linear_combine_two_states(state_1,state_2,state_res,coeff_1,coeff_2,grid)
   
-    real(wp), intent(in)  :: rho_1(n_constituents*n_scalars),rhotheta_v_1(n_scalars),exner_pert_1(n_scalars),wind_1(n_vectors), &
-                             temperature_soil_1(nsoillays*n_scalars_h),rho_2(n_constituents*n_scalars),rhotheta_v_2(n_scalars), &
-                             exner_pert_2(n_scalars),wind_2(n_vectors),temperature_soil_2(nsoillays*n_scalars_h), &
-                             coeff_1,coeff_2,theta_v_bg(n_scalars)
-    real(wp), intent(out) :: rho(n_constituents*n_scalars),rhotheta_v(n_scalars),theta_v_pert(n_scalars),exner_pert(n_scalars), &
-                             wind(n_vectors),temperature_soil(nsoillays*n_scalars_h)
+    type(t_state), intent(inout) :: state_1,state_2
+    type(t_state), intent(out)   :: state_res
+    real(wp),      intent(in)    :: coeff_1,coeff_2
+    type(t_grid),  intent(in)    :: grid
   
     !$omp parallel workshare
-    rho = coeff_1*rho_1+coeff_2*rho_2
-    rhotheta_v = coeff_1*rhotheta_v_1+coeff_2*rhotheta_v_2
-    theta_v_pert = rhotheta_v/rho(n_condensed_constituents*n_scalars+1:(n_condensed_constituents+1)*n_scalars)-theta_v_bg
-    exner_pert = coeff_1*exner_pert_1+coeff_2*exner_pert_2
-    wind = coeff_1*wind_1+coeff_2*wind_2
-    temperature_soil = coeff_1*temperature_soil_1+coeff_2*temperature_soil_2
+    state_res%rho = coeff_1*state_1%rho+coeff_2*state_2%rho
+    state_res%rhotheta_v = coeff_1*state_1%rhotheta_v+coeff_2*state_2%rhotheta_v
+    state_res%theta_v_pert = state_res%rhotheta_v/ &
+                             state_res%rho(n_condensed_constituents*n_scalars+1:(n_condensed_constituents+1)*n_scalars) &
+                             - grid%theta_v_bg
+    state_res%exner_pert = coeff_1*state_1%exner_pert+coeff_2*state_2%exner_pert
+    state_res%wind = coeff_1*state_1%wind+coeff_2*state_2%wind
+    state_res%temperature_soil = coeff_1*state_1%temperature_soil+coeff_2*state_2%temperature_soil
     !$omp end parallel workshare
     
   end subroutine linear_combine_two_states
