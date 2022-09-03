@@ -6,7 +6,7 @@ program control
   ! This program organizes the model, manages the time stepping, calls model output, collects the lowest model layer wind for 10 m wind mean and so on.
   ! All the memory needed for the integration is allocated and freed here.
 
-  use mo_definitions,            only: t_grid,t_state,t_diag,wp
+  use mo_definitions,            only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,               only: n_scalars,n_layers,n_scalars_h,n_vectors,n_vectors_h,n_dual_vectors, &
                                        n_dual_scalars_h,n_dual_v_vectors,n_h_vectors,n_latlon_io_points, &
                                        n_vectors_per_layer,grid_nml_setup
@@ -210,13 +210,10 @@ program control
   ! ideal test case
   if (ideal_input_id/=-1) then
     call set_ideal_init(state_1%exner_pert,state_1%theta_v_pert,diag%scalar_field_placeholder, &
-                        grid%theta_v_bg,grid%adjacent_vector_indices_h, &
                         diag%flux_density, &
                         state_1%rho, &
                         diag%pot_vort_tend,state_1%rhotheta_v,state_1%wind,diag%v_squared, &
-                        grid%direction,grid%latitude_scalar,grid%longitude_scalar, &
-                        grid%gravity_potential,diag%pot_vort,diag%rel_vort,diag%rel_vort_on_triangles, &
-                        grid%vorticity_signs_triangles, &
+                        diag%pot_vort,diag%rel_vort,diag%rel_vort_on_triangles, &
                         state_1%temperature_soil,grid)
   ! NWP mode
   else
