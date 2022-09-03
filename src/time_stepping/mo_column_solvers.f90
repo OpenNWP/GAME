@@ -5,7 +5,7 @@ module mo_column_solvers
 
   ! This module contains the implicit vertical routines (implicit part of the HEVI scheme).
 
-  use mo_definitions,      only: wp,t_grid,t_diag
+  use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_constants,        only: r_d,c_d_v,c_d_p,M_PI
   use mo_run_nml,          only: dtime
   use mo_grid_nml,         only: n_scalars,n_layers,n_scalars_h,n_vectors_per_layer,n_vectors
@@ -47,7 +47,7 @@ module mo_column_solvers
     integer,  intent(in)    :: rk_step
     
     ! local variables
-    integer  :: i,j,lower_index,base_index,soil_switch,gas_phase_first_index
+    integer  :: ji,j,lower_index,base_index,soil_switch,gas_phase_first_index
     real(wp) :: damping_coeff,damping_start_height,z_above_damping,temperature_gas_lowest_layer_old, &
                 temperature_gas_lowest_layer_new,radiation_flux_density,resulting_temperature_change, &
                 max_rad_temp_change,impl_weight,partial_deriv_new_time_step_weight, &
@@ -73,9 +73,9 @@ module mo_column_solvers
     
     ! calculating the sensible power flux density
     if (lsfc_sensible_heat_flux) then
-      !$omp parallel do private(i,base_index,temperature_gas_lowest_layer_old,temperature_gas_lowest_layer_new)
-      do i=1,n_scalars_h
-        base_index = n_scalars - n_scalars_h + i
+      !$omp parallel do private(ji,base_index,temperature_gas_lowest_layer_old,temperature_gas_lowest_layer_new)
+      do ji=1,n_scalars_h
+        base_index = n_scalars-n_scalars_h+ji
         
         ! gas temperature in the lowest layer
         temperature_gas_lowest_layer_old = (grid%exner_bg(base_index) + exner_pert_old(base_index)) &
@@ -84,39 +84,39 @@ module mo_column_solvers
         *(grid%theta_v_bg(base_index) + theta_v_pert_new(base_index))
         
         ! the sensible power flux density
-        diag%power_flux_density_sensible(i) = 0.5_wp*c_d_v*(rho_new(gas_phase_first_index + base_index) &
-        *(temperature_gas_lowest_layer_old - temperature_soil_old(i)) &
+        diag%power_flux_density_sensible(ji) = 0.5_wp*c_d_v*(rho_new(gas_phase_first_index + base_index) &
+        *(temperature_gas_lowest_layer_old - temperature_soil_old(ji)) &
         + rho_old(gas_phase_first_index + base_index) &
-        *(temperature_gas_lowest_layer_new - temperature_soil_new(i)))/diag%scalar_flux_resistance(i)
+        *(temperature_gas_lowest_layer_new - temperature_soil_new(ji)))/diag%scalar_flux_resistance(ji)
         
         ! contribution of sensible heat to rhotheta_v
         rhotheta_v_tend(base_index) = rhotheta_v_tend(base_index) &
-        - grid%area(n_layers*n_vectors_per_layer + i)*diag%power_flux_density_sensible(i) &
+        - grid%area(n_layers*n_vectors_per_layer+ji)*diag%power_flux_density_sensible(ji) &
         /((grid%exner_bg(base_index) + exner_pert_new(base_index))*c_d_p)/grid%volume(base_index)
       enddo
       !$omp end parallel do
     endif
     
     ! loop over all columns
-    !$omp parallel do private(i,j,base_index,lower_index,damping_coeff,z_above_damping,soil_switch, &
+    !$omp parallel do private(ji,j,base_index,lower_index,damping_coeff,z_above_damping,soil_switch, &
     !$omp radiation_flux_density,resulting_temperature_change,c_vector,d_vector, &
     !$omp e_vector,r_vector,rho_expl,rhotheta_v_expl,theta_v_pert_expl,exner_pert_expl,theta_v_int_new, &
     !$omp solution_vector,rho_int_old,rho_int_expl,alpha_old,beta_old,gamma_old,alpha_new,beta_new, &
     !$omp gamma_new,alpha,beta,gamma_,density_interface_new,heat_flux_density_expl)
-    do i=1,n_scalars_h
+    do ji=1,n_scalars_h
       
       if (lprog_soil_temp) then
-        soil_switch = grid%is_land(i)
+        soil_switch = grid%is_land(ji)
       else
         soil_switch = 0
       endif
       
       ! explicit quantities
       do j=1,n_layers
-        base_index = i + (j-1)*n_scalars_h
+        base_index = ji+(j-1)*n_scalars_h
         ! explicit density
-        rho_expl(j) = rho_old(gas_phase_first_index + base_index) &
-        + dtime*rho_tend(gas_phase_first_index + base_index)
+        rho_expl(j) = rho_old(gas_phase_first_index+base_index) &
+        + dtime*rho_tend(gas_phase_first_index+base_index)
         ! explicit virtual potential temperature density
         rhotheta_v_expl(j) = rhotheta_v_old(base_index) + dtime*rhotheta_v_tend(base_index)
         if (rk_step==1) then
@@ -152,8 +152,8 @@ module mo_column_solvers
       
       ! determining the interface values
       do j=1,n_layers-1
-        base_index = i + (j-1)*n_scalars_h
-        lower_index = i + j*n_scalars_h
+        base_index = ji+(j-1)*n_scalars_h
+        lower_index = ji+j*n_scalars_h
         rho_int_old(j) = 0.5_wp*(rho_old(gas_phase_first_index + base_index) + rho_old(gas_phase_first_index + lower_index))
         rho_int_expl(j) = 0.5_wp*(rho_expl(j) + rho_expl(j+1))
         theta_v_int_new(j) = 0.5_wp*(rhotheta_v_new(base_index)/rho_new(gas_phase_first_index + base_index) &
@@ -162,39 +162,39 @@ module mo_column_solvers
       
       ! filling up the coefficient vectors
       do j=1,n_layers-1
-        base_index = i + (j-1)*n_scalars_h
-        lower_index = i + j*n_scalars_h
+        base_index = ji+(j-1)*n_scalars_h
+        lower_index = ji+j*n_scalars_h
         ! main diagonal
         d_vector(j) = -theta_v_int_new(j)**2*(gamma_(j) + gamma_(j+1)) &
         + 0.5_wp*(grid%exner_bg(base_index) - grid%exner_bg(lower_index)) &
         *(alpha(j+1) - alpha(j) + theta_v_int_new(j)*(beta(j+1) - beta(j))) &
         - (grid%z_scalar(base_index) - grid%z_scalar(lower_index))/(impl_weight*dtime**2*c_d_p*rho_int_old(j)) &
-        *(2._wp/grid%area(i + j*n_vectors_per_layer) + dtime*wind_old(i + j*n_vectors_per_layer)*0.5_wp &
+        *(2._wp/grid%area(ji+j*n_vectors_per_layer) + dtime*wind_old(ji+j*n_vectors_per_layer)*0.5_wp &
         *(-1._wp/grid%volume(base_index) + 1._wp/grid%volume(lower_index)))
         ! right hand side
-        r_vector(j) = -(wind_old(i + j*n_vectors_per_layer) + dtime*wind_tend(i + j*n_vectors_per_layer)) &
+        r_vector(j) = -(wind_old(ji+j*n_vectors_per_layer) + dtime*wind_tend(ji+j*n_vectors_per_layer)) &
         *(grid%z_scalar(base_index) - grid%z_scalar(lower_index)) &
         /(impl_weight*dtime**2*c_d_p) &
         + theta_v_int_new(j)*(exner_pert_expl(j) - exner_pert_expl(j+1))/dtime &
         + 0.5_wp/dtime*(theta_v_pert_expl(j) + theta_v_pert_expl(j+1))*(grid%exner_bg(base_index) - grid%exner_bg(lower_index)) &
         - (grid%z_scalar(base_index) - grid%z_scalar(lower_index))/(impl_weight*dtime**2*c_d_p) &
-        *wind_old(i + j*n_vectors_per_layer)*rho_int_expl(j)/rho_int_old(j)
+        *wind_old(ji+j*n_vectors_per_layer)*rho_int_expl(j)/rho_int_old(j)
       enddo
       do j=1,n_layers-2
-        base_index = i + (j-1)*n_scalars_h
-        lower_index = i + j*n_scalars_h
+        base_index = ji+(j-1)*n_scalars_h
+        lower_index = ji+j*n_scalars_h
         ! lower diagonal
         c_vector(j) = theta_v_int_new(j+1)*gamma_(j+1)*theta_v_int_new(j) &
-        + 0.5_wp*(grid%exner_bg(lower_index) - grid%exner_bg((j+1)*n_scalars_h + i)) &
+        + 0.5_wp*(grid%exner_bg(lower_index) - grid%exner_bg((j+1)*n_scalars_h+ji)) &
         *(alpha(j+1) + beta(j+1)*theta_v_int_new(j)) &
-        - (grid%z_scalar(lower_index) - grid%z_scalar((j+1)*n_scalars_h + i))/(impl_weight*dtime*c_d_p)*0.5_wp &
-        *wind_old(i + (j+1)*n_vectors_per_layer)/(grid%volume(lower_index)*rho_int_old(j+1))
+        - (grid%z_scalar(lower_index) - grid%z_scalar((j+1)*n_scalars_h+ji))/(impl_weight*dtime*c_d_p)*0.5_wp &
+        *wind_old(ji+(j+1)*n_vectors_per_layer)/(grid%volume(lower_index)*rho_int_old(j+1))
         ! upper diagonal
         e_vector(j) = theta_v_int_new(j)*gamma_(j+1)*theta_v_int_new(j+1) &
         - 0.5_wp*(grid%exner_bg(base_index) - grid%exner_bg(lower_index)) &
         *(alpha(j+1) + beta(j+1)*theta_v_int_new(j+1)) &
         + (grid%z_scalar(base_index) - grid%z_scalar(lower_index))/(impl_weight*dtime*c_d_p)*0.5_wp &
-        *wind_old(i + j*n_vectors_per_layer)/(grid%volume(lower_index)*rho_int_old(j))
+        *wind_old(ji+j*n_vectors_per_layer)/(grid%volume(lower_index)*rho_int_old(j))
       enddo
       
       ! soil components of the matrix
@@ -202,16 +202,16 @@ module mo_column_solvers
         ! calculating the explicit part of the heat flux density
         do j=1,nsoillays-1
           heat_flux_density_expl(j) &
-          = -grid%sfc_rho_c(i)*grid%t_conduc_soil(i)*(temperature_soil_old(i + (j-1)*n_scalars_h) &
-          - temperature_soil_old(i + j*n_scalars_h))/(grid%z_soil_center(j) - grid%z_soil_center(j+1))
+          = -grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji)*(temperature_soil_old(ji+(j-1)*n_scalars_h) &
+          - temperature_soil_old(ji+j*n_scalars_h))/(grid%z_soil_center(j) - grid%z_soil_center(j+1))
         enddo
         heat_flux_density_expl(nsoillays) &
-        = -grid%sfc_rho_c(i)*grid%t_conduc_soil(i)*(temperature_soil_old(i + (nsoillays-1)*n_scalars_h)-grid%t_const_soil(i)) &
+        = -grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji)*(temperature_soil_old(ji+(nsoillays-1)*n_scalars_h)-grid%t_const_soil(ji)) &
         /(2._wp*(grid%z_soil_center(nsoillays) - z_t_const))
         
-        radiation_flux_density = diag%sfc_sw_in(i) - diag%sfc_lw_out(i)
+        radiation_flux_density = diag%sfc_sw_in(ji) - diag%sfc_lw_out(ji)
         resulting_temperature_change = radiation_flux_density/((grid%z_soil_interface(1) - grid%z_soil_interface(2)) &
-        *grid%sfc_rho_c(i))*radiation_dtime
+        *grid%sfc_rho_c(ji))*radiation_dtime
         if (abs(resulting_temperature_change)>max_rad_temp_change) then
           radiation_flux_density = max_rad_temp_change/abs(resulting_temperature_change)*radiation_flux_density
         endif
@@ -219,43 +219,43 @@ module mo_column_solvers
         ! calculating the explicit part of the temperature change
         r_vector(n_layers) &
         ! old temperature
-        = temperature_soil_old(i) &
+        = temperature_soil_old(ji) &
         ! sensible heat flux
-        + (diag%power_flux_density_sensible(i) &
+        + (diag%power_flux_density_sensible(ji) &
         ! latent heat flux
-        + diag%power_flux_density_latent(i) &
+        + diag%power_flux_density_latent(ji) &
         ! radiation
         + radiation_flux_density &
         ! heat conduction from below
         + 0.5_wp*heat_flux_density_expl(1)) &
-        /((grid%z_soil_interface(1) - grid%z_soil_interface(2))*grid%sfc_rho_c(i))*dtime
+        /((grid%z_soil_interface(1) - grid%z_soil_interface(2))*grid%sfc_rho_c(ji))*dtime
         
         ! loop over all soil layers below the first layer
         do j=2,nsoillays
           
-          r_vector(j + n_layers - 1) &
+          r_vector(j+n_layers-1) &
           ! old temperature
-          = temperature_soil_old(i + (j-1)*n_scalars_h) &
+          = temperature_soil_old(ji+(j-1)*n_scalars_h) &
           ! heat conduction from above
           + 0.5_wp*(-heat_flux_density_expl(j-1) &
           ! heat conduction from below
           + heat_flux_density_expl(j)) &
-          /((grid%z_soil_interface(j) - grid%z_soil_interface(j+1))*grid%sfc_rho_c(i))*dtime
+          /((grid%z_soil_interface(j) - grid%z_soil_interface(j+1))*grid%sfc_rho_c(ji))*dtime
         enddo
         
         ! the diagonal component
         do j=1,nsoillays
           if (j==1) then
-            d_vector(j + n_layers - 1) = 1._wp + 0.5_wp*dtime*grid%sfc_rho_c(i)*grid%t_conduc_soil(i) &
-            /((grid%z_soil_interface(j) - grid%z_soil_interface(j+1))*grid%sfc_rho_c(i)) &
+            d_vector(j + n_layers - 1) = 1._wp + 0.5_wp*dtime*grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji) &
+            /((grid%z_soil_interface(j) - grid%z_soil_interface(j+1))*grid%sfc_rho_c(ji)) &
             *1._wp/(grid%z_soil_center(j) - grid%z_soil_center(j+1))
           elseif (j==nsoillays) then
-            d_vector(j + n_layers - 1) = 1._wp + 0.5_wp*dtime*grid%sfc_rho_c(i)*grid%t_conduc_soil(i) &
-            /((grid%z_soil_interface(j) - grid%z_soil_interface(j+1))*grid%sfc_rho_c(i)) &
+            d_vector(j + n_layers - 1) = 1._wp + 0.5_wp*dtime*grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji) &
+            /((grid%z_soil_interface(j) - grid%z_soil_interface(j+1))*grid%sfc_rho_c(ji)) &
             *1._wp/(grid%z_soil_center(j-1) - grid%z_soil_center(j))
           else
-            d_vector(j + n_layers - 1) = 1._wp + 0.5_wp*dtime*grid%sfc_rho_c(i)*grid%t_conduc_soil(i) &
-            /((grid%z_soil_interface(j) - grid%z_soil_interface(j+1))*grid%sfc_rho_c(i)) &
+            d_vector(j + n_layers - 1) = 1._wp + 0.5_wp*dtime*grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji) &
+            /((grid%z_soil_interface(j) - grid%z_soil_interface(j+1))*grid%sfc_rho_c(ji)) &
             *(1._wp/(grid%z_soil_center(j-1) - grid%z_soil_center(j)) &
             + 1._wp/(grid%z_soil_center(j) - grid%z_soil_center(j+1)))
           endif
@@ -264,11 +264,11 @@ module mo_column_solvers
         c_vector(n_layers-1) = 0._wp
         e_vector(n_layers-1) = 0._wp
         do j=1,nsoillays-1
-          c_vector(j + n_layers - 1) = -0.5_wp*dtime*grid%sfc_rho_c(i)*grid%t_conduc_soil(i) &
-          /((grid%z_soil_interface(j+1) - grid%z_soil_interface(j+2))*grid%sfc_rho_c(i)) &
+          c_vector(j + n_layers - 1) = -0.5_wp*dtime*grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji) &
+          /((grid%z_soil_interface(j+1) - grid%z_soil_interface(j+2))*grid%sfc_rho_c(ji)) &
           /(grid%z_soil_center(j) - grid%z_soil_center(j+1))
-          e_vector(j + n_layers - 1) = -0.5_wp*dtime*grid%sfc_rho_c(i)*grid%t_conduc_soil(i) &
-          /((grid%z_soil_interface(j) - grid%z_soil_interface(j+1))*grid%sfc_rho_c(i)) &
+          e_vector(j + n_layers - 1) = -0.5_wp*dtime*grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji) &
+          /((grid%z_soil_interface(j) - grid%z_soil_interface(j+1))*grid%sfc_rho_c(ji)) &
           /(grid%z_soil_center(j) - grid%z_soil_center(j+1))
         enddo
       endif
@@ -278,8 +278,8 @@ module mo_column_solvers
       
       ! Klemp (2008) upper boundary layer
       do j=1,n_layers-1
-        base_index = i + (j-1)*n_scalars_h
-        z_above_damping = grid%z_vector(i + j*n_vectors_per_layer) - damping_start_height
+        base_index = ji+(j-1)*n_scalars_h
+        z_above_damping = grid%z_vector(ji+j*n_vectors_per_layer) - damping_start_height
         if (z_above_damping<0._wp) then
           damping_coeff = 0._wp
         else
@@ -293,21 +293,21 @@ module mo_column_solvers
       
       ! mass density
       do j=1,n_layers
-        base_index = i + (j-1)*n_scalars_h
+        base_index = ji+(j-1)*n_scalars_h
         if (j==1) then
           rho_target(gas_phase_first_index + base_index) &
           = rho_expl(j) + dtime*(solution_vector(j))/grid%volume(base_index)
         elseif (j==n_layers) then
           rho_target(gas_phase_first_index + base_index) &
-          = rho_expl(j) + dtime*(-solution_vector(j - 1))/grid%volume(base_index)
+          = rho_expl(j) + dtime*(-solution_vector(j-1))/grid%volume(base_index)
         else
           rho_target(gas_phase_first_index + base_index) &
-          = rho_expl(j) + dtime*(-solution_vector(j - 1) + solution_vector(j))/grid%volume(base_index)
+          = rho_expl(j) + dtime*(-solution_vector(j-1) + solution_vector(j))/grid%volume(base_index)
         endif
       enddo
       ! virtual potential temperature density
       do j=1,n_layers
-        base_index = i + (j-1)*n_scalars_h
+        base_index = ji+(j-1)*n_scalars_h
         if (j==1) then
           rhotheta_v_target(base_index) &
           = rhotheta_v_expl(j) + dtime*(theta_v_int_new(j)*solution_vector(j))/grid%volume(base_index)
@@ -322,22 +322,22 @@ module mo_column_solvers
       enddo
       ! vertical velocity
       do j=1,n_layers-1
-        base_index = i + (j-1)*n_scalars_h
+        base_index = ji+(j-1)*n_scalars_h
         density_interface_new = 0.5_wp*(rho_target(gas_phase_first_index + base_index) &
-        + rho_target(gas_phase_first_index + i + j*n_scalars_h))
-        wind_target(i + j*n_vectors_per_layer) &
-        = (2._wp*solution_vector(j)/grid%area(i + j*n_vectors_per_layer) &
-        - density_interface_new*wind_old(i + j*n_vectors_per_layer))/rho_int_old(j)
+        + rho_target(gas_phase_first_index+ji+j*n_scalars_h))
+        wind_target(ji+j*n_vectors_per_layer) &
+        = (2._wp*solution_vector(j)/grid%area(ji+j*n_vectors_per_layer) &
+        - density_interface_new*wind_old(ji+j*n_vectors_per_layer))/rho_int_old(j)
       enddo
       ! virtual potential temperature perturbation
       do j=1,n_layers
-        base_index = i + (j-1)*n_scalars_h
-        theta_v_pert_target(base_index) = rhotheta_v_target(base_index)/rho_target(gas_phase_first_index + base_index) &
+        base_index = ji+(j-1)*n_scalars_h
+        theta_v_pert_target(base_index) = rhotheta_v_target(base_index)/rho_target(gas_phase_first_index+base_index) &
         - grid%theta_v_bg(base_index)
       enddo
       ! Exner pressure perturbation
       do j=1,n_layers
-        base_index = i + (j-1)*n_scalars_h
+        base_index = ji+(j-1)*n_scalars_h
         exner_pert_target(base_index) = exner_pert_old(base_index) + grid%volume(base_index) &
         *gamma_(j)*(rhotheta_v_target(base_index) - rhotheta_v_old(base_index))
       enddo
@@ -345,7 +345,7 @@ module mo_column_solvers
       ! soil temperature
       if (soil_switch==1) then
         do j=1,nsoillays
-          temperature_soil_target(i + (j-1)*n_scalars_h) = solution_vector(n_layers - 1 + j)
+          temperature_soil_target(ji+(j-1)*n_scalars_h) = solution_vector(n_layers-1+j)
         enddo
       endif
       
@@ -354,16 +354,16 @@ module mo_column_solvers
     
   end subroutine three_band_solver_ver_waves
 
-  subroutine three_band_solver_gen_densities(wind_old,wind_new,rho_tend,rho_old,rho_new,&
-                                             condensates_sediment_heat,temperature,grid,rk_step)
+  subroutine three_band_solver_gen_densities(state_old,state_new,state_tend,diag,grid,rk_step)
   
     ! This subroutine contains the vertical advection of mass densities (of tracers) with 3-band matrices.
     
-    integer,  intent(in)  :: rk_step
-    real(wp), intent(in)  :: wind_old(n_vectors),wind_new(n_vectors), &
-                             rho_tend(n_constituents*n_scalars),rho_old(n_constituents*n_scalars),&
-                             temperature(n_scalars)
-    real(wp), intent(out) :: condensates_sediment_heat(n_scalars),rho_new(n_constituents*n_scalars)
+    type(t_state), intent(in)    :: state_old
+    type(t_state), intent(inout) :: state_new
+    type(t_state), intent(inout) :: state_tend
+    type(t_diag),  intent(inout) :: diag
+    type(t_grid),  intent(in)    :: grid
+    integer,       intent(in)    :: rk_step
     
     ! local variables
     integer  :: ji,jl,jc,lower_index,upper_index,base_index
@@ -372,7 +372,6 @@ module mo_column_solvers
                 c_vector(n_layers-1),d_vector(n_layers),e_vector(n_layers-1),r_vector(n_layers),&
                 vertical_flux_vector_impl(n_layers-1),vertical_flux_vector_rhs(n_layers-1),&
                 vertical_enthalpy_flux_vector(n_layers-1),solution_vector(n_layers)
-    type(t_grid), intent(in) :: grid
           
     impl_weight = 0.5_wp
     expl_weight = 1._wp - impl_weight
@@ -392,11 +391,11 @@ module mo_column_solvers
           do jl=1,n_layers-1
             ! resetting the vertical enthalpy flux density divergence
             if (rk_step==1 .and. jc==0) then
-              condensates_sediment_heat((jl-1)*n_scalars_h + ji) = 0._wp
+              diag%condensates_sediment_heat((jl-1)*n_scalars_h + ji) = 0._wp
             endif
             base_index = ji + (jl-1)*n_scalars_h
-            vertical_flux_vector_impl(jl) = wind_old(ji + jl*n_vectors_per_layer)
-            vertical_flux_vector_rhs(jl) = wind_new(ji + jl*n_vectors_per_layer)
+            vertical_flux_vector_impl(jl) = state_old%wind(ji + jl*n_vectors_per_layer)
+            vertical_flux_vector_rhs(jl) = state_new%wind(ji + jl*n_vectors_per_layer)
             ! preparing the vertical interpolation
             lower_index = ji + jl*n_scalars_h
             upper_index = base_index
@@ -420,18 +419,18 @@ module mo_column_solvers
             vertical_flux_vector_rhs(jl) = grid%area(ji + jl*n_vectors_per_layer)*vertical_flux_vector_rhs(jl)
             ! old density at the interface
             if (vertical_flux_vector_rhs(jl)>=0._wp) then
-              density_old_at_interface = rho_old(jc*n_scalars + lower_index)
-              temperature_old_at_interface = temperature(lower_index)
+              density_old_at_interface = state_old%rho(jc*n_scalars + lower_index)
+              temperature_old_at_interface = diag%temperature(lower_index)
             else
-              density_old_at_interface = rho_old(jc*n_scalars + upper_index)
-              temperature_old_at_interface = temperature(upper_index)
+              density_old_at_interface = state_old%rho(jc*n_scalars + upper_index)
+              temperature_old_at_interface = diag%temperature(upper_index)
             endif
             vertical_flux_vector_rhs(jl) = density_old_at_interface*vertical_flux_vector_rhs(jl)
             vertical_enthalpy_flux_vector(jl) = c_p_cond(jc,temperature_old_at_interface) &
             *temperature_old_at_interface*vertical_flux_vector_rhs(jl)
           enddo
           if (rk_step==1 .and. jc==0) then
-            condensates_sediment_heat((n_layers-1)*n_scalars_h + ji) = 0._wp
+            diag%condensates_sediment_heat((n_layers-1)*n_scalars_h + ji) = 0._wp
           endif
           
           ! Now we proceed to solving the vertical tridiagonal problems.
@@ -486,63 +485,63 @@ module mo_column_solvers
             endif
             ! the explicit component
             ! mass densities
-            r_vector(jl) = rho_old(jc*n_scalars + base_index) + dtime*rho_tend(jc*n_scalars + base_index)
+            r_vector(jl) = state_old%rho(jc*n_scalars + base_index) + dtime*state_tend%rho(jc*n_scalars + base_index)
             ! adding the explicit part of the vertical flux divergence
             if (jl==1) then
               r_vector(jl) = r_vector(jl) + expl_weight*dtime*vertical_flux_vector_rhs(jl)/grid%volume(base_index)
               if (rk_step==1 .and. jc<n_condensed_constituents) then
-                condensates_sediment_heat(base_index) = condensates_sediment_heat(base_index) &
+                diag%condensates_sediment_heat(base_index) = diag%condensates_sediment_heat(base_index) &
                 + vertical_enthalpy_flux_vector(jl)/grid%volume(base_index)
               endif
             elseif (jl==n_layers) then
               r_vector(jl) = r_vector(jl) - expl_weight*dtime*vertical_flux_vector_rhs(jl-1)/grid%volume(base_index)
               if (rk_step==1 .and. jc<n_condensed_constituents) then
-                condensates_sediment_heat(base_index) = condensates_sediment_heat(base_index) &
+                diag%condensates_sediment_heat(base_index) = diag%condensates_sediment_heat(base_index) &
                 - vertical_enthalpy_flux_vector(jl-1)/grid%volume(base_index)
               endif
               ! precipitation
               ! snow
               if (jc<n_condensed_constituents/4) then
-                r_vector(jl) = r_vector(jl) - expl_weight*snow_velocity*dtime &
-                *rho_old(jc*n_scalars + ji + n_scalars - n_scalars_h) &
-                *grid%area(ji + n_vectors - n_scalars_h)/grid%volume(base_index)
+                r_vector(jl) = r_vector(jl)-expl_weight*snow_velocity*dtime &
+                *state_old%rho(jc*n_scalars+ji+n_scalars - n_scalars_h) &
+                *grid%area(ji+n_vectors-n_scalars_h)/grid%volume(base_index)
                 if (rk_step==1) then
-                  condensates_sediment_heat(base_index) = condensates_sediment_heat(base_index) &
+                  diag%condensates_sediment_heat(base_index) = diag%condensates_sediment_heat(base_index) &
                   - snow_velocity &
-                  *temperature(ji + n_scalars - n_scalars_h)*c_p_cond(jc,temperature(ji + n_scalars - n_scalars_h)) &
-                  *rho_old(jc*n_scalars + ji + n_scalars - n_scalars_h) &
-                  *grid%area(ji + n_vectors - n_scalars_h)/grid%volume(base_index)
+                  *diag%temperature(ji+n_scalars-n_scalars_h)*c_p_cond(jc,diag%temperature(ji+n_scalars-n_scalars_h)) &
+                  *state_old%rho(jc*n_scalars+ji+n_scalars - n_scalars_h) &
+                  *grid%area(ji+n_vectors-n_scalars_h)/grid%volume(base_index)
                 endif
               ! rain
               elseif (jc<n_condensed_constituents/2) then
                 r_vector(jl) = r_vector(jl) - expl_weight*rain_velocity*dtime &
-                *rho_old(jc*n_scalars + ji + n_scalars - n_scalars_h) &
-                *grid%area(ji + n_vectors - n_scalars_h)/grid%volume(base_index)
+                *state_old%rho(jc*n_scalars + ji + n_scalars - n_scalars_h) &
+                *grid%area(ji+n_vectors-n_scalars_h)/grid%volume(base_index)
                 if (rk_step==1) then
-                  condensates_sediment_heat(base_index) = condensates_sediment_heat(base_index) &
+                  diag%condensates_sediment_heat(base_index) = diag%condensates_sediment_heat(base_index) &
                   -rain_velocity &
-                  *temperature(ji + n_scalars - n_scalars_h)*c_p_cond(jc,temperature(ji + n_scalars - n_scalars_h)) &
-                  *rho_old(jc*n_scalars + ji + n_scalars - n_scalars_h) &
-                  *grid%area(ji + n_vectors - n_scalars_h)/grid%volume(base_index)
+                  *diag%temperature(ji+n_scalars-n_scalars_h)*c_p_cond(jc,diag%temperature(ji+n_scalars-n_scalars_h)) &
+                  *state_old%rho(jc*n_scalars+ji+n_scalars - n_scalars_h) &
+                  *grid%area(ji+n_vectors-n_scalars_h)/grid%volume(base_index)
                 endif
               ! clouds
               elseif (jc<n_condensed_constituents) then
                 r_vector(jl) = r_vector(jl) - expl_weight*cloud_droplets_velocity*dtime &
-                *rho_old(jc*n_scalars + ji + n_scalars - n_scalars_h) &
+                *state_old%rho(jc*n_scalars+ji+n_scalars - n_scalars_h) &
                 *grid%area(ji + n_vectors - n_scalars_h)/grid%volume(base_index)
                 if (rk_step==1) then
-                  condensates_sediment_heat(base_index) = condensates_sediment_heat(base_index) &
+                  diag%condensates_sediment_heat(base_index) = diag%condensates_sediment_heat(base_index) &
                   -cloud_droplets_velocity &
-                  *temperature(ji + n_scalars - n_scalars_h)*c_p_cond(jc,temperature(ji + n_scalars - n_scalars_h)) &
-                  *rho_old(jc*n_scalars + ji + n_scalars - n_scalars_h) &
-                  *grid%area(ji + n_vectors - n_scalars_h)/grid%volume(base_index)
+                  *diag%temperature(ji+n_scalars-n_scalars_h)*c_p_cond(jc,diag%temperature(ji+n_scalars-n_scalars_h)) &
+                  *state_old%rho(jc*n_scalars+ji+n_scalars-n_scalars_h) &
+                  *grid%area(ji+n_vectors-n_scalars_h)/grid%volume(base_index)
                 endif
               endif
             else
               r_vector(jl) = r_vector(jl) + expl_weight*dtime &
               *(-vertical_flux_vector_rhs(jl-1) + vertical_flux_vector_rhs(jl))/grid%volume(base_index)
               if (rk_step==1 .and. jc<n_condensed_constituents) then
-                condensates_sediment_heat(base_index) = condensates_sediment_heat(base_index) &
+                diag%condensates_sediment_heat(base_index) = diag%condensates_sediment_heat(base_index) &
                 + (-vertical_enthalpy_flux_vector(jl-1) + vertical_enthalpy_flux_vector(jl))/grid%volume(base_index)
               endif
             endif
@@ -561,7 +560,7 @@ module mo_column_solvers
           ! writing the result into the new state
           do jl=1,n_layers
             base_index = ji + (jl-1)*n_scalars_h
-            rho_new(jc*n_scalars + base_index) = solution_vector(jl)
+            state_new%rho(jc*n_scalars + base_index) = solution_vector(jl)
           enddo
         enddo ! horizontal index
         !$omp end parallel do

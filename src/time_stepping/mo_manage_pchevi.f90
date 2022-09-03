@@ -136,8 +136,7 @@ module mo_manage_pchevi
       ! 4.) vertical tracer advection
       ! -----------------------------
       if (n_constituents>1) then
-        call three_band_solver_gen_densities(state_old%wind,state_new%wind,state_tend%rho,state_old%rho,state_new%rho, &
-                                             diag%condensates_sediment_heat,diag%temperature,grid,rk_step)
+        call three_band_solver_gen_densities(state_old,state_new,state_tend,diag,grid,rk_step)
       endif
       
     enddo
