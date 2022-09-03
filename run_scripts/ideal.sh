@@ -15,42 +15,51 @@
 # 1			real data interpolated to the model grid
 # See handbook for more information.
 
-# basic run properties
 game_home_dir=/home/max/code/GAME
-ideal_input_id=2 # specifies which test scenario to run
-run_id=ideal # run_id must only be set if ideal_input_id != -1 (otherwise it is chosen automatically)
-run_span_min=$((100*24*60)) # how long the model is supposed to run in minutes; for small Earth experiments this will be rescaled proportional to the radius
-start_year=2000 # defines the start time of the model run
-start_month=1 # defines the start time of the model run
-start_day=1 # defines the start time of the model run
-start_hour=0 # defines the start time of the model run
-orography_id=1 # ID of the orography field. Based on this the grid file will be chosen.
+run_id="ideal"
+export OMP_NUM_THREADS=4
 
-# diffusion settings
-momentum_diff_h=1 # turn on if you want horizontal momentum diffusion
-momentum_diff_v=1 # turn on if you want vertical momentum diffusion
-temperature_diff_h=1 # turn on if you want horizontal temperature diffusion
-temperature_diff_v=1 # turn on if you want vetical temperature diffusion
-mass_diff_h=1 # turn on if you want horizontal mass diffusion
-mass_diff_v=1 # turn on if you want vertical mass diffusion
+cat > namelist.nml << EOF
 
-# "physics" configuration
-rad_on=1 # set to 0 if you want no radiation, 1 for real radiation and 2 for Held-Suarez forcing
-prog_soil_temp=1 # switch for prognostic soil temperature
-sfc_phase_trans=1 # switch for phase transitions at the surface
-sfc_sensible_heat_flux=1 # switch for sensible heat flux at the surface
-pbl_scheme=1 # planetary boundary layer scheme: 0: off, 1: NWP, 2: Held-Suarez
+&run
+game_home_dir=/home/max/code/GAME
+ideal_input_id=2
+run_id=$run_id
+run_span_min=$((100*24*60))
+start_year=2000
+start_month=1
+start_day=1
+start_hour=0
+orography_id=1
+/
 
-# I/O
-write_out_interval_min=1440 # every how many minutes an output file will be created; for small Earth experiments this will be rescaled proportional to the radius
-write_out_integrals=1 # If set to 1, fundamental integrals of the atmosphere will be written out at every time step.
-model_level_output_switch=0 # If set to 1, variables will be written out on model levels.
-pressure_level_output_switch=1 # If set to 1, additional output on pressure levels will be created. The pressure levels can be set in the file src/io/write_output.c.
-surface_output_switch=1 # If set to 1, surface variables will be diagnozed and writing to separate files.
-time_to_next_analysis=-1 # the time between this model run and the next analysis, only relevant in NWP runs for data assimilation
+&diff
+momentum_diff_h=1
+momentum_diff_v=1 #
+temperature_diff_h=1
+temperature_diff_v=1
+mass_diff_h=1
+mass_diff_v=1
+/
 
-# parallelization
-export OMP_NUM_THREADS=4 # relevant for OMP
+&rad
+rad_on=1
+prog_soil_temp=1
+sfc_phase_trans=1
+sfc_sensible_heat_flux=1
+pbl_scheme=1
+/
+
+&io
+write_out_interval_min=1440
+write_out_integrals=1
+model_level_output_switch=0
+pressure_level_output_switch=1
+surface_output_switch=1
+time_to_next_analysis=-1
+/
+
+EOF
 
 # that's it, now the basic run script will be sourced
 source $game_home_dir/run_scripts/.sh/root_script.sh

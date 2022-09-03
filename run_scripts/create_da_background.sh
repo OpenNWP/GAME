@@ -15,39 +15,39 @@
 # 1			real data interpolated to the model grid
 # See handbook for more information.
 
-# basic run properties
+cat > namelist.nml << EOF
+
 game_home_dir=/home/max/code/GAME
-ideal_input_id=0 # specifies which test scenario to run
-run_id=standard_oro1 # run_id must only be set if ideal_input_id != -1 (otherwise it is chosen automatically)
-run_span_min=$((0*24*60)) # how long the model is supposed to run in minutes; for small Earth experiments this will be rescaled proportional to the radius
-start_year=2000 # defines the start time of the model run
-start_month=1 # defines the start time of the model run
-start_day=1 # defines the start time of the model run
-start_hour=0 # defines the start time of the model run
-orography_id=1 # ID of the orography field. Based on this the grid file will be chosen.
+ideal_input_id=0
+run_id=standard_oro1
+run_span_min=$((0*24*60))
+start_year=2000
+start_month=1
+start_day=1
+start_hour=0
+orography_id=1
 
-# diffusion settings
-momentum_diff_h=0 # turn on if you want horizontal momentum diffusion
-momentum_diff_v=0 # turn on if you want vertical momentum diffusion
-temperature_diff_h=0 # turn on if you want horizontal temperature diffusion
-temperature_diff_v=0 # turn on if you want vetical temperature diffusion
-mass_diff_h=0 # turn on if you want horizontal mass diffusion
-mass_diff_v=0 # turn on if you want vertical mass diffusion
+momentum_diff_h=0
+momentum_diff_v=0
+temperature_diff_h=0
+temperature_diff_v=0
+mass_diff_h=0
+mass_diff_v=0
 
-# "physics" configuration
-rad_on=0 # set to 0 if you want no radiation, 1 for real radiation and 2 for Held-Suarez forcing
-prog_soil_temp=0 # switch for prognostic soil temperature
-sfc_phase_trans=0 # switch for phase transitions at the surface
-sfc_sensible_heat_flux=0 # switch for sensible heat flux at the surface
-pbl_scheme=0 # planetary boundary layer scheme: 0: off, 1: NWP, 2: Held-Suarez
+rad_on=0
+prog_soil_temp=0
+sfc_phase_trans=0
+sfc_sensible_heat_flux=0
+pbl_scheme=0
 
-# I/O
-write_out_interval_min=1440 # every how many minutes an output file will be created; for small Earth experiments this will be rescaled proportional to the radius
-write_out_integrals=0 # If set to 1, fundamental integrals of the atmosphere will be written out at every time step.
-model_level_output_switch=1 # If set to 1, variables will be written out on model levels.
-pressure_level_output_switch=0 # If set to 1, additional output on pressure levels will be created. The pressure levels can be set in the file src/io/write_output.c.
-surface_output_switch=0 # If set to 1, surface variables will be diagnozed and writing to separate files.
-time_to_next_analysis=0 # the time between this model run and the next analysis, only relevant in NWP runs for data assimilation
+write_out_interval_min=1440
+write_out_integrals=0
+model_level_output_switch=1
+pressure_level_output_switch=0
+surface_output_switch=0
+time_to_next_analysis=0
+
+EOF
 
 # parallelization
 export OMP_NUM_THREADS=4 # relevant for OMP
