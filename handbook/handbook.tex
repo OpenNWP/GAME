@@ -237,7 +237,7 @@ B_j \coloneqq \frac{j - \left(N_L - N_O\right)}{N_O}.
 \section{How to generate a grid}
 \label{sec:how_to_generate_a_grid}
 
-The grid generator needs to be recompiled for every specific horizontal resolution and number of layers. In order to do that, change the respective constants in the file \texttt{src/game\_types.h} and execute the bash script \texttt{grid\_generator/compile.sh}. Then run the grid generator using the bash script \texttt{grid\_generator/run\_script.sh} with the desired \texttt{\texttt{oro\_id}}. Table \ref{tab:grid_generator_run_file_explanation} explains all the parameters to be set in \texttt{grid\_generator/run\_script.sh}.
+Use the bash script \texttt{grid\_generator/compile.sh} to compile the grid generator. Then run the grid generator using the bash script \texttt{grid\_generator/run\_script.sh} with the desired \texttt{\texttt{oro\_id}}. Table \ref{tab:grid_generator_run_file_explanation} explains all the parameters to be set in \texttt{grid\_generator/run\_script.sh}.
 
 \renewcommand{\arraystretch}{1.2}
 \begin{table}
@@ -332,8 +332,6 @@ The model is configured via the namelist residing in the directory \texttt{src/n
 \label{sec:output_on_pressure_levels}
 
 In meteorology, atmospheric fields are often visualized on pressure levels. To simply this, \texttt{GAME} can interpolate data to pressure levels. This can be turned on and off with the variable \texttt{pressure\_level\_output\_switch} in the run scripts.
-
-If you want to change the pressure levels to which the output will be interpolated, modify the function \texttt{get\_pressure\_levels} as well as the constant \texttt{NO\_OF\_PRESSURE\_LEVELS} in the file \texttt{src/io/write\_output.c}. This must be done before compiling the model.
 
 \appendix
 
