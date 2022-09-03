@@ -34,9 +34,8 @@ program control
   type(t_state)         :: state_1,state_2,state_tend,state_write
   type(t_diag)          :: diag
   type(t_grid)          :: grid
-  logical               :: lrad_update
-  integer               :: ji,time_step_counter,h_index,wind_lowest_layer_step_counter,time_step_10_m_wind, &
-                           totally_first_step_bool
+  logical               :: ltotally_first_step,lrad_update
+  integer               :: ji,time_step_counter,h_index,wind_lowest_layer_step_counter,time_step_10_m_wind
   real(wp)              :: t_0,t_write,t_rad_update,new_weight,old_weight,max_speed_hor,max_speed_ver, &
                            normal_dist_min_hor,normal_dist_min_ver
   real(wp), allocatable :: wind_h_lowest_layer(:)
@@ -264,7 +263,7 @@ program control
     enddo
   enddo
   !$omp end parallel do
-  call temperature_diagnostics(diag%temperature,state_1%theta_v_pert,state_1%exner_pert,state_1%rho,grid)
+  call temperature_diagnostics(state_1,diag,grid)
   call inner_product(state_1%wind,state_1%wind,diag%v_squared,grid)
   
   ! time coordinate of the old RK step
@@ -276,17 +275,15 @@ program control
     if (rad_config==1) then
       call radiation_init()
     endif
-    call update_rad_fluxes(state_1%temperature_soil, &
-                           state_1%rho,diag%temperature,diag%radiation_tendency, &
-                           diag%sfc_sw_in,diag%sfc_lw_out,grid,t_0)
+    call update_rad_fluxes(state_1,diag,grid,t_0)
     t_rad_update = t_rad_update+radiation_dtime
   endif
   
   ! This is necessary because at the very first step of the model integration,some things are handled differently
   ! in the time stepping and in writing the output.
-  totally_first_step_bool = 1
+  ltotally_first_step = .true.
   ! writing out the initial state of the model run
-  call write_out(state_1,t_init,t_write,wind_h_lowest_layer,diag,grid,totally_first_step_bool)
+  call write_out(state_1,t_init,t_write,wind_h_lowest_layer,diag,grid,ltotally_first_step)
   
   t_write = t_write + 60._wp*write_out_interval_min
   write(*,*) "Run progress:", (t_init - t_init)/3600._wp, "h"
@@ -310,7 +307,7 @@ program control
     ! Checking if the radiative fluxes need to be updated:
     ! ----------------------------------------------------
     
-    if (t_0<=t_rad_update .and. t_0+dtime>=t_rad_update .and. totally_first_step_bool/=1) then
+    if (t_0<=t_rad_update .and. t_0+dtime>=t_rad_update .and. .not.ltotally_first_step) then
       lrad_update = .true.
       t_rad_update = t_rad_update+radiation_dtime
     else
@@ -319,9 +316,9 @@ program control
     
     ! time step integration
     if (mod(time_step_counter,2)==0) then
-      call manage_pchevi(state_1,state_2,state_tend,totally_first_step_bool,diag,grid,lrad_update,t_0)
+      call manage_pchevi(state_1,state_2,state_tend,ltotally_first_step,diag,grid,lrad_update,t_0)
     else
-      call manage_pchevi(state_2,state_1,state_tend,totally_first_step_bool,diag,grid,lrad_update,t_0)
+      call manage_pchevi(state_2,state_1,state_tend,ltotally_first_step,diag,grid,lrad_update,t_0)
     endif
   
     ! Writing out integrals over the model domain if requested by the user.
@@ -376,7 +373,7 @@ program control
     ! 5 minutes after the output time,the 10 m wind diag can be executed,so output can actually be written
     if(t_0+dtime>=t_write+radius_rescale*300._wp .and. t_0<=t_write+radius_rescale*300._wp) then
       ! here,output is actually written
-      call write_out(state_write,t_init,t_write,wind_h_lowest_layer,diag,grid,totally_first_step_bool)
+      call write_out(state_write,t_init,t_write,wind_h_lowest_layer,diag,grid,ltotally_first_step)
       ! setting the next output time
       t_write = t_write + 60._wp*write_out_interval_min
       
@@ -399,8 +396,8 @@ program control
     
     
     
-    ! This switch can be set to zero now and remains there.
-    totally_first_step_bool = 0
+    ! This switch can be set to false now and remains there.
+    ltotally_first_step = .false.
 
     time_step_counter = time_step_counter+1
   

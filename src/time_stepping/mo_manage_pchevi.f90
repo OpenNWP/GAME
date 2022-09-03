@@ -25,7 +25,7 @@ module mo_manage_pchevi
   
   contains
   
-  subroutine manage_pchevi(state_old,state_new,state_tend,totally_first_step_bool,diag,grid,lrad_update,time_coordinate)
+  subroutine manage_pchevi(state_old,state_new,state_tend,ltotally_first_step,diag,grid,lrad_update,time_coordinate)
 
     ! This subroutine manages the predictor-corrector HEVI time stepping.
     
@@ -34,8 +34,7 @@ module mo_manage_pchevi
     type(t_state), intent(inout) :: state_new
     type(t_state), intent(inout) :: state_tend
     type(t_diag),  intent(inout) :: diag
-    integer,       intent(in)    :: totally_first_step_bool
-    logical,       intent(in)    :: lrad_update
+    logical,       intent(in)    :: ltotally_first_step,lrad_update
     real(wp),      intent(in)    :: time_coordinate
     
     ! local variabels
@@ -45,7 +44,7 @@ module mo_manage_pchevi
     ! ------------
     
     ! diagnosing the temperature
-    call  temperature_diagnostics(diag%temperature,state_old%theta_v_pert,state_old%exner_pert,state_old%rho,grid)
+    call temperature_diagnostics(state_old,diag,grid)
     
     ! updating surface-related turbulence quantities if it is necessary
     if (lsfc_sensible_heat_flux .or. lsfc_phase_trans .or. pbl_scheme==1) then
@@ -59,8 +58,7 @@ module mo_manage_pchevi
     
     ! Radiation is updated here.
     if (rad_config>0 .and. lrad_update) then
-      call update_rad_fluxes(state_old%temperature_soil,state_old%rho,diag%temperature,diag%radiation_tendency, &
-                             diag%sfc_sw_in,diag%sfc_lw_out,grid,time_coordinate)
+      call update_rad_fluxes(state_old,diag,grid,time_coordinate)
     endif
       
     ! Loop over the RK substeps
@@ -75,20 +73,20 @@ module mo_manage_pchevi
       ! -----------------------------------------------
       ! Update of the pressure gradient.
       if (rk_step==1) then
-        call manage_pressure_gradient(state_old,diag,grid,totally_first_step_bool)
+        call manage_pressure_gradient(state_old,diag,grid,ltotally_first_step)
       endif
       
       if (rk_step==1) then
        call calc_pressure_grad_condensates_v(diag%pressure_gradient_decel_factor, &
                                              state_old%rho,grid%gravity_m,diag%pressure_grad_condensates_v)
         ! Only the horizontal momentum is a forward tendency.
-       call  vector_tend_expl(state_old,state_tend,totally_first_step_bool,diag,grid,rk_step)
+       call  vector_tend_expl(state_old,state_tend,diag,grid,ltotally_first_step,rk_step)
       endif
       if (rk_step==2) then
         call calc_pressure_grad_condensates_v(diag%pressure_gradient_decel_factor, &
                                               state_new%rho,grid%gravity_m,diag%pressure_grad_condensates_v)
         ! Only the horizontal momentum is a forward tendency.
-        call vector_tend_expl(state_new,state_tend,totally_first_step_bool,diag,grid,rk_step)
+        call vector_tend_expl(state_new,state_tend,diag,grid,ltotally_first_step,rk_step)
       endif
       
       ! time stepping for the horizontal momentum can be directly executed

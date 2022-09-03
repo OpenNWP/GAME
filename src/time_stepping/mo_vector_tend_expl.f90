@@ -27,13 +27,14 @@ module mo_vector_tend_expl
   
   contains
 
-  subroutine vector_tend_expl(state,state_tend,totally_first_step_bool,diag,grid,rk_step)
+  subroutine vector_tend_expl(state,state_tend,diag,grid,ltotally_first_step,rk_step)
   
-    integer,  intent(in)    :: rk_step,totally_first_step_bool
     type(t_state), intent(inout) :: state      ! state to use for calculating the tendencies
     type(t_state), intent(inout) :: state_tend ! state containing the tendencies
     type(t_diag),  intent(inout) :: diag
     type(t_grid),  intent(in)    :: grid
+    integer,       intent(in)    :: rk_step
+    logical,       intent(in)    :: ltotally_first_step
                                
     ! local variables
     integer  :: ji,layer_index,h_index
@@ -42,7 +43,7 @@ module mo_vector_tend_expl
     ! Managing momentum advection
     ! ---------------------------
     
-    if (rk_step==2 .or. totally_first_step_bool==1) then
+    if (rk_step==2 .or. ltotally_first_step) then
       call scalar_times_vector(state%rho(n_condensed_constituents*n_scalars+1:(n_condensed_constituents+1)*n_scalars), &
                                state%wind,diag%flux_density,grid%from_index,grid%to_index)
       ! Now, the "potential vorticity" is evaluated.

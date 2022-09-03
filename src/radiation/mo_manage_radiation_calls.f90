@@ -5,7 +5,7 @@ module mo_manage_radiation_calls
 
   ! This module manages the calls to the radiation routines.
 
-  use mo_definitions,      only: wp,t_grid,t_radiation
+  use mo_definitions,      only: wp,t_grid,t_state,t_diag,t_radiation
   use mo_grid_nml,         only: n_scalars,n_scalars_h,n_vectors_per_layer,n_vectors,n_layers
   use mo_rad_nml,          only: n_scals_rad_h,n_scals_rad,n_rad_blocks,rad_config
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents
@@ -17,15 +17,14 @@ module mo_manage_radiation_calls
   
   contains
   
-  subroutine update_rad_fluxes(temperature_soil, &
-                               rho,temperature,radiation_tendency,sfc_sw_in,sfc_lw_out, &
-                               grid,time_coordinate)
+  subroutine update_rad_fluxes(state,diag,grid,time_coordinate)
+    
+    ! This subroutine updates the radiative heating rate.
   
-    real(wp), intent(in)  :: temperature_soil(nsoillays*n_scalars_h), &
-                             rho(n_constituents*n_scalars), &
-                             temperature(n_scalars),time_coordinate
-    real(wp), intent(out) :: radiation_tendency(n_scalars),sfc_sw_in(n_scalars_h),sfc_lw_out(n_scalars_h)
-    type(t_grid), intent(in) :: grid
+    type(t_state), intent(in)    :: state
+    type(t_diag),  intent(inout) :: diag
+    type(t_grid),  intent(in)    :: grid
+    real(wp),      intent(in)    :: time_coordinate
   
     ! local variables
     integer           :: rad_block_index
@@ -65,12 +64,12 @@ module mo_manage_radiation_calls
       ! remapping all the arrays
       call create_rad_array_scalar_h(grid%latitude_scalar,radiation%lat_scal,rad_block_index)
       call create_rad_array_scalar_h(grid%longitude_scalar,radiation%lon_scal,rad_block_index)
-      call create_rad_array_scalar_h(temperature_soil,radiation%temp_sfc,rad_block_index)
+      call create_rad_array_scalar_h(state%temperature_soil,radiation%temp_sfc,rad_block_index)
       call create_rad_array_scalar_h(grid%sfc_albedo,radiation%sfc_albedo,rad_block_index)
       call create_rad_array_scalar(grid%z_scalar,radiation%z_scal,rad_block_index)
       call create_rad_array_vector(grid%z_vector,radiation%z_vect,rad_block_index)
-      call create_rad_array_mass_den(rho,radiation%rho,rad_block_index)
-      call create_rad_array_scalar(temperature,radiation%temp,rad_block_index)
+      call create_rad_array_mass_den(state%rho,radiation%rho,rad_block_index)
+      call create_rad_array_scalar(diag%temperature,radiation%temp,rad_block_index)
       ! calling the radiation routine
       ! RTE+RRTMGP
       if (rad_config==1) then
@@ -84,9 +83,9 @@ module mo_manage_radiation_calls
         call held_suar(radiation%lat_scal,radiation%rho,radiation%temp,radiation%rad_tend)
       endif
       ! filling the actual radiation tendency
-      call remap_to_original(radiation%rad_tend,radiation_tendency,rad_block_index)
-      call remap_to_original_scalar_h(radiation%sfc_sw_in,sfc_sw_in,rad_block_index)
-      call remap_to_original_scalar_h(radiation%sfc_lw_out,sfc_lw_out,rad_block_index)
+      call remap_to_original(radiation%rad_tend,diag%radiation_tendency,rad_block_index)
+      call remap_to_original_scalar_h(radiation%sfc_sw_in,diag%sfc_sw_in,rad_block_index)
+      call remap_to_original_scalar_h(radiation%sfc_lw_out,diag%sfc_lw_out,rad_block_index)
       
       deallocate(radiation%lat_scal)
       deallocate(radiation%lon_scal)

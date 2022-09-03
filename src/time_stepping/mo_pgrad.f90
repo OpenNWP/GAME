@@ -17,21 +17,21 @@ module mo_pgrad
   
   contains
 
-  subroutine manage_pressure_gradient(state,diag,grid,totally_first_step_bool)
+  subroutine manage_pressure_gradient(state,diag,grid,ltotally_first_step)
     
     ! This subroutine computes the pressure gradient acceleration.
     
     type(t_state), intent(in)    :: state
     type(t_diag),  intent(inout) :: diag
     type(t_grid),  intent(inout) :: grid
-    integer,       intent(in)    :: totally_first_step_bool
+    logical,       intent(in)    :: ltotally_first_step
     
     ! local variables
     integer :: ji
     
     ! 2.) the nonlinear pressure gradient term
     ! Before calculating the pressure gradient acceleration, the old one must be saved for extrapolation.
-    if (totally_first_step_bool==0) then
+    if (.not.ltotally_first_step) then
       !$omp parallel do private(ji)
       do ji=1,n_vectors
         diag%pgrad_acc_old(ji) = -diag%pressure_gradient_acc_neg_nl(ji) - diag%pressure_gradient_acc_neg_l(ji)
@@ -74,7 +74,7 @@ module mo_pgrad
                              diag%pressure_gradient_acc_neg_l,grid%from_index,grid%to_index)
     
     ! at the very fist step, the old time step pressure gradient acceleration must be saved here
-    if (totally_first_step_bool==1) then
+    if (ltotally_first_step) then
       !$omp parallel do private(ji)
       do ji=1,n_vectors
         diag%pgrad_acc_old(ji) = -diag%pressure_gradient_acc_neg_nl(ji) -diag%pressure_gradient_acc_neg_l(ji)

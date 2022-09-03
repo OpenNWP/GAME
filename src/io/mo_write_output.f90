@@ -159,16 +159,16 @@ module mo_write_output
     
   end subroutine write_out_integrals
 
-  subroutine write_out(state,t_init,t_write,wind_h_lowest_layer_array,diag,grid,totally_first_step_bool)
+  subroutine write_out(state,t_init,t_write,wind_h_lowest_layer_array,diag,grid,ltotally_first_step)
   
     ! This subroutine is the central subroutine for writing the output.
   
     real(wp), intent(in)  :: t_init,t_write, &
                              wind_h_lowest_layer_array(n_output_steps_10m_wind*n_vectors_h)
-    integer,  intent(in)  :: totally_first_step_bool
     type(t_state), intent(in)    :: state
     type(t_diag),  intent(inout) :: diag
     type(t_grid),  intent(in)    :: grid
+    logical,       intent(in)    :: ltotally_first_step
   
     ! local variables
     integer               :: ji,jk,jl,jm,lat_lon_dimids(2),ncid,single_int_dimid,lat_dimid,lon_dimid,start_date_id,start_hour_id, &
@@ -221,7 +221,7 @@ module mo_write_output
     allocate(lat_lon_output_field(n_lat_io_points,n_lon_io_points))
     
     ! diagnosing the temperature
-    call temperature_diagnostics(diag%temperature,state%theta_v_pert,state%exner_pert,state%rho,grid)
+    call temperature_diagnostics(state,diag,grid)
     
     time_since_init_min = int(t_write - t_init)
     time_since_init_min = time_since_init_min/60
@@ -889,7 +889,7 @@ module mo_write_output
     deallocate(v_at_cell)
     
     ! output of the whole model state for data assimilation
-    if ((ideal_input_id==-1 .or. totally_first_step_bool==1) .and. time_since_init_min==time_to_next_analysis_min) then
+    if ((ideal_input_id==-1 .or. ltotally_first_step) .and. time_since_init_min==time_to_next_analysis_min) then
     
       output_file = run_id // "+" // trim(int2string(time_since_init_min)) // "min_hex.nc"
       
