@@ -84,22 +84,24 @@ module mo_pgrad
     
   end subroutine manage_pressure_gradient
 
-  subroutine calc_pressure_grad_condensates_v(pressure_gradient_decel_factor,rho,gravity_m,pressure_grad_condensates_v)
+  subroutine calc_pressure_grad_condensates_v(state,diag,grid)
     
     ! This subroutine computes the correction to the vertical pressure gradient acceleration due to condensates.
     
-    real(wp), intent(in)  :: rho(n_constituents*n_scalars),gravity_m(n_scalars)
-    real(wp), intent(out) :: pressure_gradient_decel_factor(n_vectors),pressure_grad_condensates_v(n_vectors)
+    type(t_state), intent(in)    :: state
+    type(t_diag),  intent(inout) :: diag
+    type(t_grid),  intent(inout) :: grid
     
     ! local variables
     integer :: ji
     
     !$omp parallel do private(ji)
     do ji=1,n_scalars
-      pressure_gradient_decel_factor(ji) = rho(n_condensed_constituents*n_scalars+ji)/density_total(rho,ji-1) - 1._wp
+      diag%pressure_gradient_decel_factor(ji) = state%rho(n_condensed_constituents*n_scalars+ji) &
+                                                /density_total(state%rho,ji-1) - 1._wp
     enddo
     !$omp end parallel do
-    call scalar_times_vector_v(pressure_gradient_decel_factor,gravity_m,pressure_grad_condensates_v)
+    call scalar_times_vector_v(diag%pressure_gradient_decel_factor,grid%gravity_m,diag%pressure_grad_condensates_v)
   
   end subroutine calc_pressure_grad_condensates_v
 

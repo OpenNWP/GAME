@@ -77,14 +77,12 @@ module mo_manage_pchevi
       endif
       
       if (rk_step==1) then
-       call calc_pressure_grad_condensates_v(diag%pressure_gradient_decel_factor, &
-                                             state_old%rho,grid%gravity_m,diag%pressure_grad_condensates_v)
+       call calc_pressure_grad_condensates_v(state_old,diag,grid)
         ! Only the horizontal momentum is a forward tendency.
        call  vector_tend_expl(state_old,state_tend,diag,grid,ltotally_first_step,rk_step)
       endif
       if (rk_step==2) then
-        call calc_pressure_grad_condensates_v(diag%pressure_gradient_decel_factor, &
-                                              state_new%rho,grid%gravity_m,diag%pressure_grad_condensates_v)
+        call calc_pressure_grad_condensates_v(state_new,diag,grid)
         ! Only the horizontal momentum is a forward tendency.
         call vector_tend_expl(state_new,state_tend,diag,grid,ltotally_first_step,rk_step)
       endif
@@ -103,14 +101,10 @@ module mo_manage_pchevi
       ! 2.) explicit component of the generalized density equations
       ! -----------------------------------------------------------
       if (rk_step==1) then
-        call scalar_tend_expl(state_old%rho,state_tend%rhotheta_v,state_old%rhotheta_v, &
-                              state_new%wind,state_tend%rho,state_old%exner_pert, &
-                              diag,grid,rk_step)
+        call scalar_tend_expl(state_old,state_new,state_tend,diag,grid,rk_step)
       endif
       if (rk_step==2) then
-        call scalar_tend_expl(state_new%rho,state_tend%rhotheta_v,state_new%rhotheta_v, &
-                              state_new%wind,state_tend%rho,state_new%exner_pert, &
-                              diag,grid,rk_step)
+        call scalar_tend_expl(state_new,state_new,state_tend,diag,grid,rk_step)
       endif
 
       ! 3.) vertical sound wave solver

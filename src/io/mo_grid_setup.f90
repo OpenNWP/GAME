@@ -15,6 +15,7 @@ module mo_grid_setup
 
   implicit none
   
+  ! some quantities that need to be accessed from outside this module
   real(wp) :: toa                  ! top of atmosphere in meters above MSL
   integer  :: n_oro_layers         ! number of layers following the orography
   real(wp) :: stretching_parameter ! vertical grid stretching parameter
@@ -28,7 +29,7 @@ module mo_grid_setup
   
   subroutine set_grid_properties(grid)
     
-    ! This subroutine reads all the grid properties from the grid netCDF file.
+    ! This subroutine reads the grid properties from the grid netCDF file.
     
     type(t_grid), intent(inout) :: grid
     
