@@ -276,9 +276,9 @@ program control
     if (rad_config==1) then
       call radiation_init()
     endif
-    call update_rad_fluxes(grid%latitude_scalar,grid%longitude_scalar,state_1%temperature_soil,grid%sfc_albedo,grid%z_scalar, &
-                           grid%z_vector,state_1%rho,diag%temperature,diag%radiation_tendency, &
-                           diag%sfc_sw_in,diag%sfc_lw_out,t_0)
+    call update_rad_fluxes(state_1%temperature_soil, &
+                           state_1%rho,diag%temperature,diag%radiation_tendency, &
+                           diag%sfc_sw_in,diag%sfc_lw_out,grid,t_0)
     rad_update = 1
     t_rad_update = t_rad_update+radiation_dtime
   endif

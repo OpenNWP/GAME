@@ -62,10 +62,8 @@ module mo_manage_pchevi
     
     ! Radiation is updated here.
     if (rad_config>0 .and. rad_update==1) then
-      call update_rad_fluxes(grid%latitude_scalar,grid%longitude_scalar, &
-                             state_old%temperature_soil,grid%sfc_albedo,grid%z_scalar, &
-                             grid%z_vector,state_old%rho,diag%temperature,diag%radiation_tendency, &
-                             diag%sfc_sw_in,diag%sfc_lw_out,time_coordinate)
+      call update_rad_fluxes(state_old%temperature_soil,state_old%rho,diag%temperature,diag%radiation_tendency, &
+                             diag%sfc_sw_in,diag%sfc_lw_out,grid,time_coordinate)
     endif
       
     ! Loop over the RK substeps

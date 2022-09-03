@@ -5,7 +5,7 @@ module mo_manage_radiation_calls
 
   ! This module manages the calls to the radiation routines.
 
-  use mo_definitions,      only: wp,t_radiation
+  use mo_definitions,      only: wp,t_grid,t_radiation
   use mo_grid_nml,         only: n_scalars,n_scalars_h,n_vectors_per_layer,n_vectors,n_layers
   use mo_rad_nml,          only: n_scals_rad_h,n_scals_rad,n_rad_blocks,rad_config
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents
@@ -17,14 +17,15 @@ module mo_manage_radiation_calls
   
   contains
   
-  subroutine update_rad_fluxes(latitude_scalar,longitude_scalar,temperature_soil,sfc_albedo,z_scalar, &
-                               z_vector,rho,temperature,radiation_tendency,sfc_sw_in,sfc_lw_out,time_coordinate)
+  subroutine update_rad_fluxes(temperature_soil, &
+                               rho,temperature,radiation_tendency,sfc_sw_in,sfc_lw_out, &
+                               grid,time_coordinate)
   
-    real(wp), intent(in)  :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h), &
-                             temperature_soil(nsoillays*n_scalars_h),sfc_albedo(n_scalars_h), &
-                             z_scalar(n_scalars),z_vector(n_vectors),rho(n_constituents*n_scalars), &
+    real(wp), intent(in)  :: temperature_soil(nsoillays*n_scalars_h), &
+                             rho(n_constituents*n_scalars), &
                              temperature(n_scalars),time_coordinate
     real(wp), intent(out) :: radiation_tendency(n_scalars),sfc_sw_in(n_scalars_h),sfc_lw_out(n_scalars_h)
+    type(t_grid), intent(in) :: grid
   
     ! local variables
     integer           :: rad_block_index
@@ -62,12 +63,12 @@ module mo_manage_radiation_calls
       radiation%rad_tend = 0._wp
     
       ! remapping all the arrays
-      call create_rad_array_scalar_h(latitude_scalar,radiation%lat_scal,rad_block_index)
-      call create_rad_array_scalar_h(longitude_scalar,radiation%lon_scal,rad_block_index)
+      call create_rad_array_scalar_h(grid%latitude_scalar,radiation%lat_scal,rad_block_index)
+      call create_rad_array_scalar_h(grid%longitude_scalar,radiation%lon_scal,rad_block_index)
       call create_rad_array_scalar_h(temperature_soil,radiation%temp_sfc,rad_block_index)
-      call create_rad_array_scalar_h(sfc_albedo,radiation%sfc_albedo,rad_block_index)
-      call create_rad_array_scalar(z_scalar,radiation%z_scal,rad_block_index)
-      call create_rad_array_vector(z_vector,radiation%z_vect,rad_block_index)
+      call create_rad_array_scalar_h(grid%sfc_albedo,radiation%sfc_albedo,rad_block_index)
+      call create_rad_array_scalar(grid%z_scalar,radiation%z_scal,rad_block_index)
+      call create_rad_array_vector(grid%z_vector,radiation%z_vect,rad_block_index)
       call create_rad_array_mass_den(rho,radiation%rho,rad_block_index)
       call create_rad_array_scalar(temperature,radiation%temp,rad_block_index)
       ! calling the radiation routine
