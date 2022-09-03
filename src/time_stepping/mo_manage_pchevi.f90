@@ -48,9 +48,9 @@ module mo_manage_pchevi
     
     ! updating surface-related turbulence quantities if it is necessary
     if (lsfc_sensible_heat_flux .or. lsfc_phase_trans .or. pbl_scheme==1) then
-      call update_sfc_turb_quantities(grid%is_land,grid%roughness_length,diag%monin_obukhov_length,grid%z_scalar,grid%z_vector, &
-                                      grid%theta_v_bg,state_old%theta_v_pert,diag%v_squared,diag%roughness_velocity, &
-                                      diag%scalar_flux_resistance)
+      call update_sfc_turb_quantities(diag%monin_obukhov_length, &
+                                      state_old%theta_v_pert,diag%v_squared,diag%roughness_velocity, &
+                                      diag%scalar_flux_resistance,grid)
     endif
     
     ! cloud microphysics

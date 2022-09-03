@@ -6,7 +6,7 @@ module mo_pbl
   ! In this module, quantities referring to the planetary boundary layer are computed.
 
   use mo_constants,        only: EPSILON_SECURITY,M_PI,gravity,p_0,c_d_p,r_d
-  use mo_definitions,      only: wp
+  use mo_definitions,      only: wp,t_grid
   use mo_run_nml,          only: dtime
   use mo_diff_nml,         only: h_prandtl,karman
   use mo_grid_nml,         only: n_scalars,n_scalars_h,n_vectors_per_layer,n_layers,n_vectors,n_vectors_h,n_vectors_per_layer, &
@@ -136,17 +136,16 @@ module mo_pbl
   
   end subroutine 
   
-  subroutine update_sfc_turb_quantities(is_land,roughness_length,monin_obukhov_length,z_scalar,z_vector, &
-                                        theta_v_bg,theta_v_pert,v_squared,roughness_velocity,scalar_flux_resistance)
+  subroutine update_sfc_turb_quantities(monin_obukhov_length, &
+                                        theta_v_pert,v_squared,roughness_velocity,scalar_flux_resistance, &
+                                        grid)
   
     ! This subroutine updates surface-related turbulence quantities.
     
-    integer,  intent(in)    :: is_land(n_scalars_h)
-    real(wp), intent(in)    :: z_scalar(n_scalars),z_vector(n_vectors),theta_v_bg(n_scalars), &
-                               theta_v_pert(n_scalars),v_squared(n_scalars)
+    real(wp), intent(in)    :: theta_v_pert(n_scalars),v_squared(n_scalars)
     real(wp), intent(out)   :: monin_obukhov_length(n_scalars_h),roughness_velocity(n_scalars_h), &
                                scalar_flux_resistance(n_scalars_h)
-    real(wp), intent(inout) :: roughness_length(n_scalars_h)
+    type(t_grid), intent(inout) :: grid
     
     ! local variables
     integer  :: ji
@@ -159,30 +158,30 @@ module mo_pbl
     !$omp parallel do private(ji,u_lowest_layer,u10,z_agl,theta_v_lowest_layer,theta_v_second_layer, &
     !$omp dz,dtheta_v_dz,w_pert,theta_v_pert_value,w_pert_theta_v_pert_avg)
     do ji=1,n_scalars_h
-      z_agl = z_scalar(n_scalars-n_scalars_h+ji)-z_vector(n_vectors-n_scalars_h+ji)
+      z_agl = grid%z_scalar(n_scalars-n_scalars_h+ji)-grid%z_vector(n_vectors-n_scalars_h+ji)
       
       ! wind speed in the lowest layer
       u_lowest_layer = v_squared(n_scalars-n_scalars_h+ji)**0.5_wp
         
       ! calculating the 10 m wind velocity from the logarithmic wind profile
-      u10 = u_lowest_layer*log(10._wp/roughness_length(ji))/log(z_agl/roughness_length(ji))
+      u10 = u_lowest_layer*log(10._wp/grid%roughness_length(ji))/log(z_agl/grid%roughness_length(ji))
       
       ! only over the sea the roughness length is time-dependant (because of the waves)
-      if (is_land(ji)==0) then
+      if (grid%is_land(ji)==0) then
         ! calculating the roughness length fom the wind velocity
-        roughness_length(ji) = roughness_length_from_u10_sea(u10)
+        grid%roughness_length(ji) = roughness_length_from_u10_sea(u10)
       endif
       
       ! updating the roughness velocity
-      roughness_velocity(ji) = calc_roughness_velocity(u_lowest_layer,z_agl,roughness_length(ji))
+      roughness_velocity(ji) = calc_roughness_velocity(u_lowest_layer,z_agl,grid%roughness_length(ji))
       
       ! theta_v in the lowest layer
-      theta_v_lowest_layer = theta_v_bg(n_scalars-n_scalars_h+ji) + theta_v_pert(n_scalars-n_scalars_h+ji)
+      theta_v_lowest_layer = grid%theta_v_bg(n_scalars-n_scalars_h+ji) + theta_v_pert(n_scalars-n_scalars_h+ji)
       ! theta_v in the second-lowest layer
-      theta_v_second_layer = theta_v_bg(n_scalars-2*n_scalars_h+ji) + theta_v_pert(n_scalars-2*n_scalars_h+ji)
+      theta_v_second_layer = grid%theta_v_bg(n_scalars-2*n_scalars_h+ji) + theta_v_pert(n_scalars-2*n_scalars_h+ji)
       
       ! delta z
-      dz = z_scalar(n_scalars-2*n_scalars_h+ji)-z_scalar(n_scalars-n_scalars_h+ji)
+      dz = grid%z_scalar(n_scalars-2*n_scalars_h+ji)-grid%z_scalar(n_scalars-n_scalars_h+ji)
       
       ! vertical gradient of theta_v
       dtheta_v_dz = (theta_v_second_layer-theta_v_lowest_layer)/dz
@@ -208,8 +207,8 @@ module mo_pbl
       !$omp parallel do private(ji)
       do ji=1,n_scalars_h
         scalar_flux_resistance(ji) = calc_scalar_flux_resistance(roughness_velocity(ji), &
-                                            z_scalar(n_scalars-n_scalars_h+ji)-z_vector(n_layers*n_vectors_per_layer+ji), &
-                                            roughness_length(ji),monin_obukhov_length(ji))
+                                           grid%z_scalar(n_scalars-n_scalars_h+ji)-grid%z_vector(n_layers*n_vectors_per_layer+ji), &
+                                           grid%roughness_length(ji),monin_obukhov_length(ji))
       enddo
       !$omp end parallel do
     endif
