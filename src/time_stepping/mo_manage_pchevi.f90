@@ -131,8 +131,7 @@ module mo_manage_pchevi
                               diag,grid,rk_step)
       endif
       if (rk_step==2) then
-        call scalar_tend_expl(rho_new,rhotheta_v_tend,rhotheta_v_new,wind_new,rho_tend, &
-                              state_new%exner_pert, &
+        call scalar_tend_expl(rho_new,rhotheta_v_tend,rhotheta_v_new,wind_new,rho_tend,state_new%exner_pert, &
                               diag,grid,rk_step)
       endif
 

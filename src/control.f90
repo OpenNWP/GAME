@@ -287,22 +287,15 @@ program control
   ! in the time stepping and in writing the output.
   totally_first_step_bool = 1
   ! writing out the initial state of the model run
-  call write_out(diag%scalar_field_placeholder,state_1%wind,grid%latlon_interpol_indices, &
-                 grid%latlon_interpol_weights,grid%exner_bg, &
-                 grid%inner_product_weights,grid%volume,grid%gravity_potential, &
-                 grid%from_index,grid%to_index,grid%z_vector,grid%f_vec,diag%temperature, &
-                 state_1%temperature_soil,grid%area,state_1%rho,grid%z_scalar,grid%slope, &
-                 grid%gravity_m,grid%adjacent_signs_h,grid%adjacent_vector_indices_h, &
-                 grid%area_dual,grid%density_to_rhombi_indices,grid%density_to_rhombi_weights, &
+  call write_out(diag%scalar_field_placeholder,state_1%wind, &
+                 diag%temperature, &
+                 state_1%temperature_soil,state_1%rho, &
                  state_1%exner_pert,diag%tke,t_init,t_write, &
-                 grid%from_index_dual,grid%to_index_dual,diag%v_squared,grid%is_land, &
+                 diag%v_squared, &
                  diag%monin_obukhov_length,diag%roughness_velocity, &
-                 grid%roughness_length,grid%direction,grid%trsk_indices,grid%sfc_albedo, &
-                 diag%sfc_sw_in,grid%layer_thickness,state_1%theta_v_pert, &
-                 grid%theta_v_bg,grid%z_vector_dual,grid%vorticity_indices_triangles, &
-                 grid%vorticity_signs_triangles,grid%trsk_weights, &
+                 diag%sfc_sw_in,state_1%theta_v_pert, &
                  totally_first_step_bool,wind_h_lowest_layer,diag%rel_vort_on_triangles,diag%rel_vort,diag%pot_vort, &
-                 grid%normal_distance)
+                 grid)
   
   t_write = t_write + 60._wp*write_out_interval_min
   write(*,*) "Run progress:", (t_init - t_init)/3600._wp, "h"
@@ -413,22 +406,17 @@ program control
     ! 5 minutes after the output time,the 10 m wind diag can be executed,so output can actually be written
     if(t_0+dtime>=t_write+radius_rescale*300._wp .and. t_0<=t_write+radius_rescale*300._wp) then
       ! here,output is actually written
-      call write_out(diag%scalar_field_placeholder,state_write%wind,grid%latlon_interpol_indices, &
-                     grid%latlon_interpol_weights,grid%exner_bg, &
-                     grid%inner_product_weights,grid%volume,grid%gravity_potential,grid%from_index,grid%to_index, &
-                     grid%z_vector,grid%f_vec,diag%temperature, &
-                     state_write%temperature_soil,grid%area,state_write%rho,grid%z_scalar,grid%slope,grid%gravity_m, &
-                     grid%adjacent_signs_h,grid%adjacent_vector_indices_h, &
-                     grid%area_dual,grid%density_to_rhombi_indices,grid%density_to_rhombi_weights,state_write%exner_pert, &
+      call write_out(diag%scalar_field_placeholder,state_write%wind, &
+                     diag%temperature, &
+                     state_write%temperature_soil,state_write%rho, &
+                     state_write%exner_pert, &
                      diag%tke,t_init,t_write, &
-                     grid%from_index_dual,grid%to_index_dual,diag%v_squared,grid%is_land, &
+                     diag%v_squared, &
                      diag%monin_obukhov_length,diag%roughness_velocity, &
-                     grid%roughness_length,grid%direction,grid%trsk_indices,grid%sfc_albedo,diag%sfc_sw_in, &
-                     grid%layer_thickness,state_write%theta_v_pert, &
-                     grid%theta_v_bg,grid%z_vector_dual,grid%vorticity_indices_triangles,grid%vorticity_signs_triangles, &
-                     grid%trsk_weights, &
+                     diag%sfc_sw_in, &
+                     state_write%theta_v_pert, &
                      totally_first_step_bool,wind_h_lowest_layer,diag%rel_vort_on_triangles,diag%rel_vort, &
-                     diag%pot_vort,grid%normal_distance)
+                     diag%pot_vort,grid)
       ! setting the next output time
       t_write = t_write + 60._wp*write_out_interval_min
       
