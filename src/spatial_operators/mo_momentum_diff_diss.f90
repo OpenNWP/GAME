@@ -23,30 +23,29 @@ module mo_momentum_diff_diss
   
   contains
 
-  subroutine hor_momentum_diffusion(wind,rho,diag,grid)
+  subroutine hor_momentum_diffusion(state,diag,grid)
     
     ! This subroutine is the horizontal momentum diffusion operator (horizontal diffusion of horizontal velocity).
     
-    real(wp), intent(in)    :: wind(n_vectors), &
-                               rho(n_constituents*n_scalars)
-    type(t_diag), intent(inout) :: diag
-    type(t_grid), intent(in)    :: grid
+    type(t_state), intent(in)    :: state
+    type(t_diag),  intent(inout) :: diag
+    type(t_grid),  intent(in)    :: grid
     
     ! local variables
     integer :: h_index,layer_index,vector_index,scalar_index_from,scalar_index_to
     
     ! calculating the divergence of the wind field
-    call div_h(wind,diag%wind_div,grid%adjacent_signs_h,grid%adjacent_vector_indices_h, &
+    call div_h(state%wind,diag%wind_div,grid%adjacent_signs_h,grid%adjacent_vector_indices_h, &
                grid%inner_product_weights,grid%slope,grid%area,grid%volume)
     
     ! calculating the relative vorticity of the wind field
-    call calc_rel_vort(wind,diag%rel_vort_on_triangles,grid%z_vector,grid%z_vector_dual,diag%rel_vort, &
+    call calc_rel_vort(state%wind,diag%rel_vort_on_triangles,grid%z_vector,grid%z_vector_dual,diag%rel_vort, &
                        grid%vorticity_indices_triangles,grid%vorticity_signs_triangles,grid%normal_distance, &
                        grid%area_dual,grid%from_index,grid%to_index,grid%from_index_dual,grid%to_index_dual, &
                        grid%inner_product_weights,grid%slope)
     
     ! calculating the effective horizontal kinematic viscosity
-    call hor_viscosity(diag%temperature,diag%tke,rho,grid%from_index,grid%to_index,grid%vorticity_indices_triangles, &
+    call hor_viscosity(diag%temperature,diag%tke,state%rho,grid%from_index,grid%to_index,grid%vorticity_indices_triangles, &
                        diag%molecular_diffusion_coeff,diag%viscosity_triangles,diag%viscosity,diag%viscosity_rhombi)
     
     ! diagonal component
@@ -87,21 +86,20 @@ module mo_momentum_diff_diss
         scalar_index_to = layer_index*n_scalars_h + grid%to_index(h_index)
         diag%friction_acc(vector_index) = &
         (diag%vector_field_placeholder(vector_index) - diag%curl_of_vorticity(vector_index)) &
-        /(0.5_wp*(density_total(rho,scalar_index_from) + density_total(rho,scalar_index_to)))
+        /(0.5_wp*(density_total(state%rho,scalar_index_from) + density_total(state%rho,scalar_index_to)))
       enddo
     enddo
     !$omp end parallel do
   
   end subroutine hor_momentum_diffusion
   
-  subroutine vert_momentum_diffusion(wind,rho,diag,grid)
+  subroutine vert_momentum_diffusion(state,diag,grid)
   
     ! This subroutine is the vertical momentum diffusion. The horizontal diffusion has already been called at this points, so we can add the new tendencies.
     
-    real(wp), intent(in)    :: wind(n_vectors), &
-                               rho(n_constituents*n_scalars)
-    type(t_diag), intent(inout) :: diag
-    type(t_grid), intent(in)    :: grid
+    type(t_state), intent(in)    :: state
+    type(t_diag),  intent(inout) :: diag
+    type(t_grid),  intent(in)    :: grid
     
     ! local variables
     integer  :: ji,layer_index,h_index,vector_index
@@ -117,12 +115,12 @@ module mo_momentum_diff_diss
       vector_index = n_scalars_h + h_index + (layer_index-1)*n_vectors_per_layer
       ! at the surface
       if (layer_index==n_layers) then
-        diag%dv_hdz(ji) = wind(vector_index)/(grid%z_vector(vector_index) &
+        diag%dv_hdz(ji) = state%wind(vector_index)/(grid%z_vector(vector_index) &
         - 0.5_wp*(grid%z_vector(n_vectors - n_scalars_h + 1+grid%from_index(h_index)) &
         + grid%z_vector(n_vectors-n_scalars_h+1+grid%to_index(h_index))))
       ! inner layers
       elseif (layer_index>=1) then
-        diag%dv_hdz(ji) = (wind(vector_index) - wind(vector_index + n_vectors_per_layer)) &
+        diag%dv_hdz(ji) = (state%wind(vector_index) - state%wind(vector_index + n_vectors_per_layer)) &
         /(grid%z_vector(vector_index) - grid%z_vector(vector_index + n_vectors_per_layer))
       endif
       ! the second derivative is assumed to vanish at the TOA
@@ -133,7 +131,7 @@ module mo_momentum_diff_diss
    
     ! calculating the respective diffusion coefficient
     call vert_hor_mom_viscosity(diag%tke,grid%layer_thickness,grid%from_index,grid%to_index, &
-                                diag%vert_hor_viscosity,diag%n_squared,rho, &
+                                diag%vert_hor_viscosity,diag%n_squared,state%rho, &
                                 diag%molecular_diffusion_coeff)
                            
     ! now, the second derivative needs to be taken
@@ -149,8 +147,8 @@ module mo_momentum_diff_diss
       delta_z = z_upper - z_lower
       diag%friction_acc(vector_index) = diag%friction_acc(vector_index) &
       + (diag%vert_hor_viscosity(ji)*diag%dv_hdz(ji)-diag%vert_hor_viscosity(ji+n_vectors_h)*diag%dv_hdz(ji+n_vectors_h))/delta_z &
-      /(0.5_wp*(density_total(rho,layer_index*n_scalars_h + grid%from_index(h_index)) &
-      + density_total(rho,layer_index*n_scalars_h + grid%to_index(h_index))))
+      /(0.5_wp*(density_total(state%rho,layer_index*n_scalars_h + grid%from_index(h_index)) &
+      + density_total(state%rho,layer_index*n_scalars_h + grid%to_index(h_index))))
     enddo
     
     ! 2.) vertical diffusion of vertical velocity
@@ -161,9 +159,9 @@ module mo_momentum_diff_diss
     !$omp end parallel workshare
     
     ! computing something like dw/dz
-    call add_vertical_div(wind,diag%scalar_field_placeholder,grid%area,grid%volume)
+    call add_vertical_div(state%wind,diag%scalar_field_placeholder,grid%area,grid%volume)
     ! computing and multiplying by the respective diffusion coefficient
-    call vert_vert_mom_viscosity(rho,diag%tke,diag%n_squared,grid%layer_thickness,diag%scalar_field_placeholder, &
+    call vert_vert_mom_viscosity(state%rho,diag%tke,diag%n_squared,grid%layer_thickness,diag%scalar_field_placeholder, &
                                  diag%molecular_diffusion_coeff)
     ! taking the second derivative to compute the diffusive tendency
     call grad_vert_cov(diag%scalar_field_placeholder,diag%friction_acc,grid%normal_distance)
@@ -176,8 +174,8 @@ module mo_momentum_diff_diss
       do layer_index=0,n_layers-1
         ji = layer_index*n_scalars_h + h_index
         diag%scalar_field_placeholder(ji) = &
-        grid%inner_product_weights(8*(ji-1)+7)*wind(h_index + layer_index*n_vectors_per_layer) &
-        + grid%inner_product_weights(8*(ji-1)+8)*wind(h_index + (layer_index+1)*n_vectors_per_layer)
+        grid%inner_product_weights(8*(ji-1)+7)*state%wind(h_index + layer_index*n_vectors_per_layer) &
+        + grid%inner_product_weights(8*(ji-1)+8)*state%wind(h_index + (layer_index+1)*n_vectors_per_layer)
       enddo
     enddo
     !$omp end parallel do
@@ -212,8 +210,8 @@ module mo_momentum_diff_diss
       + diag%scalar_field_placeholder(h_index + (layer_index+1)*n_scalars_h))
       ! dividing by the density
       diag%friction_acc(vector_index) = diag%friction_acc(vector_index) &
-      /(0.5_wp*(density_total(rho,-1+h_index+layer_index*n_scalars_h) &
-      + density_total(rho,-1+h_index+(layer_index+1)*n_scalars_h)))
+      /(0.5_wp*(density_total(state%rho,-1+h_index+layer_index*n_scalars_h) &
+      + density_total(state%rho,-1+h_index+(layer_index+1)*n_scalars_h)))
     enddo
     !$omp end parallel do
   

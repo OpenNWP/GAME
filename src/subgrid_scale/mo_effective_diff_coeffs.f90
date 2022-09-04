@@ -280,30 +280,28 @@ module mo_effective_diff_coeffs
   
   end subroutine vert_hor_mom_viscosity
   
-  subroutine update_n_squared(theta_v_bg,theta_v_pert,normal_distance,inner_product_weights,gravity_m, &
-                              scalar_field_placeholder,vector_field_placeholder,n_squared)
+  subroutine update_n_squared(state,diag,grid)
     
     ! This subroutine calculates the Brunt-Väisälä frequency.
     
-    real(wp), intent(in)  :: theta_v_bg(n_scalars),theta_v_pert(n_scalars),normal_distance(n_vectors), &
-                             inner_product_weights(8*n_scalars),gravity_m(n_vectors)
-    real(wp), intent(out) :: scalar_field_placeholder(n_scalars),vector_field_placeholder(n_vectors), &
-                             n_squared(n_scalars)
+    type(t_state), intent(in)    :: state ! state which to use for the calculation
+    type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
     integer :: ji,layer_index,h_index,vector_index
     
     ! calculating the full virtual potential temperature
     !$omp parallel workshare
-    scalar_field_placeholder = theta_v_bg+theta_v_pert
+    diag%scalar_field_placeholder = grid%theta_v_bg+state%theta_v_pert
     !$omp end parallel workshare
     ! vertical gradient of the full virtual potential temperature
-    call grad_vert_cov(scalar_field_placeholder,vector_field_placeholder,normal_distance)
+    call grad_vert_cov(diag%scalar_field_placeholder,diag%vector_field_placeholder,grid%normal_distance)
     ! calculating the inverse full virtual potential temperature
     !$omp parallel workshare
-    scalar_field_placeholder = 1.0/scalar_field_placeholder
+    diag%scalar_field_placeholder = 1.0/diag%scalar_field_placeholder
     !$omp end parallel workshare
-    call scalar_times_vector_v(scalar_field_placeholder,vector_field_placeholder,vector_field_placeholder)
+    call scalar_times_vector_v(diag%scalar_field_placeholder,diag%vector_field_placeholder,diag%vector_field_placeholder)
     
     ! multiplying by the gravity acceleration
     !$omp parallel do private(ji,layer_index,h_index,vector_index)
@@ -311,8 +309,8 @@ module mo_effective_diff_coeffs
       layer_index = (ji-1)/n_scalars_h
       h_index = ji - layer_index*n_scalars_h
       vector_index = h_index + layer_index*n_vectors_per_layer
-      vector_field_placeholder(vector_index) &
-      = gravity_m(vector_index)*vector_field_placeholder(vector_index)
+      diag%vector_field_placeholder(vector_index) &
+      = grid%gravity_m(vector_index)*diag%vector_field_placeholder(vector_index)
     enddo
     !$omp end parallel do
     
@@ -322,14 +320,14 @@ module mo_effective_diff_coeffs
       layer_index = (ji-1)/n_scalars_h
       h_index = ji - layer_index*n_scalars_h
       if (layer_index==0) then
-        n_squared(ji) = vector_field_placeholder(n_vectors_per_layer+ji)
+        diag%n_squared(ji) = diag%vector_field_placeholder(n_vectors_per_layer+ji)
       elseif (layer_index==n_layers-1) then
-        n_squared(ji) &
-        = vector_field_placeholder(n_vectors-n_vectors_per_layer-n_scalars_h+h_index)
+        diag%n_squared(ji) &
+        = diag%vector_field_placeholder(n_vectors-n_vectors_per_layer-n_scalars_h+h_index)
       else
-        n_squared(ji) &
-        = inner_product_weights(8*(ji-1)+7)*vector_field_placeholder(h_index+layer_index*n_vectors_per_layer) &
-        + inner_product_weights(8*(ji-1)+8)*vector_field_placeholder(h_index+(layer_index+1)*n_vectors_per_layer)
+        diag%n_squared(ji) &
+        = grid%inner_product_weights(8*(ji-1)+7)*diag%vector_field_placeholder(h_index+layer_index*n_vectors_per_layer) &
+        + grid%inner_product_weights(8*(ji-1)+8)*diag%vector_field_placeholder(h_index+(layer_index+1)*n_vectors_per_layer)
       endif
     enddo
     !$omp end parallel do

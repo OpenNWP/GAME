@@ -19,18 +19,13 @@ module mo_pbl
   
   contains
   
-  subroutine pbl_wind_tendency(wind,z_vector,monin_obukhov_length,exner_bg,exner_pert,v_squared, &
-                               from_index,to_index,friction_acc,gravity_m,roughness_length,rho, &
-                               temperature,z_scalar)
+  subroutine pbl_wind_tendency(state,diag,grid)
   
     ! This subroutine computes the interaction of the horizontal wind with the surface.
   
-    real(wp), intent(in)    :: wind(n_vectors),z_vector(n_vectors),monin_obukhov_length(n_scalars_h), &
-                               exner_bg(n_scalars),exner_pert(n_scalars),v_squared(n_scalars), &
-                               gravity_m(n_vectors),roughness_length(n_scalars_h), &
-                               rho(n_constituents*n_scalars),temperature(n_scalars),z_scalar(n_scalars)
-    integer,  intent(in)    :: from_index(n_vectors_h),to_index(n_vectors_h)
-    real(wp), intent(inout) :: friction_acc(n_vectors)
+    type(t_state), intent(in)    :: state  ! state
+    type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid  ! grid properties
   
     ! local variables
     integer  :: ji,vector_index,layer_index, h_index
@@ -46,17 +41,17 @@ module mo_pbl
         vector_index = n_vectors - n_vectors_per_layer + ji
       
         ! averaging some quantities to the vector point
-        wind_speed_lowest_layer = 0.5_wp*((v_squared(n_scalars - n_scalars_h + 1+from_index(ji)))**0.5_wp &
-        + (v_squared(n_scalars - n_scalars_h + 1+to_index(ji)))**0.5_wp)
-        z_agl = z_vector(vector_index) - 0.5_wp*(z_vector(n_vectors - n_scalars_h + 1+from_index(ji)) &
-        + z_vector(n_vectors - n_scalars_h + 1+to_index(ji)))
-        layer_thickness = 0.5_wp*(z_vector(n_vectors - n_scalars_h - n_vectors_per_layer + 1+from_index(ji)) &
-        + z_vector(n_vectors - n_scalars_h - n_vectors_per_layer + 1+to_index(ji))) &
-        - 0.5_wp*(z_vector(n_vectors - n_scalars_h + 1+from_index(ji)) &
-        + z_vector(n_vectors - n_scalars_h + 1+to_index(ji)))
-        roughness_length_value = 0.5_wp*(roughness_length(1+from_index(ji)) + roughness_length(1+to_index(ji)))
-        monin_obukhov_length_value = 0.5_wp*(monin_obukhov_length(1+from_index(ji)) &
-                                             + monin_obukhov_length(1+to_index(ji)))
+        wind_speed_lowest_layer = 0.5_wp*((diag%v_squared(n_scalars - n_scalars_h + 1+grid%from_index(ji)))**0.5_wp &
+        + (diag%v_squared(n_scalars - n_scalars_h + 1+grid%to_index(ji)))**0.5_wp)
+        z_agl = grid%z_vector(vector_index) - 0.5_wp*(grid%z_vector(n_vectors - n_scalars_h + 1+grid%from_index(ji)) &
+        + grid%z_vector(n_vectors - n_scalars_h + 1+grid%to_index(ji)))
+        layer_thickness = 0.5_wp*(grid%z_vector(n_vectors - n_scalars_h - n_vectors_per_layer + 1+grid%from_index(ji)) &
+        + grid%z_vector(n_vectors - n_scalars_h - n_vectors_per_layer + 1+grid%to_index(ji))) &
+        - 0.5_wp*(grid%z_vector(n_vectors - n_scalars_h + 1+grid%from_index(ji)) &
+        + grid%z_vector(n_vectors - n_scalars_h + 1+grid%to_index(ji)))
+        roughness_length_value = 0.5_wp*(grid%roughness_length(1+grid%from_index(ji)) + grid%roughness_length(1+grid%to_index(ji)))
+        monin_obukhov_length_value = 0.5_wp*(diag%monin_obukhov_length(1+grid%from_index(ji)) &
+                                             + diag%monin_obukhov_length(1+grid%to_index(ji)))
       
         ! calculating the flux resistance at the vector point
         flux_resistance = momentum_flux_resistance(wind_speed_lowest_layer, &
@@ -69,8 +64,8 @@ module mo_pbl
         endif
       
         ! adding the momentum flux into the surface as an acceleration
-        friction_acc(vector_index) = friction_acc(vector_index) &
-        - wind_rescale_factor*wind(vector_index)/flux_resistance/layer_thickness
+        diag%friction_acc(vector_index) = diag%friction_acc(vector_index) &
+        - wind_rescale_factor*state%wind(vector_index)/flux_resistance/layer_thickness
       enddo
       !$omp end parallel do
     endif
@@ -89,38 +84,38 @@ module mo_pbl
         h_index = ji - layer_index*n_vectors_h
         vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
         ! calculating the pressure at the horizontal vector point
-        exner_from = exner_bg(layer_index*n_scalars_h + 1+from_index(h_index)) &
-        + exner_pert(layer_index*n_scalars_h + 1+from_index(h_index))
-        exner_to = exner_bg(layer_index*n_scalars_h + 1+to_index(h_index)) &
-        + exner_pert(layer_index*n_scalars_h + 1+to_index(h_index))
+        exner_from = grid%exner_bg(layer_index*n_scalars_h + 1+grid%from_index(h_index)) &
+        + state%exner_pert(layer_index*n_scalars_h + 1+grid%from_index(h_index))
+        exner_to = grid%exner_bg(layer_index*n_scalars_h + 1+grid%to_index(h_index)) &
+        + state%exner_pert(layer_index*n_scalars_h + 1+grid%to_index(h_index))
         pressure_from = p_0*exner_from**(c_d_p/r_d)
         pressure_to = p_0*exner_to**(c_d_p/r_d)
         pressure = 0.5_wp*(pressure_from+pressure_to)
       
         ! calculating the surface pressure at the horizontal vecor point
         ! calculating the surface pressure at the from scalar point
-        temp_lowest_layer = temperature((n_layers-1)*n_scalars_h + 1+from_index(h_index))
-        exner_from = exner_bg((n_layers-1)*n_scalars_h + 1+from_index(h_index)) &
-        + exner_pert((n_layers-1)*n_scalars_h + 1+from_index(h_index))
+        temp_lowest_layer = diag%temperature((n_layers-1)*n_scalars_h + 1+grid%from_index(h_index))
+        exner_from = grid%exner_bg((n_layers-1)*n_scalars_h + 1+grid%from_index(h_index)) &
+        + state%exner_pert((n_layers-1)*n_scalars_h + 1+grid%from_index(h_index))
         pressure_value_lowest_layer = p_0*exner_from**(c_d_p/r_d)
         temp_surface = temp_lowest_layer &
-        + standard_vert_lapse_rate*(z_scalar(1+from_index(h_index) + (n_layers-1)*n_scalars_h) &
-        - z_vector(n_vectors - n_scalars_h + 1+from_index(h_index)))
+        + standard_vert_lapse_rate*(grid%z_scalar(1+grid%from_index(h_index) + (n_layers-1)*n_scalars_h) &
+        - grid%z_vector(n_vectors - n_scalars_h + 1+grid%from_index(h_index)))
         surface_p_factor = (1._wp - (temp_surface - temp_lowest_layer)/temp_surface) &
-        **(gravity_m((n_layers-1)*n_vectors_per_layer + 1+from_index(h_index))/ &
-        (gas_constant_diagnostics(rho,(n_layers-1)*n_scalars_h + 1+from_index(h_index))*standard_vert_lapse_rate))
+        **(grid%gravity_m((n_layers-1)*n_vectors_per_layer + 1+grid%from_index(h_index))/ &
+        (gas_constant_diagnostics(state%rho,(n_layers-1)*n_scalars_h + 1+grid%from_index(h_index))*standard_vert_lapse_rate))
         pressure_sfc_from = pressure_value_lowest_layer/surface_p_factor
         ! calculating the surface pressure at the to scalar point
-        temp_lowest_layer = temperature((n_layers-1)*n_scalars_h + 1+to_index(h_index))
-        exner_to = exner_bg((n_layers-1)*n_scalars_h + 1+to_index(h_index)) &
-        + exner_pert((n_layers-1)*n_scalars_h + 1+to_index(h_index))
+        temp_lowest_layer = diag%temperature((n_layers-1)*n_scalars_h + 1+grid%to_index(h_index))
+        exner_to = grid%exner_bg((n_layers-1)*n_scalars_h + 1+grid%to_index(h_index)) &
+        + state%exner_pert((n_layers-1)*n_scalars_h + 1+grid%to_index(h_index))
         pressure_value_lowest_layer = p_0*exner_to**(c_d_p/r_d)
         temp_surface = temp_lowest_layer &
-        + standard_vert_lapse_rate*(z_scalar(1+to_index(h_index) + (n_layers-1)*n_scalars_h) &
-        - z_vector(n_vectors - n_scalars_h + 1+to_index(h_index)))
+        + standard_vert_lapse_rate*(grid%z_scalar(1+grid%to_index(h_index) + (n_layers-1)*n_scalars_h) &
+        - grid%z_vector(n_vectors - n_scalars_h + 1+grid%to_index(h_index)))
         surface_p_factor = (1._wp - (temp_surface - temp_lowest_layer)/temp_surface) &
-        **(gravity_m((n_layers-1)*n_vectors_per_layer + 1+to_index(h_index))/ &
-        (gas_constant_diagnostics(rho,(n_layers-1)*n_scalars_h + 1+to_index(h_index))*standard_vert_lapse_rate))
+        **(grid%gravity_m((n_layers-1)*n_vectors_per_layer + 1+grid%to_index(h_index))/ &
+        (gas_constant_diagnostics(state%rho,(n_layers-1)*n_scalars_h + 1+grid%to_index(h_index))*standard_vert_lapse_rate))
         pressure_sfc_to = pressure_value_lowest_layer/surface_p_factor
         ! averaging the surface pressure to the vector point
         pressure_sfc = 0.5_wp*(pressure_sfc_from+pressure_sfc_to)
@@ -128,8 +123,8 @@ module mo_pbl
         ! calculating sigma
         sigma = pressure/pressure_sfc
         ! finally calculating the friction acceleration
-        friction_acc(vector_index) = friction_acc(vector_index) &
-        - bndr_lr_visc_max*max(0._wp,(sigma-sigma_b)/(1._wp-sigma_b))*wind(vector_index)
+        diag%friction_acc(vector_index) = diag%friction_acc(vector_index) &
+        - bndr_lr_visc_max*max(0._wp,(sigma-sigma_b)/(1._wp-sigma_b))*state%wind(vector_index)
       enddo
       !$omp end parallel do
     endif

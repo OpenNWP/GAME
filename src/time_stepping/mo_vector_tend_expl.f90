@@ -65,26 +65,22 @@ module mo_vector_tend_expl
     if (rk_step==1) then
       ! updating the Brunt-Väisälä frequency and the TKE if any diffusion is switched on because it is required for computing the diffusion coefficients
       if (lmom_diff_h .or. lmass_diff_h .or. ltemp_diff_h) then
-        call update_n_squared(grid%theta_v_bg,state%theta_v_pert,grid%normal_distance,grid%inner_product_weights,grid%gravity_m, &
-                              diag%scalar_field_placeholder,diag%vector_field_placeholder,diag%n_squared)
-        call tke_update(state%rho,diag%viscosity,diag%heating_diss, &
-                        diag%tke,diag%vector_field_placeholder,state%wind,diag%scalar_field_placeholder,grid)
+        call update_n_squared(state,diag,grid)
+        call tke_update(state,diag,grid)
       endif
       
       ! momentum diffusion and dissipation (only updated at the first RK step)
       ! horizontal momentum diffusion
       if (lmom_diff_h) then
-        call hor_momentum_diffusion(state%wind,state%rho,diag,grid)
+        call hor_momentum_diffusion(state,diag,grid)
       endif
       ! vertical momentum diffusion
       if (lmom_diff_v) then
-        call vert_momentum_diffusion(state%wind,state%rho,diag,grid)
+        call vert_momentum_diffusion(state,diag,grid)
       endif
       ! planetary boundary layer
       if (pbl_scheme>0) then
-        call pbl_wind_tendency(state%wind,grid%z_vector,diag%monin_obukhov_length,grid%exner_bg,state%exner_pert,diag%v_squared, &
-                               grid%from_index,grid%to_index,diag%friction_acc,grid%gravity_m,grid%roughness_length,state%rho, &
-                               diag%temperature,grid%z_scalar)
+        call pbl_wind_tendency(state,diag,grid)
       endif
       ! calculation of the dissipative heating rate
       if (lmom_diff_h .or. pbl_scheme>0) then
