@@ -22,7 +22,7 @@ module mo_write_output
   use mo_derived,                only: rel_humidity,gas_constant_diagnostics,temperature_diagnostics
   use mo_run_nml,                only: ideal_input_id,run_id,start_date,start_hour
   use mo_vorticities,            only: calc_rel_vort,calc_pot_vort
-  use mo_spatial_ops_for_output, only: tangential_wind,inner_product_tangential,epv_diagnostics,edges_to_cells_lowest_layer, &
+  use mo_spatial_ops_for_output, only: inner_product_tangential,epv_diagnostics,edges_to_cells_lowest_layer, &
                                        calc_uv_at_edge,edges_to_cells,curl_field_to_cells
   use mo_divergences,            only: div_h
   use mo_inner_product,          only: inner_product
@@ -408,12 +408,10 @@ module mo_write_output
       
       ! averaging the wind quantities to cell centers for output
       allocate(wind_10_m_mean_u_at_cell(n_scalars_h))
-      call edges_to_cells_lowest_layer(wind_10_m_mean_u,wind_10_m_mean_u_at_cell, &
-                                       grid%adjacent_vector_indices_h,grid%inner_product_weights)
+      call edges_to_cells_lowest_layer(wind_10_m_mean_u,wind_10_m_mean_u_at_cell,grid)
       deallocate(wind_10_m_mean_u)
       allocate(wind_10_m_mean_v_at_cell(n_scalars_h))
-      call edges_to_cells_lowest_layer(wind_10_m_mean_v,wind_10_m_mean_v_at_cell, &
-                                       grid%adjacent_vector_indices_h,grid%inner_product_weights)
+      call edges_to_cells_lowest_layer(wind_10_m_mean_v,wind_10_m_mean_v_at_cell,grid)
       deallocate(wind_10_m_mean_v)
       
       ! gust diagnostics
@@ -573,17 +571,17 @@ module mo_write_output
     call div_h(state%wind,div_h_all_layers,grid)
     call calc_rel_vort(state%wind,diag,grid)
     allocate(rel_vort_scalar_field(n_scalars))
-    call curl_field_to_cells(diag%rel_vort,rel_vort_scalar_field,grid%adjacent_vector_indices_h,grid%inner_product_weights)
+    call curl_field_to_cells(diag%rel_vort,rel_vort_scalar_field,grid)
     
     ! Diagnozing the u and v wind components at the vector points.
     allocate(u_at_edge(n_vectors))
     allocate(v_at_edge(n_vectors))
-    call calc_uv_at_edge(state%wind,u_at_edge,v_at_edge,grid%trsk_indices,grid%trsk_weights,grid%direction)
+    call calc_uv_at_edge(state%wind,u_at_edge,v_at_edge,grid)
     ! Averaging to cell centers for output.
     allocate(u_at_cell(n_scalars))
     allocate(v_at_cell(n_scalars))
-    call edges_to_cells(u_at_edge,u_at_cell,grid%adjacent_vector_indices_h,grid%inner_product_weights)
-    call edges_to_cells(v_at_edge,v_at_cell,grid%adjacent_vector_indices_h,grid%inner_product_weights)
+    call edges_to_cells(u_at_edge,u_at_cell,grid)
+    call edges_to_cells(v_at_edge,v_at_cell,grid)
     allocate(rh(n_scalars))
     allocate(epv(n_scalars))
     allocate(pressure(n_scalars))
@@ -603,10 +601,7 @@ module mo_write_output
     !$omp end parallel do
     
     call calc_pot_vort(state%wind,diag%scalar_field_placeholder,diag,grid)
-    call epv_diagnostics(epv,grid%from_index,grid%to_index,grid%inner_product_weights,diag%pot_vort, &
-                         grid%trsk_indices,grid%trsk_weights, &
-                         grid%adjacent_vector_indices_h,grid%slope,grid%normal_distance,grid%theta_v_bg, &
-                         state%theta_v_pert,grid%z_vector,grid)
+    call epv_diagnostics(state,diag,epv,grid)
     
     ! pressure level output
     if (lpressure_level_output) then
