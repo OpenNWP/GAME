@@ -599,12 +599,7 @@ module mo_write_output
     enddo
     !$omp end parallel do
     
-    call calc_pot_vort(state%wind,diag%rel_vort_on_triangles,grid%z_vector,grid%z_vector_dual,diag%rel_vort, &
-                       grid%vorticity_indices_triangles,grid%vorticity_signs_triangles,grid%normal_distance, &
-                       grid%area_dual,grid%from_index,grid%to_index,grid%from_index_dual, &
-                       grid%to_index_dual,grid%inner_product_weights, &
-                       grid%slope,grid%f_vec,diag%pot_vort,grid%density_to_rhombi_indices,grid%density_to_rhombi_weights, &
-                       diag%scalar_field_placeholder)
+    call calc_pot_vort(state%wind,diag%scalar_field_placeholder,diag,grid)
     call epv_diagnostics(epv,grid%from_index,grid%to_index,grid%inner_product_weights,diag%pot_vort, &
                          grid%trsk_indices,grid%trsk_weights, &
                          grid%adjacent_vector_indices_h,grid%slope,grid%normal_distance,grid%theta_v_bg, &

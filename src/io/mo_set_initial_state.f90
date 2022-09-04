@@ -173,12 +173,7 @@ module mo_set_initial_state
     
     call scalar_times_vector(diag%scalar_field_placeholder,state%wind,diag%flux_density,grid%from_index,grid%to_index)
     ! Nowthe potential vorticity is evaluated.
-    call calc_pot_vort(state%wind,diag%rel_vort_on_triangles,grid%z_vector,grid%z_vector_dual,diag%rel_vort, &
-                       grid%vorticity_indices_triangles,grid%vorticity_signs_triangles,grid%normal_distance, &
-                       grid%area_dual,grid%from_index,grid%to_index,grid%from_index_dual,grid%to_index_dual, &
-                       grid%inner_product_weights, &
-                       grid%slope,grid%f_vec,diag%pot_vort,grid%density_to_rhombi_indices,grid%density_to_rhombi_weights, &
-                       diag%scalar_field_placeholder)
+    call calc_pot_vort(state%wind,diag%scalar_field_placeholder,diag,grid)
     ! Nowthe generalized Coriolis term is evaluated.
     call vorticity_flux(grid%from_index,grid%to_index,diag%pot_vort_tend,grid%trsk_indices,grid%trsk_modified_curl_indices, &
                         grid%trsk_weights, &

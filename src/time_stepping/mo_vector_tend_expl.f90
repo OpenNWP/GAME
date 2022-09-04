@@ -29,12 +29,12 @@ module mo_vector_tend_expl
 
   subroutine vector_tend_expl(state,state_tend,diag,grid,ltotally_first_step,rk_step)
   
-    type(t_state), intent(inout) :: state      ! state to use for calculating the tendencies
-    type(t_state), intent(inout) :: state_tend ! state containing the tendencies
-    type(t_diag),  intent(inout) :: diag
-    type(t_grid),  intent(in)    :: grid
-    integer,       intent(in)    :: rk_step
-    logical,       intent(in)    :: ltotally_first_step
+    type(t_state), intent(inout) :: state               ! state to use for calculating the tendencies
+    type(t_state), intent(inout) :: state_tend          ! state containing the tendencies
+    type(t_diag),  intent(inout) :: diag                ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid                ! grid quantities
+    integer,       intent(in)    :: rk_step             ! Runge-Kutta substep
+    logical,       intent(in)    :: ltotally_first_step ! switch for the very first step of the whole model run
                                
     ! local variables
     integer  :: ji,layer_index,h_index
@@ -47,12 +47,7 @@ module mo_vector_tend_expl
       call scalar_times_vector(state%rho(n_condensed_constituents*n_scalars+1:(n_condensed_constituents+1)*n_scalars), &
                                state%wind,diag%flux_density,grid%from_index,grid%to_index)
       ! Now, the "potential vorticity" is evaluated.
-      call calc_pot_vort(state%wind,diag%rel_vort_on_triangles,grid%z_vector,grid%z_vector_dual,diag%rel_vort, &
-                         grid%vorticity_indices_triangles,grid%vorticity_signs_triangles,grid%normal_distance, &
-                         grid%area_dual,grid%from_index,grid%to_index,grid%from_index_dual,grid%to_index_dual, &
-                         grid%inner_product_weights, &
-                         grid%slope,grid%f_vec,diag%pot_vort,grid%density_to_rhombi_indices,grid%density_to_rhombi_weights, &
-                         state%rho(n_condensed_constituents*n_scalars))
+      call calc_pot_vort(state%wind,state%rho(n_condensed_constituents*n_scalars),diag,grid)
       ! Now, the generalized Coriolis term is evaluated.
       call vorticity_flux(grid%from_index,grid%to_index,diag%pot_vort_tend,grid%trsk_indices,grid%trsk_modified_curl_indices, &
                           grid%trsk_weights, &
@@ -79,26 +74,11 @@ module mo_vector_tend_expl
       ! momentum diffusion and dissipation (only updated at the first RK step)
       ! horizontal momentum diffusion
       if (lmom_diff_h) then
-        call hor_momentum_diffusion(state%wind,diag%rel_vort_on_triangles,grid%z_vector,grid%z_vector_dual,diag%rel_vort, &
-                                    grid%vorticity_indices_triangles,grid%vorticity_signs_triangles,grid%normal_distance, &
-                                    grid%area_dual,grid%from_index,grid%to_index,grid%from_index_dual,grid%to_index_dual, &
-                                    grid%inner_product_weights, &
-                                    grid%slope,diag%temperature,diag%friction_acc,grid%adjacent_signs_h, &
-                                    grid%adjacent_vector_indices_h,grid%area, &
-                                    diag%molecular_diffusion_coeff,grid%normal_distance_dual,state%rho,diag%tke,diag%viscosity, &
-                                    diag%viscosity_triangles, &
-                                    grid%volume,diag%wind_div,diag%viscosity_rhombi,diag%vector_field_placeholder, &
-                                    diag%curl_of_vorticity,grid)
+        call hor_momentum_diffusion(state%wind,state%rho,diag,grid)
       endif
       ! vertical momentum diffusion
       if (lmom_diff_v) then
-        call vert_momentum_diffusion(state%wind,grid%z_vector,grid%normal_distance,grid%from_index,grid%to_index, &
-                                     grid%inner_product_weights, &
-                                     grid%slope,diag%friction_acc,grid%adjacent_signs_h,grid%adjacent_vector_indices_h,grid%area, &
-                                     diag%molecular_diffusion_coeff,state%rho,diag%tke,diag%viscosity,grid%volume, &
-                                     diag%vector_field_placeholder, &
-                                     diag%scalar_field_placeholder,grid%layer_thickness, &
-                                     diag%n_squared,diag%dv_hdz,diag%vert_hor_viscosity,grid)
+        call vert_momentum_diffusion(state%wind,state%rho,diag,grid)
       endif
       ! planetary boundary layer
       if (pbl_scheme>0) then
