@@ -27,9 +27,9 @@ module mo_momentum_diff_diss
     
     ! This subroutine is the horizontal momentum diffusion operator (horizontal diffusion of horizontal velocity).
     
-    type(t_state), intent(in)    :: state
-    type(t_diag),  intent(inout) :: diag
-    type(t_grid),  intent(in)    :: grid
+    type(t_state), intent(in)    :: state ! state variables
+    type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
     integer :: h_index,layer_index,vector_index,scalar_index_from,scalar_index_to
@@ -126,9 +126,7 @@ module mo_momentum_diff_diss
     enddo
    
     ! calculating the respective diffusion coefficient
-    call vert_hor_mom_viscosity(diag%tke,grid%layer_thickness,grid%from_index,grid%to_index, &
-                                diag%vert_hor_viscosity,diag%n_squared,state%rho, &
-                                diag%molecular_diffusion_coeff)
+    call vert_hor_mom_viscosity(state,diag,grid)
                            
     ! now, the second derivative needs to be taken
     !$omp parallel do private(ji,layer_index,h_index,vector_index,z_upper,z_lower,delta_z)
