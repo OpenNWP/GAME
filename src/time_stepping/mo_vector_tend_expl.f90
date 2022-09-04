@@ -108,7 +108,7 @@ module mo_vector_tend_expl
       endif
       ! calculation of the dissipative heating rate
       if (lmom_diff_h .or. pbl_scheme>0) then
-        call simple_dissipation_rate(state,diag%friction_acc,diag%heating_diss,grid)
+        call simple_dissipation_rate(state,diag,grid)
       endif
     endif
     

@@ -122,7 +122,7 @@ module mo_set_initial_state
     call nc_check(nf90_get_var(ncid_grid,latitude_vector_id,latitude_vector))
     call nc_check(nf90_get_var(ncid_grid,longitude_vector_id,longitude_vector))
     call nc_check(nf90_close(ncid_grid))
-    !$omp parallel do private(lat,lon,z_height,u,v,dummy_0,dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6)
+    !$omp parallel do private(ji,jl,lat,lon,z_height,u,v,dummy_0,dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6)
     do ji=1,n_vectors_h
       do jl=0,n_layers-1
         lat = latitude_vector(ji)

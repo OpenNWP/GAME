@@ -41,7 +41,7 @@ module mo_averaging
           scalar_index = layer_index*n_scalars_h + h_index
           vector_index = n_scalars_h + layer_index*n_vectors_per_layer + 1+adjacent_vector_indices_h(6*h_index + ji)
           vertical_contravariant_corr = vertical_contravariant_corr &
-          -0.5 &
+          -0.5_wp &
           *inner_product_weights(8*scalar_index + ji) &
           *slope(vector_index) &
           *vector_field(vector_index)
@@ -51,7 +51,7 @@ module mo_averaging
           scalar_index = (layer_index - 1)*n_scalars_h + h_index
           vector_index = n_scalars_h + (layer_index - 1)*n_vectors_per_layer + 1+adjacent_vector_indices_h(6*h_index + ji)
           vertical_contravariant_corr = vertical_contravariant_corr &
-          -0.5 &
+          -0.5_wp &
           *inner_product_weights(8*scalar_index + ji) &
           *slope(vector_index) &
           *vector_field(vector_index)
@@ -60,7 +60,7 @@ module mo_averaging
           scalar_index = layer_index*n_scalars_h + h_index
           vector_index = n_scalars_h + layer_index*n_vectors_per_layer + 1+adjacent_vector_indices_h(6*h_index + ji)
           vertical_contravariant_corr = vertical_contravariant_corr &
-          -0.5 &
+          -0.5_wp &
           *inner_product_weights(8*scalar_index + ji) &
           *slope(vector_index) &
           *vector_field(vector_index)

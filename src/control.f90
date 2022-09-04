@@ -316,9 +316,9 @@ program control
     
     ! time step integration
     if (mod(time_step_counter,2)==0) then
-      call manage_pchevi(state_1,state_2,state_tend,ltotally_first_step,diag,grid,lrad_update,t_0)
+      call manage_pchevi(state_1,state_2,state_tend,diag,grid,lrad_update,ltotally_first_step,t_0)
     else
-      call manage_pchevi(state_2,state_1,state_tend,ltotally_first_step,diag,grid,lrad_update,t_0)
+      call manage_pchevi(state_2,state_1,state_tend,diag,grid,lrad_update,ltotally_first_step,t_0)
     endif
   
     ! Writing out integrals over the model domain if requested by the user.
