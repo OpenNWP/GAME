@@ -569,7 +569,7 @@ module mo_write_output
     ! Diagnostics of quantities that are not surface-specific.    
     allocate(div_h_all_layers(n_scalars))
     call div_h(state%wind,div_h_all_layers,grid)
-    call calc_rel_vort(state%wind,diag,grid)
+    call calc_rel_vort(state,diag,grid)
     allocate(rel_vort_scalar_field(n_scalars))
     call curl_field_to_cells(diag%rel_vort,rel_vort_scalar_field,grid)
     
@@ -600,7 +600,7 @@ module mo_write_output
     enddo
     !$omp end parallel do
     
-    call calc_pot_vort(state%wind,diag%scalar_field_placeholder,diag,grid)
+    call calc_pot_vort(state,diag%scalar_field_placeholder,diag,grid)
     call epv_diagnostics(state,diag,epv,grid)
     
     ! pressure level output

@@ -173,7 +173,7 @@ module mo_set_initial_state
     
     call scalar_times_vector(diag%scalar_field_placeholder,state%wind,diag%flux_density,grid)
     ! Nowthe potential vorticity is evaluated.
-    call calc_pot_vort(state%wind,diag%scalar_field_placeholder,diag,grid)
+    call calc_pot_vort(state,diag%scalar_field_placeholder,diag,grid)
     ! Nowthe generalized Coriolis term is evaluated.
     call vorticity_flux(diag,grid)
     

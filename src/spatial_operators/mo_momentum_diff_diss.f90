@@ -38,7 +38,7 @@ module mo_momentum_diff_diss
     call div_h(state%wind,diag%wind_div,grid)
     
     ! calculating the relative vorticity of the wind field
-    call calc_rel_vort(state%wind,diag,grid)
+    call calc_rel_vort(state,diag,grid)
     
     ! calculating the effective horizontal kinematic viscosity
     call hor_viscosity(state,diag,grid)
