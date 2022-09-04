@@ -37,12 +37,13 @@ program control
   logical               :: ltotally_first_step,lrad_update
   integer               :: ji,time_step_counter,h_index,wind_lowest_layer_step_counter,time_step_10_m_wind
   real(wp)              :: t_0,t_write,t_rad_update,new_weight,old_weight,max_speed_hor,max_speed_ver, &
-                           normal_dist_min_hor,normal_dist_min_ver
+                           normal_dist_min_hor,normal_dist_min_ver,init_timestamp,begin_timestamp,end_timestamp
   real(wp), allocatable :: wind_h_lowest_layer(:)
   character(len=82)     :: stars
 
   ! taking the timestamp to measure the performance
-  ! clock_t begin = clock()
+  call cpu_time(init_timestamp)
+  begin_timestamp = init_timestamp
   
   ! console output
   stars = "**********************************************************************************"
@@ -279,7 +280,7 @@ program control
   ! writing out the initial state of the model run
   call write_out(state_1,diag,grid,wind_h_lowest_layer,t_init,t_write,ltotally_first_step)
   
-  t_write = t_write + 60._wp*write_out_interval_min
+  t_write = t_0 + 60._wp*write_out_interval_min
   write(*,*) "Run progress:", (t_init - t_init)/3600._wp, "h"
   ! clock_t first_time,second_time
   ! first_time = clock()
@@ -363,7 +364,7 @@ program control
         wind_lowest_layer_step_counter = wind_lowest_layer_step_counter+1
       endif
     endif
-  
+    
     ! 5 minutes after the output time,the 10 m wind diag can be executed,so output can actually be written
     if(t_0+dtime>=t_write+radius_rescale*300._wp .and. t_0<=t_write+radius_rescale*300._wp) then
       ! here,output is actually written
@@ -372,10 +373,10 @@ program control
       t_write = t_write + 60._wp*write_out_interval_min
       
       ! Calculating the speed of the model.
-      !second_time = clock()
+      call cpu_time(end_timestamp)
       !speed = CLOCKS_PER_SEC*60*write_out_interval_min/((double) second_time - first_time)
-      !write(*,*) "Current speed: %lf\n",speed
-      !first_time = clock()
+      write(*,*) "Current speed:",60._wp*write_out_interval_min/(end_timestamp - begin_timestamp)
+      call cpu_time(begin_timestamp)
       write(*,*) "Run progress:",(t_0+dtime-t_init)/3600._wp,"h"
       
       ! resetting the wind in the lowest layer to zero
@@ -523,9 +524,8 @@ program control
   deallocate(state_write%wind)
   deallocate(state_write%temperature_soil)
   write(*,*) stars
-  ! clock_t end = clock()
-  ! speed = CLOCKS_PER_SEC*(60*run_span_min + 300)/((double) end - begin)
-  ! write(*,*) "Average speed: %lf",speed
+  call cpu_time(end_timestamp)
+  write(*,*) "Average speed:",(60._wp*run_span_min+300._wp)/(end_timestamp - init_timestamp)
   write(*,*) "GAME over."
 
 end program control
