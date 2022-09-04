@@ -5,7 +5,7 @@ module mo_effective_diff_coeffs
   
   ! This module computes the effective diffusion coefficients.
   
-  use mo_definitions,        only: wp
+  use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_gradient_operators, only: grad_vert_cov
   use mo_multiplications,    only: scalar_times_vector_v
   use mo_grid_nml,           only: n_scalars_h,n_layers,n_scalars,n_vectors_per_layer,n_vectors,n_v_vectors, &
@@ -31,7 +31,7 @@ module mo_effective_diff_coeffs
                              viscosity(n_scalars),viscosity_rhombi(n_vectors)
     
     ! local variables
-    integer  :: ji,scalar_index_from,scalar_index_to,vector_index,h_index,layer_index,rho_base_index,scalar_base_index
+    integer  :: ji,jl,scalar_index_from,scalar_index_to,vector_index,h_index,layer_index,rho_base_index,scalar_base_index
     real(wp) :: density_value
     
     !$omp parallel do private(ji)
@@ -46,14 +46,14 @@ module mo_effective_diff_coeffs
     
     ! Averaging the viscosity to rhombi
     ! ---------------------------------
-    !$omp parallel do private(h_index,layer_index,scalar_index_from,scalar_index_to,vector_index)
-    do h_index=1,n_vectors_h
-      do layer_index=0,n_layers-1
-        vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
+    !$omp parallel do private(ji,jl,scalar_index_from,scalar_index_to,vector_index)
+    do ji=1,n_vectors_h
+      do jl=0,n_layers-1
+        vector_index = n_scalars_h + jl*n_vectors_per_layer + ji
         
         ! indices of the adjacent scalar grid points
-        scalar_index_from = layer_index*n_scalars_h + from_index(h_index)
-        scalar_index_to = layer_index*n_scalars_h + to_index(h_index)
+        scalar_index_from = jl*n_scalars_h + from_index(ji)
+        scalar_index_to = jl*n_scalars_h + to_index(ji)
         
         ! preliminary result
         viscosity_rhombi(vector_index) = 0.5_wp*(viscosity(1+scalar_index_from) + viscosity(1+scalar_index_to))
@@ -63,6 +63,7 @@ module mo_effective_diff_coeffs
         + rho(n_condensed_constituents*n_scalars + 1+scalar_index_to))*viscosity_rhombi(vector_index) 
       enddo
     enddo
+    !$omp end parallel do
     
     ! Averaging the viscosity to triangles
     ! ------------------------------------
@@ -109,32 +110,21 @@ module mo_effective_diff_coeffs
     
   end subroutine hor_viscosity
 
-  subroutine scalar_diffusion_coeffs(temperature,tke,rho,from_index,to_index,vorticity_indices_triangles, &
-                           molecular_diffusion_coeff,viscosity_triangles,viscosity,viscosity_rhombi, &
-                           mass_diffusion_coeff_numerical_h,mass_diffusion_coeff_numerical_v, &
-                           temp_diffusion_coeff_numerical_h,temp_diffusion_coeff_numerical_v, &
-                           n_squared,layer_thickness)
+  subroutine scalar_diffusion_coeffs(state,diag,grid)
   
     ! This subroutine computes the scalar diffusion coefficients (including eddies).
     
-    real(wp), intent(in)  :: temperature(n_scalars),rho(n_constituents*n_scalars),tke(n_scalars), &
-                             n_squared(n_scalars),layer_thickness(n_scalars)
-    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h), &
-                             vorticity_indices_triangles(3*n_dual_scalars_h)
-    real(wp), intent(out) :: molecular_diffusion_coeff(n_scalars),viscosity_triangles(n_dual_scalars_h), &
-                             viscosity(n_scalars),viscosity_rhombi(n_vectors), &
-                             mass_diffusion_coeff_numerical_h(n_scalars), &
-                             mass_diffusion_coeff_numerical_v(n_scalars), &
-                             temp_diffusion_coeff_numerical_h(n_scalars), &
-                             temp_diffusion_coeff_numerical_v(n_scalars)
-                             
+    type(t_state), intent(in)    :: state
+    type(t_diag),  intent(inout) :: diag
+    type(t_grid),  intent(in)    :: grid
+    
     ! local variables
     integer :: ji
     
     ! The diffusion coefficient only has to be calculated if it has not yet been done.
     if (lmom_diff_h) then
-      call hor_viscosity(temperature,tke,rho,from_index,to_index,vorticity_indices_triangles, &
-                         molecular_diffusion_coeff,viscosity_triangles,viscosity,viscosity_rhombi)
+      call hor_viscosity(diag%temperature,diag%tke,state%rho,grid%from_index,grid%to_index,grid%vorticity_indices_triangles, &
+                         diag%molecular_diffusion_coeff,diag%viscosity_triangles,diag%viscosity,diag%viscosity_rhombi)
     endif
     !$omp parallel do private(ji)
     do ji=1,n_scalars
@@ -142,18 +132,20 @@ module mo_effective_diff_coeffs
       ! Computing the mass diffusion coefficient
       ! ----------------------------------------
       ! horizontal diffusion coefficient
-      mass_diffusion_coeff_numerical_h(ji) = viscosity(ji)/rho(n_condensed_constituents*n_scalars+ji)
+      diag%mass_diffusion_coeff_numerical_h(ji) = diag%viscosity(ji)/state%rho(n_condensed_constituents*n_scalars+ji)
       ! vertical diffusion coefficient
-      mass_diffusion_coeff_numerical_v(ji) &
+      diag%mass_diffusion_coeff_numerical_v(ji) &
       ! molecular component
-      = molecular_diffusion_coeff(ji) &
+      = diag%molecular_diffusion_coeff(ji) &
       ! turbulent component
-      + tke2vert_diff_coeff(tke(ji),n_squared(ji),layer_thickness(ji))
+      + tke2vert_diff_coeff(diag%tke(ji),diag%n_squared(ji),grid%layer_thickness(ji))
       
       ! Computing the temperature diffusion coefficient
       ! -----------------------------------------------
-      temp_diffusion_coeff_numerical_h(ji) = c_v_mass_weighted_air(rho,temperature,ji-1)*mass_diffusion_coeff_numerical_h(ji)
-      temp_diffusion_coeff_numerical_v(ji) = c_v_mass_weighted_air(rho,temperature,ji-1)*mass_diffusion_coeff_numerical_v(ji)
+      diag%temp_diffusion_coeff_numerical_h(ji) = c_v_mass_weighted_air(state%rho,diag%temperature,ji-1) &
+                                                  *diag%mass_diffusion_coeff_numerical_h(ji)
+      diag%temp_diffusion_coeff_numerical_v(ji) = c_v_mass_weighted_air(state%rho,diag%temperature,ji-1) &
+                                                  *diag%mass_diffusion_coeff_numerical_v(ji)
     
     enddo
     !$omp end parallel do

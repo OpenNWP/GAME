@@ -49,12 +49,7 @@ module mo_scalar_tend_expl
     
     ! updating the scalar diffusion coefficient if required
     if (rk_step==1 .and. (lmass_diff_h .or. ltemp_diff_h)) then
-      call scalar_diffusion_coeffs(diag%temperature,diag%tke,state_scalar%rho, &
-                                   grid%from_index,grid%to_index,grid%vorticity_indices_triangles, &
-                                   diag%molecular_diffusion_coeff,diag%viscosity_triangles,diag%viscosity,diag%viscosity_rhombi, &
-                                   diag%mass_diffusion_coeff_numerical_h,diag%mass_diffusion_coeff_numerical_v, &
-                                   diag%temp_diffusion_coeff_numerical_h,diag%temp_diffusion_coeff_numerical_v, &
-                                   diag%n_squared,grid%layer_thickness)
+      call scalar_diffusion_coeffs(state_scalar,diag,grid)
     endif
     
     ! Temperature diffusion gets updated at the first RK step if required.
