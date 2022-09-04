@@ -21,30 +21,17 @@ module mo_column_solvers
   
   contains
   
-  subroutine three_band_solver_ver_waves(theta_v_pert_target, &
-                                         rho_target,rhotheta_v_new,rho_new,rho_old,theta_v_pert_old, &
-                                         exner_pert_old,theta_v_pert_new,exner_pert_new, &
-                                         temperature_soil_new,temperature_soil_old, &
-                                         rhotheta_v_tend,rho_tend,rhotheta_v_old,wind_old, &
-                                         wind_tend, &
-                                         rhotheta_v_target,exner_pert_target, &
-                                         wind_target,temperature_soil_target,diag,grid,rk_step)
+  subroutine three_band_solver_ver_waves(state_old,state_new,state_target,state_tend,diag,grid,rk_step)
     
     ! This subroutine is the implicit vertical solver for the main fluid constituent.
-    real(wp)                :: rho_new(n_constituents*n_scalars),rhotheta_v_new(n_scalars),exner_pert_new(n_scalars), &
-                               theta_v_pert_new(n_scalars),temperature_soil_new(nsoillays*n_scalars_h)
-    real(wp), intent(in)    :: rho_old(n_constituents*n_scalars), &
-                               theta_v_pert_old(n_scalars),exner_pert_old(n_scalars), &
-                               temperature_soil_old(nsoillays*n_scalars_h), &
-                               rho_tend(n_constituents*n_scalars),rhotheta_v_old(n_scalars),wind_old(n_vectors), &
-                               wind_tend(n_vectors)
-    real(wp), intent(out)   :: theta_v_pert_target(n_scalars),rho_target(n_constituents*n_scalars), &
-                               rhotheta_v_target(n_scalars),exner_pert_target(n_scalars),wind_target(n_vectors), &
-                               temperature_soil_target(nsoillays*n_scalars_h)
-    real(wp), intent(inout) :: rhotheta_v_tend(n_scalars)
-    type(t_diag), intent(inout) :: diag
-    type(t_grid), intent(in)    :: grid
-    integer,  intent(in)    :: rk_step
+    
+    type(t_state), intent(in)    :: state_old
+    type(t_state), intent(in)    :: state_new
+    type(t_state), intent(inout) :: state_target
+    type(t_state), intent(inout) :: state_tend
+    type(t_diag),  intent(inout) :: diag
+    type(t_grid),  intent(in)    :: grid
+    integer,       intent(in)    :: rk_step
     
     ! local variables
     integer  :: ji,j,lower_index,base_index,soil_switch,gas_phase_first_index
@@ -78,21 +65,21 @@ module mo_column_solvers
         base_index = n_scalars-n_scalars_h+ji
         
         ! gas temperature in the lowest layer
-        temperature_gas_lowest_layer_old = (grid%exner_bg(base_index) + exner_pert_old(base_index)) &
-        *(grid%theta_v_bg(base_index) + theta_v_pert_old(base_index))
-        temperature_gas_lowest_layer_new = (grid%exner_bg(base_index) + exner_pert_new(base_index)) &
-        *(grid%theta_v_bg(base_index) + theta_v_pert_new(base_index))
+        temperature_gas_lowest_layer_old = (grid%exner_bg(base_index) + state_old%exner_pert(base_index)) &
+        *(grid%theta_v_bg(base_index) + state_old%theta_v_pert(base_index))
+        temperature_gas_lowest_layer_new = (grid%exner_bg(base_index) + state_new%exner_pert(base_index)) &
+        *(grid%theta_v_bg(base_index) + state_new%theta_v_pert(base_index))
         
         ! the sensible power flux density
-        diag%power_flux_density_sensible(ji) = 0.5_wp*c_d_v*(rho_new(gas_phase_first_index + base_index) &
-        *(temperature_gas_lowest_layer_old - temperature_soil_old(ji)) &
-        + rho_old(gas_phase_first_index + base_index) &
-        *(temperature_gas_lowest_layer_new - temperature_soil_new(ji)))/diag%scalar_flux_resistance(ji)
+        diag%power_flux_density_sensible(ji) = 0.5_wp*c_d_v*(state_new%rho(gas_phase_first_index + base_index) &
+        *(temperature_gas_lowest_layer_old - state_old%temperature_soil(ji)) &
+        + state_old%rho(gas_phase_first_index + base_index) &
+        *(temperature_gas_lowest_layer_new - state_new%temperature_soil(ji)))/diag%scalar_flux_resistance(ji)
         
         ! contribution of sensible heat to rhotheta_v
-        rhotheta_v_tend(base_index) = rhotheta_v_tend(base_index) &
+        state_tend%rhotheta_v(base_index) = state_tend%rhotheta_v(base_index) &
         - grid%area(n_layers*n_vectors_per_layer+ji)*diag%power_flux_density_sensible(ji) &
-        /((grid%exner_bg(base_index) + exner_pert_new(base_index))*c_d_p)/grid%volume(base_index)
+        /((grid%exner_bg(base_index) + state_new%exner_pert(base_index))*c_d_p)/grid%volume(base_index)
       enddo
       !$omp end parallel do
     endif
@@ -115,26 +102,26 @@ module mo_column_solvers
       do j=1,n_layers
         base_index = ji+(j-1)*n_scalars_h
         ! explicit density
-        rho_expl(j) = rho_old(gas_phase_first_index+base_index) &
-        + dtime*rho_tend(gas_phase_first_index+base_index)
+        rho_expl(j) = state_old%rho(gas_phase_first_index+base_index) &
+        + dtime*state_tend%rho(gas_phase_first_index+base_index)
         ! explicit virtual potential temperature density
-        rhotheta_v_expl(j) = rhotheta_v_old(base_index) + dtime*rhotheta_v_tend(base_index)
+        rhotheta_v_expl(j) = state_old%rhotheta_v(base_index) + dtime*state_tend%rhotheta_v(base_index)
         if (rk_step==1) then
           ! old time step partial derivatives of theta_v and Pi (divided by the volume)
-          alpha(j) = -rhotheta_v_old(base_index)/rho_old(gas_phase_first_index + base_index)**2 &
+          alpha(j) = -state_old%rhotheta_v(base_index)/state_old%rho(gas_phase_first_index + base_index)**2 &
           /grid%volume(base_index)
-          beta(j) = 1._wp/rho_old(gas_phase_first_index + base_index)/grid%volume(base_index)
-          gamma_(j) = r_d/(c_d_v*rhotheta_v_old(base_index)) &
-          *(grid%exner_bg(base_index) + exner_pert_old(base_index))/grid%volume(base_index)
+          beta(j) = 1._wp/state_old%rho(gas_phase_first_index + base_index)/grid%volume(base_index)
+          gamma_(j) = r_d/(c_d_v*state_old%rhotheta_v(base_index)) &
+          *(grid%exner_bg(base_index) + state_old%exner_pert(base_index))/grid%volume(base_index)
         else
           ! old time step partial derivatives of theta_v and Pi
-          alpha_old(j) = -rhotheta_v_old(base_index)/rho_old(gas_phase_first_index + base_index)**2
-          beta_old(j) = 1._wp/rho_old(gas_phase_first_index + base_index)
-          gamma_old(j) = r_d/(c_d_v*rhotheta_v_old(base_index))*(grid%exner_bg(base_index) + exner_pert_old(base_index))
+          alpha_old(j) = -state_old%rhotheta_v(base_index)/state_old%rho(gas_phase_first_index + base_index)**2
+          beta_old(j) = 1._wp/state_old%rho(gas_phase_first_index + base_index)
+          gamma_old(j) = r_d/(c_d_v*state_old%rhotheta_v(base_index))*(grid%exner_bg(base_index) + state_old%exner_pert(base_index))
           ! new time step partial derivatives of theta_v and Pi
-          alpha_new(j) = -rhotheta_v_new(base_index)/rho_new(gas_phase_first_index + base_index)**2
-          beta_new(j) = 1._wp/rho_new(gas_phase_first_index + base_index)
-          gamma_new(j) = r_d/(c_d_v*rhotheta_v_new(base_index))*(grid%exner_bg(base_index) + exner_pert_new(base_index))
+          alpha_new(j) = -state_new%rhotheta_v(base_index)/state_new%rho(gas_phase_first_index + base_index)**2
+          beta_new(j) = 1._wp/state_new%rho(gas_phase_first_index + base_index)
+          gamma_new(j) = r_d/(c_d_v*state_new%rhotheta_v(base_index))*(grid%exner_bg(base_index) + state_new%exner_pert(base_index))
           ! interpolation in time and dividing by the volume
           alpha(j) = ((1._wp - partial_deriv_new_time_step_weight)*alpha_old(j) &
           + partial_deriv_new_time_step_weight*alpha_new(j))/grid%volume(base_index)
@@ -144,20 +131,21 @@ module mo_column_solvers
           + partial_deriv_new_time_step_weight*gamma_new(j))/grid%volume(base_index)
         endif
         ! explicit virtual potential temperature perturbation
-        theta_v_pert_expl(j) = theta_v_pert_old(base_index) + dtime*grid%volume(base_index)* &
-        (alpha(j)*rho_tend(gas_phase_first_index + base_index) + beta(j)*rhotheta_v_tend(base_index))
+        theta_v_pert_expl(j) = state_old%theta_v_pert(base_index) + dtime*grid%volume(base_index)* &
+        (alpha(j)*state_tend%rho(gas_phase_first_index + base_index) + beta(j)*state_tend%rhotheta_v(base_index))
         ! explicit Exner pressure perturbation
-        exner_pert_expl(j) = exner_pert_old(base_index) + dtime*grid%volume(base_index)*gamma_(j)*rhotheta_v_tend(base_index)
+        exner_pert_expl(j) = state_old%exner_pert(base_index) &
+                             + dtime*grid%volume(base_index)*gamma_(j)*state_tend%rhotheta_v(base_index)
       enddo
       
       ! determining the interface values
       do j=1,n_layers-1
         base_index = ji+(j-1)*n_scalars_h
         lower_index = ji+j*n_scalars_h
-        rho_int_old(j) = 0.5_wp*(rho_old(gas_phase_first_index + base_index) + rho_old(gas_phase_first_index + lower_index))
+        rho_int_old(j) = 0.5_wp*(state_old%rho(gas_phase_first_index+base_index)+state_old%rho(gas_phase_first_index+lower_index))
         rho_int_expl(j) = 0.5_wp*(rho_expl(j) + rho_expl(j+1))
-        theta_v_int_new(j) = 0.5_wp*(rhotheta_v_new(base_index)/rho_new(gas_phase_first_index + base_index) &
-        + rhotheta_v_new(lower_index)/rho_new(gas_phase_first_index + lower_index))
+        theta_v_int_new(j) = 0.5_wp*(state_new%rhotheta_v(base_index)/state_new%rho(gas_phase_first_index + base_index) &
+        + state_new%rhotheta_v(lower_index)/state_new%rho(gas_phase_first_index + lower_index))
       enddo
       
       ! filling up the coefficient vectors
@@ -169,16 +157,16 @@ module mo_column_solvers
         + 0.5_wp*(grid%exner_bg(base_index) - grid%exner_bg(lower_index)) &
         *(alpha(j+1) - alpha(j) + theta_v_int_new(j)*(beta(j+1) - beta(j))) &
         - (grid%z_scalar(base_index) - grid%z_scalar(lower_index))/(impl_weight*dtime**2*c_d_p*rho_int_old(j)) &
-        *(2._wp/grid%area(ji+j*n_vectors_per_layer) + dtime*wind_old(ji+j*n_vectors_per_layer)*0.5_wp &
+        *(2._wp/grid%area(ji+j*n_vectors_per_layer) + dtime*state_old%wind(ji+j*n_vectors_per_layer)*0.5_wp &
         *(-1._wp/grid%volume(base_index) + 1._wp/grid%volume(lower_index)))
         ! right hand side
-        r_vector(j) = -(wind_old(ji+j*n_vectors_per_layer) + dtime*wind_tend(ji+j*n_vectors_per_layer)) &
+        r_vector(j) = -(state_old%wind(ji+j*n_vectors_per_layer) + dtime*state_tend%wind(ji+j*n_vectors_per_layer)) &
         *(grid%z_scalar(base_index) - grid%z_scalar(lower_index)) &
         /(impl_weight*dtime**2*c_d_p) &
         + theta_v_int_new(j)*(exner_pert_expl(j) - exner_pert_expl(j+1))/dtime &
         + 0.5_wp/dtime*(theta_v_pert_expl(j) + theta_v_pert_expl(j+1))*(grid%exner_bg(base_index) - grid%exner_bg(lower_index)) &
         - (grid%z_scalar(base_index) - grid%z_scalar(lower_index))/(impl_weight*dtime**2*c_d_p) &
-        *wind_old(ji+j*n_vectors_per_layer)*rho_int_expl(j)/rho_int_old(j)
+        *state_old%wind(ji+j*n_vectors_per_layer)*rho_int_expl(j)/rho_int_old(j)
       enddo
       do j=1,n_layers-2
         base_index = ji+(j-1)*n_scalars_h
@@ -188,13 +176,13 @@ module mo_column_solvers
         + 0.5_wp*(grid%exner_bg(lower_index) - grid%exner_bg((j+1)*n_scalars_h+ji)) &
         *(alpha(j+1) + beta(j+1)*theta_v_int_new(j)) &
         - (grid%z_scalar(lower_index) - grid%z_scalar((j+1)*n_scalars_h+ji))/(impl_weight*dtime*c_d_p)*0.5_wp &
-        *wind_old(ji+(j+1)*n_vectors_per_layer)/(grid%volume(lower_index)*rho_int_old(j+1))
+        *state_old%wind(ji+(j+1)*n_vectors_per_layer)/(grid%volume(lower_index)*rho_int_old(j+1))
         ! upper diagonal
         e_vector(j) = theta_v_int_new(j)*gamma_(j+1)*theta_v_int_new(j+1) &
         - 0.5_wp*(grid%exner_bg(base_index) - grid%exner_bg(lower_index)) &
         *(alpha(j+1) + beta(j+1)*theta_v_int_new(j+1)) &
         + (grid%z_scalar(base_index) - grid%z_scalar(lower_index))/(impl_weight*dtime*c_d_p)*0.5_wp &
-        *wind_old(ji+j*n_vectors_per_layer)/(grid%volume(lower_index)*rho_int_old(j))
+        *state_old%wind(ji+j*n_vectors_per_layer)/(grid%volume(lower_index)*rho_int_old(j))
       enddo
       
       ! soil components of the matrix
@@ -202,11 +190,12 @@ module mo_column_solvers
         ! calculating the explicit part of the heat flux density
         do j=1,nsoillays-1
           heat_flux_density_expl(j) &
-          = -grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji)*(temperature_soil_old(ji+(j-1)*n_scalars_h) &
-          - temperature_soil_old(ji+j*n_scalars_h))/(grid%z_soil_center(j) - grid%z_soil_center(j+1))
+          = -grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji)*(state_old%temperature_soil(ji+(j-1)*n_scalars_h) &
+          - state_old%temperature_soil(ji+j*n_scalars_h))/(grid%z_soil_center(j) - grid%z_soil_center(j+1))
         enddo
         heat_flux_density_expl(nsoillays) &
-        = -grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji)*(temperature_soil_old(ji+(nsoillays-1)*n_scalars_h)-grid%t_const_soil(ji)) &
+        = -grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji)* &
+        (state_old%temperature_soil(ji+(nsoillays-1)*n_scalars_h)-grid%t_const_soil(ji)) &
         /(2._wp*(grid%z_soil_center(nsoillays) - z_t_const))
         
         radiation_flux_density = diag%sfc_sw_in(ji) - diag%sfc_lw_out(ji)
@@ -219,7 +208,7 @@ module mo_column_solvers
         ! calculating the explicit part of the temperature change
         r_vector(n_layers) &
         ! old temperature
-        = temperature_soil_old(ji) &
+        = state_old%temperature_soil(ji) &
         ! sensible heat flux
         + (diag%power_flux_density_sensible(ji) &
         ! latent heat flux
@@ -235,7 +224,7 @@ module mo_column_solvers
           
           r_vector(j+n_layers-1) &
           ! old temperature
-          = temperature_soil_old(ji+(j-1)*n_scalars_h) &
+          = state_old%temperature_soil(ji+(j-1)*n_scalars_h) &
           ! heat conduction from above
           + 0.5_wp*(-heat_flux_density_expl(j-1) &
           ! heat conduction from below
@@ -295,13 +284,13 @@ module mo_column_solvers
       do j=1,n_layers
         base_index = ji+(j-1)*n_scalars_h
         if (j==1) then
-          rho_target(gas_phase_first_index + base_index) &
+          state_target%rho(gas_phase_first_index + base_index) &
           = rho_expl(j) + dtime*(solution_vector(j))/grid%volume(base_index)
         elseif (j==n_layers) then
-          rho_target(gas_phase_first_index + base_index) &
+          state_target%rho(gas_phase_first_index + base_index) &
           = rho_expl(j) + dtime*(-solution_vector(j-1))/grid%volume(base_index)
         else
-          rho_target(gas_phase_first_index + base_index) &
+          state_target%rho(gas_phase_first_index + base_index) &
           = rho_expl(j) + dtime*(-solution_vector(j-1) + solution_vector(j))/grid%volume(base_index)
         endif
       enddo
@@ -309,13 +298,13 @@ module mo_column_solvers
       do j=1,n_layers
         base_index = ji+(j-1)*n_scalars_h
         if (j==1) then
-          rhotheta_v_target(base_index) &
+          state_target%rhotheta_v(base_index) &
           = rhotheta_v_expl(j) + dtime*(theta_v_int_new(j)*solution_vector(j))/grid%volume(base_index)
         elseif (j==n_layers) then
-          rhotheta_v_target(base_index) &
+          state_target%rhotheta_v(base_index) &
           = rhotheta_v_expl(j) + dtime*(-theta_v_int_new(j-1)*solution_vector(j-1))/grid%volume(base_index)
         else
-          rhotheta_v_target(base_index) &
+          state_target%rhotheta_v(base_index) &
           = rhotheta_v_expl(j) + dtime*(-theta_v_int_new(j-1)*solution_vector(j-1) + theta_v_int_new(j)*solution_vector(j)) &
           /grid%volume(base_index)
         endif
@@ -323,29 +312,30 @@ module mo_column_solvers
       ! vertical velocity
       do j=1,n_layers-1
         base_index = ji+(j-1)*n_scalars_h
-        density_interface_new = 0.5_wp*(rho_target(gas_phase_first_index + base_index) &
-        + rho_target(gas_phase_first_index+ji+j*n_scalars_h))
-        wind_target(ji+j*n_vectors_per_layer) &
+        density_interface_new = 0.5_wp*(state_target%rho(gas_phase_first_index + base_index) &
+        + state_target%rho(gas_phase_first_index+ji+j*n_scalars_h))
+        state_target%wind(ji+j*n_vectors_per_layer) &
         = (2._wp*solution_vector(j)/grid%area(ji+j*n_vectors_per_layer) &
-        - density_interface_new*wind_old(ji+j*n_vectors_per_layer))/rho_int_old(j)
+        - density_interface_new*state_old%wind(ji+j*n_vectors_per_layer))/rho_int_old(j)
       enddo
       ! virtual potential temperature perturbation
       do j=1,n_layers
         base_index = ji+(j-1)*n_scalars_h
-        theta_v_pert_target(base_index) = rhotheta_v_target(base_index)/rho_target(gas_phase_first_index+base_index) &
+        state_target%theta_v_pert(base_index) = state_target%rhotheta_v(base_index) &
+                                                /state_target%rho(gas_phase_first_index+base_index) &
         - grid%theta_v_bg(base_index)
       enddo
       ! Exner pressure perturbation
       do j=1,n_layers
         base_index = ji+(j-1)*n_scalars_h
-        exner_pert_target(base_index) = exner_pert_old(base_index) + grid%volume(base_index) &
-        *gamma_(j)*(rhotheta_v_target(base_index) - rhotheta_v_old(base_index))
+        state_target%exner_pert(base_index) = state_old%exner_pert(base_index) + grid%volume(base_index) &
+        *gamma_(j)*(state_target%rhotheta_v(base_index) - state_old%rhotheta_v(base_index))
       enddo
       
       ! soil temperature
       if (soil_switch==1) then
         do j=1,nsoillays
-          temperature_soil_target(ji+(j-1)*n_scalars_h) = solution_vector(n_layers-1+j)
+          state_target%temperature_soil(ji+(j-1)*n_scalars_h) = solution_vector(n_layers-1+j)
         enddo
       endif
       

@@ -31,14 +31,14 @@ module mo_manage_pchevi
     
     type(t_grid),  intent(inout) :: grid
     type(t_state), intent(inout) :: state_old
-    type(t_state), intent(inout) :: state_new
-    type(t_state), intent(inout) :: state_tend
-    type(t_diag),  intent(inout) :: diag
-    logical,       intent(in)    :: ltotally_first_step,lrad_update
-    real(wp),      intent(in)    :: time_coordinate
+    type(t_state), intent(inout) :: state_new                       ! state of the new time step (result)
+    type(t_state), intent(inout) :: state_tend                      ! state containing tendencies
+    type(t_diag),  intent(inout) :: diag                            ! diagnostic quantities
+    logical,       intent(in)    :: ltotally_first_step,lrad_update ! 
+    real(wp),      intent(in)    :: time_coordinate                 ! epoch timestamp of the old time step
     
     ! local variabels
-    integer :: h_index,layer_index,vector_index,rk_step
+    integer :: ji,jl,vector_index,rk_step
     
     ! Preparations
     ! ------------
@@ -88,10 +88,10 @@ module mo_manage_pchevi
       endif
       
       ! time stepping for the horizontal momentum can be directly executed
-      !$omp parallel do private(h_index,layer_index,vector_index)
-      do h_index=1,n_vectors_h
-        do layer_index=0,n_layers-1
-          vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
+      !$omp parallel do private(ji,jl,vector_index)
+      do ji=1,n_vectors_h
+        do jl=0,n_layers-1
+          vector_index = n_scalars_h + jl*n_vectors_per_layer + ji
           state_new%wind(vector_index) = state_old%wind(vector_index) + dtime*state_tend%wind(vector_index)
         enddo
       enddo
@@ -110,27 +110,10 @@ module mo_manage_pchevi
       ! 3.) vertical sound wave solver
       ! ------------------------------
       if (rk_step==1) then
-        call three_band_solver_ver_waves(state_new%theta_v_pert, &
-                                         state_new%rho,state_old%rhotheta_v,state_old%rho, &
-                                         state_old%rho,state_old%theta_v_pert, &
-                                         state_old%exner_pert,state_old%theta_v_pert,state_old%exner_pert, &
-                                         state_old%temperature_soil,state_old%temperature_soil, &
-                                         state_tend%rhotheta_v,state_tend%rho,state_old%rhotheta_v,state_old%wind, &
-                                         state_tend%wind, &
-                                         state_new%rhotheta_v,state_new%exner_pert, &
-                                         state_new%wind,state_new%temperature_soil,diag,grid,rk_step)
+        call three_band_solver_ver_waves(state_old,state_old,state_new,state_tend,diag,grid,rk_step)
       endif
       if (rk_step==2) then
-        call three_band_solver_ver_waves(state_new%theta_v_pert, &
-                                         state_new%rho,state_new%rhotheta_v,state_new%rho, &
-                                         state_old%rho,state_old%theta_v_pert, &
-                                         state_old%exner_pert,state_new%theta_v_pert,state_new%exner_pert, &
-                                         state_new%temperature_soil, &
-                                         state_old%temperature_soil, &
-                                         state_tend%rhotheta_v,state_tend%rho,state_old%rhotheta_v,state_old%wind, &
-                                         state_tend%wind, &
-                                         state_new%rhotheta_v,state_new%exner_pert, &
-                                         state_new%wind,state_new%temperature_soil,diag,grid,rk_step)
+        call three_band_solver_ver_waves(state_old,state_new,state_new,state_tend,diag,grid,rk_step)
       endif
       
       ! 4.) vertical tracer advection
