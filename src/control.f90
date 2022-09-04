@@ -192,11 +192,9 @@ program control
 
   call rad_nml_setup()
   
-  call grad_hor_cov(grid%z_scalar,grid%slope,grid%from_index,grid%to_index,grid%normal_distance)
-  call grad(grid%gravity_potential,grid%gravity_m,grid%from_index,grid%to_index, &
-            grid%normal_distance,grid%inner_product_weights,grid%slope)
-  call grad(grid%exner_bg,grid%exner_bg_grad,grid%from_index,grid%to_index, &
-            grid%normal_distance,grid%inner_product_weights,grid%slope)
+  call grad_hor_cov(grid%z_scalar,grid%slope,grid)
+  call grad(grid%gravity_potential,grid%gravity_m,grid)
+  call grad(grid%exner_bg,grid%exner_bg_grad,grid)
   write(*,*) "Grid loaded successfully."
   
   ! rescaling times for small Earth experiments

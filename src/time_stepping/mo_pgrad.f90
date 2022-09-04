@@ -45,8 +45,7 @@ module mo_pgrad
       diag%scalar_field_placeholder(ji) = c_d_p*(grid%theta_v_bg(ji) + state%theta_v_pert(ji))
     enddo
     !$omp end parallel do
-    call grad(state%exner_pert,diag%pressure_gradient_acc_neg_nl,grid%from_index,grid%to_index,grid%normal_distance, &
-              grid%inner_product_weights,grid%slope)
+    call grad(state%exner_pert,diag%pressure_gradient_acc_neg_nl,grid)
     call scalar_times_vector(diag%scalar_field_placeholder,diag%pressure_gradient_acc_neg_nl, &
                              diag%pressure_gradient_acc_neg_nl,grid)
       

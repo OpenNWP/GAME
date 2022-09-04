@@ -35,8 +35,7 @@ module mo_momentum_diff_diss
     integer :: h_index,layer_index,vector_index,scalar_index_from,scalar_index_to
     
     ! calculating the divergence of the wind field
-    call div_h(state%wind,diag%wind_div,grid%adjacent_signs_h,grid%adjacent_vector_indices_h, &
-               grid%inner_product_weights,grid%slope,grid%area,grid%volume)
+    call div_h(state%wind,diag%wind_div,grid)
     
     ! calculating the relative vorticity of the wind field
     call calc_rel_vort(state%wind,diag,grid)
@@ -153,12 +152,12 @@ module mo_momentum_diff_diss
     !$omp end parallel workshare
     
     ! computing something like dw/dz
-    call add_vertical_div(state%wind,diag%scalar_field_placeholder,grid%area,grid%volume)
+    call add_vertical_div(state%wind,diag%scalar_field_placeholder,grid)
     ! computing and multiplying by the respective diffusion coefficient
     call vert_vert_mom_viscosity(state%rho,diag%tke,diag%n_squared,grid%layer_thickness,diag%scalar_field_placeholder, &
                                  diag%molecular_diffusion_coeff)
     ! taking the second derivative to compute the diffusive tendency
-    call grad_vert_cov(diag%scalar_field_placeholder,diag%friction_acc,grid%normal_distance)
+    call grad_vert_cov(diag%scalar_field_placeholder,diag%friction_acc,grid)
     
     ! 3.) horizontal diffusion of vertical velocity
     ! ---------------------------------------------
@@ -190,8 +189,7 @@ module mo_momentum_diff_diss
     !$omp end parallel do
     
     ! the divergence of the diffusive flux density results in the diffusive acceleration
-    call div_h(diag%vector_field_placeholder,diag%scalar_field_placeholder, &
-               grid%adjacent_signs_h,grid%adjacent_vector_indices_h,grid%inner_product_weights,grid%slope,grid%area,grid%volume)
+    call div_h(diag%vector_field_placeholder,diag%scalar_field_placeholder,grid)
     ! vertically averaging the divergence to half levels and dividing by the density
     !$omp parallel do private(ji,layer_index,h_index,vector_index)
     do ji=1,n_v_vectors-2*n_scalars_h

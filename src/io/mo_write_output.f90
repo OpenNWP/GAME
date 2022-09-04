@@ -570,8 +570,7 @@ module mo_write_output
     
     ! Diagnostics of quantities that are not surface-specific.    
     allocate(div_h_all_layers(n_scalars))
-    call div_h(state%wind,div_h_all_layers,grid%adjacent_signs_h,grid%adjacent_vector_indices_h, &
-               grid%inner_product_weights,grid%slope,grid%area,grid%volume)
+    call div_h(state%wind,div_h_all_layers,grid)
     call calc_rel_vort(state%wind,diag,grid)
     allocate(rel_vort_scalar_field(n_scalars))
     call curl_field_to_cells(diag%rel_vort,rel_vort_scalar_field,grid%adjacent_vector_indices_h,grid%inner_product_weights)
@@ -607,7 +606,7 @@ module mo_write_output
     call epv_diagnostics(epv,grid%from_index,grid%to_index,grid%inner_product_weights,diag%pot_vort, &
                          grid%trsk_indices,grid%trsk_weights, &
                          grid%adjacent_vector_indices_h,grid%slope,grid%normal_distance,grid%theta_v_bg, &
-                         state%theta_v_pert,grid%z_vector)
+                         state%theta_v_pert,grid%z_vector,grid)
     
     ! pressure level output
     if (lpressure_level_output) then

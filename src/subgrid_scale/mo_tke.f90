@@ -31,8 +31,7 @@ module mo_tke
     real(wp) :: decay_constant
     
     ! computing the advection
-    call grad(diag%tke,diag%vector_field_placeholder,grid%from_index,grid%to_index, &
-              grid%normal_distance,grid%inner_product_weights,grid%slope)
+    call grad(diag%tke,diag%vector_field_placeholder,grid)
     call inner_product(diag%vector_field_placeholder,state%wind,diag%scalar_field_placeholder,grid)
     
     ! loop over all scalar gridpoints

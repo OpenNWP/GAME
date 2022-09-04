@@ -293,7 +293,7 @@ module mo_effective_diff_coeffs
     diag%scalar_field_placeholder = grid%theta_v_bg+state%theta_v_pert
     !$omp end parallel workshare
     ! vertical gradient of the full virtual potential temperature
-    call grad_vert_cov(diag%scalar_field_placeholder,diag%vector_field_placeholder,grid%normal_distance)
+    call grad_vert_cov(diag%scalar_field_placeholder,diag%vector_field_placeholder,grid)
     ! calculating the inverse full virtual potential temperature
     !$omp parallel workshare
     diag%scalar_field_placeholder = 1.0/diag%scalar_field_placeholder

@@ -156,7 +156,7 @@ module mo_vorticities
     
     ! This subroutine averages the vorticities on triangles to rhombi and calculates horizontal (tangential) vorticities.
     
-    real(wp), intent(in)  :: wind(n_vectors)
+    real(wp),     intent(in)    :: wind(n_vectors)
     type(t_diag), intent(inout) :: diag ! diagnostic quantities
     type(t_grid), intent(in)    :: grid ! grid quantities
     
@@ -188,8 +188,7 @@ module mo_vorticities
         ! At the lower boundary, w vanishes. Furthermore, the covariant velocity below the surface is also zero.
           if (layer_index==n_layers) then
             index_3 = base_index - n_vectors_h + h_index
-            covar_3 = horizontal_covariant(wind,layer_index-1,h_index-1, &
-                                           grid%from_index,grid%to_index,grid%inner_product_weights,grid%slope)
+            covar_3 = horizontal_covariant(wind,layer_index-1,h_index-1,grid)
             diag%rel_vort(ji) = 1._wp/grid%area_dual(h_index+layer_index*n_dual_vectors_per_layer) &
                                 *grid%normal_distance(index_3)*covar_3
           else
@@ -197,10 +196,8 @@ module mo_vorticities
             index_2 = base_index + 1+grid%from_index(h_index)
             index_3 = base_index - n_vectors_h + h_index
             index_4 = base_index + 1+grid%to_index(h_index)
-            covar_1 = horizontal_covariant(wind,layer_index,h_index-1, &
-                                           grid%from_index,grid%to_index,grid%inner_product_weights,grid%slope)
-            covar_3 = horizontal_covariant(wind,layer_index-1,h_index-1, &
-                                           grid%from_index,grid%to_index,grid%inner_product_weights,grid%slope)
+            covar_1 = horizontal_covariant(wind,layer_index,h_index-1,grid)
+            covar_3 = horizontal_covariant(wind,layer_index-1,h_index-1,grid)
             diag%rel_vort(ji) = 1._wp/grid%area_dual(h_index+layer_index*n_dual_vectors_per_layer)*( &
             -grid%normal_distance(index_1)*covar_1 &
             +grid%normal_distance(index_2)*wind(index_2) &

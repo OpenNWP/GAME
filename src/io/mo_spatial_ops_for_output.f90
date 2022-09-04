@@ -5,7 +5,7 @@ module mo_spatial_ops_for_output
 
   ! In this module, those spatial operators are collected which are only needed for the output.
   
-  use mo_definitions,        only: wp
+  use mo_definitions,        only: wp,t_grid
   use mo_grid_nml,           only: n_scalars_h,n_scalars,n_vectors_h,n_layers,n_vectors_per_layer,n_vectors, &
                                    n_pentagons,n_h_vectors
   use mo_gradient_operators, only: grad
@@ -75,7 +75,7 @@ module mo_spatial_ops_for_output
   end subroutine inner_product_tangential
 
   subroutine epv_diagnostics(epv,from_index,to_index,inner_product_weights,pot_vort,trsk_indices,trsk_weights, &
-                             adjacent_vector_indices_h,slope,normal_distance,theta_v_bg,theta_v_pert,z_vector)
+                             adjacent_vector_indices_h,slope,normal_distance,theta_v_bg,theta_v_pert,z_vector,grid)
     
     ! This subroutine diagnozes Ertel's potential vorticity (EPV).
     
@@ -85,6 +85,7 @@ module mo_spatial_ops_for_output
     integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h), &
                              adjacent_vector_indices_h(6*n_scalars_h),trsk_indices(10*n_vectors_h)
     real(wp), intent(out) :: epv(n_scalars)
+    type(t_grid), intent(in)  :: grid ! grid quantities
     
     ! allocating memory for quantities we need in order to determine the EPV
     integer               :: ji,jk,layer_index,h_index,scalar_index
@@ -167,7 +168,7 @@ module mo_spatial_ops_for_output
     !$omp end parallel do
     
     ! taking the gradient of the virtual potential temperature
-    call grad(theta_v_bg+theta_v_pert,grad_pot_temp,from_index,to_index,normal_distance,inner_product_weights,slope)
+    call grad(theta_v_bg+theta_v_pert,grad_pot_temp,grid)
     call inner_product_tangential(epv,pot_vort_as_tangential_vector_field,grad_pot_temp,adjacent_vector_indices_h, &
                                   inner_product_weights,trsk_indices,trsk_weights)
     

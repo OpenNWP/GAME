@@ -53,8 +53,7 @@ module mo_vector_tend_expl
       ! Kinetic energy is prepared for the gradient term of the Lamb transformation.
       call inner_product(state%wind,state%wind,diag%v_squared,grid)
       ! Taking the gradient of the kinetic energy
-      call grad(diag%v_squared,diag%v_squared_grad,grid%from_index,grid%to_index, &
-                grid%normal_distance,grid%inner_product_weights,grid%slope)
+      call grad(diag%v_squared,diag%v_squared_grad,grid)
     endif
     
     ! Managing momentum diffusion
