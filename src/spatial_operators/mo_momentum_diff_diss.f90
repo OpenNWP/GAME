@@ -42,8 +42,7 @@ module mo_momentum_diff_diss
     call calc_rel_vort(state%wind,diag,grid)
     
     ! calculating the effective horizontal kinematic viscosity
-    call hor_viscosity(diag%temperature,diag%tke,state%rho,grid%from_index,grid%to_index,grid%vorticity_indices_triangles, &
-                       diag%molecular_diffusion_coeff,diag%viscosity_triangles,diag%viscosity,diag%viscosity_rhombi)
+    call hor_viscosity(state,diag,grid)
     
     ! diagonal component
     !$omp parallel workshare
