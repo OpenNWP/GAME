@@ -23,8 +23,8 @@ module mo_vorticities
     
     real(wp), intent(in)  :: velocity_field(n_vectors), &
                              density_field(n_scalars)
-    type(t_diag), intent(inout) :: diag
-    type(t_grid), intent(in)    :: grid
+    type(t_diag), intent(inout) :: diag ! diagnostic quantities
+    type(t_grid), intent(in)    :: grid ! grid quantities
     
     ! local variables
     integer  :: ji,jk,layer_index,h_index,edge_vector_index_h,upper_from_index,upper_to_index

@@ -49,9 +49,7 @@ module mo_vector_tend_expl
       ! Now, the "potential vorticity" is evaluated.
       call calc_pot_vort(state%wind,state%rho(n_condensed_constituents*n_scalars),diag,grid)
       ! Now, the generalized Coriolis term is evaluated.
-      call vorticity_flux(grid%from_index,grid%to_index,diag%pot_vort_tend,grid%trsk_indices,grid%trsk_modified_curl_indices, &
-                          grid%trsk_weights, &
-                          diag%flux_density,diag%pot_vort,grid%inner_product_weights,grid%adjacent_vector_indices_h)
+      call vorticity_flux(diag,grid)
       ! Kinetic energy is prepared for the gradient term of the Lamb transformation.
       call inner_product(state%wind,state%wind,diag%v_squared,grid)
       ! Taking the gradient of the kinetic energy
