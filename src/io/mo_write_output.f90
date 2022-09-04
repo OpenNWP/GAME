@@ -31,13 +31,13 @@ module mo_write_output
   
   contains
 
-  subroutine interpolate_to_ll(in_field,out_field,latlon_interpol_indices,latlon_interpol_weights)
+  subroutine interpolate_to_ll(in_field,out_field,grid)
   
     ! This subroutine interpolates a single-layer scalar field to a lat-lon grid.
     
-    real(wp), intent(in)  :: in_field(n_scalars_h),latlon_interpol_weights(5*n_latlon_io_points)
-    real(wp), intent(out) :: out_field(n_lat_io_points,n_lon_io_points)
-    integer,  intent(in)  :: latlon_interpol_indices(5*n_latlon_io_points)
+    real(wp),     intent(in)  :: in_field(n_scalars_h)
+    real(wp),     intent(out) :: out_field(n_lat_io_points,n_lon_io_points)
+    type(t_grid), intent(in)  :: grid                                       ! grid quantities
     
     ! local variables
     integer :: ji,jk,jm
@@ -50,9 +50,9 @@ module mo_write_output
         out_field(ji,jk) = 0._wp
         ! 1/r-average
         do jm=1,5
-          if (in_field(1+latlon_interpol_indices(5*(jk-1 + n_lon_io_points*(ji-1)) + jm))/=9999) then
-            out_field(ji,jk) = out_field(ji,jk) + latlon_interpol_weights(5*(jk-1 + n_lon_io_points*(ji-1)) + jm) &
-                               *in_field(1+latlon_interpol_indices(5*(jk-1 + n_lon_io_points*(ji-1)) + jm))
+          if (in_field(1+grid%latlon_interpol_indices(5*(jk-1 + n_lon_io_points*(ji-1))+jm))/=9999) then
+            out_field(ji,jk) = out_field(ji,jk) + grid%latlon_interpol_weights(5*(jk-1+n_lon_io_points*(ji-1))+jm) &
+                               *in_field(1+grid%latlon_interpol_indices(5*(jk-1+n_lon_io_points*(ji-1))+jm))
           else
             out_field(ji,jk) = 9999
             exit
@@ -159,15 +159,15 @@ module mo_write_output
     
   end subroutine write_out_integrals
 
-  subroutine write_out(state,t_init,t_write,wind_h_lowest_layer_array,diag,grid,ltotally_first_step)
+  subroutine write_out(state,diag,grid,wind_h_lowest_layer_array,t_init,t_write,ltotally_first_step)
   
     ! This subroutine is the central subroutine for writing the output.
   
+    type(t_state), intent(in)    :: state ! state variables
+    type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid  ! grid quantities
     real(wp), intent(in)  :: t_init,t_write, &
                              wind_h_lowest_layer_array(n_output_steps_10m_wind*n_vectors_h)
-    type(t_state), intent(in)    :: state
-    type(t_diag),  intent(inout) :: diag
-    type(t_grid),  intent(in)    :: grid
     logical,       intent(in)    :: ltotally_first_step
   
     ! local variables
@@ -517,30 +517,38 @@ module mo_write_output
       call nc_check(nf90_put_var(ncid,start_hour_id,start_hour))
       call nc_check(nf90_put_var(ncid,lat_id,lat_vector))
       call nc_check(nf90_put_var(ncid,lon_id,lon_vector))
-      call interpolate_to_ll(mslp,lat_lon_output_field,grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+      
+      call interpolate_to_ll(mslp,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,mslp_id,lat_lon_output_field))
-      call interpolate_to_ll(sp,lat_lon_output_field,grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+      
+      call interpolate_to_ll(sp,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,sp_id,lat_lon_output_field))
-      call interpolate_to_ll(t2,lat_lon_output_field,grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+      
+      call interpolate_to_ll(t2,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,t2_id,lat_lon_output_field))
-      call interpolate_to_ll(tcc,lat_lon_output_field,grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+      
+      call interpolate_to_ll(tcc,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,tcc_id,lat_lon_output_field))
-      call interpolate_to_ll(rprate,lat_lon_output_field,grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+      
+      call interpolate_to_ll(rprate,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,rprate_id,lat_lon_output_field))
-      call interpolate_to_ll(sprate,lat_lon_output_field,grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+      
+      call interpolate_to_ll(sprate,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,sprate_id,lat_lon_output_field))
-      call interpolate_to_ll(cape,lat_lon_output_field,grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+      
+      call interpolate_to_ll(cape,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,cape_id,lat_lon_output_field))
-      call interpolate_to_ll(sfc_sw_down,lat_lon_output_field,grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+      
+      call interpolate_to_ll(sfc_sw_down,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,sfc_sw_down_id,lat_lon_output_field))
-      call interpolate_to_ll(wind_10_m_mean_u_at_cell,lat_lon_output_field, &
-                             grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+      
+      call interpolate_to_ll(wind_10_m_mean_u_at_cell,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,u10_id,lat_lon_output_field))
-      call interpolate_to_ll(wind_10_m_mean_v_at_cell,lat_lon_output_field, &
-                             grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+      
+      call interpolate_to_ll(wind_10_m_mean_v_at_cell,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,v10_id,lat_lon_output_field))
-      call interpolate_to_ll(wind_10_m_gusts_speed_at_cell,lat_lon_output_field, &
-                             grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+      
+      call interpolate_to_ll(wind_10_m_gusts_speed_at_cell,lat_lon_output_field, grid)
       call nc_check(nf90_put_var(ncid,gusts_id,lat_lon_output_field))
       
       ! closing the netcdf file
@@ -734,31 +742,31 @@ module mo_write_output
       do jl=1,n_pressure_levels
         
         call interpolate_to_ll(geopotential_height(:,jl),lat_lon_output_field, &
-        grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+        grid)
         call nc_check(nf90_put_var(ncid,gh_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(t_on_p_levels(:,jl),lat_lon_output_field, &
-        grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+        grid)
         call nc_check(nf90_put_var(ncid,temp_p_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(rh_on_p_levels(:,jl),lat_lon_output_field, &
-        grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+        grid)
         call nc_check(nf90_put_var(ncid,rh_p_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(u_on_p_levels(:,jl),lat_lon_output_field, &
-        grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+        grid)
         call nc_check(nf90_put_var(ncid,wind_u_p_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(v_on_p_levels(:,jl),lat_lon_output_field, &
-        grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+        grid)
         call nc_check(nf90_put_var(ncid,wind_v_p_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(zeta_on_p_levels(:,jl),lat_lon_output_field, &
-        grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+        grid)
         call nc_check(nf90_put_var(ncid,rel_vort_p_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(epv_on_p_levels(:,jl),lat_lon_output_field, &
-        grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+        grid)
         call nc_check(nf90_put_var(ncid,epv_p_ids(jl),lat_lon_output_field))
       
       enddo
@@ -841,38 +849,38 @@ module mo_write_output
       do jl=1,n_layers
       
         call interpolate_to_ll(diag%temperature(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
-                               grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+                               grid)
         call nc_check(nf90_put_var(ncid,temperature_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(pressure(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
-                               grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+                               grid)
         call nc_check(nf90_put_var(ncid,pressure_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(rh(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
-                               grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+                               grid)
         call nc_check(nf90_put_var(ncid,rel_hum_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(u_at_cell(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
-                               grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+                               grid)
         call nc_check(nf90_put_var(ncid,wind_u_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(v_at_cell(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
-                               grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+                               grid)
         call nc_check(nf90_put_var(ncid,wind_v_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(rel_vort_scalar_field(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
-                               grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+                               grid)
         call nc_check(nf90_put_var(ncid,rel_vort_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(div_h_all_layers(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
-                               grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+                               grid)
         call nc_check(nf90_put_var(ncid,div_h_ids(jl),lat_lon_output_field))
         
       enddo
       
       do jl=1,n_levels
         call interpolate_to_ll(state%wind(((jl-1)*n_vectors_per_layer+1):((jl-1)*n_vectors_per_layer+n_scalars_h)), &
-                               lat_lon_output_field,grid%latlon_interpol_indices,grid%latlon_interpol_weights)
+                               lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,wind_w_ids(jl),lat_lon_output_field))
       enddo
       
