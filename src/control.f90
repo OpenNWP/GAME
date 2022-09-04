@@ -283,7 +283,7 @@ program control
   ! in the time stepping and in writing the output.
   ltotally_first_step = .true.
   ! writing out the initial state of the model run
-  call write_out(state_1,diag,grid,wind_h_lowest_layert_init,t_write,ltotally_first_step)
+  call write_out(state_1,diag,grid,wind_h_lowest_layer,t_init,t_write,ltotally_first_step)
   
   t_write = t_write + 60._wp*write_out_interval_min
   write(*,*) "Run progress:", (t_init - t_init)/3600._wp, "h"
@@ -373,7 +373,7 @@ program control
     ! 5 minutes after the output time,the 10 m wind diag can be executed,so output can actually be written
     if(t_0+dtime>=t_write+radius_rescale*300._wp .and. t_0<=t_write+radius_rescale*300._wp) then
       ! here,output is actually written
-      call write_out(state_write,diag,grid,wind_h_lowest_layert_init,t_write,ltotally_first_step)
+      call write_out(state_write,diag,grid,wind_h_lowest_layer,t_init,t_write,ltotally_first_step)
       ! setting the next output time
       t_write = t_write + 60._wp*write_out_interval_min
       
