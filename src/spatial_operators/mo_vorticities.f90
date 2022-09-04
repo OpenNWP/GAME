@@ -32,7 +32,7 @@ module mo_vorticities
     
     call calc_rel_vort(wind,diag,grid)
     ! pot_vort is a misuse of name here
-    call add_f_to_rel_vort(diag%rel_vort,grid%f_vec,diag%pot_vort)
+    call add_f_to_rel_vort(diag,grid)
     
     ! determining the density value by which we need to divide
     !$omp parallel do private(ji,jk,layer_index,h_index,edge_vector_index_h,upper_from_index,upper_to_index,density_value)
@@ -217,12 +217,12 @@ module mo_vorticities
   
   end subroutine calc_rel_vort
 
-  subroutine add_f_to_rel_vort(rel_vort,f_vec,out_field)
+  subroutine add_f_to_rel_vort(diag,grid)
   
     ! This subroutine adds the Coriolis parameter to the relative vorticity.
     
-    real(wp), intent(in)  :: rel_vort(n_layers*2*n_vectors_h+n_vectors_h),f_vec(2*n_vectors_h)
-    real(wp), intent(out) :: out_field(n_layers*2*n_vectors_h+n_vectors_h)
+    type(t_diag), intent(inoUt) :: diag ! diagnostic quantities
+    type(t_grid), intent(in)    :: grid ! grid quantities
     
     integer :: ji,layer_index,h_index
     
@@ -230,7 +230,7 @@ module mo_vorticities
     do ji=1,n_layers*2*n_vectors_h+n_vectors_h
       layer_index = (ji-1)/(2*n_vectors_h)
       h_index = ji - layer_index*2*n_vectors_h
-      out_field(ji) = rel_vort(ji) + f_vec(h_index)
+      diag%pot_vort(ji) = diag%rel_vort(ji) + grid%f_vec(h_index)
     enddo
     !$omp end parallel do
   
