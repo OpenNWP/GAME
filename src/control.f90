@@ -131,7 +131,7 @@ program control
   allocate(state_tend%temperature_soil(nsoillays*n_scalars_h))
   allocate(diag%flux_density(n_vectors))
   allocate(diag%flux_density_div(n_scalars))
-  allocate(diag%rel_vort_on_triangles(n_vectors))
+  allocate(diag%rel_vort_on_triangles(n_dual_v_vectors))
   allocate(diag%rel_vort((2*n_layers+1)*n_vectors_h))
   allocate(diag%pot_vort((2*n_layers+1)*n_vectors_h))
   allocate(diag%temperature(n_scalars))

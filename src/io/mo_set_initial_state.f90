@@ -334,10 +334,10 @@ module mo_set_initial_state
     
     ! This subroutine sets the soil and SST temperature.
     
-    type(t_state),    intent(out) :: state                    ! state to which to write
-    real(wp),         intent(in)  :: temperature(n_scalars)   ! air temperature
-    character(len=*), intent(in)  :: init_state_file          ! file from which to uread the initializaiton state
-    type(t_grid),     intent(in)  :: grid                     ! grid quantities
+    type(t_state),    intent(inout) :: state                    ! state to which to write
+    real(wp),         intent(in)    :: temperature(n_scalars)   ! air temperature
+    character(len=*), intent(in)    :: init_state_file          ! file from which to uread the initializaiton state
+    type(t_grid),     intent(in)    :: grid                     ! grid quantities
     
     ! local variables
     integer               :: soil_layer_index,ji,ncid,sst_id,soil_index,sst_avail,t_soil_avail,soil_id

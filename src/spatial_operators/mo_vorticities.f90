@@ -97,9 +97,9 @@ module mo_vorticities
     
     ! This subroutine calculates the vertical relative vorticity on triangles.
     
-    type(t_state), intent(in)  :: state ! state variables
-    type(t_diag),  intent(out) :: diag  ! diagnostic quantities
-    type(t_grid),  intent(in)  :: grid  ! grid quantities
+    type(t_state), intent(in)    :: state ! state variables
+    type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
     integer  :: ji,jk,layer_index,h_index,vector_index,index_for_vertical_gradient
@@ -218,7 +218,7 @@ module mo_vorticities
   
     ! This subroutine adds the Coriolis parameter to the relative vorticity.
     
-    type(t_diag), intent(inoUt) :: diag ! diagnostic quantities
+    type(t_diag), intent(inout) :: diag ! diagnostic quantities
     type(t_grid), intent(in)    :: grid ! grid quantities
     
     integer :: ji,layer_index,h_index
