@@ -82,7 +82,7 @@ module mo_write_output
     
     ! masses
     if (time_since_init==0._wp) then
-      open(1,file="masses",status="new",action="write")
+      open(1,file="masses",action="write")
     else
       open(1,file="masses",status="old",position="append",action="write")
     endif
@@ -102,7 +102,7 @@ module mo_write_output
         
     ! density times virtual potential temperature
     if (time_since_init==0._wp) then
-      open(1,file="potential_temperature_density",status="new",action="write")
+      open(1,file="potential_temperature_density",action="write")
     else
       open(1,file="potential_temperature_density",status="old",position="append",action="write")
     endif
@@ -115,7 +115,7 @@ module mo_write_output
         
     ! energies
     if (time_since_init==0._wp) then
-      open(1,file="energy",status="new",action="write")
+      open(1,file="energy",action="write")
     else
       open(1,file="energy",status="old",position="append",action="write")
     endif
