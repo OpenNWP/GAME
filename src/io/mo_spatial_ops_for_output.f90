@@ -20,10 +20,10 @@ module mo_spatial_ops_for_output
     ! This function computes the tangential component *component of the vector field in_field at edge h_index in layer layer_index
     ! using the TRSK weights.
     
-    real(wp), intent(in) :: in_field(n_vectors)
-    integer,  intent(in) :: layer_index,h_index
-    real(wp)             :: tangential_wind
-    type(t_grid),  intent(in)  :: grid           ! grid quantities
+    real(wp),     intent(in) :: in_field(n_vectors) ! vector field of which to compute the tangential component
+    integer,      intent(in) :: layer_index,h_index ! spatial indices
+    type(t_grid), intent(in) :: grid                ! grid quantities
+    real(wp)                 :: tangential_wind     ! result
     
     ! local variables
     integer :: ji
@@ -43,9 +43,9 @@ module mo_spatial_ops_for_output
     ! This subroutine computes the inner product of the two vector fields in_field_1 and in_field_2.
     ! The difference to the normal inner product is, that in_field_1 is given in tangential components.
     
-    real(wp), intent(in)  :: in_field_1(n_vectors),in_field_2(n_vectors)
-    real(wp), intent(out) :: out_field(n_scalars)
-    type(t_grid),  intent(in)  :: grid           ! grid quantities
+    real(wp),      intent(in)  :: in_field_1(n_vectors),in_field_2(n_vectors) ! fields of which to take the inner product
+    real(wp),      intent(out) :: out_field(n_scalars)                        ! the result
+    type(t_grid),  intent(in)  :: grid                                        ! grid quantities
     
     ! local variables
     integer  :: ji,jk,layer_index,h_index
@@ -176,9 +176,9 @@ module mo_spatial_ops_for_output
     
     ! This subroutine averages a horizontal vector field (defined in the lowest layer) from edges to centers.
     
-    real(wp), intent(in)  :: in_field(n_vectors_h)
-    real(wp), intent(out) :: out_field(n_scalars_h)
-    type(t_grid),  intent(in)  :: grid           ! grid quantities
+    real(wp),     intent(in)  :: in_field(n_vectors_h)  ! the field to average from edges to cells
+    real(wp),     intent(out) :: out_field(n_scalars_h) ! the result field
+    type(t_grid), intent(in)  :: grid                   ! grid quantities
     
     ! local variables    
     integer :: ji,jk,n_edges
@@ -207,9 +207,9 @@ module mo_spatial_ops_for_output
   
     ! This subroutine diagnozes eastward and northward components of a vector field at edges.
     
-    real(wp), intent(in)  :: in_field(n_vectors)
-    real(wp), intent(out) :: out_field_u(n_vectors),out_field_v(n_vectors)
-    type(t_grid),  intent(in)  :: grid           ! grid quantities
+    real(wp),      intent(in)  :: in_field(n_vectors)                           ! vector field of which to compute the u- and v-components
+    real(wp),      intent(out) :: out_field_u(n_vectors),out_field_v(n_vectors) ! results
+    type(t_grid),  intent(in)  :: grid                                          ! grid quantities
     
     ! local variables
     integer  :: ji,layer_index,h_index
@@ -268,9 +268,9 @@ module mo_spatial_ops_for_output
     
     ! This subroutine averages a curl field from edges to cell centers.
     
-    real(wp), intent(in)  :: in_field((2*n_layers+1)*n_vectors_h)
-    real(wp), intent(out) :: out_field(n_scalars)
-    type(t_grid),  intent(in)  :: grid           ! grid quantities
+    real(wp),      intent(in)  :: in_field((2*n_layers+1)*n_vectors_h) ! the vorticity field to average
+    real(wp),      intent(out) :: out_field(n_scalars)                 ! the resulting scalar field
+    type(t_grid),  intent(in)  :: grid                                 ! grid quantities
     
     integer :: ji,jk,layer_index,h_index,n_edges
     
