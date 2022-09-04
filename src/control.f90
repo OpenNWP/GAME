@@ -40,7 +40,6 @@ program control
                            normal_dist_min_hor,normal_dist_min_ver
   real(wp), allocatable :: wind_h_lowest_layer(:)
   character(len=82)     :: stars
-  character(len=128)    :: init_state_file
 
   ! taking the timestamp to measure the performance
   ! clock_t begin = clock()
@@ -210,8 +209,7 @@ program control
     call set_ideal_init(state_1,diag,grid)
   ! NWP mode
   else
-    init_state_file = "a"
-    call read_init_data(state_1,diag,init_state_file,grid)
+    call read_init_data(state_1,diag,grid)
   endif
   
   write(*,*) "Initial state set successfully."

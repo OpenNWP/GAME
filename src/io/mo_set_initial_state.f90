@@ -16,6 +16,7 @@ module mo_set_initial_state
   use mo_various_helpers,  only: nc_check,int2string
   use mo_grid_setup,       only: radius_rescale,z_t_const
   use mo_run_nml,          only: ideal_input_id
+  use mo_io_nml,           only: init_state_file
   use mo_rad_nml,          only: rad_config
   use baroclinic_wave,     only: baroclinic_wave_test
   use mo_multiplications,  only: scalar_times_vector
@@ -243,18 +244,17 @@ module mo_set_initial_state
     deallocate(water_vapour_density)
     
     ! setting the soil temperature
-    call set_soil_temp(state,temperature,"NONE",grid)
+    call set_soil_temp(state,temperature,grid)
     deallocate(temperature)
     
   end subroutine set_ideal_init
 
-  subroutine read_init_data(state,diag,init_state_file,grid)
+  subroutine read_init_data(state,diag,grid)
     
     ! This subroutine reads the initial state of the model atmosphere from a netCDF file.
     
     type(t_state),      intent(out) :: state
     type(t_diag),       intent(out) :: diag
-    character(len=128), intent(in)  :: init_state_file
     type(t_grid),       intent(in)  :: grid ! grid quantities
     
     ! local variables
@@ -324,19 +324,18 @@ module mo_set_initial_state
     !$omp end parallel do
     
     ! setting the soil temperature
-    call set_soil_temp(state,temperature,init_state_file,grid)
+    call set_soil_temp(state,temperature,grid)
     
     deallocate(temperature)
     
   end subroutine read_init_data
 
-  subroutine set_soil_temp(state,temperature,init_state_file,grid)
+  subroutine set_soil_temp(state,temperature,grid)
     
     ! This subroutine sets the soil and SST temperature.
     
     type(t_state),    intent(inout) :: state                    ! state to which to write
     real(wp),         intent(in)    :: temperature(n_scalars)   ! air temperature
-    character(len=*), intent(in)    :: init_state_file          ! file from which to uread the initializaiton state
     type(t_grid),     intent(in)    :: grid                     ! grid quantities
     
     ! local variables
@@ -348,7 +347,7 @@ module mo_set_initial_state
     allocate(sst(n_scalars_h))
     
     sst_avail = 0
-    if (init_state_file/="NONE") then
+    if (ideal_input_id==-1) then
       call nc_check(nf90_open(init_state_file,NF90_CLOBBER,ncid))
       
       ! figuring out if the netcdf file contains SST
@@ -370,7 +369,7 @@ module mo_set_initial_state
     
     ! figuring out if the soil temperature is included in the initialization file and reading it if it exists (important for NWP)
     t_soil_avail = 0
-    if (init_state_file/="NONE") then
+    if (ideal_input_id==-1) then
       call nc_check(nf90_open(init_state_file,NF90_CLOBBER,ncid))
       
       ! figuring out if the netcdf file contains the soil temperature

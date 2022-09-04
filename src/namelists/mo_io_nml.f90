@@ -5,11 +5,13 @@ module mo_io_nml
 
   ! This nameslist configures the IO behaviour of the model.
   
-  use mo_definitions, only: wp
-  use mo_run_nml,     only: dtime
+  use mo_definitions,     only: wp
+  use mo_run_nml,         only: dtime,start_year,start_month,start_day,start_hour
+  use mo_various_helpers, only: int2string
   
   implicit none
   
+  character(len=128) :: init_state_file                    ! file to read the initial state from (in NWP mode)
   real(wp)           :: write_out_interval_min             ! output interval in minutes
   logical            :: lmodel_level_output                ! model level output switch
   logical            :: lpressure_level_output             ! pressure level output switch
@@ -27,6 +29,8 @@ module mo_io_nml
 
   subroutine io_nml_setup()
     
+    init_state_file = "../../nwp_init/" // trim(int2string(start_year)) // trim(int2string(start_month)) // &
+                                           trim(int2string(start_day)) // trim(int2string(start_hour)) // ".nc"
     write_out_interval_min = 180._wp
     lmodel_level_output = .true.
     lpressure_level_output = .true.
