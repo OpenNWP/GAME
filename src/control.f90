@@ -211,9 +211,7 @@ program control
   ! NWP mode
   else
     init_state_file = "a"
-    call read_init_data(init_state_file,state_1%rho,state_1%wind,state_1%rhotheta_v,state_1%theta_v_pert, &
-                        state_1%exner_pert,grid%t_const_soil,diag%tke, &
-                        state_1%temperature_soil,grid%is_land,grid%theta_v_bg,grid%exner_bg)
+    call read_init_data(state_1,diag,init_state_file,grid)
   endif
   
   write(*,*) "Initial state set successfully."

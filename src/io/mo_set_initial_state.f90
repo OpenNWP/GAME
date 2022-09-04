@@ -32,8 +32,8 @@ module mo_set_initial_state
     ! This subroutine sets the initial state of the model atmosphere for idealized test cases.
     
     type(t_state), intent(inout) :: state
-    type(t_diag), intent(inout)  :: diag
-    type(t_grid), intent(in)     :: grid
+    type(t_diag),  intent(inout) :: diag
+    type(t_grid),  intent(in)    :: grid
     
     ! local variables
     integer               :: ji,jl,jc,layer_index,h_index,scalar_index,ncid_grid,latitude_vector_id, &
@@ -243,21 +243,19 @@ module mo_set_initial_state
     deallocate(water_vapour_density)
     
     ! setting the soil temperature
-    call set_soil_temp(grid%is_land,"NONE",grid%t_const_soil,temperature,state%temperature_soil)
+    call set_soil_temp(state,temperature,"NONE",grid)
     deallocate(temperature)
     
   end subroutine set_ideal_init
 
-  subroutine read_init_data(init_state_file,rho,wind,rhotheta_v,theta_v_pert,exner_pert,t_const_soil,tke, &
-                            temperature_soil,is_land,theta_v_bg,exner_bg)
+  subroutine read_init_data(state,diag,init_state_file,grid)
     
     ! This subroutine reads the initial state of the model atmosphere from a netCDF file.
     
+    type(t_state),      intent(out) :: state
+    type(t_diag),       intent(out) :: diag
     character(len=128), intent(in)  :: init_state_file
-    real(wp),           intent(out) :: rho(n_constituents*n_scalars),wind(n_vectors),temperature_soil(nsoillays*n_scalars_h), &
-                                       rhotheta_v(n_scalars),theta_v_pert(n_scalars),exner_pert(n_scalars),tke(n_scalars)
-    real(wp),           intent(in)  :: t_const_soil(n_scalars_h),theta_v_bg(n_scalars),exner_bg(n_scalars)
-    integer,            intent(in)  :: is_land(n_scalars_h)
+    type(t_grid),       intent(in)  :: grid ! grid quantities
     
     ! local variables
     integer               :: ji,ncid,tke_id,tke_avail,densities_id,temperature_id,wind_id
@@ -276,11 +274,11 @@ module mo_set_initial_state
     else
       write(*,*) "TKE not found in initialization file. TKE set to zero."
     endif
-    call nc_check(nf90_get_var(ncid,densities_id,rho))
+    call nc_check(nf90_get_var(ncid,densities_id,state%rho))
     call nc_check(nf90_get_var(ncid,temperature_id,temperature))
-    call nc_check(nf90_get_var(ncid,wind_id,wind))
+    call nc_check(nf90_get_var(ncid,wind_id,state%wind))
     if (tke_avail==1) then
-      call nc_check(nf90_get_var(ncid,tke_id,tke))
+      call nc_check(nf90_get_var(ncid,tke_id,diag%tke))
     endif
     call nc_check(nf90_close(ncid))
     
@@ -288,9 +286,9 @@ module mo_set_initial_state
     if (n_condensed_constituents==4) then
       !$omp parallel do private(ji)
       do ji=1,n_scalars
-        if (rel_humidity(rho((n_condensed_constituents+1)*n_scalars+ji),temperature(ji))>1._wp) then
-          rho((n_condensed_constituents+1)*n_scalars + ji) = rho((n_condensed_constituents+1)*n_scalars+ji) &
-          /rel_humidity(rho((n_condensed_constituents+1)*n_scalars+ji),temperature(ji))
+        if (rel_humidity(state%rho((n_condensed_constituents+1)*n_scalars+ji),temperature(ji))>1._wp) then
+          state%rho((n_condensed_constituents+1)*n_scalars + ji) = state%rho((n_condensed_constituents+1)*n_scalars+ji) &
+          /rel_humidity(state%rho((n_condensed_constituents+1)*n_scalars+ji),temperature(ji))
         endif
       enddo
       !$omp end parallel do
@@ -301,14 +299,14 @@ module mo_set_initial_state
     !$omp parallel do private(ji,pressure,pot_temp_v)
     do ji=1,n_scalars
       temperature_v(ji) = temperature(ji) &
-      *(1._wp+rho((n_condensed_constituents+1)*n_scalars+ji)/rho(n_condensed_constituents*n_scalars+ji)*(m_d/m_v-1._wp))
-      pressure = rho(n_condensed_constituents*n_scalars+ji)*r_d*temperature_v(ji)
+      *(1._wp+state%rho((n_condensed_constituents+1)*n_scalars+ji)/state%rho(n_condensed_constituents*n_scalars+ji)*(m_d/m_v-1._wp))
+      pressure = state%rho(n_condensed_constituents*n_scalars+ji)*r_d*temperature_v(ji)
       pot_temp_v = temperature_v(ji)*(p_0/pressure)**(r_d/c_d_p)
-      rhotheta_v(ji) = rho(n_condensed_constituents*n_scalars+ji)*pot_temp_v
+      state%rhotheta_v(ji) = state%rho(n_condensed_constituents*n_scalars+ji)*pot_temp_v
       ! calculating the virtual potential temperature perturbation
-      theta_v_pert(ji) = pot_temp_v - theta_v_bg(ji)
+      state%theta_v_pert(ji) = pot_temp_v - grid%theta_v_bg(ji)
       ! calculating the Exner pressure perturbation
-      exner_pert(ji) = temperature_v(ji)/(theta_v_bg(ji)+theta_v_pert(ji)) - exner_bg(ji)
+      state%exner_pert(ji) = temperature_v(ji)/(grid%theta_v_bg(ji)+state%theta_v_pert(ji)) - grid%exner_bg(ji)
     enddo
     !$omp end parallel do
     
@@ -317,7 +315,7 @@ module mo_set_initial_state
     ! checking for negative densities
     !$omp parallel do private(ji)
     do ji=1,n_constituents*n_scalars
-      if (rho(ji)<0._wp) then
+      if (state%rho(ji)<0._wp) then
         write(*,*) "Negative density found."
         write(*,*) "Aborting."
         call exit(1)
@@ -326,20 +324,20 @@ module mo_set_initial_state
     !$omp end parallel do
     
     ! setting the soil temperature
-    call set_soil_temp(is_land,init_state_file,t_const_soil,temperature,temperature_soil)
+    call set_soil_temp(state,temperature,init_state_file,grid)
     
     deallocate(temperature)
     
   end subroutine read_init_data
 
-  subroutine set_soil_temp(is_land,init_state_file,t_const_soil,temperature,temperature_soil)
+  subroutine set_soil_temp(state,temperature,init_state_file,grid)
     
     ! This subroutine sets the soil and SST temperature.
     
-    integer,          intent(in)  :: is_land(n_scalars_h)
-    character(len=*), intent(in)  :: init_state_file
-    real(wp),         intent(in)  :: t_const_soil(n_scalars_h),temperature(n_scalars)
-    real(wp),         intent(out) :: temperature_soil(nsoillays*n_scalars_h)
+    type(t_state),    intent(out) :: state                    ! state to which to write
+    real(wp),         intent(in)  :: temperature(n_scalars)   ! air temperature
+    character(len=*), intent(in)  :: init_state_file          ! file from which to uread the initializaiton state
+    type(t_grid),     intent(in)  :: grid                     ! grid quantities
     
     ! local variables
     integer               :: soil_layer_index,ji,ncid,sst_id,soil_index,sst_avail,t_soil_avail,soil_id
@@ -385,7 +383,7 @@ module mo_set_initial_state
       
       ! reading the soil temperature if it is present in the netcdf file
       if (t_soil_avail==1) then
-        call nc_check(nf90_get_var(ncid,soil_id,temperature_soil))
+        call nc_check(nf90_get_var(ncid,soil_id,state%temperature_soil))
       endif
       
       ! we do not need the netcdf file any further
@@ -396,17 +394,17 @@ module mo_set_initial_state
     !$omp parallel do private(ji,soil_layer_index,soil_index,z_soil,t_sfc)
     do ji=1,n_scalars_h
       ! sea surface temperature if SST is available
-      if (is_land(ji)==0 .and. sst_avail==1) then
+      if (grid%is_land(ji)==0 .and. sst_avail==1) then
         ! loop over all soil layers
         do soil_layer_index=0,nsoillays-1
-          temperature_soil(ji+soil_layer_index*n_scalars_h) = sst(ji)
+          state%temperature_soil(ji+soil_layer_index*n_scalars_h) = sst(ji)
         enddo
       endif
       
       ! if the soil temperature over land or the SST over water is not available in the initialization
       ! state filewe obtain it by linearly interpolating between the surface
       ! and the depth of constant temperature    
-      if ((is_land(ji)==1 .and. t_soil_avail==0) .or. (is_land(ji)==0 .and. sst_avail==0)) then
+      if ((grid%is_land(ji)==1 .and. t_soil_avail==0) .or. (grid%is_land(ji)==0 .and. sst_avail==0)) then
         ! setting the surface temperature identical to the air temperature in the lowest layer
         t_sfc = temperature(n_scalars-n_scalars_h+ji)
         
@@ -415,7 +413,7 @@ module mo_set_initial_state
           ! index of this soil grid point
           soil_index = ji+soil_layer_index*n_scalars_h
           z_soil = z_t_const/nsoillays*(0.5_wp+soil_layer_index)
-          temperature_soil(soil_index) = t_sfc + (t_const_soil(ji) - t_sfc)*z_soil/z_t_const
+          state%temperature_soil(soil_index) = t_sfc + (grid%t_const_soil(ji) - t_sfc)*z_soil/z_t_const
         enddo
       endif
     enddo
