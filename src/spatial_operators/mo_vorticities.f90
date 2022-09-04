@@ -16,12 +16,12 @@ module mo_vorticities
   
   contains
 
-  subroutine calc_pot_vort(velocity_field,density_field,diag,grid)
+  subroutine calc_pot_vort(wind,density_field,diag,grid)
   
     ! This subroutine calculates the potential vorticity.
     ! It is called "potential vorticity", but it is not Ertel's potential vorticity. It is the absolute vorticity divided by the density.
     
-    real(wp), intent(in)  :: velocity_field(n_vectors), &
+    real(wp), intent(in)  :: wind(n_vectors), &
                              density_field(n_scalars)
     type(t_diag), intent(inout) :: diag ! diagnostic quantities
     type(t_grid), intent(in)    :: grid ! grid quantities
@@ -30,10 +30,7 @@ module mo_vorticities
     integer  :: ji,jk,layer_index,h_index,edge_vector_index_h,upper_from_index,upper_to_index
     real(wp) :: density_value
     
-    call calc_rel_vort(velocity_field,diag%rel_vort_on_triangles,grid%z_vector,grid%z_vector_dual,diag%rel_vort, &
-                  grid%vorticity_indices_triangles,grid%vorticity_signs_triangles,grid%normal_distance, &
-                  grid%area_dual,grid%from_index,grid%to_index,grid%from_index_dual,grid%to_index_dual, &
-                  grid%inner_product_weights,grid%slope)
+    call calc_rel_vort(wind,diag,grid)
     ! pot_vort is a misuse of name here
     call add_f_to_rel_vort(diag%rel_vort,grid%f_vec,diag%pot_vort)
     
@@ -96,12 +93,12 @@ module mo_vorticities
   
   end subroutine calc_pot_vort
 
-  subroutine calc_rel_vort_on_triangles(velocity_field,out_field,vorticity_indices_triangles,area_dual, &
+  subroutine calc_rel_vort_on_triangles(wind,out_field,vorticity_indices_triangles,area_dual, &
                                         z_vector,z_vector_dual,vorticity_signs_triangles,normal_distance)
     
     ! This subroutine calculates the vertical relative vorticity on triangles.
     
-    real(wp), intent(in)  :: velocity_field(n_vectors),z_vector(n_vectors),z_vector_dual(n_dual_vectors), &
+    real(wp), intent(in)  :: wind(n_vectors),z_vector(n_vectors),z_vector_dual(n_dual_vectors), &
                              normal_distance(n_vectors),area_dual(n_dual_vectors)
     integer,  intent(in)  :: vorticity_indices_triangles(3*n_dual_scalars_h), &
                              vorticity_signs_triangles(3*n_dual_scalars_h)
@@ -122,7 +119,7 @@ module mo_vorticities
       ! loop over the three edges of the triangle at hand
       do jk=1,3
         vector_index = n_scalars_h + layer_index*n_vectors_per_layer + 1+vorticity_indices_triangles(3*(h_index-1)+jk)
-        velocity_value = velocity_field(vector_index)
+        velocity_value = wind(vector_index)
         ! this corrects for terrain following coordinates
         length_rescale_factor = 1._wp
         if (layer_index>=n_layers-n_oro_layers) then
@@ -138,7 +135,7 @@ module mo_vorticities
               index_for_vertical_gradient = vector_index + n_vectors_per_layer
             endif
           endif
-          vertical_gradient = (velocity_field(vector_index) - velocity_field(index_for_vertical_gradient)) &
+          vertical_gradient = (wind(vector_index) - wind(index_for_vertical_gradient)) &
                               /(z_vector(vector_index) - z_vector(index_for_vertical_gradient))
           ! Here, the vertical interpolation is made.
           velocity_value = velocity_value+delta_z*vertical_gradient
@@ -155,29 +152,21 @@ module mo_vorticities
     
   end subroutine calc_rel_vort_on_triangles
 
-  subroutine calc_rel_vort(velocity_field,rel_vort_on_triangles,z_vector,z_vector_dual,rel_vort, &
-                           vorticity_indices_triangles,vorticity_signs_triangles,normal_distance, &
-                           area_dual,from_index,to_index,from_index_dual,to_index_dual,inner_product_weights, &
-                           slope)
+  subroutine calc_rel_vort(wind,diag,grid)
     
     ! This subroutine averages the vorticities on triangles to rhombi and calculates horizontal (tangential) vorticities.
     
-    real(wp), intent(in)  :: velocity_field(n_vectors), &
-                             z_vector(n_vectors),z_vector_dual(n_dual_vectors),normal_distance(n_vectors), &
-                             area_dual(n_dual_vectors),inner_product_weights(8*n_scalars),slope(n_vectors)
-    integer,  intent(in)  :: vorticity_indices_triangles(3*n_dual_scalars_h), &
-                             vorticity_signs_triangles(3*n_dual_scalars_h), &
-                             from_index(n_vectors_h),to_index(n_vectors_h), &
-                             from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
-    real(wp), intent(out) :: rel_vort_on_triangles(n_dual_v_vectors),rel_vort((2*n_layers+1)*n_vectors_h)
+    real(wp), intent(in)  :: wind(n_vectors)
+    type(t_diag), intent(inout) :: diag ! diagnostic quantities
+    type(t_grid), intent(in)    :: grid ! grid quantities
     
     ! local variables
     integer  :: ji,layer_index,h_index,index_1,index_2,index_3,index_4,base_index
     real(wp) :: covar_1,covar_3
     
     ! calling the subroutine which computes the relative vorticity on triangles
-    call calc_rel_vort_on_triangles(velocity_field,rel_vort_on_triangles,vorticity_indices_triangles,area_dual, &
-                                    z_vector,z_vector_dual,vorticity_signs_triangles,normal_distance)
+    call calc_rel_vort_on_triangles(wind,diag%rel_vort_on_triangles,grid%vorticity_indices_triangles,grid%area_dual, &
+                                    grid%z_vector,grid%z_vector_dual,grid%vorticity_signs_triangles,grid%normal_distance)
                                
     !$omp parallel do private(ji,layer_index,h_index,index_1,index_2,index_3,index_4,covar_1,covar_3,base_index)
     do ji=n_vectors_h+1,n_layers*2*n_vectors_h+n_vectors_h
@@ -186,33 +175,37 @@ module mo_vorticities
       ! rhombus vorticities (stand vertically)
       if (h_index>=n_vectors_h+1) then
         base_index = n_vectors_h+layer_index*n_dual_vectors_per_layer
-        rel_vort(ji) = ( &
-        area_dual(base_index+1+from_index_dual(h_index-n_vectors_h)) &
-        *rel_vort_on_triangles(layer_index*n_dual_scalars_h+1+from_index_dual(h_index-n_vectors_h)) &
-        + area_dual(base_index+1+to_index_dual(h_index-n_vectors_h)) &
-        *rel_vort_on_triangles(layer_index*n_dual_scalars_h+1+to_index_dual(h_index-n_vectors_h)))/( &
-        area_dual(base_index+1+from_index_dual(h_index-n_vectors_h)) &
-        + area_dual(base_index+1+to_index_dual(h_index-n_vectors_h)))
+        diag%rel_vort(ji) = ( &
+        grid%area_dual(base_index+1+grid%from_index_dual(h_index-n_vectors_h)) &
+        *diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h+1+grid%from_index_dual(h_index-n_vectors_h)) &
+        + grid%area_dual(base_index+1+grid%to_index_dual(h_index-n_vectors_h)) &
+        *diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h+1+grid%to_index_dual(h_index-n_vectors_h)))/( &
+        grid%area_dual(base_index+1+grid%from_index_dual(h_index-n_vectors_h)) &
+        + grid%area_dual(base_index+1+grid%to_index_dual(h_index-n_vectors_h)))
       ! tangential (horizontal) vorticities
       else
         base_index = layer_index*n_vectors_per_layer
         ! At the lower boundary, w vanishes. Furthermore, the covariant velocity below the surface is also zero.
           if (layer_index==n_layers) then
             index_3 = base_index - n_vectors_h + h_index
-            covar_3 = horizontal_covariant(velocity_field,layer_index-1,h_index-1,from_index,to_index,inner_product_weights,slope)
-            rel_vort(ji) = 1._wp/area_dual(h_index+layer_index*n_dual_vectors_per_layer)*normal_distance(index_3)*covar_3
+            covar_3 = horizontal_covariant(wind,layer_index-1,h_index-1, &
+                                           grid%from_index,grid%to_index,grid%inner_product_weights,grid%slope)
+            diag%rel_vort(ji) = 1._wp/grid%area_dual(h_index+layer_index*n_dual_vectors_per_layer) &
+                                *grid%normal_distance(index_3)*covar_3
           else
             index_1 = base_index + n_scalars_h + h_index
-            index_2 = base_index + 1+from_index(h_index)
+            index_2 = base_index + 1+grid%from_index(h_index)
             index_3 = base_index - n_vectors_h + h_index
-            index_4 = base_index + 1+to_index(h_index)
-            covar_1 = horizontal_covariant(velocity_field,layer_index,h_index-1,from_index,to_index,inner_product_weights,slope)
-            covar_3 = horizontal_covariant(velocity_field,layer_index-1,h_index-1,from_index,to_index,inner_product_weights,slope)
-            rel_vort(ji) = 1._wp/area_dual(h_index+layer_index*n_dual_vectors_per_layer)*( &
-            -normal_distance(index_1)*covar_1 &
-            +normal_distance(index_2)*velocity_field(index_2) &
-            +normal_distance(index_3)*covar_3 &
-            -normal_distance(index_4)*velocity_field(index_4))
+            index_4 = base_index + 1+grid%to_index(h_index)
+            covar_1 = horizontal_covariant(wind,layer_index,h_index-1, &
+                                           grid%from_index,grid%to_index,grid%inner_product_weights,grid%slope)
+            covar_3 = horizontal_covariant(wind,layer_index-1,h_index-1, &
+                                           grid%from_index,grid%to_index,grid%inner_product_weights,grid%slope)
+            diag%rel_vort(ji) = 1._wp/grid%area_dual(h_index+layer_index*n_dual_vectors_per_layer)*( &
+            -grid%normal_distance(index_1)*covar_1 &
+            +grid%normal_distance(index_2)*wind(index_2) &
+            +grid%normal_distance(index_3)*covar_3 &
+            -grid%normal_distance(index_4)*wind(index_4))
           endif
       endif
     enddo
@@ -221,7 +214,7 @@ module mo_vorticities
     ! At the upper boundary, the tangential vorticity is assumed to have no vertical shear.
     !$omp parallel do private(ji)
     do ji=1,n_vectors_h
-      rel_vort(ji) = rel_vort(ji+2*n_vectors_h)
+      diag%rel_vort(ji) = diag%rel_vort(ji+2*n_vectors_h)
     enddo
     !$omp end parallel do
   

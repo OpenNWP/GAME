@@ -39,10 +39,7 @@ module mo_momentum_diff_diss
                grid%inner_product_weights,grid%slope,grid%area,grid%volume)
     
     ! calculating the relative vorticity of the wind field
-    call calc_rel_vort(state%wind,diag%rel_vort_on_triangles,grid%z_vector,grid%z_vector_dual,diag%rel_vort, &
-                       grid%vorticity_indices_triangles,grid%vorticity_signs_triangles,grid%normal_distance, &
-                       grid%area_dual,grid%from_index,grid%to_index,grid%from_index_dual,grid%to_index_dual, &
-                       grid%inner_product_weights,grid%slope)
+    call calc_rel_vort(state%wind,diag,grid)
     
     ! calculating the effective horizontal kinematic viscosity
     call hor_viscosity(diag%temperature,diag%tke,state%rho,grid%from_index,grid%to_index,grid%vorticity_indices_triangles, &

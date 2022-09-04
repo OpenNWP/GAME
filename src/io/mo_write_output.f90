@@ -572,11 +572,7 @@ module mo_write_output
     allocate(div_h_all_layers(n_scalars))
     call div_h(state%wind,div_h_all_layers,grid%adjacent_signs_h,grid%adjacent_vector_indices_h, &
                grid%inner_product_weights,grid%slope,grid%area,grid%volume)
-    call calc_rel_vort(state%wind,diag%rel_vort_on_triangles,grid%z_vector,grid%z_vector_dual,diag%rel_vort, &
-                       grid%vorticity_indices_triangles,grid%vorticity_signs_triangles,grid%normal_distance, &
-                       grid%area_dual,grid%from_index,grid%to_index,grid%from_index_dual, &
-                       grid%to_index_dual,grid%inner_product_weights, &
-                       grid%slope)
+    call calc_rel_vort(state%wind,diag,grid)
     allocate(rel_vort_scalar_field(n_scalars))
     call curl_field_to_cells(diag%rel_vort,rel_vort_scalar_field,grid%adjacent_vector_indices_h,grid%inner_product_weights)
     
