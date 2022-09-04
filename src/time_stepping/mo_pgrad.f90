@@ -48,7 +48,7 @@ module mo_pgrad
     call grad(state%exner_pert,diag%pressure_gradient_acc_neg_nl,grid%from_index,grid%to_index,grid%normal_distance, &
               grid%inner_product_weights,grid%slope)
     call scalar_times_vector(diag%scalar_field_placeholder,diag%pressure_gradient_acc_neg_nl, &
-                             diag%pressure_gradient_acc_neg_nl,grid%from_index,grid%to_index)
+                             diag%pressure_gradient_acc_neg_nl,grid)
       
     ! 3.) the linear pressure gradient term
     ! -------------------------------------
@@ -58,7 +58,7 @@ module mo_pgrad
     enddo
     !$omp end parallel do
     call scalar_times_vector(diag%scalar_field_placeholder,grid%exner_bg_grad, &
-                             diag%pressure_gradient_acc_neg_l,grid%from_index,grid%to_index)
+                             diag%pressure_gradient_acc_neg_l,grid)
     
     ! 4.) The pressure gradient has to get a deceleration factor due to condensates.
     ! ------------------------------------------------------------------------------
@@ -69,9 +69,9 @@ module mo_pgrad
     enddo
     !$omp end parallel do
     call scalar_times_vector(diag%pressure_gradient_decel_factor,diag%pressure_gradient_acc_neg_nl, &
-                             diag%pressure_gradient_acc_neg_nl,grid%from_index,grid%to_index)
+                             diag%pressure_gradient_acc_neg_nl,grid)
     call scalar_times_vector(diag%pressure_gradient_decel_factor,diag%pressure_gradient_acc_neg_l, &
-                             diag%pressure_gradient_acc_neg_l,grid%from_index,grid%to_index)
+                             diag%pressure_gradient_acc_neg_l,grid)
     
     ! at the very fist step, the old time step pressure gradient acceleration must be saved here
     if (ltotally_first_step) then

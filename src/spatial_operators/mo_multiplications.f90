@@ -5,35 +5,35 @@ module mo_multiplications
 
   ! In this module, algebraic multiplications of fields are collected.
   
-  use mo_definitions, only: wp
+  use mo_definitions, only: wp,t_grid
   use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer
   
   implicit none
   
   contains
 
-  subroutine scalar_times_vector(scalar_field,vector_field,out_field,from_index,to_index)
+  subroutine scalar_times_vector(scalar_field,vector_field,out_field,grid)
   
     ! This subroutine multiplies the vector field vector_field by the scalar field scalar_field.
     
     real(wp), intent(in)  :: scalar_field(n_scalars)
     real(wp)              :: vector_field(n_vectors)
-    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
     real(wp), intent(out) :: out_field(n_vectors)
+    type(t_grid),  intent(in)    :: grid  ! grid quantities
         
-    call scalar_times_vector_h(scalar_field,vector_field,out_field,from_index,to_index)
+    call scalar_times_vector_h(scalar_field,vector_field,out_field,grid)
     call scalar_times_vector_v(scalar_field,vector_field,out_field)
   
   end subroutine scalar_times_vector
 
-  subroutine scalar_times_vector_h(scalar_field,vector_field,out_field,from_index,to_index)
+  subroutine scalar_times_vector_h(scalar_field,vector_field,out_field,grid)
   
     ! This subroutine multiplies a vector field by a scalar field at the horizontal gridpoints.
     
     real(wp), intent(in)  :: scalar_field(n_scalars)
     real(wp)              :: vector_field(n_vectors)
-    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
     real(wp), intent(out) :: out_field(n_vectors)
+    type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
     integer  :: h_index,layer_index,vector_index
@@ -44,8 +44,8 @@ module mo_multiplications
       do layer_index=0,n_layers-1
         vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
         scalar_value &
-        = 0.5_wp*(scalar_field(1+from_index(h_index) + layer_index*n_scalars_h) &
-        + scalar_field(1+to_index(h_index) + layer_index*n_scalars_h))
+        = 0.5_wp*(scalar_field(1+grid%from_index(h_index) + layer_index*n_scalars_h) &
+        + scalar_field(1+grid%to_index(h_index) + layer_index*n_scalars_h))
         out_field(vector_index) = scalar_value*vector_field(vector_index)
       enddo
     enddo
@@ -53,14 +53,14 @@ module mo_multiplications
   
   end subroutine scalar_times_vector_h
 
-  subroutine scalar_times_vector_h_upstream(scalar_field,vector_field,out_field,from_index,to_index)
+  subroutine scalar_times_vector_h_upstream(scalar_field,vector_field,out_field,grid)
   
     ! This subroutine multiplies a vector field by a scalar field.
     ! The scalar field value from the upstream gridpoint is used.
     
     real(wp), intent(in)  :: scalar_field(n_scalars),vector_field(n_vectors)
-    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
     real(wp), intent(out) :: out_field(n_vectors)
+    type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
     integer  :: h_index,layer_index,vector_index
@@ -71,9 +71,9 @@ module mo_multiplications
       do layer_index=0,n_layers-1
         vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
         if (vector_field(vector_index)>=0._wp) then
-          scalar_value = scalar_field(1+from_index(h_index) + layer_index*n_scalars_h)
+          scalar_value = scalar_field(1+grid%from_index(h_index) + layer_index*n_scalars_h)
         else
-          scalar_value = scalar_field(1+to_index(h_index) + layer_index*n_scalars_h)
+          scalar_value = scalar_field(1+grid%to_index(h_index) + layer_index*n_scalars_h)
         endif
         out_field(vector_index) = scalar_value*vector_field(vector_index)
       enddo

@@ -171,7 +171,7 @@ module mo_set_initial_state
     diag%scalar_field_placeholder = pressure/(r_d*temperature_v)
     !$omp end parallel workshare
     
-    call scalar_times_vector(diag%scalar_field_placeholder,state%wind,diag%flux_density,grid%from_index,grid%to_index)
+    call scalar_times_vector(diag%scalar_field_placeholder,state%wind,diag%flux_density,grid)
     ! Nowthe potential vorticity is evaluated.
     call calc_pot_vort(state%wind,diag%scalar_field_placeholder,diag,grid)
     ! Nowthe generalized Coriolis term is evaluated.

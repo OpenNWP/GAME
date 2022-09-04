@@ -59,7 +59,7 @@ module mo_scalar_tend_expl
                 grid%normal_distance,grid%inner_product_weights,grid%slope)
       ! Now the diffusive temperature flux density can be obtained.
       call scalar_times_vector_h(diag%temp_diffusion_coeff_numerical_h,diag%vector_field_placeholder, &
-                                 diag%flux_density,grid%from_index,grid%to_index)
+                                 diag%flux_density,grid)
       ! The divergence of the diffusive temperature flux density is the diffusive temperature heating.
       call div_h(diag%flux_density,diag%temperature_diffusion_heating, &
                  grid%adjacent_signs_h,grid%adjacent_vector_indices_h,grid%inner_product_weights,grid%slope,grid%area,grid%volume)
@@ -81,7 +81,7 @@ module mo_scalar_tend_expl
                   grid%from_index,grid%to_index,grid%normal_distance,grid%inner_product_weights,grid%slope)
         ! Now the diffusive mass flux density can be obtained.
         call scalar_times_vector_h(diag%mass_diffusion_coeff_numerical_h, &
-                                   diag%vector_field_placeholder,diag%vector_field_placeholder,grid%from_index,grid%to_index)
+                                   diag%vector_field_placeholder,diag%vector_field_placeholder,grid)
         ! The divergence of the diffusive mass flux density is the diffusive mass source rate.
         call div_h(diag%vector_field_placeholder,diag%mass_diff_tendency(scalar_shift_index+1:scalar_shift_index+n_scalars), &
                    grid%adjacent_signs_h,grid%adjacent_vector_indices_h,grid%inner_product_weights,grid%slope,grid%area,grid%volume)
@@ -112,13 +112,13 @@ module mo_scalar_tend_expl
         ! moist air
       if (jc==n_condensed_constituents+1) then
         call scalar_times_vector_h(state_scalar%rho(scalar_shift_index+1:scalar_shift_index+n_scalars), &
-                                   state_wind%wind,diag%flux_density,grid%from_index,grid%to_index)
+                                   state_wind%wind,diag%flux_density,grid)
         call div_h(diag%flux_density,diag%flux_density_div, &
                    grid%adjacent_signs_h,grid%adjacent_vector_indices_h,grid%inner_product_weights,grid%slope,grid%area,grid%volume)
       ! all other constituents
       else
         call scalar_times_vector_h_upstream(state_scalar%rho(scalar_shift_index+1:scalar_shift_index+n_scalars), &
-                                            state_wind%wind,diag%flux_density,grid%from_index,grid%to_index)
+                                            state_wind%wind,diag%flux_density,grid)
         call div_h_tracer(diag%flux_density,state_scalar%rho(scalar_shift_index+1:scalar_shift_index+n_scalars), &
                           state_wind%wind,diag%flux_density_div, &
                           grid%adjacent_signs_h,grid%adjacent_vector_indices_h, &
@@ -150,7 +150,7 @@ module mo_scalar_tend_expl
         diag%scalar_field_placeholder = state_scalar%rhotheta_v/state_scalar%rho(scalar_shift_index+1:scalar_shift_index+n_scalars)
         !$omp end parallel workshare
         
-        call scalar_times_vector_h(diag%scalar_field_placeholder,diag%flux_density,diag%flux_density,grid%from_index,grid%to_index)
+        call scalar_times_vector_h(diag%scalar_field_placeholder,diag%flux_density,diag%flux_density,grid)
         call div_h(diag%flux_density,diag%flux_density_div,grid%adjacent_signs_h,grid%adjacent_vector_indices_h, &
                    grid%inner_product_weights,grid%slope,grid%area,grid%volume)
         ! adding the tendencies in all grid boxes
