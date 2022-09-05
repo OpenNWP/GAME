@@ -294,8 +294,12 @@ module mo_write_output
         layer_index = n_layers - 1
         z_height = grid%z_scalar(layer_index*n_scalars_h + ji)
         ! pseduovirtual potential temperature of the particle in the lowest layer
-        theta_e = pseudopotential_temperature(grid%theta_v_bg,state%theta_v_pert,(layer_index-1)*n_scalars_h+ji, &
-                                              grid%exner_bg,diag%temperature,state%rho,state%exner_pert)
+        if (lmoist) then
+          theta_e = pseudopotential_temperature(grid%theta_v_bg,state%theta_v_pert,(layer_index-1)*n_scalars_h+ji, &
+                                                grid%exner_bg,diag%temperature,state%rho,state%exner_pert)
+        else
+          theta_e = grid%theta_v_bg((layer_index-1)*n_scalars_h+ji) + state%theta_v_pert((layer_index-1)*n_scalars_h+ji)
+        endif
         do while (z_height<z_tropopause)
           ! full virtual potential temperature in the grid box
           theta_v = grid%theta_v_bg(layer_index*n_scalars_h + ji) + state%theta_v_pert(layer_index*n_scalars_h + ji)

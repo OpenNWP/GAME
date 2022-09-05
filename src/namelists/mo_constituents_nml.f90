@@ -28,21 +28,22 @@ module mo_constituents_nml
     
     n_condensed_constituents = 4
     n_gaseous_constituents = 2
-    ! the dry case
-    if (.not. lmoist) then
-      n_condensed_constituents = 0
-      n_gaseous_constituents = 1
-    endif
     snow_velocity = 5._wp
     rain_velocity = 10._wp
     cloud_droplets_velocity = .01_wp
-    n_constituents = n_condensed_constituents + n_gaseous_constituents
     
     ! open and read namelist file
     open(action="read",file="namelist.nml",newunit=fileunit)
     read(nml=constituents,unit=fileunit)
         
     close(fileunit)
+    
+    ! the dry case
+    if (.not. lmoist) then
+      n_condensed_constituents = 0
+      n_gaseous_constituents = 1
+    endif
+    n_constituents = n_condensed_constituents + n_gaseous_constituents
     
     if (lmoist) then
       write(*,*) "Moisture is turned on."

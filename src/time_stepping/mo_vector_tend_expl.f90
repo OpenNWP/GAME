@@ -44,10 +44,10 @@ module mo_vector_tend_expl
     ! ---------------------------
     
     if (rk_step==2 .or. ltotally_first_step) then
-      call scalar_times_vector(state%rho(n_condensed_constituents*n_scalars+1:(n_condensed_constituents+1)*n_scalars), &
+      call scalar_times_vector(state%rho((n_condensed_constituents*n_scalars+1):(n_condensed_constituents+1)*n_scalars), &
                                state%wind,diag%flux_density,grid)
       ! Now, the "potential vorticity" is evaluated.
-      call calc_pot_vort(state,state%rho(n_condensed_constituents*n_scalars),diag,grid)
+      call calc_pot_vort(state,state%rho((n_condensed_constituents*n_scalars+1):(n_condensed_constituents+1)*n_scalars),diag,grid)
       ! Now, the generalized Coriolis term is evaluated.
       call vorticity_flux(diag,grid)
       ! Kinetic energy is prepared for the gradient term of the Lamb transformation.

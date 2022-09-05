@@ -22,7 +22,7 @@ export OMP_NUM_THREADS=4
 cat > namelist.nml << EOF
 
 &grid
-oro_id=1
+oro_id=0
 /
 
 &run
