@@ -21,11 +21,14 @@ module mo_rad_nml
   character(len=128) :: cloud_coefficients_file_sw  ! the name of the short wave cloud optics file
   character(len=128) :: cloud_coefficients_file_lw  ! the name of the long wave cloud optics file
   
-  namelist /grid/n_rad_blocks
+  namelist /rad/rad_config,n_rad_blocks
 
   contains
 
   subroutine rad_nml_setup()
+  
+    ! local variables
+    integer :: fileunit
   
     rad_config = 1
     n_rad_blocks = 18
@@ -44,7 +47,13 @@ module mo_rad_nml
     "/home/max/code/rte-rrtmgp/extensions/cloud_optics/rrtmgp-cloud-optics-coeffs-sw.nc"
     cloud_coefficients_file_lw = &
     "/home/max/code/rte-rrtmgp/extensions/cloud_optics/rrtmgp-cloud-optics-coeffs-lw.nc"
-  
+    
+    ! open and read namelist file
+    open(action="read",file="namelist.nml",newunit=fileunit)
+    read(nml=rad,unit=fileunit)
+        
+    close(fileunit)
+    
     ! sanity check
     if (mod(n_scalars_h,n_rad_blocks)/=0) then
       write(*,*) "Number of scalars per layer must be divisibe by n_rad_blocks."

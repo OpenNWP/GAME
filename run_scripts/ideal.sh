@@ -22,11 +22,10 @@ export OMP_NUM_THREADS=4
 cat > namelist.nml << EOF
 
 &grid
-orography_id=1
+oro_id=1
 /
 
 &run
-ideal_input_id=2
 run_id="$run_id"
 run_span_min=$((100*24*60))
 start_year=2000
@@ -35,30 +34,32 @@ start_day=1
 start_hour=0
 /
 
+&io
+ideal_input_id=2
+write_out_interval_min=1440
+lwrite_integrals=.true.
+lmodel_level_output=.false.
+time_to_next_analysis_min=-1
+/
+
+&constituents
+lmoist=.true.
+/
+
 &diff
-momentum_diff_h=1
-momentum_diff_v=1 #
-temperature_diff_h=1
-temperature_diff_v=1
-mass_diff_h=1
-mass_diff_v=1
+lmom_diff_h=.true.
+lmom_diff_v=.true.
+ltemp_diff_h=.true.
+ltemp_diff_v=.true.
+lmass_diff_h=.true.
+lmass_diff_v=.true.
 /
 
 &rad
-rad_on=1
-prog_soil_temp=1
-sfc_phase_trans=1
-sfc_sensible_heat_flux=1
-pbl_scheme=1
+rad_config=1
 /
 
-&io
-write_out_interval_min=1440
-write_out_integrals=1
-model_level_output_switch=0
-pressure_level_output_switch=1
-surface_output_switch=1
-time_to_next_analysis=-1
+&surface
 /
 
 EOF

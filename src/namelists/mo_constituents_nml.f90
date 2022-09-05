@@ -22,6 +22,9 @@ module mo_constituents_nml
   contains
 
   subroutine constituents_nml_setup()
+  
+    ! local variables
+    integer :: fileunit
     
     n_condensed_constituents = 4
     n_gaseous_constituents = 2
@@ -34,6 +37,12 @@ module mo_constituents_nml
     rain_velocity = 10._wp
     cloud_droplets_velocity = .01_wp
     n_constituents = n_condensed_constituents + n_gaseous_constituents
+    
+    ! open and read namelist file
+    open(action="read",file="namelist.nml",newunit=fileunit)
+    read(nml=constituents,unit=fileunit)
+        
+    close(fileunit)
     
     if (lmoist) then
       write(*,*) "Moisture is turned on."

@@ -18,6 +18,9 @@ module mo_surface_nml
   contains
   
   subroutine surface_nml_setup()
+  
+    ! local variables
+    integer :: fileunit
     
     ! default values
     nsoillays = 5
@@ -25,7 +28,13 @@ module mo_surface_nml
     lsfc_sensible_heat_flux = .true.
     lprog_soil_temp = .true.
     pbl_scheme = 1
-  
+    
+    ! open and read namelist file
+    open(action="read",file="namelist.nml",newunit=fileunit)
+    read(nml=surface,unit=fileunit)
+        
+    close(fileunit)
+    
   end subroutine surface_nml_setup
 
 end module mo_surface_nml

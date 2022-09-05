@@ -15,8 +15,7 @@ module mo_set_initial_state
   use mo_derived,          only: rel_humidity
   use mo_various_helpers,  only: nc_check,int2string
   use mo_grid_setup,       only: radius_rescale,z_t_const
-  use mo_run_nml,          only: ideal_input_id
-  use mo_io_nml,           only: init_state_file
+  use mo_io_nml,           only: ideal_input_id,init_state_file
   use mo_rad_nml,          only: rad_config
   use baroclinic_wave,     only: baroclinic_wave_test
   use mo_multiplications,  only: scalar_times_vector

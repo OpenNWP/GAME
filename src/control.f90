@@ -12,10 +12,10 @@ program control
                                        n_vectors_per_layer,grid_nml_setup
   use mo_constituents_nml,       only: cloud_droplets_velocity,rain_velocity,snow_velocity,n_constituents, &
                                        n_condensed_constituents,constituents_nml_setup
-  use mo_run_nml,                only: dtime,ideal_input_id,run_span_min,run_nml_setup,t_init
+  use mo_run_nml,                only: dtime,run_span_min,run_nml_setup,t_init
   use mo_grid_setup,             only: eff_hor_res,radius_rescale,set_grid_properties
   use mo_io_nml,                 only: n_output_steps_10m_wind,lwrite_integrals,write_out_interval_min, &
-                                       io_nml_setup
+                                       io_nml_setup,ideal_input_id
   use mo_surface_nml,            only: nsoillays,surface_nml_setup
   use mo_rad_nml,                only: rad_config,radiation_dtime,rad_nml_setup
   use mo_diff_nml,               only: diff_nml_setup

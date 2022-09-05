@@ -45,9 +45,18 @@ module mo_grid_nml
 
   subroutine grid_nml_setup()
   
+    ! local variables
+    integer :: fileunit
+  
     res_id = 5
     n_layers = 26
     oro_id = 1
+    
+    ! open and read namelist file
+    open(action="read",file="namelist.nml",newunit=fileunit)
+    read(nml=grid,unit=fileunit)
+        
+    close(fileunit)
     
     write(*,*) "resolution ID:", res_id
     write(*,*) "number of layers:", n_layers

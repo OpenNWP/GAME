@@ -11,6 +11,7 @@ module mo_io_nml
   
   implicit none
   
+  integer            :: ideal_input_id                     ! ideal input identifier
   character(len=128) :: init_state_file                    ! file to read the initial state from (in NWP mode)
   real(wp)           :: write_out_interval_min             ! output interval in minutes
   logical            :: lmodel_level_output                ! model level output switch
@@ -22,21 +23,37 @@ module mo_io_nml
   integer, parameter :: n_pressure_levels = 6              ! number of pressure levels for the output
   integer            :: pressure_levels(n_pressure_levels) ! pressure levels for output
   
-  namelist /io/write_out_interval_min,lmodel_level_output,lpressure_level_output,lsurface_output, &
-               time_to_next_analysis_min
+  namelist /io/ideal_input_id,write_out_interval_min,lmodel_level_output,lpressure_level_output, &
+               lsurface_output,time_to_next_analysis_min,lwrite_integrals
 
   contains
 
   subroutine io_nml_setup()
+  
+    ! local variables
+    integer :: fileunit
     
-    init_state_file = "../../nwp_init/" // trim(int2string(start_year)) // trim(int2string(start_month)) // &
-                                           trim(int2string(start_day)) // trim(int2string(start_hour)) // ".nc"
+    ideal_input_id = 2
     write_out_interval_min = 180._wp
     lmodel_level_output = .true.
     lpressure_level_output = .true.
     lsurface_output = .true.
-    lwrite_integrals = .true.
+    lwrite_integrals = .false.
     time_to_next_analysis_min = 360
+    
+    ! open and read namelist file
+    open(action="read",file="namelist.nml",newunit=fileunit)
+    read(nml=io,unit=fileunit)
+        
+    close(fileunit)
+    
+    init_state_file = "../../nwp_init/" // trim(int2string(start_year)) // trim(int2string(start_month)) // &
+                                           trim(int2string(start_day)) // trim(int2string(start_hour)) // ".nc"
+    
+    if (ideal_input_id==-1) then
+      write(*,*) "Initialization state file:", init_state_file
+    endif
+    
     pressure_levels(1) = 20000
     pressure_levels(2) = 30000
     pressure_levels(3) = 50000
