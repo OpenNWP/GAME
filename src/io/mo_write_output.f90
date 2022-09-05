@@ -294,12 +294,7 @@ module mo_write_output
         layer_index = n_layers - 1
         z_height = grid%z_scalar(layer_index*n_scalars_h + ji)
         ! pseduovirtual potential temperature of the particle in the lowest layer
-        if (lmoist) then
-          theta_e = pseudopotential_temperature(grid%theta_v_bg,state%theta_v_pert,(layer_index-1)*n_scalars_h+ji, &
-                                                grid%exner_bg,diag%temperature,state%rho,state%exner_pert)
-        else
-          theta_e = grid%theta_v_bg((layer_index-1)*n_scalars_h+ji) + state%theta_v_pert((layer_index-1)*n_scalars_h+ji)
-        endif
+        theta_e = pseudopotential_temperature(state,diag,(layer_index-1)*n_scalars_h+ji,grid)
         do while (z_height<z_tropopause)
           ! full virtual potential temperature in the grid box
           theta_v = grid%theta_v_bg(layer_index*n_scalars_h + ji) + state%theta_v_pert(layer_index*n_scalars_h + ji)
@@ -842,32 +837,25 @@ module mo_write_output
       call nc_check(nf90_put_var(ncid,lon_id,lon_vector))
       do jl=1,n_layers
       
-        call interpolate_to_ll(diag%temperature(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
-                               grid)
+        call interpolate_to_ll(diag%temperature(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,temperature_ids(jl),lat_lon_output_field))
         
-        call interpolate_to_ll(pressure(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
-                               grid)
+        call interpolate_to_ll(pressure(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,pressure_ids(jl),lat_lon_output_field))
         
-        call interpolate_to_ll(rh(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
-                               grid)
+        call interpolate_to_ll(rh(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,rel_hum_ids(jl),lat_lon_output_field))
         
-        call interpolate_to_ll(u_at_cell(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
-                               grid)
+        call interpolate_to_ll(u_at_cell(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,wind_u_ids(jl),lat_lon_output_field))
         
-        call interpolate_to_ll(v_at_cell(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
-                               grid)
+        call interpolate_to_ll(v_at_cell(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,wind_v_ids(jl),lat_lon_output_field))
         
-        call interpolate_to_ll(rel_vort_scalar_field(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
-                               grid)
+        call interpolate_to_ll(rel_vort_scalar_field(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,rel_vort_ids(jl),lat_lon_output_field))
         
-        call interpolate_to_ll(div_h_all_layers(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field, &
-                               grid)
+        call interpolate_to_ll(div_h_all_layers(((jl-1)*n_scalars_h+1):(jl*n_scalars_h)),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,div_h_ids(jl),lat_lon_output_field))
         
       enddo
@@ -935,14 +923,15 @@ module mo_write_output
     
   end subroutine write_out
 
-  function pseudopotential_temperature(theta_v_bg,theta_v_pert,scalar_index,exner_bg,temperature,rho,exner_pert)
+  function pseudopotential_temperature(state,diag,scalar_index,grid)
     
     ! This function returns the pseudopotential temperature,which is needed for diagnozing CAPE.
     
-    real(wp), intent(in) :: theta_v_bg(n_scalars),theta_v_pert(n_scalars),exner_bg(n_scalars), &
-                            temperature(n_scalars),rho(n_constituents*n_scalars),exner_pert(n_scalars)
-    integer,  intent(in) :: scalar_index
-    real(wp)             :: pseudopotential_temperature
+    type(t_state), intent(in) :: state                       ! state variables
+    type(t_diag),  intent(in) :: diag                        ! diagnostic quantities
+    integer,       intent(in) :: scalar_index                ! scalar index at which to compute the pseudopotential temperature
+    type(t_grid),  intent(in) :: grid                        ! grid properties
+    real(wp)                  :: pseudopotential_temperature ! the result
     
     ! local variables
     real(wp) :: r,alpha_1,alpha_2,alpha_3,pressure,t_lcl,vapour_pressure,saturation_pressure,rel_hum
@@ -950,40 +939,41 @@ module mo_write_output
     pseudopotential_temperature = 0._wp
     ! the dry case
     if (lmoist) then
-      pseudopotential_temperature = theta_v_bg(scalar_index) + theta_v_pert(scalar_index)
+      pseudopotential_temperature = grid%theta_v_bg(scalar_index) + state%theta_v_pert(scalar_index)
+      return
     ! This is the moist case,based on
     ! Bolton,D. (1980). The Computation of Equivalent Potential Temperature,Monthly Weather Review,108(7),1046-1053.
     else
       
       ! the mixing ratio
-      r = rho((n_condensed_constituents + 1)*n_scalars + scalar_index) &
-      /(rho(n_condensed_constituents*n_scalars + scalar_index) &
-      - rho((n_condensed_constituents + 1)*n_scalars + scalar_index))
+      r = state%rho((n_condensed_constituents + 1)*n_scalars + scalar_index) &
+      /(state%rho(n_condensed_constituents*n_scalars + scalar_index) &
+      - state%rho((n_condensed_constituents + 1)*n_scalars + scalar_index))
       
       ! now,the first two required parameters can already be computed
       alpha_1 = 0.2854_wp*(1._wp - 0.28e-3_wp*r)
       alpha_3 = r*(1._wp + 0.81e-3_wp*r)
       
       ! calculating the pressure
-      pressure = p_0*(exner_bg(scalar_index) + exner_pert(scalar_index))**(c_d_p/r_d)
+      pressure = p_0*(grid%exner_bg(scalar_index) + state%exner_pert(scalar_index))**(c_d_p/r_d)
       
       ! computing the temperature t_lcl of the air parcel after raising it to the lifted condensation level (LCL)
       ! therefore we firstly compute the saturation pressure,the vapour pressure and the relative humidity
-      if (temperature(scalar_index)>=t_0) then
-        saturation_pressure = saturation_pressure_over_water(temperature(scalar_index))
+      if (diag%temperature(scalar_index)>=t_0) then
+        saturation_pressure = saturation_pressure_over_water(diag%temperature(scalar_index))
       else
-        saturation_pressure = saturation_pressure_over_ice(temperature(scalar_index))
+        saturation_pressure = saturation_pressure_over_ice(diag%temperature(scalar_index))
       endif
-      vapour_pressure = rho((n_condensed_constituents + 1)*n_scalars + scalar_index)*r_v*temperature(scalar_index)
+      vapour_pressure = state%rho((n_condensed_constituents + 1)*n_scalars + scalar_index)*r_v*diag%temperature(scalar_index)
       rel_hum = vapour_pressure/saturation_pressure
       ! we compute t_lcl using Eq. (22) of Bolton (1980)
-      t_lcl = 1._wp/(1._wp/(temperature(scalar_index) - 55._wp) - log(rel_hum)/2840._wp) + 55._wp
+      t_lcl = 1._wp/(1._wp/(diag%temperature(scalar_index) - 55._wp) - log(rel_hum)/2840._wp) + 55._wp
       
       ! the last remaining parameter can be computed now
       alpha_2 = 3.376_wp/t_lcl - 0.00254_wp
       
       ! the final formula by Bolton
-      pseudopotential_temperature = temperature(scalar_index)*(p_0/pressure)**alpha_1*exp(alpha_2*alpha_3)
+      pseudopotential_temperature = diag%temperature(scalar_index)*(p_0/pressure)**alpha_1*exp(alpha_2*alpha_3)
     endif
     
   end function pseudopotential_temperature
