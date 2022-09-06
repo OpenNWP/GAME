@@ -222,7 +222,6 @@ module mo_write_output
     
     ! diagnosing the temperature
     call temperature_diagnostics(state,diag,grid)
-    
     time_since_init_min = int(t_write - t_init)
     time_since_init_min = time_since_init_min/60
     
@@ -470,7 +469,7 @@ module mo_write_output
       enddo
       !$omp end parallel do
       
-      output_file = run_id // "+" // trim(int2string(time_since_init_min)) // "dmin_surface.nc"
+      output_file = trim(run_id) // "+" // trim(int2string(time_since_init_min)) // "dmin_surface.nc"
       
       call nc_check(nf90_create(output_file,NF90_CLOBBER,ncid))
       call nc_check(nf90_def_dim(ncid,"single_int_index",1,single_int_dimid))
@@ -670,7 +669,7 @@ module mo_write_output
       enddo
       !$omp end parallel do
       
-      output_file_p_level = run_id // "+" // trim(int2string(time_since_init_min)) // "min_pressure_levels.nc"
+      output_file_p_level = trim(run_id) // "+" // trim(int2string(time_since_init_min)) // "min_pressure_levels.nc"
       
       
       call nc_check(nf90_create(output_file_p_level,NF90_CLOBBER,ncid))
@@ -774,7 +773,7 @@ module mo_write_output
     ! model level output
     if (lmodel_level_output) then
     
-      output_file = run_id // "+" // trim(int2string(time_since_init_min)) // "min.nc"
+      output_file = trim(run_id) // "+" // trim(int2string(time_since_init_min)) // "min.nc"
       
       call nc_check(nf90_create(output_file,NF90_CLOBBER,ncid))
       call nc_check(nf90_def_dim(ncid,"single_int_index",1,single_int_dimid))
@@ -872,11 +871,10 @@ module mo_write_output
     
     deallocate(u_at_cell)
     deallocate(v_at_cell)
-    
     ! output of the whole model state for data assimilation
     if ((ideal_input_id==-1 .or. ltotally_first_step) .and. time_since_init_min==time_to_next_analysis_min) then
     
-      output_file = run_id // "+" // trim(int2string(time_since_init_min)) // "min_hex.nc"
+      output_file = trim(run_id) // "+" // trim(int2string(time_since_init_min)) // "min_hex.nc"
       
       call nc_check(nf90_create(output_file,NF90_CLOBBER,ncid))
       call nc_check(nf90_def_dim(ncid,"single_int_index",1,single_int_dimid))
@@ -938,9 +936,8 @@ module mo_write_output
     
     pseudopotential_temperature = 0._wp
     ! the dry case
-    if (lmoist) then
+    if (.not. lmoist) then
       pseudopotential_temperature = grid%theta_v_bg(scalar_index) + state%theta_v_pert(scalar_index)
-      return
     ! This is the moist case,based on
     ! Bolton,D. (1980). The Computation of Equivalent Potential Temperature,Monthly Weather Review,108(7),1046-1053.
     else

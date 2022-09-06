@@ -278,9 +278,10 @@ program control
   ! in the time stepping and in writing the output.
   ltotally_first_step = .true.
   ! writing out the initial state of the model run
+  t_write = t_init
   call write_out(state_1,diag,grid,wind_h_lowest_layer,t_init,t_write,ltotally_first_step)
-  
   t_write = t_0 + 60._wp*write_out_interval_min
+  
   write(*,*) "Run progress:", (t_init - t_init)/3600._wp, "h"
   ! clock_t first_time,second_time
   ! first_time = clock()

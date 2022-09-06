@@ -67,7 +67,7 @@ source $game_home_dir/run_scripts/.sh/root_script.sh
 mv output/$run_id/${run_id}+0min_hex.nc nwp_init/${run_id}.nc 
 
 # clean-up
-rm -r output/$run_id
+# rm -r output/$run_id
 
 
 
