@@ -235,11 +235,11 @@ program control
     endif
   enddo
   
-  write(*,*) "Cloud droplets falling velocity set to",cloud_droplets_velocity,"m/s."
-  write(*,*) "Rain falling velocity set to",rain_velocity,"m/s."
-  write(*,*) "Snow falling velocity set to",snow_velocity,"m/s."
+  write(*,fmt="(A,F6.3,A5)") " Cloud droplets falling velocity set to",cloud_droplets_velocity," m/s."
+  write(*,fmt="(A,F7.3,A5)") " Rain falling velocity set to",rain_velocity," m/s."
+  write(*,fmt="(A,F6.3,A5)") " Snow falling velocity set to",snow_velocity," m/s."
   
-  write(*,*) "Effective horizontal resolution:",1e-3*eff_hor_res
+  write(*,fmt="(A,F8.3,A3)") " Effective horizontal resolution:",1e-3*eff_hor_res,"km"
   write(*,*) "Minimum horizontal normal distance:",1e-3*normal_dist_min_hor,"km"
   max_speed_hor = 100._wp
   write(*,*) "Horizontal advective Courant number:",dtime/normal_dist_min_hor*max_speed_hor
@@ -282,7 +282,7 @@ program control
   call write_out(state_1,diag,grid,wind_h_lowest_layer,t_init,t_write,ltotally_first_step)
   t_write = t_0 + 60._wp*write_out_interval_min
   
-  write(*,*) "Run progress:", (t_init - t_init)/3600._wp, "h"
+  write(*,"(A,F10.3,A2)") "Run progress:",(t_init-t_init)/3600._wp,"h"
   ! clock_t first_time,second_time
   ! first_time = clock()
   if (lwrite_integrals) then
@@ -351,14 +351,14 @@ program control
           !$omp parallel do private(h_index)
           do h_index=1,n_vectors_h
             wind_h_lowest_layer(wind_lowest_layer_step_counter*n_vectors_h + h_index) &
-            = state_1%wind(N_VECTORS - n_vectors_per_layer + h_index)
+            = state_1%wind(n_vectors - n_vectors_per_layer + h_index)
           enddo
           !$omp end parallel do
         else
           !$omp parallel do private(h_index)
           do h_index=1,n_vectors_h
             wind_h_lowest_layer(wind_lowest_layer_step_counter*n_vectors_h + h_index) &
-            = state_2%wind(N_VECTORS - n_vectors_per_layer + h_index)
+            = state_2%wind(n_vectors - n_vectors_per_layer + h_index)
           enddo
           !$omp end parallel do
         endif
@@ -378,7 +378,7 @@ program control
       !speed = CLOCKS_PER_SEC*60*write_out_interval_min/((double) second_time - first_time)
       write(*,*) "Current speed:",60._wp*write_out_interval_min/(end_timestamp - begin_timestamp)
       call cpu_time(begin_timestamp)
-      write(*,*) "Run progress:",(t_0+dtime-t_init)/3600._wp,"h"
+      write(*,fmt="(A,F10.3,A2)") "Run progress:",(t_0+dtime-t_init)/3600._wp,"h"
       
       ! resetting the wind in the lowest layer to zero
       !$omp parallel do private(ji)

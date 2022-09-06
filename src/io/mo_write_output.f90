@@ -86,16 +86,16 @@ module mo_write_output
     else
       open(1,file="masses",status="old",position="append",action="write")
     endif
-    write(1,fmt="(F6.3)",advance="no") time_since_init
+    write(1,fmt="(F20.3)",advance="no") time_since_init
     do const_id=1,n_constituents
       global_integral = 0._wp
       do ji=1,n_scalars
         global_integral = global_integral + state%rho((const_id-1)*n_scalars + ji)*grid%volume(ji)
       enddo
       if (const_id==n_constituents) then
-        write(1,fmt="(F6.3)") global_integral
+        write(1,fmt="(F30.3)") global_integral
       else
-        write(1,fmt="(F6.3)",advance="no") global_integral
+        write(1,fmt="(F30.3)",advance="no") global_integral
       endif
     enddo
     close(1)
@@ -110,7 +110,7 @@ module mo_write_output
     do ji=1,n_scalars
       global_integral = global_integral + state%rhotheta_v(ji)*grid%volume(ji)
     enddo
-    write(1,fmt="(F6.3,F6.3)") time_since_init,global_integral
+    write(1,fmt="(F20.3,F30.3)") time_since_init,global_integral
     close(1)
         
     ! energies
@@ -152,8 +152,8 @@ module mo_write_output
     do ji=1,n_scalars
       internal_integral = internal_integral+int_energy_density(ji)*grid%volume(ji)
     enddo
-    write(1,fmt="(F6.3,F6.3,F6.3,F6.3)") time_since_init,0.5_wp*kinetic_integral,potential_integral, &
-                          c_d_v*internal_integral
+    write(1,fmt="(F20.3,F30.3,F30.3,F30.3)") time_since_init,0.5_wp*kinetic_integral,potential_integral, &
+                                             c_d_v*internal_integral
     deallocate(int_energy_density)
     close(1)
     
