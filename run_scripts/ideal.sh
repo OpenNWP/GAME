@@ -22,7 +22,6 @@ export OMP_NUM_THREADS=4
 cat > namelist.nml << EOF
 
 &grid
-oro_id=1
 /
 
 &run
@@ -35,28 +34,17 @@ start_hour=0
 /
 
 &io
-ideal_input_id=2
-write_out_interval_min=1440
 lwrite_integrals=.true.
-lmodel_level_output=.false.
 time_to_next_analysis_min=-1
 /
 
 &constituents
-lmoist=.true.
 /
 
 &diff
-lmom_diff_h=.true.
-lmom_diff_v=.true.
-ltemp_diff_h=.true.
-ltemp_diff_v=.true.
-lmass_diff_h=.true.
-lmass_diff_v=.true.
 /
 
 &rad
-rad_config=1
 /
 
 &surface

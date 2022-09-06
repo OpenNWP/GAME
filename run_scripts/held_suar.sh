@@ -28,15 +28,10 @@ oro_id=0
 &run
 run_id="$run_id"
 run_span_min=$((1200*24*60))
-start_year=2000
-start_month=1
-start_day=1
-start_hour=0
 /
 
 &io
 ideal_input_id=1
-write_out_interval_min=1440
 lwrite_integrals=.true.
 lpressure_level_output=.false.
 time_to_next_analysis_min=-1
@@ -47,7 +42,6 @@ lmoist=.false.
 /
 
 &diff
-lmom_diff_h=.true.
 lmom_diff_v=.false.
 ltemp_diff_h=.false.
 ltemp_diff_v=.false.

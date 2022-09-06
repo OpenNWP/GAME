@@ -34,8 +34,8 @@ module mo_io_nml
     integer :: fileunit
     
     ideal_input_id = 2
-    write_out_interval_min = 180._wp
-    lmodel_level_output = .true.
+    write_out_interval_min = 1440._wp
+    lmodel_level_output = .false.
     lpressure_level_output = .true.
     lsurface_output = .true.
     lwrite_integrals = .false.

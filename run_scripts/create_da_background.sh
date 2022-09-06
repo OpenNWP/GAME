@@ -22,28 +22,21 @@ export OMP_NUM_THREADS=4
 cat > namelist.nml << EOF
 
 &grid
-oro_id=1
 /
 
 &run
 run_id="$run_id"
 run_span_min=$((0*24*60))
-start_year=2000
-start_month=1
-start_day=1
-start_hour=0
 /
 
 &io
 ideal_input_id=0
-write_out_interval_min=1440
 lpressure_level_output=.false.
 lsurface_output=.false.
 time_to_next_analysis_min=0
 /
 
 &constituents
-lmoist=.true.
 /
 
 &diff

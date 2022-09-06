@@ -22,7 +22,6 @@ export OMP_NUM_THREADS=${BASH_ARGV[9]}
 cat > namelist.nml << EOF
 
 &grid
-oro_id=${BASH_ARGV[7]}
 /
 
 &run
@@ -37,25 +36,16 @@ start_hour=${BASH_ARGV[0]}
 &io
 ideal_input_id=-1
 write_out_interval_min=180
-lmodel_level_output=.false.
 time_to_next_analysis_min=${BASH_ARGV[8]}
 /
 
 &constituents
-lmoist=.true.
 /
 
 &diff
-lmom_diff_h=.true.
-lmom_diff_v=.true.
-ltemp_diff_h=.true.
-ltemp_diff_v=.true.
-lmass_diff_h=.true.
-lmass_diff_v=.true.
 /
 
 &rad
-rad_config=1
 /
 
 &surface
