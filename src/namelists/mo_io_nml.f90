@@ -51,17 +51,17 @@ module mo_io_nml
     close(fileunit)
     
     if (start_month<10) then
-      start_month_str = trim(int2string(start_month))
+      start_month_str = "0" // trim(int2string(start_month))
     else
       start_month_str = trim(int2string(start_month))
     endif
     if (start_day<10) then
-      start_day_str = trim(int2string(start_day))
+      start_day_str = "0" // trim(int2string(start_day))
     else
       start_day_str = trim(int2string(start_day))
     endif
     if (start_hour<10) then
-      start_hour_str = trim(int2string(start_hour))
+      start_hour_str = "0" // trim(int2string(start_hour))
     else
       start_hour_str = trim(int2string(start_hour))
     endif
