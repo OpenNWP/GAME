@@ -31,7 +31,10 @@ module mo_io_nml
   subroutine io_nml_setup()
   
     ! local variables
-    integer :: fileunit
+    integer          :: fileunit
+    character(len=2) :: start_month_str
+    character(len=2) :: start_day_str
+    character(len=2) :: start_hour_str
     
     ideal_input_id = 2
     write_out_interval_min = 1440._wp
@@ -47,8 +50,23 @@ module mo_io_nml
         
     close(fileunit)
     
-    init_state_file = "../../nwp_init/" // trim(int2string(start_year)) // trim(int2string(start_month)) // &
-                                           trim(int2string(start_day)) // trim(int2string(start_hour)) // ".nc"
+    if (start_month<10) then
+      start_month_str = trim(int2string(start_month))
+    else
+      start_month_str = trim(int2string(start_month))
+    endif
+    if (start_day<10) then
+      start_day_str = trim(int2string(start_day))
+    else
+      start_day_str = trim(int2string(start_day))
+    endif
+    if (start_hour<10) then
+      start_hour_str = trim(int2string(start_hour))
+    else
+      start_hour_str = trim(int2string(start_hour))
+    endif
+    init_state_file = "../../nwp_init/" // trim(int2string(start_year)) // start_month_str // &
+                                           start_day_str // start_hour_str // ".nc"
     
     if (ideal_input_id==-1) then
       write(*,*) "Initialization state file:", init_state_file
