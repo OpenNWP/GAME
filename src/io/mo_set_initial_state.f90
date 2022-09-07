@@ -10,7 +10,7 @@ module mo_set_initial_state
   use mo_constants,        only: p_0,r_d,c_d_p,m_d,m_v
   use mo_grid_nml,         only: n_scalars,n_scalars_h,n_vectors,n_vectors_per_layer,n_vectors_h,n_levels,n_dual_vectors, &
                                  n_layers,oro_id,res_id,n_dual_v_vectors,n_dual_scalars_h
-  use mo_constituents_nml, only: n_condensed_constituents,n_constituents
+  use mo_constituents_nml, only: n_condensed_constituents,n_constituents,lmoist
   use mo_surface_nml,      only: nsoillays
   use mo_derived,          only: rel_humidity
   use mo_various_helpers,  only: nc_check,int2string
@@ -252,9 +252,9 @@ module mo_set_initial_state
     
     ! This subroutine reads the initial state of the model atmosphere from a netCDF file.
     
-    type(t_state),      intent(out) :: state
-    type(t_diag),       intent(out) :: diag
-    type(t_grid),       intent(in)  :: grid ! grid quantities
+    type(t_state),      intent(inout) :: state ! state variables
+    type(t_diag),       intent(inout) :: diag  ! diagnostic quantities
+    type(t_grid),       intent(in)    :: grid  ! grid quantities
     
     ! local variables
     integer               :: ji,ncid,tke_id,tke_avail,densities_id,temperature_id,wind_id
@@ -278,11 +278,15 @@ module mo_set_initial_state
     call nc_check(nf90_get_var(ncid,wind_id,state%wind))
     if (tke_avail==1) then
       call nc_check(nf90_get_var(ncid,tke_id,diag%tke))
+    else
+      !$omp parallel workshare
+      diag%tke = 0._wp
+      !$omp end parallel workshare
     endif
     call nc_check(nf90_close(ncid))
     
     ! resricting the maximum relative humidity to 100 %
-    if (n_condensed_constituents==4) then
+    if (lmoist) then
       !$omp parallel do private(ji)
       do ji=1,n_scalars
         if (rel_humidity(state%rho((n_condensed_constituents+1)*n_scalars+ji),temperature(ji))>1._wp) then
