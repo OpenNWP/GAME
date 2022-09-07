@@ -51,7 +51,7 @@ module mo_grid_setup
                      trim(int2string(n_layers)) // "_ORO" // trim(int2string(oro_id)) // ".nc"
     write(*,*) "Grid filename: ", trim(grid_file_name)
     
-    call nc_check(nf90_open(grid_file_name,NF90_CLOBBER,ncid))
+    call nc_check(nf90_open(trim(grid_file_name),NF90_CLOBBER,ncid))
     call nc_check(nf90_inq_varid(ncid,"no_of_oro_layers",n_oro_layers_id))
     call nc_check(nf90_inq_varid(ncid,"toa",toa_id))
     call nc_check(nf90_inq_varid(ncid,"radius",radius_id))
