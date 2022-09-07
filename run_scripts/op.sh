@@ -46,10 +46,10 @@ time_to_next_analysis_min=${BASH_ARGV[8]}
 /
 
 &rad
-rrtmgp_coefficients_file_sw = $game_home_dir"/../rte-rrtmgp/rrtmgp/data/rrtmgp-data-sw-g112-210809.nc"
-rrtmgp_coefficients_file_lw = $game_home_dir"/../rte-rrtmgp/rrtmgp/data/rrtmgp-data-lw-g128-210809.nc"
-cloud_coefficients_file_sw = $game_home_dir"/../rte-rrtmgp/extensions/cloud_optics/rrtmgp-cloud-optics-coeffs-sw.nc"
-cloud_coefficients_file_lw = $game_home_dir"/../rte-rrtmgp/extensions/cloud_optics/rrtmgp-cloud-optics-coeffs-lw.nc"
+rrtmgp_coefficients_file_sw = "$game_home_dir/../rte-rrtmgp/rrtmgp/data/rrtmgp-data-sw-g112-210809.nc"
+rrtmgp_coefficients_file_lw = "$game_home_dir/../rte-rrtmgp/rrtmgp/data/rrtmgp-data-lw-g128-210809.nc"
+cloud_coefficients_file_sw = "$game_home_dir/../rte-rrtmgp/extensions/cloud_optics/rrtmgp-cloud-optics-coeffs-sw.nc"
+cloud_coefficients_file_lw = "$game_home_dir/../rte-rrtmgp/extensions/cloud_optics/rrtmgp-cloud-optics-coeffs-lw.nc"
 /
 
 &surface
