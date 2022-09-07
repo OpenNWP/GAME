@@ -171,6 +171,7 @@ module mo_write_output
     logical,       intent(in)    :: ltotally_first_step
   
     ! local variables
+    logical               :: lcontains_nan
     integer               :: ji,jk,jl,jm,lat_lon_dimids(2),ncid,single_int_dimid,lat_dimid,lon_dimid,start_date_id,start_hour_id, &
                              lat_id,lon_id,layer_index,closest_index,second_closest_index,temperature_ids(n_layers), &
                              pressure_ids(n_layers),rel_hum_ids(n_layers),wind_u_ids(n_layers),wind_v_ids(n_layers), &
@@ -199,6 +200,15 @@ module mo_write_output
     character(len=64)     :: output_file,output_file_p_level,varname
   
     write(*,*) "Writing output ..."
+    
+    ! checking for nan values
+    !$omp parallel workshare
+    lcontains_nan = any(isnan(state%exner_pert))
+    !$omp end parallel workshare
+    if (lcontains_nan) then
+      write(*,*) "Congratulations, the model crashed."
+      call exit(1)
+    endif
     
     ! latitude resolution of the grid
     delta_latitude = M_PI/n_lat_io_points
