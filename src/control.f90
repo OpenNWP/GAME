@@ -217,7 +217,7 @@ program control
   write(*,*) stars
   
   if (rad_config>0) then
-    write(*,*) "Radiation time step:",radiation_dtime,"s"
+    write(*,fmt="(A,F10.3,A2)") " Radiation time step:",radiation_dtime,"s"
   endif
   
   ! finding the minimum horizontal grid distance
@@ -240,11 +240,11 @@ program control
   write(*,fmt="(A,F6.3,A5)") " Snow falling velocity set to",snow_velocity," m/s."
   
   write(*,fmt="(A,F8.3,A3)") " Effective horizontal resolution:",1e-3*eff_hor_res,"km"
-  write(*,*) "Minimum horizontal normal distance:",1e-3*normal_dist_min_hor,"km"
+  write(*,fmt="(A,F8.3,A3)") " Minimum horizontal normal distance:",1e-3*normal_dist_min_hor," km"
   max_speed_hor = 100._wp
-  write(*,*) "Horizontal advective Courant number:",dtime/normal_dist_min_hor*max_speed_hor
+  write(*,fmt="(A,F6.3)") " Horizontal advective Courant number:",dtime/normal_dist_min_hor*max_speed_hor
   max_speed_ver = 0.1_wp
-  write(*,*) "Vertical advective Courant number:",dtime/normal_dist_min_ver*max_speed_ver
+  write(*,fmt="(A,F6.3)") " Vertical advective Courant number:",dtime/normal_dist_min_ver*max_speed_ver
   write(*,*) stars
   write(*,*) "It begins."
   write(*,*) stars
@@ -282,7 +282,7 @@ program control
   call write_out(state_1,diag,grid,wind_h_lowest_layer,t_init,t_write,ltotally_first_step)
   t_write = t_0 + 60._wp*write_out_interval_min
   
-  write(*,"(A,F10.3,A2)") "Run progress:",(t_init-t_init)/3600._wp,"h"
+  write(*,"(A,F10.3,A2)") " Run progress:",(t_init-t_init)/3600._wp,"h"
   ! clock_t first_time,second_time
   ! first_time = clock()
   if (lwrite_integrals) then
@@ -376,9 +376,9 @@ program control
       ! Calculating the speed of the model.
       call cpu_time(end_timestamp)
       !speed = CLOCKS_PER_SEC*60*write_out_interval_min/((double) second_time - first_time)
-      write(*,*) "Current speed:",60._wp*write_out_interval_min/(end_timestamp - begin_timestamp)
+      write(*,fmt="(A,F8.3)") " Current speed:",60._wp*write_out_interval_min/(end_timestamp - begin_timestamp)
       call cpu_time(begin_timestamp)
-      write(*,fmt="(A,F10.3,A2)") "Run progress:",(t_0+dtime-t_init)/3600._wp,"h"
+      write(*,fmt="(A,F10.3,A2)") " Run progress:",(t_0+dtime-t_init)/3600._wp,"h"
       
       ! resetting the wind in the lowest layer to zero
       !$omp parallel do private(ji)

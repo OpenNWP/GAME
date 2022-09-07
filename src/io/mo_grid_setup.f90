@@ -49,7 +49,7 @@ module mo_grid_setup
     ! determining the grid file
     grid_file_name = "../../grid_generator/grids/RES" // trim(int2string(res_id)) // "_L" // &
                      trim(int2string(n_layers)) // "_ORO" // trim(int2string(oro_id)) // ".nc"
-    write(*,*) "Grid filename:", grid_file_name
+    write(*,*) "Grid filename: ", trim(grid_file_name)
     
     call nc_check(nf90_open(grid_file_name,NF90_CLOBBER,ncid))
     call nc_check(nf90_inq_varid(ncid,"no_of_oro_layers",n_oro_layers_id))

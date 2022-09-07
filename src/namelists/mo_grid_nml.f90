@@ -58,9 +58,9 @@ module mo_grid_nml
         
     close(fileunit)
     
-    write(*,*) "resolution ID:", res_id
-    write(*,*) "number of layers:", n_layers
-    write(*,*) "orography ID:", oro_id
+    write(*,fmt="(A,I3)") " resolution ID:", res_id
+    write(*,fmt="(A,I4)") " number of layers:", n_layers
+    write(*,fmt="(A,I2)") " orography ID:", oro_id
     
     ! depend on the resolution
     n_pentagons = 12
