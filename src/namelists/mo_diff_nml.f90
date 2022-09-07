@@ -9,14 +9,14 @@ module mo_diff_nml
   
   implicit none
   
-  real(wp) :: h_prandtl    ! height of the Prandtl layer TOA
-  logical  :: lmom_diff_h  ! switch for horizontal momentum diffusion
-  logical  :: lmom_diff_v  ! switch for vertical momentum diffusion
-  logical  :: ltemp_diff_h ! horizontal temperature diffusion switch
-  logical  :: ltemp_diff_v ! vertical temperature diffusion switch
-  logical  :: lmass_diff_h ! horizontal mass diffusion switch
-  logical  :: lmass_diff_v ! vertical mass diffusion switch
-  real(wp) :: karman       ! von Karman's constant
+  real(wp) :: h_prandtl       ! height of the Prandtl layer TOA
+  logical  :: lmom_diff_h     ! switch for horizontal momentum diffusion
+  logical  :: lmom_diff_v     ! switch for vertical momentum diffusion
+  logical  :: ltemp_diff_h    ! horizontal temperature diffusion switch
+  logical  :: ltemp_diff_v    ! vertical temperature diffusion switch
+  logical  :: lmass_diff_h    ! horizontal mass diffusion switch
+  logical  :: lmass_diff_v    ! vertical mass diffusion switch
+  real(wp) :: karman          ! von Karman's constant
   logical  :: lklemp          ! turns the Klemp damping layer on or off
   real(wp) :: klemp_damp_max  ! the maximum Klemp damping coefficient
   real(wp) :: klemp_begin_rel ! lower boundary of the Klemp damping layer in relation to the TOA
