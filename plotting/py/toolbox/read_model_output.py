@@ -9,14 +9,15 @@ def fetch_model_output(input_filename, varname):
 	# reading the variable
 	lat_vector = ds["lat"][:]
 	lon_vector = ds["lon"][:]
-	plot_array = ds[varname][:]
+	# flip is due to how Fortran handles arrays
+	plot_array = np.transpose(ds[varname][:])
 	ds.close()
 	return lat_vector, lon_vector, plot_array
 
 def return_analysis_time(input_filename):
 	ds = nc.Dataset(input_filename, "r", format = "NETCDF4")
 	# reading the variables
-	analysis_date = str(ds["start_day"][:][0])
+	analysis_date = str(ds["start_date"][:][0])
 	analysis_time = int(ds["start_hour"][:][0]/100.0)
 	ds.close()
 	start_year = int(analysis_date[0:4])

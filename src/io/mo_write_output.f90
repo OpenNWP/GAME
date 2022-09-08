@@ -479,7 +479,7 @@ module mo_write_output
       enddo
       !$omp end parallel do
       
-      output_file = trim(run_id) // "+" // trim(int2string(time_since_init_min)) // "dmin_surface.nc"
+      output_file = trim(run_id) // "+" // trim(int2string(time_since_init_min)) // "min_surface.nc"
       
       call nc_check(nf90_create(output_file,NF90_CLOBBER,ncid))
       call nc_check(nf90_def_dim(ncid,"single_int_index",1,single_int_dimid))

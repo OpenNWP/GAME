@@ -38,7 +38,7 @@ module mo_run_nml
     start_year = 2000
     start_month = 1
     start_day = 1
-    start_date = 1000000*start_year + 100*start_month + start_day
+    start_date = 10000*start_year + 100*start_month + start_day
     start_hour = 0
     start_minute = 0
     
