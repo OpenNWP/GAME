@@ -14,22 +14,23 @@ module mo_optimize
   
   contains
   
-  
-int optimize_to_scvt(double latitude_scalar[], double longitude_scalar[], double latitude_scalar_dual[], double longitude_scalar_dual[], int n_iterations, int face_edges[][3], int face_edges_reverse[][3], int face_vertices[][3], int adjacent_vector_indices_h[], int from_index_dual[], int to_index_dual[])
-{
-	/*
-	This function manages the grid optimization with Lloyd's algorithm.
-	The result is (almost) a SCVT.
-	*/
+  subroutine optimize_to_scvt(double latitude_scalar[], double longitude_scalar[], double latitude_scalar_dual[], double longitude_scalar_dual[], int n_iterations, int face_edges[][3], int   face_edges_reverse[][3], int face_vertices[][3], int adjacent_vector_indices_h[], int from_index_dual[], int to_index_dual[])
+
+    ! This function manages the grid optimization with Lloyd's algorithm.
+    ! The result is (almost) a SCVT.
 	
-	for (int i = 0; i < n_iterations; ++i)
-	{
-    	set_scalar_h_dual_coords(latitude_scalar_dual, longitude_scalar_dual, latitude_scalar, longitude_scalar, face_edges, face_edges_reverse, face_vertices);
-    	find_cell_cgs(latitude_scalar, longitude_scalar, latitude_scalar_dual, longitude_scalar_dual, adjacent_vector_indices_h, from_index_dual, to_index_dual);
-    	printf("Optimizing grid - iteration %d completed.\n", i + 1);
-	}
-	return 0;
-}
+	! local variables
+	integer :: ji
+	
+	do ji=1,n_iterations
+      call set_scalar_h_dual_coords(latitude_scalar_dual,longitude_scalar_dual,latitude_scalar,longitude_scalar, &
+                                    face_edges,face_edges_reverse,face_vertices)
+      call find_cell_cgs(latitude_scalar,longitude_scalar,latitude_scalar_dual,longitude_scalar_dual, &
+                         adjacent_vector_indices_h,from_index_dual,to_index_dual)
+      write(*,*) "Optimizing grid - iteration",ji,"completed."
+	enddo
+	
+  end subroutine optimize_to_scvt
 
   subroutine find_cell_cgs(latitude_scalar,longitude_scalar,latitude_scalar_dual,longitude_scalar_dual, &
                            adjacent_vector_indices_h,from_index_dual,to_index_dual)
