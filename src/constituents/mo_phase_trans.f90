@@ -5,16 +5,16 @@ module mo_phase_trans
 
   ! This file contains functions calculating everything related to phase transition rates.
 
-  use mo_definitions,            only: wp,t_grid,t_state,t_diag
-  use mo_run_nml,                only: dtime
-  use mo_grid_nml,               only: n_scalars,n_scalars_h,n_layers
-  use mo_constants,              only: r_v,t_0,r_d
-  use mo_constituents_nml,       only: n_condensed_constituents,n_constituents
-  use mo_dictionary,             only: saturation_pressure_over_water,saturation_pressure_over_ice, &
-                                       dsaturation_pressure_over_water_dT,dsaturation_pressure_over_ice_dT, &
-                                       phase_trans_heat,enhancement_factor_over_water,enhancement_factor_over_ice
-  use mo_derived,                only: c_v_mass_weighted_air
-  use mo_surface_nml,            only: nsoillays,lsfc_phase_trans
+  use mo_definitions,      only: wp,t_grid,t_state,t_diag
+  use mo_grid_nml,         only: n_scalars,n_scalars_h,n_layers
+  use mo_constants,        only: r_v,t_0,r_d
+  use mo_constituents_nml, only: n_condensed_constituents,n_constituents
+  use mo_grid_setup,       only: dtime
+  use mo_dictionary,       only: saturation_pressure_over_water,saturation_pressure_over_ice, &
+                                 dsaturation_pressure_over_water_dT,dsaturation_pressure_over_ice_dT, &
+                                 phase_trans_heat,enhancement_factor_over_water,enhancement_factor_over_ice
+  use mo_derived,          only: c_v_mass_weighted_air
+  use mo_surface_nml,      only: nsoillays,lsfc_phase_trans
 
   implicit none
   

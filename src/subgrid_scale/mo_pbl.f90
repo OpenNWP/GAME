@@ -7,12 +7,12 @@ module mo_pbl
 
   use mo_constants,        only: EPSILON_SECURITY,M_PI,gravity,p_0,c_d_p,r_d
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
-  use mo_run_nml,          only: dtime
   use mo_diff_nml,         only: h_prandtl,karman
   use mo_grid_nml,         only: n_scalars,n_scalars_h,n_vectors_per_layer,n_layers,n_vectors,n_vectors_h,n_vectors_per_layer, &
                                  n_h_vectors
   use mo_surface_nml,      only: lprog_soil_temp,pbl_scheme
   use mo_constituents_nml, only: n_constituents
+  use mo_grid_setup,       only: dtime
   use mo_derived,          only: gas_constant_diagnostics
   
   implicit none

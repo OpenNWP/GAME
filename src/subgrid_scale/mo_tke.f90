@@ -8,8 +8,8 @@ module mo_tke
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,           only: n_scalars,n_vectors,n_vectors_h,n_scalars_h
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
-  use mo_run_nml,            only: dtime
   use mo_constants,          only: M_PI
+  use mo_grid_setup,         only: dtime
   use mo_gradient_operators, only: grad
   use mo_inner_product,      only: inner_product
   use mo_grid_setup,         only: mean_velocity_area

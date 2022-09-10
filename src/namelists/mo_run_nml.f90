@@ -10,7 +10,6 @@ module mo_run_nml
   implicit none
   
   character(len=64) :: run_id         ! ID of this run
-  real(wp)          :: dtime          ! time step
   real(wp)          :: run_span_min   ! run span in minutes
   real(wp)          :: t_init         ! epoch time stamp of the initialization
   logical           :: lmoist         ! moisture switch
@@ -32,7 +31,6 @@ module mo_run_nml
     integer :: fileunit
   
     run_id = "ideal"
-    dtime = 360.312923_wp
     run_span_min = 100._wp*24._wp*60._wp
     lmoist = .true.
     start_year = 2000

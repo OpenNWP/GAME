@@ -6,7 +6,8 @@ module mo_io_nml
   ! This nameslist configures the IO behaviour of the model.
   
   use mo_definitions,     only: wp
-  use mo_run_nml,         only: dtime,start_year,start_month,start_day,start_hour
+  use mo_run_nml,         only: start_year,start_month,start_day,start_hour
+  use mo_grid_setup,      only: dtime
   use mo_various_helpers, only: int2string
   
   implicit none

@@ -17,6 +17,7 @@ module mo_grid_setup
   
   ! some quantities that need to be accessed from outside this module
   real(wp) :: toa                  ! top of atmosphere in meters above MSL
+  real(wp) :: dtime                ! time step
   integer  :: n_oro_layers         ! number of layers following the orography
   real(wp) :: stretching_parameter ! vertical grid stretching parameter
   real(wp) :: radius_rescale       ! radius rescaling factor
@@ -137,6 +138,9 @@ module mo_grid_setup
     radius_rescale = radius/r_e
     mean_velocity_area = 2._wp/3._wp*4._wp*M_PI*radius**2/n_scalars_h
     eff_hor_res = sqrt(4._wp*M_PI*radius**2/n_scalars_h)
+    dtime = 1.614_wp*1e-3*eff_hor_res
+    
+    write(*,*) "Time step:",dtime,"s."
     
     !$omp parallel do private(ji)
     do ji=1,6*n_scalars_h

@@ -12,8 +12,8 @@ program control
                                        n_vectors_per_layer,grid_nml_setup
   use mo_constituents_nml,       only: cloud_droplets_velocity,rain_velocity,snow_velocity,n_constituents, &
                                        n_condensed_constituents,constituents_nml_setup
-  use mo_run_nml,                only: dtime,run_span_min,run_nml_setup,t_init
-  use mo_grid_setup,             only: eff_hor_res,radius_rescale,set_grid_properties
+  use mo_run_nml,                only: run_span_min,run_nml_setup,t_init
+  use mo_grid_setup,             only: eff_hor_res,radius_rescale,set_grid_properties,dtime
   use mo_io_nml,                 only: n_output_steps_10m_wind,lwrite_integrals,write_out_interval_min, &
                                        io_nml_setup,ideal_input_id
   use mo_surface_nml,            only: nsoillays,surface_nml_setup
@@ -63,7 +63,6 @@ program control
   call constituents_nml_setup()
   call diff_nml_setup()
   call surface_nml_setup()
-  call io_nml_setup()
   
   ! Allocating memory
   ! ------------------
@@ -190,6 +189,7 @@ program control
   write(*,*) "Reading grid data ..."
   call set_grid_properties(grid)
 
+  call io_nml_setup()
   call rad_nml_setup()
   
   call grad_hor_cov(grid%z_scalar,grid%slope,grid)
