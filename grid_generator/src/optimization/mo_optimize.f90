@@ -14,10 +14,18 @@ module mo_optimize
   
   contains
   
-  subroutine optimize_to_scvt(double latitude_scalar[], double longitude_scalar[], double latitude_scalar_dual[], double longitude_scalar_dual[], int n_iterations, int face_edges[][3], int   face_edges_reverse[][3], int face_vertices[][3], int adjacent_vector_indices_h[], int from_index_dual[], int to_index_dual[])
+  subroutine optimize_to_scvt(latitude_scalar,longitude_scalar,latitude_scalar_dual,longitude_scalar_dual,n_iterations, &
+                               face_edges,face_edges_reverse,face_vertices,adjacent_vector_indices_h, &
+                               from_index_dual,to_index_dual)
 
-    ! This function manages the grid optimization with Lloyd's algorithm.
+    ! This subroutine manages the grid optimization with Lloyd's algorithm.
     ! The result is (almost) a SCVT.
+	
+	real(wp), intent(inout) :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h), &
+	                           latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h), &
+	integer,  intent(in)    :: n_iterations,face_edges(20,3),face_edges_reverse(20,3),face_vertices(20,3), &
+	                           adjacent_vector_indices_h(6*n_scalars_h),from_index_dual(n_vectors_h), &
+	                           to_index_dual(n_vectors_h)
 	
 	! local variables
 	integer :: ji
