@@ -5,7 +5,6 @@ module mo_grid_nml
 
   ! This is the namelists the configures the basic run properties of a model integration.
   
-  use iso_c_binding
   use mo_definitions, only: wp
   use mo_constants,   only: r_e,M_PI
   
@@ -54,8 +53,7 @@ module mo_grid_nml
 
   contains
 
-  subroutine grid_nml_setup() &
-  bind(c,name = "grid_nml_setup")
+  subroutine grid_nml_setup()
   
     res_id = 5
     n_layers = 26

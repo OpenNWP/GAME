@@ -5,7 +5,6 @@ module mo_coriolis
 
   ! In this module, everything that is needed for calculating the vorticity flux term is prepared.
 
-  use iso_c_binding
   use mo_definitions,     only: wp
   use mo_constants,       only: EPSILON_SECURITY
   use mo_grid_nml,        only: radius,n_vectors_h,n_dual_vectors,n_vectors,n_dual_scalars_h,n_scalars_h, &
@@ -20,8 +19,7 @@ module mo_coriolis
   subroutine coriolis(from_index_dual,to_index_dual,trsk_modified_curl_indices,normal_distance,normal_distance_dual, &
                       to_index,area,z_scalar,latitude_scalar,longitude_scalar,latitude_vector,longitude_vector, &
                       latitude_scalar_dual,longitude_scalar_dual,trsk_weights,trsk_indices,from_index, &
-                      adjacent_vector_indices_h,z_vector) &
-  bind(c,name = "coriolis")
+                      adjacent_vector_indices_h,z_vector)
     
     ! This subroutine implements the modified TRSK scheme proposed by Gassmann (2018). Indices and weights are computed here for the highest layer but remain unchanged elsewhere.
     

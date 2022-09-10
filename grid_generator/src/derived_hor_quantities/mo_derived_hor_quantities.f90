@@ -5,7 +5,6 @@ module mo_derived_hor_quantities
   
   ! This module contains helper functions concerned with simple algebraic operations on vectors.
 
-  use iso_c_binding
   use mo_definitions,     only: wp
   use mo_grid_nml,        only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
                                 no_of_lloyd_iterations,radius,n_vectors,n_dual_vectors,n_pentagons
@@ -19,8 +18,7 @@ module mo_derived_hor_quantities
   contains
 
   subroutine set_dual_vector_h_atttributes(latitude_scalar_dual,latitude_vector,direction_dual,longitude_vector,to_index_dual, &
-                                       from_index_dual,longitude_scalar_dual,rel_on_line_dual) &
-  bind(c,name = "set_dual_vector_h_atttributes")
+                                       from_index_dual,longitude_scalar_dual,rel_on_line_dual)
     
     ! This function computes the following two properties of horizontal dual vectors:
     ! - where they are placed in between the dual scalar points
@@ -51,8 +49,7 @@ module mo_derived_hor_quantities
   end subroutine set_dual_vector_h_atttributes
 
   subroutine set_vector_h_attributes(from_index,to_index,latitude_scalar,longitude_scalar, &
-                                     latitude_vector,longitude_vector,direction) &
-  bind(c,name = "set_vector_h_attributes")
+                                     latitude_vector,longitude_vector,direction)
     
     ! This subroutine sets the geographical coordinates and the directions of the horizontal vector points.
     
@@ -80,8 +77,7 @@ module mo_derived_hor_quantities
   end subroutine set_vector_h_attributes
   
   subroutine direct_tangential_unity(latitude_scalar_dual,longitude_scalar_dual,direction,direction_dual, &
-                                     to_index_dual,from_index_dual,rel_on_line_dual) &
-  bind(c,name = "direct_tangential_unity")
+                                     to_index_dual,from_index_dual,rel_on_line_dual)
   
     ! This subroutine determines the directions of the dual vectors.
     
@@ -127,8 +123,7 @@ module mo_derived_hor_quantities
   
   end subroutine direct_tangential_unity
   
-  subroutine set_f_vec(latitude_vector,direction_dual,f_vec) &
-  bind(c,name = "set_f_vec")
+  subroutine set_f_vec(latitude_vector,direction_dual,f_vec)
   
     ! This subroutine sets the Coriolis vector (vertical at horizontal primal vector points,
     ! horizontal at horizontal dual vector points).
@@ -154,8 +149,7 @@ module mo_derived_hor_quantities
   end subroutine set_f_vec
   
   subroutine calc_vorticity_indices_triangles(from_index_dual,to_index_dual,direction,direction_dual, &
-                                              vorticity_indices_triangles,vorticity_signs_triangles) &
-  bind(c,name = "calc_vorticity_indices_triangles")
+                                              vorticity_indices_triangles,vorticity_signs_triangles)
   
     ! This subroutine computes the vector indices needed for calculating the vorticity on triangles.
     
@@ -200,8 +194,7 @@ module mo_derived_hor_quantities
   end subroutine calc_vorticity_indices_triangles
   
   subroutine write_statistics_file(pent_hex_face_unity_sphere,normal_distance,normal_distance_dual,z_vector,z_vector_dual, &
-                                   grid_name,statistics_file_name) &
-  bind(c,name = "write_statistics_file")
+                                   grid_name,statistics_file_name)
     
     ! This subroutine writes out statistical properties of the grid to a text file.
     
@@ -274,8 +267,7 @@ module mo_derived_hor_quantities
     
   end subroutine write_statistics_file
   
-  subroutine find_adjacent_vector_indices_h(from_index,to_index,adjacent_signs_h,adjacent_vector_indices_h) &
-  bind(c,name = "find_adjacent_vector_indices_h")
+  subroutine find_adjacent_vector_indices_h(from_index,to_index,adjacent_signs_h,adjacent_vector_indices_h)
   
     ! This subroutine finds the horizontal vectors that are adjacent to a grid cell.
     
@@ -359,8 +351,7 @@ module mo_derived_hor_quantities
   end subroutine find_adjacent_vector_indices_h
   
   subroutine calc_cell_area_unity(pent_hex_face_unity_sphere,latitude_scalar_dual,longitude_scalar_dual, &
-                                  adjacent_vector_indices_h,vorticity_indices_pre) &
-  bind(c,name = "calc_cell_area_unity")
+                                  adjacent_vector_indices_h,vorticity_indices_pre)
     
     ! This subroutine computes the areas of the cells (pentagons and hexagons) on the unity sphere.
     

@@ -5,7 +5,6 @@ module mo_geodesy
   
   ! This file contains functions calculating geodesic operations.
 
-  use iso_c_binding
   use mo_definitions,     only: wp
   use mo_constants,       only: M_PI
   use mo_various_helpers, only: find_min_index,in_bool_checker
@@ -14,8 +13,7 @@ module mo_geodesy
   
   contains
   
-  function calculate_distance_cart(lat_2_in,lon_2_in,lat_3_in,lon_3_in,radius_1,radius_2) &
-  bind(c,name = "calculate_distance_cart")
+  function calculate_distance_cart(lat_2_in,lon_2_in,lat_3_in,lon_3_in,radius_1,radius_2)
   
     ! This function returns the Euclidian distance of two points.
     
@@ -44,8 +42,7 @@ module mo_geodesy
   
   end function calculate_distance_cart
   
-  function calculate_distance_h(latitude_a,longitude_a,latitude_b,longitude_b,radius) &
-  bind(c,name = "calculate_distance_h")
+  function calculate_distance_h(latitude_a,longitude_a,latitude_b,longitude_b,radius)
   
     ! This function returns the geodetic distance of two points given their geographical coordinates.
     
@@ -57,8 +54,7 @@ module mo_geodesy
     
   end function calculate_distance_h
 
-  subroutine find_geodetic(lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau,lat_out,lon_out) &
-  bind(c,name = "find_geodetic")
+  subroutine find_geodetic(lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau,lat_out,lon_out)
 
     ! This subroutine calculates the geographical coordinates of a point on a geodetic between two points.
     
@@ -79,8 +75,7 @@ module mo_geodesy
   
   end subroutine find_geodetic
   
-  function find_geodetic_direction(lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau) &
-  bind(c,name = "find_geodetic_direction")
+  function find_geodetic_direction(lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau)
   
     ! This function calculates the geodetic direction between two points given their geographical coordinates at a certain point
     ! (defined by the parameter tau) between them.
@@ -103,8 +98,7 @@ module mo_geodesy
   
   end function find_geodetic_direction
 
-  subroutine calc_local_i(lon,result_vec) &
-  bind(c,name = "calc_local_i")
+  subroutine calc_local_i(lon,result_vec)
   
     ! This subroutine calculates the local eastward basis vector.
     
@@ -117,8 +111,7 @@ module mo_geodesy
     
   end subroutine calc_local_i
 
-  subroutine active_turn(x_in,y_in,turn_angle,x_out,y_out) &
-  bind(c,name = "active_turn")
+  subroutine active_turn(x_in,y_in,turn_angle,x_out,y_out)
   
     ! This subroutine turns a vector in R^2 around the z-axis.
     
@@ -130,8 +123,7 @@ module mo_geodesy
   
   end subroutine active_turn
 
-  subroutine passive_turn(x_in,y_in,turn_angle,x_out,y_out) &
-  bind(c,name = "passive_turn")
+  subroutine passive_turn(x_in,y_in,turn_angle,x_out,y_out)
   
     ! This subroutine turns a vector in R^2 around the z-axis.
     
@@ -142,8 +134,7 @@ module mo_geodesy
   
   end subroutine passive_turn
 
-  subroutine find_between_point(x_0,y_0,z_0,x_1,y_1,z_1,rel_on_line,x_out,y_out,z_out) &
-  bind(c,name = "find_between_point")
+  subroutine find_between_point(x_0,y_0,z_0,x_1,y_1,z_1,rel_on_line,x_out,y_out,z_out)
   
     ! This subroutine calculates the coordinates of a point on a straight line between two other points.
     
@@ -156,8 +147,7 @@ module mo_geodesy
   
   end subroutine find_between_point
 
-  subroutine calc_local_j(lat,lon,result_vec) &
-  bind(c,name = "calc_local_j")
+  subroutine calc_local_j(lat,lon,result_vec)
   
     ! This subroutine calculates the local northward basis vector.
     
@@ -170,8 +160,7 @@ module mo_geodesy
     
   end subroutine calc_local_j
 
-  subroutine find_geos(x,y,z,lat_out,lon_out) &
-  bind(c,name = "find_geos")
+  subroutine find_geos(x,y,z,lat_out,lon_out)
   
     ! This subroutine calculates the geographical coordinates of a point given its Cartesian coordinates
     
@@ -183,8 +172,7 @@ module mo_geodesy
     
   end subroutine find_geos
   
-  subroutine find_global_normal(lat,lon,x,y,z) &
-  bind(c,name = "find_global_normal")
+  subroutine find_global_normal(lat,lon,x,y,z)
   
     ! This subroutine calculates the Cartesian normal vector of a point given its geographical coordinates.
     
@@ -197,8 +185,7 @@ module mo_geodesy
     
   end subroutine find_global_normal
 
-  subroutine active_turn_x(angle,vector_in,vector_out) &
-  bind(c,name = "active_turn_x")
+  subroutine active_turn_x(angle,vector_in,vector_out)
   
     ! This subroutine turns a vector in R^3 around the x-axis.
     
@@ -212,8 +199,7 @@ module mo_geodesy
     
   end subroutine active_turn_x
 
-  function rad2deg(input) &
-  bind(c,name = "rad2deg")
+  function rad2deg(input)
   
     ! This function converts an angle in radians to an angle in degrees.
     
@@ -224,8 +210,7 @@ module mo_geodesy
     
   end function rad2deg
 
-  function deg2rad(input) &
-  bind(c,name = "deg2rad")
+  function deg2rad(input)
   
     ! This function converts an angle in degrees to an angle in radians.
     
@@ -236,8 +221,7 @@ module mo_geodesy
     
   end function deg2rad
 
-  function calculate_vertical_area(base_distance,r_1,r_2) &
-  bind(c,name = "calculate_vertical_area")
+  function calculate_vertical_area(base_distance,r_1,r_2)
   
     ! This function calculates the area of a vertical face (side face of a gridbox).
     
@@ -248,8 +232,7 @@ module mo_geodesy
     
   end function calculate_vertical_area
 
-  function scalar_product_elementary(vector_a,vector_b) &
-  bind(c,name = "scalar_product_elementary")
+  function scalar_product_elementary(vector_a,vector_b)
   
     ! This function returns the scalar product of two three-dimensional vectors.
     
@@ -267,8 +250,7 @@ module mo_geodesy
     
   end function scalar_product_elementary
 
-  function scalar_product_elementary_2d(vector_a,vector_b) &
-  bind(c,name = "scalar_product_elementary_2d")
+  function scalar_product_elementary_2d(vector_a,vector_b)
   
     ! This function returns the scalar product of two two-dimensional vectors.
     
@@ -286,8 +268,7 @@ module mo_geodesy
     
   end function scalar_product_elementary_2d
 
-  function find_turn_angle(angle_0,angle_1) &
-  bind(c,name = "find_turn_angle")
+  function find_turn_angle(angle_0,angle_1)
   
     ! This function returns the turn angle between two angles.
     
@@ -305,8 +286,7 @@ module mo_geodesy
     
   end function find_turn_angle
 
-  subroutine cross_product_elementary(a_vector,b_vector,result_vector) &
-  bind(c,name = "cross_product_elementary")
+  subroutine cross_product_elementary(a_vector,b_vector,result_vector)
   
     ! This subroutine computes the cross product in Cartesian coordinates.
     
@@ -319,8 +299,7 @@ module mo_geodesy
     
   end subroutine cross_product_elementary
 
-  subroutine normalize_cartesian(x_in,y_in,z_in,x_out,y_out,z_out) &
-  bind(c,name = "normalize_cartesian")
+  subroutine normalize_cartesian(x_in,y_in,z_in,x_out,y_out,z_out)
   
     ! This subroutine normalizes a Cartesian vector.
     
@@ -337,8 +316,7 @@ module mo_geodesy
     
   end subroutine normalize_cartesian
   
-  subroutine find_voronoi_center_sphere(lat_1_in,lon_1_in,lat_2_in,lon_2_in,lat_3_in,lon_3_in,lat_out,lon_out) &
-  bind(c,name = "find_voronoi_center_sphere")
+  subroutine find_voronoi_center_sphere(lat_1_in,lon_1_in,lat_2_in,lon_2_in,lat_3_in,lon_3_in,lat_out,lon_out)
     
     ! This subroutine calculates the Voronoi center of three points given their geographical coordinates.
 
@@ -362,8 +340,7 @@ module mo_geodesy
     
   end subroutine find_voronoi_center_sphere
   
-  function calc_triangle_area(lat_1_in,lon_1_in,lat_2_in,lon_2_in,lat_3_in,lon_3_in) &
-  bind(c,name = "calc_triangle_area")
+  function calc_triangle_area(lat_1_in,lon_1_in,lat_2_in,lon_2_in,lat_3_in,lon_3_in)
 
     ! This function calculates the area of a spherical triangle.
     
@@ -442,8 +419,7 @@ module mo_geodesy
   end function calc_triangle_area
   
 
-  function rel_on_line(lat_0,lon_0,lat_1,lon_1,lat_point,lon_point) &
-  bind(c,name = "rel_on_line")
+  function rel_on_line(lat_0,lon_0,lat_1,lon_1,lat_point,lon_point)
     
     ! This function calculates where a geodetic is the closest to a certain point.
     
@@ -474,8 +450,7 @@ module mo_geodesy
   end function rel_on_line
   
 
-  subroutine sort_vertex_indices(lat_points,lon_points,number_of_vertices,indices_resorted) &
-  bind(c,name = "sort_vertex_indices")
+  subroutine sort_vertex_indices(lat_points,lon_points,number_of_vertices,indices_resorted)
   
     ! This subroutine sorts the vertices of a polygon in positive mathematical direction.
     
@@ -582,8 +557,7 @@ module mo_geodesy
     
   end subroutine sort_vertex_indices
 
-  function calc_spherical_polygon_area(lat_points,lon_points,number_of_edges) &
-  bind(c,name = "calc_spherical_polygon_area")
+  function calc_spherical_polygon_area(lat_points,lon_points,number_of_edges)
     
     ! This function calculates the area of a spherical polygon.
     

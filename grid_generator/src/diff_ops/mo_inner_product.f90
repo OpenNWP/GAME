@@ -5,7 +5,6 @@ module inner_product
 
   ! In this file, the inner product weights are computed.
 
-  use iso_c_binding
   use mo_definitions, only: wp
   use mo_grid_nml,    only: n_scalars_h,n_scalars,n_vectors_per_layer, &
                             n_vectors,n_layers,n_pentagons,grid_nml_setup
@@ -14,8 +13,7 @@ module inner_product
   
   contains             
   
-  subroutine calc_inner_product(inner_product_weights,normal_distance,volume,area,z_scalar,z_vector,adjacent_vector_indices_h) &
-  bind(c,name = "calc_inner_product")
+  subroutine calc_inner_product(inner_product_weights,normal_distance,volume,area,z_scalar,z_vector,adjacent_vector_indices_h)
 
     ! This subroutine computes the geometrical weights for computing the inner product.
 

@@ -10,16 +10,13 @@ project(game VERSION ${version})
 enable_language(Fortran)
 add_executable(
 grid_generator
-src/control.c
+src/control.f90
 ../src/mo_constants.f90
 ../src/mo_definitions.f90
 src/diff_ops/mo_rhombus_averaging.f90
 src/diff_ops/mo_inner_product.f90
-src/optimization/optimize.c
 src/optimization/mo_optimize.f90
-src/horizontal_grid/discrete_coordinate_trafos.c
 src/horizontal_grid/mo_discrete_coordinate_trafos.f90
-src/horizontal_grid/horizontal_generation.c
 src/horizontal_grid/mo_horizontal_generation.f90
 src/derived_hor_quantities/mo_derived_hor_quantities.f90
 ../shared/mo_geodesy.f90
@@ -32,7 +29,7 @@ src/namelists/mo_grid_nml.f90
 )
 find_package(OpenMP)
 SET(CMAKE_C_FLAGS "${OpenMP_C_FLAGS} -O2 -Wall")
-SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -O2 -Wall -Wpedantic -Wno-c-binding-type -I/usr/include -L/usr/lib/x86_64-linux-gnu")
+SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -O2 -Wall -Wpedantic -I/usr/include")
 target_link_libraries(grid_generator m netcdf netcdff)
 
 

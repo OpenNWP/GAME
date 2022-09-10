@@ -5,7 +5,6 @@ module mo_phys_sfc_properties
 
   ! In this module, the physical surface properties are set.
 
-  use iso_c_binding
   use netcdf
   use mo_constants,       only: M_PI,rho_h2o
   use mo_definitions,     only: wp
@@ -17,8 +16,7 @@ module mo_phys_sfc_properties
   
   contains
 
-  function vegetation_height_ideal(latitude,oro) &
-  bind(c,name = "vegetation_height_ideal")
+  function vegetation_height_ideal(latitude,oro)
     
     ! This function calculates a latitude- and height-dependant idealized vegetation height.
     
@@ -35,8 +33,7 @@ module mo_phys_sfc_properties
   end function vegetation_height_ideal
   
   subroutine set_sfc_properties(latitude_scalar,longitude_scalar,roughness_length, &
-                                sfc_albedo,sfc_rho_c,t_conductivity,oro,is_land,oro_id) &
-  bind(c,name = "set_sfc_properties")
+                                sfc_albedo,sfc_rho_c,t_conductivity,oro,is_land,oro_id)
   
     ! This subroutine sets the physical surface properties.
   

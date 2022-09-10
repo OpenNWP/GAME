@@ -5,7 +5,6 @@ module mo_rhombus_averaging
   
   ! In this file, remapping indices and weights to rhombi are computed.
 
-  use iso_c_binding
   use mo_definitions,     only: wp
   use mo_constants,       only: EPSILON_SECURITY
   use mo_grid_nml,        only: n_vectors_h,radius,n_scalars_h,n_dual_scalars_h,n_dual_vectors,n_vectors
@@ -18,8 +17,7 @@ module mo_rhombus_averaging
   
   subroutine rhombus_averaging(vorticity_indices_triangles,from_index_dual,to_index_dual, &
   vorticity_indices_rhombi,density_to_rhombus_indices,from_index,to_index,area_dual,z_vector,latitude_scalar_dual, &
-  longitude_scalar_dual,density_to_rhombus_weights,latitude_vector,longitude_vector,latitude_scalar,longitude_scalar) &
-  bind(c,name = "rhombus_averaging")
+  longitude_scalar_dual,density_to_rhombus_weights,latitude_vector,longitude_vector,latitude_scalar,longitude_scalar)
     
     ! This subroutine implements the averaging of scalar quantities to rhombi. Indices and weights are computed here for the highest layer but remain unchanged elsewhere.
 

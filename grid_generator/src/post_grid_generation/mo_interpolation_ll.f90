@@ -5,7 +5,6 @@ module mo_interpolation_ll
 
   ! This file contains functions that compute properties of the vertical grid.
 
-  use iso_c_binding
   use mo_definitions,     only: wp
   use mo_constants,       only: M_PI,EPSILON_SECURITY
   use mo_grid_nml,        only: n_scalars_h,n_lat_io_points,n_lon_io_points,n_latlon_io_points
@@ -16,8 +15,7 @@ module mo_interpolation_ll
   
   contains
   
-  subroutine interpolate_ll(latitude_scalar,longitude_scalar,interpol_indices,interpol_weights) &
-  bind(c,name = "interpolate_ll")
+  subroutine interpolate_ll(latitude_scalar,longitude_scalar,interpol_indices,interpol_weights)
   
     ! This function interpolates to the lat-lon grid.
   

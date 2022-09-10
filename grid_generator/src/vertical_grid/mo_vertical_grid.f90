@@ -5,7 +5,6 @@ module vertical_grid
 
   ! This file contains functions that compute properties of the vertical grid.
 
-  use iso_c_binding
   use mo_definitions, only: wp
   use mo_constants,   only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv,r_d, &
                             p_0_standard,c_d_p,p_0
@@ -19,8 +18,7 @@ module vertical_grid
   
   contains
   
-  subroutine set_z_scalar(z_scalar,oro,max_oro) &
-  bind(c,name = "set_z_scalar")
+  subroutine set_z_scalar(z_scalar,oro,max_oro)
 
     ! This function sets the z coordinates of the scalar data points.
     
@@ -70,8 +68,7 @@ module vertical_grid
     
   end subroutine set_z_scalar
   
-  subroutine set_gravity_potential(z_scalar,gravity_potential,radius) &
-  bind(c,name = "set_gravity_potential")
+  subroutine set_gravity_potential(z_scalar,gravity_potential,radius)
 
     ! This subroutine computes the gravity potential.
     real(wp), intent(in)  :: z_scalar(n_scalars)
@@ -90,8 +87,7 @@ module vertical_grid
   end subroutine set_gravity_potential
   
   
-  subroutine set_volume(volume,z_vector,area,radius) &
-  bind(c,name = "set_volume")
+  subroutine set_volume(volume,z_vector,area,radius)
 
     ! This subroutine computes the volumes of the grid boxes.
   
@@ -117,8 +113,7 @@ module vertical_grid
     
   end subroutine set_volume
   
-  function standard_temp(z_height) &
-  bind(c,name = "standard_temp")
+  function standard_temp(z_height)
   
     ! This function returns the temperature in the standard atmosphere.
     
@@ -140,8 +135,7 @@ module vertical_grid
     
   end function standard_temp
 
-  function standard_pres(z_height) &
-  bind(c,name = "standard_pres")
+  function standard_pres(z_height)
   
     ! This function returns the pressure in the standard atmosphere.
     real(wp), intent(in) :: z_height
@@ -167,8 +161,7 @@ module vertical_grid
     
   end function standard_pres
   
-  subroutine set_z_scalar_dual(z_scalar_dual,z_vector,from_index,to_index,vorticity_indices_triangles) &
-  bind(c,name = "set_z_scalar_dual")
+  subroutine set_z_scalar_dual(z_scalar_dual,z_vector,from_index,to_index,vorticity_indices_triangles)
   
     ! This subroutine sets the z coordinates of the dual scalar points.
   
@@ -197,8 +190,7 @@ module vertical_grid
     
   end subroutine set_z_scalar_dual
   
-  subroutine set_area_dual(area_dual,z_vector_dual,normal_distance,z_vector,from_index,to_index,triangle_face_unit_sphere) &
-  bind(c,name = "set_area_dual")
+  subroutine set_area_dual(area_dual,z_vector_dual,normal_distance,z_vector,from_index,to_index,triangle_face_unit_sphere)
 
     ! This subroutine computes the areas of the dual grid.
   
@@ -242,8 +234,7 @@ module vertical_grid
     
   end subroutine set_area_dual
   
-  subroutine set_background_state(z_scalar,gravity_potential,theta_v_bg,exner_bg) &
-  bind(c,name = "set_background_state")
+  subroutine set_background_state(z_scalar,gravity_potential,theta_v_bg,exner_bg)
 
     ! This subroutine sets the hydrostatic background state.
     
@@ -281,8 +272,7 @@ module vertical_grid
   
   end subroutine set_background_state
   
-  subroutine set_area(area,z_vector,z_vector_dual,normal_distance_dual,pent_hex_face_unity_sphere,radius) &
-  bind(c,name = "set_area")
+  subroutine set_area(area,z_vector,z_vector_dual,normal_distance_dual,pent_hex_face_unity_sphere,radius)
 
     ! This function sets the areas of the grid boxes.
     real(wp), intent(out) :: area(n_vectors)
@@ -313,8 +303,7 @@ module vertical_grid
   end subroutine set_area
   
   subroutine set_z_vector_and_normal_distance(z_vector,normal_distance,z_scalar,latitude_scalar, &
-  longitude_scalar,from_index,to_index,oro) &
-  bind(c,name = "set_z_vector_and_normal_distance")
+  longitude_scalar,from_index,to_index,oro)
 
     ! This subroutine calculates the vertical position of the vector points as well as the normal distances of the primal grid.
   
@@ -379,8 +368,7 @@ module vertical_grid
   
   subroutine calc_z_vector_dual_and_normal_distance_dual(z_vector_dual,normal_distance_dual, &
   z_scalar_dual,from_index,to_index,z_vector, &
-  from_index_dual,to_index_dual,latitude_scalar_dual,longitude_scalar_dual,vorticity_indices_triangles) &
-  bind(c,name = "calc_z_vector_dual_and_normal_distance_dual")
+  from_index_dual,to_index_dual,latitude_scalar_dual,longitude_scalar_dual,vorticity_indices_triangles)
   
     ! This subroutine sets the z coordinates of the dual vector points as well as the normal distances of the dual grid.
     

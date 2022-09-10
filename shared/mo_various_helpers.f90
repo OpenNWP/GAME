@@ -5,7 +5,6 @@ module mo_various_helpers
   
   ! This module contains helper functions and subroutines.
 
-  use iso_c_binding
   use netcdf
   use mo_definitions, only: wp
   
@@ -13,8 +12,7 @@ module mo_various_helpers
   
   contains
 
-  function find_min_index(vector,vector_length) &
-  bind(c,name = "find_min_index")
+  function find_min_index(vector,vector_length)
   
     ! This function returns the index where a vector has its minimum.
     
@@ -40,8 +38,7 @@ module mo_various_helpers
     
   end function find_min_index
   
-  function find_min_index_exclude(vector,vector_length,exclude_indices_vector,exclude_indices_vector_length) &
-  bind(c,name = "find_min_index_exclude")
+  function find_min_index_exclude(vector,vector_length,exclude_indices_vector,exclude_indices_vector_length)
   
     ! This function finds the index where a vector has its minimum, excluding the elements of another vector.
     
@@ -76,8 +73,7 @@ module mo_various_helpers
     
   end function find_min_index_exclude
 
-  function find_max_index(vector,vector_length) &
-  bind(c,name = "find_max_index")
+  function find_max_index(vector,vector_length)
   
     ! This function returns the index where a vector has its maximum.
     
@@ -104,9 +100,8 @@ module mo_various_helpers
   end function find_max_index
 
 
-  function in_bool_checker(value,vector,vector_length) &
-  bind(c,name = "in_bool_checker")
-
+  function in_bool_checker(value,vector,vector_length)
+  
     ! This function checks if a vector of integers contains a certain value.
     
     integer, intent(in) :: value
@@ -128,8 +123,7 @@ module mo_various_helpers
 
   end function in_bool_checker
   
-  subroutine nc_check(i_status) &
-  bind(c,name = "nc_check")
+  subroutine nc_check(i_status)
   
     ! This checks wether a NetCDF function threw an error.
   

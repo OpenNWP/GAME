@@ -5,7 +5,6 @@ module mo_optimize
 
   ! The Lloyd algorithm is implemented here.
 
-  use iso_c_binding
   use mo_definitions,     only: wp
   use mo_grid_nml,        only: n_scalars_h,n_pentagons,n_vectors_h,n_dual_scalars_h
   use mo_geodesy,         only: calc_triangle_area,find_global_normal,sort_vertex_indices,find_geos
@@ -14,10 +13,26 @@ module mo_optimize
   implicit none
   
   contains
+  
+  
+int optimize_to_scvt(double latitude_scalar[], double longitude_scalar[], double latitude_scalar_dual[], double longitude_scalar_dual[], int n_iterations, int face_edges[][3], int face_edges_reverse[][3], int face_vertices[][3], int adjacent_vector_indices_h[], int from_index_dual[], int to_index_dual[])
+{
+	/*
+	This function manages the grid optimization with Lloyd's algorithm.
+	The result is (almost) a SCVT.
+	*/
+	
+	for (int i = 0; i < n_iterations; ++i)
+	{
+    	set_scalar_h_dual_coords(latitude_scalar_dual, longitude_scalar_dual, latitude_scalar, longitude_scalar, face_edges, face_edges_reverse, face_vertices);
+    	find_cell_cgs(latitude_scalar, longitude_scalar, latitude_scalar_dual, longitude_scalar_dual, adjacent_vector_indices_h, from_index_dual, to_index_dual);
+    	printf("Optimizing grid - iteration %d completed.\n", i + 1);
+	}
+	return 0;
+}
 
   subroutine find_cell_cgs(latitude_scalar,longitude_scalar,latitude_scalar_dual,longitude_scalar_dual, &
-                           adjacent_vector_indices_h,from_index_dual,to_index_dual) &
-  bind(c,name = "find_cell_cgs")
+                           adjacent_vector_indices_h,from_index_dual,to_index_dual)
     
     ! This subroutine calculates the barycenters (centers of gravity) of the cells.
     
