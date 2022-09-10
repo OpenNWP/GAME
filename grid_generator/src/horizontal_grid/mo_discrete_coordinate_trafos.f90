@@ -26,8 +26,8 @@ module mo_discrete_coordinate_trafos
     int on_face_index = i - (N_EDGES*(POINTS_PER_EDGE + 1) + face_index*VECTOR_POINTS_PER_INNER_FACE) 
     int triangle_on_face_index = on_face_index/3 
     *small_triangle_edge_index = on_face_index - 3*triangle_on_face_index 
-    find_triangle_edge_points(triangle_on_face_index, face_index, res_id, point_0, point_1, point_2, point_3, point_4, point_5,
-    dual_scalar_on_face_index, face_vertices, face_edges, face_edges_reverse) 
+    call find_triangle_edge_points(triangle_on_face_index,&face_index,&res_id,&point_0,&point_1,&point_2,&point_3,&point_4,&point_5,
+    &dual_scalar_on_face_index,&face_vertices,&face_edges,&face_edges_reverse) 
   
   end subroutine find_triangle_indices_from_h_vector_index
 
@@ -36,11 +36,11 @@ module mo_discrete_coordinate_trafos
     ! This subroutine finds the primal scalar points (pentagon and hexagon centers) a triangle consists of.
     
     int coord_0, coord_1, coord_0_points_amount 
-    find_coords_from_triangle_on_face_index(&triangle_on_face_index, &res_id, &coord_0, &coord_1, &coord_0_points_amount) 
+    call find_coords_from_triangle_on_face_index(&triangle_on_face_index, &res_id, &coord_0, &coord_1, &coord_0_points_amount) 
     *dual_scalar_on_face_index = 1 + 2*triangle_on_face_index + coord_1 
     int points_per_edge, scalar_points_per_inner_face 
-    points_per_edge = find_points_per_edge(&res_id) 
-    scalar_points_per_inner_face = find_scalar_points_per_inner_face(&res_id) 
+    points_per_edge = find_points_per_edge(res_id) 
+    scalar_points_per_inner_face = find_scalar_points_per_inner_face(res_id) 
     if (coord_1 == 0)
     {
         if (face_edges_reverse(face_index,0) == 0)
@@ -299,28 +299,22 @@ module mo_discrete_coordinate_trafos
     edge_vertices(29,0) = 10 
     edge_vertices(29,1) = 11 
     int *vertices_check_counter = calloc(N_EDGES, sizeof(int)) 
-    for (int i = 0  i < N_PENTAGONS  ++i)
-    {
-      for (int j = 0  j < N_EDGES  ++j)
-      {
-        for (int k = 0  k < 2  ++k)
-        {
-          if (edge_vertices(j,k) == i)
-                {
+    do (int i = 0  i < N_PENTAGONS  ++i)
+      do (int j = 0  j < N_EDGES  ++j)
+        do (int k = 0  k < 2  ++k)
+          if (edge_vertices(j,k) == i) then
             vertices_check_counter(i) = vertices_check_counter(i) + 1 
-          }
-        }
-      }
-    }
-    for (int i = 0  i < N_PENTAGONS  ++i)
-    {
-      if (vertices_check_counter(i) != 5)
-      {
+          endif
+        enddo
+      enddo
+    enddo
+    do (int i = 0  i < N_PENTAGONS  ++i)
+      if (vertices_check_counter(i) != 5) then
         printf("Error with vertices, position 0.\n") 
-        exit(1) 
-      }
+        call exit(1) 
+      endif
       vertices_check_counter(i) = 0 
-    }
+    enddo
     face_vertices(0,0) = 0 
     face_vertices(0,1) = 1 
     face_vertices(0,2) = 2 
@@ -381,76 +375,58 @@ module mo_discrete_coordinate_trafos
     face_vertices(19,0) = 11 
     face_vertices(19,1) = 10 
     face_vertices(19,2) = 9 
-    for (int i = 0  i < N_PENTAGONS  ++i)
-    {
-      for (int j = 0  j < N_BASIC_TRIANGLES  ++j)
-      {
-        for (int k = 0  k < 3  ++k)
-        {
-          if (face_vertices(j,k) == i)
-          {
+    do (int i = 0  i < N_PENTAGONS  ++i)
+      do (int j = 0  j < N_BASIC_TRIANGLES  ++j)
+        do (int k = 0  k < 3  ++k)
+          if (face_vertices(j,k) == i) then
             vertices_check_counter(i) = vertices_check_counter(i) + 1 
-          }
-        }
-      }
-    }
+          endif
+        enddo
+      enddo
+    enddo
     for (int i = 0  i < N_PENTAGONS  ++i)
-    {
-      if (vertices_check_counter(i) != 5)
-      {
+      if (vertices_check_counter(i)/=5) then
         printf("Error with vertices, position 1.\n") 
         exit(1) 
-      }
-    }
+      endif
+    enddo
     free(vertices_check_counter) 
     int edge_other_vertex_index, check_index 
     check_index = 0 
     int *edges_check_counter = calloc(N_EDGES, sizeof(int)) 
-    for (int i = 0  i < N_BASIC_TRIANGLES  ++i)
-    {
-        for (int j = 0  j < 3  ++j)
-        {
-            for (int k = 0  k < N_EDGES  ++k)
-            {
-                if (edge_vertices(k,0) == face_vertices(i,j) || edge_vertices(k,1) == face_vertices(i,j))
-                {
-                    if (edge_vertices(k,0) == face_vertices(i,j))
-                    {
-                        edge_other_vertex_index = 1 
-                  }
-                    if (edge_vertices(k,1) == face_vertices(i,j))
-                    {
-                        edge_other_vertex_index = 0 
-                  }
-                    if (j == 0)
-                    {
-                        check_index = 1 
-                  }
-                    if (j == 1)
-                    {
-                        check_index = 2 
-                  }
-                    if (j == 2)
-                    {
-                        check_index = 0 
-                  }
-                    if (edge_vertices(k,edge_other_vertex_index) == face_vertices(i,check_index))
-                    {
-                        face_edges(i,j) = k 
-                        edges_check_counter(k) = edges_check_counter(k) + 1 
-                        if (edge_other_vertex_index == 1)
-                      {
-                            face_edges_reverse(i,j) = 0 
-                    }
-                        if (edge_other_vertex_index == 0)
-                      {
-                            face_edges_reverse(i,j) = 1 
-                    }
-                    }
-                }
-            }
-        }
-    }
+    do (int i = 0  i < N_BASIC_TRIANGLES  ++i)
+      do (int j = 0  j < 3  ++j)
+        do (int k = 0  k < N_EDGES  ++k)
+          if (edge_vertices(k,0) == face_vertices(i,j) || edge_vertices(k,1) == face_vertices(i,j)) then
+            if (edge_vertices(k,0)==face_vertices(i,j)) then
+              edge_other_vertex_index = 1 
+            endif
+            if (edge_vertices(k,1)==face_vertices(i,j)) then
+              edge_other_vertex_index = 0 
+            endif
+            if (j==0) then
+              check_index = 1 
+            endif
+            if (j==1) then
+              check_index = 2
+            endif
+            if (j==2) then
+              check_index = 0 
+            endif
+            if (edge_vertices(k,edge_other_vertex_index)==face_vertices(i,check_index)) then
+              face_edges(i,j) = k 
+              edges_check_counter(k) = edges_check_counter(k) + 1 
+              if (edge_other_vertex_index == 1) then
+                face_edges_reverse(i,j) = 0 
+              endif
+              if (edge_other_vertex_index == 0) then
+                face_edges_reverse(i,j) = 1 
+              endif
+            endif
+          endif
+        enddo
+      enddo
+    enddo
     do (int i = 0  i < N_EDGES  ++i)
       if (edges_check_counter(i)/=2) tehn
         printf("Error with edges.\n") 
