@@ -21,22 +21,22 @@ module mo_optimize
     ! This subroutine manages the grid optimization with Lloyd's algorithm.
     ! The result is (almost) a SCVT.
 	
-	real(wp), intent(inout) :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h), &
-	                           latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h), &
-	integer,  intent(in)    :: n_iterations,face_edges(20,3),face_edges_reverse(20,3),face_vertices(20,3), &
-	                           adjacent_vector_indices_h(6*n_scalars_h),from_index_dual(n_vectors_h), &
-	                           to_index_dual(n_vectors_h)
+    real(wp), intent(inout) :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h), &
+                               latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h)
+    integer,  intent(in)    :: n_iterations,face_edges(20,3),face_edges_reverse(20,3),face_vertices(20,3), &
+                               adjacent_vector_indices_h(6*n_scalars_h),from_index_dual(n_vectors_h), &
+                               to_index_dual(n_vectors_h)
 	
-	! local variables
-	integer :: ji
+    ! local variables
+    integer :: ji
 	
-	do ji=1,n_iterations
+    do ji=1,n_iterations
       call set_scalar_h_dual_coords(latitude_scalar_dual,longitude_scalar_dual,latitude_scalar,longitude_scalar, &
                                     face_edges,face_edges_reverse,face_vertices)
       call find_cell_cgs(latitude_scalar,longitude_scalar,latitude_scalar_dual,longitude_scalar_dual, &
                          adjacent_vector_indices_h,from_index_dual,to_index_dual)
       write(*,*) "Optimizing grid - iteration",ji,"completed."
-	enddo
+    enddo
 	
   end subroutine optimize_to_scvt
 

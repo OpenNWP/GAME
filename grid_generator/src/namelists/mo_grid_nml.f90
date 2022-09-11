@@ -26,6 +26,7 @@ module mo_grid_nml
   integer  :: n_basic_edges            ! number of basic edges of the icosaheron
   integer  :: n_points_per_edge        ! number of points per edge
   integer  :: n_triangles              ! the number of triangles of the grid
+  integer  :: n_triangles_per_face     ! the number of triangles per face
   integer  :: n_dual_scalars_h         ! the number of dual scalars per layer
   integer  :: n_dual_scalars           ! the number of dual scalars
   integer  :: n_dual_vectors_per_layer ! the number of dual vectors per layer
@@ -72,6 +73,7 @@ module mo_grid_nml
     n_basic_edges = 3*n_basic_triangles/2
     n_points_per_edge = 2**res_id-1
     n_triangles = n_basic_triangles*4**res_id
+    n_triangles_per_face = n_triangles/n_basic_triangles
     n_dual_scalars_h = n_triangles
     n_dual_scalars = n_levels*n_dual_scalars_h
     n_dual_vectors_per_layer = n_vectors_h+n_dual_scalars_h
