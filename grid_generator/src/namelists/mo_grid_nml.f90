@@ -32,6 +32,7 @@ module mo_grid_nml
   integer  :: n_dual_h_vectors         ! the number of horizontal dual vectors per layer
   integer  :: n_dual_v_vectors         ! the number of vertical dual vectors per layer
   integer  :: n_dual_vectors           ! the number of dual vectors
+  integer  :: n_vectors_per_inner_face ! number of horizontal vectors per inner triangle face
   real(wp) :: toa                      ! top of atmosphere in meters above MSL
   integer  :: n_oro_layers             ! number of layers following the orography
   real(wp) :: stretching_parameter     ! vertical grid stretching parameter
@@ -77,6 +78,7 @@ module mo_grid_nml
     n_dual_h_vectors = n_levels*n_vectors_h
     n_dual_v_vectors = n_layers*n_dual_scalars_h
     n_dual_vectors = n_dual_h_vectors+n_dual_v_vectors
+    n_vectors_per_inner_face = 3*(2**RES_ID-1)*2**res_id/2
     toa = 41152._wp
     n_oro_layers = 23
     stretching_parameter = 1.3_wp
