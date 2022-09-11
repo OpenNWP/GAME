@@ -28,7 +28,7 @@ module mo_horizontal_generation
     integer,  intent(in)  :: face_vertices(n_basic_edges,3),face_edges(n_basic_edges,3),face_edges_reverse(n_basic_edges,3)
     
     ! local variables
-    integer  :: ji,res_id_local,n_triangles_per_face,base_index_down_triangles,base_index_old,test_index, &
+    integer  :: ji,jk,jm,res_id_local,n_triangles_per_face,base_index_down_triangles,base_index_old,test_index, &
                 last_triangle_bool,old_triangle_on_line_index, &
                 base_index_up_triangles,points_downwards,points_upwards,dump,points_per_edge,edgepoint_0,edgepoint_1, &
                 edgepoint_2,no_of_triangles_per_face,point_0,point_1,point_2,dual_scalar_on_face_index,coord_0,coord_1, &
@@ -77,11 +77,11 @@ module mo_horizontal_generation
             base_index_old = 0
             base_index_down_triangles = 0
             base_index_up_triangles = base_index_down_triangles + 4*points_per_edge + 3
-            do (int l = 0 l < coord_1 ++l)
-              coord_0_points_amount = points_per_edge - l
+            do jm=0,coord_1-1
+              coord_0_points_amount = points_per_edge - jm
               base_index_old = base_index_old + 2*coord_0_points_amount + 1
               base_index_down_triangles = base_index_down_triangles + 4*(2*coord_0_points_amount + 1)
-              base_index_up_triangles = base_index_down_triangles + 4*(points_per_edge-l) + 3
+              base_index_up_triangles = base_index_down_triangles + 4*(points_per_edge-jm) + 3
             enddo
             if (last_triangle_bool==1) then
               base_index_old = base_index_old + 3
@@ -94,7 +94,8 @@ module mo_horizontal_generation
             else
               dual_scalar_on_face_index = base_index_up_triangles + 2*old_triangle_on_line_index
             endif
-            call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,i,res_id_local,point_0,point_1,point_2, &
+            call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,i,res_id_local, &
+                                                                          point_0,point_1,point_2, &
                                                                           face_vertices,face_edges,face_edges_reverse)
             edgepoint_0 = upscale_scalar_point(j,edgepoint_0)
             edgepoint_1 = upscale_scalar_point(j,edgepoint_1)
@@ -106,7 +107,7 @@ module mo_horizontal_generation
             if (points_downwards==1) then
               points_upwards = 0
             endif
-            call set_scalar_coordinates(edgepoint_0,edgepoint_1,edgepoint_2,point_0,point_1,point_2,
+            call set_scalar_coordinates(edgepoint_0,edgepoint_1,edgepoint_2,point_0,point_1,point_2, &
                                         points_upwards,x_unity,y_unity,z_unity,latitude_scalar,longitude_scalar)
           endif
         enddo
@@ -115,71 +116,80 @@ module mo_horizontal_generation
     
   end subroutine generate_horizontal_generators
 
-  subroutine calc_triangle_area_unity(double triangle_face_unit_sphere(),double latitude_scalar(),double longitude_scalar(),int face_edges(,3),
-  int face_edges_reverse(,3),int face_vertices(,3))
+  subroutine calc_triangle_area_unity(triangle_face_unit_sphere,latitude_scalar,longitude_scalar, &
+                                      face_edges,face_edges_reverse,face_vertices)
     
     ! This subroutine computes the areas of the triangles on the unity sphere.
     
+    real(wp), intent(out) :: triangle_face_unit_sphere(n_dual_scalars_h)
+    real(wp), intent(in)  :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
+    integer,  intent(in)  :: face_vertices(n_basic_edges,3),face_edges(n_basic_edges,3),face_edges_reverse(n_basic_edges,3)
+    
     ! local variables
-    integer  :: dual_scalar_index,point_0,point_1,point_2,point_3,point_4,point_5,dual_scalar_on_face_index,
+    integer  :: dual_scalar_index,point_0,point_1,point_2,point_3,point_4,point_5,dual_scalar_on_face_index, &
                 small_triangle_edge_index,coord_0_points_amount,coord_0,coord_1,face_index,on_face_index, &
                 triangle_on_face_index
-    real(wp) :: triangle_face,triangle_sum_unit_sphere,triangle_avg_unit_sphere_ideal
+    real(wp) :: triangle_sum_unit_sphere,triangle_avg_unit_sphere_ideal
     
     do ji=1,n_vectors_h
       if (i>=n_basic_edges*(points_per_edge+1)) then
         call find_triangle_indices_from_h_vector_index(res_id,i,point_0,point_1,point_2,point_3,point_4,point_5, &
                                                        dual_scalar_on_face_index,small_triangle_edge_index, &
                                                        face_edges,face_vertices,face_edges_reverse)
-        face_index = (i - n_basic_edges*(points_per_edge + 1))/VECTOR_POINTS_PER_INNER_FACE
-        on_face_index = i - (n_basic_edges*(points_per_edge + 1) + face_index*VECTOR_POINTS_PER_INNER_FACE)
+        face_index = (i - n_basic_edges*(points_per_edge + 1))/n_vectors_per_inner_face
+        on_face_index = i - (n_basic_edges*(points_per_edge + 1) + face_index*n_vectors_per_inner_face)
         triangle_on_face_index = on_face_index/3
         call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_0,coord_1,coord_0_points_amount)
         dual_scalar_index = dual_scalar_on_face_index + face_index*N_TRIANGLES/N_BASIC_TRIANGLES
-        triangle_face = calc_triangle_area(latitude_scalar(point_0),longitude_scalar(point_0),latitude_scalar(point_1),longitude_scalar(point_1),
-        latitude_scalar(point_2),longitude_scalar(point_2))
-        triangle_face_unit_sphere(dual_scalar_index) = triangle_face
-        triangle_face = calc_triangle_area(latitude_scalar(point_3),longitude_scalar(point_3),latitude_scalar(point_0),longitude_scalar(point_0),
-        latitude_scalar(point_2),longitude_scalar(point_2))
-        triangle_face_unit_sphere(dual_scalar_index - 1) = triangle_face
+        triangle_face_unit_sphere(dual_scalar_index) &
+                      = calc_triangle_area(latitude_scalar(point_0),longitude_scalar(point_0), &
+                                           latitude_scalar(point_1),longitude_scalar(point_1), &
+                                           latitude_scalar(point_2),longitude_scalar(point_2))
+        triangle_face_unit_sphere(dual_scalar_index-1) &
+                               = calc_triangle_area(latitude_scalar(point_3),longitude_scalar(point_3), &
+                                                    latitude_scalar(point_0),longitude_scalar(point_0), &
+                                                    latitude_scalar(point_2),longitude_scalar(point_2))
         if (coord_0==coord_0_points_amount-1) then
-          triangle_face = calc_triangle_area(latitude_scalar(point_0),longitude_scalar(point_0),latitude_scalar(point_4),longitude_scalar(point_4),
-          latitude_scalar(point_1),longitude_scalar(point_1))
-          triangle_face_unit_sphere(dual_scalar_index + 1) = triangle_face
+          triangle_face_unit_sphere(dual_scalar_index+1) &
+                        = calc_triangle_area(latitude_scalar(point_0),longitude_scalar(point_0), &
+                                             latitude_scalar(point_4),longitude_scalar(point_4), &
+                                             latitude_scalar(point_1),longitude_scalar(point_1))
           if (coord_1==points_per_edge-1) then
-            triangle_face = calc_triangle_area(latitude_scalar(point_2),longitude_scalar(point_2),latitude_scalar(point_1),longitude_scalar(point_1),
-            latitude_scalar(point_5),longitude_scalar(point_5))
-            triangle_face_unit_sphere(dual_scalar_index + 2) = triangle_face
+            triangle_face_unit_sphere(dual_scalar_index+2) &
+                          = calc_triangle_area(latitude_scalar(point_2),longitude_scalar(point_2), &
+                                               latitude_scalar(point_1),longitude_scalar(point_1), &
+                                               latitude_scalar(point_5),longitude_scalar(point_5))
           endif
         endif
       endif
     enddo
     triangle_sum_unit_sphere = 0._wp
     triangle_avg_unit_sphere_ideal = 4._wp*M_PI/N_TRIANGLES
-    do (int i = 0 i < N_DUAL_SCALS_H ++i)
+    do ji=1,n_dual_scalars_h
       triangle_sum_unit_sphere = triangle_sum_unit_sphere + triangle_face_unit_sphere(ji)
       if (triangle_face_unit_sphere(ji)<=0._wp) then
         write(*,*) "triangle_face_unit_sphere contains a non-positive value."
         call exit(1)
       endif
-      if (fabs(triangle_face_unit_sphere(ji)/triangle_avg_unit_sphere_ideal-1._wp)>0._wp)
+      if (abs(triangle_face_unit_sphere(ji)/triangle_avg_unit_sphere_ideal-1._wp)>0._wp) then
         write(*,*) "Triangles on unit sphere have significantly different surfaces."
         call exit(1)
       endif
     enddo
-    if (fabs(triangle_sum_unit_sphere/(4._wp*M_PI)-1._wp) > EPSILON_SECURITY) then
-      printf("%lf\n",triangle_sum_unit_sphere/(4._wp*M_PI))
+    if (abs(triangle_sum_unit_sphere/(4._wp*M_PI)-1._wp)>EPSILON_SECURITY) then
       write(*,*) "Sum of faces of triangles on unit sphere does not match face of unit sphere."
       call exit(1)
     endif
     
   end subroutine calc_triangle_area_unity
 
-  subroutine set_from_to_index(from_index,to_index,int face_edges(,3),int face_edges_reverse(,3),int face_vertices(,3),int edge_vertices(,2))
+  subroutine set_from_to_index(from_index,to_index,face_edges,face_edges_reverse,face_vertices,edge_vertices)
     
     ! This subroutine computes the neighbourship relationships of the horizontal vectors.
     
     integer, intent(out) :: from_index(n_vectors_h),to_index(n_vectors_h)
+    integer, intent(in)  :: face_vertices(n_basic_edges,3),face_edges(n_basic_edges,3),face_edges_reverse(n_basic_edges,3), &
+                            edge_vertices(n_basic_edges,2)
     
     ! local variables
     integer :: edge_index,on_edge_index,point_0,point_1,point_2,point_3,point_4,point_5, &
@@ -188,8 +198,8 @@ module mo_horizontal_generation
     !$omp parallel do private(ji,edge_index,on_edge_index,point_0,point_1,point_2,point_3,point_4,point_5, &
     !$omp dual_scalar_on_face_index,small_triangle_edge_index)
     do ji=1,n_vectors_h
-      if (i < n_basic_edges*(points_per_edge+1)) then
-        edge_index = i/(points_per_edge+1)
+      if (ji<n_basic_edges*(points_per_edge+1)) then
+        edge_index = ji/(points_per_edge+1)
         on_edge_index = i - edge_index*(points_per_edge+1)
         if(on_edge_index==0) then
           from_index(ji) = edge_vertices(edge_index,0)
@@ -202,8 +212,9 @@ module mo_horizontal_generation
           to_index(ji) = n_pentagons + edge_index*points_per_edge + on_edge_index
         endif
       else
-        find_triangle_indices_from_h_vector_index(res_id,i,point_0,point_1,point_2,point_3,point_4,point_5,dual_scalar_on_face_index,
-        &small_triangle_edge_index,face_edges,face_vertices,face_edges_reverse)
+        call find_triangle_indices_from_h_vector_index(res_id,ji,point_0,point_1,point_2,point_3,point_4,point_5, &
+                                                       dual_scalar_on_face_index, &
+                                                       small_triangle_edge_index,face_edges,face_vertices,face_edges_reverse)
         if (small_triangle_edge_index==1) then
           from_index(ji) = point_0
           to_index(ji) = point_2
@@ -222,38 +233,48 @@ module mo_horizontal_generation
     
   end subroutine set_from_to_index
 
-  subroutine set_scalar_h_dual_coords(double latitude_scalar_dual(),double longitude_scalar_dual(),double latitude_scalar(),double longitude_scalar(),
-  int face_edges(,3),int face_edges_reverse(,3),int face_vertices(,3))
+  subroutine set_scalar_h_dual_coords(latitude_scalar_dual,longitude_scalar_dual,latitude_scalar,longitude_scalar, &
+                                      face_edges,face_edges_reverse,face_vertices)
     
     ! This function calculates the geographical coordinates of the dual scalar points.
     
+    real(wp), intent(out) :: latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h)
+    real(wp), intent(in)  :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
+    integer, intent(in)  :: face_vertices(n_basic_edges,3),face_edges(n_basic_edges,3),face_edges_reverse(n_basic_edges,3)
+    
     ! local variables
-    integer  :: point_0,point_1,point_2,point_3,point_4,point_5,dual_scalar_on_face_index,small_triangle_edge_index,
+    integer  :: ji,point_0,point_1,point_2,point_3,point_4,point_5,dual_scalar_on_face_index,small_triangle_edge_index, &
                 dual_scalar_index,coord_0,coord_1,coord_0_points_amount,face_index,on_face_index,triangle_on_face_index
     real(wp) :: lat_res,lon_res
     
-    #pragma omp parallel for private(lat_res,lon_res,point_0,point_1,point_2,point_3,point_4,point_5,dual_scalar_on_face_index,small_triangle_edge_index,dual_scalar_index,coord_0,coord_1,coord_0_points_amount,face_index,on_face_index,triangle_on_face_index)
-    do (int i = 0 i < n_vectors_h ++i)
-      if (i>=n_basic_edges*(points_per_edge+1)) then
-        call find_triangle_indices_from_h_vector_index(res_id,i,point_0,point_1,point_2,point_3,point_4,point_5,dual_scalar_on_face_index,
+    !$omp parallel do private(ji,lat_res,lon_res,point_0,point_1,point_2,point_3,point_4,point_5,dual_scalar_on_face_index, &
+    !$omp small_triangle_edge_index,dual_scalar_index,coord_0,coord_1,coord_0_points_amount,face_index, &
+    !$omp on_face_index,triangle_on_face_index)
+    do ji=1,n_vectors_h
+      if (ji>=n_basic_edges*(points_per_edge+1)) then
+        call find_triangle_indices_from_h_vector_index(res_id,ji,point_0,point_1,point_2,point_3,point_4,point_5, &
+                                                       dual_scalar_on_face_index, &
                                                        small_triangle_edge_index,face_edges,face_vertices,face_edges_reverse)
-        face_index = (i - n_basic_edges*(points_per_edge + 1))/VECTOR_POINTS_PER_INNER_FACE
-        on_face_index = i - (n_basic_edges*(points_per_edge + 1) + face_index*VECTOR_POINTS_PER_INNER_FACE)
+        face_index = (ji - n_basic_edges*(points_per_edge + 1))/n_vectors_per_inner_face
+        on_face_index = ji - (n_basic_edges*(points_per_edge + 1) + face_index*n_vectors_per_inner_face)
         triangle_on_face_index = on_face_index/3
-        find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_0,coord_1,coord_0_points_amount)
+        call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_0,coord_1,coord_0_points_amount)
         dual_scalar_index = dual_scalar_on_face_index + face_index*N_TRIANGLES/N_BASIC_TRIANGLES
         ! We want to construct a Voronoi gird,that's why we choose this function for calculating the dual cell centers.
-        call find_voronoi_center_sphere(latitude_scalar(point_0),longitude_scalar(point_0),latitude_scalar(point_1),longitude_scalar(point_1),
+        call find_voronoi_center_sphere(latitude_scalar(point_0),longitude_scalar(point_0), &
+                                        latitude_scalar(point_1),longitude_scalar(point_1), &
                                         latitude_scalar(point_2),longitude_scalar(point_2),lat_res,lon_res)
         latitude_scalar_dual(dual_scalar_index) = lat_res
         longitude_scalar_dual(dual_scalar_index) = lon_res
-        call find_voronoi_center_sphere(latitude_scalar(point_3),longitude_scalar(point_3),latitude_scalar(point_0),longitude_scalar(point_0),
+        call find_voronoi_center_sphere(latitude_scalar(point_3),longitude_scalar(point_3), &
+                                        latitude_scalar(point_0),longitude_scalar(point_0), &
                                         latitude_scalar(point_2),longitude_scalar(point_2),lat_res,lon_res)
         latitude_scalar_dual(dual_scalar_index-1) = lat_res
         longitude_scalar_dual(dual_scalar_index-1) = lon_res
         if (coord_0==coord_0_points_amount-1) then
-          call find_voronoi_center_sphere(latitude_scalar(point_0),longitude_scalar(point_0),
-          latitude_scalar(point_4),longitude_scalar(point_4),latitude_scalar(point_1),longitude_scalar(point_1),lat_res,lon_res)
+          call find_voronoi_center_sphere(latitude_scalar(point_0),longitude_scalar(point_0), &
+                                          latitude_scalar(point_4),longitude_scalar(point_4), &
+                                          latitude_scalar(point_1),longitude_scalar(point_1),lat_res,lon_res)
           latitude_scalar_dual(dual_scalar_index+1) = lat_res
           longitude_scalar_dual(dual_scalar_index+1) = lon_res
           if (coord_1==points_per_edge-1) then
@@ -266,24 +287,32 @@ module mo_horizontal_generation
         endif
       endif
     enddo
+    !$omp end parallel do
+    
   end subroutine set_scalar_h_dual_coords
 
-  subroutine set_from_to_index_dual(int from_index_dual(),int to_index_dual(),int face_edges (,3),int face_edges_reverse(,3))
+  subroutine set_from_to_index_dual(from_index_dual,to_index_dual,face_edges,face_edges_reverse)
     
     ! This function computes the neighbourship relationships of the horizontal dual vectors.
     
-    integer :: coord_0,coord_1,on_face_index,on_edge_index,edge_index,small_triangle_edge_index, &
-               coord_0_points_amount,first_face_found,face_index
+    integer, intent(out) :: from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
+    integer, intent(in)  :: face_edges(n_basic_edges,3),face_edges_reverse(n_basic_edges,3)
     
-    !$omp parallel do private(coord_0,coord_1,on_face_index,on_edge_index,edge_index,small_triangle_edge_index, &
-    !$omp coord_0_points_amount,first_face_found,face_index)
-    do (int i = 0 i < n_vectors_h ++i)
-      int edge_rel_to_face_0 = 0
-      int edge_rel_to_face_1 = 0
-      int face_index_0 = 0
-      int face_index_1 = 0
-      int triangle_on_face_index = 0
-      if (i < n_basic_edges*(points_per_edge+1)) then
+    ! local variables
+    integer :: ji,coord_0,coord_1,on_face_index,on_edge_index,edge_index,small_triangle_edge_index, &
+               coord_0_points_amount,first_face_found,face_index,edge_rel_to_face_0,edge_rel_to_face_1, &
+               face_index_0,face_index_1,triangle_on_face_index
+    
+    !$omp parallel do private(ji,coord_0,coord_1,on_face_index,on_edge_index,edge_index,small_triangle_edge_index, &
+    !$omp coord_0_points_amount,first_face_found,face_index,edge_rel_to_face_0,edge_rel_to_face_1,face_index_0, &
+    !$omp face_index_1,triangle_on_face_index)
+    do ji=1,n_vectors_h
+      edge_rel_to_face_0 = 0
+      edge_rel_to_face_1 = 0
+      face_index_0 = 0
+      face_index_1 = 0
+      triangle_on_face_index = 0
+      if (ji<n_basic_edges*(points_per_edge+1)) then
         edge_index = i/(points_per_edge + 1)
         on_edge_index = i - edge_index*(points_per_edge + 1)
         first_face_found = 0
@@ -360,8 +389,8 @@ module mo_horizontal_generation
         endif
         from_index_dual(ji) = face_index_1*TRIANGLES_PER_FACE + triangle_on_face_index
       else
-        face_index = (i - n_basic_edges*(points_per_edge + 1))/VECTOR_POINTS_PER_INNER_FACE
-        on_face_index = i - (n_basic_edges*(points_per_edge + 1) + face_index*VECTOR_POINTS_PER_INNER_FACE)
+        face_index = (i - n_basic_edges*(points_per_edge + 1))/n_vectors_per_inner_face
+        on_face_index = i - (n_basic_edges*(points_per_edge + 1) + face_index*n_vectors_per_inner_face)
         triangle_on_face_index = on_face_index/3
         small_triangle_edge_index = on_face_index - 3*triangle_on_face_index
         int res_id = res_id
@@ -384,7 +413,7 @@ module mo_horizontal_generation
     
   end subroutine set_from_to_index_dual
   
-  subroutine set_scalar_coordinates(edgepoint_0,edgepoint_1,edgepoint_2,point_0,point_1,point_2,points_upwards,
+  subroutine set_scalar_coordinates(edgepoint_0,edgepoint_1,edgepoint_2,point_0,point_1,point_2,points_upwards, &
                                     x_unity,y_unity,z_unity,latitude_scalar,longitude_scalar)
     
     ! This subroutine computes the geographical coordinates of a scalar data point.
