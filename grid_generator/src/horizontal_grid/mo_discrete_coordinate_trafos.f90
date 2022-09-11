@@ -17,38 +17,50 @@ module mo_discrete_coordinate_trafos
   
   contains
 
-  subroutine find_triangle_indices_from_h_vector_index(int res_id, int i, int *point_0, int *point_1, int *point_2, int *point_3, int *point_4, int *point_5,
-  int *dual_scalar_on_face_index, int *small_triangle_edge_index, int face_edges(,3), int face_vertices(,3), int face_edges_reverse(,3))
+  subroutine find_triangle_indices_from_h_vector_index(i,point_0,point_1,point_2,point_3,point_4,point_5, &
+                                                       dual_scalar_on_face_index,small_triangle_edge_index, &
+                                                       face_edges,face_vertices,face_edges_reverse)
     
     ! This subroutine finds which triangles a horizontal vector is connected to.
     
-    int face_index = (i - n_edges*(points_per_edge + 1))/vector_points_per_inner_face 
-    int on_face_index = i - (n_edges*(points_per_edge + 1) + face_index*vector_points_per_inner_face) 
-    int triangle_on_face_index = on_face_index/3 
+    integer, intent(in) :: face_edges(20,3),face_vertices(20,3),face_edges_reverse(20,3)
+    
+    ! local variables
+    integer :: face_index,on_face_index,triangle_on_face_index
+    
+    face_index = (i - n_edges*(points_per_edge + 1))/vector_points_per_inner_face 
+    on_face_index = i - (n_edges*(points_per_edge + 1) + face_index*vector_points_per_inner_face) 
+    triangle_on_face_index = on_face_index/3 
     small_triangle_edge_index = on_face_index - 3*triangle_on_face_index 
-    call find_triangle_edge_points(triangle_on_face_index,face_index,res_id,point_0,point_1,point_2,point_3,point_4,point_5,
-    dual_scalar_on_face_index,face_vertices,face_edges,face_edges_reverse)
+    call find_triangle_edge_points(triangle_on_face_index,face_index,res_id,point_0,point_1,point_2,point_3,point_4,point_5, &
+                                   dual_scalar_on_face_index,face_vertices,face_edges,face_edges_reverse)
   
   end subroutine find_triangle_indices_from_h_vector_index
 
-  subroutine find_triangle_edge_points(int triangle_on_face_index, int face_index, int res_id, int *point_0, int *point_1, int *point_2, int *point_3, int *point_4, int *point_5, int *dual_scalar_on_face_index, int face_vertices(,3), int face_edges(,3), int face_edges_reverse(,3))
+  subroutine find_triangle_edge_points(triangle_on_face_index,face_index,point_0,point_1,point_2,point_3,point_4, &
+                                       point_5,dual_scalar_on_face_index,face_vertices,face_edges,face_edges_reverse)
     
     ! This subroutine finds the primal scalar points (pentagon and hexagon centers) a triangle consists of.
     
-    int coord_0, coord_1, coord_0_points_amount 
-    call find_coords_from_triangle_on_face_index(&triangle_on_face_index, &res_id, &coord_0, &coord_1, &coord_0_points_amount) 
-    *dual_scalar_on_face_index = 1 + 2*triangle_on_face_index + coord_1 
-    int points_per_edge, scalar_points_per_inner_face 
-    points_per_edge = find_points_per_edge(res_id) 
-    scalar_points_per_inner_face = find_scalar_points_per_inner_face(res_id) 
+    integer, intent(in)  :: triangle_on_face_index,face_index,face_edges(20,3),face_vertices(20,3),face_edges_reverse(20,3)
+    integer, intent(out) :: point_0,point_1,point_2,point_3,point_4,point_5,dual_scalar_on_face_index
+    
+    ! local variables
+    integer :: coord_0,coord_1,coord_0_points_amount,points_per_edge,scalar_points_per_inner_face 
+    
+    call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_0,coord_1,coord_0_points_amount)
+    dual_scalar_on_face_index = 1 + 2*triangle_on_face_index + coord_1
+    points_per_edge = find_points_per_edge(res_id)
+    scalar_points_per_inner_face = find_scalar_points_per_inner_face(res_id)
     if (coord_1==0) then
       if (face_edges_reverse(face_index,0) == 0) then
         point_0 = n_pentagons + face_edges(face_index,0)*points_per_edge + coord_0
       else
-        point_0 = n_pentagons + (face_edges(face_index,0) + 1)*points_per_edge - 1 - coord_0 
+        point_0 = n_pentagons + (face_edges(face_index,0) + 1)*points_per_edge - 1 - coord_0
       endif
     else
-        point_0 = n_pentagons + points_per_edge*n_edges + face_index*scalar_points_per_inner_face + triangle_on_face_index - points_per_edge 
+        point_0 = n_pentagons + points_per_edge*n_edges + face_index*scalar_points_per_inner_face + &
+                  triangle_on_face_index - points_per_edge 
     endif
     if (coord_0==points_per_edge-1-coord_1) then
       if (face_edges_reverse(face_index,1) == 0) then
@@ -57,7 +69,8 @@ module mo_discrete_coordinate_trafos
         point_1 = n_pentagons + (face_edges(face_index,1) + 1)*points_per_edge - 1 - coord_1 
       endif
     else
-        point_1 = n_pentagons + points_per_edge*n_edges + face_index*scalar_points_per_inner_face + triangle_on_face_index - coord_1 
+        point_1 = n_pentagons + points_per_edge*n_edges + face_index*scalar_points_per_inner_face + &
+                  triangle_on_face_index - coord_1 
     endif
     if (coord_0==0) then
       if (face_edges_reverse(face_index,2)==0) then
@@ -66,7 +79,8 @@ module mo_discrete_coordinate_trafos
         point_2 = n_pentagons + face_edges(face_index,2)*points_per_edge + coord_1 
       endif
     else
-      point_2 = n_pentagons + points_per_edge*n_edges + face_index*scalar_points_per_inner_face + triangle_on_face_index - 1 - coord_1 
+      point_2 = n_pentagons + points_per_edge*n_edges + face_index*scalar_points_per_inner_face + &
+                triangle_on_face_index - 1 - coord_1 
     endif
     if (coord_1==0) then
       if (coord_0==0) then
@@ -75,7 +89,7 @@ module mo_discrete_coordinate_trafos
         if (face_edges_reverse(face_index,0)==0) then
           point_3 = point_0 - 1
         else
-          point_3 = *point_0 + 1 
+          point_3 = point_0 + 1 
         endif
       endif
     elseif (coord_0==0) then
@@ -85,38 +99,49 @@ module mo_discrete_coordinate_trafos
         point_3 = point_2 - 1 
       endif
     else
-      point_3 = point_0 - 1 
+      point_3 = point_0 - 1
     endif
-    point_4 = -1 
-    point_5 = -1 
+    point_4 = -1
+    point_5 = -1
     if (coord_0==coord_0_points_amount-1) then
       if (coord_1==0) then
         point_4 = face_vertices(face_index,1)
       else
         if (face_edges_reverse(face_index,1)==0) then
-            point_4 = *point_1 - 1
+            point_4 = point_1 - 1
         else
-          point_4 = *point_1 + 1 
+          point_4 = point_1 + 1
         endif
       endif
       if (coord_1 == points_per_edge - 1) then
-        point_5 = face_vertices(face_index,2) 
+        point_5 = face_vertices(face_index,2)
       endif
     endif
   
   end subroutine find_triangle_edge_points
 
-  subroutine find_triangle_edge_points_from_dual_scalar_on_face_index(int dual_scalar_on_face_index, int face_index, int res_id,
-  int *point_0, int *point_1, int *point_2, int face_vertices(,3), int face_edges(,3), int face_edges_reverse(,3))
+  subroutine find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,face_index, &
+                                                                      point_0,point_1,point_2,face_vertices, &
+                                                                      face_edges,face_edges_reverse)
   
     ! This subroutine computes the edge points of a triangle from its dual scalar on face index.
     
-    int points_downwards, special_case_bool, last_triangle_bool 
-    int triangle_on_face_index, rhombuspoint_0, rhombuspoint_1, rhombuspoint_2, rhombuspoint_3, coord_0, coord_1, coord_0_points_amount, points_per_edge, dump, addpoint_0, addpoint_1 
-    find_triangle_on_face_index_from_dual_scalar_on_face_index(&dual_scalar_on_face_index, &res_id, &triangle_on_face_index, &points_downwards, &special_case_bool, &last_triangle_bool) 
-    find_coords_from_triangle_on_face_index(&triangle_on_face_index, &res_id, &coord_0, &coord_1, &coord_0_points_amount) 
-    points_per_edge = find_points_per_edge(&res_id) 
-    find_triangle_edge_points(triangle_on_face_index, face_index, res_id, &rhombuspoint_0, &rhombuspoint_1, &rhombuspoint_2, &rhombuspoint_3, &addpoint_0, &addpoint_1, &dump, face_vertices, face_edges, face_edges_reverse) 
+    integer, intent(in)  :: dual_scalar_on_face_index,face_index,face_vertices(20,3),face_edges(20,3), &
+                            face_edges_reverse(20,3)
+    integer, intent(out) :: point_0,point_1,point_2
+    
+    ! local variables
+    logical :: lspecial_case
+    integer :: points_downwards,last_triangle_bool,triangle_on_face_index, &
+               rhombuspoint_0,rhombuspoint_1,rhombuspoint_2,rhombuspoint_3,coord_0,coord_1,coord_0_points_amount, &
+               points_per_edge,dump,addpoint_0,addpoint_1 
+    
+    call find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id,triangle_on_face_index, &
+                                                                    points_downwards,special_case_bool,last_triangle_bool) 
+    call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_0,coord_1,coord_0_points_amount) 
+    points_per_edge = find_points_per_edge(res_id) 
+    call find_triangle_edge_points(triangle_on_face_index,face_index,res_id,rhombuspoint_0,rhombuspoint_1,rhombuspoint_2, &
+                                   rhombuspoint_3,addpoint_0,addpoint_1,dump,face_vertices,face_edges,face_edges_reverse) 
     if (points_downwards==1) then
       point_0 = rhombuspoint_0 
       point_1 = rhombuspoint_1 
@@ -128,7 +153,7 @@ module mo_discrete_coordinate_trafos
             point_0 = rhombuspoint_2 
             point_1 = rhombuspoint_1 
             point_2 = addpoint_1
-          elseif (special_case_bool==1) then
+          elseif (lspecial_case) then
             point_0 = rhombuspoint_0
             point_1 = addpoint_0
             point_2 = rhombuspoint_1
@@ -138,7 +163,7 @@ module mo_discrete_coordinate_trafos
             point_2 = rhombuspoint_2   
           endif
         else
-          if (special_case_bool==1)
+          if (lspecial_case) then
             point_0 = rhombuspoint_0 
             point_1 = addpoint_0 
             point_2 = rhombuspoint_1
@@ -157,190 +182,194 @@ module mo_discrete_coordinate_trafos
   
   end subroutine find_triangle_edge_points_from_dual_scalar_on_face_index
 
-  subroutine build_icosahedron(double latitude_ico(), double longitude_ico(), int edge_vertices(,2), int face_vertices(,3), int face_edges(,3), int face_edges_reverse(,3))
+  subroutine build_icosahedron(latitude_ico,longitude_ico,edge_vertices,face_vertices,face_edges,face_edges_reverse)
   
-    ! This subroutine sets the properties of the icosahedron the global grid is based on (angles and indices of faces, edges and vertices).
+    real(wp), intent(out) :: latitude_ico(12),longitude_ico(12)
+    integer,  intent(out) :: edge_vertices(30,2),face_vertices(20,3),face_edges(20,3),face_edges_reverse(20,3)
+  
+    ! This subroutine sets the properties of the icosahedron the global grid is based on (angles and indices of faces,edges and vertices).
     
-    latitude_ico(0) = M_PI/2 
-    latitude_ico(1) = atan(0.5) 
-    latitude_ico(2) = atan(0.5) 
-    latitude_ico(3) = atan(0.5) 
-    latitude_ico(4) = atan(0.5) 
-    latitude_ico(5) = atan(0.5) 
-    latitude_ico(6) = -atan(0.5) 
-    latitude_ico(7) = -atan(0.5) 
-    latitude_ico(8) = -atan(0.5) 
-    latitude_ico(9) = -atan(0.5) 
-    latitude_ico(10) = -atan(0.5) 
-    latitude_ico(11) = -M_PI/2 
-    longitude_ico(0) = 0 
-    longitude_ico(1) = 0 
-    longitude_ico(2) = 1*2*M_PI/5 
-    longitude_ico(3) = 2*2*M_PI/5 
-    longitude_ico(4) = 3*2*M_PI/5 
-    longitude_ico(5) = 4*2*M_PI/5 
-    longitude_ico(6) = 2*M_PI/10 
-    longitude_ico(7) = 2*M_PI/10 + 1*2*M_PI/5 
-    longitude_ico(8) = 2*M_PI/10 + 2*2*M_PI/5 
-    longitude_ico(9) = 2*M_PI/10 + 3*2*M_PI/5 
-    longitude_ico(10) = 2*M_PI/10 + 4*2*M_PI/5     
-    longitude_ico(11) = 0 
-    edge_vertices(0,0) = 0 
-    edge_vertices(0,1) = 1 
-    edge_vertices(1,0) = 0 
-    edge_vertices(1,1) = 2 
-    edge_vertices(2,0) = 0 
-    edge_vertices(2,1) = 3 
-    edge_vertices(3,0) = 0 
-    edge_vertices(3,1) = 4 
-    edge_vertices(4,0) = 0 
-    edge_vertices(4,1) = 5 
-    edge_vertices(5,0) = 1 
-    edge_vertices(5,1) = 2 
-    edge_vertices(6,0) = 2 
-    edge_vertices(6,1) = 3 
-    edge_vertices(7,0) = 3 
-    edge_vertices(7,1) = 4 
-    edge_vertices(8,0) = 4 
-    edge_vertices(8,1) = 5 
-    edge_vertices(9,0) = 5 
-    edge_vertices(9,1) = 1 
-    edge_vertices(10,0) = 1 
-    edge_vertices(10,1) = 6 
-    edge_vertices(11,0) = 2 
-    edge_vertices(11,1) = 6 
-    edge_vertices(12,0) = 2 
-    edge_vertices(12,1) = 7 
-    edge_vertices(13,0) = 3 
-    edge_vertices(13,1) = 7 
-    edge_vertices(14,0) = 3 
-    edge_vertices(14,1) = 8 
-    edge_vertices(15,0) = 4 
-    edge_vertices(15,1) = 8 
-    edge_vertices(16,0) = 4 
-    edge_vertices(16,1) = 9 
-    edge_vertices(17,0) = 5 
-    edge_vertices(17,1) = 9 
-    edge_vertices(18,0) = 5 
-    edge_vertices(18,1) = 10 
-    edge_vertices(19,0) = 1 
-    edge_vertices(19,1) = 10 
-    edge_vertices(20,0) = 10 
-    edge_vertices(20,1) = 6 
-    edge_vertices(21,0) = 6 
-    edge_vertices(21,1) = 7 
-    edge_vertices(22,0) = 7 
-    edge_vertices(22,1) = 8 
-    edge_vertices(23,0) = 8 
-    edge_vertices(23,1) = 9 
-    edge_vertices(24,0) = 9 
-    edge_vertices(24,1) = 10 
-    edge_vertices(25,0) = 6 
-    edge_vertices(25,1) = 11 
-    edge_vertices(26,0) = 7 
-    edge_vertices(26,1) = 11 
-    edge_vertices(27,0) = 8 
-    edge_vertices(27,1) = 11 
-    edge_vertices(28,0) = 9 
-    edge_vertices(28,1) = 11 
-    edge_vertices(29,0) = 10 
-    edge_vertices(29,1) = 11 
-    int *vertices_check_counter = calloc(n_edges, sizeof(int)) 
-    do (int i = 0  i < n_pentagons  ++i)
-      do (int j = 0  j < n_edges  ++j)
-        do (int k = 0  k < 2  ++k)
-          if (edge_vertices(j,k) == i) then
-            vertices_check_counter(i) = vertices_check_counter(i) + 1 
+    ! local variables
+    integer :: ji,jk,jm,vertices_check_counter(n_basic_edges)
+    
+    latitude_ico(1) = M_PI/2._wp
+    latitude_ico(2) = atan(0.5_wp)
+    latitude_ico(3) = atan(0.5_wp)
+    latitude_ico(4) = atan(0.5_wp)
+    latitude_ico(5) = atan(0.5_wp)
+    latitude_ico(6) = atan(0.5_wp)
+    latitude_ico(7) = -atan(0.5_wp)
+    latitude_ico(8) = -atan(0.5_wp)
+    latitude_ico(9) = -atan(0.5_wp)
+    latitude_ico(10) = -atan(0.5_wp)
+    latitude_ico(11) = -atan(0.5_wp)
+    latitude_ico(12) = -M_PI/2._wp
+    longitude_ico(1) = 0._wp
+    longitude_ico(2) = 0._wp
+    longitude_ico(3) = 1._wp*2*M_PI/5._wp
+    longitude_ico(4) = 2._wp*2*M_PI/5._wp
+    longitude_ico(5) = 3._wp*2*M_PI/5._wp
+    longitude_ico(6) = 4._wp*2*M_PI/5._wp
+    longitude_ico(7) = 2._wp*M_PI/10._wp
+    longitude_ico(8) = 2._wp*M_PI/10._wp + 1._wp*2._wp*M_PI/5._wp
+    longitude_ico(9) = 2._wp*M_PI/10._wp + 2._wp*2._wp*M_PI/5._wp
+    longitude_ico(10) = 2._wp*M_PI/10._wp + 3._wp*2._wp*M_PI/5._wp
+    longitude_ico(11) = 2._wp*M_PI/10._wp + 4._wp*2._wp*M_PI/5._wp    
+    longitude_ico(12) = 0._wp
+    edge_vertices(1,1) = 0
+    edge_vertices(1,2) = 1
+    edge_vertices(2,1) = 0
+    edge_vertices(2,2) = 2
+    edge_vertices(3,1) = 0
+    edge_vertices(3,2) = 3
+    edge_vertices(4,1) = 0
+    edge_vertices(4,2) = 4
+    edge_vertices(5,1) = 0
+    edge_vertices(5,2) = 5
+    edge_vertices(6,1) = 1
+    edge_vertices(6,2) = 2
+    edge_vertices(7,1) = 2 
+    edge_vertices(7,2) = 3
+    edge_vertices(8,1) = 3
+    edge_vertices(8,2) = 4
+    edge_vertices(9,1) = 4
+    edge_vertices(9,2) = 5
+    edge_vertices(10,1) = 5
+    edge_vertices(10,2) = 1
+    edge_vertices(11,1) = 1
+    edge_vertices(11,2) = 6
+    edge_vertices(12,1) = 2
+    edge_vertices(12,2) = 6
+    edge_vertices(13,1) = 2
+    edge_vertices(13,2) = 7
+    edge_vertices(14,1) = 3
+    edge_vertices(14,2) = 7
+    edge_vertices(15,1) = 3
+    edge_vertices(15,2) = 8
+    edge_vertices(16,1) = 4
+    edge_vertices(16,2) = 8
+    edge_vertices(17,1) = 4
+    edge_vertices(17,2) = 9
+    edge_vertices(18,1) = 5
+    edge_vertices(18,2) = 9
+    edge_vertices(19,1) = 5
+    edge_vertices(19,2) = 10
+    edge_vertices(20,1) = 1
+    edge_vertices(20,2) = 10
+    edge_vertices(21,1) = 10
+    edge_vertices(21,2) = 6
+    edge_vertices(22,1) = 6
+    edge_vertices(22,2) = 7
+    edge_vertices(23,1) = 7
+    edge_vertices(23,2) = 8
+    edge_vertices(24,1) = 8
+    edge_vertices(24,2) = 9
+    edge_vertices(25,1) = 9
+    edge_vertices(25,2) = 10
+    edge_vertices(26,1) = 6
+    edge_vertices(26,2) = 11
+    edge_vertices(27,1) = 7
+    edge_vertices(27,2) = 11
+    edge_vertices(28,1) = 8
+    edge_vertices(28,2) = 11
+    edge_vertices(29,1) = 9
+    edge_vertices(29,2) = 11
+    edge_vertices(30,1) = 10
+    edge_vertices(30,2) = 11
+    do ji=1,n_pentagons
+      do jk=1,n_basic_edges
+        do jm=1,2
+          if (edge_vertices(jk,jm)==ji) then
+            vertices_check_counter(ji) = vertices_check_counter(ji) + 1 
           endif
         enddo
       enddo
     enddo
-    do (int i = 0  i < n_pentagons  ++i)
-      if (vertices_check_counter(i) != 5) then
-        printf("Error with vertices, position 0.\n") 
+    do ji=1,n_pentagons
+      if (vertices_check_counter(ji)/=5) then
+        write(*,*) "Error with vertices,position 0."
         call exit(1) 
       endif
-      vertices_check_counter(i) = 0 
+      vertices_check_counter(ji) = 0 
     enddo
-    face_vertices(0,0) = 0 
-    face_vertices(0,1) = 1 
-    face_vertices(0,2) = 2 
-    face_vertices(1,0) = 0 
-    face_vertices(1,1) = 2 
-    face_vertices(1,2) = 3 
-    face_vertices(2,0) = 0 
-    face_vertices(2,1) = 3 
-    face_vertices(2,2) = 4 
-    face_vertices(3,0) = 0 
-    face_vertices(3,1) = 4 
-    face_vertices(3,2) = 5 
-    face_vertices(4,0) = 0 
-    face_vertices(4,1) = 5 
-    face_vertices(4,2) = 1 
-    face_vertices(5,0) = 1 
-    face_vertices(5,1) = 10 
-    face_vertices(5,2) = 6 
-    face_vertices(6,0) = 6 
-    face_vertices(6,1) = 2 
-    face_vertices(6,2) = 1 
-    face_vertices(7,0) = 2 
+    face_vertices(1,1) = 0 
+    face_vertices(1,2) = 1 
+    face_vertices(1,3) = 2 
+    face_vertices(2,1) = 0 
+    face_vertices(2,2) = 2 
+    face_vertices(2,3) = 3 
+    face_vertices(3,1) = 0 
+    face_vertices(3,2) = 3 
+    face_vertices(3,3) = 4 
+    face_vertices(4,1) = 0 
+    face_vertices(4,2) = 4 
+    face_vertices(4,3) = 5 
+    face_vertices(5,1) = 0 
+    face_vertices(5,2) = 5 
+    face_vertices(5,3) = 1 
+    face_vertices(6,1) = 1 
+    face_vertices(6,2) = 10 
+    face_vertices(6,3) = 6 
     face_vertices(7,1) = 6 
-    face_vertices(7,2) = 7 
-    face_vertices(8,0) = 7 
-    face_vertices(8,1) = 3 
-    face_vertices(8,2) = 2 
-    face_vertices(9,0) = 3 
+    face_vertices(7,2) = 2 
+    face_vertices(7,3) = 1 
+    face_vertices(8,1) = 2 
+    face_vertices(8,2) = 6 
+    face_vertices(8,3) = 7 
     face_vertices(9,1) = 7 
-    face_vertices(9,2) = 8 
-    face_vertices(10,0) = 8 
-    face_vertices(10,1) = 4 
-    face_vertices(10,2) = 3 
-    face_vertices(11,0) = 4 
+    face_vertices(9,2) = 3 
+    face_vertices(9,3) = 2 
+    face_vertices(10,1) = 3 
+    face_vertices(10,2) = 7 
+    face_vertices(10,3) = 8 
     face_vertices(11,1) = 8 
-    face_vertices(11,2) = 9 
-    face_vertices(12,0) = 9 
-    face_vertices(12,1) = 5 
-    face_vertices(12,2) = 4 
-    face_vertices(13,0) = 5 
+    face_vertices(11,2) = 4 
+    face_vertices(11,3) = 3 
+    face_vertices(12,1) = 4 
+    face_vertices(12,2) = 8 
+    face_vertices(12,3) = 9 
     face_vertices(13,1) = 9 
-    face_vertices(13,2) = 10 
-    face_vertices(14,0) = 10 
-    face_vertices(14,1) = 1 
-    face_vertices(14,2) = 5 
-    face_vertices(15,0) = 11 
-    face_vertices(15,1) = 6 
-    face_vertices(15,2) = 10 
-    face_vertices(16,0) = 11 
-    face_vertices(16,1) = 7 
+    face_vertices(13,2) = 5 
+    face_vertices(13,3) = 4 
+    face_vertices(14,1) = 5 
+    face_vertices(14,2) = 9 
+    face_vertices(14,3) = 10 
+    face_vertices(15,1) = 10 
+    face_vertices(15,2) = 1 
+    face_vertices(15,3) = 5 
+    face_vertices(16,1) = 11 
     face_vertices(16,2) = 6 
-    face_vertices(17,0) = 11 
-    face_vertices(17,1) = 8 
+    face_vertices(16,3) = 10 
+    face_vertices(17,1) = 11 
     face_vertices(17,2) = 7 
-    face_vertices(18,0) = 11 
-    face_vertices(18,1) = 9 
+    face_vertices(17,3) = 6 
+    face_vertices(18,1) = 11 
     face_vertices(18,2) = 8 
-    face_vertices(19,0) = 11 
-    face_vertices(19,1) = 10 
+    face_vertices(18,3) = 7 
+    face_vertices(19,1) = 11 
     face_vertices(19,2) = 9 
-    do (int i = 0  i < n_pentagons  ++i)
+    face_vertices(19,3) = 8 
+    face_vertices(20,1) = 11 
+    face_vertices(20,2) = 10 
+    face_vertices(20,3) = 9 
+    do ji=1,n_pentagons
       do (int j = 0  j < N_BASIC_TRIANGLES  ++j)
         do (int k = 0  k < 3  ++k)
-          if (face_vertices(j,k) == i) then
-            vertices_check_counter(i) = vertices_check_counter(i) + 1 
+          if (face_vertices(j,k)==ji) then
+            vertices_check_counter(ji) = vertices_check_counter(ji) + 1 
           endif
         enddo
       enddo
     enddo
-    for (int i = 0  i < n_pentagons  ++i)
-      if (vertices_check_counter(i)/=5) then
-        printf("Error with vertices, position 1.\n") 
-        exit(1) 
+    do ji=1,n_pentagons
+      if (vertices_check_counter(ji)/=5) then
+        write(*,*) "Error with vertices,position 1."
+        call exit(1)
       endif
     enddo
-    free(vertices_check_counter) 
-    int edge_other_vertex_index, check_index 
+    int edge_other_vertex_index,check_index 
     check_index = 0 
-    int *edges_check_counter = calloc(n_edges, sizeof(int)) 
+    int *edges_check_counter = calloc(n_edges,sizeof(int)) 
     do (int i = 0  i < N_BASIC_TRIANGLES  ++i)
       do (int j = 0  j < 3  ++j)
         do (int k = 0  k < n_edges  ++k)
@@ -374,10 +403,10 @@ module mo_discrete_coordinate_trafos
         enddo
       enddo
     enddo
-    do (int i = 0  i < n_edges  ++i)
-      if (edges_check_counter(i)/=2) tehn
-        printf("Error with edges.\n") 
-        exit(1) 
+    do ji=1,n_edges
+      if (edges_check_counter(ji)/=2) tehn
+        write(*,*) "Error with edges."
+        call exit(1)
       endif
     enddo
     deallocate(edges_check_counter)
@@ -388,8 +417,8 @@ module mo_discrete_coordinate_trafos
     
     ! This subroutine computes the discrete coordinates of a triangle from its index on face.
     
-    integer, intent(in)  :: triangle_on_face_index,res_id_local
-    integer, intent(out) :: coord_0,coord_1,coord_0_points_amount
+    integer,intent(in)  :: triangle_on_face_index,res_id_local
+    integer,intent(out) :: coord_0,coord_1,coord_0_points_amount
     
     ! local variables
     integer :: check,coord_1_pre,min_index,max_index,points_per_edge
@@ -416,8 +445,8 @@ module mo_discrete_coordinate_trafos
   
     ! This subroutine computes the index on face of a triangle from its discrete coordinates.
     
-    integer, intent(in)  :: coord_0,coord_1
-    integer              :: find_triangle_on_face_index_from_coords
+    integer, intent(in) :: coord_0,coord_1
+    integer             :: find_triangle_on_face_index_from_coords
     
     ! local variables
     integer :: i,coord_0_points_amount,points_per_edge
@@ -452,7 +481,7 @@ module mo_discrete_coordinate_trafos
     ! This function returns the number of scalar data points (centers of hexagons) in the inner of a face
     ! of the icosahedron given a certain resolution ID.
     
-    integer, intent(in) :: res_id_local
+    integer,intent(in) :: res_id_local
     integer             :: find_scalar_points_per_inner_face
     
     find_scalar_points_per_inner_face = ((2**res_id_local-2)*(2**res_id_local-1))/2
@@ -463,11 +492,11 @@ module mo_discrete_coordinate_trafos
   
     ! This function converts an index of a scalar data point to a higher resolution ID.
     
-    integer, intent(in) :: res_id_local,old_index
+    integer,intent(in) :: res_id_local,old_index
     integer             :: upscale_scalar_point
     
     ! local variables
-    integer ::  edge_index,face_index,points_per_edge,on_edge_index,scalar_points_per_inner_face, &
+    integer ::  edge_index,face_index,points_per_edge,on_edge_index,scalar_points_per_inner_face,
                 on_face_index,coord_0,coord_1,coord_0_points_amount,on_face_index_local,scalar_points_per_inner_face_full_grid
     
     scalar_points_per_inner_face_full_grid = (2**res_id-2)/2*(2**res_id-1)
@@ -494,14 +523,14 @@ module mo_discrete_coordinate_trafos
   
   end function upscale_scalar_point
 
-  subroutine find_v_vector_indices_for_dual_scalar_z(from_index,to_index,vorticity_indices_triangles, &
+  subroutine find_v_vector_indices_for_dual_scalar_z(from_index,to_index,vorticity_indices_triangles,
   dual_scalar_h_index,index_vector_for_dual_scalar_z) 
     
     ! This subroutine computes the vertical vector indices to compute the z-coordinates of a dual scalar data point with.
     
-    integer, intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h), &
+    integer,intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h),
                             vorticity_indices_triangles(3*n_dual_scalars_h),dual_scalar_h_index
-    integer, intent(out) :: index_vector_for_dual_scalar_z(3)
+    integer,intent(out) :: index_vector_for_dual_scalar_z(3)
         
     ! local variables
     integer :: ji,counter,check_result
@@ -514,13 +543,13 @@ module mo_discrete_coordinate_trafos
     counter = 1
     
     do ji=1,3
-      check_result = in_bool_checker(from_index(1+vorticity_indices_triangles(3*dual_scalar_h_index + ji)), &
+      check_result = in_bool_checker(from_index(1+vorticity_indices_triangles(3*dual_scalar_h_index + ji)),
                                      index_vector_for_dual_scalar_z,3)
       if (check_result==0) then
         index_vector_for_dual_scalar_z(counter) = from_index(1+vorticity_indices_triangles(3*dual_scalar_h_index + ji))
         counter = counter+1
       endif
-      check_result = in_bool_checker(to_index(1+vorticity_indices_triangles(3*dual_scalar_h_index + ji)), &
+      check_result = in_bool_checker(to_index(1+vorticity_indices_triangles(3*dual_scalar_h_index + ji)),
                                      index_vector_for_dual_scalar_z,3)
       if (check_result==0) then
         index_vector_for_dual_scalar_z(counter) = to_index(1+vorticity_indices_triangles(3*dual_scalar_h_index + ji))
@@ -534,18 +563,18 @@ module mo_discrete_coordinate_trafos
   
   end subroutine find_v_vector_indices_for_dual_scalar_z
 
-  subroutine find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id,triangle_on_face_index, &
+  subroutine find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id,triangle_on_face_index,
   points_downwards,special_case_bool,last_triangle_bool)
     
     ! This subroutine finds the on face index of a triangle from the dual scalar on face index and some further
-    ! properties of this triangle (wether it points upwards or downwards, ...).
+    ! properties of this triangle (wether it points upwards or downwards,...).
     
-    integer, intent(in)  :: dual_scalar_on_face_index,res_id
-    integer, intent(out) :: triangle_on_face_index,points_downwards,special_case_bool,last_triangle_bool
+    integer,intent(in)  :: dual_scalar_on_face_index,res_id
+    integer,intent(out) :: triangle_on_face_index,points_downwards,special_case_bool,last_triangle_bool
     
     ! local variables
-    integer :: value_found,triangle_on_face_index_pre,coord_0_pre,coord_1_pre,coord_0_points_amount_pre, &
-               dual_scalar_on_face_index_0,dual_scalar_on_face_index_1,dual_scalar_on_face_index_2, &
+    integer :: value_found,triangle_on_face_index_pre,coord_0_pre,coord_1_pre,coord_0_points_amount_pre,
+               dual_scalar_on_face_index_0,dual_scalar_on_face_index_1,dual_scalar_on_face_index_2,
                dual_scalar_on_face_index_3,points_per_edge
     
     value_found = 0
@@ -556,7 +585,7 @@ module mo_discrete_coordinate_trafos
       dual_scalar_on_face_index_2 = -1
       dual_scalar_on_face_index_3 = -1
       triangle_on_face_index_pre = triangle_on_face_index_pre+1
-      call find_coords_from_triangle_on_face_index(triangle_on_face_index_pre,res_id, &
+      call find_coords_from_triangle_on_face_index(triangle_on_face_index_pre,res_id,
                                                    coord_0_pre,coord_1_pre,coord_0_points_amount_pre)
       dual_scalar_on_face_index_0 = 2*triangle_on_face_index_pre + 1 + coord_1_pre
       dual_scalar_on_face_index_1 = dual_scalar_on_face_index_0 - 1
