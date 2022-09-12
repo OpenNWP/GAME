@@ -74,7 +74,7 @@ program control
                 // "_ORO" // trim(int2string(oro_id)) // ".nc"
   statistics_file = "statistics/RES" // trim(int2string(res_id)) // "_L" // trim(int2string(n_layers)) &
                     // "_ORO" // trim(int2string(oro_id)) // ".txt"
-  write(*,*) "Output will be written to file:",trim(output_file)
+  write(*,*) "Output will be written to file: ",trim(output_file)
   write(*,*) "Building icosahedron ..."
   call build_icosahedron(latitude_ico,longitude_ico,edge_vertices,face_vertices,face_edges,face_edges_reverse)
   write(*,*) "finished."

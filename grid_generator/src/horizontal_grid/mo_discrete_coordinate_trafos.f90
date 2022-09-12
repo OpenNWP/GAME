@@ -211,10 +211,10 @@ module mo_discrete_coordinate_trafos
     latitude_ico(12) = -M_PI/2._wp
     longitude_ico(1) = 0._wp
     longitude_ico(2) = 0._wp
-    longitude_ico(3) = 1._wp*2*M_PI/5._wp
-    longitude_ico(4) = 2._wp*2*M_PI/5._wp
-    longitude_ico(5) = 3._wp*2*M_PI/5._wp
-    longitude_ico(6) = 4._wp*2*M_PI/5._wp
+    longitude_ico(3) = 1._wp*2._wp*M_PI/5._wp
+    longitude_ico(4) = 2._wp*2._wp*M_PI/5._wp
+    longitude_ico(5) = 3._wp*2._wp*M_PI/5._wp
+    longitude_ico(6) = 4._wp*2._wp*M_PI/5._wp
     longitude_ico(7) = 2._wp*M_PI/10._wp
     longitude_ico(8) = 2._wp*M_PI/10._wp + 1._wp*2._wp*M_PI/5._wp
     longitude_ico(9) = 2._wp*M_PI/10._wp + 2._wp*2._wp*M_PI/5._wp
@@ -285,14 +285,14 @@ module mo_discrete_coordinate_trafos
       do jk=1,n_basic_edges
         do jm=1,2
           if (edge_vertices(jk,jm)==ji) then
-            vertices_check_counter(ji) = vertices_check_counter(ji) + 1 
+            vertices_check_counter(ji) = vertices_check_counter(ji)+1
           endif
         enddo
       enddo
     enddo
     do ji=1,n_pentagons
       if (vertices_check_counter(ji)/=5) then
-        write(*,*) "Error with vertices,position 0."
+        write(*,*) "Error with vertices, position 1."
         call exit(1) 
       endif
       vertices_check_counter(ji) = 0 
@@ -361,41 +361,40 @@ module mo_discrete_coordinate_trafos
       do jk=1,n_basic_triangles
         do jm=1,3
           if (face_vertices(jk,jm)==ji) then
-            vertices_check_counter(ji) = vertices_check_counter(ji) + 1 
+            vertices_check_counter(ji) = vertices_check_counter(ji)+1
           endif
         enddo
       enddo
     enddo
     do ji=1,n_pentagons
       if (vertices_check_counter(ji)/=5) then
-        write(*,*) "Error with vertices,position 1."
+        write(*,*) "Error with vertices, position 2."
         call exit(1)
       endif
     enddo
-    check_index = 0 
-    edges_check_counter = 0 
+    edges_check_counter = 0
     do ji=1,n_basic_triangles
       do jk=1,3
         do jm=1,n_basic_edges
           if (edge_vertices(jm,1)==face_vertices(ji,jk) .or. edge_vertices(jm,2)==face_vertices(ji,jk)) then
-            if (edge_vertices(jm,2)==face_vertices(ji,jk)) then
+            if (edge_vertices(jm,1)==face_vertices(ji,jk)) then
               edge_other_vertex_index = 2
             endif
             if (edge_vertices(jm,2)==face_vertices(ji,jk)) then
               edge_other_vertex_index = 1 
             endif
             if (jk==1) then
-              check_index = 1 
-            endif
-            if (jk==2) then
               check_index = 2
             endif
+            if (jk==2) then
+              check_index = 3
+            endif
             if (jk==3) then
-              check_index = 0 
+              check_index = 1
             endif
             if (edge_vertices(jm,edge_other_vertex_index)==face_vertices(ji,check_index)) then
               face_edges(ji,jk) = jm 
-              edges_check_counter(jm) = edges_check_counter(jm) + 1 
+              edges_check_counter(jm) = edges_check_counter(jm)+1
               if (edge_other_vertex_index==2) then
                 face_edges_reverse(ji,jk) = 0 
               endif

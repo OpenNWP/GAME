@@ -17,7 +17,7 @@ then
   exit
 fi
 
-if [ $use_scalar_h_coords_file -eq 1 ]
+if [ $use_scalar_h_coords_file = ".true." ]
 then
   if [ ! -f $scalar_h_coords_file ]
   then
@@ -54,7 +54,31 @@ fi
 echo ""
 echo "********** Calling the GAME grid generator **********"
 echo ""
+
+# creating a namelist
+cat > namelist.nml << EOF
+
+&grid
+res_id=$res_id
+oro_id=$oro_id
+n_iterations=$n_iterations
+use_scalar_h_coords_file=$use_scalar_h_coords_file
+stretching_parameter=$stretching_parameter
+toa=$toa
+orography_layers=$orography_layers
+radius_rescale=$radius_rescale
+n_avg_points=$n_avg_points
+/
+
+EOF
+
+# moving the namelist to the directory where the executable resides
+mv namelist.nml build
+# executing the grid generator
 ./build/grid_generator $oro_id $n_iterations $use_scalar_h_coords_file $scalar_h_coords_file $stretching_parameter $orography_layers $toa $radius_rescale $no_of_avg_points
+# deleting the namelist file
+rm namelist.nml
+
 if [ $? -ne 0 ]
 then
   echo -e ${RED}Grid file creation failed.$NC
