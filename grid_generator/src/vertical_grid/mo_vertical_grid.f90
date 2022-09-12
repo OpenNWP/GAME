@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module vertical_grid
+module mo_vertical_grid
 
   ! This file contains functions that compute properties of the vertical grid.
 
@@ -68,12 +68,11 @@ module vertical_grid
     
   end subroutine set_z_scalar
   
-  subroutine set_gravity_potential(z_scalar,gravity_potential,radius)
+  subroutine set_gravity_potential(z_scalar,gravity_potential)
 
     ! This subroutine computes the gravity potential.
     real(wp), intent(in)  :: z_scalar(n_scalars)
     real(wp), intent(out) :: gravity_potential(n_scalars)
-    real(wp), intent(in)  :: radius
   
     ! local variables
     integer :: ji
@@ -87,14 +86,13 @@ module vertical_grid
   end subroutine set_gravity_potential
   
   
-  subroutine set_volume(volume,z_vector,area,radius)
+  subroutine set_volume(volume,z_vector,area)
 
     ! This subroutine computes the volumes of the grid boxes.
   
     real(wp), intent(out) :: volume(n_scalars)
     real(wp), intent(in)  :: z_vector(n_vectors)
     real(wp), intent(in)  :: area(n_vectors)
-    real(wp), intent(in)  :: radius
   
     ! local variables
     integer  :: ji,layer_index,h_index
@@ -272,13 +270,12 @@ module vertical_grid
   
   end subroutine set_background_state
   
-  subroutine set_area(area,z_vector,z_vector_dual,normal_distance_dual,pent_hex_face_unity_sphere,radius)
+  subroutine set_area(area,z_vector,z_vector_dual,normal_distance_dual,pent_hex_face_unity_sphere)
 
     ! This function sets the areas of the grid boxes.
     real(wp), intent(out) :: area(n_vectors)
     real(wp), intent(in)  :: z_vector(n_vectors),z_vector_dual(n_dual_vectors), &
-                             normal_distance_dual(n_dual_vectors),pent_hex_face_unity_sphere(n_scalars_h), &
-                             radius
+                             normal_distance_dual(n_dual_vectors),pent_hex_face_unity_sphere(n_scalars_h)
   
     ! local variables
     integer  :: ji,layer_index,h_index,dual_vector_index
@@ -414,7 +411,7 @@ module vertical_grid
   
   end subroutine calc_z_vector_dual_and_normal_distance_dual
 
-end module vertical_grid
+end module mo_vertical_grid
 
 
 

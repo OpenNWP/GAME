@@ -16,8 +16,10 @@ module mo_rhombus_averaging
   contains
   
   subroutine rhombus_averaging(vorticity_indices_triangles,from_index_dual,to_index_dual, &
-  vorticity_indices_rhombi,density_to_rhombus_indices,from_index,to_index,area_dual,z_vector,latitude_scalar_dual, &
-  longitude_scalar_dual,density_to_rhombus_weights,latitude_vector,longitude_vector,latitude_scalar,longitude_scalar)
+                               vorticity_indices_rhombi,density_to_rhombus_indices,from_index,to_index,area_dual, &
+                               z_vector,latitude_scalar_dual, &
+                               longitude_scalar_dual,density_to_rhombus_weights,latitude_vector,longitude_vector, &
+                               latitude_scalar,longitude_scalar)
     
     ! This subroutine implements the averaging of scalar quantities to rhombi. Indices and weights are computed here for the highest layer but remain unchanged elsewhere.
 

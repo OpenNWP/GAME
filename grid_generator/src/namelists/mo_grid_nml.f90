@@ -42,16 +42,16 @@ module mo_grid_nml
   integer  :: n_lat_io_points          ! number of points of the post-processing lat-lon grid in lat direction
   integer  :: n_lon_io_points          ! number of points of the post-processing lat-lon grid in lon direction
   integer  :: n_latlon_io_points       ! number of points of the post-processing lat-lon grid
-  integer  :: no_of_avg_points         ! number of points used for smoothing the orography
+  integer  :: n_avg_points             ! number of points used for smoothing the orography
   integer  :: oro_id                   ! orography ID
-  integer  :: no_of_lloyd_iterations   ! number of Lloyd iterations used for the optimization
+  integer  :: n_lloyd_iterations       ! number of Lloyd iterations used for the optimization
   real(wp) :: mean_velocity_area       ! the area that can be attributed to one horizontal vector grid point
   real(wp) :: eff_hor_res              ! effective horizontal resolution
   
   real(wp), parameter :: orth_criterion_deg = 89.99_wp ! used for checking grid orthogonality
   
-  namelist /grid/res_id,n_layers,toa,n_oro_layers,stretching_parameter,radius_rescale,no_of_avg_points,oro_id, &
-                 no_of_lloyd_iterations
+  namelist /grid/res_id,n_layers,toa,n_oro_layers,stretching_parameter,radius_rescale,n_avg_points,oro_id, &
+                 n_lloyd_iterations
 
   contains
 
@@ -89,9 +89,9 @@ module mo_grid_nml
     n_lat_io_points = 2*2**res_id
     n_lon_io_points = 2*n_lat_io_points
     n_latlon_io_points = n_lat_io_points*n_lon_io_points
-    no_of_avg_points = 7
+    n_avg_points = 7
     oro_id = 0
-    no_of_lloyd_iterations = 2000
+    n_lloyd_iterations = 2000
     mean_velocity_area = 2._wp/3._wp*4*M_PI*radius**2/n_scalars_h
     eff_hor_res = sqrt(4*M_PI*radius**2/n_scalars_h)
   

@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module inner_product
+module mo_inner_product
 
   ! In this file, the inner product weights are computed.
 
@@ -62,7 +62,7 @@ module inner_product
   
   end subroutine calc_inner_product
 
-end module inner_product
+end module mo_inner_product
 
 
 

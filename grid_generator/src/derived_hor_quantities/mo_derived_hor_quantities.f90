@@ -7,7 +7,7 @@ module mo_derived_hor_quantities
 
   use mo_definitions,     only: wp
   use mo_grid_nml,        only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
-                                no_of_lloyd_iterations,radius,n_vectors,n_dual_vectors,n_pentagons
+                                n_lloyd_iterations,radius,n_vectors,n_dual_vectors,n_pentagons
   use mo_geodesy,         only: find_turn_angle,rad2deg,find_geodetic_direction,find_global_normal,find_geos, &
                                 find_between_point,rel_on_line,calc_spherical_polygon_area
   use mo_constants,       only: omega,EPSILON_SECURITY,M_PI
@@ -18,7 +18,7 @@ module mo_derived_hor_quantities
   contains
 
   subroutine set_dual_vector_h_atttributes(latitude_scalar_dual,latitude_vector,direction_dual,longitude_vector,to_index_dual, &
-                                       from_index_dual,longitude_scalar_dual,rel_on_line_dual)
+                                           from_index_dual,longitude_scalar_dual,rel_on_line_dual)
     
     ! This function computes the following two properties of horizontal dual vectors:
     ! - where they are placed in between the dual scalar points
@@ -254,7 +254,7 @@ module mo_derived_hor_quantities
     open(1,file=trim(statistics_file_name))
     write(1,fmt="(A,A)") "Statistical properties of grid ",trim(grid_name)
     write(1,*) ""
-    write(1,fmt="(A,I4)") "Number of Lloyd iterations: ",no_of_lloyd_iterations
+    write(1,fmt="(A,I4)") "Number of Lloyd iterations: ",n_lloyd_iterations
     write(1,fmt="(A,F6.3)") "Ratio of minimum to maximum area:",area_min/area_max
     write(1,fmt="(A,F11.3,A2)") "Shortest horizontal normal distance (rescaled to MSL):",normal_distance_h_min," m"
     write(1,fmt="(A,F11.3,A2)") "Longest horizontal normal distance (rescaled to MSL):",normal_distance_h_max," m"

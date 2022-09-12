@@ -10,7 +10,7 @@ module mo_discrete_coordinate_trafos
   use mo_definitions,         only: wp
   use mo_constants,           only: M_PI
   use mo_grid_nml,            only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
-                                    no_of_lloyd_iterations,n_vectors,n_dual_vectors,res_id,n_pentagons,n_basic_edges, &
+                                    n_vectors,n_dual_vectors,res_id,n_pentagons,n_basic_edges, &
                                     n_points_per_edge,n_basic_triangles,n_vectors_per_inner_face
   use mo_various_helpers,     only: in_bool_checker
   
@@ -135,13 +135,13 @@ module mo_discrete_coordinate_trafos
     integer, intent(out) :: point_0,point_1,point_2
     
     ! local variables
-    logical :: lspecial_case
-    integer :: points_downwards,last_triangle_bool,triangle_on_face_index, &
+    logical :: lspecial_case,llast_triangle
+    integer :: points_downwards,triangle_on_face_index, &
                rhombuspoint_0,rhombuspoint_1,rhombuspoint_2,rhombuspoint_3,coord_0,coord_1,coord_0_points_amount, &
                points_per_edge,dump,addpoint_0,addpoint_1 
     
     call find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id_local,triangle_on_face_index, &
-                                                                    points_downwards,lspecial_case,last_triangle_bool) 
+                                                                    points_downwards,lspecial_case,llast_triangle) 
     call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local,coord_0,coord_1,coord_0_points_amount) 
     points_per_edge = find_points_per_edge(res_id_local) 
     call find_triangle_edge_points(triangle_on_face_index,face_index,res_id_local,rhombuspoint_0,rhombuspoint_1,rhombuspoint_2, &
@@ -153,7 +153,7 @@ module mo_discrete_coordinate_trafos
     else
       if (coord_0==coord_0_points_amount-1) then
         if (coord_1==points_per_edge-1) then
-          if (last_triangle_bool == 1) then
+          if (llast_triangle) then
             point_0 = rhombuspoint_2 
             point_1 = rhombuspoint_1 
             point_2 = addpoint_1
@@ -567,14 +567,14 @@ module mo_discrete_coordinate_trafos
   end subroutine find_v_vector_indices_for_dual_scalar_z
 
   subroutine find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id,triangle_on_face_index, &
-                                                                        points_downwards,lspecial_case,last_triangle_bool)
+                                                                        points_downwards,lspecial_case,llast_triangle)
     
     ! This subroutine finds the on face index of a triangle from the dual scalar on face index and some further
     ! properties of this triangle (wether it points upwards or downwards,...).
     
     integer, intent(in)  :: dual_scalar_on_face_index,res_id
-    logical, intent(out) :: lspecial_case
-    integer, intent(out) :: triangle_on_face_index,points_downwards,last_triangle_bool
+    logical, intent(out) :: lspecial_case,llast_triangle
+    integer, intent(out) :: triangle_on_face_index,points_downwards
     
     ! local variables
     integer :: value_found,triangle_on_face_index_pre,coord_0_pre,coord_1_pre,coord_0_points_amount_pre, &
@@ -602,25 +602,25 @@ module mo_discrete_coordinate_trafos
       if (dual_scalar_on_face_index==dual_scalar_on_face_index_0) then
         points_downwards = 1
         lspecial_case = .false.
-        last_triangle_bool = 0
+        llast_triangle = .false.
         value_found = 1
       endif
       if (dual_scalar_on_face_index==dual_scalar_on_face_index_1) then
         points_downwards = 0
         lspecial_case = .false.
-        last_triangle_bool = 0
+        llast_triangle = .false.
         value_found = 1
       endif
       if (dual_scalar_on_face_index==dual_scalar_on_face_index_2) then
         points_downwards = 0
         lspecial_case = .true.
-        last_triangle_bool = 0
+        llast_triangle = .false.
         value_found = 1
       endif
       if (dual_scalar_on_face_index==dual_scalar_on_face_index_3) then
         points_downwards = 0
         lspecial_case = .false.
-        last_triangle_bool = 1
+        llast_triangle = .true.
         value_found = 1
       endif
     enddo

@@ -8,7 +8,7 @@ module mo_phys_sfc_properties
   use netcdf
   use mo_constants,       only: M_PI,rho_h2o
   use mo_definitions,     only: wp
-  use mo_grid_nml,        only: res_id,n_scalars_h,no_of_avg_points
+  use mo_grid_nml,        only: res_id,n_scalars_h,n_avg_points
   use mo_geodesy,         only: deg2rad,calculate_distance_h
   use mo_various_helpers, only: nc_check,int2string,find_min_index,find_min_index_exclude
 
@@ -45,7 +45,7 @@ module mo_phys_sfc_properties
   
     ! local variables
     integer               :: ji,jk,ncid,is_land_id,lat_in_id,lon_in_id,z_in_id,no_of_lat_points, &
-                             no_of_lon_points,lat_index,lon_index,min_indices_vector(no_of_avg_points)
+                             no_of_lon_points,lat_index,lon_index,min_indices_vector(n_avg_points)
     real(wp)              :: c_p_water,c_p_soil,albedo_water,albedo_soil,albedo_ice,density_soil, &
                              t_conductivity_water,t_conductivity_soil,lat_deg,distance_vector(n_scalars_h)
     real(wp), allocatable :: latitude_input(:),longitude_input(:),oro_unfiltered(:),lat_distance_vector(:),lon_distance_vector(:)
@@ -125,16 +125,16 @@ module mo_phys_sfc_properties
           distance_vector(jk) = calculate_distance_h(latitude_scalar(ji),longitude_scalar(ji), &
                                                      latitude_scalar(jk),longitude_scalar(jk),1._wp)
         enddo
-        do jk=1,no_of_avg_points
+        do jk=1,n_avg_points
           min_indices_vector(jk) = -1
         enddo
-        do jk=1,no_of_avg_points
+        do jk=1,n_avg_points
           min_indices_vector(jk) = find_min_index_exclude(distance_vector,n_scalars_h, &
-                                                          min_indices_vector,no_of_avg_points)
+                                                          min_indices_vector,n_avg_points)
         enddo
         oro(ji) = 0._wp
-        do jk=1,no_of_avg_points
-          oro(ji) = oro(ji) + oro_unfiltered(1+min_indices_vector(jk))/no_of_avg_points
+        do jk=1,n_avg_points
+          oro(ji) = oro(ji) + oro_unfiltered(1+min_indices_vector(jk))/n_avg_points
         enddo
       enddo
       !$omp end parallel do

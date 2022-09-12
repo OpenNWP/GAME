@@ -5,18 +5,19 @@ module mo_optimize
 
   ! The Lloyd algorithm is implemented here.
 
-  use mo_definitions,     only: wp
-  use mo_grid_nml,        only: n_scalars_h,n_pentagons,n_vectors_h,n_dual_scalars_h
-  use mo_geodesy,         only: calc_triangle_area,find_global_normal,sort_vertex_indices,find_geos
-  use mo_various_helpers, only: in_bool_checker
+  use mo_definitions,           only: wp
+  use mo_grid_nml,              only: n_scalars_h,n_pentagons,n_vectors_h,n_dual_scalars_h
+  use mo_geodesy,               only: calc_triangle_area,find_global_normal,sort_vertex_indices,find_geos
+  use mo_various_helpers,       only: in_bool_checker
+  use mo_horizontal_generation, only: set_scalar_h_dual_coords
 
   implicit none
   
   contains
   
   subroutine optimize_to_scvt(latitude_scalar,longitude_scalar,latitude_scalar_dual,longitude_scalar_dual,n_iterations, &
-                               face_edges,face_edges_reverse,face_vertices,adjacent_vector_indices_h, &
-                               from_index_dual,to_index_dual)
+                              face_edges,face_edges_reverse,face_vertices,adjacent_vector_indices_h, &
+                              from_index_dual,to_index_dual)
 
     ! This subroutine manages the grid optimization with Lloyd's algorithm.
     ! The result is (almost) a SCVT.

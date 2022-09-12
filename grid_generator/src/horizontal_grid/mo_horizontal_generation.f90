@@ -10,12 +10,16 @@ module mo_horizontal_generation
   use mo_definitions,                only: wp
   use mo_constants,                  only: EPSILON_SECURITY,M_PI
   use mo_grid_nml,                   only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
-                                           no_of_lloyd_iterations,n_vectors,n_dual_vectors,n_pentagons,n_basic_edges, &
+                                           n_lloyd_iterations,n_vectors,n_dual_vectors,n_pentagons,n_basic_edges, &
                                            n_basic_triangles,n_vectors_per_inner_face,n_points_per_edge,res_id, &
                                            n_triangles_per_face,n_triangles
   use mo_geodesy,                    only: find_geodetic_direction,find_between_point,normalize_cartesian,find_geos, &
-                                           rad2deg,find_turn_angle,calc_triangle_area
-  use mo_discrete_coordinate_trafos, only: upscale_scalar_point,find_points_per_edge
+                                           rad2deg,find_turn_angle,calc_triangle_area,find_voronoi_center_sphere, &
+                                           find_global_normal
+  use mo_discrete_coordinate_trafos, only: upscale_scalar_point,find_points_per_edge,find_triangle_indices_from_h_vector_index, &
+                                           find_coords_from_triangle_on_face_index, &
+                                           find_triangle_edge_points_from_dual_scalar_on_face_index, &
+                                           find_triangle_on_face_index_from_dual_scalar_on_face_index
   
   implicit none
   
@@ -32,10 +36,11 @@ module mo_horizontal_generation
     integer,  intent(in)  :: face_vertices(n_basic_edges,3),face_edges(n_basic_edges,3),face_edges_reverse(n_basic_edges,3)
     
     ! local variables
+    logical  :: llast_triangle,ldump
     integer  :: ji,jk,jm,res_id_local,n_triangles_per_face,base_index_down_triangles,base_index_old,test_index, &
-                last_triangle_bool,old_triangle_on_line_index, &
-                base_index_up_triangles,points_downwards,points_upwards,dump,points_per_edge,edgepoint_0,edgepoint_1, &
-                edgepoint_2,no_of_triangles_per_face,point_0,point_1,point_2,dual_scalar_on_face_index,coord_0,coord_1, &
+                old_triangle_on_line_index, &
+                base_index_up_triangles,points_downwards,points_upwards,points_per_edge,edgepoint_0,edgepoint_1, &
+                edgepoint_2,point_0,point_1,point_2,dual_scalar_on_face_index,coord_0,coord_1, &
                 triangle_on_face_index,coord_0_points_amount
     real(wp) :: x_res,y_res,z_res
     
@@ -74,7 +79,7 @@ module mo_horizontal_generation
                                                                           edgepoint_0,edgepoint_1,edgepoint_2, &
                                                                           face_vertices,face_edges,face_edges_reverse)
             call find_triangle_on_face_index_from_dual_scalar_on_face_index(jk,res_id_local-1,triangle_on_face_index, &
-                                                                            points_downwards,dump,last_triangle_bool)
+                                                                            points_downwards,ldump,llast_triangle)
             call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local-1,coord_0,coord_1, &
                                                          coord_0_points_amount)
             points_per_edge = find_points_per_edge(jk)
@@ -87,7 +92,7 @@ module mo_horizontal_generation
               base_index_down_triangles = base_index_down_triangles + 4*(2*coord_0_points_amount + 1)
               base_index_up_triangles = base_index_down_triangles + 4*(points_per_edge-jm) + 3
             enddo
-            if (last_triangle_bool==1) then
+            if (llast_triangle) then
               base_index_old = base_index_old + 3
               base_index_down_triangles = base_index_down_triangles + 12
               base_index_up_triangles = base_index_down_triangles + 3
@@ -137,7 +142,7 @@ module mo_horizontal_generation
     
     do ji=1,n_vectors_h
       if (ji>=n_basic_edges*(n_points_per_edge+1)) then
-        call find_triangle_indices_from_h_vector_index(res_id,ji,point_0,point_1,point_2,point_3,point_4,point_5, &
+        call find_triangle_indices_from_h_vector_index(ji,point_0,point_1,point_2,point_3,point_4,point_5, &
                                                        dual_scalar_on_face_index,small_triangle_edge_index, &
                                                        face_edges,face_vertices,face_edges_reverse)
         face_index = (ji - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
@@ -216,7 +221,7 @@ module mo_horizontal_generation
           to_index(ji) = n_pentagons + edge_index*n_points_per_edge + on_edge_index
         endif
       else
-        call find_triangle_indices_from_h_vector_index(res_id,ji,point_0,point_1,point_2,point_3,point_4,point_5, &
+        call find_triangle_indices_from_h_vector_index(ji,point_0,point_1,point_2,point_3,point_4,point_5, &
                                                        dual_scalar_on_face_index, &
                                                        small_triangle_edge_index,face_edges,face_vertices,face_edges_reverse)
         if (small_triangle_edge_index==1) then
@@ -256,7 +261,7 @@ module mo_horizontal_generation
     !$omp on_face_index,triangle_on_face_index)
     do ji=1,n_vectors_h
       if (ji>=n_basic_edges*(n_points_per_edge+1)) then
-        call find_triangle_indices_from_h_vector_index(res_id,ji,point_0,point_1,point_2,point_3,point_4,point_5, &
+        call find_triangle_indices_from_h_vector_index(ji,point_0,point_1,point_2,point_3,point_4,point_5, &
                                                        dual_scalar_on_face_index, &
                                                        small_triangle_edge_index,face_edges,face_vertices,face_edges_reverse)
         face_index = (ji - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
