@@ -10,7 +10,8 @@ program control
   use mo_grid_nml,                   only: n_scalars,n_scalars_h,n_dual_h_vectors,n_dual_scalars, &
                                            n_dual_scalars_h,n_dual_vectors,n_h_vectors,n_latlon_io_points,n_layers,n_levels, &
                                            n_oro_layers,n_vectors,n_vectors_h,radius_rescale,radius,res_id,stretching_parameter, &
-                                           toa,grid_nml_setup
+                                           toa,grid_nml_setup,oro_id,n_lloyd_iterations,n_avg_points,luse_scalar_h_file, &
+                                           scalar_h_file
   use mo_various_helpers,            only: nc_check,int2string
   use mo_discrete_coordinate_trafos, only: build_icosahedron
   use mo_horizontal_generation,      only: generate_horizontal_generators,set_from_to_index,set_from_to_index_dual, &
@@ -30,7 +31,7 @@ program control
   
   implicit none
  
-  integer               :: oro_id,n_lloyd_iterations,n_lloyd_read_from_file,n_avg_points, &
+  integer               :: n_lloyd_read_from_file, &
                            latitude_scalar_id,longitude_scalar_id,direction_id,latitude_vector_id,longitude_vector_id, &
                            latitude_scalar_dual_id,longitude_scalar_dual_id, &
                            z_scalar_id,z_vector_id,normal_distance_id,volume_id,area_id,trsk_weights_id,z_vector_dual_id, &
@@ -46,7 +47,7 @@ program control
                            vorticity_indices_triangles_id,ncid_g_prop,single_double_dimid,n_lloyd_iterations_id, &
                            single_int_dimid,interpol_indices_id,interpol_weights_id, &
                            theta_v_bg_id,exner_bg_id,sfc_albedo_id,sfc_rho_c_id,t_conductivity_id,roughness_length_id, &
-                           is_land_id,n_oro_layers_id,stretching_parameter_id,toa_id,radius_id,use_scalar_h_file
+                           is_land_id,n_oro_layers_id,stretching_parameter_id,toa_id,radius_id
   integer,  allocatable :: to_index(:),from_index(:),trsk_indices(:),trsk_modified_curl_indices(:),adjacent_vector_indices_h(:), &
                            vorticity_indices_triangles(:),vorticity_indices_rhombi(:),to_index_dual(:),from_index_dual(:), &
                            adjacent_signs_h(:),vorticity_signs_triangles(:),density_to_rhombi_indices(:),interpol_indices(:), &
@@ -63,55 +64,10 @@ program control
                            sfc_rho_c(:),t_conductivity(:)
   real(wp)              :: latitude_ico(12),longitude_ico(12),min_oro,max_oro
   integer               :: edge_vertices(30,2),face_vertices(20,3),face_edges(20,3),face_edges_reverse(20,3)
-  character(len=1)      :: use_scalar_h_file_string
-  character(len=2)      :: oro_id_string
-  character(len=4)      :: n_oro_layers_string,n_avg_points_string
-  character(len=8)      :: n_lloyd_iterations_string
   character(len=128)    :: grid_name
-  character(len=256)    :: scalar_h_file,output_file,statistics_file
-  
-  call get_command_argument(1,oro_id_string)
-  read(oro_id_string,*) oro_id
-  call get_command_argument(2,n_lloyd_iterations_string)
-  read(n_lloyd_iterations_string,*) n_lloyd_iterations
-  call get_command_argument(3,use_scalar_h_file_string)
-  read(use_scalar_h_file_string,*) use_scalar_h_file
-  call get_command_argument(4,scalar_h_file)
-  call get_command_argument(6,n_oro_layers_string)
-  read(n_oro_layers_string,*) n_oro_layers
-  call get_command_argument(9,n_avg_points_string)
-  read(n_avg_points_string,*) n_avg_points
+  character(len=256)    :: output_file,statistics_file
   
   call grid_nml_setup()
-  
-  ! sanity checks
-  ! -------------
-  ! checking if the n_oro_layers is valid
-  if (n_oro_layers<0 .or. n_oro_layers>=n_layers) then
-    write(*,*) "It must be 0 <= orography_layers<n_layers."
-    write(*,*) "Aborting."
-    call exit(1)
-  endif
-  
-  ! cechking wether the stretching parameter is in a valid range
-  if (stretching_parameter<1) then
-    write(*,*) "stretching_parameter must be>=1."
-    write(*,*) "Aborting."
-    call exit(1)
-  endif
-  
-  if (n_oro_layers>=n_layers) then
-    write(*,*) "It is n_oro_layers>=n_layers."
-    write(*,*) "Aborting."
-    call exit(1)
-  endif
-  
-  
-  if (n_avg_points<1) then
-    write(*,*) "It is n_avg_points<1."
-    write(*,*) "Aborting."
-    call exit(1)
-  endif
   
   grid_name = "RES" // trim(int2string(res_id)) // "_L" // trim(int2string(n_layers)) // "_ORO" // trim(int2string(oro_id))
   output_file = "grids/RES" // trim(int2string(res_id)) // "_L" // trim(int2string(n_layers)) &
@@ -179,7 +135,7 @@ program control
   !     ---------------------------------------------------------------------
   write(*,*) "Establishing horizontal grid structure ... "
   n_lloyd_read_from_file = 0
-  if (use_scalar_h_file==0) then
+  if (.not. luse_scalar_h_file) then
     ! Here,the positions of the horizontal generators,i.e. the horizontal scalar points are determined.
     call generate_horizontal_generators(latitude_ico,longitude_ico,latitude_scalar,longitude_scalar, &
                                         x_unity,y_unity,z_unity,face_edges_reverse,face_edges,face_vertices)
@@ -202,7 +158,7 @@ program control
     call optimize_to_scvt(latitude_scalar,longitude_scalar,latitude_scalar_dual,longitude_scalar_dual,n_lloyd_iterations, &
                           face_edges,face_edges_reverse,face_vertices,adjacent_vector_indices_h,from_index_dual,to_index_dual)
   endif
-  if (use_scalar_h_file==1) then
+  if (luse_scalar_h_file) then
     n_lloyd_iterations = n_lloyd_read_from_file + n_lloyd_iterations
   endif
   
@@ -237,7 +193,7 @@ program control
   ! calculating the cell faces on the unity sphere
   call calc_cell_area_unity(pent_hex_face_unity_sphere,latitude_scalar_dual, &
                             longitude_scalar_dual,adjacent_vector_indices_h,vorticity_indices_triangles)
-  write(*,*) "Horizontal grid structure determined.\n"
+  write(*,*) "Horizontal grid structure determined."
   
   ! 5.) setting the physical surface properties
   !     ---------------------------------------

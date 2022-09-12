@@ -5,53 +5,56 @@ module mo_grid_nml
 
   ! This is the namelists the configures the basic run properties of a model integration.
   
-  use mo_definitions, only: wp
-  use mo_constants,   only: r_e,M_PI
+  use mo_definitions,     only: wp
+  use mo_constants,       only: r_e,M_PI
+  use mo_various_helpers, only: int2string
   
   implicit none
   
-  integer  :: res_id                   ! resolution_id
-  integer  :: n_layers                 ! number of layers
-  integer  :: n_pentagons              ! number of pentagons
-  integer  :: n_hexagons               ! number of hexagons
-  integer  :: n_scalars_h              ! number of columns
-  integer  :: n_vectors_h              ! number of horizontal vectors per layer
-  integer  :: n_h_vectors              ! number of horizontal vectors
-  integer  :: n_scalars                ! number of scalars
-  integer  :: n_levels                 ! number of levels
-  integer  :: n_v_vectors              ! number of vertical vectors
-  integer  :: n_vectors_per_layer      ! number of vectors per layer
-  integer  :: n_vectors                ! number of vectors
-  integer  :: n_basic_triangles        ! number of basic triangles of the icosaheron
-  integer  :: n_basic_edges            ! number of basic edges of the icosaheron
-  integer  :: n_points_per_edge        ! number of points per edge
-  integer  :: n_triangles              ! the number of triangles of the grid
-  integer  :: n_triangles_per_face     ! the number of triangles per face
-  integer  :: n_dual_scalars_h         ! the number of dual scalars per layer
-  integer  :: n_dual_scalars           ! the number of dual scalars
-  integer  :: n_dual_vectors_per_layer ! the number of dual vectors per layer
-  integer  :: n_dual_h_vectors         ! the number of horizontal dual vectors per layer
-  integer  :: n_dual_v_vectors         ! the number of vertical dual vectors per layer
-  integer  :: n_dual_vectors           ! the number of dual vectors
-  integer  :: n_vectors_per_inner_face ! number of horizontal vectors per inner triangle face
-  real(wp) :: toa                      ! top of atmosphere in meters above MSL
-  integer  :: n_oro_layers             ! number of layers following the orography
-  real(wp) :: stretching_parameter     ! vertical grid stretching parameter
-  real(wp) :: radius_rescale           ! radius rescaling factor
-  real(wp) :: radius                   ! radius of the planet to construct the grid for
-  integer  :: n_lat_io_points          ! number of points of the post-processing lat-lon grid in lat direction
-  integer  :: n_lon_io_points          ! number of points of the post-processing lat-lon grid in lon direction
-  integer  :: n_latlon_io_points       ! number of points of the post-processing lat-lon grid
-  integer  :: n_avg_points             ! number of points used for smoothing the orography
-  integer  :: oro_id                   ! orography ID
-  integer  :: n_lloyd_iterations       ! number of Lloyd iterations used for the optimization
-  real(wp) :: mean_velocity_area       ! the area that can be attributed to one horizontal vector grid point
-  real(wp) :: eff_hor_res              ! effective horizontal resolution
+  integer            :: res_id                   ! resolution_id
+  integer            :: n_layers                 ! number of layers
+  integer            :: n_pentagons              ! number of pentagons
+  integer            :: n_hexagons               ! number of hexagons
+  integer            :: n_scalars_h              ! number of columns
+  integer            :: n_vectors_h              ! number of horizontal vectors per layer
+  integer            :: n_h_vectors              ! number of horizontal vectors
+  integer            :: n_scalars                ! number of scalars
+  integer            :: n_levels                 ! number of levels
+  integer            :: n_v_vectors              ! number of vertical vectors
+  integer            :: n_vectors_per_layer      ! number of vectors per layer
+  integer            :: n_vectors                ! number of vectors
+  integer            :: n_basic_triangles        ! number of basic triangles of the icosaheron
+  integer            :: n_basic_edges            ! number of basic edges of the icosaheron
+  integer            :: n_points_per_edge        ! number of points per edge
+  integer            :: n_triangles              ! the number of triangles of the grid
+  integer            :: n_triangles_per_face     ! the number of triangles per face
+  integer            :: n_dual_scalars_h         ! the number of dual scalars per layer
+  integer            :: n_dual_scalars           ! the number of dual scalars
+  integer            :: n_dual_vectors_per_layer ! the number of dual vectors per layer
+  integer            :: n_dual_h_vectors         ! the number of horizontal dual vectors per layer
+  integer            :: n_dual_v_vectors         ! the number of vertical dual vectors per layer
+  integer            :: n_dual_vectors           ! the number of dual vectors
+  integer            :: n_vectors_per_inner_face ! number of horizontal vectors per inner triangle face
+  real(wp)           :: toa                      ! top of atmosphere in meters above MSL
+  integer            :: n_oro_layers             ! number of layers following the orography
+  real(wp)           :: stretching_parameter     ! vertical grid stretching parameter
+  real(wp)           :: radius_rescale           ! radius rescaling factor
+  real(wp)           :: radius                   ! radius of the planet to construct the grid for
+  integer            :: n_lat_io_points          ! number of points of the post-processing lat-lon grid in lat direction
+  integer            :: n_lon_io_points          ! number of points of the post-processing lat-lon grid in lon direction
+  integer            :: n_latlon_io_points       ! number of points of the post-processing lat-lon grid
+  integer            :: n_avg_points             ! number of points used for smoothing the orography
+  integer            :: oro_id                   ! orography ID
+  integer            :: n_lloyd_iterations       ! number of Lloyd iterations used for the optimization
+  real(wp)           :: mean_velocity_area       ! the area that can be attributed to one horizontal vector grid point
+  real(wp)           :: eff_hor_res              ! effective horizontal resolution
+  logical            :: luse_scalar_h_file       ! switch to determine wether to read the horizontal coordinates from a file or not
+  character(len=256) :: scalar_h_file            ! file to read the horizontal coordinates from
   
   real(wp), parameter :: orth_criterion_deg = 89.99_wp ! used for checking grid orthogonality
   
   namelist /grid/res_id,n_layers,toa,n_oro_layers,stretching_parameter,radius_rescale,n_avg_points,oro_id, &
-                 n_lloyd_iterations
+                 n_lloyd_iterations,luse_scalar_h_file,scalar_h_file
 
   contains
 
@@ -94,6 +97,37 @@ module mo_grid_nml
     n_lloyd_iterations = 2000
     mean_velocity_area = 2._wp/3._wp*4*M_PI*radius**2/n_scalars_h
     eff_hor_res = sqrt(4*M_PI*radius**2/n_scalars_h)
+    luse_scalar_h_file = .false.
+    scalar_h_file = "grids/RES" // trim(int2string(res_id)) // "_L" // trim(int2string(n_layers)) &
+                    // "_ORO" // trim(int2string(oro_id)) // ".nc"
+  
+    ! sanity checks
+    ! -------------
+    ! checking if n_oro_layers is valid
+    if (n_oro_layers<0 .or. n_oro_layers>=n_layers) then
+      write(*,*) "It must be 0 <= orography_layers<n_layers."
+      write(*,*) "Aborting."
+      call exit(1)
+    endif
+    
+    ! cechking wether the stretching parameter is in a valid range
+    if (stretching_parameter<1) then
+      write(*,*) "stretching_parameter must be>=1."
+      write(*,*) "Aborting."
+      call exit(1)
+    endif
+    
+    if (n_oro_layers>=n_layers) then
+      write(*,*) "It is n_oro_layers>=n_layers."
+      write(*,*) "Aborting."
+      call exit(1)
+    endif
+    
+    if (n_avg_points<1) then
+      write(*,*) "It is n_avg_points<1."
+      write(*,*) "Aborting."
+      call exit(1)
+    endif
   
   end subroutine grid_nml_setup
   
