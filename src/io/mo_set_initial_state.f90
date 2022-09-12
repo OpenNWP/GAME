@@ -38,7 +38,7 @@ module mo_set_initial_state
     ! local variables
     integer               :: ji,jl,jc,layer_index,h_index,scalar_index,ncid_grid,latitude_vector_id, &
                              longitude_vector_id
-    real(wp)              :: dummy_0,dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,lat,lon,z_height,u,v, &
+    real(wp)              :: dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7,lat,lon,z_height,u,v, &
                              pressure_value,specific_humidity,dry_density,b,c,small_atmos_rescale
     real(wp), allocatable :: pressure(:),temperature(:),temperature_v(:),water_vapour_density(:),latitude_vector(:), &
                              longitude_vector(:)
@@ -51,13 +51,13 @@ module mo_set_initial_state
     small_atmos_rescale = 1._wp/radius_rescale
     
     ! dummy arguments
-    dummy_0 = 0._wp
     dummy_1 = 0._wp
     dummy_2 = 0._wp
     dummy_3 = 0._wp
     dummy_4 = 0._wp
     dummy_5 = 0._wp
     dummy_6 = 0._wp
+    dummy_7 = 0._wp
     
     allocate(pressure(n_scalars))
     allocate(temperature(n_scalars))
@@ -87,14 +87,14 @@ module mo_set_initial_state
         endif
         ! dry Ullrich test
         if (ideal_input_id==1) then
-          call baroclinic_wave_test(1,0,1,small_atmos_rescale,lon,lat,pressure(ji),z_height,1,dummy_0,dummy_1,temperature(ji), &
-                                    dummy_2,dummy_3,dummy_4,dummy_5,dummy_6)
+          call baroclinic_wave_test(1,0,1,small_atmos_rescale,lon,lat,pressure(ji),z_height,1,dummy_1,dummy_2,temperature(ji), &
+                                    dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
           temperature_v(ji) = temperature(ji)
         endif
         ! moist Ullrich test
         if (ideal_input_id==2) then
-          call baroclinic_wave_test(1,1,1,small_atmos_rescale,lon,lat,pressure(ji),z_height,1,dummy_0,dummy_1,temperature(ji), &
-                                    dummy_2,dummy_4,dummy_5,dry_density,specific_humidity)
+          call baroclinic_wave_test(1,1,1,small_atmos_rescale,lon,lat,pressure(ji),z_height,1,dummy_1,dummy_2,temperature(ji), &
+                                    dummy_3,dummy_5,dummy_6,dry_density,specific_humidity)
           temperature_v(ji) = temperature(ji)*(1._wp+specific_humidity*(m_d/m_v-1._wp))
           water_vapour_density(ji) = dry_density*specific_humidity/(1._wp-specific_humidity)
         endif
@@ -122,7 +122,7 @@ module mo_set_initial_state
     call nc_check(nf90_get_var(ncid_grid,latitude_vector_id,latitude_vector))
     call nc_check(nf90_get_var(ncid_grid,longitude_vector_id,longitude_vector))
     call nc_check(nf90_close(ncid_grid))
-    !$omp parallel do private(ji,jl,lat,lon,z_height,u,v,dummy_0,dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6)
+    !$omp parallel do private(ji,jl,lat,lon,z_height,u,v,dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
     do ji=1,n_vectors_h
       do jl=0,n_layers-1
         lat = latitude_vector(ji)
@@ -140,14 +140,14 @@ module mo_set_initial_state
         endif
         ! dry Ullrich test
         if (ideal_input_id==1) then
-          call baroclinic_wave_test(1,0,1,small_atmos_rescale,lon,lat,dummy_0,z_height,1, &
-                                    u,v,dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6)
+          call baroclinic_wave_test(1,0,1,small_atmos_rescale,lon,lat,dummy_1,z_height,1, &
+                                    u,v,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
           state%wind(n_scalars_h + jl*n_vectors_per_layer + ji) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
         endif
         ! moist Ullrich test
         if (ideal_input_id==2) then
-          call baroclinic_wave_test(1,1,1,small_atmos_rescale,lon,lat,dummy_0,z_height,1, &
-                                    u,v,dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6)
+          call baroclinic_wave_test(1,1,1,small_atmos_rescale,lon,lat,dummy_1,z_height,1, &
+                                    u,v,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
           state%wind(n_scalars_h + jl*n_vectors_per_layer + ji) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
         endif
       enddo

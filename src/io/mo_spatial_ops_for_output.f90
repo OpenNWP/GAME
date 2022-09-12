@@ -214,17 +214,17 @@ module mo_spatial_ops_for_output
     
     ! local variables
     integer  :: ji,layer_index,h_index
-    real(wp) :: wind_0,wind_1 ! orthogonal and tangential component at edge, respectively
+    real(wp) :: wind_1,wind_2 ! orthogonal and tangential component at edge, respectively
     
-    !$omp parallel do private(ji,layer_index,h_index,wind_0,wind_1)
+    !$omp parallel do private(ji,layer_index,h_index,wind_1,wind_2)
     do ji=1,n_h_vectors
       layer_index = (ji-1)/n_vectors_h
       h_index = ji - layer_index*n_vectors_h
-      wind_0 = in_field(n_scalars_h+layer_index*n_vectors_per_layer+h_index)
+      wind_1 = in_field(n_scalars_h+layer_index*n_vectors_per_layer+h_index)
       ! finding the tangential component
-      wind_1 = tangential_wind(in_field,layer_index,h_index-1,grid)
+      wind_2 = tangential_wind(in_field,layer_index,h_index-1,grid)
       ! turning the Cartesian coordinate system to obtain u and v
-      call passive_turn(wind_0,wind_1,-grid%direction(h_index), &
+      call passive_turn(wind_1,wind_2,-grid%direction(h_index), &
       out_field_u(n_scalars_h+layer_index*n_vectors_per_layer+h_index), &
       out_field_v(n_scalars_h+layer_index*n_vectors_per_layer+h_index))
     enddo

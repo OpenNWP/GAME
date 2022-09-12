@@ -59,13 +59,13 @@ module mo_derived_hor_quantities
     
     ! local variables
     integer  :: ji
-    real(wp) :: x_point_0,y_point_0,z_point_0,x_point_1,y_point_1,z_point_1,x_res,y_res,z_res,lat_res,lon_res
+    real(wp) :: x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,x_res,y_res,z_res,lat_res,lon_res
 
-    !$omp parallel do private(ji,x_point_0,y_point_0,z_point_0,x_point_1,y_point_1,z_point_1,x_res,y_res,z_res,lat_res,lon_res)
+    !$omp parallel do private(ji,x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,x_res,y_res,z_res,lat_res,lon_res)
     do ji=1,n_vectors_h
-      call find_global_normal(latitude_scalar(1+from_index(ji)),longitude_scalar(1+from_index(ji)),x_point_0,y_point_0,z_point_0)
-      call find_global_normal(latitude_scalar(1+to_index(ji)),longitude_scalar(1+to_index(ji)),x_point_1,y_point_1,z_point_1)
-      call find_between_point(x_point_0,y_point_0,z_point_0,x_point_1,y_point_1,z_point_1,0.5_wp,x_res,y_res,z_res)
+      call find_global_normal(latitude_scalar(1+from_index(ji)),longitude_scalar(1+from_index(ji)),x_point_1,y_point_1,z_point_1)
+      call find_global_normal(latitude_scalar(1+to_index(ji)),longitude_scalar(1+to_index(ji)),x_point_2,y_point_2,z_point_2)
+      call find_between_point(x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,0.5_wp,x_res,y_res,z_res)
       call find_geos(x_res,y_res,z_res,lat_res,lon_res)
       latitude_vector(ji) = lat_res
       longitude_vector(ji) = lon_res

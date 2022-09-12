@@ -53,7 +53,7 @@ module mo_grid_setup
     write(*,*) "Grid filename: ", trim(grid_file_name)
     
     call nc_check(nf90_open(trim(grid_file_name),NF90_CLOBBER,ncid))
-    call nc_check(nf90_inq_varid(ncid,"no_of_oro_layers",n_oro_layers_id))
+    call nc_check(nf90_inq_varid(ncid,"n_oro_layers",n_oro_layers_id))
     call nc_check(nf90_inq_varid(ncid,"toa",toa_id))
     call nc_check(nf90_inq_varid(ncid,"radius",radius_id))
     call nc_check(nf90_inq_varid(ncid,"stretching_parameter",stretching_parameter_id))
