@@ -118,7 +118,7 @@ program control
                 // "_ORO" // trim(int2string(oro_id)) // ".nc"
   statistics_file = "statistics/RES" // trim(int2string(res_id)) // "_L" // trim(int2string(n_layers)) &
                     // "_ORO" // trim(int2string(oro_id)) // ".txt"
-  write(*,*) "Output will be written to file:",output_file
+  write(*,*) "Output will be written to file:",trim(output_file)
   write(*,*) "Building icosahedron ..."
   call build_icosahedron(latitude_ico,longitude_ico,edge_vertices,face_vertices,face_edges,face_edges_reverse)
   write(*,*) "finished."
@@ -326,7 +326,7 @@ program control
   ! writing the result to a netCDF file
   
   write(*,*) "Starting to write to output file ..."
-  call nc_check(nf90_create(output_file,NF90_CLOBBER,ncid_g_prop))
+  call nc_check(nf90_create(trim(output_file),NF90_CLOBBER,ncid_g_prop))
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_index",n_scalars,scalar_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_8_index",8*n_scalars,scalar_8_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_2_index",2*n_scalars,scalar_2_dimid))

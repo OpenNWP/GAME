@@ -49,7 +49,7 @@ module mo_geodesy
     real(wp), intent(in) :: latitude_a,longitude_a,latitude_b,longitude_b,radius
     real(wp)             :: calculate_distance_h
     
-    calculate_distance_h = 2._wp*radius*asin(sqrt(0.5-0.5*(cos(latitude_a)*cos(latitude_b) &
+    calculate_distance_h = 2._wp*radius*asin(sqrt(0.5_wp-0.5_wp*(cos(latitude_a)*cos(latitude_b) &
     *cos(longitude_b-longitude_a)+sin(latitude_a)*sin(latitude_b))))
     
   end function calculate_distance_h
