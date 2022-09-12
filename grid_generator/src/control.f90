@@ -13,9 +13,9 @@ program control
                                            toa,grid_nml_setup,oro_id,n_lloyd_iterations,n_avg_points,luse_scalar_h_file, &
                                            scalar_h_file
   use mo_various_helpers,            only: nc_check,int2string
-  use mo_discrete_coordinate_trafos, only: build_icosahedron
   use mo_horizontal_generation,      only: generate_horizontal_generators,set_from_to_index,set_from_to_index_dual, &
-                                           set_scalar_h_dual_coords,calc_triangle_area_unity,read_horizontal_explicit
+                                           set_scalar_h_dual_coords,calc_triangle_area_unity,read_horizontal_explicit, &
+                                           build_icosahedron
   use mo_derived_hor_quantities,     only: find_adjacent_vector_indices_h,set_vector_h_attributes,set_dual_vector_h_atttributes, &
                                            direct_tangential_unity,set_f_vec,calc_vorticity_indices_triangles, &
                                            calc_cell_area_unity,write_statistics_file

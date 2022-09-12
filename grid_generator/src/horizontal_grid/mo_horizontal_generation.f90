@@ -24,6 +24,235 @@ module mo_horizontal_generation
   implicit none
   
   contains
+  
+  subroutine build_icosahedron(latitude_ico,longitude_ico,edge_vertices,face_vertices,face_edges,face_edges_reverse)
+  
+    real(wp), intent(out) :: latitude_ico(12),longitude_ico(12)
+    integer,  intent(out) :: edge_vertices(n_basic_edges,2),face_vertices(20,3),face_edges(20,3),face_edges_reverse(20,3)
+  
+    ! This subroutine sets the properties of the icosahedron the global grid is based on (angles and indices of faces,edges and vertices).
+    
+    ! local variables
+    integer :: ji,jk,jm,vertices_check_counter(n_basic_edges),edge_other_vertex_index,check_index, &
+               edges_check_counter(n_basic_edges)
+    
+    latitude_ico(1) = M_PI/2._wp
+    latitude_ico(2) = atan(0.5_wp)
+    latitude_ico(3) = atan(0.5_wp)
+    latitude_ico(4) = atan(0.5_wp)
+    latitude_ico(5) = atan(0.5_wp)
+    latitude_ico(6) = atan(0.5_wp)
+    latitude_ico(7) = -atan(0.5_wp)
+    latitude_ico(8) = -atan(0.5_wp)
+    latitude_ico(9) = -atan(0.5_wp)
+    latitude_ico(10) = -atan(0.5_wp)
+    latitude_ico(11) = -atan(0.5_wp)
+    latitude_ico(12) = -M_PI/2._wp
+    longitude_ico(1) = 0._wp
+    longitude_ico(2) = 0._wp
+    longitude_ico(3) = 1._wp*2._wp*M_PI/5._wp
+    longitude_ico(4) = 2._wp*2._wp*M_PI/5._wp
+    longitude_ico(5) = 3._wp*2._wp*M_PI/5._wp
+    longitude_ico(6) = 4._wp*2._wp*M_PI/5._wp
+    longitude_ico(7) = 2._wp*M_PI/10._wp
+    longitude_ico(8) = 2._wp*M_PI/10._wp + 1._wp*2._wp*M_PI/5._wp
+    longitude_ico(9) = 2._wp*M_PI/10._wp + 2._wp*2._wp*M_PI/5._wp
+    longitude_ico(10) = 2._wp*M_PI/10._wp + 3._wp*2._wp*M_PI/5._wp
+    longitude_ico(11) = 2._wp*M_PI/10._wp + 4._wp*2._wp*M_PI/5._wp    
+    longitude_ico(12) = 0._wp
+    edge_vertices(1,1) = 1
+    edge_vertices(1,2) = 2
+    edge_vertices(2,1) = 1
+    edge_vertices(2,2) = 3
+    edge_vertices(3,1) = 1
+    edge_vertices(3,2) = 4
+    edge_vertices(4,1) = 1
+    edge_vertices(4,2) = 5
+    edge_vertices(5,1) = 1
+    edge_vertices(5,2) = 6
+    edge_vertices(6,1) = 2
+    edge_vertices(6,2) = 3
+    edge_vertices(7,1) = 3 
+    edge_vertices(7,2) = 4
+    edge_vertices(8,1) = 4
+    edge_vertices(8,2) = 5
+    edge_vertices(9,1) = 5
+    edge_vertices(9,2) = 6
+    edge_vertices(10,1) = 6
+    edge_vertices(10,2) = 2
+    edge_vertices(11,1) = 2
+    edge_vertices(11,2) = 7
+    edge_vertices(12,1) = 3
+    edge_vertices(12,2) = 7
+    edge_vertices(13,1) = 3
+    edge_vertices(13,2) = 8
+    edge_vertices(14,1) = 4
+    edge_vertices(14,2) = 8
+    edge_vertices(15,1) = 4
+    edge_vertices(15,2) = 9
+    edge_vertices(16,1) = 5
+    edge_vertices(16,2) = 9
+    edge_vertices(17,1) = 5
+    edge_vertices(17,2) = 10
+    edge_vertices(18,1) = 6
+    edge_vertices(18,2) = 10
+    edge_vertices(19,1) = 6
+    edge_vertices(19,2) = 11
+    edge_vertices(20,1) = 2
+    edge_vertices(20,2) = 11
+    edge_vertices(21,1) = 11
+    edge_vertices(21,2) = 7
+    edge_vertices(22,1) = 7
+    edge_vertices(22,2) = 8
+    edge_vertices(23,1) = 8
+    edge_vertices(23,2) = 9
+    edge_vertices(24,1) = 9
+    edge_vertices(24,2) = 10
+    edge_vertices(25,1) = 10
+    edge_vertices(25,2) = 11
+    edge_vertices(26,1) = 7
+    edge_vertices(26,2) = 12
+    edge_vertices(27,1) = 8
+    edge_vertices(27,2) = 12
+    edge_vertices(28,1) = 9
+    edge_vertices(28,2) = 12
+    edge_vertices(29,1) = 10
+    edge_vertices(29,2) = 12
+    edge_vertices(30,1) = 11
+    edge_vertices(30,2) = 12
+    do ji=1,n_pentagons
+      do jk=1,n_basic_edges
+        do jm=1,2
+          if (edge_vertices(jk,jm)==ji) then
+            vertices_check_counter(ji) = vertices_check_counter(ji)+1
+          endif
+        enddo
+      enddo
+    enddo
+    do ji=1,n_pentagons
+      if (vertices_check_counter(ji)/=5) then
+        write(*,*) "Error with vertices, position 1."
+        call exit(1) 
+      endif
+      vertices_check_counter(ji) = 0 
+    enddo
+    face_vertices(1,1) = 1   
+    face_vertices(1,2) = 2
+    face_vertices(1,3) = 3
+    face_vertices(2,1) = 1
+    face_vertices(2,2) = 3
+    face_vertices(2,3) = 4
+    face_vertices(3,1) = 1
+    face_vertices(3,2) = 4
+    face_vertices(3,3) = 5
+    face_vertices(4,1) = 1
+    face_vertices(4,2) = 5
+    face_vertices(4,3) = 6
+    face_vertices(5,1) = 1
+    face_vertices(5,2) = 6
+    face_vertices(5,3) = 2
+    face_vertices(6,1) = 2
+    face_vertices(6,2) = 11
+    face_vertices(6,3) = 7
+    face_vertices(7,1) = 7
+    face_vertices(7,2) = 3
+    face_vertices(7,3) = 2
+    face_vertices(8,1) = 3
+    face_vertices(8,2) = 7
+    face_vertices(8,3) = 8
+    face_vertices(9,1) = 8
+    face_vertices(9,2) = 4
+    face_vertices(9,3) = 3
+    face_vertices(10,1) = 4
+    face_vertices(10,2) = 8
+    face_vertices(10,3) = 9
+    face_vertices(11,1) = 9
+    face_vertices(11,2) = 5
+    face_vertices(11,3) = 4
+    face_vertices(12,1) = 5
+    face_vertices(12,2) = 9
+    face_vertices(12,3) = 10
+    face_vertices(13,1) = 10
+    face_vertices(13,2) = 6
+    face_vertices(13,3) = 5
+    face_vertices(14,1) = 6
+    face_vertices(14,2) = 10
+    face_vertices(14,3) = 11
+    face_vertices(15,1) = 11
+    face_vertices(15,2) = 2
+    face_vertices(15,3) = 6
+    face_vertices(16,1) = 12
+    face_vertices(16,2) = 7
+    face_vertices(16,3) = 11
+    face_vertices(17,1) = 12
+    face_vertices(17,2) = 8
+    face_vertices(17,3) = 7
+    face_vertices(18,1) = 12
+    face_vertices(18,2) = 9
+    face_vertices(18,3) = 8
+    face_vertices(19,1) = 12
+    face_vertices(19,2) = 10
+    face_vertices(19,3) = 9
+    face_vertices(20,1) = 12
+    face_vertices(20,2) = 11
+    face_vertices(20,3) = 10
+    do ji=1,n_pentagons
+      do jk=1,n_basic_triangles
+        do jm=1,3
+          if (face_vertices(jk,jm)==ji) then
+            vertices_check_counter(ji) = vertices_check_counter(ji)+1
+          endif
+        enddo
+      enddo
+    enddo
+    do ji=1,n_pentagons
+      if (vertices_check_counter(ji)/=5) then
+        write(*,*) "Error with vertices, position 2."
+        call exit(1)
+      endif
+    enddo
+    edges_check_counter = 0
+    do ji=1,n_basic_triangles
+      do jk=1,3
+        do jm=1,n_basic_edges
+          if (edge_vertices(jm,1)==face_vertices(ji,jk) .or. edge_vertices(jm,2)==face_vertices(ji,jk)) then
+            if (edge_vertices(jm,1)==face_vertices(ji,jk)) then
+              edge_other_vertex_index = 2
+            endif
+            if (edge_vertices(jm,2)==face_vertices(ji,jk)) then
+              edge_other_vertex_index = 1 
+            endif
+            if (jk==1) then
+              check_index = 2
+            endif
+            if (jk==2) then
+              check_index = 3
+            endif
+            if (jk==3) then
+              check_index = 1
+            endif
+            if (edge_vertices(jm,edge_other_vertex_index)==face_vertices(ji,check_index)) then
+              face_edges(ji,jk) = jm 
+              edges_check_counter(jm) = edges_check_counter(jm)+1
+              if (edge_other_vertex_index==2) then
+                face_edges_reverse(ji,jk) = 0 
+              endif
+              if (edge_other_vertex_index==1) then
+                face_edges_reverse(ji,jk) = 1 
+              endif
+            endif
+          endif
+        enddo
+      enddo
+    enddo
+    do ji=1,n_basic_edges
+      if (edges_check_counter(ji)/=2) then
+        write(*,*) "Error with edges."
+        call exit(1)
+      endif
+    enddo
+    
+  end subroutine 
 
   subroutine generate_horizontal_generators(latitude_ico,longitude_ico,latitude_scalar,longitude_scalar,x_unity,y_unity,z_unity, &
                                             face_edges_reverse,face_edges,face_vertices)
