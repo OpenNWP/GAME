@@ -262,13 +262,14 @@ module mo_horizontal_generation
     real(wp), intent(in)  :: latitude_ico(n_pentagons),longitude_ico(n_pentagons)
     real(wp), intent(out) :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h),x_unity(n_scalars_h), &
                              y_unity(n_scalars_h),z_unity(n_scalars_h)
-    integer,  intent(in)  :: face_vertices(n_basic_edges,3),face_edges(n_basic_edges,3),face_edges_reverse(n_basic_edges,3)
+    integer,  intent(in)  :: face_vertices(n_basic_triangles,3),face_edges(n_basic_triangles,3), &
+                             face_edges_reverse(n_basic_triangles,3)
     
     ! local variables
-    logical  :: llast_triangle,ldump
+    logical  :: llast_triangle,lpoints_downwards,lpoints_upwards,ldump
     integer  :: ji,jk,jm,res_id_local,n_triangles_per_face,base_index_down_triangles,base_index_old,test_index, &
                 old_triangle_on_line_index, &
-                base_index_up_triangles,points_downwards,points_upwards,points_per_edge,edgepoint_1,edgepoint_2, &
+                base_index_up_triangles,points_per_edge,edgepoint_1,edgepoint_2, &
                 edgepoint_3,point_1,point_2,point_3,dual_scalar_on_face_index,coord_1,coord_2, &
                 triangle_on_face_index,coord_1_points_amount
     real(wp) :: x_res,y_res,z_res
@@ -288,28 +289,28 @@ module mo_horizontal_generation
       z_unity(ji) = z_res
     enddo
     do ji=1,n_basic_triangles
-      do res_id_local=1,res_id
-        n_triangles_per_face = 4**(res_id_local-1)
-        do jk=1,n_triangles_per_face
-          if (jk==1) then
+      do res_id_local=0,res_id-1
+        n_triangles_per_face = 4**res_id_local
+        do jk=0,n_triangles_per_face-1
+          if (res_id_local==0) then
             dual_scalar_on_face_index = 1
-            call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji,res_id_local,point_1, &
-                                                                          point_2,point_3,face_vertices,face_edges, &
-                                                                          face_edges_reverse)
-            point_1 = upscale_scalar_point(res_id_local,point_1)
-            point_2 = upscale_scalar_point(res_id_local,point_2)
-            point_3 = upscale_scalar_point(res_id_local,point_3)
-            points_upwards = 1
+            call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji,res_id_local+1, &
+                                                                          point_1,point_2,point_3, &
+                                                                          face_vertices,face_edges,face_edges_reverse)
+            point_1 = upscale_scalar_point(res_id_local+1,point_1)
+            point_2 = upscale_scalar_point(res_id_local+1,point_2)
+            point_3 = upscale_scalar_point(res_id_local+1,point_3)
+            lpoints_upwards = .true.
             call set_scalar_coordinates(face_vertices(ji,1),face_vertices(ji,2),face_vertices(ji,3), &
-                                        point_1,point_2,point_3,points_upwards,x_unity,y_unity, &
+                                        point_1,point_2,point_3,lpoints_upwards,x_unity,y_unity, &
                                         z_unity,latitude_scalar,longitude_scalar)
           else
-            call find_triangle_edge_points_from_dual_scalar_on_face_index(jk,ji,res_id_local-1, &
+            call find_triangle_edge_points_from_dual_scalar_on_face_index(jk,ji,res_id_local, &
                                                                           edgepoint_1,edgepoint_2,edgepoint_3, &
                                                                           face_vertices,face_edges,face_edges_reverse)
-            call find_triangle_on_face_index_from_dual_scalar_on_face_index(jk,res_id_local-1,triangle_on_face_index, &
-                                                                            points_downwards,ldump,llast_triangle)
-            call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local-1,coord_1,coord_2, &
+            call find_triangle_on_face_index_from_dual_scalar_on_face_index(jk,res_id_local,triangle_on_face_index, &
+                                                                            lpoints_downwards,ldump,llast_triangle)
+            call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local,coord_1,coord_2, &
                                                          coord_1_points_amount)
             points_per_edge = find_points_per_edge(jk)
             base_index_old = 0
@@ -327,26 +328,26 @@ module mo_horizontal_generation
               base_index_up_triangles = base_index_down_triangles + 3
             endif
             old_triangle_on_line_index = jk - base_index_old
-            if (points_downwards==0) then
+            if (.not. lpoints_downwards) then
               dual_scalar_on_face_index = base_index_down_triangles + 1 + 2*old_triangle_on_line_index
             else
               dual_scalar_on_face_index = base_index_up_triangles + 2*old_triangle_on_line_index
             endif
-            call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji,res_id_local, &
+            call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji,res_id_local+1, &
                                                                           point_1,point_2,point_3, &
                                                                           face_vertices,face_edges,face_edges_reverse)
-            edgepoint_1 = upscale_scalar_point(jk,edgepoint_1)
-            edgepoint_2 = upscale_scalar_point(jk,edgepoint_2)
-            edgepoint_3 = upscale_scalar_point(jk,edgepoint_3)
-            point_1 = upscale_scalar_point(res_id_local,point_1)
-            point_2 = upscale_scalar_point(res_id_local,point_2)
-            point_3 = upscale_scalar_point(res_id_local,point_3)
-            points_upwards = 1
-            if (points_downwards==1) then
-              points_upwards = 0
+            edgepoint_1 = upscale_scalar_point(res_id_local,edgepoint_1)
+            edgepoint_2 = upscale_scalar_point(res_id_local,edgepoint_2)
+            edgepoint_3 = upscale_scalar_point(res_id_local,edgepoint_3)
+            point_1 = upscale_scalar_point(res_id_local+1,point_1)
+            point_2 = upscale_scalar_point(res_id_local+1,point_2)
+            point_3 = upscale_scalar_point(res_id_local+1,point_3)
+            lpoints_upwards = .true.
+            if (lpoints_downwards) then
+              lpoints_upwards = .false.
             endif
             call set_scalar_coordinates(edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3, &
-                                        points_upwards,x_unity,y_unity,z_unity,latitude_scalar,longitude_scalar)
+                                        lpoints_upwards,x_unity,y_unity,z_unity,latitude_scalar,longitude_scalar)
           endif
         enddo
       enddo
@@ -650,12 +651,13 @@ module mo_horizontal_generation
     
   end subroutine set_from_to_index_dual
   
-  subroutine set_scalar_coordinates(edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3,points_upwards, &
+  subroutine set_scalar_coordinates(edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3,lpoints_upwards, &
                                     x_unity,y_unity,z_unity,latitude_scalar,longitude_scalar)
     
     ! This subroutine computes the geographical coordinates of a scalar data point.
     
-    integer,  intent(in)  :: edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3,points_upwards
+    integer,  intent(in)  :: edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3
+    logical,  intent(in)  :: lpoints_upwards
     real(wp), intent(out) :: x_unity(n_scalars_h),y_unity(n_scalars_h),z_unity(n_scalars_h), &
                              latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
     
@@ -667,7 +669,7 @@ module mo_horizontal_generation
                             x_unity(1+edgepoint_2),y_unity(1+edgepoint_2),z_unity(1+edgepoint_2), &
                             0.5_wp,x_res,y_res,z_res)
     call normalize_cartesian(x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm)
-    if (points_upwards==1) then
+    if (lpoints_upwards) then
       x_unity(1+point_1) = x_res_norm
       y_unity(1+point_1) = y_res_norm
       z_unity(1+point_1) = z_res_norm
@@ -677,7 +679,7 @@ module mo_horizontal_generation
       z_unity(1+point_2) = z_res_norm
     endif
     call find_geos(x_res,y_res,z_res,lat_res,lon_res)
-    if (points_upwards==1) then
+    if (lpoints_upwards) then
       latitude_scalar(1+point_1) = lat_res
       longitude_scalar(1+point_1) = lon_res
     else
@@ -689,7 +691,7 @@ module mo_horizontal_generation
                             x_unity(1+edgepoint_3),y_unity(1+edgepoint_3),z_unity(1+edgepoint_3), &
                             0.5_wp,x_res,y_res,z_res)
     call normalize_cartesian(x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm)
-    if (points_upwards==1) then
+    if (lpoints_upwards) then
       x_unity(1+point_2) = x_res_norm
       y_unity(1+point_2) = y_res_norm
       z_unity(1+point_2) = z_res_norm
@@ -699,7 +701,7 @@ module mo_horizontal_generation
       z_unity(1+point_3) = z_res_norm
     endif
     call find_geos(x_res,y_res,z_res,lat_res,lon_res)
-    if (points_upwards==1) then
+    if (lpoints_upwards) then
       latitude_scalar(1+point_2) = lat_res
       longitude_scalar(1+point_2) = lon_res
     else
@@ -711,7 +713,7 @@ module mo_horizontal_generation
                             x_unity(1+edgepoint_1),y_unity(1+edgepoint_1),z_unity(1+edgepoint_1), &
                             0.5_wp,x_res,y_res,z_res)
     call normalize_cartesian(x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm)
-    if (points_upwards==1) then
+    if (lpoints_upwards) then
       x_unity(1+point_3) = x_res_norm
       y_unity(1+point_3) = y_res_norm
       z_unity(1+point_3) = z_res_norm
@@ -721,7 +723,7 @@ module mo_horizontal_generation
       z_unity(1+point_1) = z_res_norm
     endif
     call find_geos(x_res,y_res,z_res,lat_res,lon_res)
-    if (points_upwards==1) then
+    if (lpoints_upwards) then
       latitude_scalar(1+point_3) = lat_res
       longitude_scalar(1+point_3) = lon_res
     else
