@@ -17,7 +17,7 @@ then
   exit
 fi
 
-if [ $use_scalar_h_coords_file = ".true." ]
+if [ $luse_scalar_h_file = ".true." ]
 then
   if [ ! -f $scalar_h_coords_file ]
   then
@@ -29,13 +29,13 @@ then
 fi
 
 echo "model top: "$toa" m"
-echo "number of layers following orography: "$orography_layers
+echo "number of layers following orography: "$n_oro_layers
 echo "stretching parameter: "$stretching_parameter
 echo "radius rescale factor: "$radius_rescale
 
 if [ $oro_id -eq 1 ]
 then
-  echo "number of points used for averaging the orography: "$no_of_avg_points
+  echo "number of points used for averaging the orography: "$n_avg_points
 fi
 
 # downloading orography if necessary
@@ -61,11 +61,11 @@ cat > namelist.nml << EOF
 &grid
 res_id=$res_id
 oro_id=$oro_id
-n_iterations=$n_iterations
-use_scalar_h_coords_file=$use_scalar_h_coords_file
+n_lloyd_iterations=$n_lloyd_iterations
+luse_scalar_h_file=$luse_scalar_h_file
 stretching_parameter=$stretching_parameter
 toa=$toa
-orography_layers=$orography_layers
+n_oro_layers=$n_oro_layers
 radius_rescale=$radius_rescale
 n_avg_points=$n_avg_points
 /
@@ -79,11 +79,10 @@ mv namelist.nml build
 
 if [ $? -ne 0 ]
 then
-  echo -e ${RED}Grid file creation failed.$NC
+  echo "Grid file creation failed."
 else
   echo "Grid file created sucessfully."
 fi
-
 
 
 

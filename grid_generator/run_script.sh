@@ -10,13 +10,13 @@
 
 res_id=5
 oro_id=1
-n_iterations=2000
-use_scalar_h_coords_file=".false."
+n_lloyd_iterations=2000
+luse_scalar_h_file=".false."
 stretching_parameter=1.3
 toa=41152
-orography_layers=23
+n_oro_layers=23
 radius_rescale=1.0
 n_avg_points=7
-export OMP_NUM_THREADS=4 # relevant only for OMP
+export OMP_NUM_THREADS=1 # relevant only for OMP
 
 source .sh/run.sh

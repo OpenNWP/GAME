@@ -28,7 +28,6 @@ src/vertical_grid/mo_vertical_grid.f90
 src/namelists/mo_grid_nml.f90
 )
 find_package(OpenMP)
-SET(CMAKE_C_FLAGS "${OpenMP_C_FLAGS} -O2 -Wall")
 SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -O2 -Wall -Wpedantic -I/usr/include")
 target_link_libraries(grid_generator m netcdf netcdff)
 

@@ -60,6 +60,9 @@ module mo_grid_nml
 
   subroutine grid_nml_setup()
   
+    ! local variables
+    integer :: fileunit
+  
     res_id = 5
     n_layers = 26
     n_pentagons = 12
@@ -95,12 +98,18 @@ module mo_grid_nml
     n_avg_points = 7
     oro_id = 0
     n_lloyd_iterations = 2000
-    mean_velocity_area = 2._wp/3._wp*4*M_PI*radius**2/n_scalars_h
-    eff_hor_res = sqrt(4*M_PI*radius**2/n_scalars_h)
+    mean_velocity_area = 2._wp/3._wp*4._wp*M_PI*radius**2/n_scalars_h
+    eff_hor_res = sqrt(4._wp*M_PI*radius**2/n_scalars_h)
     luse_scalar_h_file = .false.
     scalar_h_file = "grids/RES" // trim(int2string(res_id)) // "_L" // trim(int2string(n_layers)) &
                     // "_ORO" // trim(int2string(oro_id)) // ".nc"
-  
+    
+    ! open and read namelist file
+    open(action="read",file="build/namelist.nml",newunit=fileunit)
+    read(nml=grid,unit=fileunit)
+        
+    close(fileunit)
+    
     ! sanity checks
     ! -------------
     ! checking if n_oro_layers is valid

@@ -35,7 +35,7 @@ module mo_discrete_coordinate_trafos
     face_index = (ji - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face 
     on_face_index = ji - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face) 
     triangle_on_face_index = on_face_index/3 
-    small_triangle_edge_index = on_face_index - 3*triangle_on_face_index 
+    small_triangle_edge_index = on_face_index - 3*triangle_on_face_index
     call find_triangle_edge_points(triangle_on_face_index,face_index,res_id,point_1,point_2,point_3,point_4,point_5,point_6, &
                                    dual_scalar_on_face_index,face_vertices,face_edges,face_edges_reverse)
   
@@ -59,30 +59,30 @@ module mo_discrete_coordinate_trafos
     points_per_edge = find_points_per_edge(res_id_local)
     scalar_points_per_inner_face = find_scalar_points_per_inner_face(res_id_local)
     if (coord_2==0) then
-      if (face_edges_reverse(face_index,1)==0) then
-        point_1 = n_pentagons + face_edges(face_index,1)*points_per_edge + coord_1
+      if (face_edges_reverse(face_index+1,1)==0) then
+        point_1 = n_pentagons + face_edges(face_index+1,1)*points_per_edge + coord_1
       else
-        point_1 = n_pentagons + (face_edges(face_index,1) + 1)*points_per_edge - 1 - coord_1
+        point_1 = n_pentagons + (face_edges(face_index+1,1) + 1)*points_per_edge - 1 - coord_1
       endif
     else
         point_1 = n_pentagons + points_per_edge*n_basic_edges + face_index*scalar_points_per_inner_face + &
                   triangle_on_face_index - points_per_edge 
     endif
     if (coord_1==points_per_edge-1-coord_2) then
-      if (face_edges_reverse(face_index,2)==0) then
-        point_2 = n_pentagons + face_edges(face_index,2)*points_per_edge + coord_2
+      if (face_edges_reverse(face_index+1,2)==0) then
+        point_2 = n_pentagons + face_edges(face_index+1,2)*points_per_edge + coord_2
       else
-        point_2 = n_pentagons + (face_edges(face_index,2) + 1)*points_per_edge - 1 - coord_2 
+        point_2 = n_pentagons + (face_edges(face_index+1,2) + 1)*points_per_edge - 1 - coord_2 
       endif
     else
         point_2 = n_pentagons + points_per_edge*n_basic_edges + face_index*scalar_points_per_inner_face + &
                   triangle_on_face_index - coord_2 
     endif
     if (coord_1==0) then
-      if (face_edges_reverse(face_index,3)==0) then
-        point_3 = n_pentagons + (face_edges(face_index,3) + 1)*points_per_edge - 1 - coord_2 
+      if (face_edges_reverse(face_index+1,3)==0) then
+        point_3 = n_pentagons + (face_edges(face_index+1,3) + 1)*points_per_edge - 1 - coord_2 
       else
-        point_3 = n_pentagons + face_edges(face_index,3)*points_per_edge + coord_2 
+        point_3 = n_pentagons + face_edges(face_index+1,3)*points_per_edge + coord_2 
       endif
     else
       point_3 = n_pentagons + points_per_edge*n_basic_edges + face_index*scalar_points_per_inner_face + &
@@ -90,16 +90,16 @@ module mo_discrete_coordinate_trafos
     endif
     if (coord_2==0) then
       if (coord_1==0) then
-          point_4 = face_vertices(face_index,1)
+          point_4 = face_vertices(face_index+1,1)
       else
-        if (face_edges_reverse(face_index,1)==0) then
+        if (face_edges_reverse(face_index+1,1)==0) then
           point_4 = point_1 - 1
         else
           point_4 = point_1 + 1 
         endif
       endif
     elseif (coord_1==0) then
-      if (face_edges_reverse(face_index,3)==0) then
+      if (face_edges_reverse(face_index+1,3)==0) then
         point_4 = point_3 + 1 
       else
         point_4 = point_3 - 1 
@@ -111,16 +111,16 @@ module mo_discrete_coordinate_trafos
     point_6 = -1
     if (coord_1==coord_1_points_amount-1) then
       if (coord_2==0) then
-        point_5 = face_vertices(face_index,2)
+        point_5 = face_vertices(face_index+1,2)
       else
-        if (face_edges_reverse(face_index,2)==0) then
-            point_5 = point_2 - 1
+        if (face_edges_reverse(face_index+1,2)==0) then
+          point_5 = point_2 - 1
         else
           point_5 = point_2 + 1
         endif
       endif
       if (coord_2 == points_per_edge - 1) then
-        point_6 = face_vertices(face_index,3)
+        point_6 = face_vertices(face_index+1,3)
       endif
     endif
   
@@ -198,7 +198,6 @@ module mo_discrete_coordinate_trafos
     ! local variables
     logical :: lcheck
     integer :: coord_2_pre,min_index,max_index,points_per_edge
-    
     lcheck = .true.
     coord_2_pre = -1
     points_per_edge = find_points_per_edge(res_id_local)
@@ -339,37 +338,39 @@ module mo_discrete_coordinate_trafos
   
   end subroutine find_v_vector_indices_for_dual_scalar_z
 
-  subroutine find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id,triangle_on_face_index, &
+  subroutine find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id_local, &
+                                                                        triangle_on_face_index, &
                                                                         lpoints_downwards,lspecial_case,llast_triangle)
     
     ! This subroutine finds the on face index of a triangle from the dual scalar on face index and some further
     ! properties of this triangle (wether it points upwards or downwards,...).
     
-    integer, intent(in)  :: dual_scalar_on_face_index,res_id
+    integer, intent(in)  :: dual_scalar_on_face_index,res_id_local
     logical, intent(out) :: lspecial_case,llast_triangle
     logical, intent(out) :: lpoints_downwards
     integer, intent(out) :: triangle_on_face_index
     
     ! local variables
-    integer :: value_found,triangle_on_face_index_pre,coord_1_pre,coord_2_pre,coord_1_points_amount_pre, &
+    logical :: lvalue_found
+    integer :: triangle_on_face_index_pre,coord_1_pre,coord_2_pre,coord_1_points_amount_pre, &
                dual_scalar_on_face_index_1,dual_scalar_on_face_index_2,dual_scalar_on_face_index_3, &
                dual_scalar_on_face_index_4,points_per_edge
     
-    value_found = 0
+    lvalue_found = .false.
     
     triangle_on_face_index_pre = -1
-    points_per_edge = find_points_per_edge(res_id)
-    do while (value_found==0)
+    points_per_edge = find_points_per_edge(res_id_local)
+    do while (.not. lvalue_found)
       dual_scalar_on_face_index_3 = -1
       dual_scalar_on_face_index_4 = -1
       triangle_on_face_index_pre = triangle_on_face_index_pre+1
-      call find_coords_from_triangle_on_face_index(triangle_on_face_index_pre,res_id, &
+      call find_coords_from_triangle_on_face_index(triangle_on_face_index_pre,res_id_local, &
                                                    coord_1_pre,coord_2_pre,coord_1_points_amount_pre)
       dual_scalar_on_face_index_1 = 2*triangle_on_face_index_pre + 1 + coord_2_pre
       dual_scalar_on_face_index_2 = dual_scalar_on_face_index_1 - 1
-      if (coord_1_pre == coord_1_points_amount_pre-1) then
+      if (coord_1_pre==coord_1_points_amount_pre-1) then
         dual_scalar_on_face_index_3 = dual_scalar_on_face_index_1+1
-        if (coord_2_pre == points_per_edge-1) then
+        if (coord_2_pre==points_per_edge-1) then
           dual_scalar_on_face_index_4 = dual_scalar_on_face_index_3 + 1
         endif
       endif
@@ -377,25 +378,25 @@ module mo_discrete_coordinate_trafos
         lpoints_downwards = .true.
         lspecial_case = .false.
         llast_triangle = .false.
-        value_found = 1
+        lvalue_found = .true.
       endif
       if (dual_scalar_on_face_index==dual_scalar_on_face_index_2) then
         lpoints_downwards = .false.
         lspecial_case = .false.
         llast_triangle = .false.
-        value_found = 1
+        lvalue_found = .true.
       endif
       if (dual_scalar_on_face_index==dual_scalar_on_face_index_3) then
         lpoints_downwards = .false.
         lspecial_case = .true.
         llast_triangle = .false.
-        value_found = 1
+        lvalue_found = .true.
       endif
       if (dual_scalar_on_face_index==dual_scalar_on_face_index_4) then
         lpoints_downwards = .false.
         lspecial_case = .false.
         llast_triangle = .true.
-        value_found = 1
+        lvalue_found = .true.
       endif
     enddo
     triangle_on_face_index = triangle_on_face_index_pre
