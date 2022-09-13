@@ -17,6 +17,6 @@ toa=41152
 n_oro_layers=23
 radius_rescale=1.0
 n_avg_points=7
-export OMP_NUM_THREADS=1 # relevant only for OMP
+export OMP_NUM_THREADS=4 # relevant only for OMP
 
 source .sh/run.sh
