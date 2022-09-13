@@ -443,35 +443,35 @@ module mo_horizontal_generation
     
     !$omp parallel do private(ji,edge_index,on_edge_index,point_1,point_2,point_3,point_4,point_5,point_6, &
     !$omp dual_scalar_on_face_index,small_triangle_edge_index)
-    do ji=0,n_vectors_h-1
-      if (ji<n_basic_edges*(n_points_per_edge+1)) then
-        edge_index = ji/(n_points_per_edge+1)
-        on_edge_index = ji - edge_index*(n_points_per_edge+1)
+    do ji=1,n_vectors_h
+      if (ji<=n_basic_edges*(n_points_per_edge+1)) then
+        edge_index = (ji-1)/(n_points_per_edge+1)
+        on_edge_index = ji-1 - edge_index*(n_points_per_edge+1)
         if(on_edge_index==0) then
-          from_index(ji+1) = edge_vertices(edge_index+1,1)
-          to_index(ji+1) = n_pentagons + edge_index*n_points_per_edge
+          from_index(ji) = edge_vertices(edge_index+1,1)
+          to_index(ji) = n_pentagons + edge_index*n_points_per_edge
         elseif (on_edge_index==n_points_per_edge) then
-          from_index(ji+1) = n_pentagons + (edge_index+1)*n_points_per_edge - 1
-          to_index(ji+1) = edge_vertices(edge_index+1,2)
+          from_index(ji) = n_pentagons + (edge_index+1)*n_points_per_edge - 1
+          to_index(ji) = edge_vertices(edge_index+1,2)
         else
-          from_index(ji+1) = n_pentagons + edge_index*n_points_per_edge + on_edge_index - 1
-          to_index(ji+1) = n_pentagons + edge_index*n_points_per_edge + on_edge_index
+          from_index(ji) = n_pentagons + edge_index*n_points_per_edge + on_edge_index - 1
+          to_index(ji) = n_pentagons + edge_index*n_points_per_edge + on_edge_index
         endif
       else
-        call find_triangle_indices_from_h_vector_index(ji,point_1,point_2,point_3,point_4,point_5,point_6, &
+        call find_triangle_indices_from_h_vector_index(ji-1,point_1,point_2,point_3,point_4,point_5,point_6, &
                                                        dual_scalar_on_face_index, &
                                                        small_triangle_edge_index,face_edges,face_vertices,face_edges_reverse)
         if (small_triangle_edge_index==0) then
-          from_index(ji+1) = point_1
-          to_index(ji+1) = point_3
+          from_index(ji) = point_1
+          to_index(ji) = point_3
         endif
         if (small_triangle_edge_index==1) then
-          from_index(ji+1) = point_1
-          to_index(ji+1) = point_2
+          from_index(ji) = point_1
+          to_index(ji) = point_2
         endif
         if (small_triangle_edge_index==2) then
-          from_index(ji+1) = point_3
-          to_index(ji+1) = point_2
+          from_index(ji) = point_3
+          to_index(ji) = point_2
         endif
       endif
     enddo
