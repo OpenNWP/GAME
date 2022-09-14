@@ -338,9 +338,7 @@ module mo_write_output
           ! conversion of the total cloud cover into a percentage
           tcc(ji) = 100._wp*tcc(ji)
           ! setting too small values to zero to not confuse users
-          if (tcc(ji)<0._wp) then
-            tcc(ji) = 0._wp
-          else
+          if (tcc(ji)<0.5_wp) then
             tcc(ji) = 0._wp
           endif
           ! solid precipitation rate
