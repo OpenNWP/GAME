@@ -376,13 +376,13 @@ module mo_write_output
         wind_10_m_mean_v(ji) = 0._wp
         ! loop over the time steps
         do time_step_10_m_wind=1,n_output_steps_10m_wind
-          jk = (time_step_10_m_wind-1)*n_vectors_h + ji
           wind_tangential = 0._wp
           do jk=1,10
             wind_tangential = wind_tangential + grid%trsk_weights(10*(ji-1)+jk) &
                               *wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_vectors_h+1+grid%trsk_indices(10*(ji-1)+jk))
           enddo
-          wind_10_m_mean_u(ji) = wind_10_m_mean_u(ji) + 1._wp/n_output_steps_10m_wind*wind_h_lowest_layer_array(jk)
+          wind_10_m_mean_u(ji) = wind_10_m_mean_u(ji) &
+          + 1._wp/n_output_steps_10m_wind*wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_vectors_h + ji)
           wind_10_m_mean_v(ji) = wind_10_m_mean_v(ji) + 1._wp/n_output_steps_10m_wind*wind_tangential
         enddo
         ! passive turn to obtain the u- and v-components of the wind
@@ -400,8 +400,8 @@ module mo_write_output
         if (grid%is_land(grid%from_index(ji)+1)==0) then
           roughness_length_extrapolation = actual_roughness_length
         endif
-        z_sfc = 0.5_wp*(grid%z_vector(n_vectors - n_scalars_h + grid%from_index(ji)) &
-                        + grid%z_vector(n_vectors - n_scalars_h + grid%to_index(ji)))
+        z_sfc = 0.5_wp*(grid%z_vector(n_vectors - n_scalars_h + 1+grid%from_index(ji)) &
+                        + grid%z_vector(n_vectors - n_scalars_h + 1+grid%to_index(ji)))
         z_agl = grid%z_vector(n_vectors - n_vectors_per_layer+ji) - z_sfc
         
         ! rescale factor for computing the wind in a height of 10 m
@@ -434,6 +434,7 @@ module mo_write_output
           wind_10_m_gusts_speed_at_cell(ji) = sqrt(wind_10_m_mean_u_at_cell(ji)**2 + wind_10_m_mean_v_at_cell(ji)**2) &
           + 7.71_wp*diag%roughness_velocity(ji)* &
           (max(1._wp - 0.5_wp/12._wp*1000._wp/diag%monin_obukhov_length(ji),0._wp))**(1._wp/3._wp)
+          
           ! calculating the wind speed in a height representing 850 hPa
           do jl=1,n_layers
             vector_to_minimize(jl) = abs(grid%z_scalar((jl-1)*n_scalars_h+ji) &
