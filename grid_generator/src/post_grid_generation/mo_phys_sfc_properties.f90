@@ -44,8 +44,8 @@ module mo_phys_sfc_properties
                                    sfc_rho_c(n_scalars_h),t_conductivity(n_scalars_h),oro(n_scalars_h)
   
     ! local variables
-    integer               :: ji,jk,ncid,is_land_id,lat_in_id,lon_in_id,z_in_id,no_of_lat_points, &
-                             no_of_lon_points,lat_index,lon_index,min_indices_vector(n_avg_points)
+    integer               :: ji,jk,ncid,is_land_id,lat_in_id,lon_in_id,z_in_id,n_lat_points, &
+                             n_lon_points,lat_index,lon_index,min_indices_vector(n_avg_points)
     real(wp)              :: c_p_water,c_p_soil,albedo_water,albedo_soil,albedo_ice,density_soil, &
                              t_conductivity_water,t_conductivity_soil,lat_deg,distance_vector(n_scalars_h)
     real(wp), allocatable :: latitude_input(:),longitude_input(:),oro_unfiltered(:),lat_distance_vector(:),lon_distance_vector(:)
@@ -66,11 +66,11 @@ module mo_phys_sfc_properties
       call nc_check(nf90_close(ncid))
   
       ! reading the ETOPO orography
-      no_of_lat_points = 10801
-      no_of_lon_points = 21601
-      allocate(latitude_input(no_of_lat_points))
-      allocate(longitude_input(no_of_lon_points))
-      allocate(z_input(no_of_lon_points,no_of_lat_points))
+      n_lat_points = 10801
+      n_lon_points = 21601
+      allocate(latitude_input(n_lat_points))
+      allocate(longitude_input(n_lon_points))
+      allocate(z_input(n_lon_points,n_lat_points))
     
       oro_file = "phys_quantities/etopo.nc"
       call nc_check(nf90_open(trim(oro_file),NF90_CLOBBER,ncid))
@@ -89,16 +89,16 @@ module mo_phys_sfc_properties
         oro(ji) = 0._wp
         oro_unfiltered(ji) = 0._wp
     
-        allocate(lat_distance_vector(no_of_lat_points))
-        allocate(lon_distance_vector(no_of_lon_points))
-        do jk=1,no_of_lat_points
+        allocate(lat_distance_vector(n_lat_points))
+        allocate(lon_distance_vector(n_lon_points))
+        do jk=1,n_lat_points
           lat_distance_vector(jk) = abs(deg2rad(latitude_input(jk))-latitude_scalar(ji))
         enddo
-        do jk=1,no_of_lon_points
+        do jk=1,n_lon_points
           lon_distance_vector(jk) = abs(deg2rad(longitude_input(jk))-longitude_scalar(ji))
         enddo
-        lat_index = find_min_index(lat_distance_vector,no_of_lat_points)
-        lon_index = find_min_index(lon_distance_vector,no_of_lon_points)
+        lat_index = find_min_index(lat_distance_vector,n_lat_points)
+        lon_index = find_min_index(lon_distance_vector,n_lon_points)
         oro_unfiltered(ji) = z_input(lon_index,lat_index)
       
         ! over the sea there is no orography
