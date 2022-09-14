@@ -35,8 +35,8 @@ module mo_write_output
   
     ! This subroutine interpolates a single-layer scalar field to a lat-lon grid.
     
-    real(wp),     intent(in)  :: in_field(n_scalars_h)
-    real(wp),     intent(out) :: out_field(n_lat_io_points,n_lon_io_points)
+    real(wp),     intent(in)  :: in_field(n_scalars_h)                      ! the horizontal scalar field to interpolate
+    real(wp),     intent(out) :: out_field(n_lat_io_points,n_lon_io_points) ! the resulting 2D scalar field on a latlon grid
     type(t_grid), intent(in)  :: grid                                       ! grid quantities
     
     ! local variables
@@ -50,9 +50,9 @@ module mo_write_output
         out_field(ji,jk) = 0._wp
         ! 1/r-average
         do jm=1,5
-          if (in_field(1+grid%latlon_interpol_indices(5*(jk-1 + n_lon_io_points*(ji-1))+jm))/=9999) then
+          if (in_field(grid%latlon_interpol_indices(5*(jk-1 + n_lon_io_points*(ji-1))+jm))/=9999) then
             out_field(ji,jk) = out_field(ji,jk) + grid%latlon_interpol_weights(5*(jk-1+n_lon_io_points*(ji-1))+jm) &
-                               *in_field(1+grid%latlon_interpol_indices(5*(jk-1+n_lon_io_points*(ji-1))+jm))
+                               *in_field(grid%latlon_interpol_indices(5*(jk-1+n_lon_io_points*(ji-1))+jm))
           else
             out_field(ji,jk) = 9999
             exit
@@ -175,7 +175,7 @@ module mo_write_output
     integer               :: ji,jk,jl,jm,lat_lon_dimids(2),ncid,single_int_dimid,lat_dimid,lon_dimid,start_date_id,start_hour_id, &
                              lat_id,lon_id,layer_index,closest_index,second_closest_index,temperature_ids(n_layers), &
                              pressure_ids(n_layers),rel_hum_ids(n_layers),wind_u_ids(n_layers),wind_v_ids(n_layers), &
-                             rel_vort_ids(n_layers),div_h_ids(n_layers),wind_w_ids(n_levels),h_index, &
+                             rel_vort_ids(n_layers),div_h_ids(n_layers),wind_w_ids(n_levels), &
                              time_since_init_min,mslp_id,sp_id,rprate_id,sprate_id, &
                              cape_id,tcc_id,t2_id,u10_id,v10_id,gusts_id,sfc_sw_down_id,gh_ids(n_pressure_levels), &
                              temp_p_ids(n_pressure_levels),rh_p_ids(n_pressure_levels),wind_u_p_ids(n_pressure_levels), &
@@ -371,26 +371,26 @@ module mo_write_output
       allocate(wind_10_m_mean_u(n_vectors_h))
       allocate(wind_10_m_mean_v(n_vectors_h))
       ! temporal average over the ten minutes output interval
-      !$omp parallel do private(ji,jk,wind_tangential,wind_u_value,wind_v_value)
-      do h_index=1,n_vectors_h
+      !$omp parallel do private(ji,jk,time_step_10_m_wind,wind_tangential,wind_u_value,wind_v_value)
+      do ji=1,n_vectors_h
         ! initializing the means with zero
-        wind_10_m_mean_u(h_index) = 0._wp
-        wind_10_m_mean_v(h_index) = 0._wp
+        wind_10_m_mean_u(ji) = 0._wp
+        wind_10_m_mean_v(ji) = 0._wp
         ! loop over the time steps
         do time_step_10_m_wind=1,n_output_steps_10m_wind
-          jk = (time_step_10_m_wind-1)*n_vectors_h + h_index
+          jk = (time_step_10_m_wind-1)*n_vectors_h + ji
           wind_tangential = 0._wp
-          do ji=1,10
-            wind_tangential = wind_tangential + grid%trsk_weights(10*(h_index-1)+ji) &
-                              *wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_vectors_h+1+grid%trsk_indices(10*(h_index-1)+ji))
+          do jk=1,10
+            wind_tangential = wind_tangential + grid%trsk_weights(10*(ji-1)+jk) &
+                              *wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_vectors_h+1+grid%trsk_indices(10*(ji-1)+jk))
           enddo
-          wind_10_m_mean_u(h_index) = wind_10_m_mean_u(h_index) + 1._wp/n_output_steps_10m_wind*wind_h_lowest_layer_array(jk)
-          wind_10_m_mean_v(h_index) = wind_10_m_mean_v(h_index) + 1._wp/n_output_steps_10m_wind*wind_tangential
+          wind_10_m_mean_u(ji) = wind_10_m_mean_u(ji) + 1._wp/n_output_steps_10m_wind*wind_h_lowest_layer_array(jk)
+          wind_10_m_mean_v(ji) = wind_10_m_mean_v(ji) + 1._wp/n_output_steps_10m_wind*wind_tangential
         enddo
         ! passive turn to obtain the u- and v-components of the wind
-        call passive_turn(wind_10_m_mean_u(h_index),wind_10_m_mean_v(h_index),-grid%direction(h_index),wind_u_value,wind_v_value)
-        wind_10_m_mean_u(h_index) = wind_u_value
-        wind_10_m_mean_v(h_index) = wind_v_value
+        call passive_turn(wind_10_m_mean_u(ji),wind_10_m_mean_v(ji),-grid%direction(ji),wind_u_value,wind_v_value)
+        wind_10_m_mean_u(ji) = wind_u_value
+        wind_10_m_mean_v(ji) = wind_v_value
       enddo
       !$omp end parallel do
       ! vertically extrapolating to ten meters above the surface
@@ -462,7 +462,7 @@ module mo_write_output
               .and. grid%z_scalar((closest_index-1)*n_scalars_h+ji)-grid%z_vector(n_vectors-n_scalars_h+ji)>u_950_proxy_height) then
             second_closest_index = closest_index+1
           endif
-          u_950_surrogate = sqrt(diag%v_squared(ji + closest_index*n_scalars_h)) &
+          u_950_surrogate = sqrt(diag%v_squared(ji + (closest_index-1)*n_scalars_h)) &
           + (sqrt(diag%v_squared(ji+(closest_index-1)*n_scalars_h))-sqrt(diag%v_squared(ji+(second_closest_index-1)*n_scalars_h))) &
           /(grid%z_scalar(ji + (closest_index-1)*n_scalars_h) - grid%z_scalar(ji + (second_closest_index-1)*n_scalars_h)) &
           *(grid%z_vector(n_vectors - n_scalars_h+ji) + u_950_proxy_height - grid%z_scalar(ji + (closest_index-1)*n_scalars_h))
@@ -739,32 +739,25 @@ module mo_write_output
       
       do jl=1,n_pressure_levels
         
-        call interpolate_to_ll(geopotential_height(:,jl),lat_lon_output_field, &
-        grid)
+        call interpolate_to_ll(geopotential_height(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,gh_ids(jl),lat_lon_output_field))
         
-        call interpolate_to_ll(t_on_p_levels(:,jl),lat_lon_output_field, &
-        grid)
+        call interpolate_to_ll(t_on_p_levels(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,temp_p_ids(jl),lat_lon_output_field))
         
-        call interpolate_to_ll(rh_on_p_levels(:,jl),lat_lon_output_field, &
-        grid)
+        call interpolate_to_ll(rh_on_p_levels(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,rh_p_ids(jl),lat_lon_output_field))
         
-        call interpolate_to_ll(u_on_p_levels(:,jl),lat_lon_output_field, &
-        grid)
+        call interpolate_to_ll(u_on_p_levels(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,wind_u_p_ids(jl),lat_lon_output_field))
         
-        call interpolate_to_ll(v_on_p_levels(:,jl),lat_lon_output_field, &
-        grid)
+        call interpolate_to_ll(v_on_p_levels(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,wind_v_p_ids(jl),lat_lon_output_field))
         
-        call interpolate_to_ll(zeta_on_p_levels(:,jl),lat_lon_output_field, &
-        grid)
+        call interpolate_to_ll(zeta_on_p_levels(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,rel_vort_p_ids(jl),lat_lon_output_field))
         
-        call interpolate_to_ll(epv_on_p_levels(:,jl),lat_lon_output_field, &
-        grid)
+        call interpolate_to_ll(epv_on_p_levels(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,epv_p_ids(jl),lat_lon_output_field))
       
       enddo
