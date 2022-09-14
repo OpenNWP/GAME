@@ -123,7 +123,7 @@ module mo_write_output
     call inner_product(state%wind,state%wind,e_kin_density,grid)
     !$omp parallel do private(ji)
     do ji=1,n_scalars
-      e_kin_density(ji) = state%rho(n_condensed_constituents*n_scalars + ji)*e_kin_density(ji)
+      e_kin_density(ji) = state%rho(n_condensed_constituents*n_scalars+ji)*e_kin_density(ji)
     enddo
     !$omp end parallel do
     kinetic_integral = 0._wp
@@ -249,7 +249,7 @@ module mo_write_output
       allocate(sfc_sw_down(n_scalars_h))
       z_tropopause = 12e3_wp
       standard_vert_lapse_rate = 0.0065_wp
-      !$omp parallel do private(ji,temp_lowest_layer,pressure_value,mslp_factor,sp_factor,temp_mslp,temp_surface, &
+      !$omp parallel do private(ji,jl,temp_lowest_layer,pressure_value,mslp_factor,sp_factor,temp_mslp,temp_surface, &
       !$omp z_height,theta_v,cape_integrand,delta_z,temp_closest,temp_second_closest,delta_z_temp,temperature_gradient, &
       !$omp theta_e,layer_index,closest_index,second_closest_index,cloud_water_content,vector_to_minimize)
       do ji=1,n_scalars_h
@@ -283,10 +283,10 @@ module mo_write_output
                                  (grid%z_scalar(ji+(closest_index-1)*n_scalars_h) - grid%z_vector(n_layers*n_vectors_per_layer+ji))
         ! no real radiation
         else
-          second_closest_index = closest_index - 1
+          second_closest_index = closest_index-1
           if (grid%z_scalar(ji + (closest_index-1)*n_scalars_h)>grid%z_vector(n_layers*n_vectors_per_layer + ji)+2._wp &
               .and. closest_index<n_layers) then
-            second_closest_index = closest_index + 1
+            second_closest_index = closest_index+1
           endif
           temp_second_closest = diag%temperature((second_closest_index-1)*n_scalars_h+ji)
           ! calculating the vertical temperature gradient that will be used for the extrapolation
@@ -301,7 +301,7 @@ module mo_write_output
         ! initializing CAPE with zero
         cape(ji) = 0._wp
         layer_index = n_layers - 1
-        z_height = grid%z_scalar(layer_index*n_scalars_h + ji)
+        z_height = grid%z_scalar(layer_index*n_scalars_h+ji)
         ! pseduovirtual potential temperature of the particle in the lowest layer
         theta_e = pseudopotential_temperature(state,diag,(layer_index-1)*n_scalars_h+ji,grid)
         do while (z_height<z_tropopause)
@@ -319,7 +319,7 @@ module mo_write_output
           z_height = grid%z_scalar(layer_index*n_scalars_h + ji)
         enddo
         
-        sfc_sw_down(ji) = diag%sfc_sw_in(ji)/(1._wp - grid%sfc_albedo(ji) + EPSILON_SECURITY)
+        sfc_sw_down(ji) = diag%sfc_sw_in(ji)/(1._wp-grid%sfc_albedo(ji)+EPSILON_SECURITY)
         
         ! Now come the hydrometeors.
         ! Calculation of the total cloud cover
@@ -426,7 +426,7 @@ module mo_write_output
       u_850_proxy_height = 8000._wp*log(1000._wp/850._wp)
       u_950_proxy_height = 8000._wp*log(1000._wp/950._wp)
       allocate(wind_10_m_gusts_speed_at_cell(n_scalars_h))
-      !$omp parallel do private(ji,closest_index,second_closest_index,u_850_surrogate,u_950_surrogate)
+      !$omp parallel do private(ji,jl,vector_to_minimize,closest_index,second_closest_index,u_850_surrogate,u_950_surrogate)
       do ji=1,n_scalars_h
       
         ! This is the normal case.
@@ -442,10 +442,10 @@ module mo_write_output
                                          - (grid%z_vector(n_vectors-n_scalars_h+ji) + u_850_proxy_height))
           enddo
           closest_index = find_min_index(vector_to_minimize,n_layers)+1
-          second_closest_index = closest_index - 1
+          second_closest_index = closest_index-1
           if (closest_index<n_layers-1 &
               .and. grid%z_scalar((closest_index-1)*n_scalars_h+ji)-grid%z_vector(n_vectors-n_scalars_h+ji)>u_850_proxy_height) then
-            second_closest_index = closest_index + 1
+            second_closest_index = closest_index+1
           endif
           u_850_surrogate = sqrt(diag%v_squared(ji + (closest_index-1)*n_scalars_h)) &
           + (sqrt(diag%v_squared(ji+(closest_index-1)*n_scalars_h))-sqrt(diag%v_squared(ji+(second_closest_index-1)*n_scalars_h))) &
@@ -457,10 +457,10 @@ module mo_write_output
                                          - (grid%z_vector(n_vectors - n_scalars_h + ji) + u_950_proxy_height))
           enddo
           closest_index = find_min_index(vector_to_minimize,n_layers)+1
-          second_closest_index = closest_index - 1
+          second_closest_index = closest_index-1
           if (closest_index<n_layers &
               .and. grid%z_scalar((closest_index-1)*n_scalars_h+ji)-grid%z_vector(n_vectors-n_scalars_h+ji)>u_950_proxy_height) then
-            second_closest_index = closest_index + 1
+            second_closest_index = closest_index+1
           endif
           u_950_surrogate = sqrt(diag%v_squared(ji + closest_index*n_scalars_h)) &
           + (sqrt(diag%v_squared(ji+(closest_index-1)*n_scalars_h))-sqrt(diag%v_squared(ji+(second_closest_index-1)*n_scalars_h))) &
@@ -623,7 +623,7 @@ module mo_write_output
       allocate(zeta_on_p_levels(n_scalars_h,n_pressure_levels))
       
       ! vertical interpolation to the pressure levels
-      !$omp parallel do private(jl,ji,jm,vector_to_minimize,closest_index,second_closest_index,closest_weight)
+      !$omp parallel do private(ji,jl,jm,vector_to_minimize,closest_index,second_closest_index,closest_weight)
       do ji=1,n_scalars_h
         do jl=1,n_pressure_levels
           do jm=1,n_layers
