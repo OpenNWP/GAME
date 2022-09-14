@@ -32,16 +32,15 @@ module mo_phys_sfc_properties
 
   end function vegetation_height_ideal
   
-  subroutine set_sfc_properties(latitude_scalar,longitude_scalar,roughness_length, &
-                                sfc_albedo,sfc_rho_c,t_conductivity,oro,is_land,oro_id)
+  subroutine set_sfc_properties(lat_c,lon_c,roughness_length,sfc_albedo,sfc_rho_c,t_conductivity,oro,is_land,oro_id)
   
     ! This subroutine sets the physical surface properties.
   
     integer,  intent(in)  :: oro_id
     integer,  intent(out) :: is_land(n_scalars_h)
-    real(wp), intent(in)        :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
-    real(wp), intent(out)       :: roughness_length(n_scalars_h),sfc_albedo(n_scalars_h), &
-                                   sfc_rho_c(n_scalars_h),t_conductivity(n_scalars_h),oro(n_scalars_h)
+    real(wp), intent(in)  :: lat_c(n_scalars_h),lon_c(n_scalars_h)
+    real(wp), intent(out) :: roughness_length(n_scalars_h),sfc_albedo(n_scalars_h), &
+                             sfc_rho_c(n_scalars_h),t_conductivity(n_scalars_h),oro(n_scalars_h)
   
     ! local variables
     integer               :: ji,jk,ncid,is_land_id,lat_in_id,lon_in_id,z_in_id,n_lat_points, &
@@ -92,10 +91,10 @@ module mo_phys_sfc_properties
         allocate(lat_distance_vector(n_lat_points))
         allocate(lon_distance_vector(n_lon_points))
         do jk=1,n_lat_points
-          lat_distance_vector(jk) = abs(deg2rad(latitude_input(jk))-latitude_scalar(ji))
+          lat_distance_vector(jk) = abs(deg2rad(latitude_input(jk))-lat_c(ji))
         enddo
         do jk=1,n_lon_points
-          lon_distance_vector(jk) = abs(deg2rad(longitude_input(jk))-longitude_scalar(ji))
+          lon_distance_vector(jk) = abs(deg2rad(longitude_input(jk))-lon_c(ji))
         enddo
         lat_index = find_min_index(lat_distance_vector,n_lat_points)
         lon_index = find_min_index(lon_distance_vector,n_lon_points)
@@ -122,8 +121,8 @@ module mo_phys_sfc_properties
       do ji=1,n_scalars_h
         ! finding the distance to the other grid points
         do jk=1,n_scalars_h
-          distance_vector(jk) = calculate_distance_h(latitude_scalar(ji),longitude_scalar(ji), &
-                                                     latitude_scalar(jk),longitude_scalar(jk),1._wp)
+          distance_vector(jk) = calculate_distance_h(lat_c(ji),lon_c(ji), &
+                                                     lat_c(jk),lon_c(jk),1._wp)
         enddo
         do jk=1,n_avg_points
           min_indices_vector(jk) = 0
@@ -170,7 +169,7 @@ module mo_phys_sfc_properties
       ! land
       if (is_land(ji)==1) then
     
-        lat_deg = 360._wp/(2._wp*M_PI)*latitude_scalar(ji)
+        lat_deg = 360._wp/(2._wp*M_PI)*lat_c(ji)
       
         t_conductivity(ji) = t_conductivity_soil
       
@@ -183,7 +182,7 @@ module mo_phys_sfc_properties
       
         sfc_rho_c(ji) = density_soil*c_p_soil
       
-        roughness_length(ji) = vegetation_height_ideal(latitude_scalar(ji),oro(ji))/8._wp
+        roughness_length(ji) = vegetation_height_ideal(lat_c(ji),oro(ji))/8._wp
       endif
     
       ! restricting the roughness length to a minimum

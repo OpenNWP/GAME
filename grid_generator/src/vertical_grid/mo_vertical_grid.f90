@@ -299,13 +299,12 @@ module mo_vertical_grid
     
   end subroutine set_area
   
-  subroutine set_z_vector_and_normal_distance(z_vector,normal_distance,z_scalar,latitude_scalar, &
-  longitude_scalar,from_index,to_index,oro)
+  subroutine set_z_vector_and_normal_distance(z_vector,normal_distance,z_scalar,lat_c,lon_c,from_index,to_index,oro)
 
     ! This subroutine calculates the vertical position of the vector points as well as the normal distances of the primal grid.
   
     real(wp), intent(out) :: z_vector(n_vectors),normal_distance(n_vectors)
-    real(wp), intent(in)  :: z_scalar(n_scalars),latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h),oro(n_scalars_h)
+    real(wp), intent(in)  :: z_scalar(n_scalars),lat_c(n_scalars_h),lon_c(n_scalars_h),oro(n_scalars_h)
     integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
   
     integer               :: ji,layer_index,h_index,upper_index,lower_index
@@ -327,8 +326,8 @@ module mo_vertical_grid
         ! calculating the horizontal distance
         normal_distance(ji) &
         = calculate_distance_h( &
-        latitude_scalar(1+from_index(h_index - n_scalars_h)), longitude_scalar(1+from_index(h_index - n_scalars_h)), &
-        latitude_scalar(1+to_index(h_index - n_scalars_h)), longitude_scalar(1+to_index(h_index - n_scalars_h)), &
+        lat_c(1+from_index(h_index - n_scalars_h)), lon_c(1+from_index(h_index - n_scalars_h)), &
+        lat_c(1+to_index(h_index - n_scalars_h)), lon_c(1+to_index(h_index - n_scalars_h)), &
         radius + z_vector(ji))
       else
         upper_index = h_index + (layer_index - 1)*n_scalars_h
@@ -365,13 +364,13 @@ module mo_vertical_grid
   
   subroutine calc_z_vector_dual_and_normal_distance_dual(z_vector_dual,normal_distance_dual, &
   z_scalar_dual,from_index,to_index,z_vector, &
-  from_index_dual,to_index_dual,latitude_scalar_dual,longitude_scalar_dual,vorticity_indices_triangles)
+  from_index_dual,to_index_dual,lat_c_dual,lon_c_dual,vorticity_indices_triangles)
   
     ! This subroutine sets the z coordinates of the dual vector points as well as the normal distances of the dual grid.
     
     real(wp), intent(out) :: z_vector_dual(n_dual_vectors),normal_distance_dual(n_dual_vectors)
     real(wp), intent(in)  :: z_scalar_dual(n_dual_scalars),z_vector(n_vectors), &
-                             latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h)
+                             lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
     integer, intent(in)   :: from_index(n_vectors_h),to_index(n_vectors_h),from_index_dual(n_vectors_h), &
                              to_index_dual(n_vectors_h),vorticity_indices_triangles(3*n_dual_scalars_h)
   
@@ -400,10 +399,10 @@ module mo_vertical_grid
           z_vector_dual(ji) = 0.5_wp*(z_vector(n_scalars_h+h_index+(layer_index-1)*n_vectors_per_layer) &
           + z_vector(n_scalars_h + h_index + layer_index*n_vectors_per_layer))
         endif
-        normal_distance_dual(ji) = calculate_distance_h(latitude_scalar_dual(1+from_index_dual(h_index)), &
-        longitude_scalar_dual(1+from_index_dual(h_index)), &
-        latitude_scalar_dual(1+to_index_dual(h_index)), & 
-        longitude_scalar_dual(1+to_index_dual(h_index)), &
+        normal_distance_dual(ji) = calculate_distance_h(lat_c_dual(1+from_index_dual(h_index)), &
+        lon_c_dual(1+from_index_dual(h_index)), &
+        lat_c_dual(1+to_index_dual(h_index)), & 
+        lon_c_dual(1+to_index_dual(h_index)), &
         radius+z_vector_dual(ji))
       endif
     enddo

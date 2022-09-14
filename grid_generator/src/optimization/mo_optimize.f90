@@ -6,7 +6,7 @@ module mo_optimize
   ! The Lloyd algorithm is implemented here.
 
   use mo_definitions,           only: wp
-  use mo_grid_nml,              only: n_scalars_h,n_pentagons,n_vectors_h,n_dual_scalars_h
+  use mo_grid_nml,              only: n_scalars_h,n_pentagons,n_vectors_h,n_dual_scalars_h,n_basic_triangles
   use mo_geodesy,               only: calc_triangle_area,find_global_normal,sort_vertex_indices,find_geos
   use mo_various_helpers,       only: in_bool_checker
   use mo_horizontal_generation, only: set_scalar_h_dual_coords
@@ -15,16 +15,17 @@ module mo_optimize
   
   contains
   
-  subroutine optimize_to_scvt(latitude_scalar,longitude_scalar,latitude_scalar_dual,longitude_scalar_dual,n_iterations, &
+  subroutine optimize_to_scvt(lat_c,lon_c,lat_c_dual,lon_c_dual,n_iterations, &
                               face_edges,face_edges_reverse,face_vertices,adjacent_vector_indices_h, &
                               from_index_dual,to_index_dual)
 
     ! This subroutine manages the grid optimization with Lloyd's algorithm.
     ! The result is (almost) a SCVT.
 	
-    real(wp), intent(inout) :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h), &
-                               latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h)
-    integer,  intent(in)    :: n_iterations,face_edges(20,3),face_edges_reverse(20,3),face_vertices(20,3), &
+    real(wp), intent(inout) :: lat_c(n_scalars_h),lon_c(n_scalars_h), &
+                               lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
+    integer,  intent(in)    :: n_iterations,face_edges(n_basic_triangles,3),face_edges_reverse(n_basic_triangles,3), &
+                               face_vertices(n_basic_triangles,3), &
                                adjacent_vector_indices_h(6*n_scalars_h),from_index_dual(n_vectors_h), &
                                to_index_dual(n_vectors_h)
 	
@@ -32,22 +33,22 @@ module mo_optimize
     integer :: ji
 	
     do ji=0,n_iterations-1
-      call set_scalar_h_dual_coords(latitude_scalar_dual,longitude_scalar_dual,latitude_scalar,longitude_scalar, &
+      call set_scalar_h_dual_coords(lat_c_dual,lon_c_dual,lat_c,lon_c, &
                                     face_edges,face_edges_reverse,face_vertices)
-      call find_cell_cgs(latitude_scalar,longitude_scalar,latitude_scalar_dual,longitude_scalar_dual, &
+      call find_cell_cgs(lat_c,lon_c,lat_c_dual,lon_c_dual, &
                          adjacent_vector_indices_h,from_index_dual,to_index_dual)
       write(*,*) "Optimizing grid - iteration",ji+1,"completed."
     enddo
 	
   end subroutine optimize_to_scvt
 
-  subroutine find_cell_cgs(latitude_scalar,longitude_scalar,latitude_scalar_dual,longitude_scalar_dual, &
+  subroutine find_cell_cgs(lat_c,lon_c,lat_c_dual,lon_c_dual, &
                            adjacent_vector_indices_h,from_index_dual,to_index_dual)
     
     ! This subroutine calculates the barycenters (centers of gravity) of the cells.
     
-    real(wp), intent(inout) :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
-    real(wp), intent(in)    :: latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h)
+    real(wp), intent(inout) :: lat_c(n_scalars_h),lon_c(n_scalars_h)
+    real(wp), intent(in)    :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
     integer,  intent(in)    :: adjacent_vector_indices_h(6*n_scalars_h), &
                                from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
     
@@ -76,15 +77,15 @@ module mo_optimize
         check_result = in_bool_checker(vertex_index_candidate_1,vertex_indices,n_edges)
         if (check_result==0) then
           vertex_indices(counter) = vertex_index_candidate_1
-          latitude_vertices(counter) = latitude_scalar_dual(1+vertex_indices(counter))
-          longitude_vertices(counter) = longitude_scalar_dual(1+vertex_indices(counter))
+          latitude_vertices(counter) = lat_c_dual(1+vertex_indices(counter))
+          longitude_vertices(counter) = lon_c_dual(1+vertex_indices(counter))
           counter = counter+1
         endif
         check_result = in_bool_checker(vertex_index_candidate_2,vertex_indices,n_edges)            
         if (check_result==0) then
           vertex_indices(counter) = vertex_index_candidate_2
-          latitude_vertices(counter) = latitude_scalar_dual(1+vertex_indices(counter))
-          longitude_vertices(counter) = longitude_scalar_dual(1+vertex_indices(counter))
+          latitude_vertices(counter) = lat_c_dual(1+vertex_indices(counter))
+          longitude_vertices(counter) = lon_c_dual(1+vertex_indices(counter))
           counter = counter+1
         endif
       enddo
@@ -99,12 +100,12 @@ module mo_optimize
       y_res = 0._wp
       z_res = 0._wp
       do jk=1,n_edges
-        lat_1 = latitude_scalar(ji)
-        lon_1 = longitude_scalar(ji)
-        lat_2 = latitude_scalar_dual(1+vertex_indices_resorted(jk))
-        lon_2 = longitude_scalar_dual(1+vertex_indices_resorted(jk))
-        lat_3 = latitude_scalar_dual(1+vertex_indices_resorted(mod(jk,n_edges)+1))
-        lon_3 = longitude_scalar_dual(1+vertex_indices_resorted(mod(jk,n_edges)+1))
+        lat_1 = lat_c(ji)
+        lon_1 = lon_c(ji)
+        lat_2 = lat_c_dual(1+vertex_indices_resorted(jk))
+        lon_2 = lon_c_dual(1+vertex_indices_resorted(jk))
+        lat_3 = lat_c_dual(1+vertex_indices_resorted(mod(jk,n_edges)+1))
+        lon_3 = lon_c_dual(1+vertex_indices_resorted(mod(jk,n_edges)+1))
         call find_global_normal(lat_1,lon_1,x_1,y_1,z_1)
         call find_global_normal(lat_2,lon_2,x_2,y_2,z_2)
         call find_global_normal(lat_3,lon_3,x_3,y_3,z_3)
@@ -114,8 +115,8 @@ module mo_optimize
         z_res = z_res + triangle_unity_face*(z_1+z_2+z_3)
       enddo
       call find_geos(x_res,y_res,z_res,lat_res,lon_res)
-      latitude_scalar(ji) = lat_res
-      longitude_scalar(ji) = lon_res
+      lat_c(ji) = lat_res
+      lon_c(ji) = lon_res
     enddo
     !$omp end parallel do
     

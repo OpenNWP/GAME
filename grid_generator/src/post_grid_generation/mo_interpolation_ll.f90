@@ -15,13 +15,13 @@ module mo_interpolation_ll
   
   contains
   
-  subroutine interpolate_ll(latitude_scalar,longitude_scalar,interpol_indices,interpol_weights)
+  subroutine interpolate_ll(lat_c,lon_c,interpol_indices,interpol_weights)
   
     ! This function interpolates to the lat-lon grid.
   
     integer,  intent(out) :: interpol_indices(5*n_scalars_h)
     real(wp), intent(out) :: interpol_weights(5*n_scalars_h)
-    real(wp), intent(in)  :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
+    real(wp), intent(in)  :: lat_c(n_scalars_h),lon_c(n_scalars_h)
   
     ! local variables
     real(wp) :: delta_latitude,delta_longitude,lat_value,lon_value,weights_sum, &
@@ -50,7 +50,7 @@ module mo_interpolation_ll
       endif
       ! finding the three closest points of the native model grid  
       do jk=1,n_scalars_h
-        distance_vector(jk) = calculate_distance_h(lat_value,lon_value,latitude_scalar(jk),longitude_scalar(jk),1._wp)
+        distance_vector(jk) = calculate_distance_h(lat_value,lon_value,lat_c(jk),lon_c(jk),1._wp)
       enddo
       do jk=1,5
         min_indices_vector(jk) = 0

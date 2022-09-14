@@ -17,16 +17,15 @@ module mo_coriolis
   contains
 
   subroutine coriolis(from_index_dual,to_index_dual,trsk_modified_curl_indices,normal_distance,normal_distance_dual, &
-                      to_index,area,z_scalar,latitude_scalar,longitude_scalar,latitude_vector,longitude_vector, &
-                      latitude_scalar_dual,longitude_scalar_dual,trsk_weights,trsk_indices,from_index, &
-                      adjacent_vector_indices_h,z_vector)
+                      to_index,area,z_scalar,lat_c,lon_c,lat_e,lon_e, &
+                      lat_c_dual,lon_c_dual,trsk_weights,trsk_indices,from_index,adjacent_vector_indices_h,z_vector)
     
     ! This subroutine implements the modified TRSK scheme proposed by Gassmann (2018). Indices and weights are computed here for the highest layer but remain unchanged elsewhere.
     
     real(wp), intent(in)  :: normal_distance(n_vectors),normal_distance_dual(n_dual_vectors),area(n_vectors), &
-                             z_scalar(n_scalars),latitude_scalar(n_scalars),longitude_scalar(n_scalars), &
-                             latitude_vector(n_vectors),longitude_vector(n_vectors), &
-                             latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h), &
+                             z_scalar(n_scalars),lat_c(n_scalars),lon_c(n_scalars), &
+                             lat_e(n_vectors),lon_e(n_vectors), &
+                             lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
                              z_vector(n_vectors)
     integer,  intent(in)  :: from_index_dual(n_vectors_h),to_index_dual(n_vectors_h), &
                              to_index(n_vectors_h),from_index(n_vectors_h),adjacent_vector_indices_h(6*n_scalars_h)
@@ -110,15 +109,15 @@ module mo_coriolis
             check_result = in_bool_checker(vertex_index_candidate_1,vertex_indices,n_edges)            
             if (check_result==0) then
               vertex_indices(counter) = vertex_index_candidate_1
-              latitude_vertices(counter) = latitude_scalar_dual(1+vertex_indices(counter))
-              longitude_vertices(counter) = longitude_scalar_dual(1+vertex_indices(counter))
+              latitude_vertices(counter) = lat_c_dual(1+vertex_indices(counter))
+              longitude_vertices(counter) = lon_c_dual(1+vertex_indices(counter))
               counter = counter+1
             endif
             check_result = in_bool_checker(vertex_index_candidate_2,vertex_indices,n_edges)            
             if (check_result==0) then
               vertex_indices(counter) = vertex_index_candidate_2
-              latitude_vertices(counter) = latitude_scalar_dual(1+vertex_indices(counter))
-              longitude_vertices(counter) = longitude_scalar_dual(1+vertex_indices(counter))
+              latitude_vertices(counter) = lat_c_dual(1+vertex_indices(counter))
+              longitude_vertices(counter) = lon_c_dual(1+vertex_indices(counter))
               counter = counter+1
             endif
           enddo
@@ -149,29 +148,29 @@ module mo_coriolis
             enddo
           enddo
           do jl=1,n_edges
-            latitude_edges(jl) = latitude_vector(1+edge_indices(jl))
-            longitude_edges(jl) = longitude_vector(1+edge_indices(jl))
+            latitude_edges(jl) = lat_e(1+edge_indices(jl))
+            longitude_edges(jl) = lon_e(1+edge_indices(jl))
           enddo
           
           check_sum = 0._wp
           do jl=1,n_edges
             if (jl==1) then
-              triangle_1 = calc_triangle_area(latitude_scalar(1+from_or_to_index(ji)), &
-                                              longitude_scalar(1+from_or_to_index(ji)), &
+              triangle_1 = calc_triangle_area(lat_c(1+from_or_to_index(ji)), &
+                                              lon_c(1+from_or_to_index(ji)), &
                                               latitude_vertices(1+indices_resorted(jl)), &
                                               longitude_vertices(1+indices_resorted(jl)), &
                                               latitude_edges(n_edges), &
                                               longitude_edges(n_edges))
             else
-              triangle_1 = calc_triangle_area(latitude_scalar(1+from_or_to_index(ji)), &
-                                              longitude_scalar(1+from_or_to_index(ji)), &
+              triangle_1 = calc_triangle_area(lat_c(1+from_or_to_index(ji)), &
+                                              lon_c(1+from_or_to_index(ji)), &
                                               latitude_vertices(1+indices_resorted(jl)), &
                                               longitude_vertices(1+indices_resorted(jl)), &
                                               latitude_edges(jl-1), &
                                               longitude_edges(jl-1))
             endif
-            triangle_2 = calc_triangle_area(latitude_scalar(1+from_or_to_index(ji)), &
-                                            longitude_scalar(1+from_or_to_index(ji)), &
+            triangle_2 = calc_triangle_area(lat_c(1+from_or_to_index(ji)), &
+                                            lon_c(1+from_or_to_index(ji)), &
                                             latitude_vertices(1+indices_resorted(jl)), &
                                             longitude_vertices(1+indices_resorted(jl)), &
                                             latitude_edges(jl), &

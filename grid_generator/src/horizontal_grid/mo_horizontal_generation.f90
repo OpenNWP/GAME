@@ -25,9 +25,9 @@ module mo_horizontal_generation
   
   contains
   
-  subroutine build_icosahedron(latitude_ico,longitude_ico,edge_vertices,face_vertices,face_edges,face_edges_reverse)
+  subroutine build_icosahedron(lat_ico,lon_ico,edge_vertices,face_vertices,face_edges,face_edges_reverse)
   
-    real(wp), intent(out) :: latitude_ico(12),longitude_ico(12)
+    real(wp), intent(out) :: lat_ico(12),lon_ico(12)
     integer,  intent(out) :: edge_vertices(n_basic_edges,2),face_vertices(n_basic_triangles,3),face_edges(n_basic_triangles,3), &
                              face_edges_reverse(n_basic_triangles,3)
   
@@ -37,30 +37,30 @@ module mo_horizontal_generation
     integer :: ji,jk,jm,vertices_check_counter(n_basic_edges),edge_other_vertex_index,check_index, &
                edges_check_counter(n_basic_edges)
     
-    latitude_ico(1) = M_PI/2._wp
-    latitude_ico(2) = atan(0.5_wp)
-    latitude_ico(3) = atan(0.5_wp)
-    latitude_ico(4) = atan(0.5_wp)
-    latitude_ico(5) = atan(0.5_wp)
-    latitude_ico(6) = atan(0.5_wp)
-    latitude_ico(7) = -atan(0.5_wp)
-    latitude_ico(8) = -atan(0.5_wp)
-    latitude_ico(9) = -atan(0.5_wp)
-    latitude_ico(10) = -atan(0.5_wp)
-    latitude_ico(11) = -atan(0.5_wp)
-    latitude_ico(12) = -M_PI/2._wp
-    longitude_ico(1) = 0._wp
-    longitude_ico(2) = 0._wp
-    longitude_ico(3) = 1._wp*2._wp*M_PI/5._wp
-    longitude_ico(4) = 2._wp*2._wp*M_PI/5._wp
-    longitude_ico(5) = 3._wp*2._wp*M_PI/5._wp
-    longitude_ico(6) = 4._wp*2._wp*M_PI/5._wp
-    longitude_ico(7) = 2._wp*M_PI/10._wp
-    longitude_ico(8) = 2._wp*M_PI/10._wp + 1._wp*2._wp*M_PI/5._wp
-    longitude_ico(9) = 2._wp*M_PI/10._wp + 2._wp*2._wp*M_PI/5._wp
-    longitude_ico(10) = 2._wp*M_PI/10._wp + 3._wp*2._wp*M_PI/5._wp
-    longitude_ico(11) = 2._wp*M_PI/10._wp + 4._wp*2._wp*M_PI/5._wp    
-    longitude_ico(12) = 0._wp
+    lat_ico(1) = M_PI/2._wp
+    lat_ico(2) = atan(0.5_wp)
+    lat_ico(3) = atan(0.5_wp)
+    lat_ico(4) = atan(0.5_wp)
+    lat_ico(5) = atan(0.5_wp)
+    lat_ico(6) = atan(0.5_wp)
+    lat_ico(7) = -atan(0.5_wp)
+    lat_ico(8) = -atan(0.5_wp)
+    lat_ico(9) = -atan(0.5_wp)
+    lat_ico(10) = -atan(0.5_wp)
+    lat_ico(11) = -atan(0.5_wp)
+    lat_ico(12) = -M_PI/2._wp
+    lon_ico(1) = 0._wp
+    lon_ico(2) = 0._wp
+    lon_ico(3) = 1._wp*2._wp*M_PI/5._wp
+    lon_ico(4) = 2._wp*2._wp*M_PI/5._wp
+    lon_ico(5) = 3._wp*2._wp*M_PI/5._wp
+    lon_ico(6) = 4._wp*2._wp*M_PI/5._wp
+    lon_ico(7) = 2._wp*M_PI/10._wp
+    lon_ico(8) = 2._wp*M_PI/10._wp + 1._wp*2._wp*M_PI/5._wp
+    lon_ico(9) = 2._wp*M_PI/10._wp + 2._wp*2._wp*M_PI/5._wp
+    lon_ico(10) = 2._wp*M_PI/10._wp + 3._wp*2._wp*M_PI/5._wp
+    lon_ico(11) = 2._wp*M_PI/10._wp + 4._wp*2._wp*M_PI/5._wp    
+    lon_ico(12) = 0._wp
     edge_vertices(1,1) = 1
     edge_vertices(1,2) = 2
     edge_vertices(2,1) = 1
@@ -260,13 +260,13 @@ module mo_horizontal_generation
     
   end subroutine 
 
-  subroutine generate_horizontal_generators(latitude_ico,longitude_ico,latitude_scalar,longitude_scalar,x_unity,y_unity,z_unity, &
+  subroutine generate_horizontal_generators(lat_ico,lon_ico,lat_c,lon_c,x_unity,y_unity,z_unity, &
                                             face_edges_reverse,face_edges,face_vertices)
     
     ! This subroutine computes the geographical coordinates of the generators (centers of the pentagons and hexagons).
     
-    real(wp), intent(in)  :: latitude_ico(n_pentagons),longitude_ico(n_pentagons)
-    real(wp), intent(out) :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h),x_unity(n_scalars_h), &
+    real(wp), intent(in)  :: lat_ico(n_pentagons),lon_ico(n_pentagons)
+    real(wp), intent(out) :: lat_c(n_scalars_h),lon_c(n_scalars_h),x_unity(n_scalars_h), &
                              y_unity(n_scalars_h),z_unity(n_scalars_h)
     integer,  intent(in)  :: face_vertices(n_basic_triangles,3),face_edges(n_basic_triangles,3), &
                              face_edges_reverse(n_basic_triangles,3)
@@ -287,9 +287,9 @@ module mo_horizontal_generation
       endif
     enddo
     do ji=1,n_pentagons
-      latitude_scalar(ji) = latitude_ico(ji)
-      longitude_scalar(ji) = longitude_ico(ji)
-      call find_global_normal(latitude_ico(ji),longitude_ico(ji),x_res,y_res,z_res)
+      lat_c(ji) = lat_ico(ji)
+      lon_c(ji) = lon_ico(ji)
+      call find_global_normal(lat_ico(ji),lon_ico(ji),x_res,y_res,z_res)
       x_unity(ji) = x_res
       y_unity(ji) = y_res
       z_unity(ji) = z_res
@@ -309,7 +309,7 @@ module mo_horizontal_generation
             lpoints_upwards = .true.
             call set_scalar_coordinates(face_vertices(ji+1,1),face_vertices(ji+1,2),face_vertices(ji+1,3), &
                                         point_1,point_2,point_3,lpoints_upwards,x_unity,y_unity, &
-                                        z_unity,latitude_scalar,longitude_scalar)
+                                        z_unity,lat_c,lon_c)
           else
             call find_triangle_edge_points_from_dual_scalar_on_face_index(jk,ji,res_id_local, &
                                                                           edgepoint_1,edgepoint_2,edgepoint_3, &
@@ -353,7 +353,7 @@ module mo_horizontal_generation
               lpoints_upwards = .false.
             endif
             call set_scalar_coordinates(edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3, &
-                                        lpoints_upwards,x_unity,y_unity,z_unity,latitude_scalar,longitude_scalar)
+                                        lpoints_upwards,x_unity,y_unity,z_unity,lat_c,lon_c)
           endif
         enddo
       enddo
@@ -361,13 +361,13 @@ module mo_horizontal_generation
     
   end subroutine generate_horizontal_generators
 
-  subroutine calc_triangle_area_unity(triangle_face_unit_sphere,latitude_scalar,longitude_scalar, &
+  subroutine calc_triangle_area_unity(triangle_face_unit_sphere,lat_c,lon_c, &
                                       face_edges,face_edges_reverse,face_vertices)
     
     ! This subroutine computes the areas of the triangles on the unity sphere.
     
     real(wp), intent(out) :: triangle_face_unit_sphere(n_dual_scalars_h)
-    real(wp), intent(in)  :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
+    real(wp), intent(in)  :: lat_c(n_scalars_h),lon_c(n_scalars_h)
     integer,  intent(in)  :: face_vertices(n_basic_triangles,3),face_edges(n_basic_triangles,3), &
                              face_edges_reverse(n_basic_triangles,3)
     
@@ -387,24 +387,20 @@ module mo_horizontal_generation
         triangle_on_face_index = on_face_index/3
         call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_1,coord_2,coord_1_points_amount)
         dual_scalar_index = dual_scalar_on_face_index + face_index*n_triangles/n_basic_triangles
-        triangle_face_unit_sphere(1+dual_scalar_index) &
-                      = calc_triangle_area(latitude_scalar(1+point_1),longitude_scalar(1+point_1), &
-                                           latitude_scalar(1+point_2),longitude_scalar(1+point_2), &
-                                           latitude_scalar(1+point_3),longitude_scalar(1+point_3))
-        triangle_face_unit_sphere(1+dual_scalar_index-1) &
-                               = calc_triangle_area(latitude_scalar(1+point_4),longitude_scalar(1+point_4), &
-                                                    latitude_scalar(1+point_1),longitude_scalar(1+point_1), &
-                                                    latitude_scalar(1+point_3),longitude_scalar(1+point_3))
+        triangle_face_unit_sphere(1+dual_scalar_index) = calc_triangle_area(lat_c(1+point_1),lon_c(1+point_1), &
+                                                                            lat_c(1+point_2),lon_c(1+point_2), &
+                                                                            lat_c(1+point_3),lon_c(1+point_3))
+        triangle_face_unit_sphere(1+dual_scalar_index-1) = calc_triangle_area(lat_c(1+point_4),lon_c(1+point_4), &
+                                                                              lat_c(1+point_1),lon_c(1+point_1), &
+                                                                              lat_c(1+point_3),lon_c(1+point_3))
         if (coord_1==coord_1_points_amount-1) then
-          triangle_face_unit_sphere(1+dual_scalar_index+1) &
-                        = calc_triangle_area(latitude_scalar(1+point_1),longitude_scalar(1+point_1), &
-                                             latitude_scalar(1+point_5),longitude_scalar(1+point_5), &
-                                             latitude_scalar(1+point_2),longitude_scalar(1+point_2))
+          triangle_face_unit_sphere(1+dual_scalar_index+1) = calc_triangle_area(lat_c(1+point_1),lon_c(1+point_1), &
+                                                                                lat_c(1+point_5),lon_c(1+point_5), &
+                                                                                lat_c(1+point_2),lon_c(1+point_2))
           if (coord_2==n_points_per_edge-1) then
-            triangle_face_unit_sphere(1+dual_scalar_index+2) &
-                          = calc_triangle_area(latitude_scalar(1+point_3),longitude_scalar(1+point_3), &
-                                               latitude_scalar(1+point_2),longitude_scalar(1+point_2), &
-                                               latitude_scalar(1+point_6),longitude_scalar(1+point_6))
+            triangle_face_unit_sphere(1+dual_scalar_index+2) = calc_triangle_area(lat_c(1+point_3),lon_c(1+point_3), &
+                                                                                  lat_c(1+point_2),lon_c(1+point_2), &
+                                                                                  lat_c(1+point_6),lon_c(1+point_6))
           endif
         endif
       endif
@@ -479,13 +475,13 @@ module mo_horizontal_generation
     
   end subroutine set_from_to_index
 
-  subroutine set_scalar_h_dual_coords(latitude_scalar_dual,longitude_scalar_dual,latitude_scalar,longitude_scalar, &
+  subroutine set_scalar_h_dual_coords(lat_c_dual,lon_c_dual,lat_c,lon_c, &
                                       face_edges,face_edges_reverse,face_vertices)
     
     ! This function calculates the geographical coordinates of the dual scalar points.
     
-    real(wp), intent(out) :: latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h)
-    real(wp), intent(in)  :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
+    real(wp), intent(out) :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
+    real(wp), intent(in)  :: lat_c(n_scalars_h),lon_c(n_scalars_h)
     integer,  intent(in)  :: face_vertices(n_basic_triangles,3),face_edges(n_basic_triangles,3), &
                              face_edges_reverse(n_basic_triangles,3)
     
@@ -508,28 +504,28 @@ module mo_horizontal_generation
         call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_1,coord_2,coord_1_points_amount)
         dual_scalar_index = dual_scalar_on_face_index + face_index*n_triangles_per_face
         ! We want to construct a Voronoi gird,that's why we choose this function for calculating the dual cell centers.
-        call find_voronoi_center_sphere(latitude_scalar(1+point_1),longitude_scalar(1+point_1), &
-                                        latitude_scalar(1+point_2),longitude_scalar(1+point_2), &
-                                        latitude_scalar(1+point_3),longitude_scalar(1+point_3),lat_res,lon_res)
-        latitude_scalar_dual(1+dual_scalar_index) = lat_res
-        longitude_scalar_dual(1+dual_scalar_index) = lon_res
-        call find_voronoi_center_sphere(latitude_scalar(1+point_4),longitude_scalar(1+point_4), &
-                                        latitude_scalar(1+point_1),longitude_scalar(1+point_1), &
-                                        latitude_scalar(1+point_3),longitude_scalar(1+point_3),lat_res,lon_res)
-        latitude_scalar_dual(1+dual_scalar_index-1) = lat_res
-        longitude_scalar_dual(1+dual_scalar_index-1) = lon_res
+        call find_voronoi_center_sphere(lat_c(1+point_1),lon_c(1+point_1), &
+                                        lat_c(1+point_2),lon_c(1+point_2), &
+                                        lat_c(1+point_3),lon_c(1+point_3),lat_res,lon_res)
+        lat_c_dual(1+dual_scalar_index) = lat_res
+        lon_c_dual(1+dual_scalar_index) = lon_res
+        call find_voronoi_center_sphere(lat_c(1+point_4),lon_c(1+point_4), &
+                                        lat_c(1+point_1),lon_c(1+point_1), &
+                                        lat_c(1+point_3),lon_c(1+point_3),lat_res,lon_res)
+        lat_c_dual(1+dual_scalar_index-1) = lat_res
+        lon_c_dual(1+dual_scalar_index-1) = lon_res
         if (coord_1==coord_1_points_amount-1) then
-          call find_voronoi_center_sphere(latitude_scalar(1+point_1),longitude_scalar(1+point_1), &
-                                          latitude_scalar(1+point_5),longitude_scalar(1+point_5), &
-                                          latitude_scalar(1+point_2),longitude_scalar(1+point_2),lat_res,lon_res)
-          latitude_scalar_dual(1+dual_scalar_index+1) = lat_res
-          longitude_scalar_dual(1+dual_scalar_index+1) = lon_res
+          call find_voronoi_center_sphere(lat_c(1+point_1),lon_c(1+point_1), &
+                                          lat_c(1+point_5),lon_c(1+point_5), &
+                                          lat_c(1+point_2),lon_c(1+point_2),lat_res,lon_res)
+          lat_c_dual(1+dual_scalar_index+1) = lat_res
+          lon_c_dual(1+dual_scalar_index+1) = lon_res
           if (coord_2==n_points_per_edge-1) then
-            call find_voronoi_center_sphere(latitude_scalar(1+point_3),longitude_scalar(1+point_3), &
-                                            latitude_scalar(1+point_2),longitude_scalar(1+point_2), &
-                                            latitude_scalar(1+point_6),longitude_scalar(1+point_6),lat_res,lon_res)
-            latitude_scalar_dual(1+dual_scalar_index+2) = lat_res
-            longitude_scalar_dual(1+dual_scalar_index+2) = lon_res
+            call find_voronoi_center_sphere(lat_c(1+point_3),lon_c(1+point_3), &
+                                            lat_c(1+point_2),lon_c(1+point_2), &
+                                            lat_c(1+point_6),lon_c(1+point_6),lat_res,lon_res)
+            lat_c_dual(1+dual_scalar_index+2) = lat_res
+            lon_c_dual(1+dual_scalar_index+2) = lon_res
           endif
         endif
       endif
@@ -661,14 +657,14 @@ module mo_horizontal_generation
   end subroutine set_from_to_index_dual
   
   subroutine set_scalar_coordinates(edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3,lpoints_upwards, &
-                                    x_unity,y_unity,z_unity,latitude_scalar,longitude_scalar)
+                                    x_unity,y_unity,z_unity,lat_c,lon_c)
     
     ! This subroutine computes the geographical coordinates of a scalar data point.
     
     integer,  intent(in)  :: edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3
     logical,  intent(in)  :: lpoints_upwards
     real(wp), intent(out) :: x_unity(n_scalars_h),y_unity(n_scalars_h),z_unity(n_scalars_h), &
-                             latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
+                             lat_c(n_scalars_h),lon_c(n_scalars_h)
     
     ! local variables
     real(wp) :: x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm,lat_res,lon_res
@@ -689,11 +685,11 @@ module mo_horizontal_generation
     endif
     call find_geos(x_res,y_res,z_res,lat_res,lon_res)
     if (lpoints_upwards) then
-      latitude_scalar(1+point_1) = lat_res
-      longitude_scalar(1+point_1) = lon_res
+      lat_c(1+point_1) = lat_res
+      lon_c(1+point_1) = lon_res
     else
-      latitude_scalar(1+point_2) = lat_res
-      longitude_scalar(1+point_2) = lon_res
+      lat_c(1+point_2) = lat_res
+      lon_c(1+point_2) = lon_res
     endif
     ! second point
     call find_between_point(x_unity(1+edgepoint_2),y_unity(1+edgepoint_2),z_unity(1+edgepoint_2), &
@@ -711,11 +707,11 @@ module mo_horizontal_generation
     endif
     call find_geos(x_res,y_res,z_res,lat_res,lon_res)
     if (lpoints_upwards) then
-      latitude_scalar(1+point_2) = lat_res
-      longitude_scalar(1+point_2) = lon_res
+      lat_c(1+point_2) = lat_res
+      lon_c(1+point_2) = lon_res
     else
-      latitude_scalar(1+point_3) = lat_res
-      longitude_scalar(1+point_3) = lon_res
+      lat_c(1+point_3) = lat_res
+      lon_c(1+point_3) = lon_res
     endif
     ! third point
     call find_between_point(x_unity(1+edgepoint_3),y_unity(1+edgepoint_3),z_unity(1+edgepoint_3), &
@@ -733,40 +729,40 @@ module mo_horizontal_generation
     endif
     call find_geos(x_res,y_res,z_res,lat_res,lon_res)
     if (lpoints_upwards) then
-      latitude_scalar(1+point_3) = lat_res
-      longitude_scalar(1+point_3) = lon_res
+      lat_c(1+point_3) = lat_res
+      lon_c(1+point_3) = lon_res
     else
-      latitude_scalar(1+point_1) = lat_res
-      longitude_scalar(1+point_1) = lon_res
+      lat_c(1+point_1) = lat_res
+      lon_c(1+point_1) = lon_res
     endif
   
   end subroutine set_scalar_coordinates
   
-  subroutine read_horizontal_explicit(latitude_scalar,longitude_scalar,from_index,to_index, &
+  subroutine read_horizontal_explicit(lat_c,lon_c,from_index,to_index, &
                                       from_index_dual,to_index_dual,filename,n_lloyd_read_file)
     
     ! This function reads the arrays that fully define the horizontal grid from a previously created grid file.
     ! This is an optional feature.
     
-    real(wp), intent(out)          :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
+    real(wp), intent(out)          :: lat_c(n_scalars_h),lon_c(n_scalars_h)
     integer,  intent(out)          :: from_index(n_vectors_h),to_index(n_vectors_h), &
                                       from_index_dual(n_vectors_h),to_index_dual(n_vectors_h),n_lloyd_read_file
     character(len=256), intent(in) :: filename
     
     ! local variables
-    integer           :: ncid,latitude_scalar_id,longitude_scalar_id,from_index_id,to_index_id, &
+    integer           :: ncid,lat_c_id,lon_c_id,from_index_id,to_index_id, &
                          from_index_dual_id,to_index_dual_id,n_lloyd_read_file_id
 
     call nc_check(nf90_open(trim(filename),NF90_CLOBBER,ncid))
-    call nc_check(nf90_inq_varid(ncid,"latitude_scalar",latitude_scalar_id))
-    call nc_check(nf90_inq_varid(ncid,"longitude_scalar",longitude_scalar_id))
+    call nc_check(nf90_inq_varid(ncid,"lat_c",lat_c_id))
+    call nc_check(nf90_inq_varid(ncid,"lon_c",lon_c_id))
     call nc_check(nf90_inq_varid(ncid,"from_index",from_index_id))
     call nc_check(nf90_inq_varid(ncid,"to_index",to_index_id))
     call nc_check(nf90_inq_varid(ncid,"from_index_dual",from_index_dual_id))
     call nc_check(nf90_inq_varid(ncid,"to_index_dual",to_index_dual_id))
     call nc_check(nf90_inq_varid(ncid,"n_lloyd_iterations",n_lloyd_read_file_id))
-    call nc_check(nf90_get_var(ncid,latitude_scalar_id,latitude_scalar))
-    call nc_check(nf90_get_var(ncid,longitude_scalar_id,longitude_scalar))
+    call nc_check(nf90_get_var(ncid,lat_c_id,lat_c))
+    call nc_check(nf90_get_var(ncid,lon_c_id,lon_c))
     call nc_check(nf90_get_var(ncid,from_index_id,from_index))
     call nc_check(nf90_get_var(ncid,to_index_id,to_index))
     call nc_check(nf90_get_var(ncid,from_index_dual_id,from_index_dual))

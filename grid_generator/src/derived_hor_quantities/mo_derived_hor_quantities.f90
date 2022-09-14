@@ -17,15 +17,15 @@ module mo_derived_hor_quantities
   
   contains
 
-  subroutine set_dual_vector_h_atttributes(latitude_scalar_dual,latitude_vector,direction_dual,longitude_vector,to_index_dual, &
-                                           from_index_dual,longitude_scalar_dual,rel_on_line_dual)
+  subroutine set_dual_vector_h_atttributes(lat_c_dual,lat_e,direction_dual,lon_e,to_index_dual, &
+                                           from_index_dual,lon_c_dual,rel_on_line_dual)
     
     ! This function computes the following two properties of horizontal dual vectors:
     ! - where they are placed in between the dual scalar points
     ! - in which direction they point
     
-    real(wp), intent(in)  :: latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h), &
-                             latitude_vector(n_vectors_h),longitude_vector(n_vectors_h)
+    real(wp), intent(in)  :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
+                             lat_e(n_vectors_h),lon_e(n_vectors_h)
     integer,  intent(in)  :: from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
     real(wp), intent(out) :: direction_dual(n_vectors_h),rel_on_line_dual(n_vectors_h)
     
@@ -34,28 +34,28 @@ module mo_derived_hor_quantities
     
     !$omp parallel do private(ji)
     do ji=1,n_vectors_h
-      rel_on_line_dual(ji) = rel_on_line(latitude_scalar_dual(1+from_index_dual(ji)),longitude_scalar_dual(1+from_index_dual(ji)), &
-      latitude_scalar_dual(1+to_index_dual(ji)),longitude_scalar_dual(1+to_index_dual(ji)),latitude_vector(ji),longitude_vector(ji))
+      rel_on_line_dual(ji) = rel_on_line(lat_c_dual(1+from_index_dual(ji)),lon_c_dual(1+from_index_dual(ji)), &
+      lat_c_dual(1+to_index_dual(ji)),lon_c_dual(1+to_index_dual(ji)),lat_e(ji),lon_e(ji))
       if (abs(rel_on_line_dual(ji)-0.5_wp)>0.14_wp) then
         write(*,*) "Bisection error."
         call exit(1)
       endif
       direction_dual(ji) = find_geodetic_direction( &
-      latitude_scalar_dual(1+from_index_dual(ji)),longitude_scalar_dual(1+from_index_dual(ji)), &
-      latitude_scalar_dual(1+to_index_dual(ji)),longitude_scalar_dual(1+to_index_dual(ji)),rel_on_line_dual(ji))
+      lat_c_dual(1+from_index_dual(ji)),lon_c_dual(1+from_index_dual(ji)), &
+      lat_c_dual(1+to_index_dual(ji)),lon_c_dual(1+to_index_dual(ji)),rel_on_line_dual(ji))
     enddo
     !$omp end parallel do
   
   end subroutine set_dual_vector_h_atttributes
 
-  subroutine set_vector_h_attributes(from_index,to_index,latitude_scalar,longitude_scalar, &
-                                     latitude_vector,longitude_vector,direction)
+  subroutine set_vector_h_attributes(from_index,to_index,lat_c,lon_c, &
+                                     lat_e,lon_e,direction)
     
     ! This subroutine sets the geographical coordinates and the directions of the horizontal vector points.
     
     integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
-    real(wp), intent(in)  :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h)
-    real(wp), intent(out) :: latitude_vector(n_vectors_h),longitude_vector(n_vectors_h),direction(n_vectors_h)
+    real(wp), intent(in)  :: lat_c(n_scalars_h),lon_c(n_scalars_h)
+    real(wp), intent(out) :: lat_e(n_vectors_h),lon_e(n_vectors_h),direction(n_vectors_h)
     
     ! local variables
     integer  :: ji
@@ -63,26 +63,26 @@ module mo_derived_hor_quantities
 
     !$omp parallel do private(ji,x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,x_res,y_res,z_res,lat_res,lon_res)
     do ji=1,n_vectors_h
-      call find_global_normal(latitude_scalar(1+from_index(ji)),longitude_scalar(1+from_index(ji)),x_point_1,y_point_1,z_point_1)
-      call find_global_normal(latitude_scalar(1+to_index(ji)),longitude_scalar(1+to_index(ji)),x_point_2,y_point_2,z_point_2)
+      call find_global_normal(lat_c(1+from_index(ji)),lon_c(1+from_index(ji)),x_point_1,y_point_1,z_point_1)
+      call find_global_normal(lat_c(1+to_index(ji)),lon_c(1+to_index(ji)),x_point_2,y_point_2,z_point_2)
       call find_between_point(x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,0.5_wp,x_res,y_res,z_res)
       call find_geos(x_res,y_res,z_res,lat_res,lon_res)
-      latitude_vector(ji) = lat_res
-      longitude_vector(ji) = lon_res
-      direction(ji) = find_geodetic_direction(latitude_scalar(1+from_index(ji)),longitude_scalar(1+from_index(ji)), &
-                                              latitude_scalar(1+to_index(ji)),longitude_scalar(1+to_index(ji)),0.5_wp)
+      lat_e(ji) = lat_res
+      lon_e(ji) = lon_res
+      direction(ji) = find_geodetic_direction(lat_c(1+from_index(ji)),lon_c(1+from_index(ji)), &
+                                              lat_c(1+to_index(ji)),lon_c(1+to_index(ji)),0.5_wp)
     enddo
     !$omp end parallel do
     
   end subroutine set_vector_h_attributes
   
-  subroutine direct_tangential_unity(latitude_scalar_dual,longitude_scalar_dual,direction,direction_dual, &
+  subroutine direct_tangential_unity(lat_c_dual,lon_c_dual,direction,direction_dual, &
                                      to_index_dual,from_index_dual,rel_on_line_dual)
   
     ! This subroutine determines the directions of the dual vectors.
     
     integer,  intent(out) :: to_index_dual(n_vectors_h),from_index_dual(n_vectors_h)
-    real(wp), intent(in)  :: latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h), &
+    real(wp), intent(in)  :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
                              direction(n_vectors_h)
     real(wp), intent(out) :: direction_dual(n_vectors_h),rel_on_line_dual(n_vectors_h)
     
@@ -100,10 +100,10 @@ module mo_derived_hor_quantities
         to_index_dual(ji) = temp_index
         rel_on_line_dual(ji) = 1._wp - rel_on_line_dual(ji)
         ! calculating the direction
-        direction_dual(ji) = find_geodetic_direction(latitude_scalar_dual(1+from_index_dual(ji)), &
-                                                     longitude_scalar_dual(1+from_index_dual(ji)), &
-                                                     latitude_scalar_dual(1+to_index_dual(ji)), &
-                                                     longitude_scalar_dual(1+to_index_dual(ji)), &
+        direction_dual(ji) = find_geodetic_direction(lat_c_dual(1+from_index_dual(ji)), &
+                                                     lon_c_dual(1+from_index_dual(ji)), &
+                                                     lat_c_dual(1+to_index_dual(ji)), &
+                                                     lon_c_dual(1+to_index_dual(ji)), &
                                                      rel_on_line_dual(ji))
       endif
     enddo
@@ -123,12 +123,12 @@ module mo_derived_hor_quantities
   
   end subroutine direct_tangential_unity
   
-  subroutine set_f_vec(latitude_vector,direction_dual,f_vec)
+  subroutine set_f_vec(lat_e,direction_dual,f_vec)
   
     ! This subroutine sets the Coriolis vector (vertical at horizontal primal vector points,
     ! horizontal at horizontal dual vector points).
     
-    real(wp), intent(in)  :: latitude_vector(n_vectors_h),direction_dual(n_vectors_h)
+    real(wp), intent(in)  :: lat_e(n_vectors_h),direction_dual(n_vectors_h)
     real(wp), intent(out) :: f_vec(2*n_vectors_h)
     
     ! local variables
@@ -138,10 +138,10 @@ module mo_derived_hor_quantities
     do ji=1,2*n_vectors_h
       ! horizontal component at dual vector points
       if (ji<=n_vectors_h) then
-        f_vec(ji) = 2._wp*omega/radius_rescale*cos(latitude_vector(ji))*sin(direction_dual(ji))
+        f_vec(ji) = 2._wp*omega/radius_rescale*cos(lat_e(ji))*sin(direction_dual(ji))
       ! vertical component at primal vector points
       else
-        f_vec(ji) = 2._wp*omega/radius_rescale*sin(latitude_vector(ji-n_vectors_h))
+        f_vec(ji) = 2._wp*omega/radius_rescale*sin(lat_e(ji-n_vectors_h))
       endif
     enddo
     !$omp end parallel do
@@ -350,13 +350,13 @@ module mo_derived_hor_quantities
   
   end subroutine find_adjacent_vector_indices_h
   
-  subroutine calc_cell_area_unity(pent_hex_face_unity_sphere,latitude_scalar_dual,longitude_scalar_dual, &
+  subroutine calc_cell_area_unity(pent_hex_face_unity_sphere,lat_c_dual,lon_c_dual, &
                                   adjacent_vector_indices_h,vorticity_indices_pre)
     
     ! This subroutine computes the areas of the cells (pentagons and hexagons) on the unity sphere.
     
     real(wp), intent(out) :: pent_hex_face_unity_sphere(n_scalars_h)
-    real(wp), intent(in)  :: latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h)
+    real(wp), intent(in)  :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
     integer,  intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h),vorticity_indices_pre(3*n_dual_scalars_h)
     
     integer  :: ji,jk,check_1,check_2,check_3,counter,n_edges,cell_vector_indices(6)
@@ -377,8 +377,8 @@ module mo_derived_hor_quantities
         check_2 = in_bool_checker(vorticity_indices_pre(3*(jk-1)+2),cell_vector_indices,n_edges)
         check_3 = in_bool_checker(vorticity_indices_pre(3*(jk-1)+3),cell_vector_indices,n_edges)
         if (check_1==1 .or. check_2==1 .or. check_3==1) then
-          lat_points(counter) = latitude_scalar_dual(jk)
-          lon_points(counter) = longitude_scalar_dual(jk)
+          lat_points(counter) = lat_c_dual(jk)
+          lon_points(counter) = lon_c_dual(jk)
           counter = counter+1
         endif
       enddo

@@ -17,17 +17,15 @@ module mo_rhombus_averaging
   
   subroutine rhombus_averaging(vorticity_indices_triangles,from_index_dual,to_index_dual, &
                                vorticity_indices_rhombi,density_to_rhombus_indices,from_index,to_index,area_dual, &
-                               z_vector,latitude_scalar_dual, &
-                               longitude_scalar_dual,density_to_rhombus_weights,latitude_vector,longitude_vector, &
-                               latitude_scalar,longitude_scalar)
+                               z_vector,lat_c_dual,lon_c_dual,density_to_rhombus_weights,lat_e,lon_e,lat_c,lon_c)
     
     ! This subroutine implements the averaging of scalar quantities to rhombi. Indices and weights are computed here for the highest layer but remain unchanged elsewhere.
 
     integer,  intent(in)  :: vorticity_indices_triangles(3*n_dual_scalars_h),from_index_dual(n_vectors_h), &
                              to_index_dual(n_vectors_h),from_index(n_vectors_h),to_index(n_vectors_h)
-    real(wp), intent(in)  :: latitude_scalar(n_scalars_h),longitude_scalar(n_scalars_h),area_dual(n_dual_vectors), &
-                             z_vector(n_vectors),latitude_scalar_dual(n_dual_scalars_h),longitude_scalar_dual(n_dual_scalars_h), &
-                             latitude_vector(n_vectors_h),longitude_vector(n_vectors_h)
+    real(wp), intent(in)  :: lat_c(n_scalars_h),lon_c(n_scalars_h),area_dual(n_dual_vectors), &
+                             z_vector(n_vectors),lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
+                             lat_e(n_vectors_h),lon_e(n_vectors_h)
     integer,  intent(out) :: vorticity_indices_rhombi(4*n_vectors_h),density_to_rhombus_indices(4*n_vectors_h)
     real(wp), intent(out) :: density_to_rhombus_weights(4*n_vectors_h)
 
@@ -138,17 +136,17 @@ module mo_rhombus_averaging
           if (which_vertex_check_result==1) then
             dual_scalar_h_index_1 = to_index_dual(1+vector_h_index_1)
           endif
-          triangle_1 = calc_triangle_area(latitude_scalar(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          longitude_scalar(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          latitude_scalar_dual(1+dual_scalar_h_index_1), &
-                                          longitude_scalar_dual(1+dual_scalar_h_index_1), &
-                                          latitude_vector(1+vector_h_index_1), &
-                                          longitude_vector(1+vector_h_index_1))
-          triangle_2 = calc_triangle_area(latitude_scalar(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          longitude_scalar(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          latitude_scalar_dual(1+dual_scalar_h_index_1), &
-                                          longitude_scalar_dual(1+dual_scalar_h_index_1), &
-                                          latitude_vector(ji),longitude_vector(ji))
+          triangle_1 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+                                          lon_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+                                          lat_c_dual(1+dual_scalar_h_index_1), &
+                                          lon_c_dual(1+dual_scalar_h_index_1), &
+                                          lat_e(1+vector_h_index_1), &
+                                          lon_e(1+vector_h_index_1))
+          triangle_2 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+                                          lon_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+                                          lat_c_dual(1+dual_scalar_h_index_1), &
+                                          lon_c_dual(1+dual_scalar_h_index_1), &
+                                          lat_e(ji),lon_e(ji))
           vector_h_index_2_found = 0
           jl = 1
           do while (vector_h_index_2_found==0)
@@ -174,17 +172,17 @@ module mo_rhombus_averaging
           if (which_vertex_check_result==1) then
             dual_scalar_h_index_2 = to_index_dual(1+vector_h_index_2)
           endif
-          triangle_3 = calc_triangle_area(latitude_scalar(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          longitude_scalar(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          latitude_scalar_dual(1+dual_scalar_h_index_2), &
-                                          longitude_scalar_dual(1+dual_scalar_h_index_2), &
-                                          latitude_vector(ji),longitude_vector(ji))
-          triangle_4 = calc_triangle_area(latitude_scalar(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          longitude_scalar(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          latitude_scalar_dual(1+dual_scalar_h_index_2), &
-                                          longitude_scalar_dual(1+dual_scalar_h_index_2), &
-                                          latitude_vector(1+vector_h_index_2), &
-                                          longitude_vector(1+vector_h_index_2))
+          triangle_3 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+                                          lon_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+                                          lat_c_dual(1+dual_scalar_h_index_2), &
+                                          lon_c_dual(1+dual_scalar_h_index_2), &
+                                          lat_e(ji),lon_e(ji))
+          triangle_4 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+                                          lon_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+                                          lat_c_dual(1+dual_scalar_h_index_2), &
+                                          lon_c_dual(1+dual_scalar_h_index_2), &
+                                          lat_e(1+vector_h_index_2), &
+                                          lon_e(1+vector_h_index_2))
           density_to_rhombus_weights(4*(ji-1)+jk) = (radius + z_vector(n_scalars_h+1))**2 &
                                                  *(triangle_1+triangle_2+triangle_3+triangle_4)/rhombus_area
         else
@@ -214,12 +212,12 @@ module mo_rhombus_averaging
           if (which_vertex_check_result==1) then
             dual_scalar_h_index_1 = to_index_dual(1+vector_h_index_1)
           endif
-          triangle_1 = calc_triangle_area(latitude_scalar(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          longitude_scalar(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          latitude_scalar_dual(1+dual_scalar_h_index_1), &
-                                          longitude_scalar_dual(1+dual_scalar_h_index_1), &
-                                          latitude_vector(1+vector_h_index_1), &
-                                          longitude_vector(1+vector_h_index_1))
+          triangle_1 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+                                          lon_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+                                          lat_c_dual(1+dual_scalar_h_index_1), &
+                                          lon_c_dual(1+dual_scalar_h_index_1), &
+                                          lat_e(1+vector_h_index_1), &
+                                          lon_e(1+vector_h_index_1))
           vector_h_index_2_found = 0
           jl = 1
           do while (vector_h_index_2_found==0)
@@ -232,12 +230,12 @@ module mo_rhombus_averaging
               jl = jl+1
             endif
           enddo
-          triangle_2 = calc_triangle_area(latitude_scalar(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          longitude_scalar(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          latitude_scalar_dual(1+dual_scalar_h_index_1), &
-                                          longitude_scalar_dual(1+dual_scalar_h_index_1), &
-                                          latitude_vector(1+vector_h_index_2), &
-                                          longitude_vector(1+vector_h_index_2))
+          triangle_2 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+                                          lon_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+                                          lat_c_dual(1+dual_scalar_h_index_1), &
+                                          lon_c_dual(1+dual_scalar_h_index_1), &
+                                          lat_e(1+vector_h_index_2), &
+                                          lon_e(1+vector_h_index_2))
           density_to_rhombus_weights(4*(ji-1)+jk) = (radius + z_vector(n_scalars_h+1))**2*(triangle_1+triangle_2)/rhombus_area
         endif
       enddo

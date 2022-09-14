@@ -32,8 +32,8 @@ program control
   implicit none
  
   integer               :: n_lloyd_read_from_file, &
-                           latitude_scalar_id,longitude_scalar_id,direction_id,latitude_vector_id,longitude_vector_id, &
-                           latitude_scalar_dual_id,longitude_scalar_dual_id, &
+                           lat_c_id,lon_c_id,direction_id,lat_e_id,lon_e_id, &
+                           lat_c_dual_id,lon_c_dual_id, &
                            z_scalar_id,z_vector_id,normal_distance_id,volume_id,area_id,trsk_weights_id,z_vector_dual_id, &
                            normal_distance_dual_id,area_dual_id,f_vec_id,to_index_id, &
                            from_index_id,to_index_dual_id,from_index_dual_id,adjacent_vector_indices_h_id,trsk_indices_id, &
@@ -52,17 +52,17 @@ program control
                            vorticity_indices_triangles(:),vorticity_indices_rhombi(:),to_index_dual(:),from_index_dual(:), &
                            adjacent_signs_h(:),vorticity_signs_triangles(:),density_to_rhombi_indices(:),interpol_indices(:), &
                            is_land(:)
-  real(wp), allocatable :: x_unity(:),y_unity(:),z_unity(:),latitude_scalar(:),longitude_scalar(:),z_scalar(:), &
+  real(wp), allocatable :: x_unity(:),y_unity(:),z_unity(:),lat_c(:),lon_c(:),z_scalar(:), &
                            gravity_potential(:), &
-                           z_vector(:),normal_distance(:),latitude_vector(:),longitude_vector(:),direction(:),volume(:), &
-                           area(:),trsk_weights(:),latitude_scalar_dual(:),longitude_scalar_dual(:),z_scalar_dual(:), &
+                           z_vector(:),normal_distance(:),lat_e(:),lon_e(:),direction(:),volume(:), &
+                           area(:),trsk_weights(:),lat_c_dual(:),lon_c_dual(:),z_scalar_dual(:), &
                            z_vector_dual(:), &
                            normal_distance_dual(:),direction_dual(:),area_dual(:),f_vec(:),triangle_face_unit_sphere(:), &
                            pent_hex_face_unity_sphere(:),rel_on_line_dual(:),inner_product_weights(:), &
                            density_to_rhombi_weights(:), &
                            interpol_weights(:),exner_bg(:),theta_v_bg(:),oro(:),roughness_length(:),sfc_albedo(:), &
                            sfc_rho_c(:),t_conductivity(:)
-  real(wp)              :: latitude_ico(12),longitude_ico(12),min_oro,max_oro
+  real(wp)              :: lat_ico(12),lon_ico(12),min_oro,max_oro
   integer               :: edge_vertices(30,2),face_vertices(20,3),face_edges(20,3),face_edges_reverse(20,3)
   character(len=128)    :: grid_name
   character(len=256)    :: output_file,statistics_file
@@ -76,26 +76,26 @@ program control
                     // "_ORO" // trim(int2string(oro_id)) // ".txt"
   write(*,*) "Output will be written to file: ",trim(output_file)
   write(*,*) "Building icosahedron ..."
-  call build_icosahedron(latitude_ico,longitude_ico,edge_vertices,face_vertices,face_edges,face_edges_reverse)
+  call build_icosahedron(lat_ico,lon_ico,edge_vertices,face_vertices,face_edges,face_edges_reverse)
   write(*,*) "finished."
   write(*,*) "Allocating memory ..."
   allocate(x_unity(n_scalars_h))
   allocate(y_unity(n_scalars_h))
   allocate(z_unity(n_scalars_h))
-  allocate(latitude_scalar(n_scalars_h))
-  allocate(longitude_scalar(n_scalars_h))
+  allocate(lat_c(n_scalars_h))
+  allocate(lon_c(n_scalars_h))
   allocate(z_scalar(n_scalars))
   allocate(gravity_potential(n_scalars))
   allocate(z_vector(n_vectors))
   allocate(normal_distance(n_vectors))
-  allocate(latitude_vector(n_vectors_h))
-  allocate(longitude_vector(n_vectors_h))
+  allocate(lat_e(n_vectors_h))
+  allocate(lon_e(n_vectors_h))
   allocate(direction(n_vectors_h))
   allocate(volume(n_scalars))
   allocate(area(n_vectors))
   allocate(trsk_weights(10*n_vectors_h))
-  allocate(latitude_scalar_dual(n_dual_scalars_h))
-  allocate(longitude_scalar_dual(n_dual_scalars_h))
+  allocate(lat_c_dual(n_dual_scalars_h))
+  allocate(lon_c_dual(n_dual_scalars_h))
   allocate(z_scalar_dual(n_dual_scalars))
   allocate(z_vector_dual(n_dual_vectors))
   allocate(normal_distance_dual(n_dual_vectors))
@@ -137,14 +137,14 @@ program control
   n_lloyd_read_from_file = 0
   if (.not. luse_scalar_h_file) then
     ! Here,the positions of the horizontal generators,i.e. the horizontal scalar points are determined.
-    call generate_horizontal_generators(latitude_ico,longitude_ico,latitude_scalar,longitude_scalar, &
+    call generate_horizontal_generators(lat_ico,lon_ico,lat_c,lon_c, &
                                         x_unity,y_unity,z_unity,face_edges_reverse,face_edges,face_vertices)
     ! By setting the from_index and to_index arrrays,the discrete positions of the vector points are determined.
     call set_from_to_index(from_index,to_index,face_edges,face_edges_reverse,face_vertices,edge_vertices)
     ! By setting the from_index_dual and to_index_dual arrrays,the discrete positions of the dual scalar points are determined.
     call set_from_to_index_dual(from_index_dual,to_index_dual,face_edges,face_edges_reverse)
   else
-    call read_horizontal_explicit(latitude_scalar,longitude_scalar,from_index,to_index,from_index_dual, &
+    call read_horizontal_explicit(lat_c,lon_c,from_index,to_index,from_index_dual, &
                                   to_index_dual,scalar_h_file,n_lloyd_read_from_file)
   endif
   
@@ -155,7 +155,7 @@ program control
   ! 3.) grid optimization
   ! -----------------
   if (n_lloyd_iterations>0) then
-    call optimize_to_scvt(latitude_scalar,longitude_scalar,latitude_scalar_dual,longitude_scalar_dual,n_lloyd_iterations, &
+    call optimize_to_scvt(lat_c,lon_c,lat_c_dual,lon_c_dual,n_lloyd_iterations, &
                           face_edges,face_edges_reverse,face_vertices,adjacent_vector_indices_h,from_index_dual,to_index_dual)
   endif
   if (luse_scalar_h_file) then
@@ -165,25 +165,25 @@ program control
   ! 4.) determining implicit quantities of the horizontal grid
   !     ------------------------------------------------------
   ! calculation of the horizontal coordinates of the dual scalar points
-  call set_scalar_h_dual_coords(latitude_scalar_dual,longitude_scalar_dual,latitude_scalar, &
-                                longitude_scalar,face_edges,face_edges_reverse,face_vertices)
+  call set_scalar_h_dual_coords(lat_c_dual,lon_c_dual,lat_c, &
+                                lon_c,face_edges,face_edges_reverse,face_vertices)
   
   ! calculation of the horizontal coordinates of the vector points
-  call set_vector_h_attributes(from_index,to_index,latitude_scalar,longitude_scalar,latitude_vector,longitude_vector,direction)
+  call set_vector_h_attributes(from_index,to_index,lat_c,lon_c,lat_e,lon_e,direction)
   
   ! Same as before,but for dual vectors. They have the same positions as the primal vectors.
-  call set_dual_vector_h_atttributes(latitude_scalar_dual,latitude_vector,direction_dual,longitude_vector, &
-                                     to_index_dual,from_index_dual,longitude_scalar_dual,rel_on_line_dual)
+  call set_dual_vector_h_atttributes(lat_c_dual,lat_e,direction_dual,lon_e, &
+                                     to_index_dual,from_index_dual,lon_c_dual,rel_on_line_dual)
   
   ! determining the directions of the dual vectors
-  call direct_tangential_unity(latitude_scalar_dual,longitude_scalar_dual,direction,direction_dual, &
+  call direct_tangential_unity(lat_c_dual,lon_c_dual,direction,direction_dual, &
                                to_index_dual,from_index_dual,rel_on_line_dual)
   
   ! setting the Coriolis vector
-  call set_f_vec(latitude_vector,direction_dual,f_vec)
+  call set_f_vec(lat_e,direction_dual,f_vec)
   
   ! calculating the dual cells on the unity sphere
-  call calc_triangle_area_unity(triangle_face_unit_sphere,latitude_scalar,longitude_scalar,face_edges, &
+  call calc_triangle_area_unity(triangle_face_unit_sphere,lat_c,lon_c,face_edges, &
                                 face_edges_reverse,face_vertices)
   
   ! finding the vorticity indices
@@ -191,14 +191,14 @@ program control
                                         vorticity_indices_triangles,vorticity_signs_triangles)
   
   ! calculating the cell faces on the unity sphere
-  call calc_cell_area_unity(pent_hex_face_unity_sphere,latitude_scalar_dual, &
-                            longitude_scalar_dual,adjacent_vector_indices_h,vorticity_indices_triangles)
+  call calc_cell_area_unity(pent_hex_face_unity_sphere,lat_c_dual, &
+                            lon_c_dual,adjacent_vector_indices_h,vorticity_indices_triangles)
   write(*,*) "Horizontal grid structure determined."
   
   ! 5.) setting the physical surface properties
   !     ---------------------------------------
   write(*,*) "Setting the physical surface properties ..."
-  call set_sfc_properties(latitude_scalar,longitude_scalar,roughness_length,sfc_albedo,sfc_rho_c,t_conductivity,oro,is_land,oro_id)
+  call set_sfc_properties(lat_c,lon_c,roughness_length,sfc_albedo,sfc_rho_c,t_conductivity,oro,is_land,oro_id)
   write(*,*) "Finished."
   
   !$omp parallel workshare
@@ -217,7 +217,7 @@ program control
   ! 7.) setting the implicit quantities of the vertical grid
   !     ----------------------------------------------------
   write(*,*) "Determining vector z coordinates and normal distances of the primal grid ..."
-  call set_z_vector_and_normal_distance(z_vector,normal_distance,z_scalar,latitude_scalar,longitude_scalar, &
+  call set_z_vector_and_normal_distance(z_vector,normal_distance,z_scalar,lat_c,lon_c, &
                                         from_index,to_index,oro)
   deallocate(oro)
   write(*,*) "Finished."
@@ -228,7 +228,7 @@ program control
   
   write(*,*) "Determining vector z coordinates of the dual grid and distances of the dual grid ..."
   call calc_z_vector_dual_and_normal_distance_dual(z_vector_dual,normal_distance_dual,z_scalar_dual,from_index,to_index,z_vector, &
-                                                   from_index_dual,to_index_dual,latitude_scalar_dual,longitude_scalar_dual, &
+                                                   from_index_dual,to_index_dual,lat_c_dual,lon_c_dual, &
                                                    vorticity_indices_triangles)
   write(*,*) "Finished."
   
@@ -261,18 +261,18 @@ program control
   write(*,*) "Setting rhombus interpolation indices and weights ..."
   call rhombus_averaging(vorticity_indices_triangles,from_index_dual, &
                           to_index_dual,vorticity_indices_rhombi,density_to_rhombi_indices,from_index,to_index,area_dual, &
-                          z_vector,latitude_scalar_dual,longitude_scalar_dual,density_to_rhombi_weights,latitude_vector, &
-                          longitude_vector,latitude_scalar,longitude_scalar)
+                          z_vector,lat_c_dual,lon_c_dual,density_to_rhombi_weights,lat_e, &
+                          lon_e,lat_c,lon_c)
   write(*,*) "Finished."
   
   write(*,*) "Calculating Coriolis indices and weights ..."
   call coriolis(from_index_dual,to_index_dual,trsk_modified_curl_indices,normal_distance,normal_distance_dual, &
-                 to_index,area,z_scalar,latitude_scalar,longitude_scalar,latitude_vector,longitude_vector,latitude_scalar_dual, &
-                  longitude_scalar_dual,trsk_weights,trsk_indices,from_index,adjacent_vector_indices_h,z_vector)
+                 to_index,area,z_scalar,lat_c,lon_c,lat_e,lon_e,lat_c_dual, &
+                  lon_c_dual,trsk_weights,trsk_indices,from_index,adjacent_vector_indices_h,z_vector)
   write(*,*) "Finished."
   
   write(*,*) "Calculating interpolation to the lat-lon grid ..."
-  call interpolate_ll(latitude_scalar,longitude_scalar,interpol_indices,interpol_weights)
+  call interpolate_ll(lat_c,lon_c,interpol_indices,interpol_weights)
   write(*,*) "Finished."
   
   ! A statistics file is created to compare the fundamental statistical properties of the grid with the literature.
@@ -309,10 +309,10 @@ program control
   call nc_check(nf90_put_att(ncid_g_prop,toa_id,"units","m"))
   call nc_check(nf90_def_var(ncid_g_prop,"radius",NF90_REAL,single_double_dimid,radius_id))
   call nc_check(nf90_put_att(ncid_g_prop,radius_id,"units","m"))
-  call nc_check(nf90_def_var(ncid_g_prop,"latitude_scalar",NF90_REAL,scalar_h_dimid,latitude_scalar_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"longitude_scalar",NF90_REAL,scalar_h_dimid,longitude_scalar_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"latitude_scalar_dual",NF90_REAL,scalar_dual_h_dimid,latitude_scalar_dual_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"longitude_scalar_dual",NF90_REAL,scalar_dual_h_dimid,longitude_scalar_dual_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"lat_c",NF90_REAL,scalar_h_dimid,lat_c_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"lon_c",NF90_REAL,scalar_h_dimid,lon_c_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"lat_c_dual",NF90_REAL,scalar_dual_h_dimid,lat_c_dual_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"lon_c_dual",NF90_REAL,scalar_dual_h_dimid,lon_c_dual_id))
   call nc_check(nf90_def_var(ncid_g_prop,"z_scalar",NF90_REAL,scalar_dimid,z_scalar_id))
   call nc_check(nf90_put_att(ncid_g_prop,z_scalar_id,"units","m"))
   call nc_check(nf90_def_var(ncid_g_prop,"theta_v_bg",NF90_REAL,scalar_dimid,theta_v_bg_id))
@@ -338,8 +338,8 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"f_vec",NF90_REAL,f_vec_dimid,f_vec_id))
   call nc_check(nf90_put_att(ncid_g_prop,f_vec_id,"units","1/s"))
   call nc_check(nf90_def_var(ncid_g_prop,"direction",NF90_REAL,vector_h_dimid,direction_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"latitude_vector",NF90_REAL,vector_h_dimid,latitude_vector_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"longitude_vector",NF90_REAL,vector_h_dimid,longitude_vector_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"lat_e",NF90_REAL,vector_h_dimid,lat_e_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"lon_e",NF90_REAL,vector_h_dimid,lon_e_id))
   call nc_check(nf90_def_var(ncid_g_prop,"inner_product_weights",NF90_REAL,scalar_8_dimid,inner_product_weights_id))
   call nc_check(nf90_def_var(ncid_g_prop,"density_to_rhombi_weights",NF90_REAL,vector_h_dimid_4,density_to_rhombi_weights_id))
   call nc_check(nf90_def_var(ncid_g_prop,"interpol_weights",NF90_REAL,latlon_dimid_5,interpol_weights_id))
@@ -370,10 +370,10 @@ program control
   call nc_check(nf90_put_var(ncid_g_prop,stretching_parameter_id,stretching_parameter))
   call nc_check(nf90_put_var(ncid_g_prop,toa_id,toa))
   call nc_check(nf90_put_var(ncid_g_prop,radius_id,radius))
-  call nc_check(nf90_put_var(ncid_g_prop,latitude_scalar_id,latitude_scalar))
-  call nc_check(nf90_put_var(ncid_g_prop,longitude_scalar_id,longitude_scalar))
-  call nc_check(nf90_put_var(ncid_g_prop,latitude_scalar_dual_id,latitude_scalar_dual))
-  call nc_check(nf90_put_var(ncid_g_prop,longitude_scalar_dual_id,longitude_scalar_dual))
+  call nc_check(nf90_put_var(ncid_g_prop,lat_c_id,lat_c))
+  call nc_check(nf90_put_var(ncid_g_prop,lon_c_id,lon_c))
+  call nc_check(nf90_put_var(ncid_g_prop,lat_c_dual_id,lat_c_dual))
+  call nc_check(nf90_put_var(ncid_g_prop,lon_c_dual_id,lon_c_dual))
   call nc_check(nf90_put_var(ncid_g_prop,z_scalar_id,z_scalar))
   call nc_check(nf90_put_var(ncid_g_prop,theta_v_bg_id,theta_v_bg))
   call nc_check(nf90_put_var(ncid_g_prop,exner_bg_id,exner_bg))
@@ -389,8 +389,8 @@ program control
   call nc_check(nf90_put_var(ncid_g_prop,area_dual_id,area_dual))
   call nc_check(nf90_put_var(ncid_g_prop,f_vec_id,f_vec))
   call nc_check(nf90_put_var(ncid_g_prop,direction_id,direction))
-  call nc_check(nf90_put_var(ncid_g_prop,latitude_vector_id,latitude_vector))
-  call nc_check(nf90_put_var(ncid_g_prop,longitude_vector_id,longitude_vector))
+  call nc_check(nf90_put_var(ncid_g_prop,lat_e_id,lat_e))
+  call nc_check(nf90_put_var(ncid_g_prop,lon_e_id,lon_e))
   call nc_check(nf90_put_var(ncid_g_prop,density_to_rhombi_weights_id,density_to_rhombi_weights))
   call nc_check(nf90_put_var(ncid_g_prop,interpol_weights_id,interpol_weights))
   call nc_check(nf90_put_var(ncid_g_prop,sfc_albedo_id,sfc_albedo))
@@ -430,19 +430,19 @@ program control
   deallocate(rel_on_line_dual)
   deallocate(inner_product_weights)
   deallocate(gravity_potential)
-  deallocate(latitude_vector)
-  deallocate(longitude_vector)
+  deallocate(lat_e)
+  deallocate(lon_e)
   deallocate(direction)
-  deallocate(latitude_scalar)
-  deallocate(longitude_scalar)
+  deallocate(lat_c)
+  deallocate(lon_c)
   deallocate(z_scalar)
   deallocate(z_vector)
   deallocate(normal_distance)
   deallocate(volume)
   deallocate(area)
   deallocate(trsk_weights)
-  deallocate(latitude_scalar_dual)
-  deallocate(longitude_scalar_dual)
+  deallocate(lat_c_dual)
+  deallocate(lon_c_dual)
   deallocate(z_scalar_dual)
   deallocate(z_vector_dual)
   deallocate(normal_distance_dual)
