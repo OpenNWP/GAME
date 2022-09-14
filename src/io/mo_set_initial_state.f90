@@ -76,8 +76,8 @@ module mo_set_initial_state
     do ji=1,n_scalars
       layer_index = (ji-1)/n_scalars_h
       h_index = ji - layer_index*n_scalars_h
-        lat = grid%latitude_scalar(h_index)
-        lon = grid%longitude_scalar(h_index)
+        lat = grid%lat_c(h_index)
+        lon = grid%lon_c(h_index)
         z_height = grid%z_scalar(ji)
         ! standard atmosphere
         if (ideal_input_id==0) then

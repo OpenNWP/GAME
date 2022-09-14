@@ -62,8 +62,8 @@ module mo_manage_radiation_calls
       radiation%rad_tend = 0._wp
     
       ! remapping all the arrays
-      call create_rad_array_scalar_h(grid%latitude_scalar,radiation%lat_scal,rad_block_index)
-      call create_rad_array_scalar_h(grid%longitude_scalar,radiation%lon_scal,rad_block_index)
+      call create_rad_array_scalar_h(grid%lat_c,radiation%lat_scal,rad_block_index)
+      call create_rad_array_scalar_h(grid%lon_c,radiation%lon_scal,rad_block_index)
       call create_rad_array_scalar_h(state%temperature_soil,radiation%temp_sfc,rad_block_index)
       call create_rad_array_scalar_h(grid%sfc_albedo,radiation%sfc_albedo,rad_block_index)
       call create_rad_array_scalar(grid%z_scalar,radiation%z_scal,rad_block_index)

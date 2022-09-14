@@ -113,8 +113,8 @@ module mo_grid_setup
     call nc_check(nf90_get_var(ncid,f_vec_id,grid%f_vec))
     call nc_check(nf90_get_var(ncid,density_to_rhombi_weights_id,grid%density_to_rhombi_weights))
     call nc_check(nf90_get_var(ncid,normal_distance_dual_id,grid%normal_distance_dual))
-    call nc_check(nf90_get_var(ncid,latitude_scalar_id,grid%latitude_scalar))
-    call nc_check(nf90_get_var(ncid,longitude_scalar_id,grid%longitude_scalar))
+    call nc_check(nf90_get_var(ncid,latitude_scalar_id,grid%lat_c))
+    call nc_check(nf90_get_var(ncid,longitude_scalar_id,grid%lon_c))
     call nc_check(nf90_get_var(ncid,interpol_weights_id,grid%latlon_interpol_weights))
     call nc_check(nf90_get_var(ncid,from_index_id,grid%from_index))
     call nc_check(nf90_get_var(ncid,to_index_id,grid%to_index))
@@ -163,7 +163,7 @@ module mo_grid_setup
     ! fundamental SFC properties
     z_t_const = -10._wp
     !$omp parallel workshare
-    grid%t_const_soil = t_0 + 25._wp*cos(2._wp*grid%latitude_scalar)
+    grid%t_const_soil = t_0 + 25._wp*cos(2._wp*grid%lat_c)
     !$omp end parallel workshare
         
     ! constructing the soil grid
