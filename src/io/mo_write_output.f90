@@ -274,7 +274,7 @@ module mo_write_output
         do jl=1,n_layers
           vector_to_minimize(jl) = abs(grid%z_vector(n_layers*n_vectors_per_layer+ji)+2._wp - grid%z_scalar(ji+(jl-1)*n_scalars_h))
         enddo
-        closest_index = find_min_index(vector_to_minimize,n_layers)+1
+        closest_index = find_min_index(vector_to_minimize,n_layers)
         temp_closest = diag%temperature((closest_index-1)*n_scalars_h+ji)
         delta_z_temp = grid%z_vector(n_layers*n_vectors_per_layer+ji)+2._wp - grid%z_scalar(ji + (closest_index-1)*n_scalars_h)
         ! real radiation
@@ -441,7 +441,7 @@ module mo_write_output
             vector_to_minimize(jl) = abs(grid%z_scalar((jl-1)*n_scalars_h+ji) &
                                          - (grid%z_vector(n_vectors-n_scalars_h+ji) + u_850_proxy_height))
           enddo
-          closest_index = find_min_index(vector_to_minimize,n_layers)+1
+          closest_index = find_min_index(vector_to_minimize,n_layers)
           second_closest_index = closest_index-1
           if (closest_index<n_layers-1 &
               .and. grid%z_scalar((closest_index-1)*n_scalars_h+ji)-grid%z_vector(n_vectors-n_scalars_h+ji)>u_850_proxy_height) then
@@ -456,7 +456,7 @@ module mo_write_output
             vector_to_minimize(jl) = abs(grid%z_scalar((jl-1)*n_scalars_h + ji) &
                                          - (grid%z_vector(n_vectors - n_scalars_h + ji) + u_950_proxy_height))
           enddo
-          closest_index = find_min_index(vector_to_minimize,n_layers)+1
+          closest_index = find_min_index(vector_to_minimize,n_layers)
           second_closest_index = closest_index-1
           if (closest_index<n_layers &
               .and. grid%z_scalar((closest_index-1)*n_scalars_h+ji)-grid%z_vector(n_vectors-n_scalars_h+ji)>u_950_proxy_height) then
@@ -635,7 +635,7 @@ module mo_write_output
             vector_to_minimize(jm) = abs(log(pressure_levels(jl)/(pressure((jm-1)*n_scalars_h+ji))))
           enddo
           ! finding the model layer that is the closest to the desired pressure level
-          closest_index = find_min_index(vector_to_minimize,n_layers)+1
+          closest_index = find_min_index(vector_to_minimize,n_layers)
           ! first guess for the other layer that will be used for the interpolation
           second_closest_index = closest_index + 1
           ! in this case,the layer above the closest layer will be used for the interpolation

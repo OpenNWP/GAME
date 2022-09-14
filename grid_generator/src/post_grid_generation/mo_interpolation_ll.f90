@@ -53,12 +53,12 @@ module mo_interpolation_ll
         distance_vector(jk) = calculate_distance_h(lat_value,lon_value,latitude_scalar(jk),longitude_scalar(jk),1._wp)
       enddo
       do jk=1,5
-        min_indices_vector(jk) = -1
+        min_indices_vector(jk) = 0
       enddo
       weights_sum = 0._wp
       do jk=1,5
         min_indices_vector(jk) = find_min_index_exclude(distance_vector,n_scalars_h,min_indices_vector,5)
-        weights_vector(jk) = 1._wp/((distance_vector(1+min_indices_vector(jk)))**(2._wp + EPSILON_SECURITY) + EPSILON_SECURITY)
+        weights_vector(jk) = 1._wp/((distance_vector(min_indices_vector(jk)))**(2._wp + EPSILON_SECURITY) + EPSILON_SECURITY)
         weights_sum = weights_sum+weights_vector(jk)
       enddo
       ! writing the result to the arrays

@@ -99,7 +99,7 @@ module mo_phys_sfc_properties
         enddo
         lat_index = find_min_index(lat_distance_vector,no_of_lat_points)
         lon_index = find_min_index(lon_distance_vector,no_of_lon_points)
-        oro_unfiltered(ji) = z_input(1+lon_index,1+lat_index)
+        oro_unfiltered(ji) = z_input(lon_index,lat_index)
       
         ! over the sea there is no orography
         if (is_land(ji)==0) then
@@ -126,7 +126,7 @@ module mo_phys_sfc_properties
                                                      latitude_scalar(jk),longitude_scalar(jk),1._wp)
         enddo
         do jk=1,n_avg_points
-          min_indices_vector(jk) = -1
+          min_indices_vector(jk) = 0
         enddo
         do jk=1,n_avg_points
           min_indices_vector(jk) = find_min_index_exclude(distance_vector,n_scalars_h, &
@@ -134,7 +134,7 @@ module mo_phys_sfc_properties
         enddo
         oro(ji) = 0._wp
         do jk=1,n_avg_points
-          oro(ji) = oro(ji) + oro_unfiltered(1+min_indices_vector(jk))/n_avg_points
+          oro(ji) = oro(ji) + oro_unfiltered(min_indices_vector(jk))/n_avg_points
         enddo
       enddo
       !$omp end parallel do

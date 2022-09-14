@@ -441,7 +441,7 @@ module mo_geodesy
       dist_vector(ji) = calculate_distance_cart(lat_point,lon_point,lat,lon,1._wp,1._wp)
     enddo
     
-    min_index = find_min_index(dist_vector,number_of_points) + 1
+    min_index = find_min_index(dist_vector,number_of_points)
     
     deallocate(dist_vector)
     
@@ -494,9 +494,9 @@ module mo_geodesy
           counter = counter+1
         endif
       enddo
-      neighbour(2*ji-1) = index_array(find_min_index(distance_array,number_of_vertices-1)+1)
-      distance_array(find_min_index(distance_array,number_of_vertices-1)+1) = 2.1_wp
-      neighbour(2*ji) = index_array(find_min_index(distance_array,number_of_vertices-1)+1)
+      neighbour(2*ji-1) = index_array(find_min_index(distance_array,number_of_vertices-1))
+      distance_array(find_min_index(distance_array,number_of_vertices-1)) = 2.1_wp
+      neighbour(2*ji) = index_array(find_min_index(distance_array,number_of_vertices-1))
     enddo
     
     ! the resorting itself

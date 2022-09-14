@@ -34,8 +34,6 @@ module mo_various_helpers
       endif
     enddo
     
-    find_min_index = find_min_index - 1
-    
   end function find_min_index
   
   function find_min_index_exclude(vector,vector_length,exclude_indices_vector,exclude_indices_vector_length)
@@ -64,41 +62,12 @@ module mo_various_helpers
       endif
     enddo
     
-    find_min_index_exclude = find_min_index_exclude - 1
-    
-    if (find_min_index_exclude==-1) then
+    if (find_min_index_exclude==0) then
       write(*,*) "Function find_min_index_exclude failed."
       call exit(1)
     endif
     
   end function find_min_index_exclude
-
-  function find_max_index(vector,vector_length)
-  
-    ! This function returns the index where a vector has its maximum.
-    
-    integer,  intent(in) :: vector_length
-    real(wp), intent(in) :: vector(vector_length)
-    integer              :: find_max_index
-    
-    ! local variables
-    integer        :: ji
-    real(wp) :: current_min
-    
-    find_max_index = 1
-    current_min = vector(1)
-    
-    do ji=2,vector_length
-      if (vector(ji)>current_min) then
-        current_min = vector(ji) 
-        find_max_index = ji
-      endif
-    enddo
-    
-    find_max_index = find_max_index - 1
-    
-  end function find_max_index
-
 
   function in_bool_checker(value,vector,vector_length)
   
