@@ -6,7 +6,7 @@ module mo_phase_trans
   ! This file contains functions calculating everything related to phase transition rates.
 
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,         only: n_scalars,n_scalars_h,n_layers
+  use mo_grid_nml,         only: n_scalars,n_cells,n_layers
   use mo_constants,        only: r_v,t_0,r_d
   use mo_constituents_nml, only: n_condensed_constituents,n_constituents
   use mo_grid_setup,       only: dtime
@@ -46,7 +46,7 @@ module mo_phase_trans
     do ji=1,n_scalars
       ! Preparation
       ! -----------
-      layer_index = (ji-1)/n_scalars_h
+      layer_index = (ji-1)/n_cells
       
       ! determining the saturation pressure
       ! "positive" temperatures (the saturation pressure is different over water compared to over ice)
@@ -250,7 +250,7 @@ module mo_phase_trans
       ! Surface effects
       ! ---------------
       if (layer_index==n_layers - 1 .and. lsfc_phase_trans) then
-        h_index = ji - layer_index*n_scalars_h
+        h_index = ji - layer_index*n_cells
         
         ! evaporation and latent heat rates
         if (grid%is_land(h_index)==0) then

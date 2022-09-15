@@ -8,7 +8,7 @@ module mo_effective_diff_coeffs
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_gradient_operators, only: grad_vert_cov
   use mo_multiplications,    only: scalar_times_vector_v
-  use mo_grid_nml,           only: n_scalars_h,n_layers,n_scalars,n_vectors_per_layer,n_vectors,n_v_vectors, &
+  use mo_grid_nml,           only: n_cells,n_layers,n_scalars,n_vectors_per_layer,n_vectors,n_v_vectors, &
                                    n_vectors_h,n_h_vectors,n_dual_scalars_h,n_dual_v_vectors
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
   use mo_derived,            only: c_v_mass_weighted_air,calc_diffusion_coeff
@@ -47,11 +47,11 @@ module mo_effective_diff_coeffs
     !$omp parallel do private(ji,jl,scalar_index_from,scalar_index_to,vector_index)
     do ji=1,n_vectors_h
       do jl=0,n_layers-1
-        vector_index = n_scalars_h + jl*n_vectors_per_layer + ji
+        vector_index = n_cells + jl*n_vectors_per_layer + ji
         
         ! indices of the adjacent scalar grid points
-        scalar_index_from = jl*n_scalars_h + grid%from_index(ji)
-        scalar_index_to = jl*n_scalars_h + grid%to_index(ji)
+        scalar_index_from = jl*n_cells + grid%from_index(ji)
+        scalar_index_to = jl*n_cells + grid%to_index(ji)
         
         ! preliminary result
         diag%viscosity_rhombi(vector_index) = 0.5_wp*(diag%viscosity(1+scalar_index_from) + diag%viscosity(1+scalar_index_to))
@@ -70,7 +70,7 @@ module mo_effective_diff_coeffs
       layer_index = (ji-1)/n_dual_scalars_h
       h_index = ji - layer_index*n_dual_scalars_h
       
-      scalar_base_index = layer_index*n_scalars_h
+      scalar_base_index = layer_index*n_cells
       
       ! preliminary result
       diag%viscosity_triangles(ji) = 1._wp/6._wp*( &
@@ -82,7 +82,7 @@ module mo_effective_diff_coeffs
       + diag%viscosity(scalar_base_index + 1+grid%to_index(1+grid%vorticity_indices_triangles(3*(h_index-1)+3))))
       
       ! calculating and adding the molecular viscosity
-      rho_base_index = n_condensed_constituents*n_scalars + layer_index*n_scalars_h
+      rho_base_index = n_condensed_constituents*n_scalars + layer_index*n_cells
       density_value = &
       1._wp/6._wp*( &
       state%rho(rho_base_index + 1+grid%from_index(1+grid%vorticity_indices_triangles(3*(h_index-1)+1))) &
@@ -199,9 +199,9 @@ module mo_effective_diff_coeffs
     real(wp) :: mom_diff_coeff
     
     !$omp parallel do private(h_index,layer_index,ji,mom_diff_coeff)
-    do h_index=1,n_scalars_h
+    do h_index=1,n_cells
       do layer_index=0,n_layers-1
-        ji = layer_index*n_scalars_h + h_index
+        ji = layer_index*n_cells + h_index
         mom_diff_coeff &
         ! molecular viscosity
         = molecular_diffusion_coeff(ji) &
@@ -233,7 +233,7 @@ module mo_effective_diff_coeffs
     do ji=1,n_h_vectors-n_vectors_h
       layer_index = (ji-1)/n_vectors_h
       h_index = ji - layer_index*n_vectors_h
-      scalar_base_index = layer_index*n_scalars_h
+      scalar_base_index = layer_index*n_cells
       ! the turbulent component
       mom_diff_coeff = 0.25_wp*(tke2vert_diff_coeff(diag%tke(scalar_base_index + 1+grid%from_index(h_index)), &
       diag%n_squared(scalar_base_index+1+grid%from_index(h_index)), &
@@ -241,26 +241,26 @@ module mo_effective_diff_coeffs
       + tke2vert_diff_coeff(diag%tke(scalar_base_index + 1+grid%to_index(h_index)), &
       diag%n_squared(scalar_base_index + 1+grid%to_index(h_index)), &
       grid%layer_thickness(scalar_base_index + 1+grid%to_index(h_index))) &
-      + tke2vert_diff_coeff(diag%tke((layer_index+1)*n_scalars_h + 1+grid%from_index(h_index)), &
-      diag%n_squared((layer_index+1)*n_scalars_h + 1+grid%from_index(h_index)), &
-      grid%layer_thickness((layer_index+1)*n_scalars_h + 1+grid%from_index(h_index))) &
-      + tke2vert_diff_coeff(diag%tke((layer_index+1)*n_scalars_h + 1+grid%to_index(h_index)), &
-      diag%n_squared((layer_index+1)*n_scalars_h + 1+grid%to_index(h_index)), &
-      grid%layer_thickness((layer_index+1)*n_scalars_h + 1+grid%to_index(h_index))))
+      + tke2vert_diff_coeff(diag%tke((layer_index+1)*n_cells + 1+grid%from_index(h_index)), &
+      diag%n_squared((layer_index+1)*n_cells + 1+grid%from_index(h_index)), &
+      grid%layer_thickness((layer_index+1)*n_cells + 1+grid%from_index(h_index))) &
+      + tke2vert_diff_coeff(diag%tke((layer_index+1)*n_cells + 1+grid%to_index(h_index)), &
+      diag%n_squared((layer_index+1)*n_cells + 1+grid%to_index(h_index)), &
+      grid%layer_thickness((layer_index+1)*n_cells + 1+grid%to_index(h_index))))
       ! computing and adding the molecular viscosity
       ! the scalar variables need to be averaged to the vector points at half levels
       molecular_viscosity = 0.25_wp*(diag%molecular_diffusion_coeff(scalar_base_index + 1+grid%from_index(h_index)) &
       + diag%molecular_diffusion_coeff(scalar_base_index + 1+grid%to_index(h_index)) &
-      + diag%molecular_diffusion_coeff((layer_index+1)*n_scalars_h + 1+grid%from_index(h_index)) &
-      + diag%molecular_diffusion_coeff((layer_index+1)*n_scalars_h + 1+grid%to_index(h_index)))
+      + diag%molecular_diffusion_coeff((layer_index+1)*n_cells + 1+grid%from_index(h_index)) &
+      + diag%molecular_diffusion_coeff((layer_index+1)*n_cells + 1+grid%to_index(h_index)))
       mom_diff_coeff = mom_diff_coeff+molecular_viscosity
       
       ! multiplying by the density (averaged to the half level edge)
       diag%vert_hor_viscosity(ji+n_vectors_h) = &
       0.25_wp*(state%rho(n_condensed_constituents*n_scalars + scalar_base_index + 1+grid%from_index(h_index)) &
       + state%rho(n_condensed_constituents*n_scalars + scalar_base_index + 1+grid%to_index(h_index)) &
-      + state%rho(n_condensed_constituents*n_scalars + (layer_index+1)*n_scalars_h + 1+grid%from_index(h_index)) &
-      + state%rho(n_condensed_constituents*n_scalars + (layer_index+1)*n_scalars_h + 1+grid%to_index(h_index))) &
+      + state%rho(n_condensed_constituents*n_scalars + (layer_index+1)*n_cells + 1+grid%from_index(h_index)) &
+      + state%rho(n_condensed_constituents*n_scalars + (layer_index+1)*n_cells + 1+grid%to_index(h_index))) &
       *mom_diff_coeff
     enddo
     !$omp end parallel do
@@ -302,9 +302,9 @@ module mo_effective_diff_coeffs
     
     ! multiplying by the gravity acceleration
     !$omp parallel do private(ji,layer_index,h_index,vector_index)
-    do ji=n_scalars_h+1,n_v_vectors-n_scalars_h
-      layer_index = (ji-1)/n_scalars_h
-      h_index = ji - layer_index*n_scalars_h
+    do ji=n_cells+1,n_v_vectors-n_cells
+      layer_index = (ji-1)/n_cells
+      h_index = ji - layer_index*n_cells
       vector_index = h_index + layer_index*n_vectors_per_layer
       diag%vector_field_placeholder(vector_index) &
       = grid%gravity_m(vector_index)*diag%vector_field_placeholder(vector_index)
@@ -314,13 +314,13 @@ module mo_effective_diff_coeffs
     ! averaging vertically to the scalar points
     !$omp parallel do private(ji,layer_index,h_index)
     do ji=1,n_scalars
-      layer_index = (ji-1)/n_scalars_h
-      h_index = ji - layer_index*n_scalars_h
+      layer_index = (ji-1)/n_cells
+      h_index = ji - layer_index*n_cells
       if (layer_index==0) then
         diag%n_squared(ji) = diag%vector_field_placeholder(n_vectors_per_layer+ji)
       elseif (layer_index==n_layers-1) then
         diag%n_squared(ji) &
-        = diag%vector_field_placeholder(n_vectors-n_vectors_per_layer-n_scalars_h+h_index)
+        = diag%vector_field_placeholder(n_vectors-n_vectors_per_layer-n_cells+h_index)
       else
         diag%n_squared(ji) &
         = grid%inner_product_weights(8*(ji-1)+7)*diag%vector_field_placeholder(h_index+layer_index*n_vectors_per_layer) &

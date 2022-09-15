@@ -6,7 +6,7 @@ module mo_multiplications
   ! In this module, algebraic multiplications of fields are collected.
   
   use mo_definitions, only: wp,t_grid
-  use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer
+  use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_cells,n_vectors_per_layer
   
   implicit none
   
@@ -42,10 +42,10 @@ module mo_multiplications
     !$omp parallel do private(h_index,layer_index,vector_index,scalar_value)
     do h_index=1,n_vectors_h
       do layer_index=0,n_layers-1
-        vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
+        vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
         scalar_value &
-        = 0.5_wp*(scalar_field(1+grid%from_index(h_index) + layer_index*n_scalars_h) &
-        + scalar_field(1+grid%to_index(h_index) + layer_index*n_scalars_h))
+        = 0.5_wp*(scalar_field(1+grid%from_index(h_index) + layer_index*n_cells) &
+        + scalar_field(1+grid%to_index(h_index) + layer_index*n_cells))
         out_field(vector_index) = scalar_value*vector_field(vector_index)
       enddo
     enddo
@@ -69,11 +69,11 @@ module mo_multiplications
     !$omp parallel do private(h_index,layer_index,vector_index,scalar_value)
     do h_index=1,n_vectors_h
       do layer_index=0,n_layers-1
-        vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
+        vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
         if (vector_field(vector_index)>=0._wp) then
-          scalar_value = scalar_field(1+grid%from_index(h_index) + layer_index*n_scalars_h)
+          scalar_value = scalar_field(1+grid%from_index(h_index) + layer_index*n_cells)
         else
-          scalar_value = scalar_field(1+grid%to_index(h_index) + layer_index*n_scalars_h)
+          scalar_value = scalar_field(1+grid%to_index(h_index) + layer_index*n_cells)
         endif
         out_field(vector_index) = scalar_value*vector_field(vector_index)
       enddo
@@ -95,11 +95,11 @@ module mo_multiplications
     real(wp) :: scalar_value
     
     !$omp parallel do private(h_index,layer_index,ji,lower_index,upper_index,scalar_value)
-    do h_index=1,n_scalars_h
+    do h_index=1,n_cells
       do layer_index=1,n_layers-1
         ji = layer_index*n_vectors_per_layer + h_index
-        lower_index = h_index + layer_index*n_scalars_h
-        upper_index = h_index + (layer_index - 1)*n_scalars_h
+        lower_index = h_index + layer_index*n_cells
+        upper_index = h_index + (layer_index - 1)*n_cells
         scalar_value = 0.5_wp*(scalar_field(upper_index) + scalar_field(lower_index))
         out_field(ji) = scalar_value*vector_field(ji)
       enddo

@@ -6,7 +6,7 @@ module mo_manage_radiation_calls
   ! This module manages the calls to the radiation routines.
 
   use mo_definitions,      only: wp,t_grid,t_state,t_diag,t_radiation
-  use mo_grid_nml,         only: n_scalars,n_scalars_h,n_vectors_per_layer,n_vectors,n_layers
+  use mo_grid_nml,         only: n_scalars,n_cells,n_vectors_per_layer,n_vectors,n_layers
   use mo_rad_nml,          only: n_scals_rad_h,n_scals_rad,n_rad_blocks,rad_config
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents
   use mo_surface_nml,      only: nsoillays
@@ -123,7 +123,7 @@ module mo_manage_radiation_calls
     do ji=1,n_scals_rad
       layer_index = (ji-1)/n_scals_rad_h
       h_index = ji - layer_index*n_scals_rad_h
-      out_array(ji) = in_array(rad_block_index*n_scals_rad_h + h_index + layer_index*n_scalars_h)
+      out_array(ji) = in_array(rad_block_index*n_scals_rad_h + h_index + layer_index*n_cells)
     enddo
   
   end subroutine create_rad_array_scalar
@@ -132,7 +132,7 @@ module mo_manage_radiation_calls
 
     ! This subroutine cuts out a slice of a horizontal scalar field for hand-over to the radiation routine (done for RAM efficiency reasons).
     
-    real(wp),intent(in)  :: in_array(n_scalars_h)
+    real(wp),intent(in)  :: in_array(n_cells)
     real(wp),intent(out) :: out_array(n_scals_rad_h)
     integer              :: rad_block_index
     
@@ -184,7 +184,7 @@ module mo_manage_radiation_calls
         layer_index = (ji-1)/n_scals_rad_h
         h_index = ji - layer_index*n_scals_rad_h
         out_array((const_id-1)*n_scals_rad+ji) = in_array((const_id-1)*n_scalars+rad_block_index*n_scals_rad_h &
-                                                          +h_index+layer_index*n_scalars_h)
+                                                          +h_index+layer_index*n_cells)
       enddo
     enddo
   
@@ -205,7 +205,7 @@ module mo_manage_radiation_calls
     do ji=1,n_scals_rad
       layer_index = (ji-1)/n_scals_rad_h
       h_index = ji - layer_index*n_scals_rad_h
-      out_array(rad_block_index*n_scals_rad_h+layer_index*n_scalars_h+h_index) = in_array(ji)
+      out_array(rad_block_index*n_scals_rad_h+layer_index*n_cells+h_index) = in_array(ji)
     enddo
   
   end subroutine remap_to_original
@@ -215,7 +215,7 @@ module mo_manage_radiation_calls
     ! This subroutine reverses what create_rad_array_scalar_h has done.
     
     real(wp),intent(in)  :: in_array(n_scals_rad_h)
-    real(wp),intent(out) :: out_array(n_scalars_h)
+    real(wp),intent(out) :: out_array(n_cells)
     integer              :: rad_block_index
     
     ! local variables

@@ -7,7 +7,7 @@ module mo_coriolis
 
   use mo_definitions,     only: wp
   use mo_constants,       only: EPSILON_SECURITY
-  use mo_grid_nml,        only: radius,n_vectors_h,n_dual_vectors,n_vectors,n_dual_scalars_h,n_scalars_h, &
+  use mo_grid_nml,        only: radius,n_vectors_h,n_dual_vectors,n_vectors,n_dual_scalars_h,n_cells, &
                                 n_pentagons,n_scalars
   use mo_geodesy,         only: calc_triangle_area,sort_vertex_indices
   use mo_various_helpers, only: in_bool_checker
@@ -28,7 +28,7 @@ module mo_coriolis
                              lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
                              z_vector(n_vectors)
     integer,  intent(in)  :: from_index_dual(n_vectors_h),to_index_dual(n_vectors_h), &
-                             to_index(n_vectors_h),from_index(n_vectors_h),adjacent_vector_indices_h(6*n_scalars_h)
+                             to_index(n_vectors_h),from_index(n_vectors_h),adjacent_vector_indices_h(6*n_cells)
     real(wp), intent(out) :: trsk_weights(10*n_vectors_h)
     integer,  intent(out) :: trsk_modified_curl_indices(10*n_vectors_h),trsk_indices(10*n_vectors_h)
     
@@ -175,7 +175,7 @@ module mo_coriolis
                                             longitude_vertices(1+indices_resorted(jl)), &
                                             latitude_edges(jl), &
                                             longitude_edges(jl))
-            vector_of_areas(jl) = (radius+z_vector(n_scalars_h+ji))**2*(triangle_1+triangle_2)
+            vector_of_areas(jl) = (radius+z_vector(n_cells+ji))**2*(triangle_1+triangle_2)
             check_sum = check_sum+vector_of_areas(jl)
           enddo
           
@@ -219,7 +219,7 @@ module mo_coriolis
           trsk_weights(10*(ji-1)+jk) = sign_1*(sum_of_weights-0.5_wp)*sign_2
           ! weighting by geometrical grid prefactors, the minus sign accounts for the fact that our tangential direction is reversed compared to TRSK
           trsk_weights(10*(ji-1)+jk) = -rescale_for_z_offset_1d*normal_distance_dual(1+trsk_indices(10*(ji-1)+jk))/ &
-                                     normal_distance(n_scalars_h+ji)*trsk_weights(10*(ji-1)+jk)
+                                     normal_distance(n_cells+ji)*trsk_weights(10*(ji-1)+jk)
         endif
       enddo
       
@@ -359,7 +359,7 @@ module mo_coriolis
       do jk=1,10
         first_index = trsk_indices(10*(ji-1)+jk)
         if (first_index/=-1) then
-          value_1 = normal_distance(n_scalars_h+ji) &
+          value_1 = normal_distance(n_cells+ji) &
                     /(rescale_for_z_offset_1d*normal_distance_dual(1+first_index))*trsk_weights(10*(ji-1)+jk)
           second_index = -1
           do jl=1,10
@@ -371,7 +371,7 @@ module mo_coriolis
             write(*,*) "Problem 10 in TRSK implementation detected."
             call exit(1)
           endif
-          value_2 = normal_distance(n_scalars_h+1+first_index) &
+          value_2 = normal_distance(n_cells+1+first_index) &
                     /(rescale_for_z_offset_1d*normal_distance_dual(ji))*trsk_weights(second_index)
           check_sum = value_1+value_2
           if (abs(check_sum)>EPSILON_SECURITY) then

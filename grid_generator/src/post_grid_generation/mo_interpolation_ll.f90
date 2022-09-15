@@ -7,7 +7,7 @@ module mo_interpolation_ll
 
   use mo_definitions,     only: wp
   use mo_constants,       only: M_PI,EPSILON_SECURITY
-  use mo_grid_nml,        only: n_scalars_h,n_lat_io_points,n_lon_io_points,n_latlon_io_points
+  use mo_grid_nml,        only: n_cells,n_lat_io_points,n_lon_io_points,n_latlon_io_points
   use mo_geodesy,         only: calculate_distance_h
   use mo_various_helpers, only: find_min_index_exclude
   
@@ -19,14 +19,14 @@ module mo_interpolation_ll
   
     ! This function interpolates to the lat-lon grid.
   
-    integer,  intent(out) :: interpol_indices(5*n_scalars_h)
-    real(wp), intent(out) :: interpol_weights(5*n_scalars_h)
-    real(wp), intent(in)  :: lat_c(n_scalars_h),lon_c(n_scalars_h)
+    integer,  intent(out) :: interpol_indices(5*n_cells)
+    real(wp), intent(out) :: interpol_weights(5*n_cells)
+    real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
   
     ! local variables
     real(wp) :: delta_latitude,delta_longitude,lat_value,lon_value,weights_sum, &
                 ! the vector containing distances to the horizontal points of the native model grid
-                distance_vector(n_scalars_h),weights_vector(5)
+                distance_vector(n_cells),weights_vector(5)
     integer  :: ji,jk,lat_index,lon_index,min_indices_vector(5)
     
     ! latitude resolution of the grid
@@ -49,7 +49,7 @@ module mo_interpolation_ll
         call exit(1)
       endif
       ! finding the three closest points of the native model grid  
-      do jk=1,n_scalars_h
+      do jk=1,n_cells
         distance_vector(jk) = calculate_distance_h(lat_value,lon_value,lat_c(jk),lon_c(jk),1._wp)
       enddo
       do jk=1,5
@@ -57,7 +57,7 @@ module mo_interpolation_ll
       enddo
       weights_sum = 0._wp
       do jk=1,5
-        min_indices_vector(jk) = find_min_index_exclude(distance_vector,n_scalars_h,min_indices_vector,5)
+        min_indices_vector(jk) = find_min_index_exclude(distance_vector,n_cells,min_indices_vector,5)
         weights_vector(jk) = 1._wp/((distance_vector(min_indices_vector(jk)))**(2._wp + EPSILON_SECURITY) + EPSILON_SECURITY)
         weights_sum = weights_sum+weights_vector(jk)
       enddo

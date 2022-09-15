@@ -8,7 +8,7 @@ module mo_grid_setup
   use netcdf
   use mo_constants,       only: t_0,r_e,M_PI
   use mo_definitions,     only: wp,t_grid
-  use mo_grid_nml,        only: n_vectors_per_layer,n_vectors,n_layers,n_scalars,n_scalars_h,n_latlon_io_points, &
+  use mo_grid_nml,        only: n_vectors_per_layer,n_vectors,n_layers,n_scalars,n_cells,n_latlon_io_points, &
                                 n_dual_vectors,n_vectors_h,n_dual_scalars_h,oro_id,res_id
   use mo_surface_nml,     only: nsoillays
   use mo_various_helpers, only: int2string,nc_check
@@ -136,14 +136,14 @@ module mo_grid_setup
     call nc_check(nf90_close(ncid))
     
     radius_rescale = radius/r_e
-    mean_velocity_area = 2._wp/3._wp*4._wp*M_PI*radius**2/n_scalars_h
-    eff_hor_res = sqrt(4._wp*M_PI*radius**2/n_scalars_h)
+    mean_velocity_area = 2._wp/3._wp*4._wp*M_PI*radius**2/n_cells
+    eff_hor_res = sqrt(4._wp*M_PI*radius**2/n_cells)
     dtime = 1.614_wp*1e-3*eff_hor_res
     
     write(*,*) "Time step:",dtime,"s."
     
     !$omp parallel do private(ji)
-    do ji=1,6*n_scalars_h
+    do ji=1,6*n_cells
       if (grid%adjacent_vector_indices_h(ji)==-1) then
         grid%adjacent_vector_indices_h(ji) = 0
       endif
@@ -153,8 +153,8 @@ module mo_grid_setup
     ! calculating the layer thicknesses
     !$omp parallel do private(ji,layer_index,h_index)
     do ji=1,n_scalars
-      layer_index = (ji-1)/n_scalars_h
-      h_index = ji - layer_index*n_scalars_h
+      layer_index = (ji-1)/n_cells
+      h_index = ji - layer_index*n_cells
       grid%layer_thickness(ji) = grid%z_vector(h_index + layer_index*n_vectors_per_layer) &
       - grid%z_vector(h_index + (layer_index+1)*n_vectors_per_layer)
     enddo

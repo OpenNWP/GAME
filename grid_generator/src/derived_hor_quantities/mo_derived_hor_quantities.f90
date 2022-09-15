@@ -6,7 +6,7 @@ module mo_derived_hor_quantities
   ! This module contains helper functions concerned with simple algebraic operations on vectors.
 
   use mo_definitions,     only: wp
-  use mo_grid_nml,        only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
+  use mo_grid_nml,        only: n_cells,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
                                 n_lloyd_iterations,radius,n_vectors,n_dual_vectors,n_pentagons
   use mo_geodesy,         only: find_turn_angle,rad2deg,find_geodetic_direction,find_global_normal,find_geos, &
                                 find_between_point,rel_on_line,calc_spherical_polygon_area
@@ -54,7 +54,7 @@ module mo_derived_hor_quantities
     ! This subroutine sets the geographical coordinates and the directions of the horizontal vector points.
     
     integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
-    real(wp), intent(in)  :: lat_c(n_scalars_h),lon_c(n_scalars_h)
+    real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
     real(wp), intent(out) :: lat_e(n_vectors_h),lon_e(n_vectors_h),direction(n_vectors_h)
     
     ! local variables
@@ -198,7 +198,7 @@ module mo_derived_hor_quantities
     
     ! This subroutine writes out statistical properties of the grid to a text file.
     
-    real(wp),         intent(in) :: pent_hex_face_unity_sphere(n_scalars_h), &
+    real(wp),         intent(in) :: pent_hex_face_unity_sphere(n_cells), &
                                     normal_distance(n_vectors),normal_distance_dual(n_dual_vectors)
     real(wp),         intent(in) :: z_vector(n_vectors),z_vector_dual(n_dual_vectors)
     character(len=1), intent(in) :: grid_name,statistics_file_name
@@ -220,7 +220,7 @@ module mo_derived_hor_quantities
     allocate(horizontal_distance(n_vectors_h))
     !$omp parallel do private(ji)
     do ji=1,n_vectors_h
-      horizontal_distance(ji) = radius/(radius+z_vector(n_scalars_h+ji))*normal_distance(n_scalars_h+ji)
+      horizontal_distance(ji) = radius/(radius+z_vector(n_cells+ji))*normal_distance(n_cells+ji)
     enddo
     !$omp end parallel do
     
@@ -272,7 +272,7 @@ module mo_derived_hor_quantities
     ! This subroutine finds the horizontal vectors that are adjacent to a grid cell.
     
     integer, intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
-    integer, intent(out) :: adjacent_signs_h(6*n_scalars_h),adjacent_vector_indices_h(6*n_scalars_h)
+    integer, intent(out) :: adjacent_signs_h(6*n_cells),adjacent_vector_indices_h(6*n_cells)
     
     ! local variables
     integer :: ji,jk,jl,trouble_detected,counter,no_of_edges,double_check,sign_sum_check
@@ -280,7 +280,7 @@ module mo_derived_hor_quantities
     trouble_detected = 0
     
     !$omp parallel do private(ji,jk,trouble_detected,counter)
-    do ji=1,n_scalars_h
+    do ji=1,n_cells
       counter = 1
       do jk=1,n_vectors_h
         if (from_index(jk)==ji-1 .or. to_index(jk)==ji-1) then
@@ -319,7 +319,7 @@ module mo_derived_hor_quantities
     do ji=1,n_vectors_h
       counter = 0
       sign_sum_check = 0
-      do jk=1,n_scalars_h
+      do jk=1,n_cells
         no_of_edges = 6
         if (jk<=n_pentagons) then
           no_of_edges = 5
@@ -355,15 +355,15 @@ module mo_derived_hor_quantities
     
     ! This subroutine computes the areas of the cells (pentagons and hexagons) on the unity sphere.
     
-    real(wp), intent(out) :: pent_hex_face_unity_sphere(n_scalars_h)
+    real(wp), intent(out) :: pent_hex_face_unity_sphere(n_cells)
     real(wp), intent(in)  :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
-    integer,  intent(in)  :: adjacent_vector_indices_h(6*n_scalars_h),vorticity_indices_pre(3*n_dual_scalars_h)
+    integer,  intent(in)  :: adjacent_vector_indices_h(6*n_cells),vorticity_indices_pre(3*n_dual_scalars_h)
     
     integer  :: ji,jk,check_1,check_2,check_3,counter,n_edges,cell_vector_indices(6)
     real(wp) :: pent_hex_sum_unity_sphere,pent_hex_avg_unity_sphere_ideal,lat_points(6),lon_points(6)
     
     !$omp parallel do private(ji,jk,check_1,check_2,check_3,counter,n_edges,cell_vector_indices,lat_points,lon_points)
-    do ji=1,n_scalars_h
+    do ji=1,n_cells
       n_edges = 6
       if (ji<=n_pentagons) then
         n_edges = 5
@@ -391,9 +391,9 @@ module mo_derived_hor_quantities
     !$omp end parallel do
     
     pent_hex_sum_unity_sphere = 0._wp
-    pent_hex_avg_unity_sphere_ideal = 4._wp*M_PI/n_scalars_h
+    pent_hex_avg_unity_sphere_ideal = 4._wp*M_PI/n_cells
     
-    do ji=1,n_scalars_h
+    do ji=1,n_cells
       pent_hex_sum_unity_sphere = pent_hex_sum_unity_sphere+pent_hex_face_unity_sphere(ji)
       if (pent_hex_face_unity_sphere(ji)<=0._wp) then
         write(*,*) "Pent_hex_face_unity_sphere contains a non-positive value."

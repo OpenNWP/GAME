@@ -4,7 +4,7 @@
 module mo_inner_product
 
   use mo_definitions, only: wp,t_grid
-  use mo_grid_nml,    only: n_vectors,n_scalars,n_scalars_h,n_pentagons,n_vectors_per_layer,n_layers
+  use mo_grid_nml,    only: n_vectors,n_scalars,n_cells,n_pentagons,n_vectors_per_layer,n_layers
 
   implicit none
   
@@ -22,19 +22,19 @@ module mo_inner_product
     integer :: h_index,layer_index,ji,jk,no_of_edges,base_index
     
     !$omp parallel do private(h_index,layer_index,ji,no_of_edges,base_index)
-    do h_index=1,n_scalars_h
+    do h_index=1,n_cells
       no_of_edges = 6
       if (h_index<=n_pentagons) then
         no_of_edges = 5
       endif
       do layer_index=0,n_layers-1
-        ji = layer_index*n_scalars_h + h_index
+        ji = layer_index*n_cells + h_index
         base_index = 8*(ji-1)
         out_field(ji) = 0._wp
         do jk=1,no_of_edges
           out_field(ji) = out_field(ji) + grid%inner_product_weights(base_index + jk) &
-          *in_field_1(n_scalars_h + layer_index*n_vectors_per_layer + 1 + grid%adjacent_vector_indices_h(6*(h_index-1) + jk)) &
-          *in_field_2(n_scalars_h + layer_index*n_vectors_per_layer + 1 + grid%adjacent_vector_indices_h(6*(h_index-1) + jk))
+          *in_field_1(n_cells + layer_index*n_vectors_per_layer + 1 + grid%adjacent_vector_indices_h(6*(h_index-1) + jk)) &
+          *in_field_2(n_cells + layer_index*n_vectors_per_layer + 1 + grid%adjacent_vector_indices_h(6*(h_index-1) + jk))
         enddo
         out_field(ji) = out_field(ji) + grid%inner_product_weights(base_index+7) &
         *in_field_1(h_index+layer_index*n_vectors_per_layer) &

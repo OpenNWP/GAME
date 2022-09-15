@@ -7,7 +7,7 @@ program control
   
   use netcdf
   use mo_definitions,                only: wp
-  use mo_grid_nml,                   only: n_scalars,n_scalars_h,n_dual_h_vectors,n_dual_scalars, &
+  use mo_grid_nml,                   only: n_scalars,n_cells,n_dual_h_vectors,n_dual_scalars, &
                                            n_dual_scalars_h,n_dual_vectors,n_h_vectors,n_latlon_io_points,n_layers,n_levels, &
                                            n_oro_layers,n_vectors,n_vectors_h,radius_rescale,radius,res_id,stretching_parameter, &
                                            toa,grid_nml_setup,oro_id,n_lloyd_iterations,n_avg_points,luse_scalar_h_file, &
@@ -79,11 +79,11 @@ program control
   call build_icosahedron(lat_ico,lon_ico,edge_vertices,face_vertices,face_edges,face_edges_reverse)
   write(*,*) "finished."
   write(*,*) "Allocating memory ..."
-  allocate(x_unity(n_scalars_h))
-  allocate(y_unity(n_scalars_h))
-  allocate(z_unity(n_scalars_h))
-  allocate(lat_c(n_scalars_h))
-  allocate(lon_c(n_scalars_h))
+  allocate(x_unity(n_cells))
+  allocate(y_unity(n_cells))
+  allocate(z_unity(n_cells))
+  allocate(lat_c(n_cells))
+  allocate(lon_c(n_cells))
   allocate(z_scalar(n_scalars))
   allocate(gravity_potential(n_scalars))
   allocate(z_vector(n_vectors))
@@ -103,32 +103,32 @@ program control
   allocate(area_dual(n_dual_vectors))
   allocate(f_vec(2*n_vectors_h))
   allocate(triangle_face_unit_sphere(n_dual_scalars_h))
-  allocate(pent_hex_face_unity_sphere(n_scalars_h))
+  allocate(pent_hex_face_unity_sphere(n_cells))
   allocate(rel_on_line_dual(n_vectors_h))
   allocate(inner_product_weights(8*n_scalars))
   allocate(density_to_rhombi_weights(4*n_vectors_h))
   allocate(interpol_weights(5*n_latlon_io_points))
   allocate(exner_bg(n_scalars))
   allocate(theta_v_bg(n_scalars))
-  allocate(oro(n_scalars_h))
-  allocate(roughness_length(n_scalars_h))
-  allocate(sfc_albedo(n_scalars_h))
-  allocate(sfc_rho_c(n_scalars_h))
-  allocate(t_conductivity(n_scalars_h))
+  allocate(oro(n_cells))
+  allocate(roughness_length(n_cells))
+  allocate(sfc_albedo(n_cells))
+  allocate(sfc_rho_c(n_cells))
+  allocate(t_conductivity(n_cells))
   allocate(to_index(n_vectors_h))
   allocate(from_index(n_vectors_h))
   allocate(trsk_indices(10*n_vectors_h))
   allocate(trsk_modified_curl_indices(10*n_vectors_h))
-  allocate(adjacent_vector_indices_h(6*n_scalars_h))
+  allocate(adjacent_vector_indices_h(6*n_cells))
   allocate(vorticity_indices_triangles(3*n_dual_scalars_h))
   allocate(vorticity_indices_rhombi(4*n_vectors_h))
   allocate(to_index_dual(n_vectors_h))
   allocate(from_index_dual(n_vectors_h))
-  allocate(adjacent_signs_h(6*n_scalars_h))
+  allocate(adjacent_signs_h(6*n_cells))
   allocate(vorticity_signs_triangles(3*n_dual_scalars_h))
   allocate(density_to_rhombi_indices(4*n_vectors_h))
   allocate(interpol_indices(5*n_latlon_io_points))
-  allocate(is_land(n_scalars_h))
+  allocate(is_land(n_cells))
   write(*,*) "Finished."
   
   ! 1.) creating or reading the properties that determine the horizontal grid
@@ -286,16 +286,16 @@ program control
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_index",n_scalars,scalar_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_8_index",8*n_scalars,scalar_8_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_2_index",2*n_scalars,scalar_2_dimid))
-  call nc_check(nf90_def_dim(ncid_g_prop,"scalar_h_index",n_scalars_h,scalar_h_dimid))
+  call nc_check(nf90_def_dim(ncid_g_prop,"scalar_h_index",n_cells,scalar_h_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_dual_h_index",n_dual_scalars_h,scalar_dual_h_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_dual_h_3_index",3*n_dual_scalars_h,scalar_dual_h_dimid_3))
   call nc_check(nf90_def_dim(ncid_g_prop,"vector_index",n_vectors,vector_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"vector_h_index",n_vectors_h,vector_h_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"latlon_3_index",5*n_latlon_io_points,latlon_dimid_5))
-  call nc_check(nf90_def_dim(ncid_g_prop,"scalar_h_6_index",6*n_scalars_h,scalar_h_dimid_6))
+  call nc_check(nf90_def_dim(ncid_g_prop,"scalar_h_6_index",6*n_cells,scalar_h_dimid_6))
   call nc_check(nf90_def_dim(ncid_g_prop,"vector_h_10_index",10*n_vectors_h,vector_h_dimid_10))
   call nc_check(nf90_def_dim(ncid_g_prop,"vector_h_4_index",4*n_vectors_h,vector_h_dimid_4))
-  call nc_check(nf90_def_dim(ncid_g_prop,"vector_v_6_index",6*N_LEVELS*n_scalars_h,vector_v_dimid_6))
+  call nc_check(nf90_def_dim(ncid_g_prop,"vector_v_6_index",6*N_LEVELS*n_cells,vector_v_dimid_6))
   call nc_check(nf90_def_dim(ncid_g_prop,"f_vec_index",2*n_vectors_h,f_vec_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"vector_index_dual",n_dual_vectors,vector_dual_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"vector_index_dual_area",n_dual_h_vectors + N_H_VECTORS,vector_dual_area_dimid))

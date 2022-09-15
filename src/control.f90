@@ -7,7 +7,7 @@ program control
   ! All the memory needed for the integration is allocated and freed here.
 
   use mo_definitions,            only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,               only: n_scalars,n_layers,n_scalars_h,n_vectors,n_vectors_h,n_dual_vectors, &
+  use mo_grid_nml,               only: n_scalars,n_layers,n_cells,n_vectors,n_vectors_h,n_dual_vectors, &
                                        n_dual_scalars_h,n_dual_v_vectors,n_h_vectors,n_latlon_io_points, &
                                        n_vectors_per_layer,grid_nml_setup
   use mo_constituents_nml,       only: cloud_droplets_velocity,rain_velocity,snow_velocity,n_constituents, &
@@ -91,43 +91,43 @@ program control
   allocate(grid%to_index(n_vectors_h))
   allocate(grid%from_index_dual(n_vectors_h))
   allocate(grid%to_index_dual(n_vectors_h))
-  allocate(grid%adjacent_vector_indices_h(6*n_scalars_h))
-  allocate(grid%adjacent_signs_h(6*n_scalars_h))
+  allocate(grid%adjacent_vector_indices_h(6*n_cells))
+  allocate(grid%adjacent_signs_h(6*n_cells))
   allocate(grid%density_to_rhombi_indices(4*n_vectors_h))
-  allocate(grid%lat_c(n_scalars_h))
-  allocate(grid%lon_c(n_scalars_h))
+  allocate(grid%lat_c(n_cells))
+  allocate(grid%lon_c(n_cells))
   allocate(grid%inner_product_weights(8*n_scalars))
   allocate(grid%direction(n_vectors_h))
   allocate(grid%density_to_rhombi_weights(4*n_vectors_h))
   allocate(grid%trsk_weights(10*n_vectors_h))
-  allocate(grid%sfc_albedo(n_scalars_h))
-  allocate(grid%sfc_rho_c(n_scalars_h))
-  allocate(grid%t_conduc_soil(n_scalars_h))
-  allocate(grid%roughness_length(n_scalars_h))
-  allocate(grid%is_land(n_scalars_h))
+  allocate(grid%sfc_albedo(n_cells))
+  allocate(grid%sfc_rho_c(n_cells))
+  allocate(grid%t_conduc_soil(n_cells))
+  allocate(grid%roughness_length(n_cells))
+  allocate(grid%is_land(n_cells))
   allocate(grid%latlon_interpol_indices(5*n_latlon_io_points))
   allocate(grid%latlon_interpol_weights(5*n_latlon_io_points))
   allocate(grid%z_soil_interface(nsoillays+1))
   allocate(grid%z_soil_center(nsoillays))
-  allocate(grid%t_const_soil(n_scalars_h))
+  allocate(grid%t_const_soil(n_cells))
   allocate(state_1%rho(n_constituents*n_scalars))
   allocate(state_1%rhotheta_v(n_scalars))
   allocate(state_1%theta_v_pert(n_scalars))
   allocate(state_1%exner_pert(n_scalars))
   allocate(state_1%wind(n_vectors))
-  allocate(state_1%temperature_soil(nsoillays*n_scalars_h))
+  allocate(state_1%temperature_soil(nsoillays*n_cells))
   allocate(state_2%rho(n_constituents*n_scalars))
   allocate(state_2%rhotheta_v(n_scalars))
   allocate(state_2%theta_v_pert(n_scalars))
   allocate(state_2%exner_pert(n_scalars))
   allocate(state_2%wind(n_vectors))
-  allocate(state_2%temperature_soil(nsoillays*n_scalars_h))
+  allocate(state_2%temperature_soil(nsoillays*n_cells))
   allocate(state_tend%rho(n_constituents*n_scalars))
   allocate(state_tend%rhotheta_v(n_scalars))
   allocate(state_tend%theta_v_pert(n_scalars))
   allocate(state_tend%exner_pert(n_scalars))
   allocate(state_tend%wind(n_vectors))
-  allocate(state_tend%temperature_soil(nsoillays*n_scalars_h))
+  allocate(state_tend%temperature_soil(nsoillays*n_cells))
   allocate(diag%flux_density(n_vectors))
   allocate(diag%flux_density_div(n_scalars))
   allocate(diag%rel_vort_on_triangles(n_dual_v_vectors))
@@ -146,11 +146,11 @@ program control
   allocate(diag%v_at_cell(n_scalars))
   allocate(diag%n_squared(n_scalars))
   allocate(diag%dv_hdz(n_h_vectors+n_vectors_h))
-  allocate(diag%scalar_flux_resistance(n_scalars_h))
-  allocate(diag%power_flux_density_sensible(n_scalars_h))
-  allocate(diag%power_flux_density_latent(n_scalars_h))
-  allocate(diag%roughness_velocity(n_scalars_h))
-  allocate(diag%monin_obukhov_length(n_scalars_h))
+  allocate(diag%scalar_flux_resistance(n_cells))
+  allocate(diag%power_flux_density_sensible(n_cells))
+  allocate(diag%power_flux_density_latent(n_cells))
+  allocate(diag%roughness_velocity(n_cells))
+  allocate(diag%monin_obukhov_length(n_cells))
   allocate(diag%temperature_diffusion_heating(n_scalars))
   allocate(diag%friction_acc(n_vectors))
   allocate(diag%heating_diss(n_scalars))
@@ -175,15 +175,15 @@ program control
   allocate(diag%pressure_grad_condensates_v(n_vectors))
   allocate(diag%v_squared_grad(n_vectors))
   allocate(diag%pot_vort_tend(n_vectors))
-  allocate(diag%sfc_sw_in(n_scalars_h))
-  allocate(diag%sfc_lw_out(n_scalars_h))
+  allocate(diag%sfc_sw_in(n_cells))
+  allocate(diag%sfc_lw_out(n_cells))
   allocate(diag%radiation_tendency(n_scalars))
   allocate(state_write%rho(n_constituents*n_scalars))
   allocate(state_write%rhotheta_v(n_scalars))
   allocate(state_write%theta_v_pert(n_scalars))
   allocate(state_write%exner_pert(n_scalars))
   allocate(state_write%wind(n_vectors))
-  allocate(state_write%temperature_soil(nsoillays*n_scalars_h))
+  allocate(state_write%temperature_soil(nsoillays*n_cells))
   
   ! reading the grid
   write(*,*) "Reading grid data ..."
@@ -229,9 +229,9 @@ program control
   enddo
   ! finding the minimum vertical grid distance
   normal_dist_min_ver = grid%z_vector(1)/n_layers
-  do ji=1,n_scalars_h
-    if (grid%normal_distance(n_vectors - n_vectors_per_layer - n_scalars_h + ji)<normal_dist_min_ver) then
-      normal_dist_min_ver = grid%normal_distance(n_vectors - n_vectors_per_layer - n_scalars_h + ji)
+  do ji=1,n_cells
+    if (grid%normal_distance(n_vectors - n_vectors_per_layer - n_cells + ji)<normal_dist_min_ver) then
+      normal_dist_min_ver = grid%normal_distance(n_vectors - n_vectors_per_layer - n_cells + ji)
     endif
   enddo
   

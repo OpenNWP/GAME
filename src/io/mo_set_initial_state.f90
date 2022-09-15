@@ -8,7 +8,7 @@ module mo_set_initial_state
   use netcdf
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_constants,        only: p_0,r_d,c_d_p,m_d,m_v
-  use mo_grid_nml,         only: n_scalars,n_scalars_h,n_vectors,n_vectors_per_layer,n_vectors_h,n_levels,n_dual_vectors, &
+  use mo_grid_nml,         only: n_scalars,n_cells,n_vectors,n_vectors_per_layer,n_vectors_h,n_levels,n_dual_vectors, &
                                  n_layers,oro_id,res_id,n_dual_v_vectors,n_dual_scalars_h
   use mo_constituents_nml, only: n_condensed_constituents,n_constituents,lmoist
   use mo_surface_nml,      only: nsoillays
@@ -74,8 +74,8 @@ module mo_set_initial_state
     ! 3D scalar fields determined hereapart from density
     !$omp parallel do private(ji,layer_index,h_index,lat,lon,z_height,dry_density,specific_humidity)
     do ji=1,n_scalars
-      layer_index = (ji-1)/n_scalars_h
-      h_index = ji - layer_index*n_scalars_h
+      layer_index = (ji-1)/n_cells
+      h_index = ji - layer_index*n_cells
         lat = grid%lat_c(h_index)
         lon = grid%lon_c(h_index)
         z_height = grid%z_scalar(ji)
@@ -127,28 +127,28 @@ module mo_set_initial_state
       do jl=0,n_layers-1
         lat = latitude_vector(ji)
         lon = longitude_vector(ji)
-        z_height = grid%z_vector(n_scalars_h + ji + jl*n_vectors_per_layer)
+        z_height = grid%z_vector(n_cells + ji + jl*n_vectors_per_layer)
         ! standard atmosphere: no wind
         if (ideal_input_id==0) then
-          state%wind(n_scalars_h + jl*n_vectors_per_layer + ji) = 0._wp          
+          state%wind(n_cells + jl*n_vectors_per_layer + ji) = 0._wp          
                 
           ! adding a "random" perturbation to the horizontal wind in the case of the Held-Suarez test case
           if (rad_config==2) then
-            state%wind(n_scalars_h + jl*n_vectors_per_layer + ji) &
-            = state%wind(n_scalars_h + jl*n_vectors_per_layer + ji) + 0.1_wp*mod(ji,17)/16._wp
+            state%wind(n_cells + jl*n_vectors_per_layer + ji) &
+            = state%wind(n_cells + jl*n_vectors_per_layer + ji) + 0.1_wp*mod(ji,17)/16._wp
           endif
         endif
         ! dry Ullrich test
         if (ideal_input_id==1) then
           call baroclinic_wave_test(1,0,1,small_atmos_rescale,lon,lat,dummy_1,z_height,1, &
                                     u,v,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
-          state%wind(n_scalars_h + jl*n_vectors_per_layer + ji) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
+          state%wind(n_cells + jl*n_vectors_per_layer + ji) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
         endif
         ! moist Ullrich test
         if (ideal_input_id==2) then
           call baroclinic_wave_test(1,1,1,small_atmos_rescale,lon,lat,dummy_1,z_height,1, &
                                     u,v,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
-          state%wind(n_scalars_h + jl*n_vectors_per_layer + ji) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
+          state%wind(n_cells + jl*n_vectors_per_layer + ji) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
         endif
       enddo
     enddo
@@ -159,7 +159,7 @@ module mo_set_initial_state
     
     ! setting the vertical wind field equal to zero
     !$omp parallel do private(ji,jl)
-    do ji=1,n_scalars_h
+    do ji=1,n_cells
       do jl=0,n_levels-1
         state%wind(jl*n_vectors_per_layer + ji) = 0._wp
       enddo
@@ -183,10 +183,10 @@ module mo_set_initial_state
     ! density is determined out of the hydrostatic equation
     ! theta_v_pert and exner_pert are a misuse of name herethey contain the full values here
     !$omp parallel do private(ji,scalar_index,b,c,pressure_value)
-    do ji=1,n_scalars_h
+    do ji=1,n_cells
       ! integrating from bottom to top
       do jl=n_layers-1,0,-1
-        scalar_index = jl*n_scalars_h + ji
+        scalar_index = jl*n_cells + ji
         ! lowest layer
         if (jl==n_layers-1) then
           pressure_value = pressure(scalar_index)
@@ -194,13 +194,13 @@ module mo_set_initial_state
         ! other layers
         else
           ! solving a quadratic equation for the Exner pressure
-          b = -0.5_wp*state%exner_pert(scalar_index + n_scalars_h)/temperature_v(scalar_index + n_scalars_h) &
-          *(temperature_v(scalar_index) - temperature_v(scalar_index + n_scalars_h) &
-          + 2._wp/c_d_p*(grid%gravity_potential(scalar_index) - grid%gravity_potential(scalar_index + n_scalars_h) &
-          + 0.5_wp*diag%v_squared(scalar_index) - 0.5_wp*diag%v_squared(scalar_index + n_scalars_h) &
-          - (grid%z_scalar(scalar_index) - grid%z_scalar(scalar_index + n_scalars_h)) &
+          b = -0.5_wp*state%exner_pert(scalar_index + n_cells)/temperature_v(scalar_index + n_cells) &
+          *(temperature_v(scalar_index) - temperature_v(scalar_index + n_cells) &
+          + 2._wp/c_d_p*(grid%gravity_potential(scalar_index) - grid%gravity_potential(scalar_index + n_cells) &
+          + 0.5_wp*diag%v_squared(scalar_index) - 0.5_wp*diag%v_squared(scalar_index + n_cells) &
+          - (grid%z_scalar(scalar_index) - grid%z_scalar(scalar_index + n_cells)) &
           *diag%pot_vort_tend(ji + (jl+1)*n_vectors_per_layer)))
-          c = state%exner_pert(scalar_index + n_scalars_h)**2*temperature_v(scalar_index)/temperature_v(scalar_index + n_scalars_h)
+          c = state%exner_pert(scalar_index + n_cells)**2*temperature_v(scalar_index)/temperature_v(scalar_index + n_cells)
           state%exner_pert(scalar_index) = b + (b**2+c)**0.5_wp
         endif
         ! this is the full virtual potential temperature here
@@ -347,7 +347,7 @@ module mo_set_initial_state
     real(wp), allocatable :: sst(:)
     
     ! figuring out if the SST is included in the initialization file and reading it if it exists (important for NWP)
-    allocate(sst(n_scalars_h))
+    allocate(sst(n_cells))
     
     sst_avail = 0
     if (ideal_input_id==-1) then
@@ -394,12 +394,12 @@ module mo_set_initial_state
     
     ! setting what has not yet been set
     !$omp parallel do private(ji,soil_layer_index,soil_index,z_soil,t_sfc)
-    do ji=1,n_scalars_h
+    do ji=1,n_cells
       ! sea surface temperature if SST is available
       if (grid%is_land(ji)==0 .and. sst_avail==1) then
         ! loop over all soil layers
         do soil_layer_index=0,nsoillays-1
-          state%temperature_soil(ji+soil_layer_index*n_scalars_h) = sst(ji)
+          state%temperature_soil(ji+soil_layer_index*n_cells) = sst(ji)
         enddo
       endif
       
@@ -408,12 +408,12 @@ module mo_set_initial_state
       ! and the depth of constant temperature    
       if ((grid%is_land(ji)==1 .and. t_soil_avail==0) .or. (grid%is_land(ji)==0 .and. sst_avail==0)) then
         ! setting the surface temperature identical to the air temperature in the lowest layer
-        t_sfc = temperature(n_scalars-n_scalars_h+ji)
+        t_sfc = temperature(n_scalars-n_cells+ji)
         
         ! loop over all soil layers
         do soil_layer_index=0,nsoillays-1
           ! index of this soil grid point
-          soil_index = ji+soil_layer_index*n_scalars_h
+          soil_index = ji+soil_layer_index*n_cells
           z_soil = z_t_const/nsoillays*(0.5_wp+soil_layer_index)
           state%temperature_soil(soil_index) = t_sfc + (grid%t_const_soil(ji) - t_sfc)*z_soil/z_t_const
         enddo

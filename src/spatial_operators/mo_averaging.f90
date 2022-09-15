@@ -6,7 +6,7 @@ module mo_averaging
   ! This file contains functions that perform averagings.
 
   use mo_definitions, only: wp,t_grid
-  use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer, &
+  use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_cells,n_vectors_per_layer, &
                             n_v_vectors,n_pentagons,n_h_vectors
   use mo_grid_setup,  only: n_oro_layers
   use mo_geodesy,     only: passive_turn
@@ -39,8 +39,8 @@ module mo_averaging
     if (layer_index>=n_layers-n_oro_layers) then
       if (layer_index==n_layers-n_oro_layers) then
         do ji=1,n_edges
-          scalar_index = layer_index*n_scalars_h + h_index
-          vector_index = n_scalars_h + layer_index*n_vectors_per_layer + 1+grid%adjacent_vector_indices_h(6*h_index + ji)
+          scalar_index = layer_index*n_cells + h_index
+          vector_index = n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_vector_indices_h(6*h_index + ji)
           vertical_contravariant_corr = vertical_contravariant_corr &
           -0.5_wp &
           *grid%inner_product_weights(8*scalar_index + ji) &
@@ -49,8 +49,8 @@ module mo_averaging
         enddo
       else
         do ji=1,n_edges
-          scalar_index = (layer_index - 1)*n_scalars_h + h_index
-          vector_index = n_scalars_h + (layer_index - 1)*n_vectors_per_layer + 1+grid%adjacent_vector_indices_h(6*h_index + ji)
+          scalar_index = (layer_index - 1)*n_cells + h_index
+          vector_index = n_cells + (layer_index - 1)*n_vectors_per_layer + 1+grid%adjacent_vector_indices_h(6*h_index + ji)
           vertical_contravariant_corr = vertical_contravariant_corr &
           -0.5_wp &
           *grid%inner_product_weights(8*scalar_index + ji) &
@@ -58,8 +58,8 @@ module mo_averaging
           *vector_field(vector_index)
         enddo
         do ji=1,n_edges
-          scalar_index = layer_index*n_scalars_h + h_index
-          vector_index = n_scalars_h + layer_index*n_vectors_per_layer + 1+grid%adjacent_vector_indices_h(6*h_index + ji)
+          scalar_index = layer_index*n_cells + h_index
+          vector_index = n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_vector_indices_h(6*h_index + ji)
           vertical_contravariant_corr = vertical_contravariant_corr &
           -0.5_wp &
           *grid%inner_product_weights(8*scalar_index + ji) &
@@ -82,18 +82,18 @@ module mo_averaging
     
     remap_verpri2horpri_vector &
     ! layer above
-    = grid%inner_product_weights(8*(layer_index*n_scalars_h + grid%from_index(1+h_index)) + 7) &
+    = grid%inner_product_weights(8*(layer_index*n_cells + grid%from_index(1+h_index)) + 7) &
     *vector_field(layer_index*n_vectors_per_layer + 1 + grid%from_index(1+h_index))
     remap_verpri2horpri_vector = remap_verpri2horpri_vector &
-    + grid%inner_product_weights(8*(layer_index*n_scalars_h + grid%to_index(1+h_index)) + 7) &
+    + grid%inner_product_weights(8*(layer_index*n_cells + grid%to_index(1+h_index)) + 7) &
     *vector_field(layer_index*n_vectors_per_layer + 1 + grid%to_index(1+h_index))
     ! layer below
     if (layer_index<n_layers-1) then
       remap_verpri2horpri_vector = remap_verpri2horpri_vector &
-      + grid%inner_product_weights(8*(layer_index*n_scalars_h + grid%from_index(1+h_index)) + 8) &
+      + grid%inner_product_weights(8*(layer_index*n_cells + grid%from_index(1+h_index)) + 8) &
       *vector_field((layer_index + 1)*n_vectors_per_layer + 1 + grid%from_index(1+h_index))
       remap_verpri2horpri_vector = remap_verpri2horpri_vector &
-      + grid%inner_product_weights(8*(layer_index*n_scalars_h + grid%to_index(1+h_index)) + 8) &
+      + grid%inner_product_weights(8*(layer_index*n_cells + grid%to_index(1+h_index)) + 8) &
       *vector_field((layer_index + 1)*n_vectors_per_layer + 1 + grid%to_index(1+h_index))
     endif
     ! horizontal average
@@ -120,7 +120,7 @@ module mo_averaging
       h_index = ji - layer_index*n_vectors_h
       vertical_gradient = remap_verpri2horpri_vector(cov_to_con_field,layer_index + (n_layers-n_oro_layers), &
                                  h_index-1,grid)
-      vector_index = n_scalars_h + (n_layers - n_oro_layers + layer_index)*n_vectors_per_layer + h_index
+      vector_index = n_cells + (n_layers - n_oro_layers + layer_index)*n_vectors_per_layer + h_index
       cov_to_con_field(vector_index) = cov_to_con_field(vector_index) - grid%slope(vector_index)*vertical_gradient
     enddo
     !$omp end parallel do
@@ -141,7 +141,7 @@ module mo_averaging
     real(wp) :: vertical_component
     integer  :: vector_index
     
-    vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
+    vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
     
     horizontal_covariant = vector_field(1+vector_index)
     

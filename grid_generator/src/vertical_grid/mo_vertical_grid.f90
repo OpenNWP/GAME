@@ -8,7 +8,7 @@ module mo_vertical_grid
   use mo_definitions, only: wp
   use mo_constants,   only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv,r_d, &
                             p_0_standard,c_d_p,p_0
-  use mo_grid_nml,    only: n_scalars_h,n_scalars,n_vectors_per_layer,n_layers,n_levels, &
+  use mo_grid_nml,    only: n_cells,n_scalars,n_vectors_per_layer,n_layers,n_levels, &
                             n_vectors,n_dual_scalars_h,n_dual_scalars,n_vectors_h, &
                             n_dual_vectors,n_dual_vectors_per_layer,toa,n_oro_layers,stretching_parameter, &
                             radius
@@ -23,7 +23,7 @@ module mo_vertical_grid
     ! This function sets the z coordinates of the scalar data points.
     
     real(wp), intent(out) :: z_scalar(n_scalars)
-    real(wp), intent(in)  :: oro(n_scalars_h)
+    real(wp), intent(in)  :: oro(n_cells)
     real(wp), intent(in)  :: max_oro
     
     ! local variables
@@ -34,7 +34,7 @@ module mo_vertical_grid
     
     ! loop over all columns
     !$omp parallel do private(h_index,level_index,layer_index,A,B,sigma_z,z_rel,z_vertical_vector_pre)
-    do h_index=1,n_scalars_h
+    do h_index=1,n_cells
     
       ! filling up z_vertical_vector_pre
       do level_index=1,n_levels
@@ -60,7 +60,7 @@ module mo_vertical_grid
     
       ! placing the scalar points in the middle between the preliminary values of the adjacent levels
       do layer_index=0,n_layers-1
-        z_scalar(layer_index*n_scalars_h+h_index) = 0.5_wp*( &
+        z_scalar(layer_index*n_cells+h_index) = 0.5_wp*( &
         z_vertical_vector_pre(layer_index+1)+z_vertical_vector_pre(layer_index+2))
       enddo
     enddo
@@ -100,8 +100,8 @@ module mo_vertical_grid
     
     !$omp parallel do private(ji,layer_index,h_index,radius_1,radius_2,base_area)
     do ji=1,n_scalars
-      layer_index = (ji-1)/n_scalars_h
-      h_index = ji-layer_index*n_scalars_h
+      layer_index = (ji-1)/n_cells
+      h_index = ji-layer_index*n_cells
       base_area = area(h_index+(layer_index+1)*n_vectors_per_layer)
       radius_1 = radius+z_vector(h_index+(layer_index+1)*n_vectors_per_layer)
       radius_2 = radius+z_vector(h_index+layer_index*n_vectors_per_layer)
@@ -209,18 +209,18 @@ module mo_vertical_grid
         area_dual(ji) = (radius + z_vector_dual(ji))**2*triangle_face_unit_sphere(h_index-n_vectors_h)
       else
         if (layer_index==0) then
-          primal_vector_index = n_scalars_h + h_index
+          primal_vector_index = n_cells + h_index
           radius_1 = radius + z_vector(primal_vector_index)
           radius_2 = radius + toa
           base_distance = normal_distance(primal_vector_index)
         else if (layer_index==n_layers) then
-          primal_vector_index = n_scalars_h + (n_layers-1)*n_vectors_per_layer + h_index
+          primal_vector_index = n_cells + (n_layers-1)*n_vectors_per_layer + h_index
           radius_1 = radius + 0.5_wp*(z_vector(n_layers*n_vectors_per_layer + 1 + from_index(h_index)) &
           + z_vector(n_layers*n_vectors_per_layer + 1 + to_index(h_index)))
           radius_2 = radius + z_vector(primal_vector_index)
           base_distance = normal_distance(primal_vector_index)*radius_1/radius_2
         else
-          primal_vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
+          primal_vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
           radius_1 = radius + z_vector(primal_vector_index)
           radius_2 = radius + z_vector(primal_vector_index - n_vectors_per_layer)
           base_distance = normal_distance(primal_vector_index)
@@ -244,10 +244,10 @@ module mo_vertical_grid
     real(wp) :: temperature,pressure,b,c
   
     !$omp parallel do private(h_index,layer_index,scalar_index,temperature,pressure,b,c)
-    do h_index=1,n_scalars_h
+    do h_index=1,n_cells
       ! integrating from bottom to top
       do layer_index=n_layers-1,0,-1
-        scalar_index = layer_index*n_scalars_h+h_index
+        scalar_index = layer_index*n_cells+h_index
         temperature = standard_temp(z_scalar(scalar_index))
         ! lowest layer
         if (layer_index==n_layers-1) then
@@ -257,10 +257,10 @@ module mo_vertical_grid
         ! other layers
         else
           ! solving a quadratic equation for the Exner pressure
-          b = -0.5_wp*exner_bg(scalar_index + n_scalars_h)/standard_temp(z_scalar(scalar_index+n_scalars_h)) &
-          *(temperature - standard_temp(z_scalar(scalar_index + n_scalars_h)) &
-          + 2._wp/c_d_p*(gravity_potential(scalar_index) - gravity_potential(scalar_index+n_scalars_h)))
-          c = exner_bg(scalar_index+n_scalars_h)**2*temperature/standard_temp(z_scalar(scalar_index+n_scalars_h))
+          b = -0.5_wp*exner_bg(scalar_index + n_cells)/standard_temp(z_scalar(scalar_index+n_cells)) &
+          *(temperature - standard_temp(z_scalar(scalar_index + n_cells)) &
+          + 2._wp/c_d_p*(gravity_potential(scalar_index) - gravity_potential(scalar_index+n_cells)))
+          c = exner_bg(scalar_index+n_cells)**2*temperature/standard_temp(z_scalar(scalar_index+n_cells))
           exner_bg(scalar_index) = b + (b**2 + c)**0.5_wp
           theta_v_bg(scalar_index) = temperature/exner_bg(scalar_index)
         endif
@@ -275,7 +275,7 @@ module mo_vertical_grid
     ! This function sets the areas of the grid boxes.
     real(wp), intent(out) :: area(n_vectors)
     real(wp), intent(in)  :: z_vector(n_vectors),z_vector_dual(n_dual_vectors), &
-                             normal_distance_dual(n_dual_vectors),pent_hex_face_unity_sphere(n_scalars_h)
+                             normal_distance_dual(n_dual_vectors),pent_hex_face_unity_sphere(n_cells)
   
     ! local variables
     integer  :: ji,layer_index,h_index,dual_vector_index
@@ -285,10 +285,10 @@ module mo_vertical_grid
     do ji=1,n_vectors
       layer_index = (ji-1)/n_vectors_per_layer
       h_index = ji-layer_index*n_vectors_per_layer
-      if (h_index<=n_scalars_h) then
+      if (h_index<=n_cells) then
         area(ji) = pent_hex_face_unity_sphere(h_index)*(radius+z_vector(ji))**2
       else
-        dual_vector_index = (layer_index+1)*n_dual_vectors_per_layer + h_index - n_scalars_h
+        dual_vector_index = (layer_index+1)*n_dual_vectors_per_layer + h_index - n_cells
         radius_1 = radius+z_vector_dual(dual_vector_index)
         radius_2 = radius+z_vector_dual(dual_vector_index - n_dual_vectors_per_layer)
         base_distance = normal_distance_dual(dual_vector_index)
@@ -304,34 +304,34 @@ module mo_vertical_grid
     ! This subroutine calculates the vertical position of the vector points as well as the normal distances of the primal grid.
   
     real(wp), intent(out) :: z_vector(n_vectors),normal_distance(n_vectors)
-    real(wp), intent(in)  :: z_scalar(n_scalars),lat_c(n_scalars_h),lon_c(n_scalars_h),oro(n_scalars_h)
+    real(wp), intent(in)  :: z_scalar(n_scalars),lat_c(n_cells),lon_c(n_cells),oro(n_cells)
     integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
   
     integer               :: ji,layer_index,h_index,upper_index,lower_index
     real(wp)              :: min_thick,max_thick,thick_rel
     real(wp), allocatable :: lowest_thicknesses(:)
     
-    allocate(lowest_thicknesses(n_scalars_h))
+    allocate(lowest_thicknesses(n_cells))
     
     !$omp parallel do private(ji,layer_index,h_index,upper_index,lower_index)
     do ji=1,n_vectors
       layer_index = (ji-1)/n_vectors_per_layer
       h_index = ji - layer_index*n_vectors_per_layer
       ! horizontal grid points
-      if (h_index>=n_scalars_h+1) then
+      if (h_index>=n_cells+1) then
         ! placing the vector vertically in the middle between the two adjacent scalar points
         z_vector(ji) &
-        = 0.5_wp*(z_scalar(layer_index*n_scalars_h + 1 + from_index(h_index - n_scalars_h)) &
-        + z_scalar(layer_index*n_scalars_h + 1 + to_index(h_index - n_scalars_h)))
+        = 0.5_wp*(z_scalar(layer_index*n_cells + 1 + from_index(h_index - n_cells)) &
+        + z_scalar(layer_index*n_cells + 1 + to_index(h_index - n_cells)))
         ! calculating the horizontal distance
         normal_distance(ji) &
         = calculate_distance_h( &
-        lat_c(1+from_index(h_index - n_scalars_h)), lon_c(1+from_index(h_index - n_scalars_h)), &
-        lat_c(1+to_index(h_index - n_scalars_h)), lon_c(1+to_index(h_index - n_scalars_h)), &
+        lat_c(1+from_index(h_index - n_cells)), lon_c(1+from_index(h_index - n_cells)), &
+        lat_c(1+to_index(h_index - n_cells)), lon_c(1+to_index(h_index - n_cells)), &
         radius + z_vector(ji))
       else
-        upper_index = h_index + (layer_index - 1)*n_scalars_h
-        lower_index = h_index + layer_index*n_scalars_h
+        upper_index = h_index + (layer_index - 1)*n_cells
+        lower_index = h_index + layer_index*n_cells
         ! highest level
         if (layer_index==0) then
           z_vector(ji) = toa
@@ -386,9 +386,9 @@ module mo_vertical_grid
         lower_index = h_index - n_vectors_h + (layer_index+1)*n_dual_scalars_h
         normal_distance_dual(ji) = z_scalar_dual(upper_index) - z_scalar_dual(lower_index)
         z_vector_dual(ji) = 1._wp/3._wp*( &
-        z_vector(n_scalars_h + layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(3*(h_index-n_vectors_h-1)+1)) &
-        + z_vector(n_scalars_h+layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(3*(h_index-n_vectors_h-1)+2)) &
-        + z_vector(n_scalars_h+layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(3*(h_index-n_vectors_h-1)+3)))
+        z_vector(n_cells + layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(3*(h_index-n_vectors_h-1)+1)) &
+        + z_vector(n_cells+layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(3*(h_index-n_vectors_h-1)+2)) &
+        + z_vector(n_cells+layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(3*(h_index-n_vectors_h-1)+3)))
       else
         if (layer_index==0) then
           z_vector_dual(ji) = toa
@@ -396,8 +396,8 @@ module mo_vertical_grid
           z_vector_dual(ji) = 0.5_wp*(z_vector(n_layers*n_vectors_per_layer+1+from_index(h_index)) &
           + z_vector(n_layers*n_vectors_per_layer+1+to_index(h_index)))
         else
-          z_vector_dual(ji) = 0.5_wp*(z_vector(n_scalars_h+h_index+(layer_index-1)*n_vectors_per_layer) &
-          + z_vector(n_scalars_h + h_index + layer_index*n_vectors_per_layer))
+          z_vector_dual(ji) = 0.5_wp*(z_vector(n_cells+h_index+(layer_index-1)*n_vectors_per_layer) &
+          + z_vector(n_cells + h_index + layer_index*n_vectors_per_layer))
         endif
         normal_distance_dual(ji) = calculate_distance_h(lat_c_dual(1+from_index_dual(h_index)), &
         lon_c_dual(1+from_index_dual(h_index)), &

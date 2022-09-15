@@ -6,7 +6,7 @@ module mo_vector_tend_expl
   ! In this module, the calculation of the explicit part of the momentum equation is managed.
   
   use mo_definitions,           only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,              only: n_vectors_per_layer,n_vectors,n_scalars_h,n_scalars,n_dual_vectors,n_vectors_h, &
+  use mo_grid_nml,              only: n_vectors_per_layer,n_vectors,n_cells,n_scalars,n_dual_vectors,n_vectors_h, &
                                       n_dual_scalars_h,n_dual_v_vectors,n_layers,n_h_vectors
   use mo_gradient_operators,    only: grad
   use mo_constituents_nml,      only: n_condensed_constituents,n_constituents
@@ -100,10 +100,10 @@ module mo_vector_tend_expl
       layer_index = (ji-1)/n_vectors_per_layer
       h_index = ji - layer_index*n_vectors_per_layer
       ! upper and lower boundary
-      if (ji<=n_scalars_h .or. ji>=n_vectors-n_scalars_h+1) then
+      if (ji<=n_cells .or. ji>=n_vectors-n_cells+1) then
         state_tend%wind(ji) = 0._wp
       ! horizontal case
-      elseif (h_index>=n_scalars_h+1) then
+      elseif (h_index>=n_cells+1) then
         state_tend%wind(ji) = &
         old_weight*state_tend%wind(ji) + new_weight*( &
         ! explicit component of pressure gradient acceleration
@@ -118,7 +118,7 @@ module mo_vector_tend_expl
         ! momentum diffusion
         + diag%friction_acc(ji))
       ! vertical case
-      elseif (h_index<=n_scalars_h) then
+      elseif (h_index<=n_cells) then
         state_tend%wind(ji) = &
         old_weight*state_tend%wind(ji) + new_weight*( &
         ! explicit component of pressure gradient acceleration

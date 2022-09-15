@@ -9,7 +9,7 @@ module mo_horizontal_generation
   use mo_phys_sfc_properties,        only: nc_check
   use mo_definitions,                only: wp
   use mo_constants,                  only: EPSILON_SECURITY,M_PI
-  use mo_grid_nml,                   only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
+  use mo_grid_nml,                   only: n_cells,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
                                            n_lloyd_iterations,n_vectors,n_dual_vectors,n_pentagons,n_basic_edges, &
                                            n_basic_triangles,n_vectors_per_inner_face,n_points_per_edge,res_id, &
                                            n_triangles_per_face,n_triangles
@@ -266,8 +266,8 @@ module mo_horizontal_generation
     ! This subroutine computes the geographical coordinates of the generators (centers of the pentagons and hexagons).
     
     real(wp), intent(in)  :: lat_ico(n_pentagons),lon_ico(n_pentagons)
-    real(wp), intent(out) :: lat_c(n_scalars_h),lon_c(n_scalars_h),x_unity(n_scalars_h), &
-                             y_unity(n_scalars_h),z_unity(n_scalars_h)
+    real(wp), intent(out) :: lat_c(n_cells),lon_c(n_cells),x_unity(n_cells), &
+                             y_unity(n_cells),z_unity(n_cells)
     integer,  intent(in)  :: face_vertices(n_basic_triangles,3),face_edges(n_basic_triangles,3), &
                              face_edges_reverse(n_basic_triangles,3)
     
@@ -280,7 +280,7 @@ module mo_horizontal_generation
                 triangle_on_face_index,coord_1_points_amount
     real(wp) :: x_res,y_res,z_res
     
-    do ji=1,n_scalars_h
+    do ji=1,n_cells
       test_index = upscale_scalar_point(res_id,ji)
       if (test_index/=ji) then
         write(*,*) "Problem with upscale_scalar_point detected."
@@ -367,7 +367,7 @@ module mo_horizontal_generation
     ! This subroutine computes the areas of the triangles on the unity sphere.
     
     real(wp), intent(out) :: triangle_face_unit_sphere(n_dual_scalars_h)
-    real(wp), intent(in)  :: lat_c(n_scalars_h),lon_c(n_scalars_h)
+    real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
     integer,  intent(in)  :: face_vertices(n_basic_triangles,3),face_edges(n_basic_triangles,3), &
                              face_edges_reverse(n_basic_triangles,3)
     
@@ -481,7 +481,7 @@ module mo_horizontal_generation
     ! This function calculates the geographical coordinates of the dual scalar points.
     
     real(wp), intent(out) :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
-    real(wp), intent(in)  :: lat_c(n_scalars_h),lon_c(n_scalars_h)
+    real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
     integer,  intent(in)  :: face_vertices(n_basic_triangles,3),face_edges(n_basic_triangles,3), &
                              face_edges_reverse(n_basic_triangles,3)
     
@@ -663,8 +663,8 @@ module mo_horizontal_generation
     
     integer,  intent(in)  :: edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3
     logical,  intent(in)  :: lpoints_upwards
-    real(wp), intent(out) :: x_unity(n_scalars_h),y_unity(n_scalars_h),z_unity(n_scalars_h), &
-                             lat_c(n_scalars_h),lon_c(n_scalars_h)
+    real(wp), intent(out) :: x_unity(n_cells),y_unity(n_cells),z_unity(n_cells), &
+                             lat_c(n_cells),lon_c(n_cells)
     
     ! local variables
     real(wp) :: x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm,lat_res,lon_res
@@ -744,7 +744,7 @@ module mo_horizontal_generation
     ! This function reads the arrays that fully define the horizontal grid from a previously created grid file.
     ! This is an optional feature.
     
-    real(wp), intent(out)          :: lat_c(n_scalars_h),lon_c(n_scalars_h)
+    real(wp), intent(out)          :: lat_c(n_cells),lon_c(n_cells)
     integer,  intent(out)          :: from_index(n_vectors_h),to_index(n_vectors_h), &
                                       from_index_dual(n_vectors_h),to_index_dual(n_vectors_h),n_lloyd_read_file
     character(len=256), intent(in) :: filename

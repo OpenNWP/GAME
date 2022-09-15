@@ -9,7 +9,7 @@ module mo_discrete_coordinate_trafos
   use mo_phys_sfc_properties, only: nc_check
   use mo_definitions,         only: wp
   use mo_constants,           only: M_PI
-  use mo_grid_nml,            only: n_scalars_h,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
+  use mo_grid_nml,            only: n_cells,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
                                     n_vectors,n_dual_vectors,res_id,n_pentagons,n_basic_edges, &
                                     n_points_per_edge,n_basic_triangles,n_vectors_per_inner_face
   use mo_various_helpers,     only: in_bool_checker

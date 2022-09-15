@@ -6,7 +6,7 @@ module mo_gradient_operators
   ! This module contains the gradient operators.
   
   use mo_definitions, only: wp,t_grid
-  use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_scalars_h,n_vectors_per_layer, &
+  use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_cells,n_vectors_per_layer, &
                             n_v_vectors,n_v_vectors
   use mo_averaging,   only: vector_field_hor_cov_to_con
   
@@ -28,10 +28,10 @@ module mo_gradient_operators
     !$omp parallel do private(h_index,layer_index,vector_index)
     do h_index=1,n_vectors_h
       do layer_index=0,n_layers-1
-        vector_index = n_scalars_h + layer_index*n_vectors_per_layer + h_index
+        vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
         out_field(vector_index) &
-        = (in_field(1+grid%to_index(h_index)+layer_index*n_scalars_h) &
-        - in_field(1+grid%from_index(h_index)+layer_index*n_scalars_h)) &
+        = (in_field(1+grid%to_index(h_index)+layer_index*n_cells) &
+        - in_field(1+grid%from_index(h_index)+layer_index*n_cells)) &
         /grid%normal_distance(vector_index)
       enddo
     enddo
@@ -51,11 +51,11 @@ module mo_gradient_operators
     
     ! loop over the inner grid points
     !$omp parallel do private(ji,layer_index,h_index,lower_index,upper_index,vector_index)
-    do ji=n_scalars_h+1,n_v_vectors-n_scalars_h
-      layer_index = (ji-1)/n_scalars_h
-      h_index = ji - layer_index*n_scalars_h
-      lower_index = h_index + layer_index*n_scalars_h
-      upper_index = h_index + (layer_index-1)*n_scalars_h
+    do ji=n_cells+1,n_v_vectors-n_cells
+      layer_index = (ji-1)/n_cells
+      h_index = ji - layer_index*n_cells
+      lower_index = h_index + layer_index*n_cells
+      upper_index = h_index + (layer_index-1)*n_cells
       vector_index = h_index + layer_index*n_vectors_per_layer
       out_field(vector_index) &
       = (in_field(upper_index)-in_field(lower_index))/grid%normal_distance(vector_index)
@@ -107,8 +107,8 @@ module mo_gradient_operators
     
     !$omp parallel do private(ji,layer_index,h_index)
     do ji=1,n_v_vectors
-      layer_index = (ji-1)/n_scalars_h
-      h_index = ji - layer_index*n_scalars_h
+      layer_index = (ji-1)/n_cells
+      h_index = ji - layer_index*n_cells
       out_field(h_index + layer_index*n_vectors_per_layer) = 0._wp
     enddo
     !$omp end parallel do

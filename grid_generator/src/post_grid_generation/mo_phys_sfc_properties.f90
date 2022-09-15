@@ -8,7 +8,7 @@ module mo_phys_sfc_properties
   use netcdf
   use mo_constants,       only: M_PI,rho_h2o
   use mo_definitions,     only: wp
-  use mo_grid_nml,        only: res_id,n_scalars_h,n_avg_points
+  use mo_grid_nml,        only: res_id,n_cells,n_avg_points
   use mo_geodesy,         only: deg2rad,calculate_distance_h
   use mo_various_helpers, only: nc_check,int2string,find_min_index,find_min_index_exclude
 
@@ -37,16 +37,16 @@ module mo_phys_sfc_properties
     ! This subroutine sets the physical surface properties.
   
     integer,  intent(in)  :: oro_id
-    integer,  intent(out) :: is_land(n_scalars_h)
-    real(wp), intent(in)  :: lat_c(n_scalars_h),lon_c(n_scalars_h)
-    real(wp), intent(out) :: roughness_length(n_scalars_h),sfc_albedo(n_scalars_h), &
-                             sfc_rho_c(n_scalars_h),t_conductivity(n_scalars_h),oro(n_scalars_h)
+    integer,  intent(out) :: is_land(n_cells)
+    real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
+    real(wp), intent(out) :: roughness_length(n_cells),sfc_albedo(n_cells), &
+                             sfc_rho_c(n_cells),t_conductivity(n_cells),oro(n_cells)
   
     ! local variables
     integer               :: ji,jk,ncid,is_land_id,lat_in_id,lon_in_id,z_in_id,n_lat_points, &
                              n_lon_points,lat_index,lon_index,min_indices_vector(n_avg_points)
     real(wp)              :: c_p_water,c_p_soil,albedo_water,albedo_soil,albedo_ice,density_soil, &
-                             t_conductivity_water,t_conductivity_soil,lat_deg,distance_vector(n_scalars_h)
+                             t_conductivity_water,t_conductivity_soil,lat_deg,distance_vector(n_cells)
     real(wp), allocatable :: latitude_input(:),longitude_input(:),oro_unfiltered(:),lat_distance_vector(:),lon_distance_vector(:)
     integer,  allocatable :: z_input(:,:)
     character(len=64)     :: is_land_file ! file to read the land-sea-mask from
@@ -56,7 +56,7 @@ module mo_phys_sfc_properties
     
     if (oro_id==1) then
     
-      allocate(oro_unfiltered(n_scalars_h))
+      allocate(oro_unfiltered(n_cells))
     
       is_land_file = "phys_quantities/B" // trim(int2string(res_id)) // "_is_land.nc"
       call nc_check(nf90_open(trim(is_land_file),NF90_CLOBBER,ncid))
@@ -83,7 +83,7 @@ module mo_phys_sfc_properties
     
       ! setting the unfiltered orography
       !$omp parallel do private(ji,jk,lat_index,lon_index,lat_distance_vector,lon_distance_vector)
-      do ji=1,n_scalars_h
+      do ji=1,n_cells
         ! default
         oro(ji) = 0._wp
         oro_unfiltered(ji) = 0._wp
@@ -118,9 +118,9 @@ module mo_phys_sfc_properties
       
       ! smoothing the real orography
       !$omp parallel do private(ji,jk,min_indices_vector,distance_vector)
-      do ji=1,n_scalars_h
+      do ji=1,n_cells
         ! finding the distance to the other grid points
-        do jk=1,n_scalars_h
+        do jk=1,n_cells
           distance_vector(jk) = calculate_distance_h(lat_c(ji),lon_c(ji), &
                                                      lat_c(jk),lon_c(jk),1._wp)
         enddo
@@ -128,7 +128,7 @@ module mo_phys_sfc_properties
           min_indices_vector(jk) = 0
         enddo
         do jk=1,n_avg_points
-          min_indices_vector(jk) = find_min_index_exclude(distance_vector,n_scalars_h, &
+          min_indices_vector(jk) = find_min_index_exclude(distance_vector,n_cells, &
                                                           min_indices_vector,n_avg_points)
         enddo
         oro(ji) = 0._wp
@@ -155,7 +155,7 @@ module mo_phys_sfc_properties
     t_conductivity_water = 1.4e-7_wp
     t_conductivity_soil = 7.5e-7_wp
     !$omp parallel do private(ji,lat_deg)
-    do ji=1,n_scalars_h
+    do ji=1,n_cells
     
       ! ocean
       sfc_albedo(ji) = albedo_water

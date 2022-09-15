@@ -7,7 +7,7 @@ module mo_vorticities
 
   use mo_definitions,  only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,     only: n_layers,n_vectors_h,n_vectors,n_layers,n_dual_vectors_per_layer,n_dual_v_vectors, &
-                             n_dual_scalars_h,n_scalars_h,n_vectors_per_layer,n_vectors_h,n_dual_vectors, &
+                             n_dual_scalars_h,n_cells,n_vectors_per_layer,n_vectors_h,n_dual_vectors, &
                              n_scalars
   use mo_grid_setup,   only: n_oro_layers,radius
   use mo_averaging,    only: horizontal_covariant
@@ -46,7 +46,7 @@ module mo_vorticities
         do jk=1,4
           density_value = density_value &
           + grid%density_to_rhombi_weights(4*(edge_vector_index_h-1)+jk) &
-          *density_field(layer_index*n_scalars_h + 1+grid%density_to_rhombi_indices(4*(edge_vector_index_h-1)+jk))
+          *density_field(layer_index*n_cells + 1+grid%density_to_rhombi_indices(4*(edge_vector_index_h-1)+jk))
         enddo
       ! interpolation of the density to the half level edges
       else
@@ -56,32 +56,32 @@ module mo_vorticities
           = 0.5_wp*(density_field(1+grid%from_index(h_index)) + density_field(1+grid%to_index(h_index))) &
           ! the gradient
           + (0.5_wp*(density_field(1+grid%from_index(h_index)) + density_field(1+grid%to_index(h_index))) &
-          - 0.5_wp*(density_field(1+grid%from_index(h_index)+n_scalars_h) &
-          + density_field(1+grid%to_index(h_index) + n_scalars_h))) &
-          /(grid%z_vector(n_scalars_h + h_index) - grid%z_vector(n_scalars + n_vectors_per_layer + h_index)) &
+          - 0.5_wp*(density_field(1+grid%from_index(h_index)+n_cells) &
+          + density_field(1+grid%to_index(h_index) + n_cells))) &
+          /(grid%z_vector(n_cells + h_index) - grid%z_vector(n_scalars + n_vectors_per_layer + h_index)) &
           ! delta z
-          *(grid%z_vector(1) - grid%z_vector(n_scalars_h + h_index))
+          *(grid%z_vector(1) - grid%z_vector(n_cells + h_index))
         ! linear extrapolation to the surface
         elseif (layer_index==n_layers) then
           density_value = &
-          0.5_wp*(density_field((layer_index-1)*n_scalars_h + 1+grid%from_index(h_index)) &
-          + density_field((layer_index-1)*n_scalars_h + 1+grid%to_index(h_index))) &
+          0.5_wp*(density_field((layer_index-1)*n_cells + 1+grid%from_index(h_index)) &
+          + density_field((layer_index-1)*n_cells + 1+grid%to_index(h_index))) &
           ! the gradient
-          + (0.5_wp*(density_field((layer_index-2)*n_scalars_h + 1+grid%from_index(h_index)) &
-          + density_field((layer_index-2)*n_scalars_h + 1+grid%to_index(h_index))) &
-          - 0.5_wp*(density_field((layer_index-1)*n_scalars_h + 1+grid%from_index(h_index)) &
-          + density_field((layer_index-1)*n_scalars_h + 1+grid%to_index(h_index)))) &
-          /(grid%z_vector(n_scalars_h + (layer_index-2)*n_vectors_per_layer + h_index) &
-          - grid%z_vector(n_scalars_h + (layer_index-1)*n_vectors_per_layer + h_index)) &
+          + (0.5_wp*(density_field((layer_index-2)*n_cells + 1+grid%from_index(h_index)) &
+          + density_field((layer_index-2)*n_cells + 1+grid%to_index(h_index))) &
+          - 0.5_wp*(density_field((layer_index-1)*n_cells + 1+grid%from_index(h_index)) &
+          + density_field((layer_index-1)*n_cells + 1+grid%to_index(h_index)))) &
+          /(grid%z_vector(n_cells + (layer_index-2)*n_vectors_per_layer + h_index) &
+          - grid%z_vector(n_cells + (layer_index-1)*n_vectors_per_layer + h_index)) &
           ! delta z
           *(0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%from_index(h_index)) &
           + grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%to_index(h_index))) &
-          - grid%z_vector(n_scalars_h + (layer_index-1)*n_vectors_per_layer + h_index))
+          - grid%z_vector(n_cells + (layer_index-1)*n_vectors_per_layer + h_index))
         else
-          upper_from_index = (layer_index-1)*n_scalars_h + 1+grid%from_index(h_index)
-          upper_to_index = (layer_index-1)*n_scalars_h + 1+grid%to_index(h_index)
+          upper_from_index = (layer_index-1)*n_cells + 1+grid%from_index(h_index)
+          upper_to_index = (layer_index-1)*n_cells + 1+grid%to_index(h_index)
           density_value = 0.25_wp*(density_field(upper_from_index) + density_field(upper_to_index) &
-          + density_field(upper_from_index + n_scalars_h) + density_field(upper_to_index + n_scalars_h))
+          + density_field(upper_from_index + n_cells) + density_field(upper_to_index + n_cells))
         endif
       endif
         
@@ -115,7 +115,7 @@ module mo_vorticities
       diag%rel_vort_on_triangles(ji) = 0._wp
       ! loop over the three edges of the triangle at hand
       do jk=1,3
-        vector_index = n_scalars_h + layer_index*n_vectors_per_layer + 1+grid%vorticity_indices_triangles(3*(h_index-1)+jk)
+        vector_index = n_cells + layer_index*n_vectors_per_layer + 1+grid%vorticity_indices_triangles(3*(h_index-1)+jk)
         velocity_value = state%wind(vector_index)
         ! this corrects for terrain following coordinates
         length_rescale_factor = 1._wp
@@ -189,7 +189,7 @@ module mo_vorticities
             diag%rel_vort(ji) = 1._wp/grid%area_dual(h_index+layer_index*n_dual_vectors_per_layer) &
                                 *grid%normal_distance(index_3)*covar_3
           else
-            index_1 = base_index + n_scalars_h + h_index
+            index_1 = base_index + n_cells + h_index
             index_2 = base_index + 1+grid%from_index(h_index)
             index_3 = base_index - n_vectors_h + h_index
             index_4 = base_index + 1+grid%to_index(h_index)

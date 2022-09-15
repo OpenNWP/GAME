@@ -7,7 +7,7 @@ module mo_rhombus_averaging
 
   use mo_definitions,     only: wp
   use mo_constants,       only: EPSILON_SECURITY
-  use mo_grid_nml,        only: n_vectors_h,radius,n_scalars_h,n_dual_scalars_h,n_dual_vectors,n_vectors
+  use mo_grid_nml,        only: n_vectors_h,radius,n_cells,n_dual_scalars_h,n_dual_vectors,n_vectors
   use mo_geodesy,         only: calc_triangle_area
   use mo_various_helpers, only: in_bool_checker
 
@@ -23,7 +23,7 @@ module mo_rhombus_averaging
 
     integer,  intent(in)  :: vorticity_indices_triangles(3*n_dual_scalars_h),from_index_dual(n_vectors_h), &
                              to_index_dual(n_vectors_h),from_index(n_vectors_h),to_index(n_vectors_h)
-    real(wp), intent(in)  :: lat_c(n_scalars_h),lon_c(n_scalars_h),area_dual(n_dual_vectors), &
+    real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells),area_dual(n_dual_vectors), &
                              z_vector(n_vectors),lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
                              lat_e(n_vectors_h),lon_e(n_vectors_h)
     integer,  intent(out) :: vorticity_indices_rhombi(4*n_vectors_h),density_to_rhombus_indices(4*n_vectors_h)
@@ -183,7 +183,7 @@ module mo_rhombus_averaging
                                           lon_c_dual(1+dual_scalar_h_index_2), &
                                           lat_e(1+vector_h_index_2), &
                                           lon_e(1+vector_h_index_2))
-          density_to_rhombus_weights(4*(ji-1)+jk) = (radius + z_vector(n_scalars_h+1))**2 &
+          density_to_rhombus_weights(4*(ji-1)+jk) = (radius + z_vector(n_cells+1))**2 &
                                                  *(triangle_1+triangle_2+triangle_3+triangle_4)/rhombus_area
         else
           ! In this case, only two triangles need to be summed up.
@@ -236,7 +236,7 @@ module mo_rhombus_averaging
                                           lon_c_dual(1+dual_scalar_h_index_1), &
                                           lat_e(1+vector_h_index_2), &
                                           lon_e(1+vector_h_index_2))
-          density_to_rhombus_weights(4*(ji-1)+jk) = (radius + z_vector(n_scalars_h+1))**2*(triangle_1+triangle_2)/rhombus_area
+          density_to_rhombus_weights(4*(ji-1)+jk) = (radius + z_vector(n_cells+1))**2*(triangle_1+triangle_2)/rhombus_area
         endif
       enddo
       if (first_case_counter/=2) then

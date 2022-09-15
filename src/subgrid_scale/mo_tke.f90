@@ -6,7 +6,7 @@ module mo_tke
   ! In this module, turbulence-related quantities are computed.
 
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,           only: n_scalars,n_vectors,n_vectors_h,n_scalars_h
+  use mo_grid_nml,           only: n_scalars,n_vectors,n_vectors_h
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
   use mo_constants,          only: M_PI
   use mo_grid_setup,         only: dtime

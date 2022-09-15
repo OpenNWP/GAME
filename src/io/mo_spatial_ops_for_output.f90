@@ -6,7 +6,7 @@ module mo_spatial_ops_for_output
   ! In this module, those spatial operators are collected which are only needed for the output.
   
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,           only: n_scalars_h,n_scalars,n_vectors_h,n_layers,n_vectors_per_layer,n_vectors, &
+  use mo_grid_nml,           only: n_cells,n_scalars,n_vectors_h,n_layers,n_vectors_per_layer,n_vectors, &
                                    n_pentagons,n_h_vectors
   use mo_gradient_operators, only: grad
   use mo_geodesy,            only: passive_turn
@@ -34,7 +34,7 @@ module mo_spatial_ops_for_output
     ! loop over the maximum of ten edges 
     do ji=1,10
       tangential_wind = tangential_wind + grid%trsk_weights(10*h_index+ji) &
-      *in_field(n_scalars_h + layer_index*n_vectors_per_layer + 1+grid%trsk_indices(10*h_index+ji))
+      *in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%trsk_indices(10*h_index+ji))
     enddo
     
   end function tangential_wind
@@ -54,15 +54,15 @@ module mo_spatial_ops_for_output
     
     !!$omp parallel do private (ji,jk,layer_index,h_index,tangential_wind_value)
     do ji=1,n_scalars
-      layer_index = (ji-1)/n_scalars_h
-      h_index = ji - layer_index*n_scalars_h
+      layer_index = (ji-1)/n_cells
+      h_index = ji - layer_index*n_cells
       out_field(ji) = 0._wp
       do jk=1,6
         tangential_wind_value = tangential_wind(in_field_2,layer_index, &
                                 grid%adjacent_vector_indices_h(6*(h_index-1)+jk),grid)
         out_field(ji) = out_field(ji) &
         + grid%inner_product_weights(8*(ji-1)+jk) &
-        *in_field_1(n_scalars_h+layer_index*n_vectors_per_layer+1+grid%adjacent_vector_indices_h(6*(h_index-1)+jk)) &
+        *in_field_1(n_cells+layer_index*n_vectors_per_layer+1+grid%adjacent_vector_indices_h(6*(h_index-1)+jk)) &
         *tangential_wind_value
       enddo
       out_field(ji) = out_field(ji) + grid%inner_product_weights(8*(ji-1)+7)*in_field_1(h_index+ &
@@ -96,32 +96,32 @@ module mo_spatial_ops_for_output
       layer_index = (ji-1)/n_vectors_per_layer
       h_index = ji - layer_index*n_vectors_per_layer
       ! diagnozing the horizontal vorticity at the primal horizontal vector points (they are TANGENTIAL! so it is not a real vector field, but a modified one)
-      if (h_index>=n_scalars_h+1) then
+      if (h_index>=n_cells+1) then
         ! determining the upper and lower weights
         layer_thickness = &
-        0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%from_index(h_index-n_scalars_h)) &
-        + grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%to_index(h_index-n_scalars_h))) &
-        - 0.5_wp*(grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%from_index(h_index-n_scalars_h)) &
-        + grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%to_index(h_index-n_scalars_h)))
+        0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%from_index(h_index-n_cells)) &
+        + grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%to_index(h_index-n_cells))) &
+        - 0.5_wp*(grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%from_index(h_index-n_cells)) &
+        + grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%to_index(h_index-n_cells)))
         if (layer_index==0) then
           upper_weight = &
-          (0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%from_index(h_index-n_scalars_h)) &
-          + grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%to_index(h_index-n_scalars_h))) &
+          (0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%from_index(h_index-n_cells)) &
+          + grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%to_index(h_index-n_cells))) &
           - grid%z_vector(ji))/layer_thickness
         else
           upper_weight = 0.5_wp*(grid%z_vector(ji-n_vectors_per_layer) - grid%z_vector(ji))/layer_thickness
         endif
         if (layer_index==n_layers - 1) then
           lower_weight = (grid%z_vector(ji) &
-          - 0.5_wp*(grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%from_index(h_index-n_scalars_h)) &
-          + grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%to_index(h_index-n_scalars_h))))/layer_thickness
+          - 0.5_wp*(grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%from_index(h_index-n_cells)) &
+          + grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%to_index(h_index-n_cells))))/layer_thickness
         else
            lower_weight = 0.5_wp*(grid%z_vector(ji) - grid%z_vector(ji+n_vectors_per_layer))/layer_thickness
         endif
         ! determining the horizontal potential vorticity at the primal vector point
         pot_vort_as_tangential_vector_field(ji) = &
-        upper_weight*diag%pot_vort(layer_index*2*n_vectors_h + h_index-n_scalars_h) &
-        + lower_weight*diag%pot_vort((layer_index+1)*2*n_vectors_h + h_index-n_scalars_h)
+        upper_weight*diag%pot_vort(layer_index*2*n_vectors_h + h_index-n_cells) &
+        + lower_weight*diag%pot_vort((layer_index+1)*2*n_vectors_h + h_index-n_cells)
       ! diagnozing the vertical component of the potential vorticity at the vertical vector points
       else
         ! initializing the value with zero
@@ -137,7 +137,7 @@ module mo_spatial_ops_for_output
         ! lowest layer
         elseif (layer_index==n_layers) then
           do jk=1,6
-            scalar_index = (n_layers - 1)*n_scalars_h + h_index
+            scalar_index = (n_layers - 1)*n_cells + h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
             + 0.5_wp*grid%inner_product_weights(8*(scalar_index-1)+jk) &
             *diag%pot_vort(n_vectors_h + (layer_index - 1)*2*n_vectors_h + grid%adjacent_vector_indices_h(6*(h_index-1)+jk))
@@ -146,14 +146,14 @@ module mo_spatial_ops_for_output
         else
           ! contribution of upper cell
           do jk=1,6
-            scalar_index = (layer_index - 1)*n_scalars_h + h_index
+            scalar_index = (layer_index - 1)*n_cells + h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
             + 0.25_wp*grid%inner_product_weights(8*(scalar_index-1)+jk) &
             *diag%pot_vort(n_vectors_h + (layer_index - 1)*2*n_vectors_h + grid%adjacent_vector_indices_h(6*(h_index-1)+jk))
           enddo
           ! contribution of lower cell
           do jk=1,6
-            scalar_index = layer_index*n_scalars_h + h_index
+            scalar_index = layer_index*n_cells + h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
             + 0.25_wp*grid%inner_product_weights(8*(scalar_index-1)+jk) &
             *diag%pot_vort(n_vectors_h + layer_index*2*n_vectors_h + grid%adjacent_vector_indices_h(6*(h_index-1)+jk))
@@ -177,15 +177,15 @@ module mo_spatial_ops_for_output
     
     ! This subroutine averages a horizontal vector field (defined in the lowest layer) from edges to centers.
     
-    real(wp),     intent(in)  :: in_field(n_vectors_h)  ! the field to average from edges to cells
-    real(wp),     intent(out) :: out_field(n_scalars_h) ! the result field
-    type(t_grid), intent(in)  :: grid                   ! grid quantities
+    real(wp),     intent(in)  :: in_field(n_vectors_h) ! the field to average from edges to cells
+    real(wp),     intent(out) :: out_field(n_cells)    ! the result field
+    type(t_grid), intent(in)  :: grid                  ! grid quantities
     
     ! local variables    
     integer :: ji,jk,n_edges
 
     !$omp parallel do private(ji,jk,n_edges)
-    do ji=1,n_scalars_h
+    do ji=1,n_cells
       ! initializing the result with zero
       out_field(ji) = 0._wp
       ! determining the number of edges of the cell at hand
@@ -196,7 +196,7 @@ module mo_spatial_ops_for_output
       ! loop over all edges of the respective cell
       do jk=1,n_edges
         out_field(ji) = out_field(ji) + 0.5_wp &
-        *grid%inner_product_weights(8*(n_scalars-n_scalars_h+ji-1) + jk) &
+        *grid%inner_product_weights(8*(n_scalars-n_cells+ji-1) + jk) &
         *in_field(1+grid%adjacent_vector_indices_h(6*(ji-1)+jk))
       enddo
     enddo
@@ -220,13 +220,13 @@ module mo_spatial_ops_for_output
     do ji=1,n_h_vectors
       layer_index = (ji-1)/n_vectors_h
       h_index = ji - layer_index*n_vectors_h
-      wind_1 = in_field(n_scalars_h+layer_index*n_vectors_per_layer+h_index)
+      wind_1 = in_field(n_cells+layer_index*n_vectors_per_layer+h_index)
       ! finding the tangential component
       wind_2 = tangential_wind(in_field,layer_index,h_index-1,grid)
       ! turning the Cartesian coordinate system to obtain u and v
       call passive_turn(wind_1,wind_2,-grid%direction(h_index), &
-      out_field_u(n_scalars_h+layer_index*n_vectors_per_layer+h_index), &
-      out_field_v(n_scalars_h+layer_index*n_vectors_per_layer+h_index))
+      out_field_u(n_cells+layer_index*n_vectors_per_layer+h_index), &
+      out_field_v(n_cells+layer_index*n_vectors_per_layer+h_index))
     enddo
     !$omp end parallel do
     
@@ -245,8 +245,8 @@ module mo_spatial_ops_for_output
     
     !$omp parallel do private (ji,jk,layer_index,h_index,n_edges)
     do ji=1,n_scalars
-      layer_index = (ji-1)/n_scalars_h
-      h_index = ji - layer_index*n_scalars_h
+      layer_index = (ji-1)/n_cells
+      h_index = ji - layer_index*n_cells
       ! initializing the result with zero
       out_field(ji) = 0._wp
       ! determining the number of edges of the cell at hand
@@ -258,7 +258,7 @@ module mo_spatial_ops_for_output
       do jk=1,n_edges
         out_field(ji) = out_field(ji) + 0.5_wp &
         *grid%inner_product_weights(8*(ji-1) + jk) &
-        *in_field(n_scalars_h + layer_index*n_vectors_per_layer + 1+grid%adjacent_vector_indices_h(6*(h_index-1) + jk))
+        *in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_vector_indices_h(6*(h_index-1) + jk))
       enddo
     enddo
     !$omp end parallel do
@@ -277,8 +277,8 @@ module mo_spatial_ops_for_output
     
     !$omp parallel do private (ji,jk,layer_index,h_index,n_edges)
     do ji=1,n_scalars
-      layer_index = (ji-1)/n_scalars_h
-      h_index = ji - layer_index*n_scalars_h
+      layer_index = (ji-1)/n_cells
+      h_index = ji - layer_index*n_cells
       ! initializing the result with zero
       out_field(ji) = 0._wp
       ! determining the number of edges of the cell at hand

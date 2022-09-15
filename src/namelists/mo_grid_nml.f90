@@ -14,7 +14,7 @@ module mo_grid_nml
   integer  :: oro_id                   ! orography ID
   integer  :: n_pentagons              ! number of pentagons
   integer  :: n_hexagons               ! number of hexagons
-  integer  :: n_scalars_h              ! number of columns
+  integer  :: n_cells              ! number of columns
   integer  :: n_vectors_h              ! number of horizontal vectors per layer
   integer  :: n_h_vectors              ! number of horizontal vectors
   integer  :: n_scalars                ! number of scalars
@@ -65,13 +65,13 @@ module mo_grid_nml
     ! depend on the resolution
     n_pentagons = 12
     n_hexagons = 10*(2**(2*res_id)-1)
-    n_scalars_h = n_pentagons+n_hexagons
-    n_scalars = n_layers*n_scalars_h
+    n_cells = n_pentagons+n_hexagons
+    n_scalars = n_layers*n_cells
     n_vectors_h = (5*n_pentagons/2 + 6/2*n_hexagons)
     n_h_vectors = n_layers*n_vectors_h
     n_levels = n_layers+1
-    n_v_vectors = n_levels*n_scalars_h
-    n_vectors_per_layer = n_vectors_h+n_scalars_h
+    n_v_vectors = n_levels*n_cells
+    n_vectors_per_layer = n_vectors_h+n_cells
     n_vectors = n_h_vectors+n_v_vectors
     n_basic_triangles = 20
     n_basic_edges = 3*n_basic_triangles/2
