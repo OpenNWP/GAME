@@ -165,8 +165,8 @@ module mo_momentum_diff_diss
       do layer_index=0,n_layers-1
         ji = layer_index*n_cells + h_index
         diag%scalar_field_placeholder(ji) = &
-        grid%inner_product_weights(8*(ji-1)+7)*state%wind(h_index + layer_index*n_vectors_per_layer) &
-        + grid%inner_product_weights(8*(ji-1)+8)*state%wind(h_index + (layer_index+1)*n_vectors_per_layer)
+        grid%inner_product_weights(h_index,layer_index+1,7)*state%wind(h_index + layer_index*n_vectors_per_layer) &
+        + grid%inner_product_weights(h_index,layer_index+1,8)*state%wind(h_index + (layer_index+1)*n_vectors_per_layer)
       enddo
     enddo
     !$omp end parallel do

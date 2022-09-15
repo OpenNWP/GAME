@@ -323,8 +323,10 @@ module mo_effective_diff_coeffs
         = diag%vector_field_placeholder(n_vectors-n_vectors_per_layer-n_cells+h_index)
       else
         diag%n_squared(ji) &
-        = grid%inner_product_weights(8*(ji-1)+7)*diag%vector_field_placeholder(h_index+layer_index*n_vectors_per_layer) &
-        + grid%inner_product_weights(8*(ji-1)+8)*diag%vector_field_placeholder(h_index+(layer_index+1)*n_vectors_per_layer)
+        = grid%inner_product_weights(h_index,layer_index+1,7) &
+        *diag%vector_field_placeholder(h_index+layer_index*n_vectors_per_layer) &
+        + grid%inner_product_weights(h_index,layer_index+1,8) &
+        *diag%vector_field_placeholder(h_index+(layer_index+1)*n_vectors_per_layer)
       endif
     enddo
     !$omp end parallel do

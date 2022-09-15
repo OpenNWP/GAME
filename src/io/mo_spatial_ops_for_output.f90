@@ -52,7 +52,7 @@ module mo_spatial_ops_for_output
     integer  :: ji,jk,layer_index,h_index
     real(wp) :: tangential_wind_value
     
-    !!$omp parallel do private (ji,jk,layer_index,h_index,tangential_wind_value)
+    !$omp parallel do private(ji,jk,layer_index,h_index,tangential_wind_value)
     do ji=1,n_scalars
       layer_index = (ji-1)/n_cells
       h_index = ji - layer_index*n_cells
@@ -61,16 +61,16 @@ module mo_spatial_ops_for_output
         tangential_wind_value = tangential_wind(in_field_2,layer_index, &
                                 grid%adjacent_edges(h_index,jk),grid)
         out_field(ji) = out_field(ji) &
-        + grid%inner_product_weights(8*(ji-1)+jk) &
+        + grid%inner_product_weights(h_index,layer_index+1,jk) &
         *in_field_1(n_cells+layer_index*n_vectors_per_layer+1+grid%adjacent_edges(h_index,jk)) &
         *tangential_wind_value
       enddo
-      out_field(ji) = out_field(ji) + grid%inner_product_weights(8*(ji-1)+7)*in_field_1(h_index+ &
+      out_field(ji) = out_field(ji) + grid%inner_product_weights(h_index,layer_index+1,7)*in_field_1(h_index+ &
                      layer_index*n_vectors_per_layer)*in_field_2(h_index+layer_index*n_vectors_per_layer)
-      out_field(ji) = out_field(ji) + grid%inner_product_weights(8*(ji-1)+8)*in_field_1(h_index+ &
+      out_field(ji) = out_field(ji) + grid%inner_product_weights(h_index,layer_index+1,8)*in_field_1(h_index+ &
                       (layer_index+1)*n_vectors_per_layer)*in_field_2(h_index+(layer_index+1)*n_vectors_per_layer)
     enddo
-    !!$omp end parallel do
+    !$omp end parallel do
     
   end subroutine inner_product_tangential
 
@@ -131,7 +131,7 @@ module mo_spatial_ops_for_output
           do jk=1,6
             scalar_index = h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
-            + 0.5_wp*grid%inner_product_weights(8*(scalar_index-1)+jk) &
+            + 0.5_wp*grid%inner_product_weights(h_index,layer_index+1,jk) &
             *diag%pot_vort(n_edges + layer_index*2*n_edges + grid%adjacent_edges(h_index,jk))
           enddo
         ! lowest layer
@@ -139,7 +139,7 @@ module mo_spatial_ops_for_output
           do jk=1,6
             scalar_index = (n_layers - 1)*n_cells + h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
-            + 0.5_wp*grid%inner_product_weights(8*(scalar_index-1)+jk) &
+            + 0.5_wp*grid%inner_product_weights(h_index,layer_index+1,jk) &
             *diag%pot_vort(n_edges + (layer_index - 1)*2*n_edges + grid%adjacent_edges(h_index,jk))
           enddo
         ! inner domain
@@ -148,14 +148,14 @@ module mo_spatial_ops_for_output
           do jk=1,6
             scalar_index = (layer_index - 1)*n_cells + h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
-            + 0.25_wp*grid%inner_product_weights(8*(scalar_index-1)+jk) &
+            + 0.25_wp*grid%inner_product_weights(h_index,layer_index+1,jk) &
             *diag%pot_vort(n_edges + (layer_index - 1)*2*n_edges + grid%adjacent_edges(h_index,jk))
           enddo
           ! contribution of lower cell
           do jk=1,6
             scalar_index = layer_index*n_cells + h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
-            + 0.25_wp*grid%inner_product_weights(8*(scalar_index-1)+jk) &
+            + 0.25_wp*grid%inner_product_weights(h_index,layer_index+1,jk) &
             *diag%pot_vort(n_edges + layer_index*2*n_edges + grid%adjacent_edges(h_index,jk))
           enddo
         endif
@@ -196,7 +196,7 @@ module mo_spatial_ops_for_output
       ! loop over all edges of the respective cell
       do jk=1,n_edges
         out_field(ji) = out_field(ji) + 0.5_wp &
-        *grid%inner_product_weights(8*(n_scalars-n_cells+ji-1) + jk) &
+        *grid%inner_product_weights(ji,n_layers,jk) &
         *in_field(1+grid%adjacent_edges(ji,jk))
       enddo
     enddo
@@ -241,23 +241,23 @@ module mo_spatial_ops_for_output
     type(t_grid),  intent(in)  :: grid           ! grid quantities
     
     ! local variables
-    integer :: ji,jk,layer_index,h_index,n_edges
+    integer :: ji,jk,layer_index,h_index,n_edges_of_cell
     
-    !$omp parallel do private (ji,jk,layer_index,h_index,n_edges)
+    !$omp parallel do private (ji,jk,layer_index,h_index,n_edges_of_cell)
     do ji=1,n_scalars
       layer_index = (ji-1)/n_cells
       h_index = ji - layer_index*n_cells
       ! initializing the result with zero
       out_field(ji) = 0._wp
       ! determining the number of edges of the cell at hand
-      n_edges = 6
+      n_edges_of_cell = 6
       if (h_index<=n_pentagons) then
-        n_edges = 5
+        n_edges_of_cell = 5
       endif
       ! loop over all cell edges
-      do jk=1,n_edges
+      do jk=1,n_edges_of_cell
         out_field(ji) = out_field(ji) + 0.5_wp &
-        *grid%inner_product_weights(8*(ji-1) + jk) &
+        *grid%inner_product_weights(h_index,layer_index+1,jk) &
         *in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(h_index,jk))
       enddo
     enddo
@@ -289,7 +289,7 @@ module mo_spatial_ops_for_output
       ! loop over all edges of the respective cell
       do jk=1,n_edges
         out_field(ji) = out_field(ji) + 0.5_wp &
-        *grid%inner_product_weights(8*(ji-1) + jk) &
+        *grid%inner_product_weights(h_index,layer_index+1,jk) &
         *in_field(n_edges + layer_index*2*n_edges + 1+grid%adjacent_edges(h_index,jk))
       enddo
     enddo

@@ -17,7 +17,7 @@ module mo_inner_product
 
     ! This subroutine computes the geometrical weights for computing the inner product.
 
-    real(wp), intent(out) :: inner_product_weights(8*n_scalars)
+    real(wp), intent(out) :: inner_product_weights(n_cells,n_layers,8)
     real(wp), intent(in)  :: normal_distance(n_vectors),volume(n_scalars),area(n_vectors), &
                              z_scalar(n_scalars),z_vector(n_vectors)
     integer,  intent(in)  :: adjacent_edges(n_cells,6)
@@ -32,13 +32,13 @@ module mo_inner_product
       h_index = ji-layer_index*n_cells
       do jk=1,6
         if (jk<6 .or. h_index>n_pentagons) then
-          inner_product_weights(8*(ji-1)+jk) = area(n_cells+layer_index*n_vectors_per_layer &
+          inner_product_weights(h_index,1+layer_index,jk) = area(n_cells+layer_index*n_vectors_per_layer &
                                                +1+adjacent_edges(h_index,jk))
-          inner_product_weights(8*(ji-1)+jk) = inner_product_weights(8*(ji-1)+jk)*normal_distance(n_cells &
-                                               +layer_index*n_vectors_per_layer+1+adjacent_edges(h_index,jk))
-          inner_product_weights(8*(ji-1)+jk) = inner_product_weights(8*(ji-1)+jk)/(2._wp*volume(ji))
+          inner_product_weights(h_index,1+layer_index,jk) = inner_product_weights(h_index,1+layer_index,jk) &
+                                      *normal_distance(n_cells+layer_index*n_vectors_per_layer+1+adjacent_edges(h_index,jk))
+          inner_product_weights(h_index,1+layer_index,jk) = inner_product_weights(h_index,1+layer_index,jk)/(2._wp*volume(ji))
         else
-          inner_product_weights(8*(ji-1)+jk) = 0._wp
+          inner_product_weights(h_index,1+layer_index,jk) = 0._wp
         endif
       enddo
       ! upper w
@@ -47,7 +47,7 @@ module mo_inner_product
       else
         delta_z = z_scalar(ji-n_cells)-z_scalar(ji)
       endif
-      inner_product_weights(8*(ji-1)+7) = area(h_index+layer_index*n_vectors_per_layer)*delta_z/(2._wp*volume(ji))
+      inner_product_weights(h_index,1+layer_index,7) = area(h_index+layer_index*n_vectors_per_layer)*delta_z/(2._wp*volume(ji))
       ! lower w
       if (layer_index==n_layers-1) then
         delta_z = 2._wp*(z_scalar(ji)-z_vector(n_layers*n_vectors_per_layer+h_index))
@@ -55,7 +55,7 @@ module mo_inner_product
         delta_z = z_scalar(ji)-z_scalar(ji+n_cells)
       endif
       
-      inner_product_weights(8*(ji-1)+8) = area(h_index+(layer_index+1)*n_vectors_per_layer)*delta_z/(2._wp*volume(ji))
+      inner_product_weights(h_index,1+layer_index,8) = area(h_index+(layer_index+1)*n_vectors_per_layer)*delta_z/(2._wp*volume(ji))
     
     enddo
     !$omp end parallel do

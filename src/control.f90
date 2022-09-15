@@ -96,7 +96,7 @@ program control
   allocate(grid%density_to_rhombi_indices(4*n_edges))
   allocate(grid%lat_c(n_cells))
   allocate(grid%lon_c(n_cells))
-  allocate(grid%inner_product_weights(8*n_scalars))
+  allocate(grid%inner_product_weights(n_cells,n_layers,8))
   allocate(grid%direction(n_edges))
   allocate(grid%density_to_rhombi_weights(4*n_edges))
   allocate(grid%trsk_weights(10*n_edges))

@@ -44,7 +44,7 @@ module mo_definitions
     integer,  allocatable :: density_to_rhombi_indices(:)
     real(wp), allocatable :: lat_c(:)
     real(wp), allocatable :: lon_c(:)
-    real(wp), allocatable :: inner_product_weights(:)
+    real(wp), allocatable :: inner_product_weights(:,:,:)
     real(wp), allocatable :: direction(:)
     real(wp), allocatable :: density_to_rhombi_weights(:)
     real(wp), allocatable :: trsk_weights(:)

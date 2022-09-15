@@ -33,9 +33,9 @@ program control
  
   integer               :: n_lloyd_read_from_file, &
                            lat_c_id,lon_c_id,direction_id,lat_e_id,lon_e_id, &
-                           lat_c_dual_id,lon_c_dual_id,dimid6,dimids_vector2(2), &
+                           lat_c_dual_id,lon_c_dual_id,dimid6,dimids_vector_2(2),dimids_vector_3(3), &
                            z_scalar_id,z_vector_id,normal_distance_id,volume_id,area_id,trsk_weights_id,z_vector_dual_id, &
-                           normal_distance_dual_id,area_dual_id,f_vec_id,to_cell_id, &
+                           normal_distance_dual_id,area_dual_id,f_vec_id,to_cell_id,layer_dimid,dimid8, &
                            from_cell_id,to_cell_dual_id,from_cell_dual_id,adjacent_edges_id,trsk_indices_id, &
                            trsk_modified_curl_indices_id,adjacent_signs_id, &
                            vorticity_signs_triangles_id,f_vec_dimid,scalar_dimid,cell_dimid,scalar_dual_h_dimid, &
@@ -58,7 +58,7 @@ program control
                            area(:),trsk_weights(:),lat_c_dual(:),lon_c_dual(:),z_scalar_dual(:), &
                            z_vector_dual(:), &
                            normal_distance_dual(:),direction_dual(:),area_dual(:),f_vec(:),triangle_face_unit_sphere(:), &
-                           pent_hex_face_unity_sphere(:),rel_on_line_dual(:),inner_product_weights(:), &
+                           pent_hex_face_unity_sphere(:),rel_on_line_dual(:),inner_product_weights(:,:,:), &
                            density_to_rhombi_weights(:), &
                            interpol_weights(:),exner_bg(:),theta_v_bg(:),oro(:),roughness_length(:),sfc_albedo(:), &
                            sfc_rho_c(:),t_conductivity(:)
@@ -105,7 +105,7 @@ program control
   allocate(triangle_face_unit_sphere(n_dual_scalars_h))
   allocate(pent_hex_face_unity_sphere(n_cells))
   allocate(rel_on_line_dual(n_edges))
-  allocate(inner_product_weights(8*n_scalars))
+  allocate(inner_product_weights(n_cells,n_layers,8))
   allocate(density_to_rhombi_weights(4*n_edges))
   allocate(interpol_weights(5*n_latlon_io_points))
   allocate(exner_bg(n_scalars))
@@ -288,6 +288,8 @@ program control
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_2_index",2*n_scalars,scalar_2_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"cell_index",n_cells,cell_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"index_6",6,dimid6))
+  call nc_check(nf90_def_dim(ncid_g_prop,"index_8",8,dimid8))
+  call nc_check(nf90_def_dim(ncid_g_prop,"layer_index",n_layers,layer_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_dual_h_index",n_dual_scalars_h,scalar_dual_h_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_dual_h_3_index",3*n_dual_scalars_h,scalar_dual_h_dimid_3))
   call nc_check(nf90_def_dim(ncid_g_prop,"vector_index",n_vectors,vector_dimid))
@@ -341,20 +343,23 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"direction",NF90_REAL,edge_dimid,direction_id))
   call nc_check(nf90_def_var(ncid_g_prop,"lat_e",NF90_REAL,edge_dimid,lat_e_id))
   call nc_check(nf90_def_var(ncid_g_prop,"lon_e",NF90_REAL,edge_dimid,lon_e_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"inner_product_weights",NF90_REAL,scalar_8_dimid,inner_product_weights_id))
+  dimids_vector_3(1) = cell_dimid
+  dimids_vector_3(2) = layer_dimid
+  dimids_vector_3(3) = dimid8
+  call nc_check(nf90_def_var(ncid_g_prop,"inner_product_weights",NF90_REAL,dimids_vector_3,inner_product_weights_id))
   call nc_check(nf90_def_var(ncid_g_prop,"density_to_rhombi_weights",NF90_REAL,edge_dimid_4,density_to_rhombi_weights_id))
   call nc_check(nf90_def_var(ncid_g_prop,"interpol_weights",NF90_REAL,latlon_dimid_5,interpol_weights_id))
   call nc_check(nf90_def_var(ncid_g_prop,"from_cell",NF90_INT,edge_dimid,from_cell_id))
   call nc_check(nf90_def_var(ncid_g_prop,"to_cell",NF90_INT,edge_dimid,to_cell_id))
   call nc_check(nf90_def_var(ncid_g_prop,"from_cell_dual",NF90_INT,edge_dimid,from_cell_dual_id))
   call nc_check(nf90_def_var(ncid_g_prop,"to_cell_dual",NF90_INT,edge_dimid,to_cell_dual_id))
-  dimids_vector2(1) = cell_dimid
-  dimids_vector2(2) = dimid6
-  call nc_check(nf90_def_var(ncid_g_prop,"adjacent_edges",NF90_INT,dimids_vector2,adjacent_edges_id))
+  dimids_vector_2(1) = cell_dimid
+  dimids_vector_2(2) = dimid6
+  call nc_check(nf90_def_var(ncid_g_prop,"adjacent_edges",NF90_INT,dimids_vector_2,adjacent_edges_id))
   call nc_check(nf90_def_var(ncid_g_prop,"interpol_indices",NF90_INT,latlon_dimid_5,interpol_indices_id))
   call nc_check(nf90_def_var(ncid_g_prop,"trsk_indices",NF90_INT,edge_dimid_10,trsk_indices_id))
   call nc_check(nf90_def_var(ncid_g_prop,"trsk_modified_curl_indices",NF90_INT,edge_dimid_10,trsk_modified_curl_indices_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"adjacent_signs",NF90_INT,dimids_vector2,adjacent_signs_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"adjacent_signs",NF90_INT,dimids_vector_2,adjacent_signs_id))
   call nc_check(nf90_def_var(ncid_g_prop,"vorticity_signs_triangles",NF90_INT,scalar_dual_h_dimid_3,vorticity_signs_triangles_id))
   call nc_check(nf90_def_var(ncid_g_prop,"vorticity_indices_triangles", &
                              NF90_INT,scalar_dual_h_dimid_3,vorticity_indices_triangles_id))

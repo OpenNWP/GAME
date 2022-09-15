@@ -96,23 +96,23 @@ module mo_vorticity_flux
           ! effect of layer above
           diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
           - 0.5_wp &
-          *grid%inner_product_weights(8*(layer_index*n_cells + grid%from_cell(h_index_shifted)) + 7) &
+          *grid%inner_product_weights(h_index_shifted,layer_index+1,7) &
           *diag%flux_density(layer_index*n_vectors_per_layer + 1+grid%from_cell(h_index_shifted)) &
           *diag%pot_vort(h_index_shifted + layer_index*2*n_edges)
           diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
           - 0.5_wp &
-          *grid%inner_product_weights(8*(layer_index*n_cells + grid%to_cell(h_index_shifted)) + 7) &
+          *grid%inner_product_weights(h_index_shifted,layer_index+1,7) &
           *diag%flux_density(layer_index*n_vectors_per_layer + 1+grid%to_cell(h_index_shifted)) &
           *diag%pot_vort(h_index_shifted + layer_index*2*n_edges)
             ! effect of layer below
           diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
           - 0.5_wp &
-          *grid%inner_product_weights(8*(layer_index*n_cells + grid%from_cell(h_index_shifted)) + 8) &
+          *grid%inner_product_weights(h_index_shifted,layer_index+1,8) &
           *diag%flux_density((layer_index + 1)*n_vectors_per_layer + 1+grid%from_cell(h_index_shifted)) &
           *diag%pot_vort(h_index_shifted + (layer_index + 1)*2*n_edges)
           diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
           - 0.5_wp &
-          *grid%inner_product_weights(8*(layer_index*n_cells + grid%to_cell(h_index_shifted)) + 8) &
+          *grid%inner_product_weights(h_index_shifted,layer_index+1,8) &
           *diag%flux_density((layer_index + 1)*n_vectors_per_layer + 1+grid%to_cell(h_index_shifted)) &
           *diag%pot_vort(h_index_shifted + (layer_index + 1)*2*n_edges)
         ! Calculating the vertical component of the vorticity flux term.
@@ -132,11 +132,11 @@ module mo_vorticity_flux
           if (layer_index==0 .or. layer_index==n_layers) then
             vert_weight = 1._wp
           endif
-          if (layer_index >= 1) then
+          if (layer_index>=1) then
             do jk=1,n_edges_of_cell
               diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
               + vert_weight &
-              *grid%inner_product_weights(8*((layer_index - 1)*n_cells + h_index-1)+jk) &
+              *grid%inner_product_weights(h_index,layer_index+1,jk) &
               *diag%flux_density(n_cells+(layer_index-1)*n_vectors_per_layer+ &
                                  1+grid%adjacent_edges(h_index,jk)) &
               *diag%pot_vort(layer_index*2*n_edges+1+grid%adjacent_edges(h_index,jk))
@@ -146,7 +146,7 @@ module mo_vorticity_flux
             do jk=1,n_edges_of_cell
               diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
               + vert_weight &
-              *grid%inner_product_weights(8*(layer_index*n_cells + h_index-1)+jk) &
+              *grid%inner_product_weights(h_index,layer_index+1,jk) &
               *diag%flux_density(n_cells + layer_index*n_vectors_per_layer+ &
                                       1+grid%adjacent_edges(h_index,jk)) &
               *diag%pot_vort(layer_index*2*n_edges+1+grid%adjacent_edges(h_index,jk))
