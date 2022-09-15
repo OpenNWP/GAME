@@ -8,7 +8,7 @@ module mo_momentum_diff_diss
   use mo_definitions,           only: wp,t_grid,t_state,t_diag
   use mo_constants,             only: EPSILON_SECURITY
   use mo_grid_nml,              only: n_scalars,n_vectors,n_cells,n_h_vectors, &
-                                      n_dual_vectors_per_layer,n_dual_scalars_h,n_dual_vectors,n_vectors_h, &
+                                      n_dual_vectors_per_layer,n_dual_scalars_h,n_dual_vectors,n_edges, &
                                       n_layers,n_vectors_per_layer,n_dual_v_vectors,n_v_vectors
   use mo_derived,               only: density_total
   use mo_constituents_nml,      only: n_constituents
@@ -52,13 +52,13 @@ module mo_momentum_diff_diss
     
     ! off-diagonal component
     !$omp parallel do private(h_index,layer_index)
-    do h_index=1,n_vectors_h
+    do h_index=1,n_edges
       do layer_index=0,n_layers-1
         ! multiplying the diffusion coefficient by the relative vorticity
         ! rel_vort is a misuse of name
-        diag%rel_vort(n_vectors_h + 2*layer_index*n_vectors_h + h_index) &
+        diag%rel_vort(n_edges + 2*layer_index*n_edges + h_index) &
         = diag%viscosity_rhombi(n_cells + layer_index*n_vectors_per_layer + h_index) &
-        *diag%rel_vort(n_vectors_h + 2*layer_index*n_vectors_h + h_index)
+        *diag%rel_vort(n_edges + 2*layer_index*n_edges + h_index)
       enddo
     enddo
     !$omp end parallel do
@@ -72,7 +72,7 @@ module mo_momentum_diff_diss
     
     ! adding up the two components of the momentum diffusion acceleration and dividing by the density at the edge
     !$omp parallel do private(h_index,layer_index,vector_index,scalar_index_from,scalar_index_to)
-    do h_index=1,n_vectors_h
+    do h_index=1,n_edges
       do layer_index=0,n_layers-1
         vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
         scalar_index_from = layer_index*n_cells + grid%from_index(h_index)
@@ -102,9 +102,9 @@ module mo_momentum_diff_diss
     ! ---------------------------------------------
     ! calculating the vertical gradient of the horizontal velocity at half levels
     !$omp parallel do private(ji,layer_index,h_index,vector_index)
-    do ji=n_vectors_h+1,n_h_vectors+n_vectors_h
-      layer_index = (ji-1)/n_vectors_h
-      h_index = ji - layer_index*n_vectors_h
+    do ji=n_edges+1,n_h_vectors+n_edges
+      layer_index = (ji-1)/n_edges
+      h_index = ji - layer_index*n_edges
       vector_index = n_cells + h_index + (layer_index-1)*n_vectors_per_layer
       ! at the surface
       if (layer_index==n_layers) then
@@ -118,7 +118,7 @@ module mo_momentum_diff_diss
       endif
       ! the second derivative is assumed to vanish at the TOA
       if (layer_index==1) then
-        diag%dv_hdz(ji-n_vectors_h) = diag%dv_hdz(ji)
+        diag%dv_hdz(ji-n_edges) = diag%dv_hdz(ji)
       endif
     enddo
    
@@ -128,8 +128,8 @@ module mo_momentum_diff_diss
     ! now, the second derivative needs to be taken
     !$omp parallel do private(ji,layer_index,h_index,vector_index,z_upper,z_lower,delta_z)
     do ji=1,n_h_vectors
-      layer_index = (ji-1)/n_vectors_h
-      h_index = ji - layer_index*n_vectors_h
+      layer_index = (ji-1)/n_edges
+      h_index = ji - layer_index*n_edges
       vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
       z_upper = 0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%from_index(h_index)) &
       + grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%to_index(h_index)))
@@ -137,7 +137,7 @@ module mo_momentum_diff_diss
       + grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%to_index(h_index)))
       delta_z = z_upper - z_lower
       diag%friction_acc(vector_index) = diag%friction_acc(vector_index) &
-      + (diag%vert_hor_viscosity(ji)*diag%dv_hdz(ji)-diag%vert_hor_viscosity(ji+n_vectors_h)*diag%dv_hdz(ji+n_vectors_h))/delta_z &
+      + (diag%vert_hor_viscosity(ji)*diag%dv_hdz(ji)-diag%vert_hor_viscosity(ji+n_edges)*diag%dv_hdz(ji+n_edges))/delta_z &
       /(0.5_wp*(density_total(state%rho,layer_index*n_cells + grid%from_index(h_index)) &
       + density_total(state%rho,layer_index*n_cells + grid%to_index(h_index))))
     enddo
@@ -175,7 +175,7 @@ module mo_momentum_diff_diss
     call grad_hor(diag%scalar_field_placeholder,diag%vector_field_placeholder,grid)
     ! multiplying by the already computed diffusion coefficient
     !$omp parallel do private(h_index,layer_index,vector_index)
-    do h_index=1,n_vectors_h
+    do h_index=1,n_edges
       do layer_index=0,n_layers-1
         vector_index = n_cells + h_index + layer_index*n_vectors_per_layer
         diag%vector_field_placeholder(vector_index) = 0.5_wp &
@@ -222,8 +222,8 @@ module mo_momentum_diff_diss
     !$omp upper_index_z,lower_index_z,upper_index_zeta,lower_index_zeta,checkerboard_damping_weight,base_index)
     do ji=1,n_h_vectors
       ! Remember: (curl(zeta))*e_x = dzeta_z/dy - dzeta_y/dz = (dz*dzeta_z - dy*dzeta_y)/(dy*dz) = (dz*dzeta_z - dy*dzeta_y)/area (Stokes' Theorem, which is used here)
-      layer_index = (ji-1)/n_vectors_h
-      h_index = ji - layer_index*n_vectors_h
+      layer_index = (ji-1)/n_edges
+      h_index = ji - layer_index*n_edges
       vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
       diag%curl_of_vorticity(vector_index) = 0._wp
       delta_z = 0._wp
@@ -232,7 +232,7 @@ module mo_momentum_diff_diss
       - diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+grid%from_index_dual(h_index))) &
       /(abs(diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+grid%to_index_dual(h_index))) &
       + abs(diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+grid%from_index_dual(h_index))) + EPSILON_SECURITY)
-      base_index = n_vectors_h + layer_index*n_dual_vectors_per_layer
+      base_index = n_edges + layer_index*n_dual_vectors_per_layer
       ! horizontal difference of vertical vorticity (dzeta_z*dz)
       ! An averaging over three rhombi must be done.
       do jk=1,3
@@ -242,12 +242,12 @@ module mo_momentum_diff_diss
         ! vertical length at the to_index_dual point
         grid%normal_distance_dual(base_index + grid%to_index_dual(h_index)) &
         ! vorticity at the to_index_dual point
-        *diag%rel_vort(n_vectors_h + layer_index*2*n_vectors_h &
+        *diag%rel_vort(n_edges + layer_index*2*n_edges &
                    + 1+grid%vorticity_indices_triangles(3*grid%to_index_dual(h_index)+jk)) &
         ! vertical length at the from_index_dual point
         - grid%normal_distance_dual(base_index + grid%from_index_dual(h_index)) &
         ! vorticity at the from_index_dual point
-        *diag%rel_vort(n_vectors_h + layer_index*2*n_vectors_h &
+        *diag%rel_vort(n_edges + layer_index*2*n_edges &
                    + 1+grid%vorticity_indices_triangles(3*grid%from_index_dual(h_index)+jk)))
         ! preparation of the tangential slope
         delta_z = delta_z + 1._wp/3._wp*( &
@@ -268,22 +268,22 @@ module mo_momentum_diff_diss
       ! terrain-following correction
       if (layer_index>=n_layers-n_oro_layers) then
         ! calculating the tangential slope
-        delta_x = grid%normal_distance_dual(n_dual_vectors - n_vectors_h + h_index)
+        delta_x = grid%normal_distance_dual(n_dual_vectors - n_edges + h_index)
         delta_x = delta_x*(radius + grid%z_vector(vector_index))/radius
         tangential_slope = delta_z/delta_x
         
         ! calculating the vertical gradient of the vertical vorticity
         upper_index_z = n_cells + (layer_index-1)*n_vectors_per_layer + h_index
         lower_index_z = n_cells + (layer_index+1)*n_vectors_per_layer + h_index
-        upper_index_zeta = n_vectors_h + (layer_index-1)*2*n_vectors_h + h_index
-        lower_index_zeta = n_vectors_h + (layer_index+1)*2*n_vectors_h + h_index
+        upper_index_zeta = n_edges + (layer_index-1)*2*n_edges + h_index
+        lower_index_zeta = n_edges + (layer_index+1)*2*n_edges + h_index
         if (layer_index==0) then
           upper_index_z = n_cells + layer_index*n_vectors_per_layer + h_index
-          upper_index_zeta = n_vectors_h + layer_index*2*n_vectors_h + h_index
+          upper_index_zeta = n_edges + layer_index*2*n_edges + h_index
         endif
         if (layer_index==n_layers-1) then
           lower_index_z = n_cells + layer_index*n_vectors_per_layer + h_index
-          lower_index_zeta = n_vectors_h + layer_index*2*n_vectors_h + h_index
+          lower_index_zeta = n_edges + layer_index*2*n_edges + h_index
         endif
         
         delta_zeta = diag%rel_vort(upper_index_zeta) - diag%rel_vort(lower_index_zeta)

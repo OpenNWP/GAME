@@ -7,7 +7,7 @@ module mo_scalar_tend_expl
 
   use mo_definitions,           only: wp,t_grid,t_state,t_diag
   use mo_constants,             only: c_d_v,c_d_p
-  use mo_grid_nml,              only: n_scalars,n_vectors,n_vectors_h,n_dual_v_vectors,n_dual_scalars_h
+  use mo_grid_nml,              only: n_scalars,n_vectors,n_edges,n_dual_v_vectors,n_dual_scalars_h
   use mo_constituents_nml,      only: n_constituents,n_condensed_constituents,lmoist
   use mo_derived,               only: c_v_mass_weighted_air
   use mo_diff_nml,              only: lmass_diff_h,lmass_diff_v,ltemp_diff_h,ltemp_diff_v

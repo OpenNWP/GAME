@@ -6,7 +6,7 @@ module mo_vector_tend_expl
   ! In this module, the calculation of the explicit part of the momentum equation is managed.
   
   use mo_definitions,           only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,              only: n_vectors_per_layer,n_vectors,n_cells,n_scalars,n_dual_vectors,n_vectors_h, &
+  use mo_grid_nml,              only: n_vectors_per_layer,n_vectors,n_cells,n_scalars,n_dual_vectors,n_edges, &
                                       n_dual_scalars_h,n_dual_v_vectors,n_layers,n_h_vectors
   use mo_gradient_operators,    only: grad
   use mo_constituents_nml,      only: n_condensed_constituents,n_constituents

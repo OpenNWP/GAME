@@ -8,7 +8,7 @@ module mo_set_initial_state
   use netcdf
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_constants,        only: p_0,r_d,c_d_p,m_d,m_v
-  use mo_grid_nml,         only: n_scalars,n_cells,n_vectors,n_vectors_per_layer,n_vectors_h,n_levels,n_dual_vectors, &
+  use mo_grid_nml,         only: n_scalars,n_cells,n_vectors,n_vectors_per_layer,n_edges,n_levels,n_dual_vectors, &
                                  n_layers,oro_id,res_id,n_dual_v_vectors,n_dual_scalars_h
   use mo_constituents_nml, only: n_condensed_constituents,n_constituents,lmoist
   use mo_surface_nml,      only: nsoillays
@@ -114,8 +114,8 @@ module mo_set_initial_state
 
     ! horizontal wind fields are determind here
     ! reading the grid properties which are not part of the struct grid
-    allocate(latitude_vector(n_vectors_h))
-    allocate(longitude_vector(n_vectors_h))
+    allocate(latitude_vector(n_edges))
+    allocate(longitude_vector(n_edges))
     call nc_check(nf90_open(grid_file_name,NF90_CLOBBER,ncid_grid))
     call nc_check(nf90_inq_varid(ncid_grid,"lat_e",latitude_vector_id))
     call nc_check(nf90_inq_varid(ncid_grid,"lon_e",longitude_vector_id))
@@ -123,7 +123,7 @@ module mo_set_initial_state
     call nc_check(nf90_get_var(ncid_grid,longitude_vector_id,longitude_vector))
     call nc_check(nf90_close(ncid_grid))
     !$omp parallel do private(ji,jl,lat,lon,z_height,u,v,dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
-    do ji=1,n_vectors_h
+    do ji=1,n_edges
       do jl=0,n_layers-1
         lat = latitude_vector(ji)
         lon = longitude_vector(ji)

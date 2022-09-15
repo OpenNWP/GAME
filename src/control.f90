@@ -7,7 +7,7 @@ program control
   ! All the memory needed for the integration is allocated and freed here.
 
   use mo_definitions,            only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,               only: n_scalars,n_layers,n_cells,n_vectors,n_vectors_h,n_dual_vectors, &
+  use mo_grid_nml,               only: n_scalars,n_layers,n_cells,n_vectors,n_edges,n_dual_vectors, &
                                        n_dual_scalars_h,n_dual_v_vectors,n_h_vectors,n_latlon_io_points, &
                                        n_vectors_per_layer,grid_nml_setup
   use mo_constituents_nml,       only: cloud_droplets_velocity,rain_velocity,snow_velocity,n_constituents, &
@@ -84,22 +84,22 @@ program control
   allocate(grid%normal_distance_dual(n_dual_vectors))
   allocate(grid%vorticity_indices_triangles(3*n_dual_scalars_h))
   allocate(grid%vorticity_signs_triangles(3*n_dual_scalars_h))
-  allocate(grid%f_vec(2*n_vectors_h))
-  allocate(grid%trsk_indices(10*n_vectors_h))
-  allocate(grid%trsk_modified_curl_indices(10*n_vectors_h))
-  allocate(grid%from_index(n_vectors_h))
-  allocate(grid%to_index(n_vectors_h))
-  allocate(grid%from_index_dual(n_vectors_h))
-  allocate(grid%to_index_dual(n_vectors_h))
+  allocate(grid%f_vec(2*n_edges))
+  allocate(grid%trsk_indices(10*n_edges))
+  allocate(grid%trsk_modified_curl_indices(10*n_edges))
+  allocate(grid%from_index(n_edges))
+  allocate(grid%to_index(n_edges))
+  allocate(grid%from_index_dual(n_edges))
+  allocate(grid%to_index_dual(n_edges))
   allocate(grid%adjacent_vector_indices_h(6*n_cells))
   allocate(grid%adjacent_signs_h(6*n_cells))
-  allocate(grid%density_to_rhombi_indices(4*n_vectors_h))
+  allocate(grid%density_to_rhombi_indices(4*n_edges))
   allocate(grid%lat_c(n_cells))
   allocate(grid%lon_c(n_cells))
   allocate(grid%inner_product_weights(8*n_scalars))
-  allocate(grid%direction(n_vectors_h))
-  allocate(grid%density_to_rhombi_weights(4*n_vectors_h))
-  allocate(grid%trsk_weights(10*n_vectors_h))
+  allocate(grid%direction(n_edges))
+  allocate(grid%density_to_rhombi_weights(4*n_edges))
+  allocate(grid%trsk_weights(10*n_edges))
   allocate(grid%sfc_albedo(n_cells))
   allocate(grid%sfc_rho_c(n_cells))
   allocate(grid%t_conduc_soil(n_cells))
@@ -131,8 +131,8 @@ program control
   allocate(diag%flux_density(n_vectors))
   allocate(diag%flux_density_div(n_scalars))
   allocate(diag%rel_vort_on_triangles(n_dual_v_vectors))
-  allocate(diag%rel_vort((2*n_layers+1)*n_vectors_h))
-  allocate(diag%pot_vort((2*n_layers+1)*n_vectors_h))
+  allocate(diag%rel_vort((2*n_layers+1)*n_edges))
+  allocate(diag%pot_vort((2*n_layers+1)*n_edges))
   allocate(diag%temperature(n_scalars))
   allocate(diag%c_g_p_field(n_scalars))
   allocate(diag%v_squared(n_scalars))
@@ -145,7 +145,7 @@ program control
   allocate(diag%u_at_cell(n_scalars))
   allocate(diag%v_at_cell(n_scalars))
   allocate(diag%n_squared(n_scalars))
-  allocate(diag%dv_hdz(n_h_vectors+n_vectors_h))
+  allocate(diag%dv_hdz(n_h_vectors+n_edges))
   allocate(diag%scalar_flux_resistance(n_cells))
   allocate(diag%power_flux_density_sensible(n_cells))
   allocate(diag%power_flux_density_latent(n_cells))
@@ -167,7 +167,7 @@ program control
   allocate(diag%viscosity(n_scalars))
   allocate(diag%viscosity_rhombi(n_vectors))
   allocate(diag%viscosity_triangles(n_dual_v_vectors))
-  allocate(diag%vert_hor_viscosity(n_h_vectors+n_vectors_h))
+  allocate(diag%vert_hor_viscosity(n_h_vectors+n_edges))
   allocate(diag%tke(n_scalars))
   allocate(diag%pgrad_acc_old(n_vectors))
   allocate(diag%pressure_gradient_acc_neg_nl(n_vectors))
@@ -222,7 +222,7 @@ program control
   
   ! finding the minimum horizontal grid distance
   normal_dist_min_hor = eff_hor_res
-  do ji=1,n_vectors_h
+  do ji=1,n_edges
     if (grid%normal_distance(n_vectors - n_vectors_per_layer + ji)<normal_dist_min_hor) then
       normal_dist_min_hor = grid%normal_distance(n_vectors - n_vectors_per_layer + ji)
     endif
@@ -249,12 +249,12 @@ program control
   write(*,*) "It begins."
   write(*,*) stars
   
-  allocate(wind_h_lowest_layer(n_output_steps_10m_wind*n_vectors_h))
+  allocate(wind_h_lowest_layer(n_output_steps_10m_wind*n_edges))
   !$omp parallel do private(h_index)
-  do h_index=1,n_vectors_h
+  do h_index=1,n_edges
     ! here,for all output time steps,the initial value is used
     do time_step_10_m_wind=1,n_output_steps_10m_wind
-      wind_h_lowest_layer((time_step_10_m_wind-1)*n_vectors_h + h_index) = state_1%wind(n_vectors - n_vectors_per_layer + h_index)
+      wind_h_lowest_layer((time_step_10_m_wind-1)*n_edges + h_index) = state_1%wind(n_vectors - n_vectors_per_layer + h_index)
     enddo
   enddo
   !$omp end parallel do
@@ -349,15 +349,15 @@ program control
       if (wind_lowest_layer_step_counter<n_output_steps_10m_wind) then
         if (mod(time_step_counter,2)==0) then
           !$omp parallel do private(h_index)
-          do h_index=1,n_vectors_h
-            wind_h_lowest_layer(wind_lowest_layer_step_counter*n_vectors_h + h_index) &
+          do h_index=1,n_edges
+            wind_h_lowest_layer(wind_lowest_layer_step_counter*n_edges + h_index) &
             = state_1%wind(n_vectors - n_vectors_per_layer + h_index)
           enddo
           !$omp end parallel do
         else
           !$omp parallel do private(h_index)
-          do h_index=1,n_vectors_h
-            wind_h_lowest_layer(wind_lowest_layer_step_counter*n_vectors_h + h_index) &
+          do h_index=1,n_edges
+            wind_h_lowest_layer(wind_lowest_layer_step_counter*n_edges + h_index) &
             = state_2%wind(n_vectors - n_vectors_per_layer + h_index)
           enddo
           !$omp end parallel do
@@ -382,7 +382,7 @@ program control
       
       ! resetting the wind in the lowest layer to zero
       !$omp parallel do private(ji)
-      do ji=1,n_output_steps_10m_wind*n_vectors_h
+      do ji=1,n_output_steps_10m_wind*n_edges
         wind_h_lowest_layer(ji) = 0._wp
       enddo
       !$omp end parallel do

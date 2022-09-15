@@ -9,7 +9,7 @@ module mo_vertical_grid
   use mo_constants,   only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv,r_d, &
                             p_0_standard,c_d_p,p_0
   use mo_grid_nml,    only: n_cells,n_scalars,n_vectors_per_layer,n_layers,n_levels, &
-                            n_vectors,n_dual_scalars_h,n_dual_scalars,n_vectors_h, &
+                            n_vectors,n_dual_scalars_h,n_dual_scalars,n_edges, &
                             n_dual_vectors,n_dual_vectors_per_layer,toa,n_oro_layers,stretching_parameter, &
                             radius
   use mo_geodesy,     only: calculate_vertical_area,calculate_distance_h
@@ -165,7 +165,7 @@ module mo_vertical_grid
   
     real(wp), intent(out) :: z_scalar_dual(n_dual_scalars)
     real(wp), intent(in)  :: z_vector(n_vectors)
-    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h), &
+    integer,  intent(in)  :: from_index(n_edges),to_index(n_edges), &
                              vorticity_indices_triangles(3*n_dual_scalars_h)
 
     ! local variables
@@ -195,7 +195,7 @@ module mo_vertical_grid
     real(wp), intent(out) :: area_dual(n_dual_vectors)
     real(wp), intent(in)  :: z_vector_dual(n_dual_vectors),normal_distance(n_vectors),z_vector(n_vectors), &
                              triangle_face_unit_sphere(n_dual_scalars_h)
-    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    integer,  intent(in)  :: from_index(n_edges),to_index(n_edges)
   
     ! local variables
     integer  :: ji,layer_index,h_index,primal_vector_index
@@ -205,8 +205,8 @@ module mo_vertical_grid
     do ji=1,n_dual_vectors
       layer_index = (ji-1)/n_dual_vectors_per_layer
       h_index = ji - layer_index*n_dual_vectors_per_layer
-      if (h_index>=n_vectors_h+1) then
-        area_dual(ji) = (radius + z_vector_dual(ji))**2*triangle_face_unit_sphere(h_index-n_vectors_h)
+      if (h_index>=n_edges+1) then
+        area_dual(ji) = (radius + z_vector_dual(ji))**2*triangle_face_unit_sphere(h_index-n_edges)
       else
         if (layer_index==0) then
           primal_vector_index = n_cells + h_index
@@ -305,7 +305,7 @@ module mo_vertical_grid
   
     real(wp), intent(out) :: z_vector(n_vectors),normal_distance(n_vectors)
     real(wp), intent(in)  :: z_scalar(n_scalars),lat_c(n_cells),lon_c(n_cells),oro(n_cells)
-    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    integer,  intent(in)  :: from_index(n_edges),to_index(n_edges)
   
     integer               :: ji,layer_index,h_index,upper_index,lower_index
     real(wp)              :: min_thick,max_thick,thick_rel
@@ -371,8 +371,8 @@ module mo_vertical_grid
     real(wp), intent(out) :: z_vector_dual(n_dual_vectors),normal_distance_dual(n_dual_vectors)
     real(wp), intent(in)  :: z_scalar_dual(n_dual_scalars),z_vector(n_vectors), &
                              lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
-    integer, intent(in)   :: from_index(n_vectors_h),to_index(n_vectors_h),from_index_dual(n_vectors_h), &
-                             to_index_dual(n_vectors_h),vorticity_indices_triangles(3*n_dual_scalars_h)
+    integer, intent(in)   :: from_index(n_edges),to_index(n_edges),from_index_dual(n_edges), &
+                             to_index_dual(n_edges),vorticity_indices_triangles(3*n_dual_scalars_h)
   
     ! local variables
     integer :: ji,layer_index,h_index,upper_index,lower_index
@@ -381,14 +381,14 @@ module mo_vertical_grid
     do ji=1,n_dual_vectors
       layer_index = (ji-1)/n_dual_vectors_per_layer
       h_index = ji - layer_index*n_dual_vectors_per_layer
-      if (h_index>=n_vectors_h+1) then
-        upper_index = h_index - n_vectors_h + layer_index*n_dual_scalars_h
-        lower_index = h_index - n_vectors_h + (layer_index+1)*n_dual_scalars_h
+      if (h_index>=n_edges+1) then
+        upper_index = h_index - n_edges + layer_index*n_dual_scalars_h
+        lower_index = h_index - n_edges + (layer_index+1)*n_dual_scalars_h
         normal_distance_dual(ji) = z_scalar_dual(upper_index) - z_scalar_dual(lower_index)
         z_vector_dual(ji) = 1._wp/3._wp*( &
-        z_vector(n_cells + layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(3*(h_index-n_vectors_h-1)+1)) &
-        + z_vector(n_cells+layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(3*(h_index-n_vectors_h-1)+2)) &
-        + z_vector(n_cells+layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(3*(h_index-n_vectors_h-1)+3)))
+        z_vector(n_cells + layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(3*(h_index-n_edges-1)+1)) &
+        + z_vector(n_cells+layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(3*(h_index-n_edges-1)+2)) &
+        + z_vector(n_cells+layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(3*(h_index-n_edges-1)+3)))
       else
         if (layer_index==0) then
           z_vector_dual(ji) = toa

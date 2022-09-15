@@ -6,8 +6,8 @@ module mo_vorticities
   ! Here, vorticities are calculated. The word "vorticity" hereby refers to both vertical and tangential components.
 
   use mo_definitions,  only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,     only: n_layers,n_vectors_h,n_vectors,n_layers,n_dual_vectors_per_layer,n_dual_v_vectors, &
-                             n_dual_scalars_h,n_cells,n_vectors_per_layer,n_vectors_h,n_dual_vectors, &
+  use mo_grid_nml,     only: n_layers,n_edges,n_vectors,n_layers,n_dual_vectors_per_layer,n_dual_v_vectors, &
+                             n_dual_scalars_h,n_cells,n_vectors_per_layer,n_edges,n_dual_vectors, &
                              n_scalars
   use mo_grid_setup,   only: n_oro_layers,radius
   use mo_averaging,    only: horizontal_covariant
@@ -36,12 +36,12 @@ module mo_vorticities
     
     ! determining the density value by which we need to divide
     !$omp parallel do private(ji,jk,layer_index,h_index,edge_vector_index_h,upper_from_index,upper_to_index,density_value)
-    do ji=1,n_layers*2*n_vectors_h+n_vectors_h
-      layer_index = (ji-1)/(2*n_vectors_h)
-      h_index = ji - layer_index*2*n_vectors_h
+    do ji=1,n_layers*2*n_edges+n_edges
+      layer_index = (ji-1)/(2*n_edges)
+      h_index = ji - layer_index*2*n_edges
       ! interpolation of the density to the center of the rhombus
-      if (h_index>=n_vectors_h+1) then
-        edge_vector_index_h = h_index - n_vectors_h
+      if (h_index>=n_edges+1) then
+        edge_vector_index_h = h_index - n_edges
         density_value = 0._wp
         do jk=1,4
           density_value = density_value &
@@ -120,9 +120,9 @@ module mo_vorticities
         ! this corrects for terrain following coordinates
         length_rescale_factor = 1._wp
         if (layer_index>=n_layers-n_oro_layers) then
-          length_rescale_factor = (radius + grid%z_vector_dual(n_vectors_h + layer_index*n_dual_vectors_per_layer + h_index)) &
+          length_rescale_factor = (radius + grid%z_vector_dual(n_edges + layer_index*n_dual_vectors_per_layer + h_index)) &
           /(radius+grid%z_vector(vector_index))
-          delta_z = grid%z_vector_dual(n_vectors_h + layer_index*n_dual_vectors_per_layer+h_index)-grid%z_vector(vector_index)
+          delta_z = grid%z_vector_dual(n_edges + layer_index*n_dual_vectors_per_layer+h_index)-grid%z_vector(vector_index)
           if (delta_z>0._wp) then
             index_for_vertical_gradient = vector_index - n_vectors_per_layer
           else
@@ -143,7 +143,7 @@ module mo_vorticities
       
       ! dividing by the area (Stokes' Theorem)
       diag%rel_vort_on_triangles(ji) = diag%rel_vort_on_triangles(ji)/ &
-                                       grid%area_dual(n_vectors_h + layer_index*n_dual_vectors_per_layer + h_index)
+                                       grid%area_dual(n_edges + layer_index*n_dual_vectors_per_layer + h_index)
     
     enddo
     !$omp end parallel do
@@ -166,32 +166,32 @@ module mo_vorticities
     call calc_rel_vort_on_triangles(state,diag,grid)
                                
     !$omp parallel do private(ji,layer_index,h_index,index_1,index_2,index_3,index_4,covar_1,covar_3,base_index)
-    do ji=n_vectors_h+1,n_layers*2*n_vectors_h+n_vectors_h
-      layer_index = (ji-1)/(2*n_vectors_h)
-      h_index = ji - layer_index*2*n_vectors_h
+    do ji=n_edges+1,n_layers*2*n_edges+n_edges
+      layer_index = (ji-1)/(2*n_edges)
+      h_index = ji - layer_index*2*n_edges
       ! rhombus vorticities (stand vertically)
-      if (h_index>=n_vectors_h+1) then
-        base_index = n_vectors_h+layer_index*n_dual_vectors_per_layer
+      if (h_index>=n_edges+1) then
+        base_index = n_edges+layer_index*n_dual_vectors_per_layer
         diag%rel_vort(ji) = ( &
-        grid%area_dual(base_index+1+grid%from_index_dual(h_index-n_vectors_h)) &
-        *diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h+1+grid%from_index_dual(h_index-n_vectors_h)) &
-        + grid%area_dual(base_index+1+grid%to_index_dual(h_index-n_vectors_h)) &
-        *diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h+1+grid%to_index_dual(h_index-n_vectors_h)))/( &
-        grid%area_dual(base_index+1+grid%from_index_dual(h_index-n_vectors_h)) &
-        + grid%area_dual(base_index+1+grid%to_index_dual(h_index-n_vectors_h)))
+        grid%area_dual(base_index+1+grid%from_index_dual(h_index-n_edges)) &
+        *diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h+1+grid%from_index_dual(h_index-n_edges)) &
+        + grid%area_dual(base_index+1+grid%to_index_dual(h_index-n_edges)) &
+        *diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h+1+grid%to_index_dual(h_index-n_edges)))/( &
+        grid%area_dual(base_index+1+grid%from_index_dual(h_index-n_edges)) &
+        + grid%area_dual(base_index+1+grid%to_index_dual(h_index-n_edges)))
       ! tangential (horizontal) vorticities
       else
         base_index = layer_index*n_vectors_per_layer
         ! At the lower boundary, w vanishes. Furthermore, the covariant velocity below the surface is also zero.
           if (layer_index==n_layers) then
-            index_3 = base_index - n_vectors_h + h_index
+            index_3 = base_index - n_edges + h_index
             covar_3 = horizontal_covariant(state%wind,layer_index-1,h_index-1,grid)
             diag%rel_vort(ji) = 1._wp/grid%area_dual(h_index+layer_index*n_dual_vectors_per_layer) &
                                 *grid%normal_distance(index_3)*covar_3
           else
             index_1 = base_index + n_cells + h_index
             index_2 = base_index + 1+grid%from_index(h_index)
-            index_3 = base_index - n_vectors_h + h_index
+            index_3 = base_index - n_edges + h_index
             index_4 = base_index + 1+grid%to_index(h_index)
             covar_1 = horizontal_covariant(state%wind,layer_index,h_index-1,grid)
             covar_3 = horizontal_covariant(state%wind,layer_index-1,h_index-1,grid)
@@ -207,8 +207,8 @@ module mo_vorticities
     
     ! At the upper boundary, the tangential vorticity is assumed to have no vertical shear.
     !$omp parallel do private(ji)
-    do ji=1,n_vectors_h
-      diag%rel_vort(ji) = diag%rel_vort(ji+2*n_vectors_h)
+    do ji=1,n_edges
+      diag%rel_vort(ji) = diag%rel_vort(ji+2*n_edges)
     enddo
     !$omp end parallel do
   
@@ -224,9 +224,9 @@ module mo_vorticities
     integer :: ji,layer_index,h_index
     
     !$omp parallel do private(ji,layer_index,h_index)
-    do ji=1,n_layers*2*n_vectors_h+n_vectors_h
-      layer_index = (ji-1)/(2*n_vectors_h)
-      h_index = ji - layer_index*2*n_vectors_h
+    do ji=1,n_layers*2*n_edges+n_edges
+      layer_index = (ji-1)/(2*n_edges)
+      h_index = ji - layer_index*2*n_edges
       diag%pot_vort(ji) = diag%rel_vort(ji) + grid%f_vec(h_index)
     enddo
     !$omp end parallel do

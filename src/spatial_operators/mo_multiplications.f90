@@ -6,7 +6,7 @@ module mo_multiplications
   ! In this module, algebraic multiplications of fields are collected.
   
   use mo_definitions, only: wp,t_grid
-  use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_cells,n_vectors_per_layer
+  use mo_grid_nml,    only: n_vectors,n_edges,n_layers,n_scalars,n_cells,n_vectors_per_layer
   
   implicit none
   
@@ -40,7 +40,7 @@ module mo_multiplications
     real(wp) :: scalar_value
     
     !$omp parallel do private(h_index,layer_index,vector_index,scalar_value)
-    do h_index=1,n_vectors_h
+    do h_index=1,n_edges
       do layer_index=0,n_layers-1
         vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
         scalar_value &
@@ -67,7 +67,7 @@ module mo_multiplications
     real(wp) :: scalar_value
     
     !$omp parallel do private(h_index,layer_index,vector_index,scalar_value)
-    do h_index=1,n_vectors_h
+    do h_index=1,n_edges
       do layer_index=0,n_layers-1
         vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
         if (vector_field(vector_index)>=0._wp) then

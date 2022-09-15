@@ -15,7 +15,7 @@ module mo_grid_nml
   integer  :: n_pentagons              ! number of pentagons
   integer  :: n_hexagons               ! number of hexagons
   integer  :: n_cells              ! number of columns
-  integer  :: n_vectors_h              ! number of horizontal vectors per layer
+  integer  :: n_edges              ! number of horizontal vectors per layer
   integer  :: n_h_vectors              ! number of horizontal vectors
   integer  :: n_scalars                ! number of scalars
   integer  :: n_levels                 ! number of levels
@@ -67,11 +67,11 @@ module mo_grid_nml
     n_hexagons = 10*(2**(2*res_id)-1)
     n_cells = n_pentagons+n_hexagons
     n_scalars = n_layers*n_cells
-    n_vectors_h = (5*n_pentagons/2 + 6/2*n_hexagons)
-    n_h_vectors = n_layers*n_vectors_h
+    n_edges = (5*n_pentagons/2 + 6/2*n_hexagons)
+    n_h_vectors = n_layers*n_edges
     n_levels = n_layers+1
     n_v_vectors = n_levels*n_cells
-    n_vectors_per_layer = n_vectors_h+n_cells
+    n_vectors_per_layer = n_edges+n_cells
     n_vectors = n_h_vectors+n_v_vectors
     n_basic_triangles = 20
     n_basic_edges = 3*n_basic_triangles/2
@@ -79,8 +79,8 @@ module mo_grid_nml
     n_triangles = n_basic_triangles*4**res_id
     n_dual_scalars_h = n_triangles
     n_dual_scalars = n_levels*n_dual_scalars_h
-    n_dual_vectors_per_layer = n_vectors_h+n_dual_scalars_h
-    n_dual_h_vectors = n_levels*n_vectors_h
+    n_dual_vectors_per_layer = n_edges+n_dual_scalars_h
+    n_dual_h_vectors = n_levels*n_edges
     n_dual_v_vectors = n_layers*n_dual_scalars_h
     n_dual_vectors = n_dual_h_vectors+n_dual_v_vectors
     n_lat_io_points = 2*2**res_id

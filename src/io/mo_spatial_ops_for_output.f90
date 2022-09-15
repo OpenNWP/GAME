@@ -6,7 +6,7 @@ module mo_spatial_ops_for_output
   ! In this module, those spatial operators are collected which are only needed for the output.
   
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,           only: n_cells,n_scalars,n_vectors_h,n_layers,n_vectors_per_layer,n_vectors, &
+  use mo_grid_nml,           only: n_cells,n_scalars,n_edges,n_layers,n_vectors_per_layer,n_vectors, &
                                    n_pentagons,n_h_vectors
   use mo_gradient_operators, only: grad
   use mo_geodesy,            only: passive_turn
@@ -120,8 +120,8 @@ module mo_spatial_ops_for_output
         endif
         ! determining the horizontal potential vorticity at the primal vector point
         pot_vort_as_tangential_vector_field(ji) = &
-        upper_weight*diag%pot_vort(layer_index*2*n_vectors_h + h_index-n_cells) &
-        + lower_weight*diag%pot_vort((layer_index+1)*2*n_vectors_h + h_index-n_cells)
+        upper_weight*diag%pot_vort(layer_index*2*n_edges + h_index-n_cells) &
+        + lower_weight*diag%pot_vort((layer_index+1)*2*n_edges + h_index-n_cells)
       ! diagnozing the vertical component of the potential vorticity at the vertical vector points
       else
         ! initializing the value with zero
@@ -132,7 +132,7 @@ module mo_spatial_ops_for_output
             scalar_index = h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
             + 0.5_wp*grid%inner_product_weights(8*(scalar_index-1)+jk) &
-            *diag%pot_vort(n_vectors_h + layer_index*2*n_vectors_h + grid%adjacent_vector_indices_h(6*(h_index-1)+jk))
+            *diag%pot_vort(n_edges + layer_index*2*n_edges + grid%adjacent_vector_indices_h(6*(h_index-1)+jk))
           enddo
         ! lowest layer
         elseif (layer_index==n_layers) then
@@ -140,7 +140,7 @@ module mo_spatial_ops_for_output
             scalar_index = (n_layers - 1)*n_cells + h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
             + 0.5_wp*grid%inner_product_weights(8*(scalar_index-1)+jk) &
-            *diag%pot_vort(n_vectors_h + (layer_index - 1)*2*n_vectors_h + grid%adjacent_vector_indices_h(6*(h_index-1)+jk))
+            *diag%pot_vort(n_edges + (layer_index - 1)*2*n_edges + grid%adjacent_vector_indices_h(6*(h_index-1)+jk))
           enddo
         ! inner domain
         else
@@ -149,14 +149,14 @@ module mo_spatial_ops_for_output
             scalar_index = (layer_index - 1)*n_cells + h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
             + 0.25_wp*grid%inner_product_weights(8*(scalar_index-1)+jk) &
-            *diag%pot_vort(n_vectors_h + (layer_index - 1)*2*n_vectors_h + grid%adjacent_vector_indices_h(6*(h_index-1)+jk))
+            *diag%pot_vort(n_edges + (layer_index - 1)*2*n_edges + grid%adjacent_vector_indices_h(6*(h_index-1)+jk))
           enddo
           ! contribution of lower cell
           do jk=1,6
             scalar_index = layer_index*n_cells + h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
             + 0.25_wp*grid%inner_product_weights(8*(scalar_index-1)+jk) &
-            *diag%pot_vort(n_vectors_h + layer_index*2*n_vectors_h + grid%adjacent_vector_indices_h(6*(h_index-1)+jk))
+            *diag%pot_vort(n_edges + layer_index*2*n_edges + grid%adjacent_vector_indices_h(6*(h_index-1)+jk))
           enddo
         endif
       endif
@@ -177,7 +177,7 @@ module mo_spatial_ops_for_output
     
     ! This subroutine averages a horizontal vector field (defined in the lowest layer) from edges to centers.
     
-    real(wp),     intent(in)  :: in_field(n_vectors_h) ! the field to average from edges to cells
+    real(wp),     intent(in)  :: in_field(n_edges) ! the field to average from edges to cells
     real(wp),     intent(out) :: out_field(n_cells)    ! the result field
     type(t_grid), intent(in)  :: grid                  ! grid quantities
     
@@ -218,8 +218,8 @@ module mo_spatial_ops_for_output
     
     !$omp parallel do private(ji,layer_index,h_index,wind_1,wind_2)
     do ji=1,n_h_vectors
-      layer_index = (ji-1)/n_vectors_h
-      h_index = ji - layer_index*n_vectors_h
+      layer_index = (ji-1)/n_edges
+      h_index = ji - layer_index*n_edges
       wind_1 = in_field(n_cells+layer_index*n_vectors_per_layer+h_index)
       ! finding the tangential component
       wind_2 = tangential_wind(in_field,layer_index,h_index-1,grid)
@@ -269,7 +269,7 @@ module mo_spatial_ops_for_output
     
     ! This subroutine averages a curl field from edges to cell centers.
     
-    real(wp),      intent(in)  :: in_field((2*n_layers+1)*n_vectors_h) ! the vorticity field to average
+    real(wp),      intent(in)  :: in_field((2*n_layers+1)*n_edges) ! the vorticity field to average
     real(wp),      intent(out) :: out_field(n_scalars)                 ! the resulting scalar field
     type(t_grid),  intent(in)  :: grid                                 ! grid quantities
     
@@ -290,7 +290,7 @@ module mo_spatial_ops_for_output
       do jk=1,n_edges
         out_field(ji) = out_field(ji) + 0.5_wp &
         *grid%inner_product_weights(8*(ji-1) + jk) &
-        *in_field(n_vectors_h + layer_index*2*n_vectors_h + 1+grid%adjacent_vector_indices_h(6*(h_index-1) + jk))
+        *in_field(n_edges + layer_index*2*n_edges + 1+grid%adjacent_vector_indices_h(6*(h_index-1) + jk))
       enddo
     enddo
     !$omp end parallel do

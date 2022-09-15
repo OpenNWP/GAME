@@ -6,7 +6,7 @@ module mo_gradient_operators
   ! This module contains the gradient operators.
   
   use mo_definitions, only: wp,t_grid
-  use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_cells,n_vectors_per_layer, &
+  use mo_grid_nml,    only: n_vectors,n_edges,n_layers,n_scalars,n_cells,n_vectors_per_layer, &
                             n_v_vectors,n_v_vectors
   use mo_averaging,   only: vector_field_hor_cov_to_con
   
@@ -26,7 +26,7 @@ module mo_gradient_operators
     integer :: h_index,layer_index,vector_index
     
     !$omp parallel do private(h_index,layer_index,vector_index)
-    do h_index=1,n_vectors_h
+    do h_index=1,n_edges
       do layer_index=0,n_layers-1
         vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
         out_field(vector_index) &

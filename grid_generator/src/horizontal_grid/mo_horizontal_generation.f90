@@ -9,7 +9,7 @@ module mo_horizontal_generation
   use mo_phys_sfc_properties,        only: nc_check
   use mo_definitions,                only: wp
   use mo_constants,                  only: EPSILON_SECURITY,M_PI
-  use mo_grid_nml,                   only: n_cells,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
+  use mo_grid_nml,                   only: n_cells,n_edges,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
                                            n_lloyd_iterations,n_vectors,n_dual_vectors,n_pentagons,n_basic_edges, &
                                            n_basic_triangles,n_vectors_per_inner_face,n_points_per_edge,res_id, &
                                            n_triangles_per_face,n_triangles
@@ -377,7 +377,7 @@ module mo_horizontal_generation
                 triangle_on_face_index
     real(wp) :: triangle_sum_unit_sphere,triangle_avg_unit_sphere_ideal
     
-    do ji=0,n_vectors_h-1
+    do ji=0,n_edges-1
       if (ji>=n_basic_edges*(n_points_per_edge+1)) then
         call find_triangle_indices_from_h_vector_index(ji,point_1,point_2,point_3,point_4,point_5,point_6, &
                                                        dual_scalar_on_face_index,small_triangle_edge_index, &
@@ -429,7 +429,7 @@ module mo_horizontal_generation
     
     ! This subroutine computes the neighbourship relationships of the horizontal vectors.
     
-    integer, intent(out) :: from_index(n_vectors_h),to_index(n_vectors_h)
+    integer, intent(out) :: from_index(n_edges),to_index(n_edges)
     integer, intent(in)  :: face_vertices(n_basic_edges,3),face_edges(n_basic_triangles,3), &
                             face_edges_reverse(n_basic_triangles,3),edge_vertices(n_basic_edges,2)
     
@@ -439,7 +439,7 @@ module mo_horizontal_generation
     
     !$omp parallel do private(ji,edge_index,on_edge_index,point_1,point_2,point_3,point_4,point_5,point_6, &
     !$omp dual_scalar_on_face_index,small_triangle_edge_index)
-    do ji=1,n_vectors_h
+    do ji=1,n_edges
       if (ji<=n_basic_edges*(n_points_per_edge+1)) then
         edge_index = (ji-1)/(n_points_per_edge+1)
         on_edge_index = ji-1 - edge_index*(n_points_per_edge+1)
@@ -493,7 +493,7 @@ module mo_horizontal_generation
     !$omp parallel do private(ji,lat_res,lon_res,point_1,point_2,point_3,point_4,point_5,point_6,dual_scalar_on_face_index, &
     !$omp small_triangle_edge_index,dual_scalar_index,coord_1,coord_2,coord_1_points_amount,face_index, &
     !$omp on_face_index,triangle_on_face_index)
-    do ji=0,n_vectors_h-1
+    do ji=0,n_edges-1
       if (ji>=n_basic_edges*(n_points_per_edge+1)) then
         call find_triangle_indices_from_h_vector_index(ji,point_1,point_2,point_3,point_4,point_5,point_6, &
                                                        dual_scalar_on_face_index, &
@@ -538,7 +538,7 @@ module mo_horizontal_generation
     
     ! This function computes the neighbourship relationships of the horizontal dual vectors.
     
-    integer, intent(out) :: from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
+    integer, intent(out) :: from_index_dual(n_edges),to_index_dual(n_edges)
     integer, intent(in)  :: face_edges(n_basic_triangles,3),face_edges_reverse(n_basic_triangles,3)
     
     ! local variables
@@ -549,7 +549,7 @@ module mo_horizontal_generation
     !$omp parallel do private(ji,jk,coord_1,coord_2,on_face_index,on_edge_index,edge_index,small_triangle_edge_index, &
     !$omp coord_1_points_amount,first_face_found,face_index,edge_rel_to_face_1,edge_rel_to_face_2,face_index_1, &
     !$omp face_index_2,triangle_on_face_index)
-    do ji=0,n_vectors_h-1
+    do ji=0,n_edges-1
       edge_rel_to_face_1 = 0
       edge_rel_to_face_2 = 0
       face_index_1 = 0
@@ -745,8 +745,8 @@ module mo_horizontal_generation
     ! This is an optional feature.
     
     real(wp), intent(out)          :: lat_c(n_cells),lon_c(n_cells)
-    integer,  intent(out)          :: from_index(n_vectors_h),to_index(n_vectors_h), &
-                                      from_index_dual(n_vectors_h),to_index_dual(n_vectors_h),n_lloyd_read_file
+    integer,  intent(out)          :: from_index(n_edges),to_index(n_edges), &
+                                      from_index_dual(n_edges),to_index_dual(n_edges),n_lloyd_read_file
     character(len=256), intent(in) :: filename
     
     ! local variables

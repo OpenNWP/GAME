@@ -9,7 +9,7 @@ module mo_grid_setup
   use mo_constants,       only: t_0,r_e,M_PI
   use mo_definitions,     only: wp,t_grid
   use mo_grid_nml,        only: n_vectors_per_layer,n_vectors,n_layers,n_scalars,n_cells,n_latlon_io_points, &
-                                n_dual_vectors,n_vectors_h,n_dual_scalars_h,oro_id,res_id
+                                n_dual_vectors,n_edges,n_dual_scalars_h,oro_id,res_id
   use mo_surface_nml,     only: nsoillays
   use mo_various_helpers, only: int2string,nc_check
 

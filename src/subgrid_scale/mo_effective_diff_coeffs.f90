@@ -9,7 +9,7 @@ module mo_effective_diff_coeffs
   use mo_gradient_operators, only: grad_vert_cov
   use mo_multiplications,    only: scalar_times_vector_v
   use mo_grid_nml,           only: n_cells,n_layers,n_scalars,n_vectors_per_layer,n_vectors,n_v_vectors, &
-                                   n_vectors_h,n_h_vectors,n_dual_scalars_h,n_dual_v_vectors
+                                   n_edges,n_h_vectors,n_dual_scalars_h,n_dual_v_vectors
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
   use mo_derived,            only: c_v_mass_weighted_air,calc_diffusion_coeff
   use mo_diff_nml,           only: lmom_diff_h
@@ -45,7 +45,7 @@ module mo_effective_diff_coeffs
     ! Averaging the viscosity to rhombi
     ! ---------------------------------
     !$omp parallel do private(ji,jl,scalar_index_from,scalar_index_to,vector_index)
-    do ji=1,n_vectors_h
+    do ji=1,n_edges
       do jl=0,n_layers-1
         vector_index = n_cells + jl*n_vectors_per_layer + ji
         
@@ -230,9 +230,9 @@ module mo_effective_diff_coeffs
     
     ! loop over horizontal vector points at half levels
     !$omp parallel do private(ji,layer_index,h_index,mom_diff_coeff,molecular_viscosity,scalar_base_index)
-    do ji=1,n_h_vectors-n_vectors_h
-      layer_index = (ji-1)/n_vectors_h
-      h_index = ji - layer_index*n_vectors_h
+    do ji=1,n_h_vectors-n_edges
+      layer_index = (ji-1)/n_edges
+      h_index = ji - layer_index*n_edges
       scalar_base_index = layer_index*n_cells
       ! the turbulent component
       mom_diff_coeff = 0.25_wp*(tke2vert_diff_coeff(diag%tke(scalar_base_index + 1+grid%from_index(h_index)), &
@@ -256,7 +256,7 @@ module mo_effective_diff_coeffs
       mom_diff_coeff = mom_diff_coeff+molecular_viscosity
       
       ! multiplying by the density (averaged to the half level edge)
-      diag%vert_hor_viscosity(ji+n_vectors_h) = &
+      diag%vert_hor_viscosity(ji+n_edges) = &
       0.25_wp*(state%rho(n_condensed_constituents*n_scalars + scalar_base_index + 1+grid%from_index(h_index)) &
       + state%rho(n_condensed_constituents*n_scalars + scalar_base_index + 1+grid%to_index(h_index)) &
       + state%rho(n_condensed_constituents*n_scalars + (layer_index+1)*n_cells + 1+grid%from_index(h_index)) &
@@ -267,11 +267,11 @@ module mo_effective_diff_coeffs
     
     ! for now, we set the vertical diffusion coefficient at the TOA equal to the vertical diffusion coefficient in the layer below
     !$omp parallel workshare
-    diag%vert_hor_viscosity(1:n_vectors_h) = diag%vert_hor_viscosity(n_vectors_h+1:2*n_vectors_h)
+    diag%vert_hor_viscosity(1:n_edges) = diag%vert_hor_viscosity(n_edges+1:2*n_edges)
     !$omp end parallel workshare
     ! for now, we set the vertical diffusion coefficient at the surface equal to the vertical diffusion coefficient in the layer above
     !$omp parallel workshare
-    diag%vert_hor_viscosity(n_h_vectors+1:n_h_vectors+n_vectors_h) = diag%vert_hor_viscosity(n_h_vectors-n_vectors_h+1:n_h_vectors)
+    diag%vert_hor_viscosity(n_h_vectors+1:n_h_vectors+n_edges) = diag%vert_hor_viscosity(n_h_vectors-n_edges+1:n_h_vectors)
     !$omp end parallel workshare
     
   

@@ -6,7 +6,7 @@ module mo_averaging
   ! This file contains functions that perform averagings.
 
   use mo_definitions, only: wp,t_grid
-  use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_cells,n_vectors_per_layer, &
+  use mo_grid_nml,    only: n_vectors,n_edges,n_layers,n_scalars,n_cells,n_vectors_per_layer, &
                             n_v_vectors,n_pentagons,n_h_vectors
   use mo_grid_setup,  only: n_oro_layers
   use mo_geodesy,     only: passive_turn
@@ -115,9 +115,9 @@ module mo_averaging
     
     ! loop over all horizontal vector points in the orography layers
     !$omp parallel do private(ji,layer_index,h_index,vertical_gradient,vector_index)
-    do ji=1,n_oro_layers*n_vectors_h
-      layer_index = (ji-1)/n_vectors_h
-      h_index = ji - layer_index*n_vectors_h
+    do ji=1,n_oro_layers*n_edges
+      layer_index = (ji-1)/n_edges
+      h_index = ji - layer_index*n_edges
       vertical_gradient = remap_verpri2horpri_vector(cov_to_con_field,layer_index + (n_layers-n_oro_layers), &
                                  h_index-1,grid)
       vector_index = n_cells + (n_layers - n_oro_layers + layer_index)*n_vectors_per_layer + h_index

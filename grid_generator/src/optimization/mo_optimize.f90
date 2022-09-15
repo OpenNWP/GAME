@@ -6,7 +6,7 @@ module mo_optimize
   ! The Lloyd algorithm is implemented here.
 
   use mo_definitions,           only: wp
-  use mo_grid_nml,              only: n_cells,n_pentagons,n_vectors_h,n_dual_scalars_h,n_basic_triangles
+  use mo_grid_nml,              only: n_cells,n_pentagons,n_edges,n_dual_scalars_h,n_basic_triangles
   use mo_geodesy,               only: calc_triangle_area,find_global_normal,sort_vertex_indices,find_geos
   use mo_various_helpers,       only: in_bool_checker
   use mo_horizontal_generation, only: set_scalar_h_dual_coords
@@ -26,8 +26,8 @@ module mo_optimize
                                lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
     integer,  intent(in)    :: n_iterations,face_edges(n_basic_triangles,3),face_edges_reverse(n_basic_triangles,3), &
                                face_vertices(n_basic_triangles,3), &
-                               adjacent_vector_indices_h(6*n_cells),from_index_dual(n_vectors_h), &
-                               to_index_dual(n_vectors_h)
+                               adjacent_vector_indices_h(6*n_cells),from_index_dual(n_edges), &
+                               to_index_dual(n_edges)
 	
     ! local variables
     integer :: ji
@@ -50,7 +50,7 @@ module mo_optimize
     real(wp), intent(inout) :: lat_c(n_cells),lon_c(n_cells)
     real(wp), intent(in)    :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
     integer,  intent(in)    :: adjacent_vector_indices_h(6*n_cells), &
-                               from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
+                               from_index_dual(n_edges),to_index_dual(n_edges)
     
     ! local variables
     integer  :: ji,jk,n_edges,counter,vertex_index_candidate_1,vertex_index_candidate_2,check_result, &

@@ -8,7 +8,7 @@ module mo_pbl
   use mo_constants,        only: EPSILON_SECURITY,M_PI,gravity,p_0,c_d_p,r_d
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_diff_nml,         only: h_prandtl,karman
-  use mo_grid_nml,         only: n_scalars,n_cells,n_vectors_per_layer,n_layers,n_vectors,n_vectors_h,n_vectors_per_layer, &
+  use mo_grid_nml,         only: n_scalars,n_cells,n_vectors_per_layer,n_layers,n_vectors,n_edges,n_vectors_per_layer, &
                                  n_h_vectors
   use mo_surface_nml,      only: lprog_soil_temp,pbl_scheme
   use mo_constituents_nml, only: n_constituents
@@ -37,7 +37,7 @@ module mo_pbl
     if (pbl_scheme==1) then
       !$omp parallel do private(ji,vector_index,flux_resistance,wind_speed_lowest_layer,z_agl, &
       !$omp layer_thickness,monin_obukhov_length_value,wind_rescale_factor,roughness_length_value)
-      do ji=1,n_vectors_h
+      do ji=1,n_edges
         vector_index = n_vectors - n_vectors_per_layer + ji
       
         ! averaging some quantities to the vector point
@@ -80,8 +80,8 @@ module mo_pbl
       !$omp temp_lowest_layer,pressure_value_lowest_layer,temp_surface,surface_p_factor, &
       !$omp pressure_sfc_from,pressure_sfc_to,pressure_sfc,sigma)
       do ji=1,n_h_vectors
-        layer_index = (ji-1)/n_vectors_h
-        h_index = ji - layer_index*n_vectors_h
+        layer_index = (ji-1)/n_edges
+        h_index = ji - layer_index*n_edges
         vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
         ! calculating the pressure at the horizontal vector point
         exner_from = grid%exner_bg(layer_index*n_cells + 1+grid%from_index(h_index)) &

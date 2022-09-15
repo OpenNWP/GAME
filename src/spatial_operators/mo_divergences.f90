@@ -6,7 +6,7 @@ module mo_divergences
   ! In this module, divergences get computed.
   
   use mo_definitions, only: wp,t_grid
-  use mo_grid_nml,    only: n_vectors,n_vectors_h,n_layers,n_scalars,n_cells,n_vectors_per_layer, &
+  use mo_grid_nml,    only: n_vectors,n_edges,n_layers,n_scalars,n_cells,n_vectors_per_layer, &
                             n_v_vectors,n_pentagons
   use mo_grid_setup,  only: n_oro_layers
   use mo_averaging,   only: vertical_contravariant_corr

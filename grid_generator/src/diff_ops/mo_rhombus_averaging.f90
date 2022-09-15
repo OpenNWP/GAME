@@ -7,7 +7,7 @@ module mo_rhombus_averaging
 
   use mo_definitions,     only: wp
   use mo_constants,       only: EPSILON_SECURITY
-  use mo_grid_nml,        only: n_vectors_h,radius,n_cells,n_dual_scalars_h,n_dual_vectors,n_vectors
+  use mo_grid_nml,        only: n_edges,radius,n_cells,n_dual_scalars_h,n_dual_vectors,n_vectors
   use mo_geodesy,         only: calc_triangle_area
   use mo_various_helpers, only: in_bool_checker
 
@@ -21,13 +21,13 @@ module mo_rhombus_averaging
     
     ! This subroutine implements the averaging of scalar quantities to rhombi. Indices and weights are computed here for the highest layer but remain unchanged elsewhere.
 
-    integer,  intent(in)  :: vorticity_indices_triangles(3*n_dual_scalars_h),from_index_dual(n_vectors_h), &
-                             to_index_dual(n_vectors_h),from_index(n_vectors_h),to_index(n_vectors_h)
+    integer,  intent(in)  :: vorticity_indices_triangles(3*n_dual_scalars_h),from_index_dual(n_edges), &
+                             to_index_dual(n_edges),from_index(n_edges),to_index(n_edges)
     real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells),area_dual(n_dual_vectors), &
                              z_vector(n_vectors),lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
-                             lat_e(n_vectors_h),lon_e(n_vectors_h)
-    integer,  intent(out) :: vorticity_indices_rhombi(4*n_vectors_h),density_to_rhombus_indices(4*n_vectors_h)
-    real(wp), intent(out) :: density_to_rhombus_weights(4*n_vectors_h)
+                             lat_e(n_edges),lon_e(n_edges)
+    integer,  intent(out) :: vorticity_indices_rhombi(4*n_edges),density_to_rhombus_indices(4*n_edges)
+    real(wp), intent(out) :: density_to_rhombus_weights(4*n_edges)
 
     ! local variables
     integer  :: ji,jk,jl,jm,counter,indices_list_pre(6),indices_list(4),double_indices(2),density_to_rhombus_indices_pre(4), &
@@ -40,7 +40,7 @@ module mo_rhombus_averaging
     !$omp density_to_rhombus_index_candidate,check_counter,dual_scalar_h_index_1,dual_scalar_h_index_2, &
     !$omp vector_h_index_1,vector_h_index_2,vector_h_index_1_found,vector_h_index_2_found,which_vertex_check_result, &
     !$omp first_case_counter,second_case_counter,triangle_1,triangle_2,triangle_3,triangle_4,rhombus_area,check_sum)
-    do ji=1,n_vectors_h
+    do ji=1,n_edges
       double_indices(1) = -1
       double_indices(2) = -1
       
@@ -74,7 +74,7 @@ module mo_rhombus_averaging
       endif
       do jk=1,4
         vorticity_indices_rhombi(4*(ji-1)+jk) = indices_list(jk)
-        if (vorticity_indices_rhombi(4*(ji-1)+jk)>=n_vectors_h .or. vorticity_indices_rhombi(4*(ji-1)+jk)<0) then
+        if (vorticity_indices_rhombi(4*(ji-1)+jk)>=n_edges .or. vorticity_indices_rhombi(4*(ji-1)+jk)<0) then
           write(*,*) "Error in subroutine rhombus_averaging, position 2."
           call exit(1)
         endif
@@ -104,7 +104,7 @@ module mo_rhombus_averaging
         density_to_rhombus_indices(4*(ji-1)+jk) = density_to_rhombus_indices_pre(jk)
       enddo
       ! now the weights
-      rhombus_area = area_dual(1+n_vectors_h+from_index_dual(ji)) + area_dual(1+n_vectors_h+to_index_dual(ji))
+      rhombus_area = area_dual(1+n_edges+from_index_dual(ji)) + area_dual(1+n_edges+to_index_dual(ji))
       ! This is a sum over the four primal cells which are needed for the density interpolation.
       first_case_counter = 0
       second_case_counter = 0

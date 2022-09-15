@@ -6,7 +6,7 @@ module mo_derived_hor_quantities
   ! This module contains helper functions concerned with simple algebraic operations on vectors.
 
   use mo_definitions,     only: wp
-  use mo_grid_nml,        only: n_cells,n_vectors_h,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
+  use mo_grid_nml,        only: n_cells,n_edges,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
                                 n_lloyd_iterations,radius,n_vectors,n_dual_vectors,n_pentagons
   use mo_geodesy,         only: find_turn_angle,rad2deg,find_geodetic_direction,find_global_normal,find_geos, &
                                 find_between_point,rel_on_line,calc_spherical_polygon_area
@@ -25,15 +25,15 @@ module mo_derived_hor_quantities
     ! - in which direction they point
     
     real(wp), intent(in)  :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
-                             lat_e(n_vectors_h),lon_e(n_vectors_h)
-    integer,  intent(in)  :: from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
-    real(wp), intent(out) :: direction_dual(n_vectors_h),rel_on_line_dual(n_vectors_h)
+                             lat_e(n_edges),lon_e(n_edges)
+    integer,  intent(in)  :: from_index_dual(n_edges),to_index_dual(n_edges)
+    real(wp), intent(out) :: direction_dual(n_edges),rel_on_line_dual(n_edges)
     
     ! local variables
     integer :: ji
     
     !$omp parallel do private(ji)
-    do ji=1,n_vectors_h
+    do ji=1,n_edges
       rel_on_line_dual(ji) = rel_on_line(lat_c_dual(1+from_index_dual(ji)),lon_c_dual(1+from_index_dual(ji)), &
       lat_c_dual(1+to_index_dual(ji)),lon_c_dual(1+to_index_dual(ji)),lat_e(ji),lon_e(ji))
       if (abs(rel_on_line_dual(ji)-0.5_wp)>0.14_wp) then
@@ -53,16 +53,16 @@ module mo_derived_hor_quantities
     
     ! This subroutine sets the geographical coordinates and the directions of the horizontal vector points.
     
-    integer,  intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    integer,  intent(in)  :: from_index(n_edges),to_index(n_edges)
     real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
-    real(wp), intent(out) :: lat_e(n_vectors_h),lon_e(n_vectors_h),direction(n_vectors_h)
+    real(wp), intent(out) :: lat_e(n_edges),lon_e(n_edges),direction(n_edges)
     
     ! local variables
     integer  :: ji
     real(wp) :: x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,x_res,y_res,z_res,lat_res,lon_res
 
     !$omp parallel do private(ji,x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,x_res,y_res,z_res,lat_res,lon_res)
-    do ji=1,n_vectors_h
+    do ji=1,n_edges
       call find_global_normal(lat_c(1+from_index(ji)),lon_c(1+from_index(ji)),x_point_1,y_point_1,z_point_1)
       call find_global_normal(lat_c(1+to_index(ji)),lon_c(1+to_index(ji)),x_point_2,y_point_2,z_point_2)
       call find_between_point(x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,0.5_wp,x_res,y_res,z_res)
@@ -81,17 +81,17 @@ module mo_derived_hor_quantities
   
     ! This subroutine determines the directions of the dual vectors.
     
-    integer,  intent(out) :: to_index_dual(n_vectors_h),from_index_dual(n_vectors_h)
+    integer,  intent(out) :: to_index_dual(n_edges),from_index_dual(n_edges)
     real(wp), intent(in)  :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
-                             direction(n_vectors_h)
-    real(wp), intent(out) :: direction_dual(n_vectors_h),rel_on_line_dual(n_vectors_h)
+                             direction(n_edges)
+    real(wp), intent(out) :: direction_dual(n_edges),rel_on_line_dual(n_edges)
     
     ! local variables
     integer  :: ji,temp_index
     real(wp) :: direction_change
     
     !$omp parallel do private(ji,temp_index,direction_change)
-    do ji=1,n_vectors_h
+    do ji=1,n_edges
       direction_change = find_turn_angle(direction(ji),direction_dual(ji))
       if (rad2deg(direction_change)<-orth_criterion_deg) then
         ! ensuring e_y = k x e_z
@@ -111,7 +111,7 @@ module mo_derived_hor_quantities
 
     ! checking for orthogonality
     !$omp parallel do private(ji,direction_change)
-    do ji=1,n_vectors_h
+    do ji=1,n_edges
       direction_change = find_turn_angle(direction(ji),direction_dual(ji))
       if (abs(rad2deg(direction_change))<orth_criterion_deg .or. abs(rad2deg(direction_change)) &
           >90._wp+(90._wp-orth_criterion_deg)) then
@@ -128,20 +128,20 @@ module mo_derived_hor_quantities
     ! This subroutine sets the Coriolis vector (vertical at horizontal primal vector points,
     ! horizontal at horizontal dual vector points).
     
-    real(wp), intent(in)  :: lat_e(n_vectors_h),direction_dual(n_vectors_h)
-    real(wp), intent(out) :: f_vec(2*n_vectors_h)
+    real(wp), intent(in)  :: lat_e(n_edges),direction_dual(n_edges)
+    real(wp), intent(out) :: f_vec(2*n_edges)
     
     ! local variables
     integer :: ji
   
     !$omp parallel do private(ji)
-    do ji=1,2*n_vectors_h
+    do ji=1,2*n_edges
       ! horizontal component at dual vector points
-      if (ji<=n_vectors_h) then
+      if (ji<=n_edges) then
         f_vec(ji) = 2._wp*omega/radius_rescale*cos(lat_e(ji))*sin(direction_dual(ji))
       ! vertical component at primal vector points
       else
-        f_vec(ji) = 2._wp*omega/radius_rescale*sin(lat_e(ji-n_vectors_h))
+        f_vec(ji) = 2._wp*omega/radius_rescale*sin(lat_e(ji-n_edges))
       endif
     enddo
     !$omp end parallel do
@@ -153,8 +153,8 @@ module mo_derived_hor_quantities
   
     ! This subroutine computes the vector indices needed for calculating the vorticity on triangles.
     
-    integer,  intent(in)  :: from_index_dual(n_vectors_h),to_index_dual(n_vectors_h)
-    real(wp), intent(in)  :: direction(n_vectors_h),direction_dual(n_vectors_h)
+    integer,  intent(in)  :: from_index_dual(n_edges),to_index_dual(n_edges)
+    real(wp), intent(in)  :: direction(n_edges),direction_dual(n_edges)
     integer,  intent(out) :: vorticity_indices_triangles(3*n_dual_scalars_h),vorticity_signs_triangles(3*n_dual_scalars_h)
     
     ! local variables
@@ -164,7 +164,7 @@ module mo_derived_hor_quantities
     !$omp parallel do private(ji,jk,counter,sign_,direction_change)
     do ji=1,n_dual_scalars_h
       counter = 1
-      do jk=1,n_vectors_h
+      do jk=1,n_edges
         if (from_index_dual(jk)==ji-1 .or. to_index_dual(jk)==ji-1) then
           vorticity_indices_triangles(3*(ji-1)+counter) = jk-1
           sign_ = 1
@@ -217,9 +217,9 @@ module mo_derived_hor_quantities
     area_max = maxval(pent_hex_face_unity_sphere)
     !$omp end parallel workshare
     
-    allocate(horizontal_distance(n_vectors_h))
+    allocate(horizontal_distance(n_edges))
     !$omp parallel do private(ji)
-    do ji=1,n_vectors_h
+    do ji=1,n_edges
       horizontal_distance(ji) = radius/(radius+z_vector(n_cells+ji))*normal_distance(n_cells+ji)
     enddo
     !$omp end parallel do
@@ -232,9 +232,9 @@ module mo_derived_hor_quantities
     normal_distance_h_max = maxval(horizontal_distance)
     !$omp end parallel workshare
     
-    allocate(horizontal_distance_dual(n_vectors_h))
+    allocate(horizontal_distance_dual(n_edges))
     !$omp parallel do private(ji)
-    do ji=1,n_vectors_h
+    do ji=1,n_edges
       horizontal_distance_dual(ji) = radius/(radius+z_vector_dual(ji))*normal_distance_dual(ji)
     enddo
     !$omp end parallel do
@@ -271,7 +271,7 @@ module mo_derived_hor_quantities
   
     ! This subroutine finds the horizontal vectors that are adjacent to a grid cell.
     
-    integer, intent(in)  :: from_index(n_vectors_h),to_index(n_vectors_h)
+    integer, intent(in)  :: from_index(n_edges),to_index(n_edges)
     integer, intent(out) :: adjacent_signs_h(6*n_cells),adjacent_vector_indices_h(6*n_cells)
     
     ! local variables
@@ -282,7 +282,7 @@ module mo_derived_hor_quantities
     !$omp parallel do private(ji,jk,trouble_detected,counter)
     do ji=1,n_cells
       counter = 1
-      do jk=1,n_vectors_h
+      do jk=1,n_edges
         if (from_index(jk)==ji-1 .or. to_index(jk)==ji-1) then
           if (from_index(jk)==to_index(jk)) then
             write(*,*) "It is from_index == to_index at the following grid point:", jk
@@ -316,7 +316,7 @@ module mo_derived_hor_quantities
     !$omp end parallel do
     
     !$omp parallel do private(ji,jk,jl,counter,no_of_edges,sign_sum_check,double_check)
-    do ji=1,n_vectors_h
+    do ji=1,n_edges
       counter = 0
       sign_sum_check = 0
       do jk=1,n_cells

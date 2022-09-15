@@ -9,7 +9,7 @@ module mo_write_output
   use netcdf
   use mo_definitions,            only: wp,t_grid,t_state,t_diag
   use mo_constants,              only: c_d_p,r_d,t_0,EPSILON_SECURITY,c_d_v,r_v,p_0,M_PI,gravity
-  use mo_grid_nml,               only: n_scalars,n_cells,n_vectors_per_layer,n_vectors_h,n_dual_vectors, &
+  use mo_grid_nml,               only: n_scalars,n_cells,n_vectors_per_layer,n_edges,n_dual_vectors, &
                                        n_lat_io_points,n_lon_io_points,n_vectors,n_levels,n_layers,n_dual_scalars_h, &
                                        n_dual_v_vectors,n_latlon_io_points
   use mo_various_helpers,        only: nc_check,find_min_index,int2string
@@ -167,7 +167,7 @@ module mo_write_output
     type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     real(wp), intent(in)  :: t_init,t_write, &
-                             wind_h_lowest_layer_array(n_output_steps_10m_wind*n_vectors_h)
+                             wind_h_lowest_layer_array(n_output_steps_10m_wind*n_edges)
     logical,       intent(in)    :: ltotally_first_step
   
     ! local variables
@@ -366,11 +366,11 @@ module mo_write_output
       ! 10 m wind diagnostics
       ! ---------------------
       
-      allocate(wind_10_m_mean_u(n_vectors_h))
-      allocate(wind_10_m_mean_v(n_vectors_h))
+      allocate(wind_10_m_mean_u(n_edges))
+      allocate(wind_10_m_mean_v(n_edges))
       ! temporal average over the ten minutes output interval
       !$omp parallel do private(ji,jk,time_step_10_m_wind,wind_tangential,wind_u_value,wind_v_value)
-      do ji=1,n_vectors_h
+      do ji=1,n_edges
         ! initializing the means with zero
         wind_10_m_mean_u(ji) = 0._wp
         wind_10_m_mean_v(ji) = 0._wp
@@ -379,10 +379,10 @@ module mo_write_output
           wind_tangential = 0._wp
           do jk=1,10
             wind_tangential = wind_tangential + grid%trsk_weights(10*(ji-1)+jk) &
-                              *wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_vectors_h+1+grid%trsk_indices(10*(ji-1)+jk))
+                              *wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_edges+1+grid%trsk_indices(10*(ji-1)+jk))
           enddo
           wind_10_m_mean_u(ji) = wind_10_m_mean_u(ji) &
-          + 1._wp/n_output_steps_10m_wind*wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_vectors_h + ji)
+          + 1._wp/n_output_steps_10m_wind*wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_edges + ji)
           wind_10_m_mean_v(ji) = wind_10_m_mean_v(ji) + 1._wp/n_output_steps_10m_wind*wind_tangential
         enddo
         ! passive turn to obtain the u- and v-components of the wind
@@ -393,7 +393,7 @@ module mo_write_output
       !$omp end parallel do
       ! vertically extrapolating to ten meters above the surface
       !$omp parallel do private(ji,roughness_length_extrapolation,actual_roughness_length,z_sfc,z_agl,rescale_factor)
-      do ji=1,n_vectors_h
+      do ji=1,n_edges
         actual_roughness_length = 0.5_wp*(grid%roughness_length(1+grid%from_index(ji)) + grid%roughness_length(1+grid%to_index(ji)))
         ! roughness length of grass according to WMO
         roughness_length_extrapolation = 0.02_wp

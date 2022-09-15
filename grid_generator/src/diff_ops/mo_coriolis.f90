@@ -7,7 +7,7 @@ module mo_coriolis
 
   use mo_definitions,     only: wp
   use mo_constants,       only: EPSILON_SECURITY
-  use mo_grid_nml,        only: radius,n_vectors_h,n_dual_vectors,n_vectors,n_dual_scalars_h,n_cells, &
+  use mo_grid_nml,        only: radius,n_edges,n_dual_vectors,n_vectors,n_dual_scalars_h,n_cells, &
                                 n_pentagons,n_scalars
   use mo_geodesy,         only: calc_triangle_area,sort_vertex_indices
   use mo_various_helpers, only: in_bool_checker
@@ -27,13 +27,13 @@ module mo_coriolis
                              lat_e(n_vectors),lon_e(n_vectors), &
                              lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
                              z_vector(n_vectors)
-    integer,  intent(in)  :: from_index_dual(n_vectors_h),to_index_dual(n_vectors_h), &
-                             to_index(n_vectors_h),from_index(n_vectors_h),adjacent_vector_indices_h(6*n_cells)
-    real(wp), intent(out) :: trsk_weights(10*n_vectors_h)
-    integer,  intent(out) :: trsk_modified_curl_indices(10*n_vectors_h),trsk_indices(10*n_vectors_h)
+    integer,  intent(in)  :: from_index_dual(n_edges),to_index_dual(n_edges), &
+                             to_index(n_edges),from_index(n_edges),adjacent_vector_indices_h(6*n_cells)
+    real(wp), intent(out) :: trsk_weights(10*n_edges)
+    integer,  intent(out) :: trsk_modified_curl_indices(10*n_edges),trsk_indices(10*n_edges)
     
     ! local variables
-    integer  :: ji,jk,jl,jm,offset,sign_1,sign_2,n_edges,index_offset,vertex_index_candidate_1, &
+    integer  :: ji,jk,jl,jm,offset,sign_1,sign_2,n_edges_of_cell,index_offset,vertex_index_candidate_1, &
                 vertex_index_candidate_2,counter,check_result,first_index,last_index,second_index, &
                 vertex_indices(6),edge_indices(6),indices_resorted(6),vertex_indices_resorted(6), &
                 value_written,trsk_indices_pre(10),next_vertex_index,next_vertex_index_candidate, &
@@ -46,20 +46,20 @@ module mo_coriolis
     rescale_for_z_offset_1d = (radius+z_scalar(1))/(radius+z_vector(1))
     rescale_for_z_offset_2d =rescale_for_z_offset_1d**2
     ! loop over all edges
-    !$omp parallel do private(ji,jk,jl,jm,offset,sign_1,sign_2,n_edges,index_offset,vertex_index_candidate_1, &
+    !$omp parallel do private(ji,jk,jl,jm,offset,sign_1,sign_2,n_edges_of_cell,index_offset,vertex_index_candidate_1, &
     !$omp vertex_index_candidate_2,counter,check_result,first_index,last_index,check_sum,triangle_1, &
     !$omp triangle_2,sum_of_weights,vertex_indices,edge_indices,indices_resorted,second_index, &
     !$omp vertex_indices_resorted,value_written,trsk_indices_pre,trsk_weights_pre,next_vertex_index, &
     !$omp indices_used_counter,next_vertex_index_candidate,indices_used,latitude_vertices,longitude_vertices, &
     !$omp latitude_edges,longitude_edges,vector_of_areas,value_1,value_2,from_or_to_index)
-    do ji=1,n_vectors_h
+    do ji=1,n_edges
       
       ! translation from TRSK paper (Thuburn et al., 2009):
       ! sign_1: t_{e, v_2}
       ! sign_2: n_{e', i}
       ! trsk_weights: w
       
-      allocate(from_or_to_index(n_vectors_h))
+      allocate(from_or_to_index(n_edges))
       offset = 0
       first_index = -1
       last_index = -1
@@ -95,25 +95,25 @@ module mo_coriolis
             sign_2 = 1
           endif
           ! determining wether the cell is pentagonal or hexagonal
-            n_edges = 6
+            n_edges_of_cell = 6
           if (from_or_to_index(ji)<n_pentagons) then
-            n_edges = 5
+            n_edges_of_cell = 5
           endif
           ! finding the vertex indices of the cell
           ! initializing with impossible values
           vertex_indices = -1
           counter = 1
-          do jl=1,n_edges
+          do jl=1,n_edges_of_cell
             vertex_index_candidate_1 = from_index_dual(1+adjacent_vector_indices_h(6*from_or_to_index(ji)+jl))
             vertex_index_candidate_2 = to_index_dual(1+adjacent_vector_indices_h(6*from_or_to_index(ji)+jl))
-            check_result = in_bool_checker(vertex_index_candidate_1,vertex_indices,n_edges)            
+            check_result = in_bool_checker(vertex_index_candidate_1,vertex_indices,n_edges_of_cell)            
             if (check_result==0) then
               vertex_indices(counter) = vertex_index_candidate_1
               latitude_vertices(counter) = lat_c_dual(1+vertex_indices(counter))
               longitude_vertices(counter) = lon_c_dual(1+vertex_indices(counter))
               counter = counter+1
             endif
-            check_result = in_bool_checker(vertex_index_candidate_2,vertex_indices,n_edges)            
+            check_result = in_bool_checker(vertex_index_candidate_2,vertex_indices,n_edges_of_cell)            
             if (check_result==0) then
               vertex_indices(counter) = vertex_index_candidate_2
               latitude_vertices(counter) = lat_c_dual(1+vertex_indices(counter))
@@ -123,44 +123,44 @@ module mo_coriolis
           enddo
           
           ! checker wether all vertices have been found
-          if (counter/=n_edges+1) then
+          if (counter/=n_edges_of_cell+1) then
             write(*,*) "Problem 2 in TRSK implementation detected."
             call exit(1)
           endif
           
           ! sorting the vertices in counter-clockwise direction
-          call sort_vertex_indices(latitude_vertices,longitude_vertices,n_edges,indices_resorted)
-          do jl=1,n_edges
+          call sort_vertex_indices(latitude_vertices,longitude_vertices,n_edges_of_cell,indices_resorted)
+          do jl=1,n_edges_of_cell
             vertex_indices_resorted(jl) = vertex_indices(1+indices_resorted(jl))
           enddo
           
           ! sorting the edges in counter-clockwise direction
-          do jl=1,n_edges
-            do jm=1,n_edges
+          do jl=1,n_edges_of_cell
+            do jm=1,n_edges_of_cell
               if ((from_index_dual(1+adjacent_vector_indices_h(6*from_or_to_index(ji)+jm))==vertex_indices_resorted(jl) &
               .and. to_index_dual(1+adjacent_vector_indices_h(6*from_or_to_index(ji)+jm)) &
-                    ==vertex_indices_resorted(mod(jl,n_edges)+1)) &
+                    ==vertex_indices_resorted(mod(jl,n_edges_of_cell)+1)) &
               .or. (to_index_dual(1+adjacent_vector_indices_h(6*from_or_to_index(ji)+jm))==vertex_indices_resorted(jl) &
               .and. from_index_dual(1+adjacent_vector_indices_h(6*from_or_to_index(ji)+jm)) &
-                    ==vertex_indices_resorted(mod(jl,n_edges)+1))) then
+                    ==vertex_indices_resorted(mod(jl,n_edges_of_cell)+1))) then
                 edge_indices(jl) = adjacent_vector_indices_h(6*from_or_to_index(ji)+jm)
               endif
             enddo
           enddo
-          do jl=1,n_edges
+          do jl=1,n_edges_of_cell
             latitude_edges(jl) = lat_e(1+edge_indices(jl))
             longitude_edges(jl) = lon_e(1+edge_indices(jl))
           enddo
           
           check_sum = 0._wp
-          do jl=1,n_edges
+          do jl=1,n_edges_of_cell
             if (jl==1) then
               triangle_1 = calc_triangle_area(lat_c(1+from_or_to_index(ji)), &
                                               lon_c(1+from_or_to_index(ji)), &
                                               latitude_vertices(1+indices_resorted(jl)), &
                                               longitude_vertices(1+indices_resorted(jl)), &
-                                              latitude_edges(n_edges), &
-                                              longitude_edges(n_edges))
+                                              latitude_edges(n_edges_of_cell), &
+                                              longitude_edges(n_edges_of_cell))
             else
               triangle_1 = calc_triangle_area(lat_c(1+from_or_to_index(ji)), &
                                               lon_c(1+from_or_to_index(ji)), &
@@ -186,12 +186,12 @@ module mo_coriolis
           endif
           
           ! we are summing in the counter-clockwise direction
-          do jl=1,n_edges
+          do jl=1,n_edges_of_cell
             if (edge_indices(jl)==ji-1) then
               last_index = jl
             endif
             if (edge_indices(jl)==trsk_indices(10*(ji-1)+jk)) then
-              first_index = mod(jl,n_edges)+1
+              first_index = mod(jl,n_edges_of_cell)+1
             endif
           enddo
           sum_of_weights = 0._wp
@@ -200,7 +200,7 @@ module mo_coriolis
               sum_of_weights = sum_of_weights+vector_of_areas(jl)
             enddo
           else
-            do jl=first_index,n_edges
+            do jl=first_index,n_edges_of_cell
               sum_of_weights = sum_of_weights+vector_of_areas(jl)
             enddo
             do jl=1,last_index
@@ -227,9 +227,9 @@ module mo_coriolis
       ! First off all, the indices need to be resorted.
       ! As usual, the from cell is treated first.
       ! First of all, it needs to be determined wether the cell at hand is pentagonal or hexagonal.
-      n_edges = 6
+      n_edges_of_cell = 6
       if (from_index(ji)<n_pentagons) then
-        n_edges = 5
+        n_edges_of_cell = 5
       endif
       do jk=1,10
         trsk_indices_pre(jk) = trsk_indices(10*(ji-1)+jk)
@@ -238,12 +238,12 @@ module mo_coriolis
       next_vertex_index = to_index_dual(ji)
       indices_used_counter = 1
       indices_used = -1
-      do jk=1,n_edges-1
+      do jk=1,n_edges_of_cell-1
         value_written = 0
-        do jl=1,n_edges-1
+        do jl=1,n_edges_of_cell-1
           if ((from_index_dual(1+trsk_indices_pre(jl))==next_vertex_index &
               .or. to_index_dual(1+trsk_indices_pre(jl))==next_vertex_index) &
-          .and. 0==in_bool_checker(jl,indices_used,n_edges-1) &
+          .and. 0==in_bool_checker(jl,indices_used,n_edges_of_cell-1) &
           .and. value_written==0) then
             trsk_indices(10*(ji-1)+jk) = trsk_indices_pre(jl)
             trsk_weights(10*(ji-1)+jk) = trsk_weights_pre(jl)
@@ -260,25 +260,25 @@ module mo_coriolis
         endif
       enddo
       ! checking for reliability
-      if (indices_used_counter/=n_edges) then
+      if (indices_used_counter/=n_edges_of_cell) then
         write(*,*) "Problem 5 in TRSK implementation detected."
         call exit(1)
       endif
       ! Then comes the to cell.
       ! First of all it needs to be determined wether the cell at hand is pentagonal or hexagonal.
-      n_edges = 6
+      n_edges_of_cell = 6
       if (to_index(ji)<n_pentagons) then
-        n_edges = 5
+        n_edges_of_cell = 5
       endif
       next_vertex_index = from_index_dual(ji)
       indices_used_counter = 1
       indices_used = -1
-      do jk=1,n_edges-1
+      do jk=1,n_edges_of_cell-1
         value_written = 0
-        do jl=1,n_edges-1
+        do jl=1,n_edges_of_cell-1
           if ((from_index_dual(1+trsk_indices_pre(5+jl))==next_vertex_index &
                .or. to_index_dual(1+trsk_indices_pre(5+jl))==next_vertex_index) &
-              .and. 0==in_bool_checker(jl,indices_used,n_edges-1) &
+              .and. 0==in_bool_checker(jl,indices_used,n_edges_of_cell-1) &
               .and. value_written==0) then
             trsk_indices(10*(ji-1)+5+jk) = trsk_indices_pre(5+jl)
             trsk_weights(10*(ji-1)+5+jk) = trsk_weights_pre(5+jl)
@@ -295,7 +295,7 @@ module mo_coriolis
         endif
       enddo
       ! checking for reliability
-      if (indices_used_counter/=n_edges) then
+      if (indices_used_counter/=n_edges_of_cell) then
         write(*,*) "Problem 6 in TRSK implementation detected."
         call exit(1)
       endif
@@ -355,7 +355,7 @@ module mo_coriolis
     
     ! This checks Eq. (39) of the first TRSK paper (Thuburn et al., 2009).
     !$omp parallel do private(ji,jk,jl,first_index,value_1,second_index,value_2,check_sum)
-    do ji=1,n_vectors_h
+    do ji=1,n_edges
       do jk=1,10
         first_index = trsk_indices(10*(ji-1)+jk)
         if (first_index/=-1) then
@@ -384,7 +384,7 @@ module mo_coriolis
     !$omp end parallel do
 	
     !$omp parallel do private(ji)
-    do ji=1,10*n_vectors_h
+    do ji=1,10*n_edges
       if (trsk_indices(ji)==-1) then
         trsk_indices(ji) = 0
       endif
