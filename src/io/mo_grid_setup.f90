@@ -36,8 +36,8 @@ module mo_grid_setup
     
     ! local variables
     integer  :: ncid,normal_distance_id,volume_id,area_id,z_scalar_id,z_vector_id,trsk_weights_id, &
-                area_dual_id,z_vector_dual_id,f_vec_id,to_index_id,from_index_id, &
-                to_index_dual_id,from_index_dual_id,adjacent_vector_indices_h_id,trsk_indices_id, &
+                area_dual_id,z_vector_dual_id,f_vec_id,to_cell_id,from_cell_id, &
+                to_cell_dual_id,from_cell_dual_id,adjacent_edges_id,trsk_indices_id, &
                 trsk_modified_curl_indices_id,adjacent_signs_h_id,direction_id,gravity_potential_id, &
                 inner_product_weights_id,density_to_rhombi_weights_id,density_to_rhombi_indices_id, &
                 normal_distance_dual_id,vorticity_indices_triangles_id,vorticity_signs_triangles_id, &
@@ -69,13 +69,13 @@ module mo_grid_setup
     call nc_check(nf90_inq_varid(ncid,"area_dual",area_dual_id))
     call nc_check(nf90_inq_varid(ncid,"z_vector_dual",z_vector_dual_id))
     call nc_check(nf90_inq_varid(ncid,"f_vec",f_vec_id))
-    call nc_check(nf90_inq_varid(ncid,"to_index",to_index_id))
-    call nc_check(nf90_inq_varid(ncid,"to_index_dual",to_index_dual_id))
+    call nc_check(nf90_inq_varid(ncid,"to_cell",to_cell_id))
+    call nc_check(nf90_inq_varid(ncid,"to_cell_dual",to_cell_dual_id))
     call nc_check(nf90_inq_varid(ncid,"direction",direction_id))
     call nc_check(nf90_inq_varid(ncid,"normal_distance_dual",normal_distance_dual_id))
-    call nc_check(nf90_inq_varid(ncid,"from_index",from_index_id))
-    call nc_check(nf90_inq_varid(ncid,"from_index_dual",from_index_dual_id))
-    call nc_check(nf90_inq_varid(ncid,"adjacent_vector_indices_h",adjacent_vector_indices_h_id))
+    call nc_check(nf90_inq_varid(ncid,"from_cell",from_cell_id))
+    call nc_check(nf90_inq_varid(ncid,"from_cell_dual",from_cell_dual_id))
+    call nc_check(nf90_inq_varid(ncid,"adjacent_edges",adjacent_edges_id))
     call nc_check(nf90_inq_varid(ncid,"vorticity_indices_triangles",vorticity_indices_triangles_id))
     call nc_check(nf90_inq_varid(ncid,"vorticity_signs_triangles",vorticity_signs_triangles_id))
     call nc_check(nf90_inq_varid(ncid,"trsk_indices",trsk_indices_id))
@@ -116,11 +116,11 @@ module mo_grid_setup
     call nc_check(nf90_get_var(ncid,latitude_scalar_id,grid%lat_c))
     call nc_check(nf90_get_var(ncid,longitude_scalar_id,grid%lon_c))
     call nc_check(nf90_get_var(ncid,interpol_weights_id,grid%latlon_interpol_weights))
-    call nc_check(nf90_get_var(ncid,from_index_id,grid%from_index))
-    call nc_check(nf90_get_var(ncid,to_index_id,grid%to_index))
-    call nc_check(nf90_get_var(ncid,from_index_dual_id,grid%from_index_dual))
-    call nc_check(nf90_get_var(ncid,to_index_dual_id,grid%to_index_dual))
-    call nc_check(nf90_get_var(ncid,adjacent_vector_indices_h_id,grid%adjacent_vector_indices_h))
+    call nc_check(nf90_get_var(ncid,from_cell_id,grid%from_cell))
+    call nc_check(nf90_get_var(ncid,to_cell_id,grid%to_cell))
+    call nc_check(nf90_get_var(ncid,from_cell_dual_id,grid%from_cell_dual))
+    call nc_check(nf90_get_var(ncid,to_cell_dual_id,grid%to_cell_dual))
+    call nc_check(nf90_get_var(ncid,adjacent_edges_id,grid%adjacent_edges))
     call nc_check(nf90_get_var(ncid,vorticity_indices_triangles_id,grid%vorticity_indices_triangles))
     call nc_check(nf90_get_var(ncid,vorticity_signs_triangles_id,grid%vorticity_signs_triangles))
     call nc_check(nf90_get_var(ncid,trsk_indices_id,grid%trsk_indices))
@@ -144,8 +144,8 @@ module mo_grid_setup
     
     !$omp parallel do private(ji)
     do ji=1,6*n_cells
-      if (grid%adjacent_vector_indices_h(ji)==-1) then
-        grid%adjacent_vector_indices_h(ji) = 0
+      if (grid%adjacent_edges(ji)==-1) then
+        grid%adjacent_edges(ji) = 0
       endif
     enddo
     !$omp end parallel do

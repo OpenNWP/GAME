@@ -33,8 +33,8 @@ module mo_inner_product
         out_field(ji) = 0._wp
         do jk=1,no_of_edges
           out_field(ji) = out_field(ji) + grid%inner_product_weights(base_index + jk) &
-          *in_field_1(n_cells + layer_index*n_vectors_per_layer + 1 + grid%adjacent_vector_indices_h(6*(h_index-1) + jk)) &
-          *in_field_2(n_cells + layer_index*n_vectors_per_layer + 1 + grid%adjacent_vector_indices_h(6*(h_index-1) + jk))
+          *in_field_1(n_cells + layer_index*n_vectors_per_layer + 1 + grid%adjacent_edges(6*(h_index-1) + jk)) &
+          *in_field_2(n_cells + layer_index*n_vectors_per_layer + 1 + grid%adjacent_edges(6*(h_index-1) + jk))
         enddo
         out_field(ji) = out_field(ji) + grid%inner_product_weights(base_index+7) &
         *in_field_1(h_index+layer_index*n_vectors_per_layer) &

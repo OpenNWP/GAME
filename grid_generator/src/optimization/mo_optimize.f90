@@ -16,8 +16,8 @@ module mo_optimize
   contains
   
   subroutine optimize_to_scvt(lat_c,lon_c,lat_c_dual,lon_c_dual,n_iterations, &
-                              face_edges,face_edges_reverse,face_vertices,adjacent_vector_indices_h, &
-                              from_index_dual,to_index_dual)
+                              face_edges,face_edges_reverse,face_vertices,adjacent_edges, &
+                              from_cell_dual,to_cell_dual)
 
     ! This subroutine manages the grid optimization with Lloyd's algorithm.
     ! The result is (almost) a SCVT.
@@ -26,8 +26,8 @@ module mo_optimize
                                lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
     integer,  intent(in)    :: n_iterations,face_edges(n_basic_triangles,3),face_edges_reverse(n_basic_triangles,3), &
                                face_vertices(n_basic_triangles,3), &
-                               adjacent_vector_indices_h(6*n_cells),from_index_dual(n_edges), &
-                               to_index_dual(n_edges)
+                               adjacent_edges(6*n_cells),from_cell_dual(n_edges), &
+                               to_cell_dual(n_edges)
 	
     ! local variables
     integer :: ji
@@ -36,21 +36,21 @@ module mo_optimize
       call set_scalar_h_dual_coords(lat_c_dual,lon_c_dual,lat_c,lon_c, &
                                     face_edges,face_edges_reverse,face_vertices)
       call find_cell_cgs(lat_c,lon_c,lat_c_dual,lon_c_dual, &
-                         adjacent_vector_indices_h,from_index_dual,to_index_dual)
+                         adjacent_edges,from_cell_dual,to_cell_dual)
       write(*,*) "Optimizing grid - iteration",ji+1,"completed."
     enddo
 	
   end subroutine optimize_to_scvt
 
   subroutine find_cell_cgs(lat_c,lon_c,lat_c_dual,lon_c_dual, &
-                           adjacent_vector_indices_h,from_index_dual,to_index_dual)
+                           adjacent_edges,from_cell_dual,to_cell_dual)
     
     ! This subroutine calculates the barycenters (centers of gravity) of the cells.
     
     real(wp), intent(inout) :: lat_c(n_cells),lon_c(n_cells)
     real(wp), intent(in)    :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
-    integer,  intent(in)    :: adjacent_vector_indices_h(6*n_cells), &
-                               from_index_dual(n_edges),to_index_dual(n_edges)
+    integer,  intent(in)    :: adjacent_edges(6*n_cells), &
+                               from_cell_dual(n_edges),to_cell_dual(n_edges)
     
     ! local variables
     integer  :: ji,jk,n_edges,counter,vertex_index_candidate_1,vertex_index_candidate_2,check_result, &
@@ -72,8 +72,8 @@ module mo_optimize
       enddo
       counter = 1
       do jk=1,n_edges
-        vertex_index_candidate_1 = from_index_dual(1+adjacent_vector_indices_h(6*(ji-1)+jk))
-        vertex_index_candidate_2 = to_index_dual(1+adjacent_vector_indices_h(6*(ji-1)+jk))
+        vertex_index_candidate_1 = from_cell_dual(1+adjacent_edges(6*(ji-1)+jk))
+        vertex_index_candidate_2 = to_cell_dual(1+adjacent_edges(6*(ji-1)+jk))
         check_result = in_bool_checker(vertex_index_candidate_1,vertex_indices,n_edges)
         if (check_result==0) then
           vertex_indices(counter) = vertex_index_candidate_1

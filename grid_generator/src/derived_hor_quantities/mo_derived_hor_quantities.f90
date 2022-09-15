@@ -17,8 +17,8 @@ module mo_derived_hor_quantities
   
   contains
 
-  subroutine set_dual_vector_h_atttributes(lat_c_dual,lat_e,direction_dual,lon_e,to_index_dual, &
-                                           from_index_dual,lon_c_dual,rel_on_line_dual)
+  subroutine set_dual_vector_h_atttributes(lat_c_dual,lat_e,direction_dual,lon_e,to_cell_dual, &
+                                           from_cell_dual,lon_c_dual,rel_on_line_dual)
     
     ! This function computes the following two properties of horizontal dual vectors:
     ! - where they are placed in between the dual scalar points
@@ -26,7 +26,7 @@ module mo_derived_hor_quantities
     
     real(wp), intent(in)  :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
                              lat_e(n_edges),lon_e(n_edges)
-    integer,  intent(in)  :: from_index_dual(n_edges),to_index_dual(n_edges)
+    integer,  intent(in)  :: from_cell_dual(n_edges),to_cell_dual(n_edges)
     real(wp), intent(out) :: direction_dual(n_edges),rel_on_line_dual(n_edges)
     
     ! local variables
@@ -34,26 +34,26 @@ module mo_derived_hor_quantities
     
     !$omp parallel do private(ji)
     do ji=1,n_edges
-      rel_on_line_dual(ji) = rel_on_line(lat_c_dual(1+from_index_dual(ji)),lon_c_dual(1+from_index_dual(ji)), &
-      lat_c_dual(1+to_index_dual(ji)),lon_c_dual(1+to_index_dual(ji)),lat_e(ji),lon_e(ji))
+      rel_on_line_dual(ji) = rel_on_line(lat_c_dual(1+from_cell_dual(ji)),lon_c_dual(1+from_cell_dual(ji)), &
+      lat_c_dual(1+to_cell_dual(ji)),lon_c_dual(1+to_cell_dual(ji)),lat_e(ji),lon_e(ji))
       if (abs(rel_on_line_dual(ji)-0.5_wp)>0.14_wp) then
         write(*,*) "Bisection error."
         call exit(1)
       endif
       direction_dual(ji) = find_geodetic_direction( &
-      lat_c_dual(1+from_index_dual(ji)),lon_c_dual(1+from_index_dual(ji)), &
-      lat_c_dual(1+to_index_dual(ji)),lon_c_dual(1+to_index_dual(ji)),rel_on_line_dual(ji))
+      lat_c_dual(1+from_cell_dual(ji)),lon_c_dual(1+from_cell_dual(ji)), &
+      lat_c_dual(1+to_cell_dual(ji)),lon_c_dual(1+to_cell_dual(ji)),rel_on_line_dual(ji))
     enddo
     !$omp end parallel do
   
   end subroutine set_dual_vector_h_atttributes
 
-  subroutine set_vector_h_attributes(from_index,to_index,lat_c,lon_c, &
+  subroutine set_vector_h_attributes(from_cell,to_cell,lat_c,lon_c, &
                                      lat_e,lon_e,direction)
     
     ! This subroutine sets the geographical coordinates and the directions of the horizontal vector points.
     
-    integer,  intent(in)  :: from_index(n_edges),to_index(n_edges)
+    integer,  intent(in)  :: from_cell(n_edges),to_cell(n_edges)
     real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
     real(wp), intent(out) :: lat_e(n_edges),lon_e(n_edges),direction(n_edges)
     
@@ -63,25 +63,25 @@ module mo_derived_hor_quantities
 
     !$omp parallel do private(ji,x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,x_res,y_res,z_res,lat_res,lon_res)
     do ji=1,n_edges
-      call find_global_normal(lat_c(1+from_index(ji)),lon_c(1+from_index(ji)),x_point_1,y_point_1,z_point_1)
-      call find_global_normal(lat_c(1+to_index(ji)),lon_c(1+to_index(ji)),x_point_2,y_point_2,z_point_2)
+      call find_global_normal(lat_c(1+from_cell(ji)),lon_c(1+from_cell(ji)),x_point_1,y_point_1,z_point_1)
+      call find_global_normal(lat_c(1+to_cell(ji)),lon_c(1+to_cell(ji)),x_point_2,y_point_2,z_point_2)
       call find_between_point(x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,0.5_wp,x_res,y_res,z_res)
       call find_geos(x_res,y_res,z_res,lat_res,lon_res)
       lat_e(ji) = lat_res
       lon_e(ji) = lon_res
-      direction(ji) = find_geodetic_direction(lat_c(1+from_index(ji)),lon_c(1+from_index(ji)), &
-                                              lat_c(1+to_index(ji)),lon_c(1+to_index(ji)),0.5_wp)
+      direction(ji) = find_geodetic_direction(lat_c(1+from_cell(ji)),lon_c(1+from_cell(ji)), &
+                                              lat_c(1+to_cell(ji)),lon_c(1+to_cell(ji)),0.5_wp)
     enddo
     !$omp end parallel do
     
   end subroutine set_vector_h_attributes
   
   subroutine direct_tangential_unity(lat_c_dual,lon_c_dual,direction,direction_dual, &
-                                     to_index_dual,from_index_dual,rel_on_line_dual)
+                                     to_cell_dual,from_cell_dual,rel_on_line_dual)
   
     ! This subroutine determines the directions of the dual vectors.
     
-    integer,  intent(out) :: to_index_dual(n_edges),from_index_dual(n_edges)
+    integer,  intent(out) :: to_cell_dual(n_edges),from_cell_dual(n_edges)
     real(wp), intent(in)  :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
                              direction(n_edges)
     real(wp), intent(out) :: direction_dual(n_edges),rel_on_line_dual(n_edges)
@@ -95,15 +95,15 @@ module mo_derived_hor_quantities
       direction_change = find_turn_angle(direction(ji),direction_dual(ji))
       if (rad2deg(direction_change)<-orth_criterion_deg) then
         ! ensuring e_y = k x e_z
-        temp_index = from_index_dual(ji)
-        from_index_dual(ji) = to_index_dual(ji)
-        to_index_dual(ji) = temp_index
+        temp_index = from_cell_dual(ji)
+        from_cell_dual(ji) = to_cell_dual(ji)
+        to_cell_dual(ji) = temp_index
         rel_on_line_dual(ji) = 1._wp - rel_on_line_dual(ji)
         ! calculating the direction
-        direction_dual(ji) = find_geodetic_direction(lat_c_dual(1+from_index_dual(ji)), &
-                                                     lon_c_dual(1+from_index_dual(ji)), &
-                                                     lat_c_dual(1+to_index_dual(ji)), &
-                                                     lon_c_dual(1+to_index_dual(ji)), &
+        direction_dual(ji) = find_geodetic_direction(lat_c_dual(1+from_cell_dual(ji)), &
+                                                     lon_c_dual(1+from_cell_dual(ji)), &
+                                                     lat_c_dual(1+to_cell_dual(ji)), &
+                                                     lon_c_dual(1+to_cell_dual(ji)), &
                                                      rel_on_line_dual(ji))
       endif
     enddo
@@ -148,12 +148,12 @@ module mo_derived_hor_quantities
   
   end subroutine set_f_vec
   
-  subroutine calc_vorticity_indices_triangles(from_index_dual,to_index_dual,direction,direction_dual, &
+  subroutine calc_vorticity_indices_triangles(from_cell_dual,to_cell_dual,direction,direction_dual, &
                                               vorticity_indices_triangles,vorticity_signs_triangles)
   
     ! This subroutine computes the vector indices needed for calculating the vorticity on triangles.
     
-    integer,  intent(in)  :: from_index_dual(n_edges),to_index_dual(n_edges)
+    integer,  intent(in)  :: from_cell_dual(n_edges),to_cell_dual(n_edges)
     real(wp), intent(in)  :: direction(n_edges),direction_dual(n_edges)
     integer,  intent(out) :: vorticity_indices_triangles(3*n_dual_scalars_h),vorticity_signs_triangles(3*n_dual_scalars_h)
     
@@ -165,16 +165,16 @@ module mo_derived_hor_quantities
     do ji=1,n_dual_scalars_h
       counter = 1
       do jk=1,n_edges
-        if (from_index_dual(jk)==ji-1 .or. to_index_dual(jk)==ji-1) then
+        if (from_cell_dual(jk)==ji-1 .or. to_cell_dual(jk)==ji-1) then
           vorticity_indices_triangles(3*(ji-1)+counter) = jk-1
           sign_ = 1
-          if (from_index_dual(jk)==ji-1) then
+          if (from_cell_dual(jk)==ji-1) then
             direction_change = find_turn_angle(direction_dual(jk),direction(jk))
             if (rad2deg(direction_change)<-orth_criterion_deg) then
               sign_ = -1
             endif
           endif
-          if (to_index_dual(jk)==ji-1) then
+          if (to_cell_dual(jk)==ji-1) then
             direction_change = find_turn_angle(direction_dual(jk),direction(jk))
             if (rad2deg(direction_change)>orth_criterion_deg) then
               sign_ = -1
@@ -267,12 +267,12 @@ module mo_derived_hor_quantities
     
   end subroutine write_statistics_file
   
-  subroutine find_adjacent_vector_indices_h(from_index,to_index,adjacent_signs_h,adjacent_vector_indices_h)
+  subroutine find_adjacent_edges(from_cell,to_cell,adjacent_signs_h,adjacent_edges)
   
     ! This subroutine finds the horizontal vectors that are adjacent to a grid cell.
     
-    integer, intent(in)  :: from_index(n_edges),to_index(n_edges)
-    integer, intent(out) :: adjacent_signs_h(6*n_cells),adjacent_vector_indices_h(6*n_cells)
+    integer, intent(in)  :: from_cell(n_edges),to_cell(n_edges)
+    integer, intent(out) :: adjacent_signs_h(6*n_cells),adjacent_edges(6*n_cells)
     
     ! local variables
     integer :: ji,jk,jl,trouble_detected,counter,no_of_edges,double_check,sign_sum_check
@@ -283,16 +283,16 @@ module mo_derived_hor_quantities
     do ji=1,n_cells
       counter = 1
       do jk=1,n_edges
-        if (from_index(jk)==ji-1 .or. to_index(jk)==ji-1) then
-          if (from_index(jk)==to_index(jk)) then
-            write(*,*) "It is from_index == to_index at the following grid point:", jk
+        if (from_cell(jk)==ji-1 .or. to_cell(jk)==ji-1) then
+          if (from_cell(jk)==to_cell(jk)) then
+            write(*,*) "It is from_cell == to_cell at the following grid point:", jk
             call exit(1)
           endif
-          adjacent_vector_indices_h(6*(ji-1)+counter) = jk-1
-          if (from_index(jk)==ji-1) then
+          adjacent_edges(6*(ji-1)+counter) = jk-1
+          if (from_cell(jk)==ji-1) then
             adjacent_signs_h(6*(ji-1)+counter) = 1
           endif
-          if (to_index(jk)==ji-1) then
+          if (to_cell(jk)==ji-1) then
             adjacent_signs_h(6*(ji-1)+counter) = -1
           endif
           counter = counter+1
@@ -305,11 +305,11 @@ module mo_derived_hor_quantities
         endif
       endif
       if (trouble_detected==1) then
-        write(*,*) "Trouble detected in subroutine find_adjacent_vector_indices_h, position 1."
+        write(*,*) "Trouble detected in subroutine find_adjacent_edges, position 1."
         call exit(1)
       endif
       if (ji<=n_pentagons) then
-        adjacent_vector_indices_h(6*(ji-1)+6) = -1
+        adjacent_edges(6*(ji-1)+6) = -1
         adjacent_signs_h(6*(ji-1)+6) = 0
       endif
     enddo
@@ -326,14 +326,14 @@ module mo_derived_hor_quantities
         endif
         double_check = 0
         do jl=1,no_of_edges
-          if (adjacent_vector_indices_h(6*(jk-1)+jl)==ji-1) then
+          if (adjacent_edges(6*(jk-1)+jl)==ji-1) then
             counter = counter+1
             double_check = double_check+1
             sign_sum_check = sign_sum_check+adjacent_signs_h(6*(jk-1)+jl)
           endif
         enddo
         if (double_check>1) then
-          write(*,*) "Same vector twice in adjacent_vector_indices_h of same grid cell."
+          write(*,*) "Same vector twice in adjacent_edges of same grid cell."
           call exit(1)
         endif
       enddo
@@ -342,22 +342,22 @@ module mo_derived_hor_quantities
         call exit(1)
       endif
       if (counter/=2) then
-        write(*,*) "Trouble detected in subroutine find_adjacent_vector_indices_h, position 2."
+        write(*,*) "Trouble detected in subroutine find_adjacent_edges, position 2."
         call exit(1)
       endif
     enddo
     !$omp end parallel do
   
-  end subroutine find_adjacent_vector_indices_h
+  end subroutine find_adjacent_edges
   
   subroutine calc_cell_area_unity(pent_hex_face_unity_sphere,lat_c_dual,lon_c_dual, &
-                                  adjacent_vector_indices_h,vorticity_indices_pre)
+                                  adjacent_edges,vorticity_indices_pre)
     
     ! This subroutine computes the areas of the cells (pentagons and hexagons) on the unity sphere.
     
     real(wp), intent(out) :: pent_hex_face_unity_sphere(n_cells)
     real(wp), intent(in)  :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
-    integer,  intent(in)  :: adjacent_vector_indices_h(6*n_cells),vorticity_indices_pre(3*n_dual_scalars_h)
+    integer,  intent(in)  :: adjacent_edges(6*n_cells),vorticity_indices_pre(3*n_dual_scalars_h)
     
     integer  :: ji,jk,check_1,check_2,check_3,counter,n_edges,cell_vector_indices(6)
     real(wp) :: pent_hex_sum_unity_sphere,pent_hex_avg_unity_sphere_ideal,lat_points(6),lon_points(6)
@@ -369,7 +369,7 @@ module mo_derived_hor_quantities
         n_edges = 5
       endif
       do jk=1,n_edges
-        cell_vector_indices(jk) = adjacent_vector_indices_h(6*(ji-1)+jk)
+        cell_vector_indices(jk) = adjacent_edges(6*(ji-1)+jk)
       enddo
       counter = 1
       do jk=1,n_dual_scalars_h

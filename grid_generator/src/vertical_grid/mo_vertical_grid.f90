@@ -159,13 +159,13 @@ module mo_vertical_grid
     
   end function standard_pres
   
-  subroutine set_z_scalar_dual(z_scalar_dual,z_vector,from_index,to_index,vorticity_indices_triangles)
+  subroutine set_z_scalar_dual(z_scalar_dual,z_vector,from_cell,to_cell,vorticity_indices_triangles)
   
     ! This subroutine sets the z coordinates of the dual scalar points.
   
     real(wp), intent(out) :: z_scalar_dual(n_dual_scalars)
     real(wp), intent(in)  :: z_vector(n_vectors)
-    integer,  intent(in)  :: from_index(n_edges),to_index(n_edges), &
+    integer,  intent(in)  :: from_cell(n_edges),to_cell(n_edges), &
                              vorticity_indices_triangles(3*n_dual_scalars_h)
 
     ! local variables
@@ -177,25 +177,25 @@ module mo_vertical_grid
       h_index = ji-layer_index*n_dual_scalars_h
       z_scalar_dual(ji) &
       = 1._wp/6._wp*( &
-      z_vector(layer_index*n_vectors_per_layer+1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+1))) &
-      + z_vector(layer_index*n_vectors_per_layer+1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+2))) &
-      + z_vector(layer_index*n_vectors_per_layer+1+from_index(1+vorticity_indices_triangles(3*(h_index-1)+3))) &
-      + z_vector(layer_index*n_vectors_per_layer+1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+1))) &
-      + z_vector(layer_index*n_vectors_per_layer+1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+2))) &
-      + z_vector(layer_index*n_vectors_per_layer+1+to_index(1+vorticity_indices_triangles(3*(h_index-1)+3))))
+      z_vector(layer_index*n_vectors_per_layer+1+from_cell(1+vorticity_indices_triangles(3*(h_index-1)+1))) &
+      + z_vector(layer_index*n_vectors_per_layer+1+from_cell(1+vorticity_indices_triangles(3*(h_index-1)+2))) &
+      + z_vector(layer_index*n_vectors_per_layer+1+from_cell(1+vorticity_indices_triangles(3*(h_index-1)+3))) &
+      + z_vector(layer_index*n_vectors_per_layer+1+to_cell(1+vorticity_indices_triangles(3*(h_index-1)+1))) &
+      + z_vector(layer_index*n_vectors_per_layer+1+to_cell(1+vorticity_indices_triangles(3*(h_index-1)+2))) &
+      + z_vector(layer_index*n_vectors_per_layer+1+to_cell(1+vorticity_indices_triangles(3*(h_index-1)+3))))
     enddo
     !$omp end parallel do
     
   end subroutine set_z_scalar_dual
   
-  subroutine set_area_dual(area_dual,z_vector_dual,normal_distance,z_vector,from_index,to_index,triangle_face_unit_sphere)
+  subroutine set_area_dual(area_dual,z_vector_dual,normal_distance,z_vector,from_cell,to_cell,triangle_face_unit_sphere)
 
     ! This subroutine computes the areas of the dual grid.
   
     real(wp), intent(out) :: area_dual(n_dual_vectors)
     real(wp), intent(in)  :: z_vector_dual(n_dual_vectors),normal_distance(n_vectors),z_vector(n_vectors), &
                              triangle_face_unit_sphere(n_dual_scalars_h)
-    integer,  intent(in)  :: from_index(n_edges),to_index(n_edges)
+    integer,  intent(in)  :: from_cell(n_edges),to_cell(n_edges)
   
     ! local variables
     integer  :: ji,layer_index,h_index,primal_vector_index
@@ -215,8 +215,8 @@ module mo_vertical_grid
           base_distance = normal_distance(primal_vector_index)
         else if (layer_index==n_layers) then
           primal_vector_index = n_cells + (n_layers-1)*n_vectors_per_layer + h_index
-          radius_1 = radius + 0.5_wp*(z_vector(n_layers*n_vectors_per_layer + 1 + from_index(h_index)) &
-          + z_vector(n_layers*n_vectors_per_layer + 1 + to_index(h_index)))
+          radius_1 = radius + 0.5_wp*(z_vector(n_layers*n_vectors_per_layer + 1 + from_cell(h_index)) &
+          + z_vector(n_layers*n_vectors_per_layer + 1 + to_cell(h_index)))
           radius_2 = radius + z_vector(primal_vector_index)
           base_distance = normal_distance(primal_vector_index)*radius_1/radius_2
         else
@@ -299,13 +299,13 @@ module mo_vertical_grid
     
   end subroutine set_area
   
-  subroutine set_z_vector_and_normal_distance(z_vector,normal_distance,z_scalar,lat_c,lon_c,from_index,to_index,oro)
+  subroutine set_z_vector_and_normal_distance(z_vector,normal_distance,z_scalar,lat_c,lon_c,from_cell,to_cell,oro)
 
     ! This subroutine calculates the vertical position of the vector points as well as the normal distances of the primal grid.
   
     real(wp), intent(out) :: z_vector(n_vectors),normal_distance(n_vectors)
     real(wp), intent(in)  :: z_scalar(n_scalars),lat_c(n_cells),lon_c(n_cells),oro(n_cells)
-    integer,  intent(in)  :: from_index(n_edges),to_index(n_edges)
+    integer,  intent(in)  :: from_cell(n_edges),to_cell(n_edges)
   
     integer               :: ji,layer_index,h_index,upper_index,lower_index
     real(wp)              :: min_thick,max_thick,thick_rel
@@ -321,13 +321,13 @@ module mo_vertical_grid
       if (h_index>=n_cells+1) then
         ! placing the vector vertically in the middle between the two adjacent scalar points
         z_vector(ji) &
-        = 0.5_wp*(z_scalar(layer_index*n_cells + 1 + from_index(h_index - n_cells)) &
-        + z_scalar(layer_index*n_cells + 1 + to_index(h_index - n_cells)))
+        = 0.5_wp*(z_scalar(layer_index*n_cells + 1 + from_cell(h_index - n_cells)) &
+        + z_scalar(layer_index*n_cells + 1 + to_cell(h_index - n_cells)))
         ! calculating the horizontal distance
         normal_distance(ji) &
         = calculate_distance_h( &
-        lat_c(1+from_index(h_index - n_cells)), lon_c(1+from_index(h_index - n_cells)), &
-        lat_c(1+to_index(h_index - n_cells)), lon_c(1+to_index(h_index - n_cells)), &
+        lat_c(1+from_cell(h_index - n_cells)), lon_c(1+from_cell(h_index - n_cells)), &
+        lat_c(1+to_cell(h_index - n_cells)), lon_c(1+to_cell(h_index - n_cells)), &
         radius + z_vector(ji))
       else
         upper_index = h_index + (layer_index - 1)*n_cells
@@ -363,16 +363,16 @@ module mo_vertical_grid
   end subroutine set_z_vector_and_normal_distance
   
   subroutine calc_z_vector_dual_and_normal_distance_dual(z_vector_dual,normal_distance_dual, &
-  z_scalar_dual,from_index,to_index,z_vector, &
-  from_index_dual,to_index_dual,lat_c_dual,lon_c_dual,vorticity_indices_triangles)
+  z_scalar_dual,from_cell,to_cell,z_vector, &
+  from_cell_dual,to_cell_dual,lat_c_dual,lon_c_dual,vorticity_indices_triangles)
   
     ! This subroutine sets the z coordinates of the dual vector points as well as the normal distances of the dual grid.
     
     real(wp), intent(out) :: z_vector_dual(n_dual_vectors),normal_distance_dual(n_dual_vectors)
     real(wp), intent(in)  :: z_scalar_dual(n_dual_scalars),z_vector(n_vectors), &
                              lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
-    integer, intent(in)   :: from_index(n_edges),to_index(n_edges),from_index_dual(n_edges), &
-                             to_index_dual(n_edges),vorticity_indices_triangles(3*n_dual_scalars_h)
+    integer, intent(in)   :: from_cell(n_edges),to_cell(n_edges),from_cell_dual(n_edges), &
+                             to_cell_dual(n_edges),vorticity_indices_triangles(3*n_dual_scalars_h)
   
     ! local variables
     integer :: ji,layer_index,h_index,upper_index,lower_index
@@ -393,16 +393,16 @@ module mo_vertical_grid
         if (layer_index==0) then
           z_vector_dual(ji) = toa
         elseif (layer_index==n_layers) then
-          z_vector_dual(ji) = 0.5_wp*(z_vector(n_layers*n_vectors_per_layer+1+from_index(h_index)) &
-          + z_vector(n_layers*n_vectors_per_layer+1+to_index(h_index)))
+          z_vector_dual(ji) = 0.5_wp*(z_vector(n_layers*n_vectors_per_layer+1+from_cell(h_index)) &
+          + z_vector(n_layers*n_vectors_per_layer+1+to_cell(h_index)))
         else
           z_vector_dual(ji) = 0.5_wp*(z_vector(n_cells+h_index+(layer_index-1)*n_vectors_per_layer) &
           + z_vector(n_cells + h_index + layer_index*n_vectors_per_layer))
         endif
-        normal_distance_dual(ji) = calculate_distance_h(lat_c_dual(1+from_index_dual(h_index)), &
-        lon_c_dual(1+from_index_dual(h_index)), &
-        lat_c_dual(1+to_index_dual(h_index)), & 
-        lon_c_dual(1+to_index_dual(h_index)), &
+        normal_distance_dual(ji) = calculate_distance_h(lat_c_dual(1+from_cell_dual(h_index)), &
+        lon_c_dual(1+from_cell_dual(h_index)), &
+        lat_c_dual(1+to_cell_dual(h_index)), & 
+        lon_c_dual(1+to_cell_dual(h_index)), &
         radius+z_vector_dual(ji))
       endif
     enddo

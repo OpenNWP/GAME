@@ -30,8 +30,8 @@ module mo_gradient_operators
       do layer_index=0,n_layers-1
         vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
         out_field(vector_index) &
-        = (in_field(1+grid%to_index(h_index)+layer_index*n_cells) &
-        - in_field(1+grid%from_index(h_index)+layer_index*n_cells)) &
+        = (in_field(1+grid%to_cell(h_index)+layer_index*n_cells) &
+        - in_field(1+grid%from_cell(h_index)+layer_index*n_cells)) &
         /grid%normal_distance(vector_index)
       enddo
     enddo

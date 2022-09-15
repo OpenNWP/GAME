@@ -13,10 +13,10 @@ program control
                                            toa,grid_nml_setup,oro_id,n_lloyd_iterations,n_avg_points,luse_scalar_h_file, &
                                            scalar_h_file
   use mo_various_helpers,            only: nc_check,int2string
-  use mo_horizontal_generation,      only: generate_horizontal_generators,set_from_to_index,set_from_to_index_dual, &
+  use mo_horizontal_generation,      only: generate_horizontal_generators,set_from_to_cell,set_from_to_cell_dual, &
                                            set_scalar_h_dual_coords,calc_triangle_area_unity,read_horizontal_explicit, &
                                            build_icosahedron
-  use mo_derived_hor_quantities,     only: find_adjacent_vector_indices_h,set_vector_h_attributes,set_dual_vector_h_atttributes, &
+  use mo_derived_hor_quantities,     only: find_adjacent_edges,set_vector_h_attributes,set_dual_vector_h_atttributes, &
                                            direct_tangential_unity,set_f_vec,calc_vorticity_indices_triangles, &
                                            calc_cell_area_unity,write_statistics_file
   use mo_phys_sfc_properties,        only: set_sfc_properties
@@ -35,8 +35,8 @@ program control
                            lat_c_id,lon_c_id,direction_id,lat_e_id,lon_e_id, &
                            lat_c_dual_id,lon_c_dual_id, &
                            z_scalar_id,z_vector_id,normal_distance_id,volume_id,area_id,trsk_weights_id,z_vector_dual_id, &
-                           normal_distance_dual_id,area_dual_id,f_vec_id,to_index_id, &
-                           from_index_id,to_index_dual_id,from_index_dual_id,adjacent_vector_indices_h_id,trsk_indices_id, &
+                           normal_distance_dual_id,area_dual_id,f_vec_id,to_cell_id, &
+                           from_cell_id,to_cell_dual_id,from_cell_dual_id,adjacent_edges_id,trsk_indices_id, &
                            trsk_modified_curl_indices_id,adjacent_signs_h_id, &
                            vorticity_signs_triangles_id,f_vec_dimid,scalar_dimid,scalar_h_dimid,scalar_dual_h_dimid, &
                            vector_dimid,latlon_dimid_5,scalar_h_dimid_6,vector_h_dimid, &
@@ -48,8 +48,8 @@ program control
                            single_int_dimid,interpol_indices_id,interpol_weights_id, &
                            theta_v_bg_id,exner_bg_id,sfc_albedo_id,sfc_rho_c_id,t_conductivity_id,roughness_length_id, &
                            is_land_id,n_oro_layers_id,stretching_parameter_id,toa_id,radius_id
-  integer,  allocatable :: to_index(:),from_index(:),trsk_indices(:),trsk_modified_curl_indices(:),adjacent_vector_indices_h(:), &
-                           vorticity_indices_triangles(:),vorticity_indices_rhombi(:),to_index_dual(:),from_index_dual(:), &
+  integer,  allocatable :: to_cell(:),from_cell(:),trsk_indices(:),trsk_modified_curl_indices(:),adjacent_edges(:), &
+                           vorticity_indices_triangles(:),vorticity_indices_rhombi(:),to_cell_dual(:),from_cell_dual(:), &
                            adjacent_signs_h(:),vorticity_signs_triangles(:),density_to_rhombi_indices(:),interpol_indices(:), &
                            is_land(:)
   real(wp), allocatable :: x_unity(:),y_unity(:),z_unity(:),lat_c(:),lon_c(:),z_scalar(:), &
@@ -115,15 +115,15 @@ program control
   allocate(sfc_albedo(n_cells))
   allocate(sfc_rho_c(n_cells))
   allocate(t_conductivity(n_cells))
-  allocate(to_index(n_edges))
-  allocate(from_index(n_edges))
+  allocate(to_cell(n_edges))
+  allocate(from_cell(n_edges))
   allocate(trsk_indices(10*n_edges))
   allocate(trsk_modified_curl_indices(10*n_edges))
-  allocate(adjacent_vector_indices_h(6*n_cells))
+  allocate(adjacent_edges(6*n_cells))
   allocate(vorticity_indices_triangles(3*n_dual_scalars_h))
   allocate(vorticity_indices_rhombi(4*n_edges))
-  allocate(to_index_dual(n_edges))
-  allocate(from_index_dual(n_edges))
+  allocate(to_cell_dual(n_edges))
+  allocate(from_cell_dual(n_edges))
   allocate(adjacent_signs_h(6*n_cells))
   allocate(vorticity_signs_triangles(3*n_dual_scalars_h))
   allocate(density_to_rhombi_indices(4*n_edges))
@@ -139,24 +139,24 @@ program control
     ! Here,the positions of the horizontal generators,i.e. the horizontal scalar points are determined.
     call generate_horizontal_generators(lat_ico,lon_ico,lat_c,lon_c, &
                                         x_unity,y_unity,z_unity,face_edges_reverse,face_edges,face_vertices)
-    ! By setting the from_index and to_index arrrays,the discrete positions of the vector points are determined.
-    call set_from_to_index(from_index,to_index,face_edges,face_edges_reverse,face_vertices,edge_vertices)
-    ! By setting the from_index_dual and to_index_dual arrrays,the discrete positions of the dual scalar points are determined.
-    call set_from_to_index_dual(from_index_dual,to_index_dual,face_edges,face_edges_reverse)
+    ! By setting the from_cell and to_cell arrrays,the discrete positions of the vector points are determined.
+    call set_from_to_cell(from_cell,to_cell,face_edges,face_edges_reverse,face_vertices,edge_vertices)
+    ! By setting the from_cell_dual and to_cell_dual arrrays,the discrete positions of the dual scalar points are determined.
+    call set_from_to_cell_dual(from_cell_dual,to_cell_dual,face_edges,face_edges_reverse)
   else
-    call read_horizontal_explicit(lat_c,lon_c,from_index,to_index,from_index_dual, &
-                                  to_index_dual,scalar_h_file,n_lloyd_read_from_file)
+    call read_horizontal_explicit(lat_c,lon_c,from_cell,to_cell,from_cell_dual, &
+                                  to_cell_dual,scalar_h_file,n_lloyd_read_from_file)
   endif
   
   ! 2.) finding the neighbouring vector points of the cells
   ! ---------------------------------------------------
-  call find_adjacent_vector_indices_h(from_index,to_index,adjacent_signs_h,adjacent_vector_indices_h)
+  call find_adjacent_edges(from_cell,to_cell,adjacent_signs_h,adjacent_edges)
   
   ! 3.) grid optimization
   ! -----------------
   if (n_lloyd_iterations>0) then
     call optimize_to_scvt(lat_c,lon_c,lat_c_dual,lon_c_dual,n_lloyd_iterations, &
-                          face_edges,face_edges_reverse,face_vertices,adjacent_vector_indices_h,from_index_dual,to_index_dual)
+                          face_edges,face_edges_reverse,face_vertices,adjacent_edges,from_cell_dual,to_cell_dual)
   endif
   if (luse_scalar_h_file) then
     n_lloyd_iterations = n_lloyd_read_from_file + n_lloyd_iterations
@@ -169,15 +169,15 @@ program control
                                 lon_c,face_edges,face_edges_reverse,face_vertices)
   
   ! calculation of the horizontal coordinates of the vector points
-  call set_vector_h_attributes(from_index,to_index,lat_c,lon_c,lat_e,lon_e,direction)
+  call set_vector_h_attributes(from_cell,to_cell,lat_c,lon_c,lat_e,lon_e,direction)
   
   ! Same as before,but for dual vectors. They have the same positions as the primal vectors.
   call set_dual_vector_h_atttributes(lat_c_dual,lat_e,direction_dual,lon_e, &
-                                     to_index_dual,from_index_dual,lon_c_dual,rel_on_line_dual)
+                                     to_cell_dual,from_cell_dual,lon_c_dual,rel_on_line_dual)
   
   ! determining the directions of the dual vectors
   call direct_tangential_unity(lat_c_dual,lon_c_dual,direction,direction_dual, &
-                               to_index_dual,from_index_dual,rel_on_line_dual)
+                               to_cell_dual,from_cell_dual,rel_on_line_dual)
   
   ! setting the Coriolis vector
   call set_f_vec(lat_e,direction_dual,f_vec)
@@ -187,12 +187,12 @@ program control
                                 face_edges_reverse,face_vertices)
   
   ! finding the vorticity indices
-  call calc_vorticity_indices_triangles(from_index_dual,to_index_dual,direction,direction_dual, &
+  call calc_vorticity_indices_triangles(from_cell_dual,to_cell_dual,direction,direction_dual, &
                                         vorticity_indices_triangles,vorticity_signs_triangles)
   
   ! calculating the cell faces on the unity sphere
   call calc_cell_area_unity(pent_hex_face_unity_sphere,lat_c_dual, &
-                            lon_c_dual,adjacent_vector_indices_h,vorticity_indices_triangles)
+                            lon_c_dual,adjacent_edges,vorticity_indices_triangles)
   write(*,*) "Horizontal grid structure determined."
   
   ! 5.) setting the physical surface properties
@@ -218,17 +218,17 @@ program control
   !     ----------------------------------------------------
   write(*,*) "Determining vector z coordinates and normal distances of the primal grid ..."
   call set_z_vector_and_normal_distance(z_vector,normal_distance,z_scalar,lat_c,lon_c, &
-                                        from_index,to_index,oro)
+                                        from_cell,to_cell,oro)
   deallocate(oro)
   write(*,*) "Finished."
   
   write(*,*) "Determining scalar z coordinates of the dual grid ..."
-  call set_z_scalar_dual(z_scalar_dual,z_vector,from_index,to_index,vorticity_indices_triangles)
+  call set_z_scalar_dual(z_scalar_dual,z_vector,from_cell,to_cell,vorticity_indices_triangles)
   write(*,*) "Finished."
   
   write(*,*) "Determining vector z coordinates of the dual grid and distances of the dual grid ..."
-  call calc_z_vector_dual_and_normal_distance_dual(z_vector_dual,normal_distance_dual,z_scalar_dual,from_index,to_index,z_vector, &
-                                                   from_index_dual,to_index_dual,lat_c_dual,lon_c_dual, &
+  call calc_z_vector_dual_and_normal_distance_dual(z_vector_dual,normal_distance_dual,z_scalar_dual,from_cell,to_cell,z_vector, &
+                                                   from_cell_dual,to_cell_dual,lat_c_dual,lon_c_dual, &
                                                    vorticity_indices_triangles)
   write(*,*) "Finished."
   
@@ -237,7 +237,7 @@ program control
   write(*,*) "Finished."
   
   write(*,*) "Calculating dual areas ..."
-  call set_area_dual(area_dual,z_vector_dual,normal_distance,z_vector,from_index,to_index,triangle_face_unit_sphere)
+  call set_area_dual(area_dual,z_vector_dual,normal_distance,z_vector,from_cell,to_cell,triangle_face_unit_sphere)
   write(*,*) "Finished."
   
   write(*,*) "Calculating grid box volumes ..."
@@ -255,20 +255,20 @@ program control
   write(*,*) "Finished."
   
   write(*,*) "Calculating inner product weights ..."
-  call calc_inner_product(inner_product_weights,normal_distance,volume,area,z_scalar,z_vector,adjacent_vector_indices_h)
+  call calc_inner_product(inner_product_weights,normal_distance,volume,area,z_scalar,z_vector,adjacent_edges)
   write(*,*) "Finished."
   
   write(*,*) "Setting rhombus interpolation indices and weights ..."
-  call rhombus_averaging(vorticity_indices_triangles,from_index_dual, &
-                          to_index_dual,vorticity_indices_rhombi,density_to_rhombi_indices,from_index,to_index,area_dual, &
+  call rhombus_averaging(vorticity_indices_triangles,from_cell_dual, &
+                          to_cell_dual,vorticity_indices_rhombi,density_to_rhombi_indices,from_cell,to_cell,area_dual, &
                           z_vector,lat_c_dual,lon_c_dual,density_to_rhombi_weights,lat_e, &
                           lon_e,lat_c,lon_c)
   write(*,*) "Finished."
   
   write(*,*) "Calculating Coriolis indices and weights ..."
-  call coriolis(from_index_dual,to_index_dual,trsk_modified_curl_indices,normal_distance,normal_distance_dual, &
-                 to_index,area,z_scalar,lat_c,lon_c,lat_e,lon_e,lat_c_dual, &
-                  lon_c_dual,trsk_weights,trsk_indices,from_index,adjacent_vector_indices_h,z_vector)
+  call coriolis(from_cell_dual,to_cell_dual,trsk_modified_curl_indices,normal_distance,normal_distance_dual, &
+                 to_cell,area,z_scalar,lat_c,lon_c,lat_e,lon_e,lat_c_dual, &
+                  lon_c_dual,trsk_weights,trsk_indices,from_cell,adjacent_edges,z_vector)
   write(*,*) "Finished."
   
   write(*,*) "Calculating interpolation to the lat-lon grid ..."
@@ -343,11 +343,11 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"inner_product_weights",NF90_REAL,scalar_8_dimid,inner_product_weights_id))
   call nc_check(nf90_def_var(ncid_g_prop,"density_to_rhombi_weights",NF90_REAL,vector_h_dimid_4,density_to_rhombi_weights_id))
   call nc_check(nf90_def_var(ncid_g_prop,"interpol_weights",NF90_REAL,latlon_dimid_5,interpol_weights_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"from_index",NF90_INT,vector_h_dimid,from_index_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"to_index",NF90_INT,vector_h_dimid,to_index_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"from_index_dual",NF90_INT,vector_h_dimid,from_index_dual_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"to_index_dual",NF90_INT,vector_h_dimid,to_index_dual_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"adjacent_vector_indices_h",NF90_INT,scalar_h_dimid_6,adjacent_vector_indices_h_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"from_cell",NF90_INT,vector_h_dimid,from_cell_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"to_cell",NF90_INT,vector_h_dimid,to_cell_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"from_cell_dual",NF90_INT,vector_h_dimid,from_cell_dual_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"to_cell_dual",NF90_INT,vector_h_dimid,to_cell_dual_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"adjacent_edges",NF90_INT,scalar_h_dimid_6,adjacent_edges_id))
   call nc_check(nf90_def_var(ncid_g_prop,"interpol_indices",NF90_INT,latlon_dimid_5,interpol_indices_id))
   call nc_check(nf90_def_var(ncid_g_prop,"trsk_indices",NF90_INT,vector_h_dimid_10,trsk_indices_id))
   call nc_check(nf90_def_var(ncid_g_prop,"trsk_modified_curl_indices",NF90_INT,vector_h_dimid_10,trsk_modified_curl_indices_id))
@@ -397,11 +397,11 @@ program control
   call nc_check(nf90_put_var(ncid_g_prop,sfc_rho_c_id,sfc_rho_c))
   call nc_check(nf90_put_var(ncid_g_prop,t_conductivity_id,t_conductivity))
   call nc_check(nf90_put_var(ncid_g_prop,roughness_length_id,roughness_length))
-  call nc_check(nf90_put_var(ncid_g_prop,from_index_id,from_index))
-  call nc_check(nf90_put_var(ncid_g_prop,to_index_id,to_index))
-  call nc_check(nf90_put_var(ncid_g_prop,from_index_dual_id,from_index_dual))
-  call nc_check(nf90_put_var(ncid_g_prop,to_index_dual_id,to_index_dual))
-  call nc_check(nf90_put_var(ncid_g_prop,adjacent_vector_indices_h_id,adjacent_vector_indices_h))
+  call nc_check(nf90_put_var(ncid_g_prop,from_cell_id,from_cell))
+  call nc_check(nf90_put_var(ncid_g_prop,to_cell_id,to_cell))
+  call nc_check(nf90_put_var(ncid_g_prop,from_cell_dual_id,from_cell_dual))
+  call nc_check(nf90_put_var(ncid_g_prop,to_cell_dual_id,to_cell_dual))
+  call nc_check(nf90_put_var(ncid_g_prop,adjacent_edges_id,adjacent_edges))
   call nc_check(nf90_put_var(ncid_g_prop,trsk_indices_id,trsk_indices))
   call nc_check(nf90_put_var(ncid_g_prop,trsk_modified_curl_indices_id,trsk_modified_curl_indices))
   call nc_check(nf90_put_var(ncid_g_prop,adjacent_signs_h_id,adjacent_signs_h))
@@ -447,13 +447,13 @@ program control
   deallocate(z_vector_dual)
   deallocate(normal_distance_dual)
   deallocate(f_vec)
-  deallocate(to_index)
-  deallocate(from_index)
+  deallocate(to_cell)
+  deallocate(from_cell)
   deallocate(exner_bg)
   deallocate(theta_v_bg)
-  deallocate(to_index_dual)
-  deallocate(from_index_dual)
-  deallocate(adjacent_vector_indices_h)
+  deallocate(to_cell_dual)
+  deallocate(from_cell_dual)
+  deallocate(adjacent_edges)
   deallocate(vorticity_indices_triangles)
   deallocate(vorticity_indices_rhombi)
   deallocate(trsk_indices)

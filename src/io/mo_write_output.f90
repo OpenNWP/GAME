@@ -394,14 +394,14 @@ module mo_write_output
       ! vertically extrapolating to ten meters above the surface
       !$omp parallel do private(ji,roughness_length_extrapolation,actual_roughness_length,z_sfc,z_agl,rescale_factor)
       do ji=1,n_edges
-        actual_roughness_length = 0.5_wp*(grid%roughness_length(1+grid%from_index(ji)) + grid%roughness_length(1+grid%to_index(ji)))
+        actual_roughness_length = 0.5_wp*(grid%roughness_length(1+grid%from_cell(ji)) + grid%roughness_length(1+grid%to_cell(ji)))
         ! roughness length of grass according to WMO
         roughness_length_extrapolation = 0.02_wp
-        if (grid%is_land(grid%from_index(ji)+1)==0) then
+        if (grid%is_land(grid%from_cell(ji)+1)==0) then
           roughness_length_extrapolation = actual_roughness_length
         endif
-        z_sfc = 0.5_wp*(grid%z_vector(n_vectors - n_cells + 1+grid%from_index(ji)) &
-                        + grid%z_vector(n_vectors - n_cells + 1+grid%to_index(ji)))
+        z_sfc = 0.5_wp*(grid%z_vector(n_vectors - n_cells + 1+grid%from_cell(ji)) &
+                        + grid%z_vector(n_vectors - n_cells + 1+grid%to_cell(ji)))
         z_agl = grid%z_vector(n_vectors - n_vectors_per_layer+ji) - z_sfc
         
         ! rescale factor for computing the wind in a height of 10 m

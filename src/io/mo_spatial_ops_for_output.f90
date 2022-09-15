@@ -59,10 +59,10 @@ module mo_spatial_ops_for_output
       out_field(ji) = 0._wp
       do jk=1,6
         tangential_wind_value = tangential_wind(in_field_2,layer_index, &
-                                grid%adjacent_vector_indices_h(6*(h_index-1)+jk),grid)
+                                grid%adjacent_edges(6*(h_index-1)+jk),grid)
         out_field(ji) = out_field(ji) &
         + grid%inner_product_weights(8*(ji-1)+jk) &
-        *in_field_1(n_cells+layer_index*n_vectors_per_layer+1+grid%adjacent_vector_indices_h(6*(h_index-1)+jk)) &
+        *in_field_1(n_cells+layer_index*n_vectors_per_layer+1+grid%adjacent_edges(6*(h_index-1)+jk)) &
         *tangential_wind_value
       enddo
       out_field(ji) = out_field(ji) + grid%inner_product_weights(8*(ji-1)+7)*in_field_1(h_index+ &
@@ -99,22 +99,22 @@ module mo_spatial_ops_for_output
       if (h_index>=n_cells+1) then
         ! determining the upper and lower weights
         layer_thickness = &
-        0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%from_index(h_index-n_cells)) &
-        + grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%to_index(h_index-n_cells))) &
-        - 0.5_wp*(grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%from_index(h_index-n_cells)) &
-        + grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%to_index(h_index-n_cells)))
+        0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%from_cell(h_index-n_cells)) &
+        + grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%to_cell(h_index-n_cells))) &
+        - 0.5_wp*(grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%from_cell(h_index-n_cells)) &
+        + grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%to_cell(h_index-n_cells)))
         if (layer_index==0) then
           upper_weight = &
-          (0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%from_index(h_index-n_cells)) &
-          + grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%to_index(h_index-n_cells))) &
+          (0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%from_cell(h_index-n_cells)) &
+          + grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%to_cell(h_index-n_cells))) &
           - grid%z_vector(ji))/layer_thickness
         else
           upper_weight = 0.5_wp*(grid%z_vector(ji-n_vectors_per_layer) - grid%z_vector(ji))/layer_thickness
         endif
         if (layer_index==n_layers - 1) then
           lower_weight = (grid%z_vector(ji) &
-          - 0.5_wp*(grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%from_index(h_index-n_cells)) &
-          + grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%to_index(h_index-n_cells))))/layer_thickness
+          - 0.5_wp*(grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%from_cell(h_index-n_cells)) &
+          + grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%to_cell(h_index-n_cells))))/layer_thickness
         else
            lower_weight = 0.5_wp*(grid%z_vector(ji) - grid%z_vector(ji+n_vectors_per_layer))/layer_thickness
         endif
@@ -132,7 +132,7 @@ module mo_spatial_ops_for_output
             scalar_index = h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
             + 0.5_wp*grid%inner_product_weights(8*(scalar_index-1)+jk) &
-            *diag%pot_vort(n_edges + layer_index*2*n_edges + grid%adjacent_vector_indices_h(6*(h_index-1)+jk))
+            *diag%pot_vort(n_edges + layer_index*2*n_edges + grid%adjacent_edges(6*(h_index-1)+jk))
           enddo
         ! lowest layer
         elseif (layer_index==n_layers) then
@@ -140,7 +140,7 @@ module mo_spatial_ops_for_output
             scalar_index = (n_layers - 1)*n_cells + h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
             + 0.5_wp*grid%inner_product_weights(8*(scalar_index-1)+jk) &
-            *diag%pot_vort(n_edges + (layer_index - 1)*2*n_edges + grid%adjacent_vector_indices_h(6*(h_index-1)+jk))
+            *diag%pot_vort(n_edges + (layer_index - 1)*2*n_edges + grid%adjacent_edges(6*(h_index-1)+jk))
           enddo
         ! inner domain
         else
@@ -149,14 +149,14 @@ module mo_spatial_ops_for_output
             scalar_index = (layer_index - 1)*n_cells + h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
             + 0.25_wp*grid%inner_product_weights(8*(scalar_index-1)+jk) &
-            *diag%pot_vort(n_edges + (layer_index - 1)*2*n_edges + grid%adjacent_vector_indices_h(6*(h_index-1)+jk))
+            *diag%pot_vort(n_edges + (layer_index - 1)*2*n_edges + grid%adjacent_edges(6*(h_index-1)+jk))
           enddo
           ! contribution of lower cell
           do jk=1,6
             scalar_index = layer_index*n_cells + h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
             + 0.25_wp*grid%inner_product_weights(8*(scalar_index-1)+jk) &
-            *diag%pot_vort(n_edges + layer_index*2*n_edges + grid%adjacent_vector_indices_h(6*(h_index-1)+jk))
+            *diag%pot_vort(n_edges + layer_index*2*n_edges + grid%adjacent_edges(6*(h_index-1)+jk))
           enddo
         endif
       endif
@@ -197,7 +197,7 @@ module mo_spatial_ops_for_output
       do jk=1,n_edges
         out_field(ji) = out_field(ji) + 0.5_wp &
         *grid%inner_product_weights(8*(n_scalars-n_cells+ji-1) + jk) &
-        *in_field(1+grid%adjacent_vector_indices_h(6*(ji-1)+jk))
+        *in_field(1+grid%adjacent_edges(6*(ji-1)+jk))
       enddo
     enddo
     !$omp end parallel do
@@ -258,7 +258,7 @@ module mo_spatial_ops_for_output
       do jk=1,n_edges
         out_field(ji) = out_field(ji) + 0.5_wp &
         *grid%inner_product_weights(8*(ji-1) + jk) &
-        *in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_vector_indices_h(6*(h_index-1) + jk))
+        *in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(6*(h_index-1) + jk))
       enddo
     enddo
     !$omp end parallel do
@@ -290,7 +290,7 @@ module mo_spatial_ops_for_output
       do jk=1,n_edges
         out_field(ji) = out_field(ji) + 0.5_wp &
         *grid%inner_product_weights(8*(ji-1) + jk) &
-        *in_field(n_edges + layer_index*2*n_edges + 1+grid%adjacent_vector_indices_h(6*(h_index-1) + jk))
+        *in_field(n_edges + layer_index*2*n_edges + 1+grid%adjacent_edges(6*(h_index-1) + jk))
       enddo
     enddo
     !$omp end parallel do

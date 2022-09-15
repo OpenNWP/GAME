@@ -40,7 +40,7 @@ module mo_averaging
       if (layer_index==n_layers-n_oro_layers) then
         do ji=1,n_edges
           scalar_index = layer_index*n_cells + h_index
-          vector_index = n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_vector_indices_h(6*h_index + ji)
+          vector_index = n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(6*h_index + ji)
           vertical_contravariant_corr = vertical_contravariant_corr &
           -0.5_wp &
           *grid%inner_product_weights(8*scalar_index + ji) &
@@ -50,7 +50,7 @@ module mo_averaging
       else
         do ji=1,n_edges
           scalar_index = (layer_index - 1)*n_cells + h_index
-          vector_index = n_cells + (layer_index - 1)*n_vectors_per_layer + 1+grid%adjacent_vector_indices_h(6*h_index + ji)
+          vector_index = n_cells + (layer_index - 1)*n_vectors_per_layer + 1+grid%adjacent_edges(6*h_index + ji)
           vertical_contravariant_corr = vertical_contravariant_corr &
           -0.5_wp &
           *grid%inner_product_weights(8*scalar_index + ji) &
@@ -59,7 +59,7 @@ module mo_averaging
         enddo
         do ji=1,n_edges
           scalar_index = layer_index*n_cells + h_index
-          vector_index = n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_vector_indices_h(6*h_index + ji)
+          vector_index = n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(6*h_index + ji)
           vertical_contravariant_corr = vertical_contravariant_corr &
           -0.5_wp &
           *grid%inner_product_weights(8*scalar_index + ji) &
@@ -82,19 +82,19 @@ module mo_averaging
     
     remap_verpri2horpri_vector &
     ! layer above
-    = grid%inner_product_weights(8*(layer_index*n_cells + grid%from_index(1+h_index)) + 7) &
-    *vector_field(layer_index*n_vectors_per_layer + 1 + grid%from_index(1+h_index))
+    = grid%inner_product_weights(8*(layer_index*n_cells + grid%from_cell(1+h_index)) + 7) &
+    *vector_field(layer_index*n_vectors_per_layer + 1 + grid%from_cell(1+h_index))
     remap_verpri2horpri_vector = remap_verpri2horpri_vector &
-    + grid%inner_product_weights(8*(layer_index*n_cells + grid%to_index(1+h_index)) + 7) &
-    *vector_field(layer_index*n_vectors_per_layer + 1 + grid%to_index(1+h_index))
+    + grid%inner_product_weights(8*(layer_index*n_cells + grid%to_cell(1+h_index)) + 7) &
+    *vector_field(layer_index*n_vectors_per_layer + 1 + grid%to_cell(1+h_index))
     ! layer below
     if (layer_index<n_layers-1) then
       remap_verpri2horpri_vector = remap_verpri2horpri_vector &
-      + grid%inner_product_weights(8*(layer_index*n_cells + grid%from_index(1+h_index)) + 8) &
-      *vector_field((layer_index + 1)*n_vectors_per_layer + 1 + grid%from_index(1+h_index))
+      + grid%inner_product_weights(8*(layer_index*n_cells + grid%from_cell(1+h_index)) + 8) &
+      *vector_field((layer_index + 1)*n_vectors_per_layer + 1 + grid%from_cell(1+h_index))
       remap_verpri2horpri_vector = remap_verpri2horpri_vector &
-      + grid%inner_product_weights(8*(layer_index*n_cells + grid%to_index(1+h_index)) + 8) &
-      *vector_field((layer_index + 1)*n_vectors_per_layer + 1 + grid%to_index(1+h_index))
+      + grid%inner_product_weights(8*(layer_index*n_cells + grid%to_cell(1+h_index)) + 8) &
+      *vector_field((layer_index + 1)*n_vectors_per_layer + 1 + grid%to_cell(1+h_index))
     endif
     ! horizontal average
     remap_verpri2horpri_vector = 0.5_wp*remap_verpri2horpri_vector

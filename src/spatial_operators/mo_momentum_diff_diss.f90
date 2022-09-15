@@ -75,8 +75,8 @@ module mo_momentum_diff_diss
     do h_index=1,n_edges
       do layer_index=0,n_layers-1
         vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
-        scalar_index_from = layer_index*n_cells + grid%from_index(h_index)
-        scalar_index_to = layer_index*n_cells + grid%to_index(h_index)
+        scalar_index_from = layer_index*n_cells + grid%from_cell(h_index)
+        scalar_index_to = layer_index*n_cells + grid%to_cell(h_index)
         diag%friction_acc(vector_index) = &
         (diag%vector_field_placeholder(vector_index) - diag%curl_of_vorticity(vector_index)) &
         /(0.5_wp*(density_total(state%rho,scalar_index_from) + density_total(state%rho,scalar_index_to)))
@@ -109,8 +109,8 @@ module mo_momentum_diff_diss
       ! at the surface
       if (layer_index==n_layers) then
         diag%dv_hdz(ji) = state%wind(vector_index)/(grid%z_vector(vector_index) &
-        - 0.5_wp*(grid%z_vector(n_vectors - n_cells + 1+grid%from_index(h_index)) &
-        + grid%z_vector(n_vectors-n_cells+1+grid%to_index(h_index))))
+        - 0.5_wp*(grid%z_vector(n_vectors - n_cells + 1+grid%from_cell(h_index)) &
+        + grid%z_vector(n_vectors-n_cells+1+grid%to_cell(h_index))))
       ! inner layers
       elseif (layer_index>=1) then
         diag%dv_hdz(ji) = (state%wind(vector_index) - state%wind(vector_index + n_vectors_per_layer)) &
@@ -131,15 +131,15 @@ module mo_momentum_diff_diss
       layer_index = (ji-1)/n_edges
       h_index = ji - layer_index*n_edges
       vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
-      z_upper = 0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%from_index(h_index)) &
-      + grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%to_index(h_index)))
-      z_lower = 0.5_wp*(grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%from_index(h_index)) &
-      + grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%to_index(h_index)))
+      z_upper = 0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%from_cell(h_index)) &
+      + grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%to_cell(h_index)))
+      z_lower = 0.5_wp*(grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%from_cell(h_index)) &
+      + grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%to_cell(h_index)))
       delta_z = z_upper - z_lower
       diag%friction_acc(vector_index) = diag%friction_acc(vector_index) &
       + (diag%vert_hor_viscosity(ji)*diag%dv_hdz(ji)-diag%vert_hor_viscosity(ji+n_edges)*diag%dv_hdz(ji+n_edges))/delta_z &
-      /(0.5_wp*(density_total(state%rho,layer_index*n_cells + grid%from_index(h_index)) &
-      + density_total(state%rho,layer_index*n_cells + grid%to_index(h_index))))
+      /(0.5_wp*(density_total(state%rho,layer_index*n_cells + grid%from_cell(h_index)) &
+      + density_total(state%rho,layer_index*n_cells + grid%to_cell(h_index))))
     enddo
     
     ! 2.) vertical diffusion of vertical velocity
@@ -179,8 +179,8 @@ module mo_momentum_diff_diss
       do layer_index=0,n_layers-1
         vector_index = n_cells + h_index + layer_index*n_vectors_per_layer
         diag%vector_field_placeholder(vector_index) = 0.5_wp &
-        *(diag%viscosity(layer_index*n_cells + 1+grid%from_index(h_index)) &
-        + diag%viscosity(layer_index*n_cells + 1+grid%to_index(h_index))) &
+        *(diag%viscosity(layer_index*n_cells + 1+grid%from_cell(h_index)) &
+        + diag%viscosity(layer_index*n_cells + 1+grid%to_cell(h_index))) &
         *diag%vector_field_placeholder(vector_index)
       enddo
     enddo
@@ -228,10 +228,10 @@ module mo_momentum_diff_diss
       diag%curl_of_vorticity(vector_index) = 0._wp
       delta_z = 0._wp
       checkerboard_damping_weight = &
-      abs(diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+grid%to_index_dual(h_index)) &
-      - diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+grid%from_index_dual(h_index))) &
-      /(abs(diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+grid%to_index_dual(h_index))) &
-      + abs(diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+grid%from_index_dual(h_index))) + EPSILON_SECURITY)
+      abs(diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+grid%to_cell_dual(h_index)) &
+      - diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+grid%from_cell_dual(h_index))) &
+      /(abs(diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+grid%to_cell_dual(h_index))) &
+      + abs(diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+grid%from_cell_dual(h_index))) + EPSILON_SECURITY)
       base_index = n_edges + layer_index*n_dual_vectors_per_layer
       ! horizontal difference of vertical vorticity (dzeta_z*dz)
       ! An averaging over three rhombi must be done.
@@ -239,29 +239,29 @@ module mo_momentum_diff_diss
         diag%curl_of_vorticity(vector_index) = diag%curl_of_vorticity(vector_index) &
         ! This prefactor accounts for the fact that we average over three rhombi and the weighting of the triangle voritcities.
         + 1._wp/3._wp*(1._wp - checkerboard_damping_weight)*( &
-        ! vertical length at the to_index_dual point
-        grid%normal_distance_dual(base_index + grid%to_index_dual(h_index)) &
-        ! vorticity at the to_index_dual point
+        ! vertical length at the to_cell_dual point
+        grid%normal_distance_dual(base_index + grid%to_cell_dual(h_index)) &
+        ! vorticity at the to_cell_dual point
         *diag%rel_vort(n_edges + layer_index*2*n_edges &
-                   + 1+grid%vorticity_indices_triangles(3*grid%to_index_dual(h_index)+jk)) &
-        ! vertical length at the from_index_dual point
-        - grid%normal_distance_dual(base_index + grid%from_index_dual(h_index)) &
-        ! vorticity at the from_index_dual point
+                   + 1+grid%vorticity_indices_triangles(3*grid%to_cell_dual(h_index)+jk)) &
+        ! vertical length at the from_cell_dual point
+        - grid%normal_distance_dual(base_index + grid%from_cell_dual(h_index)) &
+        ! vorticity at the from_cell_dual point
         *diag%rel_vort(n_edges + layer_index*2*n_edges &
-                   + 1+grid%vorticity_indices_triangles(3*grid%from_index_dual(h_index)+jk)))
+                   + 1+grid%vorticity_indices_triangles(3*grid%from_cell_dual(h_index)+jk)))
         ! preparation of the tangential slope
         delta_z = delta_z + 1._wp/3._wp*( &
         grid%z_vector(n_cells + layer_index*n_vectors_per_layer &
-                 +1+grid%vorticity_indices_triangles(3*grid%to_index_dual(h_index)+jk)) &
+                 +1+grid%vorticity_indices_triangles(3*grid%to_cell_dual(h_index)+jk)) &
         - grid%z_vector(n_cells + layer_index*n_vectors_per_layer &
-                   +1+grid%vorticity_indices_triangles(3*grid%from_index_dual(h_index)+jk)))
+                   +1+grid%vorticity_indices_triangles(3*grid%from_cell_dual(h_index)+jk)))
       enddo
       ! adding the term damping the checkerboard pattern
       diag%curl_of_vorticity(vector_index) = diag%curl_of_vorticity(vector_index) &
-      + checkerboard_damping_weight*(diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+grid%to_index_dual(h_index)) &
-      *grid%normal_distance_dual(base_index + 1+grid%to_index_dual(h_index)) &
-      - diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+grid%from_index_dual(h_index)) &
-      *grid%normal_distance_dual(base_index + 1+grid%from_index_dual(h_index)))
+      + checkerboard_damping_weight*(diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+grid%to_cell_dual(h_index)) &
+      *grid%normal_distance_dual(base_index + 1+grid%to_cell_dual(h_index)) &
+      - diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + 1+grid%from_cell_dual(h_index)) &
+      *grid%normal_distance_dual(base_index + 1+grid%from_cell_dual(h_index)))
       ! dividing by the area
       diag%curl_of_vorticity(vector_index) = diag%curl_of_vorticity(vector_index)/grid%area(vector_index)
       

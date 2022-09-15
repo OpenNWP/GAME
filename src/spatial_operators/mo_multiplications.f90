@@ -44,8 +44,8 @@ module mo_multiplications
       do layer_index=0,n_layers-1
         vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
         scalar_value &
-        = 0.5_wp*(scalar_field(1+grid%from_index(h_index) + layer_index*n_cells) &
-        + scalar_field(1+grid%to_index(h_index) + layer_index*n_cells))
+        = 0.5_wp*(scalar_field(1+grid%from_cell(h_index) + layer_index*n_cells) &
+        + scalar_field(1+grid%to_cell(h_index) + layer_index*n_cells))
         out_field(vector_index) = scalar_value*vector_field(vector_index)
       enddo
     enddo
@@ -71,9 +71,9 @@ module mo_multiplications
       do layer_index=0,n_layers-1
         vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
         if (vector_field(vector_index)>=0._wp) then
-          scalar_value = scalar_field(1+grid%from_index(h_index) + layer_index*n_cells)
+          scalar_value = scalar_field(1+grid%from_cell(h_index) + layer_index*n_cells)
         else
-          scalar_value = scalar_field(1+grid%to_index(h_index) + layer_index*n_cells)
+          scalar_value = scalar_field(1+grid%to_cell(h_index) + layer_index*n_cells)
         endif
         out_field(vector_index) = scalar_value*vector_field(vector_index)
       enddo

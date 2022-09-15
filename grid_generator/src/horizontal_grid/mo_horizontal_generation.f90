@@ -425,11 +425,11 @@ module mo_horizontal_generation
     
   end subroutine calc_triangle_area_unity
 
-  subroutine set_from_to_index(from_index,to_index,face_edges,face_edges_reverse,face_vertices,edge_vertices)
+  subroutine set_from_to_cell(from_cell,to_cell,face_edges,face_edges_reverse,face_vertices,edge_vertices)
     
     ! This subroutine computes the neighbourship relationships of the horizontal vectors.
     
-    integer, intent(out) :: from_index(n_edges),to_index(n_edges)
+    integer, intent(out) :: from_cell(n_edges),to_cell(n_edges)
     integer, intent(in)  :: face_vertices(n_basic_edges,3),face_edges(n_basic_triangles,3), &
                             face_edges_reverse(n_basic_triangles,3),edge_vertices(n_basic_edges,2)
     
@@ -444,36 +444,36 @@ module mo_horizontal_generation
         edge_index = (ji-1)/(n_points_per_edge+1)
         on_edge_index = ji-1 - edge_index*(n_points_per_edge+1)
         if(on_edge_index==0) then
-          from_index(ji) = edge_vertices(edge_index+1,1)
-          to_index(ji) = n_pentagons + edge_index*n_points_per_edge
+          from_cell(ji) = edge_vertices(edge_index+1,1)
+          to_cell(ji) = n_pentagons + edge_index*n_points_per_edge
         elseif (on_edge_index==n_points_per_edge) then
-          from_index(ji) = n_pentagons + (edge_index+1)*n_points_per_edge - 1
-          to_index(ji) = edge_vertices(edge_index+1,2)
+          from_cell(ji) = n_pentagons + (edge_index+1)*n_points_per_edge - 1
+          to_cell(ji) = edge_vertices(edge_index+1,2)
         else
-          from_index(ji) = n_pentagons + edge_index*n_points_per_edge + on_edge_index - 1
-          to_index(ji) = n_pentagons + edge_index*n_points_per_edge + on_edge_index
+          from_cell(ji) = n_pentagons + edge_index*n_points_per_edge + on_edge_index - 1
+          to_cell(ji) = n_pentagons + edge_index*n_points_per_edge + on_edge_index
         endif
       else
         call find_triangle_indices_from_h_vector_index(ji-1,point_1,point_2,point_3,point_4,point_5,point_6, &
                                                        dual_scalar_on_face_index, &
                                                        small_triangle_edge_index,face_edges,face_vertices,face_edges_reverse)
         if (small_triangle_edge_index==0) then
-          from_index(ji) = point_1
-          to_index(ji) = point_3
+          from_cell(ji) = point_1
+          to_cell(ji) = point_3
         endif
         if (small_triangle_edge_index==1) then
-          from_index(ji) = point_1
-          to_index(ji) = point_2
+          from_cell(ji) = point_1
+          to_cell(ji) = point_2
         endif
         if (small_triangle_edge_index==2) then
-          from_index(ji) = point_3
-          to_index(ji) = point_2
+          from_cell(ji) = point_3
+          to_cell(ji) = point_2
         endif
       endif
     enddo
     !$omp end parallel do
     
-  end subroutine set_from_to_index
+  end subroutine set_from_to_cell
 
   subroutine set_scalar_h_dual_coords(lat_c_dual,lon_c_dual,lat_c,lon_c, &
                                       face_edges,face_edges_reverse,face_vertices)
@@ -534,11 +534,11 @@ module mo_horizontal_generation
     
   end subroutine set_scalar_h_dual_coords
 
-  subroutine set_from_to_index_dual(from_index_dual,to_index_dual,face_edges,face_edges_reverse)
+  subroutine set_from_to_cell_dual(from_cell_dual,to_cell_dual,face_edges,face_edges_reverse)
     
     ! This function computes the neighbourship relationships of the horizontal dual vectors.
     
-    integer, intent(out) :: from_index_dual(n_edges),to_index_dual(n_edges)
+    integer, intent(out) :: from_cell_dual(n_edges),to_cell_dual(n_edges)
     integer, intent(in)  :: face_edges(n_basic_triangles,3),face_edges_reverse(n_basic_triangles,3)
     
     ! local variables
@@ -609,7 +609,7 @@ module mo_horizontal_generation
             triangle_on_face_index = on_edge_index*(2*n_points_per_edge + 2 - on_edge_index)
           endif
         endif
-        to_index_dual(ji+1) = face_index_1*n_triangles_per_face + triangle_on_face_index
+        to_cell_dual(ji+1) = face_index_1*n_triangles_per_face + triangle_on_face_index
         if (edge_rel_to_face_2==1) then
           if (face_edges_reverse(face_index_2+1,edge_rel_to_face_2)==0) then
             triangle_on_face_index = 2*on_edge_index
@@ -631,7 +631,7 @@ module mo_horizontal_generation
             triangle_on_face_index = on_edge_index*(2*n_points_per_edge + 2 - on_edge_index)
           endif
         endif
-        from_index_dual(ji+1) = face_index_2*n_triangles_per_face + triangle_on_face_index
+        from_cell_dual(ji+1) = face_index_2*n_triangles_per_face + triangle_on_face_index
       else
         face_index = (ji - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
         on_face_index = ji - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
@@ -639,22 +639,22 @@ module mo_horizontal_generation
         small_triangle_edge_index = on_face_index - 3*triangle_on_face_index
         call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_1,coord_2,coord_1_points_amount)
         if (small_triangle_edge_index==0) then
-          from_index_dual(ji+1) = face_index*n_triangles_per_face + 2*triangle_on_face_index + coord_2
-          to_index_dual(ji+1) = from_index_dual(ji+1) + 1
+          from_cell_dual(ji+1) = face_index*n_triangles_per_face + 2*triangle_on_face_index + coord_2
+          to_cell_dual(ji+1) = from_cell_dual(ji+1) + 1
         endif
         if (small_triangle_edge_index==1) then
-          from_index_dual(ji+1) = face_index*n_triangles_per_face + 2*triangle_on_face_index + 1 + coord_2
-          to_index_dual(ji+1) = from_index_dual(ji+1) + 1
+          from_cell_dual(ji+1) = face_index*n_triangles_per_face + 2*triangle_on_face_index + 1 + coord_2
+          to_cell_dual(ji+1) = from_cell_dual(ji+1) + 1
         endif
         if (small_triangle_edge_index==2) then
-          from_index_dual(ji+1) = face_index*n_triangles_per_face + 2*triangle_on_face_index + 1 + coord_2
-          to_index_dual(ji+1) = from_index_dual(ji+1) + 2*coord_1_points_amount
+          from_cell_dual(ji+1) = face_index*n_triangles_per_face + 2*triangle_on_face_index + 1 + coord_2
+          to_cell_dual(ji+1) = from_cell_dual(ji+1) + 2*coord_1_points_amount
         endif
       endif
     enddo
     !$omp end parallel do
     
-  end subroutine set_from_to_index_dual
+  end subroutine set_from_to_cell_dual
   
   subroutine set_scalar_coordinates(edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3,lpoints_upwards, &
                                     x_unity,y_unity,z_unity,lat_c,lon_c)
@@ -738,35 +738,35 @@ module mo_horizontal_generation
   
   end subroutine set_scalar_coordinates
   
-  subroutine read_horizontal_explicit(lat_c,lon_c,from_index,to_index, &
-                                      from_index_dual,to_index_dual,filename,n_lloyd_read_file)
+  subroutine read_horizontal_explicit(lat_c,lon_c,from_cell,to_cell, &
+                                      from_cell_dual,to_cell_dual,filename,n_lloyd_read_file)
     
     ! This function reads the arrays that fully define the horizontal grid from a previously created grid file.
     ! This is an optional feature.
     
     real(wp), intent(out)          :: lat_c(n_cells),lon_c(n_cells)
-    integer,  intent(out)          :: from_index(n_edges),to_index(n_edges), &
-                                      from_index_dual(n_edges),to_index_dual(n_edges),n_lloyd_read_file
+    integer,  intent(out)          :: from_cell(n_edges),to_cell(n_edges), &
+                                      from_cell_dual(n_edges),to_cell_dual(n_edges),n_lloyd_read_file
     character(len=256), intent(in) :: filename
     
     ! local variables
-    integer           :: ncid,lat_c_id,lon_c_id,from_index_id,to_index_id, &
-                         from_index_dual_id,to_index_dual_id,n_lloyd_read_file_id
+    integer           :: ncid,lat_c_id,lon_c_id,from_cell_id,to_cell_id, &
+                         from_cell_dual_id,to_cell_dual_id,n_lloyd_read_file_id
 
     call nc_check(nf90_open(trim(filename),NF90_CLOBBER,ncid))
     call nc_check(nf90_inq_varid(ncid,"lat_c",lat_c_id))
     call nc_check(nf90_inq_varid(ncid,"lon_c",lon_c_id))
-    call nc_check(nf90_inq_varid(ncid,"from_index",from_index_id))
-    call nc_check(nf90_inq_varid(ncid,"to_index",to_index_id))
-    call nc_check(nf90_inq_varid(ncid,"from_index_dual",from_index_dual_id))
-    call nc_check(nf90_inq_varid(ncid,"to_index_dual",to_index_dual_id))
+    call nc_check(nf90_inq_varid(ncid,"from_cell",from_cell_id))
+    call nc_check(nf90_inq_varid(ncid,"to_cell",to_cell_id))
+    call nc_check(nf90_inq_varid(ncid,"from_cell_dual",from_cell_dual_id))
+    call nc_check(nf90_inq_varid(ncid,"to_cell_dual",to_cell_dual_id))
     call nc_check(nf90_inq_varid(ncid,"n_lloyd_iterations",n_lloyd_read_file_id))
     call nc_check(nf90_get_var(ncid,lat_c_id,lat_c))
     call nc_check(nf90_get_var(ncid,lon_c_id,lon_c))
-    call nc_check(nf90_get_var(ncid,from_index_id,from_index))
-    call nc_check(nf90_get_var(ncid,to_index_id,to_index))
-    call nc_check(nf90_get_var(ncid,from_index_dual_id,from_index_dual))
-    call nc_check(nf90_get_var(ncid,to_index_dual_id,to_index_dual))
+    call nc_check(nf90_get_var(ncid,from_cell_id,from_cell))
+    call nc_check(nf90_get_var(ncid,to_cell_id,to_cell))
+    call nc_check(nf90_get_var(ncid,from_cell_dual_id,from_cell_dual))
+    call nc_check(nf90_get_var(ncid,to_cell_dual_id,to_cell_dual))
     call nc_check(nf90_get_var(ncid,n_lloyd_read_file_id,n_lloyd_read_file))
     call nc_check(nf90_close(ncid))
     
