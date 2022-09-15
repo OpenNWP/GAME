@@ -272,10 +272,10 @@ module mo_derived_hor_quantities
     ! This subroutine finds the horizontal vectors that are adjacent to a grid cell.
     
     integer, intent(in)  :: from_cell(n_edges),to_cell(n_edges)
-    integer, intent(out) :: adjacent_signs(6*n_cells),adjacent_edges(6*n_cells)
+    integer, intent(out) :: adjacent_signs(n_cells,6),adjacent_edges(n_cells,6)
     
     ! local variables
-    integer :: ji,jk,jl,trouble_detected,counter,no_of_edges,double_check,sign_sum_check
+    integer :: ji,jk,jl,trouble_detected,counter,n_edges_of_cell,double_check,sign_sum_check
     
     trouble_detected = 0
     
@@ -288,12 +288,12 @@ module mo_derived_hor_quantities
             write(*,*) "It is from_cell == to_cell at the following grid point:", jk
             call exit(1)
           endif
-          adjacent_edges(6*(ji-1)+counter) = jk-1
+          adjacent_edges(ji,counter) = jk-1
           if (from_cell(jk)==ji-1) then
-            adjacent_signs(6*(ji-1)+counter) = 1
+            adjacent_signs(ji,counter) = 1
           endif
           if (to_cell(jk)==ji-1) then
-            adjacent_signs(6*(ji-1)+counter) = -1
+            adjacent_signs(ji,counter) = -1
           endif
           counter = counter+1
         endif
@@ -309,27 +309,28 @@ module mo_derived_hor_quantities
         call exit(1)
       endif
       if (ji<=n_pentagons) then
-        adjacent_edges(6*(ji-1)+6) = -1
-        adjacent_signs(6*(ji-1)+6) = 0
+        adjacent_edges(ji,6) = -1
+        adjacent_signs(ji,6) = 0
       endif
     enddo
     !$omp end parallel do
     
-    !$omp parallel do private(ji,jk,jl,counter,no_of_edges,sign_sum_check,double_check)
+    ! checks
+    !$omp parallel do private(ji,jk,jl,counter,n_edges_of_cell,sign_sum_check,double_check)
     do ji=1,n_edges
       counter = 0
       sign_sum_check = 0
       do jk=1,n_cells
-        no_of_edges = 6
+        n_edges_of_cell = 6
         if (jk<=n_pentagons) then
-          no_of_edges = 5
+          n_edges_of_cell = 5
         endif
         double_check = 0
-        do jl=1,no_of_edges
-          if (adjacent_edges(6*(jk-1)+jl)==ji-1) then
+        do jl=1,n_edges_of_cell
+          if (adjacent_edges(jk,jl)==ji-1) then
             counter = counter+1
             double_check = double_check+1
-            sign_sum_check = sign_sum_check+adjacent_signs(6*(jk-1)+jl)
+            sign_sum_check = sign_sum_check+adjacent_signs(jk,jl)
           endif
         enddo
         if (double_check>1) then
@@ -357,36 +358,36 @@ module mo_derived_hor_quantities
     
     real(wp), intent(out) :: pent_hex_face_unity_sphere(n_cells)
     real(wp), intent(in)  :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
-    integer,  intent(in)  :: adjacent_edges(6*n_cells),vorticity_indices_pre(3*n_dual_scalars_h)
+    integer,  intent(in)  :: adjacent_edges(n_cells,6),vorticity_indices_pre(3*n_dual_scalars_h)
     
-    integer  :: ji,jk,check_1,check_2,check_3,counter,n_edges,cell_vector_indices(6)
+    integer  :: ji,jk,check_1,check_2,check_3,counter,n_edges_of_cell,cell_vector_indices(6)
     real(wp) :: pent_hex_sum_unity_sphere,pent_hex_avg_unity_sphere_ideal,lat_points(6),lon_points(6)
     
-    !$omp parallel do private(ji,jk,check_1,check_2,check_3,counter,n_edges,cell_vector_indices,lat_points,lon_points)
+    !$omp parallel do private(ji,jk,check_1,check_2,check_3,counter,n_edges_of_cell,cell_vector_indices,lat_points,lon_points)
     do ji=1,n_cells
-      n_edges = 6
+      n_edges_of_cell = 6
       if (ji<=n_pentagons) then
-        n_edges = 5
+        n_edges_of_cell = 5
       endif
-      do jk=1,n_edges
-        cell_vector_indices(jk) = adjacent_edges(6*(ji-1)+jk)
+      do jk=1,n_edges_of_cell
+        cell_vector_indices(jk) = adjacent_edges(ji,jk)
       enddo
       counter = 1
       do jk=1,n_dual_scalars_h
-        check_1 = in_bool_checker(vorticity_indices_pre(3*(jk-1)+1),cell_vector_indices,n_edges)
-        check_2 = in_bool_checker(vorticity_indices_pre(3*(jk-1)+2),cell_vector_indices,n_edges)
-        check_3 = in_bool_checker(vorticity_indices_pre(3*(jk-1)+3),cell_vector_indices,n_edges)
+        check_1 = in_bool_checker(vorticity_indices_pre(3*(jk-1)+1),cell_vector_indices,n_edges_of_cell)
+        check_2 = in_bool_checker(vorticity_indices_pre(3*(jk-1)+2),cell_vector_indices,n_edges_of_cell)
+        check_3 = in_bool_checker(vorticity_indices_pre(3*(jk-1)+3),cell_vector_indices,n_edges_of_cell)
         if (check_1==1 .or. check_2==1 .or. check_3==1) then
           lat_points(counter) = lat_c_dual(jk)
           lon_points(counter) = lon_c_dual(jk)
           counter = counter+1
         endif
       enddo
-      if (counter/=n_edges+1) then
+      if (counter/=n_edges_of_cell+1) then
         write(*,*) "Trouble in calc_cell_face_unity."
         call exit(1)
       endif
-      pent_hex_face_unity_sphere(ji) = calc_spherical_polygon_area(lat_points,lon_points,n_edges)
+      pent_hex_face_unity_sphere(ji) = calc_spherical_polygon_area(lat_points,lon_points,n_edges_of_cell)
     enddo
     !$omp end parallel do
     

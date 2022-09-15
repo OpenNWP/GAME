@@ -43,7 +43,7 @@ module mo_grid_setup
                 normal_distance_dual_id,vorticity_indices_triangles_id,vorticity_signs_triangles_id, &
                 latitude_scalar_id,longitude_scalar_id,toa_id,radius_id,interpol_indices_id, &
                 interpol_weights_id,theta_v_bg_id,exner_bg_id,sfc_rho_c_id,sfc_albedo_id,roughness_length_id, &
-                is_land_id,t_conductivity_id,n_oro_layers_id,stretching_parameter_id,ji,layer_index,h_index
+                is_land_id,t_conductivity_id,n_oro_layers_id,stretching_parameter_id,ji,layer_index,h_index,jk
     real(wp) :: sigma_soil,rescale_factor
     character(len=128) :: grid_file_name
     
@@ -142,11 +142,13 @@ module mo_grid_setup
     
     write(*,*) "Time step:",dtime,"s."
     
-    !$omp parallel do private(ji)
-    do ji=1,6*n_cells
-      if (grid%adjacent_edges(ji)==-1) then
-        grid%adjacent_edges(ji) = 0
-      endif
+    !$omp parallel do private(ji,jk)
+    do ji=1,n_cells
+      do jk=1,6
+        if (grid%adjacent_edges(ji,jk)==-1) then
+          grid%adjacent_edges(ji,jk) = 0
+        endif
+      enddo
     enddo
     !$omp end parallel do
     

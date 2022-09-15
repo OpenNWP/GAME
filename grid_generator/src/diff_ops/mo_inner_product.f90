@@ -19,8 +19,8 @@ module mo_inner_product
 
     real(wp), intent(out) :: inner_product_weights(8*n_scalars)
     real(wp), intent(in)  :: normal_distance(n_vectors),volume(n_scalars),area(n_vectors), &
-                                  z_scalar(n_scalars),z_vector(n_vectors)
-    integer,  intent(in)  :: adjacent_edges(6*n_cells)
+                             z_scalar(n_scalars),z_vector(n_vectors)
+    integer,  intent(in)  :: adjacent_edges(n_cells,6)
 
     ! local variables
     integer  :: ji,jk,layer_index,h_index
@@ -33,9 +33,9 @@ module mo_inner_product
       do jk=1,6
         if (jk<6 .or. h_index>n_pentagons) then
           inner_product_weights(8*(ji-1)+jk) = area(n_cells+layer_index*n_vectors_per_layer &
-                                               +1+adjacent_edges(6*(h_index-1)+jk))
+                                               +1+adjacent_edges(h_index,jk))
           inner_product_weights(8*(ji-1)+jk) = inner_product_weights(8*(ji-1)+jk)*normal_distance(n_cells &
-                                               +layer_index*n_vectors_per_layer+1+adjacent_edges(6*(h_index-1)+jk))
+                                               +layer_index*n_vectors_per_layer+1+adjacent_edges(h_index,jk))
           inner_product_weights(8*(ji-1)+jk) = inner_product_weights(8*(ji-1)+jk)/(2._wp*volume(ji))
         else
           inner_product_weights(8*(ji-1)+jk) = 0._wp

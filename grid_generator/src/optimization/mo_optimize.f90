@@ -26,7 +26,7 @@ module mo_optimize
                                lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
     integer,  intent(in)    :: n_iterations,face_edges(n_basic_triangles,3),face_edges_reverse(n_basic_triangles,3), &
                                face_vertices(n_basic_triangles,3), &
-                               adjacent_edges(6*n_cells),from_cell_dual(n_edges), &
+                               adjacent_edges(n_cells,6),from_cell_dual(n_edges), &
                                to_cell_dual(n_edges)
 	
     ! local variables
@@ -49,7 +49,7 @@ module mo_optimize
     
     real(wp), intent(inout) :: lat_c(n_cells),lon_c(n_cells)
     real(wp), intent(in)    :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
-    integer,  intent(in)    :: adjacent_edges(6*n_cells), &
+    integer,  intent(in)    :: adjacent_edges(n_cells,6), &
                                from_cell_dual(n_edges),to_cell_dual(n_edges)
     
     ! local variables
@@ -72,8 +72,8 @@ module mo_optimize
       enddo
       counter = 1
       do jk=1,n_edges
-        vertex_index_candidate_1 = from_cell_dual(1+adjacent_edges(6*(ji-1)+jk))
-        vertex_index_candidate_2 = to_cell_dual(1+adjacent_edges(6*(ji-1)+jk))
+        vertex_index_candidate_1 = from_cell_dual(1+adjacent_edges(ji,jk))
+        vertex_index_candidate_2 = to_cell_dual(1+adjacent_edges(ji,jk))
         check_result = in_bool_checker(vertex_index_candidate_1,vertex_indices,n_edges)
         if (check_result==0) then
           vertex_indices(counter) = vertex_index_candidate_1

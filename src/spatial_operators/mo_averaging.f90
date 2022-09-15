@@ -28,19 +28,19 @@ module mo_averaging
     real(wp)                 :: vertical_contravariant_corr ! the result
     
     ! local variables
-    integer :: ji,scalar_index,vector_index,n_edges
+    integer :: ji,scalar_index,vector_index,n_edges_of_cell
     
     vertical_contravariant_corr = 0._wp
     
-    n_edges = 6
+    n_edges_of_cell = 6
     if (h_index<n_pentagons) then
-      n_edges = 5
+      n_edges_of_cell = 5
     endif
     if (layer_index>=n_layers-n_oro_layers) then
       if (layer_index==n_layers-n_oro_layers) then
-        do ji=1,n_edges
+        do ji=1,n_edges_of_cell
           scalar_index = layer_index*n_cells + h_index
-          vector_index = n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(6*h_index + ji)
+          vector_index = n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(1+h_index,ji)
           vertical_contravariant_corr = vertical_contravariant_corr &
           -0.5_wp &
           *grid%inner_product_weights(8*scalar_index + ji) &
@@ -48,18 +48,18 @@ module mo_averaging
           *vector_field(vector_index)
         enddo
       else
-        do ji=1,n_edges
+        do ji=1,n_edges_of_cell
           scalar_index = (layer_index - 1)*n_cells + h_index
-          vector_index = n_cells + (layer_index - 1)*n_vectors_per_layer + 1+grid%adjacent_edges(6*h_index + ji)
+          vector_index = n_cells + (layer_index - 1)*n_vectors_per_layer + 1+grid%adjacent_edges(1+h_index,ji)
           vertical_contravariant_corr = vertical_contravariant_corr &
           -0.5_wp &
           *grid%inner_product_weights(8*scalar_index + ji) &
           *grid%slope(vector_index) &
           *vector_field(vector_index)
         enddo
-        do ji=1,n_edges
+        do ji=1,n_edges_of_cell
           scalar_index = layer_index*n_cells + h_index
-          vector_index = n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(6*h_index + ji)
+          vector_index = n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(1+h_index,ji)
           vertical_contravariant_corr = vertical_contravariant_corr &
           -0.5_wp &
           *grid%inner_product_weights(8*scalar_index + ji) &

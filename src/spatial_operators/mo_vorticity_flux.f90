@@ -138,8 +138,8 @@ module mo_vorticity_flux
               + vert_weight &
               *grid%inner_product_weights(8*((layer_index - 1)*n_cells + h_index-1)+jk) &
               *diag%flux_density(n_cells+(layer_index-1)*n_vectors_per_layer+ &
-                                 1+grid%adjacent_edges(6*(h_index-1)+jk)) &
-              *diag%pot_vort(layer_index*2*n_edges+1+grid%adjacent_edges(6*(h_index-1)+jk))
+                                 1+grid%adjacent_edges(h_index,jk)) &
+              *diag%pot_vort(layer_index*2*n_edges+1+grid%adjacent_edges(h_index,jk))
             enddo
           endif
           if (layer_index<=n_layers-1) then
@@ -148,8 +148,8 @@ module mo_vorticity_flux
               + vert_weight &
               *grid%inner_product_weights(8*(layer_index*n_cells + h_index-1)+jk) &
               *diag%flux_density(n_cells + layer_index*n_vectors_per_layer+ &
-                                      1+grid%adjacent_edges(6*(h_index-1)+jk)) &
-              *diag%pot_vort(layer_index*2*n_edges+1+grid%adjacent_edges(6*(h_index-1)+jk))
+                                      1+grid%adjacent_edges(h_index,jk)) &
+              *diag%pot_vort(layer_index*2*n_edges+1+grid%adjacent_edges(h_index,jk))
             enddo
           endif
         endif

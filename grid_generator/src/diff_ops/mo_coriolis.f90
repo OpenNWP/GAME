@@ -28,7 +28,7 @@ module mo_coriolis
                              lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
                              z_vector(n_vectors)
     integer,  intent(in)  :: from_cell_dual(n_edges),to_cell_dual(n_edges), &
-                             to_cell(n_edges),from_cell(n_edges),adjacent_edges(6*n_cells)
+                             to_cell(n_edges),from_cell(n_edges),adjacent_edges(n_cells,6)
     real(wp), intent(out) :: trsk_weights(10*n_edges)
     integer,  intent(out) :: trsk_modified_curl_indices(10*n_edges),trsk_indices(10*n_edges)
     
@@ -78,14 +78,14 @@ module mo_coriolis
           sign_1 = 1
           from_or_to_cell = to_cell
         endif
-        if (adjacent_edges(6*from_or_to_cell(ji)+jk-index_offset)==ji-1) then
+        if (adjacent_edges(1+from_or_to_cell(ji),jk-index_offset)==ji-1) then
           offset = offset+1
         endif
         if (offset>1) then
           write(*,*) "Problem 1 in TRSK implementation detected."
           call exit(1)
         endif
-        trsk_indices(10*(ji-1)+jk) = adjacent_edges(6*from_or_to_cell(ji)+jk-index_offset+offset)
+        trsk_indices(10*(ji-1)+jk) = adjacent_edges(1+from_or_to_cell(ji),jk-index_offset+offset)
         if (trsk_indices(10*(ji-1)+jk)==-1) then
           trsk_weights(10*(ji-1)+jk) = 0._wp
         else
@@ -104,8 +104,8 @@ module mo_coriolis
           vertex_indices = -1
           counter = 1
           do jl=1,n_edges_of_cell
-            vertex_index_candidate_1 = from_cell_dual(1+adjacent_edges(6*from_or_to_cell(ji)+jl))
-            vertex_index_candidate_2 = to_cell_dual(1+adjacent_edges(6*from_or_to_cell(ji)+jl))
+            vertex_index_candidate_1 = from_cell_dual(1+adjacent_edges(1+from_or_to_cell(ji),jl))
+            vertex_index_candidate_2 = to_cell_dual(1+adjacent_edges(1+from_or_to_cell(ji),jl))
             check_result = in_bool_checker(vertex_index_candidate_1,vertex_indices,n_edges_of_cell)            
             if (check_result==0) then
               vertex_indices(counter) = vertex_index_candidate_1
@@ -137,13 +137,13 @@ module mo_coriolis
           ! sorting the edges in counter-clockwise direction
           do jl=1,n_edges_of_cell
             do jm=1,n_edges_of_cell
-              if ((from_cell_dual(1+adjacent_edges(6*from_or_to_cell(ji)+jm))==vertex_indices_resorted(jl) &
-              .and. to_cell_dual(1+adjacent_edges(6*from_or_to_cell(ji)+jm)) &
+              if ((from_cell_dual(1+adjacent_edges(1+from_or_to_cell(ji),jm))==vertex_indices_resorted(jl) &
+              .and. to_cell_dual(1+adjacent_edges(1+from_or_to_cell(ji),jm)) &
                     ==vertex_indices_resorted(mod(jl,n_edges_of_cell)+1)) &
-              .or. (to_cell_dual(1+adjacent_edges(6*from_or_to_cell(ji)+jm))==vertex_indices_resorted(jl) &
-              .and. from_cell_dual(1+adjacent_edges(6*from_or_to_cell(ji)+jm)) &
+              .or. (to_cell_dual(1+adjacent_edges(1+from_or_to_cell(ji),jm))==vertex_indices_resorted(jl) &
+              .and. from_cell_dual(1+adjacent_edges(1+from_or_to_cell(ji),jm)) &
                     ==vertex_indices_resorted(mod(jl,n_edges_of_cell)+1))) then
-                edge_indices(jl) = adjacent_edges(6*from_or_to_cell(ji)+jm)
+                edge_indices(jl) = adjacent_edges(1+from_or_to_cell(ji),jm)
               endif
             enddo
           enddo
@@ -155,26 +155,20 @@ module mo_coriolis
           check_sum = 0._wp
           do jl=1,n_edges_of_cell
             if (jl==1) then
-              triangle_1 = calc_triangle_area(lat_c(1+from_or_to_cell(ji)), &
-                                              lon_c(1+from_or_to_cell(ji)), &
+              triangle_1 = calc_triangle_area(lat_c(1+from_or_to_cell(ji)),lon_c(1+from_or_to_cell(ji)), &
                                               latitude_vertices(1+indices_resorted(jl)), &
                                               longitude_vertices(1+indices_resorted(jl)), &
-                                              latitude_edges(n_edges_of_cell), &
-                                              longitude_edges(n_edges_of_cell))
+                                              latitude_edges(n_edges_of_cell),longitude_edges(n_edges_of_cell))
             else
-              triangle_1 = calc_triangle_area(lat_c(1+from_or_to_cell(ji)), &
-                                              lon_c(1+from_or_to_cell(ji)), &
+              triangle_1 = calc_triangle_area(lat_c(1+from_or_to_cell(ji)),lon_c(1+from_or_to_cell(ji)), &
                                               latitude_vertices(1+indices_resorted(jl)), &
                                               longitude_vertices(1+indices_resorted(jl)), &
-                                              latitude_edges(jl-1), &
-                                              longitude_edges(jl-1))
+                                              latitude_edges(jl-1),longitude_edges(jl-1))
             endif
-            triangle_2 = calc_triangle_area(lat_c(1+from_or_to_cell(ji)), &
-                                            lon_c(1+from_or_to_cell(ji)), &
+            triangle_2 = calc_triangle_area(lat_c(1+from_or_to_cell(ji)),lon_c(1+from_or_to_cell(ji)), &
                                             latitude_vertices(1+indices_resorted(jl)), &
                                             longitude_vertices(1+indices_resorted(jl)), &
-                                            latitude_edges(jl), &
-                                            longitude_edges(jl))
+                                            latitude_edges(jl),longitude_edges(jl))
             vector_of_areas(jl) = (radius+z_vector(n_cells+ji))**2*(triangle_1+triangle_2)
             check_sum = check_sum+vector_of_areas(jl)
           enddo

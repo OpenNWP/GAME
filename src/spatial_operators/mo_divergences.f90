@@ -19,28 +19,28 @@ module mo_divergences
   
     ! This subroutine computes the divergence of a horizontal vector field.
     
-    real(wp), intent(in)  :: in_field(n_vectors)
-    real(wp), intent(out) :: out_field(n_scalars)
-    type(t_grid),  intent(in)    :: grid         ! grid quantities
+    real(wp),     intent(in)  :: in_field(n_vectors)
+    real(wp),     intent(out) :: out_field(n_scalars)
+    type(t_grid), intent(in)  :: grid         ! grid quantities
     
     ! local variables
-    integer  :: h_index,layer_index,ji,jl,n_edges
+    integer  :: h_index,layer_index,ji,jl,n_edges_of_cell
     real(wp) :: contra_upper,contra_lower,comp_h,comp_v
     
-    !$omp parallel do private(h_index,layer_index,ji,jl,n_edges,contra_upper,contra_lower,comp_h,comp_v)
+    !$omp parallel do private(h_index,layer_index,ji,jl,n_edges_of_cell,contra_upper,contra_lower,comp_h,comp_v)
     do h_index=1,n_cells
-      n_edges = 6
+      n_edges_of_cell = 6
       if (h_index<=n_pentagons) then
-        n_edges = 5
+        n_edges_of_cell = 5
       endif
       do layer_index=0,n_layers-1
         ji = layer_index*n_cells + h_index
         comp_h = 0._wp
-        do jl=1,n_edges
+        do jl=1,n_edges_of_cell
           comp_h = comp_h &
-          + in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(6*(h_index-1) + jl)) &
-          *grid%adjacent_signs(6*(h_index-1) + jl) &
-          *grid%area(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(6*(h_index-1) + jl))
+          + in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(h_index,jl)) &
+          *grid%adjacent_signs(h_index,jl) &
+          *grid%area(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(h_index,jl))
         enddo
         comp_v = 0._wp
         if (layer_index==n_layers-n_oro_layers-1) then
@@ -85,9 +85,9 @@ module mo_divergences
         comp_h = 0._wp
         do jl=1,n_edges
           comp_h = comp_h &
-          + in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(6*(h_index-1) + jl)) &
-          *grid%adjacent_signs(6*(h_index-1) + jl) &
-          *grid%area(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(6*(h_index-1) + jl))
+          + in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(h_index,jl)) &
+          *grid%adjacent_signs(h_index,jl) &
+          *grid%area(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(h_index,jl))
         enddo
         comp_v = 0._wp
         if (layer_index==n_layers-n_oro_layers-1) then
