@@ -267,12 +267,12 @@ module mo_derived_hor_quantities
     
   end subroutine write_statistics_file
   
-  subroutine find_adjacent_edges(from_cell,to_cell,adjacent_signs_h,adjacent_edges)
+  subroutine find_adjacent_edges(from_cell,to_cell,adjacent_signs,adjacent_edges)
   
     ! This subroutine finds the horizontal vectors that are adjacent to a grid cell.
     
     integer, intent(in)  :: from_cell(n_edges),to_cell(n_edges)
-    integer, intent(out) :: adjacent_signs_h(6*n_cells),adjacent_edges(6*n_cells)
+    integer, intent(out) :: adjacent_signs(6*n_cells),adjacent_edges(6*n_cells)
     
     ! local variables
     integer :: ji,jk,jl,trouble_detected,counter,no_of_edges,double_check,sign_sum_check
@@ -290,10 +290,10 @@ module mo_derived_hor_quantities
           endif
           adjacent_edges(6*(ji-1)+counter) = jk-1
           if (from_cell(jk)==ji-1) then
-            adjacent_signs_h(6*(ji-1)+counter) = 1
+            adjacent_signs(6*(ji-1)+counter) = 1
           endif
           if (to_cell(jk)==ji-1) then
-            adjacent_signs_h(6*(ji-1)+counter) = -1
+            adjacent_signs(6*(ji-1)+counter) = -1
           endif
           counter = counter+1
         endif
@@ -310,7 +310,7 @@ module mo_derived_hor_quantities
       endif
       if (ji<=n_pentagons) then
         adjacent_edges(6*(ji-1)+6) = -1
-        adjacent_signs_h(6*(ji-1)+6) = 0
+        adjacent_signs(6*(ji-1)+6) = 0
       endif
     enddo
     !$omp end parallel do
@@ -329,7 +329,7 @@ module mo_derived_hor_quantities
           if (adjacent_edges(6*(jk-1)+jl)==ji-1) then
             counter = counter+1
             double_check = double_check+1
-            sign_sum_check = sign_sum_check+adjacent_signs_h(6*(jk-1)+jl)
+            sign_sum_check = sign_sum_check+adjacent_signs(6*(jk-1)+jl)
           endif
         enddo
         if (double_check>1) then
@@ -338,7 +338,7 @@ module mo_derived_hor_quantities
         endif
       enddo
       if (sign_sum_check/=0) then
-        write(*,*) "Problem with adjacent_signs_h."
+        write(*,*) "Problem with adjacent_signs."
         call exit(1)
       endif
       if (counter/=2) then

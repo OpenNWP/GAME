@@ -39,7 +39,7 @@ module mo_divergences
         do jl=1,n_edges
           comp_h = comp_h &
           + in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(6*(h_index-1) + jl)) &
-          *grid%adjacent_signs_h(6*(h_index-1) + jl) &
+          *grid%adjacent_signs(6*(h_index-1) + jl) &
           *grid%area(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(6*(h_index-1) + jl))
         enddo
         comp_v = 0._wp
@@ -86,7 +86,7 @@ module mo_divergences
         do jl=1,n_edges
           comp_h = comp_h &
           + in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(6*(h_index-1) + jl)) &
-          *grid%adjacent_signs_h(6*(h_index-1) + jl) &
+          *grid%adjacent_signs(6*(h_index-1) + jl) &
           *grid%area(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(6*(h_index-1) + jl))
         enddo
         comp_v = 0._wp

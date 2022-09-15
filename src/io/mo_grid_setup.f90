@@ -38,7 +38,7 @@ module mo_grid_setup
     integer  :: ncid,normal_distance_id,volume_id,area_id,z_scalar_id,z_vector_id,trsk_weights_id, &
                 area_dual_id,z_vector_dual_id,f_vec_id,to_cell_id,from_cell_id, &
                 to_cell_dual_id,from_cell_dual_id,adjacent_edges_id,trsk_indices_id, &
-                trsk_modified_curl_indices_id,adjacent_signs_h_id,direction_id,gravity_potential_id, &
+                trsk_modified_curl_indices_id,adjacent_signs_id,direction_id,gravity_potential_id, &
                 inner_product_weights_id,density_to_rhombi_weights_id,density_to_rhombi_indices_id, &
                 normal_distance_dual_id,vorticity_indices_triangles_id,vorticity_signs_triangles_id, &
                 latitude_scalar_id,longitude_scalar_id,toa_id,radius_id,interpol_indices_id, &
@@ -80,7 +80,7 @@ module mo_grid_setup
     call nc_check(nf90_inq_varid(ncid,"vorticity_signs_triangles",vorticity_signs_triangles_id))
     call nc_check(nf90_inq_varid(ncid,"trsk_indices",trsk_indices_id))
     call nc_check(nf90_inq_varid(ncid,"trsk_modified_curl_indices",trsk_modified_curl_indices_id))
-    call nc_check(nf90_inq_varid(ncid,"adjacent_signs_h",adjacent_signs_h_id))
+    call nc_check(nf90_inq_varid(ncid,"adjacent_signs",adjacent_signs_id))
     call nc_check(nf90_inq_varid(ncid,"inner_product_weights",inner_product_weights_id))
     call nc_check(nf90_inq_varid(ncid,"density_to_rhombi_weights",density_to_rhombi_weights_id))
     call nc_check(nf90_inq_varid(ncid,"density_to_rhombi_indices",density_to_rhombi_indices_id))
@@ -125,7 +125,7 @@ module mo_grid_setup
     call nc_check(nf90_get_var(ncid,vorticity_signs_triangles_id,grid%vorticity_signs_triangles))
     call nc_check(nf90_get_var(ncid,trsk_indices_id,grid%trsk_indices))
     call nc_check(nf90_get_var(ncid,trsk_modified_curl_indices_id,grid%trsk_modified_curl_indices))
-    call nc_check(nf90_get_var(ncid,adjacent_signs_h_id,grid%adjacent_signs_h))
+    call nc_check(nf90_get_var(ncid,adjacent_signs_id,grid%adjacent_signs))
     call nc_check(nf90_get_var(ncid,density_to_rhombi_indices_id,grid%density_to_rhombi_indices))
     call nc_check(nf90_get_var(ncid,interpol_indices_id,grid%latlon_interpol_indices))
     call nc_check(nf90_get_var(ncid,sfc_rho_c_id,grid%sfc_rho_c))

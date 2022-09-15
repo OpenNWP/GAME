@@ -20,7 +20,7 @@ module mo_averaging
     ! This function calculates (the vertical contravariant component - the vertical covariant component)
     ! of a vector field out of the horizontal contravariant components.
     
-    ! Attention: adjacent_signs_h appears twice, thus does not need to be taken into account.
+    ! Attention: adjacent_signs appears twice, thus does not need to be taken into account.
     
     real(wp),     intent(in) :: vector_field(n_vectors)     ! the vector field to operate with
     integer,      intent(in) :: layer_index,h_index         ! spatial indices

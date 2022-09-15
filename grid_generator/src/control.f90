@@ -37,7 +37,7 @@ program control
                            z_scalar_id,z_vector_id,normal_distance_id,volume_id,area_id,trsk_weights_id,z_vector_dual_id, &
                            normal_distance_dual_id,area_dual_id,f_vec_id,to_cell_id, &
                            from_cell_id,to_cell_dual_id,from_cell_dual_id,adjacent_edges_id,trsk_indices_id, &
-                           trsk_modified_curl_indices_id,adjacent_signs_h_id, &
+                           trsk_modified_curl_indices_id,adjacent_signs_id, &
                            vorticity_signs_triangles_id,f_vec_dimid,scalar_dimid,scalar_h_dimid,scalar_dual_h_dimid, &
                            vector_dimid,latlon_dimid_5,scalar_h_dimid_6,vector_h_dimid, &
                            vector_h_dimid_10,vector_h_dimid_4,vector_v_dimid_6,vector_dual_dimid,gravity_potential_id, &
@@ -50,7 +50,7 @@ program control
                            is_land_id,n_oro_layers_id,stretching_parameter_id,toa_id,radius_id
   integer,  allocatable :: to_cell(:),from_cell(:),trsk_indices(:),trsk_modified_curl_indices(:),adjacent_edges(:), &
                            vorticity_indices_triangles(:),vorticity_indices_rhombi(:),to_cell_dual(:),from_cell_dual(:), &
-                           adjacent_signs_h(:),vorticity_signs_triangles(:),density_to_rhombi_indices(:),interpol_indices(:), &
+                           adjacent_signs(:),vorticity_signs_triangles(:),density_to_rhombi_indices(:),interpol_indices(:), &
                            is_land(:)
   real(wp), allocatable :: x_unity(:),y_unity(:),z_unity(:),lat_c(:),lon_c(:),z_scalar(:), &
                            gravity_potential(:), &
@@ -124,7 +124,7 @@ program control
   allocate(vorticity_indices_rhombi(4*n_edges))
   allocate(to_cell_dual(n_edges))
   allocate(from_cell_dual(n_edges))
-  allocate(adjacent_signs_h(6*n_cells))
+  allocate(adjacent_signs(6*n_cells))
   allocate(vorticity_signs_triangles(3*n_dual_scalars_h))
   allocate(density_to_rhombi_indices(4*n_edges))
   allocate(interpol_indices(5*n_latlon_io_points))
@@ -150,7 +150,7 @@ program control
   
   ! 2.) finding the neighbouring vector points of the cells
   ! ---------------------------------------------------
-  call find_adjacent_edges(from_cell,to_cell,adjacent_signs_h,adjacent_edges)
+  call find_adjacent_edges(from_cell,to_cell,adjacent_signs,adjacent_edges)
   
   ! 3.) grid optimization
   ! -----------------
@@ -351,7 +351,7 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"interpol_indices",NF90_INT,latlon_dimid_5,interpol_indices_id))
   call nc_check(nf90_def_var(ncid_g_prop,"trsk_indices",NF90_INT,vector_h_dimid_10,trsk_indices_id))
   call nc_check(nf90_def_var(ncid_g_prop,"trsk_modified_curl_indices",NF90_INT,vector_h_dimid_10,trsk_modified_curl_indices_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"adjacent_signs_h",NF90_INT,scalar_h_dimid_6,adjacent_signs_h_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"adjacent_signs",NF90_INT,scalar_h_dimid_6,adjacent_signs_id))
   call nc_check(nf90_def_var(ncid_g_prop,"vorticity_signs_triangles",NF90_INT,scalar_dual_h_dimid_3,vorticity_signs_triangles_id))
   call nc_check(nf90_def_var(ncid_g_prop,"vorticity_indices_triangles", &
                              NF90_INT,scalar_dual_h_dimid_3,vorticity_indices_triangles_id))
@@ -404,7 +404,7 @@ program control
   call nc_check(nf90_put_var(ncid_g_prop,adjacent_edges_id,adjacent_edges))
   call nc_check(nf90_put_var(ncid_g_prop,trsk_indices_id,trsk_indices))
   call nc_check(nf90_put_var(ncid_g_prop,trsk_modified_curl_indices_id,trsk_modified_curl_indices))
-  call nc_check(nf90_put_var(ncid_g_prop,adjacent_signs_h_id,adjacent_signs_h))
+  call nc_check(nf90_put_var(ncid_g_prop,adjacent_signs_id,adjacent_signs))
   call nc_check(nf90_put_var(ncid_g_prop,vorticity_signs_triangles_id,vorticity_signs_triangles))
   call nc_check(nf90_put_var(ncid_g_prop,vorticity_indices_triangles_id,vorticity_indices_triangles))
   call nc_check(nf90_put_var(ncid_g_prop,density_to_rhombi_indices_id,density_to_rhombi_indices))
@@ -458,7 +458,7 @@ program control
   deallocate(vorticity_indices_rhombi)
   deallocate(trsk_indices)
   deallocate(trsk_modified_curl_indices)
-  deallocate(adjacent_signs_h)
+  deallocate(adjacent_signs)
   deallocate(vorticity_signs_triangles)
   deallocate(area_dual)
   deallocate(interpol_indices)
