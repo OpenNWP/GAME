@@ -79,19 +79,19 @@ module mo_averaging
     
     remap_verpri2horpri_vector &
     ! layer above
-    = grid%inner_product_weights(h_index+1,layer_index+1,7) &
-    *vector_field(layer_index*n_vectors_per_layer + 1 + grid%from_cell(1+h_index))
+    = grid%inner_product_weights(1+grid%from_cell(1+h_index),layer_index+1,7) &
+    *vector_field(layer_index*n_vectors_per_layer+1+grid%from_cell(1+h_index))
     remap_verpri2horpri_vector = remap_verpri2horpri_vector &
-    + grid%inner_product_weights(h_index+1,layer_index+1,7) &
-    *vector_field(layer_index*n_vectors_per_layer + 1 + grid%to_cell(1+h_index))
+    + grid%inner_product_weights(1+grid%to_cell(1+h_index),layer_index+1,7) &
+    *vector_field(layer_index*n_vectors_per_layer+1+grid%to_cell(1+h_index))
     ! layer below
     if (layer_index<n_layers-1) then
       remap_verpri2horpri_vector = remap_verpri2horpri_vector &
-      + grid%inner_product_weights(h_index+1,layer_index+1,8) &
-      *vector_field((layer_index + 1)*n_vectors_per_layer + 1 + grid%from_cell(1+h_index))
+      + grid%inner_product_weights(1+grid%from_cell(1+h_index),layer_index+1,8) &
+      *vector_field((layer_index + 1)*n_vectors_per_layer+1+grid%from_cell(1+h_index))
       remap_verpri2horpri_vector = remap_verpri2horpri_vector &
-      + grid%inner_product_weights(h_index+1,layer_index+1,8) &
-      *vector_field((layer_index + 1)*n_vectors_per_layer + 1 + grid%to_cell(1+h_index))
+      + grid%inner_product_weights(1+grid%to_cell(1+h_index),layer_index+1,8) &
+      *vector_field((layer_index + 1)*n_vectors_per_layer+1+grid%to_cell(1+h_index))
     endif
     ! horizontal average
     remap_verpri2horpri_vector = 0.5_wp*remap_verpri2horpri_vector

@@ -137,19 +137,19 @@ module mo_spatial_ops_for_output
         ! lowest layer
         elseif (layer_index==n_layers) then
           do jk=1,6
-            scalar_index = (n_layers - 1)*n_cells + h_index
+            scalar_index = (n_layers-1)*n_cells + h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
-            + 0.5_wp*grid%inner_product_weights(h_index,layer_index+1,jk) &
-            *diag%pot_vort(n_edges + (layer_index - 1)*2*n_edges + grid%adjacent_edges(h_index,jk))
+            + 0.5_wp*grid%inner_product_weights(h_index,layer_index,jk) &
+            *diag%pot_vort(n_edges + (layer_index-1)*2*n_edges + grid%adjacent_edges(h_index,jk))
           enddo
         ! inner domain
         else
           ! contribution of upper cell
           do jk=1,6
-            scalar_index = (layer_index - 1)*n_cells + h_index
+            scalar_index = (layer_index-1)*n_cells + h_index
             pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
-            + 0.25_wp*grid%inner_product_weights(h_index,layer_index+1,jk) &
-            *diag%pot_vort(n_edges + (layer_index - 1)*2*n_edges + grid%adjacent_edges(h_index,jk))
+            + 0.25_wp*grid%inner_product_weights(h_index,layer_index,jk) &
+            *diag%pot_vort(n_edges + (layer_index-1)*2*n_edges + grid%adjacent_edges(h_index,jk))
           enddo
           ! contribution of lower cell
           do jk=1,6
