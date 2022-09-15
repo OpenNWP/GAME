@@ -36,7 +36,6 @@ module mo_run_nml
     start_year = 2000
     start_month = 1
     start_day = 1
-    start_date = 10000*start_year + 100*start_month + start_day
     start_hour = 0
     start_minute = 0
     
@@ -45,6 +44,8 @@ module mo_run_nml
     read(nml=run,unit=fileunit)
         
     close(fileunit)
+    
+    start_date = 10000*start_year + 100*start_month + start_day
     
     ! calculating the Unix time of the model start
     t_init = (start_year-1970)*365*24*3600 + leap_year_correction(start_year)*24*3600 &
