@@ -24,7 +24,7 @@ module mo_definitions
   type t_grid
     
     real(wp), allocatable :: normal_distance(:)
-    real(wp), allocatable :: volume(:)
+    real(wp), allocatable :: volume(:,:)
     real(wp), allocatable :: area(:)
     real(wp), allocatable :: z_scalar(:)
     real(wp), allocatable :: z_vector(:)

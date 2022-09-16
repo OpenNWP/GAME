@@ -68,7 +68,7 @@ program control
   ! ------------------
   
   allocate(grid%normal_distance(n_vectors))
-  allocate(grid%volume(n_scalars))
+  allocate(grid%volume(n_cells,n_layers))
   allocate(grid%area(n_vectors))
   allocate(grid%z_scalar(n_scalars))
   allocate(grid%z_vector(n_vectors))

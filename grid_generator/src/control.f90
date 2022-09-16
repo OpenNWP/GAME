@@ -54,7 +54,7 @@ program control
                            is_land(:)
   real(wp), allocatable :: x_unity(:),y_unity(:),z_unity(:),lat_c(:),lon_c(:),z_scalar(:), &
                            gravity_potential(:), &
-                           z_vector(:),normal_distance(:),lat_e(:),lon_e(:),direction(:),volume(:), &
+                           z_vector(:),normal_distance(:),lat_e(:),lon_e(:),direction(:),volume(:,:), &
                            area(:),trsk_weights(:,:),lat_c_dual(:),lon_c_dual(:),z_scalar_dual(:), &
                            z_vector_dual(:), &
                            normal_distance_dual(:),direction_dual(:),area_dual(:),f_vec(:),triangle_face_unit_sphere(:), &
@@ -91,7 +91,7 @@ program control
   allocate(lat_e(n_edges))
   allocate(lon_e(n_edges))
   allocate(direction(n_edges))
-  allocate(volume(n_scalars))
+  allocate(volume(n_cells,n_layers))
   allocate(area(n_vectors))
   allocate(trsk_weights(n_edges,10))
   allocate(lat_c_dual(n_dual_scalars_h))
@@ -328,7 +328,9 @@ program control
   call nc_check(nf90_put_att(ncid_g_prop,z_vector_id,"units","m"))
   call nc_check(nf90_def_var(ncid_g_prop,"normal_distance",NF90_REAL,vector_dimid,normal_distance_id))
   call nc_check(nf90_put_att(ncid_g_prop,normal_distance_id,"units","m"))
-  call nc_check(nf90_def_var(ncid_g_prop,"volume",NF90_REAL,scalar_dimid,volume_id))
+  dimids_vector_2(1) = cell_dimid
+  dimids_vector_2(2) = layer_dimid
+  call nc_check(nf90_def_var(ncid_g_prop,"volume",NF90_REAL,dimids_vector_2,volume_id))
   call nc_check(nf90_put_att(ncid_g_prop,volume_id,"units","m^3"))
   call nc_check(nf90_def_var(ncid_g_prop,"area",NF90_REAL,vector_dimid,area_id))
   call nc_check(nf90_put_att(ncid_g_prop,area_id,"units","m^2"))

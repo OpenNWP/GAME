@@ -56,7 +56,7 @@ module mo_divergences
           = contra_upper*grid%area(h_index + layer_index*n_vectors_per_layer) &
           - contra_lower*grid%area(h_index + (layer_index+1)*n_vectors_per_layer)
         endif
-        out_field(ji) = 1._wp/grid%volume(ji)*(comp_h + comp_v)
+        out_field(ji) = 1._wp/grid%volume(h_index,layer_index+1)*(comp_h + comp_v)
        enddo
     enddo
     
@@ -123,7 +123,7 @@ module mo_divergences
           = density_upper*contra_upper*grid%area(h_index + layer_index*n_vectors_per_layer) &
           - density_lower*contra_lower*grid%area(h_index + (layer_index+1)*n_vectors_per_layer)
         endif
-        out_field(ji) = 1._wp/grid%volume(ji)*(comp_h + comp_v)
+        out_field(ji) = 1._wp/grid%volume(h_index,layer_index+1)*(comp_h + comp_v)
       enddo
     enddo
     !$omp end parallel do
@@ -158,7 +158,7 @@ module mo_divergences
         endif
         comp_v = contra_upper*grid%area(h_index + layer_index*n_vectors_per_layer) &
         - contra_lower*grid%area(h_index + (layer_index+1)*n_vectors_per_layer)
-        out_field(ji) = out_field(ji) + 1._wp/grid%volume(ji)*comp_v
+        out_field(ji) = out_field(ji) + 1._wp/grid%volume(h_index,layer_index+1)*comp_v
       enddo
     enddo
     !$omp end parallel do

@@ -90,22 +90,22 @@ module mo_vertical_grid
 
     ! This subroutine computes the volumes of the grid boxes.
   
-    real(wp), intent(out) :: volume(n_scalars)
+    real(wp), intent(out) :: volume(n_cells,n_layers)
     real(wp), intent(in)  :: z_vector(n_vectors)
     real(wp), intent(in)  :: area(n_vectors)
   
     ! local variables
-    integer  :: ji,layer_index,h_index
+    integer  :: ji,jl
     real(wp) :: radius_1,radius_2, base_area
     
-    !$omp parallel do private(ji,layer_index,h_index,radius_1,radius_2,base_area)
-    do ji=1,n_scalars
-      layer_index = (ji-1)/n_cells
-      h_index = ji-layer_index*n_cells
-      base_area = area(h_index+(layer_index+1)*n_vectors_per_layer)
-      radius_1 = radius+z_vector(h_index+(layer_index+1)*n_vectors_per_layer)
-      radius_2 = radius+z_vector(h_index+layer_index*n_vectors_per_layer)
-      volume(ji) = base_area/(3._wp*radius_1**2)*(radius_2**3-radius_1**3)
+    !$omp parallel do private(ji,jl,radius_1,radius_2,base_area)
+    do ji=1,n_cells
+      do jl=1,n_layers
+        base_area = area(ji+jl*n_vectors_per_layer)
+        radius_1 = radius+z_vector(ji+jl*n_vectors_per_layer)
+        radius_2 = radius+z_vector(ji+(jl-1)*n_vectors_per_layer)
+        volume(ji,jl) = base_area/(3._wp*radius_1**2)*(radius_2**3-radius_1**3)
+      enddo
     enddo
     !$omp end parallel do
     

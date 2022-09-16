@@ -74,7 +74,7 @@ module mo_write_output
     real(wp),      intent(in) :: time_since_init ! the time since model initialization
     
     ! local variables
-    integer               :: ji,const_id
+    integer               :: ji,jl,const_id
     real(wp)              :: global_integral,kinetic_integral,potential_integral,internal_integral
     real(wp), allocatable :: int_energy_density(:),pot_energy_density(:),e_kin_density(:)
     
@@ -89,8 +89,10 @@ module mo_write_output
     write(1,fmt="(F20.3)",advance="no") time_since_init
     do const_id=1,n_constituents
       global_integral = 0._wp
-      do ji=1,n_scalars
-        global_integral = global_integral + state%rho((const_id-1)*n_scalars + ji)*grid%volume(ji)
+      do ji=1,n_cells
+        do jl=1,n_layers
+          global_integral = global_integral + state%rho((const_id-1)*n_scalars+ji+(jl-1)*n_cells)*grid%volume(ji,jl)
+        enddo
       enddo
       if (const_id==n_constituents) then
         write(1,fmt="(F30.3)") global_integral
@@ -107,8 +109,10 @@ module mo_write_output
       open(1,file="potential_temperature_density",status="old",position="append",action="write")
     endif
     global_integral = 0._wp
-    do ji=1,n_scalars
-      global_integral = global_integral + state%rhotheta_v(ji)*grid%volume(ji)
+    do ji=1,n_cells
+      do jl=1,n_layers
+        global_integral = global_integral + state%rhotheta_v(ji+(jl-1)*n_cells)*grid%volume(ji,jl)
+      enddo
     enddo
     write(1,fmt="(F20.3,F30.3)") time_since_init,global_integral
     close(1)
@@ -127,8 +131,10 @@ module mo_write_output
     enddo
     !$omp end parallel do
     kinetic_integral = 0._wp
-    do ji=1,n_scalars
-      kinetic_integral = kinetic_integral + e_kin_density(ji)*grid%volume(ji)
+    do ji=1,n_cells
+      do jl=1,n_layers
+        kinetic_integral = kinetic_integral + e_kin_density(ji+(jl-1)*n_cells)*grid%volume(ji,jl)
+      enddo
     enddo
     deallocate(e_kin_density)
     allocate(pot_energy_density(n_scalars))
@@ -138,8 +144,10 @@ module mo_write_output
     enddo
     !$omp end parallel do
     potential_integral = 0._wp
-    do ji=1,n_scalars
-      potential_integral = potential_integral + pot_energy_density(ji)*grid%volume(ji)
+    do ji=1,n_cells
+      do jl=1,n_layers
+        potential_integral = potential_integral + pot_energy_density(ji+(jl-1)*n_cells)*grid%volume(ji,jl)
+      enddo
      enddo
     deallocate(pot_energy_density)
     allocate(int_energy_density(n_scalars))
@@ -149,8 +157,10 @@ module mo_write_output
     enddo
     !$omp end parallel do
     internal_integral = 0._wp
-    do ji=1,n_scalars
-      internal_integral = internal_integral+int_energy_density(ji)*grid%volume(ji)
+    do ji=1,n_cells
+      do jl=1,n_layers
+        internal_integral = internal_integral+int_energy_density(ji+(jl-1)*n_cells)*grid%volume(ji,jl)
+      enddo
     enddo
     write(1,fmt="(F20.3,F30.3,F30.3,F30.3)") time_since_init,0.5_wp*kinetic_integral,potential_integral, &
                                              c_d_v*internal_integral
