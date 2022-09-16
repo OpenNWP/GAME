@@ -8,10 +8,10 @@ program control
   use netcdf
   use mo_definitions,                only: wp
   use mo_grid_nml,                   only: n_scalars,n_cells,n_dual_h_vectors,n_dual_scalars, &
-                                           n_dual_scalars_h,n_dual_vectors,n_h_vectors,n_latlon_io_points,n_layers,n_levels, &
+                                           n_dual_scalars_h,n_dual_vectors,n_h_vectors,n_lat_io_points,n_layers,n_levels, &
                                            n_oro_layers,n_vectors,n_edges,radius_rescale,radius,res_id,stretching_parameter, &
                                            toa,grid_nml_setup,oro_id,n_lloyd_iterations,n_avg_points,luse_scalar_h_file, &
-                                           scalar_h_file
+                                           scalar_h_file,n_lon_io_points
   use mo_various_helpers,            only: nc_check,int2string
   use mo_horizontal_generation,      only: generate_horizontal_generators,set_from_to_cell,set_from_to_cell_dual, &
                                            set_scalar_h_dual_coords,calc_triangle_area_unity,read_horizontal_explicit, &
@@ -37,9 +37,9 @@ program control
                            z_scalar_id,z_vector_id,normal_distance_id,volume_id,area_id,trsk_weights_id,z_vector_dual_id, &
                            normal_distance_dual_id,area_dual_id,f_vec_id,to_cell_id,layer_dimid,dimid8, &
                            from_cell_id,to_cell_dual_id,from_cell_dual_id,adjacent_edges_id,trsk_indices_id, &
-                           trsk_modified_curl_indices_id,adjacent_signs_id,dimid10, &
+                           trsk_modified_curl_indices_id,adjacent_signs_id,dimid10,dimid5, &
                            vorticity_signs_triangles_id,f_vec_dimid,scalar_dimid,cell_dimid,scalar_dual_h_dimid, &
-                           vector_dimid,latlon_dimid_5,cell_dimid_6,edge_dimid, &
+                           vector_dimid,lat_dimid,lon_dimid,cell_dimid_6,edge_dimid, &
                            edge_dimid_10,edge_dimid_4,vector_v_dimid_6,vector_dual_dimid,gravity_potential_id, &
                            scalar_dual_h_dimid_3,vector_dual_area_dimid, &
                            inner_product_weights_id,scalar_8_dimid,scalar_2_dimid,vector_h_dual_dimid_2, &
@@ -50,7 +50,7 @@ program control
                            is_land_id,n_oro_layers_id,stretching_parameter_id,toa_id,radius_id
   integer,  allocatable :: to_cell(:),from_cell(:),trsk_indices(:,:),trsk_modified_curl_indices(:,:),adjacent_edges(:,:), &
                            vorticity_indices_triangles(:),vorticity_indices_rhombi(:,:),to_cell_dual(:),from_cell_dual(:), &
-                           adjacent_signs(:,:),vorticity_signs_triangles(:),density_to_rhombi_indices(:),interpol_indices(:), &
+                           adjacent_signs(:,:),vorticity_signs_triangles(:),density_to_rhombi_indices(:),interpol_indices(:,:,:), &
                            is_land(:)
   real(wp), allocatable :: x_unity(:),y_unity(:),z_unity(:),lat_c(:),lon_c(:),z_scalar(:), &
                            gravity_potential(:), &
@@ -60,7 +60,7 @@ program control
                            normal_distance_dual(:),direction_dual(:),area_dual(:),f_vec(:),triangle_face_unit_sphere(:), &
                            pent_hex_face_unity_sphere(:),rel_on_line_dual(:),inner_product_weights(:,:,:), &
                            density_to_rhombi_weights(:), &
-                           interpol_weights(:),exner_bg(:),theta_v_bg(:),oro(:),roughness_length(:),sfc_albedo(:), &
+                           interpol_weights(:,:,:),exner_bg(:),theta_v_bg(:),oro(:),roughness_length(:),sfc_albedo(:), &
                            sfc_rho_c(:),t_conductivity(:)
   real(wp)              :: lat_ico(12),lon_ico(12),min_oro,max_oro
   integer               :: edge_vertices(30,2),face_vertices(20,3),face_edges(20,3),face_edges_reverse(20,3)
@@ -107,7 +107,7 @@ program control
   allocate(rel_on_line_dual(n_edges))
   allocate(inner_product_weights(n_cells,n_layers,8))
   allocate(density_to_rhombi_weights(4*n_edges))
-  allocate(interpol_weights(5*n_latlon_io_points))
+  allocate(interpol_weights(n_lat_io_points,n_lon_io_points,5))
   allocate(exner_bg(n_scalars))
   allocate(theta_v_bg(n_scalars))
   allocate(oro(n_cells))
@@ -127,7 +127,7 @@ program control
   allocate(adjacent_signs(n_cells,6))
   allocate(vorticity_signs_triangles(3*n_dual_scalars_h))
   allocate(density_to_rhombi_indices(4*n_edges))
-  allocate(interpol_indices(5*n_latlon_io_points))
+  allocate(interpol_indices(n_lat_io_points,n_lon_io_points,5))
   allocate(is_land(n_cells))
   write(*,*) "Finished."
   
@@ -287,6 +287,7 @@ program control
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_8_index",8*n_scalars,scalar_8_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_2_index",2*n_scalars,scalar_2_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"cell_index",n_cells,cell_dimid))
+  call nc_check(nf90_def_dim(ncid_g_prop,"index_5",5,dimid5))
   call nc_check(nf90_def_dim(ncid_g_prop,"index_6",6,dimid6))
   call nc_check(nf90_def_dim(ncid_g_prop,"index_8",8,dimid8))
   call nc_check(nf90_def_dim(ncid_g_prop,"index_10",10,dimid10))
@@ -295,7 +296,8 @@ program control
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_dual_h_3_index",3*n_dual_scalars_h,scalar_dual_h_dimid_3))
   call nc_check(nf90_def_dim(ncid_g_prop,"vector_index",n_vectors,vector_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"edge_index",n_edges,edge_dimid))
-  call nc_check(nf90_def_dim(ncid_g_prop,"latlon_3_index",5*n_latlon_io_points,latlon_dimid_5))
+  call nc_check(nf90_def_dim(ncid_g_prop,"lat_index",n_lat_io_points,lat_dimid))
+  call nc_check(nf90_def_dim(ncid_g_prop,"lon_index",n_lon_io_points,lon_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_h_6_index",6*n_cells,cell_dimid_6))
   call nc_check(nf90_def_dim(ncid_g_prop,"vector_h_10_index",10*n_edges,edge_dimid_10))
   call nc_check(nf90_def_dim(ncid_g_prop,"vector_h_4_index",4*n_edges,edge_dimid_4))
@@ -353,7 +355,10 @@ program control
   dimids_vector_3(3) = dimid8
   call nc_check(nf90_def_var(ncid_g_prop,"inner_product_weights",NF90_REAL,dimids_vector_3,inner_product_weights_id))
   call nc_check(nf90_def_var(ncid_g_prop,"density_to_rhombi_weights",NF90_REAL,edge_dimid_4,density_to_rhombi_weights_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"interpol_weights",NF90_REAL,latlon_dimid_5,interpol_weights_id))
+  dimids_vector_3(1) = lat_dimid
+  dimids_vector_3(2) = lon_dimid
+  dimids_vector_3(3) = dimid5
+  call nc_check(nf90_def_var(ncid_g_prop,"interpol_weights",NF90_REAL,dimids_vector_3,interpol_weights_id))
   call nc_check(nf90_def_var(ncid_g_prop,"from_cell",NF90_INT,edge_dimid,from_cell_id))
   call nc_check(nf90_def_var(ncid_g_prop,"to_cell",NF90_INT,edge_dimid,to_cell_id))
   call nc_check(nf90_def_var(ncid_g_prop,"from_cell_dual",NF90_INT,edge_dimid,from_cell_dual_id))
@@ -361,7 +366,10 @@ program control
   dimids_vector_2(1) = cell_dimid
   dimids_vector_2(2) = dimid6
   call nc_check(nf90_def_var(ncid_g_prop,"adjacent_edges",NF90_INT,dimids_vector_2,adjacent_edges_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"interpol_indices",NF90_INT,latlon_dimid_5,interpol_indices_id))
+  dimids_vector_3(1) = lat_dimid
+  dimids_vector_3(2) = lon_dimid
+  dimids_vector_3(3) = dimid5
+  call nc_check(nf90_def_var(ncid_g_prop,"interpol_indices",NF90_INT,dimids_vector_3,interpol_indices_id))
   dimids_vector_2(1) = edge_dimid
   dimids_vector_2(2) = dimid10
   call nc_check(nf90_def_var(ncid_g_prop,"trsk_indices",NF90_INT,dimids_vector_2,trsk_indices_id))

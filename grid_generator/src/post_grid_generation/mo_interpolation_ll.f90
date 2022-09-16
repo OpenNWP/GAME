@@ -19,52 +19,50 @@ module mo_interpolation_ll
   
     ! This function interpolates to the lat-lon grid.
   
-    integer,  intent(out) :: interpol_indices(5*n_cells)
-    real(wp), intent(out) :: interpol_weights(5*n_cells)
+    integer,  intent(out) :: interpol_indices(n_lat_io_points,n_lon_io_points,5)
+    real(wp), intent(out) :: interpol_weights(n_lat_io_points,n_lon_io_points,5)
     real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
   
     ! local variables
     real(wp) :: delta_latitude,delta_longitude,lat_value,lon_value,weights_sum, &
                 ! the vector containing distances to the horizontal points of the native model grid
                 distance_vector(n_cells),weights_vector(5)
-    integer  :: ji,jk,lat_index,lon_index,min_indices_vector(5)
+    integer  :: ji,jk,jm,min_indices_vector(5)
     
     ! latitude resolution of the grid
     delta_latitude = M_PI/n_lat_io_points
     ! longitude resolution of the grid
     delta_longitude = 2.0*M_PI/n_lon_io_points
-    !$omp parallel do private(ji,jk,lat_index,lon_index,lat_value,lon_value,distance_vector, &
+    !$omp parallel do private(ji,jk,jm,lat_value,lon_value,distance_vector, &
     !$omp min_indices_vector,weights_vector,weights_sum)
-    do ji=1,n_latlon_io_points
-      lat_index = (ji-1)/n_lon_io_points
-      lon_index = ji - lat_index*n_lon_io_points
-      lat_value = M_PI/2._wp - 0.5_wp*delta_latitude - lat_index*delta_latitude
-      if (lat_value<-M_PI/2._wp .or. lat_value>M_PI/2._wp) then
-        write(*,*) "An error occured during the interpolation to the lat lon grid, position 0."
-        call exit(1)
-      endif
-      lon_value = (lon_index-1)*delta_longitude
-      if (lon_value<0._wp .or. lon_value>=2._wp*M_PI) then
-        write(*,*) "An error occured during the interpolation to the lat lon grid, position 1."
-        call exit(1)
-      endif
-      ! finding the three closest points of the native model grid  
-      do jk=1,n_cells
-        distance_vector(jk) = calculate_distance_h(lat_value,lon_value,lat_c(jk),lon_c(jk),1._wp)
-      enddo
-      do jk=1,5
-        min_indices_vector(jk) = 0
-      enddo
-      weights_sum = 0._wp
-      do jk=1,5
-        min_indices_vector(jk) = find_min_index_exclude(distance_vector,n_cells,min_indices_vector,5)
-        weights_vector(jk) = 1._wp/((distance_vector(min_indices_vector(jk)))**(2._wp + EPSILON_SECURITY) + EPSILON_SECURITY)
-        weights_sum = weights_sum+weights_vector(jk)
-      enddo
-      ! writing the result to the arrays
-      do jk=1,5
-        interpol_indices(5*(ji-1)+jk) = min_indices_vector(jk)
-        interpol_weights(5*(ji-1)+jk) = weights_vector(jk)/weights_sum
+    do ji=1,n_lat_io_points
+      do jk=1,n_lon_io_points
+        lat_value = M_PI/2._wp - 0.5_wp*delta_latitude - (ji-1)*delta_latitude
+        if (lat_value<-M_PI/2._wp .or. lat_value>M_PI/2._wp) then
+          write(*,*) "An error occured during the interpolation to the lat lon grid, position 0."
+          call exit(1)
+        endif
+        lon_value = (jk-1)*delta_longitude
+        if (lon_value<0._wp .or. lon_value>=2._wp*M_PI) then
+          write(*,*) "An error occured during the interpolation to the lat lon grid, position 1."
+          call exit(1)
+        endif
+        ! finding the three closest points of the native model grid  
+        do jm=1,n_cells
+          distance_vector(jm) = calculate_distance_h(lat_value,lon_value,lat_c(jm),lon_c(jm),1._wp)
+        enddo
+        min_indices_vector = 0
+        weights_sum = 0._wp
+        do jm=1,5
+          min_indices_vector(jm) = find_min_index_exclude(distance_vector,n_cells,min_indices_vector,5)
+          weights_vector(jm) = 1._wp/((distance_vector(min_indices_vector(jm)))**(2._wp + EPSILON_SECURITY) + EPSILON_SECURITY)
+          weights_sum = weights_sum+weights_vector(jm)
+        enddo
+        ! writing the result to the arrays
+        do jm=1,5
+          interpol_indices(ji,jk,jm) = min_indices_vector(jm)
+          interpol_weights(ji,jk,jm) = weights_vector(jm)/weights_sum
+        enddo
       enddo
     enddo
     !$omp end parallel do

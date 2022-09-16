@@ -8,7 +8,7 @@ program control
 
   use mo_definitions,            only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,               only: n_scalars,n_layers,n_cells,n_vectors,n_edges,n_dual_vectors, &
-                                       n_dual_scalars_h,n_dual_v_vectors,n_h_vectors,n_latlon_io_points, &
+                                       n_dual_scalars_h,n_dual_v_vectors,n_h_vectors,n_lat_io_points,n_lon_io_points, &
                                        n_vectors_per_layer,grid_nml_setup
   use mo_constituents_nml,       only: cloud_droplets_velocity,rain_velocity,snow_velocity,n_constituents, &
                                        n_condensed_constituents,constituents_nml_setup
@@ -105,8 +105,8 @@ program control
   allocate(grid%t_conduc_soil(n_cells))
   allocate(grid%roughness_length(n_cells))
   allocate(grid%is_land(n_cells))
-  allocate(grid%latlon_interpol_indices(5*n_latlon_io_points))
-  allocate(grid%latlon_interpol_weights(5*n_latlon_io_points))
+  allocate(grid%latlon_interpol_indices(n_lat_io_points,n_lon_io_points,5))
+  allocate(grid%latlon_interpol_weights(n_lat_io_points,n_lon_io_points,5))
   allocate(grid%z_soil_interface(nsoillays+1))
   allocate(grid%z_soil_center(nsoillays))
   allocate(grid%t_const_soil(n_cells))

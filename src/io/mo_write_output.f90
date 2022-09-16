@@ -50,9 +50,9 @@ module mo_write_output
         out_field(ji,jk) = 0._wp
         ! 1/r-average
         do jm=1,5
-          if (in_field(grid%latlon_interpol_indices(5*(jk-1 + n_lon_io_points*(ji-1))+jm))/=9999) then
-            out_field(ji,jk) = out_field(ji,jk) + grid%latlon_interpol_weights(5*(jk-1+n_lon_io_points*(ji-1))+jm) &
-                               *in_field(grid%latlon_interpol_indices(5*(jk-1+n_lon_io_points*(ji-1))+jm))
+          if (in_field(grid%latlon_interpol_indices(ji,jk,jm))/=9999) then
+            out_field(ji,jk) = out_field(ji,jk) + grid%latlon_interpol_weights(ji,jk,jm) &
+                               *in_field(grid%latlon_interpol_indices(ji,jk,jm))
           else
             out_field(ji,jk) = 9999
             exit
