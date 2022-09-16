@@ -49,7 +49,7 @@ program control
                            theta_v_bg_id,exner_bg_id,sfc_albedo_id,sfc_rho_c_id,t_conductivity_id,roughness_length_id, &
                            is_land_id,n_oro_layers_id,stretching_parameter_id,toa_id,radius_id
   integer,  allocatable :: to_cell(:),from_cell(:),trsk_indices(:,:),trsk_modified_curl_indices(:,:),adjacent_edges(:,:), &
-                           vorticity_indices_triangles(:),vorticity_indices_rhombi(:),to_cell_dual(:),from_cell_dual(:), &
+                           vorticity_indices_triangles(:),vorticity_indices_rhombi(:,:),to_cell_dual(:),from_cell_dual(:), &
                            adjacent_signs(:,:),vorticity_signs_triangles(:),density_to_rhombi_indices(:),interpol_indices(:), &
                            is_land(:)
   real(wp), allocatable :: x_unity(:),y_unity(:),z_unity(:),lat_c(:),lon_c(:),z_scalar(:), &
@@ -121,7 +121,7 @@ program control
   allocate(trsk_modified_curl_indices(n_edges,10))
   allocate(adjacent_edges(n_cells,6))
   allocate(vorticity_indices_triangles(3*n_dual_scalars_h))
-  allocate(vorticity_indices_rhombi(4*n_edges))
+  allocate(vorticity_indices_rhombi(n_edges,4))
   allocate(to_cell_dual(n_edges))
   allocate(from_cell_dual(n_edges))
   allocate(adjacent_signs(n_cells,6))

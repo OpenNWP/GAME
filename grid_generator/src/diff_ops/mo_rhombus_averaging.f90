@@ -26,7 +26,7 @@ module mo_rhombus_averaging
     real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells),area_dual(n_dual_vectors), &
                              z_vector(n_vectors),lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
                              lat_e(n_edges),lon_e(n_edges)
-    integer,  intent(out) :: vorticity_indices_rhombi(4*n_edges),density_to_rhombus_indices(4*n_edges)
+    integer,  intent(out) :: vorticity_indices_rhombi(n_edges,4),density_to_rhombus_indices(4*n_edges)
     real(wp), intent(out) :: density_to_rhombus_weights(4*n_edges)
 
     ! local variables
@@ -73,8 +73,8 @@ module mo_rhombus_averaging
         call exit(1)
       endif
       do jk=1,4
-        vorticity_indices_rhombi(4*(ji-1)+jk) = indices_list(jk)
-        if (vorticity_indices_rhombi(4*(ji-1)+jk)>=n_edges .or. vorticity_indices_rhombi(4*(ji-1)+jk)<0) then
+        vorticity_indices_rhombi(ji,jk) = indices_list(jk)
+        if (vorticity_indices_rhombi(ji,jk)>=n_edges .or. vorticity_indices_rhombi(ji,jk)<0) then
           write(*,*) "Error in subroutine rhombus_averaging, position 2."
           call exit(1)
         endif
@@ -84,12 +84,12 @@ module mo_rhombus_averaging
       density_to_rhombus_indices_pre = -1
       check_counter = 1
       do jk=1,4
-        density_to_rhombus_index_candidate = from_cell(1+vorticity_indices_rhombi(4*(ji-1)+jk))
+        density_to_rhombus_index_candidate = from_cell(1+vorticity_indices_rhombi(ji,jk))
         if (in_bool_checker(density_to_rhombus_index_candidate,density_to_rhombus_indices_pre,4)==0) then
           density_to_rhombus_indices_pre(check_counter) = density_to_rhombus_index_candidate
           check_counter = check_counter+1
         endif
-        density_to_rhombus_index_candidate = to_cell(1+vorticity_indices_rhombi(4*(ji-1)+jk))
+        density_to_rhombus_index_candidate = to_cell(1+vorticity_indices_rhombi(ji,jk))
         if (in_bool_checker(density_to_rhombus_index_candidate,density_to_rhombus_indices_pre,4)==0) then
           density_to_rhombus_indices_pre(check_counter) = density_to_rhombus_index_candidate
           check_counter = check_counter+1
@@ -115,10 +115,10 @@ module mo_rhombus_averaging
           vector_h_index_1_found = 0
           jl = 1
           do while (vector_h_index_1_found==0)
-            if (from_cell(1+vorticity_indices_rhombi(4*(ji-1)+jl))==density_to_rhombus_indices(4*(ji-1)+jk) .or. &
-                to_cell(1+vorticity_indices_rhombi(4*(ji-1)+jl))==density_to_rhombus_indices(4*(ji-1)+jk)) then
+            if (from_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(4*(ji-1)+jk) .or. &
+                to_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(4*(ji-1)+jk)) then
               vector_h_index_1_found = 1
-              vector_h_index_1 = vorticity_indices_rhombi(4*(ji-1)+jl)
+              vector_h_index_1 = vorticity_indices_rhombi(ji,jl)
             else
               jl = jl+1
             endif
@@ -127,8 +127,8 @@ module mo_rhombus_averaging
           which_vertex_check_result = 1
           do jm=1,4
             if (jm/=jl) then
-              if (from_cell_dual(1+vorticity_indices_rhombi(4*(ji-1)+jm))==dual_scalar_h_index_1 .or. &
-                  to_cell_dual(1+vorticity_indices_rhombi(4*(ji-1)+jm))==dual_scalar_h_index_1) then
+              if (from_cell_dual(1+vorticity_indices_rhombi(ji,jm))==dual_scalar_h_index_1 .or. &
+                  to_cell_dual(1+vorticity_indices_rhombi(ji,jm))==dual_scalar_h_index_1) then
                 which_vertex_check_result = 0
               endif
             endif
@@ -150,11 +150,11 @@ module mo_rhombus_averaging
           vector_h_index_2_found = 0
           jl = 1
           do while (vector_h_index_2_found==0)
-            if ((from_cell(1+vorticity_indices_rhombi(4*(ji-1)+jl))==density_to_rhombus_indices(4*(ji-1)+jk) &
-                 .or. to_cell(1+vorticity_indices_rhombi(4*(ji-1)+jl))==density_to_rhombus_indices(4*(ji-1)+jk)) &
-                 .and. vorticity_indices_rhombi(4*(ji-1)+jl)/=vector_h_index_1) then
+            if ((from_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(4*(ji-1)+jk) &
+                 .or. to_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(4*(ji-1)+jk)) &
+                 .and. vorticity_indices_rhombi(ji,jl)/=vector_h_index_1) then
               vector_h_index_2_found = 1
-              vector_h_index_2 = vorticity_indices_rhombi(4*(ji-1)+jl)
+              vector_h_index_2 = vorticity_indices_rhombi(ji,jl)
             else
               jl = jl+1
             endif
@@ -163,8 +163,8 @@ module mo_rhombus_averaging
           which_vertex_check_result = 1
           do jm=1,4
             if (jm/=jl) then
-              if (from_cell_dual(1+vorticity_indices_rhombi(4*(ji-1)+jm))==dual_scalar_h_index_2 .or. &
-                to_cell_dual(1+vorticity_indices_rhombi(4*(ji-1)+jm))==dual_scalar_h_index_2) then
+              if (from_cell_dual(1+vorticity_indices_rhombi(ji,jm))==dual_scalar_h_index_2 .or. &
+                to_cell_dual(1+vorticity_indices_rhombi(ji,jm))==dual_scalar_h_index_2) then
                 which_vertex_check_result = 0
               endif
             endif
@@ -191,10 +191,10 @@ module mo_rhombus_averaging
           vector_h_index_1_found = 0
           jl = 1
           do while (vector_h_index_1_found==0)
-            if (from_cell(1+vorticity_indices_rhombi(4*(ji-1)+jl))==density_to_rhombus_indices(4*(ji-1)+jk) .or. &
-                to_cell(1+vorticity_indices_rhombi(4*(ji-1)+jl))==density_to_rhombus_indices(4*(ji-1)+jk)) then
+            if (from_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(4*(ji-1)+jk) .or. &
+                to_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(4*(ji-1)+jk)) then
               vector_h_index_1_found = 1
-              vector_h_index_1 = vorticity_indices_rhombi(4*(ji-1)+jl)
+              vector_h_index_1 = vorticity_indices_rhombi(ji,jl)
             else
               jl = jl+1
             endif
@@ -203,8 +203,8 @@ module mo_rhombus_averaging
           which_vertex_check_result = 1
           do jm=1,4
             if (jm/=jl) then
-              if (from_cell_dual(1+vorticity_indices_rhombi(4*(ji-1)+jm))==dual_scalar_h_index_1 .or. &
-                  to_cell_dual(1+vorticity_indices_rhombi(4*(ji-1)+jm))==dual_scalar_h_index_1) then
+              if (from_cell_dual(1+vorticity_indices_rhombi(ji,jm))==dual_scalar_h_index_1 .or. &
+                  to_cell_dual(1+vorticity_indices_rhombi(ji,jm))==dual_scalar_h_index_1) then
                 which_vertex_check_result = 0
               endif
             endif
@@ -221,11 +221,11 @@ module mo_rhombus_averaging
           vector_h_index_2_found = 0
           jl = 1
           do while (vector_h_index_2_found==0)
-            if ((from_cell(1+vorticity_indices_rhombi(4*(ji-1)+jl))==density_to_rhombus_indices(4*(ji-1)+jk) &
-                .or. to_cell(1+vorticity_indices_rhombi(4*(ji-1)+jl))==density_to_rhombus_indices(4*(ji-1)+jk)) &
-                .and. vorticity_indices_rhombi(4*(ji-1)+jl)/=vector_h_index_1) then
+            if ((from_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(4*(ji-1)+jk) &
+                .or. to_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(4*(ji-1)+jk)) &
+                .and. vorticity_indices_rhombi(ji,jl)/=vector_h_index_1) then
               vector_h_index_2_found = 1
-              vector_h_index_2 = vorticity_indices_rhombi(4*(ji-1)+jl)
+              vector_h_index_2 = vorticity_indices_rhombi(ji,jl)
             else
               jl = jl+1
             endif
