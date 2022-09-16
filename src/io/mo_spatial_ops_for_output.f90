@@ -33,8 +33,8 @@ module mo_spatial_ops_for_output
     tangential_wind = 0._wp
     ! loop over the maximum of ten edges 
     do ji=1,10
-      tangential_wind = tangential_wind + grid%trsk_weights(10*h_index+ji) &
-      *in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%trsk_indices(10*h_index+ji))
+      tangential_wind = tangential_wind + grid%trsk_weights(h_index+1,ji) &
+      *in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%trsk_indices(h_index+1,ji))
     enddo
     
   end function tangential_wind

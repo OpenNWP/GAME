@@ -378,8 +378,8 @@ module mo_write_output
         do time_step_10_m_wind=1,n_output_steps_10m_wind
           wind_tangential = 0._wp
           do jk=1,10
-            wind_tangential = wind_tangential + grid%trsk_weights(10*(ji-1)+jk) &
-                              *wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_edges+1+grid%trsk_indices(10*(ji-1)+jk))
+            wind_tangential = wind_tangential + grid%trsk_weights(ji,jk) &
+                              *wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_edges+1+grid%trsk_indices(ji,jk))
           enddo
           wind_10_m_mean_u(ji) = wind_10_m_mean_u(ji) &
           + 1._wp/n_output_steps_10m_wind*wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_edges + ji)

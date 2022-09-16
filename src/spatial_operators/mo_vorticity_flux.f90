@@ -44,48 +44,48 @@ module mo_vorticity_flux
           if (grid%from_cell(h_index_shifted)<n_pentagons) then
             do jk=1,4
               diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
-              + grid%trsk_weights(10*(h_index_shifted-1)+jk) &
-              *diag%flux_density(mass_flux_base_index + 1+grid%trsk_indices(10*(h_index_shifted-1)+jk)) &
-              *diag%pot_vort(pot_vort_base_index + 1+grid%trsk_modified_curl_indices(10*(h_index_shifted-1)+jk))
+              + grid%trsk_weights(h_index_shifted,jk) &
+              *diag%flux_density(mass_flux_base_index + 1+grid%trsk_indices(h_index_shifted,jk)) &
+              *diag%pot_vort(pot_vort_base_index + 1+grid%trsk_modified_curl_indices(h_index_shifted,jk))
             enddo
           else
             do jk=1,5
               if (jk==3) then
                 diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
-                + grid%trsk_weights(10*(h_index_shifted-1)+jk) &
-                *diag%flux_density(mass_flux_base_index + 1+grid%trsk_indices(10*(h_index_shifted-1)+jk)) &
+                + grid%trsk_weights(h_index_shifted,jk) &
+                *diag%flux_density(mass_flux_base_index + 1+grid%trsk_indices(h_index_shifted,jk)) &
                 *0.5 &
-                *(diag%pot_vort(pot_vort_base_index + 1+grid%trsk_modified_curl_indices(10*(h_index_shifted-1)+jk)) &
+                *(diag%pot_vort(pot_vort_base_index + 1+grid%trsk_modified_curl_indices(h_index_shifted,jk)) &
                 + diag%pot_vort(pot_vort_base_index + h_index_shifted))
               else
                 diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
-                + grid%trsk_weights(10*(h_index_shifted-1)+jk) &
-                *diag%flux_density(mass_flux_base_index + 1+grid%trsk_indices(10*(h_index_shifted-1)+jk)) &
-                *diag%pot_vort(pot_vort_base_index + 1+grid%trsk_modified_curl_indices(10*(h_index_shifted-1)+jk))
+                + grid%trsk_weights(h_index_shifted,jk) &
+                *diag%flux_density(mass_flux_base_index + 1+grid%trsk_indices(h_index_shifted,jk)) &
+                *diag%pot_vort(pot_vort_base_index + 1+grid%trsk_modified_curl_indices(h_index_shifted,jk))
               endif
             enddo
           endif
           if (grid%to_cell(h_index_shifted)<n_pentagons) then
             do jk=6,10
               diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
-              + grid%trsk_weights(10*(h_index_shifted-1)+jk) &
-              *diag%flux_density(mass_flux_base_index + 1+grid%trsk_indices(10*(h_index_shifted-1)+jk)) &
-              *diag%pot_vort(pot_vort_base_index + 1+grid%trsk_modified_curl_indices(10*(h_index_shifted-1)+jk))
+              + grid%trsk_weights(h_index_shifted,jk) &
+              *diag%flux_density(mass_flux_base_index + 1+grid%trsk_indices(h_index_shifted,jk)) &
+              *diag%pot_vort(pot_vort_base_index + 1+grid%trsk_modified_curl_indices(h_index_shifted,jk))
             enddo
           else
             do jk=6,10
               if (jk==8) then
                 diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
-                + grid%trsk_weights(10*(h_index_shifted-1)+jk) &
-                *diag%flux_density(mass_flux_base_index + 1+grid%trsk_indices(10*(h_index_shifted-1)+jk)) &
+                + grid%trsk_weights(h_index_shifted,jk) &
+                *diag%flux_density(mass_flux_base_index + 1+grid%trsk_indices(h_index_shifted,jk)) &
                 *0.5 &
-                *(diag%pot_vort(pot_vort_base_index + 1+grid%trsk_modified_curl_indices(10*(h_index_shifted-1)+jk)) &
+                *(diag%pot_vort(pot_vort_base_index + 1+grid%trsk_modified_curl_indices(h_index_shifted,jk)) &
                 + diag%pot_vort(pot_vort_base_index + h_index_shifted))
               else
                 diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
-                + grid%trsk_weights(10*(h_index_shifted-1)+jk) &
-                *diag%flux_density(mass_flux_base_index + 1+grid%trsk_indices(10*(h_index_shifted-1)+jk)) &
-                *diag%pot_vort(pot_vort_base_index + 1+grid%trsk_modified_curl_indices(10*(h_index_shifted-1)+jk))
+                + grid%trsk_weights(h_index_shifted,jk) &
+                *diag%flux_density(mass_flux_base_index + 1+grid%trsk_indices(h_index_shifted,jk)) &
+                *diag%pot_vort(pot_vort_base_index + 1+grid%trsk_modified_curl_indices(h_index_shifted,jk))
               endif
             enddo
           endif
