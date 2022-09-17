@@ -295,30 +295,31 @@ module mo_horizontal_generation
       z_unity(ji) = z_res
     enddo
     do ji=0,n_basic_triangles-1
-      do res_id_local=0,res_id-1
-        n_triangles_per_face = 4**res_id_local
+      ! refining the grid on this triangle surface from res_id_local-1 to res_id_local
+      do res_id_local=1,res_id
+        n_triangles_per_face = 4**(res_id_local-1)
         do jk=0,n_triangles_per_face-1
-          if (res_id_local==0) then
+          if (res_id_local==1) then
             dual_scalar_on_face_index = 1
-            call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji,res_id_local+1, &
+            call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji,res_id_local, &
                                                                           point_1,point_2,point_3, &
                                                                           face_vertices,face_edges,face_edges_reverse)
-            point_1 = upscale_scalar_point(res_id_local+1,point_1)
-            point_2 = upscale_scalar_point(res_id_local+1,point_2)
-            point_3 = upscale_scalar_point(res_id_local+1,point_3)
+            point_1 = upscale_scalar_point(res_id_local,point_1)
+            point_2 = upscale_scalar_point(res_id_local,point_2)
+            point_3 = upscale_scalar_point(res_id_local,point_3)
             lpoints_upwards = .true.
             call set_scalar_coordinates(face_vertices(ji+1,1),face_vertices(ji+1,2),face_vertices(ji+1,3), &
                                         point_1,point_2,point_3,lpoints_upwards,x_unity,y_unity, &
                                         z_unity,lat_c,lon_c)
           else
-            call find_triangle_edge_points_from_dual_scalar_on_face_index(jk,ji,res_id_local, &
+            call find_triangle_edge_points_from_dual_scalar_on_face_index(jk,ji,res_id_local-1, &
                                                                           edgepoint_1,edgepoint_2,edgepoint_3, &
                                                                           face_vertices,face_edges,face_edges_reverse)
-            call find_triangle_on_face_index_from_dual_scalar_on_face_index(jk,res_id_local,triangle_on_face_index, &
+            call find_triangle_on_face_index_from_dual_scalar_on_face_index(jk,res_id_local-1,triangle_on_face_index, &
                                                                             lpoints_downwards,ldump,llast_triangle)
-            call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local,coord_1,coord_2, &
+            call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local-1,coord_1,coord_2, &
                                                          coord_1_points_amount)
-            points_per_edge = find_points_per_edge(res_id_local)
+            points_per_edge = find_points_per_edge(res_id_local-1)
             base_index_old = 0
             base_index_down_triangles = 0
             base_index_up_triangles = base_index_down_triangles + 4*points_per_edge + 3
@@ -339,15 +340,15 @@ module mo_horizontal_generation
             else
               dual_scalar_on_face_index = base_index_up_triangles + 2*old_triangle_on_line_index
             endif
-            call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji,res_id_local+1, &
+            call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji,res_id_local, &
                                                                           point_1,point_2,point_3, &
                                                                           face_vertices,face_edges,face_edges_reverse)
-            edgepoint_1 = upscale_scalar_point(res_id_local,edgepoint_1)
-            edgepoint_2 = upscale_scalar_point(res_id_local,edgepoint_2)
-            edgepoint_3 = upscale_scalar_point(res_id_local,edgepoint_3)
-            point_1 = upscale_scalar_point(res_id_local+1,point_1)
-            point_2 = upscale_scalar_point(res_id_local+1,point_2)
-            point_3 = upscale_scalar_point(res_id_local+1,point_3)
+            edgepoint_1 = upscale_scalar_point(res_id_local-1,edgepoint_1)
+            edgepoint_2 = upscale_scalar_point(res_id_local-1,edgepoint_2)
+            edgepoint_3 = upscale_scalar_point(res_id_local-1,edgepoint_3)
+            point_1 = upscale_scalar_point(res_id_local,point_1)
+            point_2 = upscale_scalar_point(res_id_local,point_2)
+            point_3 = upscale_scalar_point(res_id_local,point_3)
             lpoints_upwards = .true.
             if (lpoints_downwards) then
               lpoints_upwards = .false.
