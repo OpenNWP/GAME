@@ -1,4 +1,4 @@
-! This is basically a copy from https://github.com/ClimateGlobalChange/DCMIP2016.
+! This is a modified copy from https://github.com/ClimateGlobalChange/DCMIP2016.
 
 MODULE baroclinic_wave
 
@@ -141,15 +141,15 @@ CONTAINS
     REAL(wp) :: aref, omegaref
     REAL(wp) :: T0, constH, constC, scaledZ, inttau2, rratio
     REAL(wp) :: inttermU, bigU, rcoslat, omegarcoslat
-    REAL(wp) :: eta, qratio, qnum, qden
+    REAL(wp) :: eta
 
     !------------------------------------------------
     !   Pressure and temperature
     !------------------------------------------------
     if (zcoords .eq. 1) then
-      CALL evaluate_pressure_temperature(deep, X, lon, lat, z, p, t)
+      CALL evaluate_pressure_temperature(deep, X, lat, z, p, t)
     else
-      CALL evaluate_z_temperature(deep, X, lon, lat, p, z, t)
+      CALL evaluate_z_temperature(deep, X, lat, p, z, t)
     end if
 
     !------------------------------------------------
@@ -255,13 +255,12 @@ CONTAINS
 !-----------------------------------------------------------------------
 !    Calculate pointwise pressure and temperature
 !-----------------------------------------------------------------------
-  SUBROUTINE evaluate_pressure_temperature(deep, X, lon, lat, z, p, t)
+  SUBROUTINE evaluate_pressure_temperature(deep, X, lat, z, p, t)
 
     INTEGER, INTENT(IN)  :: deep ! Deep (1) or Shallow (0) test case
 
     REAL(wp), INTENT(IN)  :: &
                 X,          & ! Earth scaling ratio
-                lon,        & ! Longitude (radians)
                 lat,        & ! Latitude (radians)
                 z             ! Altitude (m)
 
@@ -329,13 +328,12 @@ CONTAINS
 !-----------------------------------------------------------------------
 !    Calculate pointwise z and temperature given pressure
 !-----------------------------------------------------------------------
-  SUBROUTINE evaluate_z_temperature(deep, X, lon, lat, p, z, t)
+  SUBROUTINE evaluate_z_temperature(deep, X, lat, p, z, t)
     
     INTEGER, INTENT(IN)  :: deep ! Deep (1) or Shallow (0) test case
 
     REAL(wp), INTENT(IN)  :: &
                 X,          & ! Earth scaling ratio
-                lon,        & ! Longitude (radians)
                 lat,        & ! Latitude (radians)
                 p             ! Pressure (Pa)
 
@@ -351,13 +349,13 @@ CONTAINS
     z0 = 0._wp
     z1 = 10000._wp
 
-    CALL evaluate_pressure_temperature(deep, X, lon, lat, z0, p0, t)
-    CALL evaluate_pressure_temperature(deep, X, lon, lat, z1, p1, t)
+    CALL evaluate_pressure_temperature(deep, X, lat, z0, p0, t)
+    CALL evaluate_pressure_temperature(deep, X, lat, z1, p1, t)
 
     DO ix = 1, 100
       z2 = z1 - (p1 - p) * (z1 - z0) / (p1 - p0)
 
-      CALL evaluate_pressure_temperature(deep, X, lon, lat, z2, p2, t)
+      CALL evaluate_pressure_temperature(deep, X, lat, z2, p2, t)
 
       IF (ABS((p2 - p)/p) .lt. 1.0d-13) THEN
         EXIT
@@ -372,7 +370,7 @@ CONTAINS
 
     z = z2
 
-    CALL evaluate_pressure_temperature(deep, X, lon, lat, z, p0, t)
+    CALL evaluate_pressure_temperature(deep, X, lat, z, p0, t)
 
   END SUBROUTINE evaluate_z_temperature
 
