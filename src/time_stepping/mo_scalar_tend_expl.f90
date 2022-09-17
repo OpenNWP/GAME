@@ -55,15 +55,15 @@ module mo_scalar_tend_expl
     ! Temperature diffusion gets updated at the first RK step if required.
     if (ltemp_diff_h .and. rk_step==1) then
       ! The diffusion of the temperature depends on its gradient.
-      call grad(diag%temperature,diag%vector_field_placeholder,grid)
+      call grad(diag%temperature,diag%vector_placeholder,grid)
       ! Now the diffusive temperature flux density can be obtained.
-      call scalar_times_vector_h(diag%temp_diffusion_coeff_numerical_h,diag%vector_field_placeholder, &
+      call scalar_times_vector_h(diag%temp_diffusion_coeff_numerical_h,diag%vector_placeholder, &
                                  diag%flux_density,grid)
       ! The divergence of the diffusive temperature flux density is the diffusive temperature heating.
       call div_h(diag%flux_density,diag%temperature_diffusion_heating,grid)
       ! vertical temperature diffusion
       if (ltemp_diff_v) then
-        call scalar_times_vector_v(diag%temp_diffusion_coeff_numerical_v,diag%vector_field_placeholder,diag%flux_density)
+        call scalar_times_vector_v(diag%temp_diffusion_coeff_numerical_v,diag%vector_placeholder,diag%flux_density)
         call add_vertical_div(diag%flux_density,diag%temperature_diffusion_heating,grid)
       endif
     endif
@@ -75,17 +75,17 @@ module mo_scalar_tend_expl
         scalar_shift_index = (jc-1)*n_scalars
 
         ! The diffusion of the tracer density depends on its gradient.
-        call grad(state_scalar%rho(scalar_shift_index+1:scalar_shift_index+n_scalars),diag%vector_field_placeholder,grid)
+        call grad(state_scalar%rho(scalar_shift_index+1:scalar_shift_index+n_scalars),diag%vector_placeholder,grid)
         ! Now the diffusive mass flux density can be obtained.
         call scalar_times_vector_h(diag%mass_diffusion_coeff_numerical_h, &
-                                   diag%vector_field_placeholder,diag%vector_field_placeholder,grid)
+                                   diag%vector_placeholder,diag%vector_placeholder,grid)
         ! The divergence of the diffusive mass flux density is the diffusive mass source rate.
-        call div_h(diag%vector_field_placeholder,diag%mass_diff_tendency(scalar_shift_index+1:scalar_shift_index+n_scalars),grid)
+        call div_h(diag%vector_placeholder,diag%mass_diff_tendency(scalar_shift_index+1:scalar_shift_index+n_scalars),grid)
         ! vertical mass diffusion
         if (lmass_diff_v) then
           call scalar_times_vector_v(diag%mass_diffusion_coeff_numerical_v, &
-                                     diag%vector_field_placeholder,diag%vector_field_placeholder)
-          call add_vertical_div(diag%vector_field_placeholder, &
+                                     diag%vector_placeholder,diag%vector_placeholder)
+          call add_vertical_div(diag%vector_placeholder, &
                                 diag%mass_diff_tendency(scalar_shift_index+1:scalar_shift_index+n_scalars),grid)
         endif
       enddo
@@ -139,10 +139,10 @@ module mo_scalar_tend_expl
       if (jc==n_condensed_constituents+1) then
         ! determining the virtual potential temperature
         !$omp parallel workshare
-        diag%scalar_field_placeholder = state_scalar%rhotheta_v/state_scalar%rho(scalar_shift_index+1:scalar_shift_index+n_scalars)
+        diag%scalar_placeholder = state_scalar%rhotheta_v/state_scalar%rho(scalar_shift_index+1:scalar_shift_index+n_scalars)
         !$omp end parallel workshare
         
-        call scalar_times_vector_h(diag%scalar_field_placeholder,diag%flux_density,diag%flux_density,grid)
+        call scalar_times_vector_h(diag%scalar_placeholder,diag%flux_density,diag%flux_density,grid)
         call div_h(diag%flux_density,diag%flux_density_div,grid)
         ! adding the tendencies in all grid boxes
         !$omp parallel do private(ji)
@@ -169,7 +169,7 @@ module mo_scalar_tend_expl
           )/(c_d_p*(grid%exner_bg(ji) + state_scalar%exner_pert(ji))) &
           ! tendency of due to phase transitions and mass diffusion
           + (diag%phase_trans_rates(scalar_shift_index+ji) + diag%mass_diff_tendency(scalar_shift_index+ji)) &
-          *diag%scalar_field_placeholder(ji))
+          *diag%scalar_placeholder(ji))
         enddo
         !$omp end parallel do
       endif

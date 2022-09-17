@@ -48,7 +48,7 @@ module mo_momentum_diff_diss
     diag%wind_div = diag%viscosity*diag%wind_div
     !$omp end parallel workshare
     
-    call grad_hor(diag%wind_div,diag%vector_field_placeholder,grid)
+    call grad_hor(diag%wind_div,diag%vector_placeholder,grid)
     
     ! off-diagonal component
     !$omp parallel do private(h_index,layer_index)
@@ -78,7 +78,7 @@ module mo_momentum_diff_diss
         scalar_index_from = layer_index*n_cells + grid%from_cell(h_index)
         scalar_index_to = layer_index*n_cells + grid%to_cell(h_index)
         diag%friction_acc(vector_index) = &
-        (diag%vector_field_placeholder(vector_index) - diag%curl_of_vorticity(vector_index)) &
+        (diag%vector_placeholder(vector_index) - diag%curl_of_vorticity(vector_index)) &
         /(0.5_wp*(density_total(state%rho,scalar_index_from) + density_total(state%rho,scalar_index_to)))
       enddo
     enddo
@@ -146,16 +146,16 @@ module mo_momentum_diff_diss
     ! -------------------------------------------
     ! resetting the placeholder field
     !$omp parallel workshare
-    diag%scalar_field_placeholder = 0._wp
+    diag%scalar_placeholder = 0._wp
     !$omp end parallel workshare
     
     ! computing something like dw/dz
-    call add_vertical_div(state%wind,diag%scalar_field_placeholder,grid)
+    call add_vertical_div(state%wind,diag%scalar_placeholder,grid)
     ! computing and multiplying by the respective diffusion coefficient
-    call vert_vert_mom_viscosity(state%rho,diag%tke,diag%n_squared,grid%layer_thickness,diag%scalar_field_placeholder, &
+    call vert_vert_mom_viscosity(state%rho,diag%tke,diag%n_squared,grid%layer_thickness,diag%scalar_placeholder, &
                                  diag%molecular_diffusion_coeff)
     ! taking the second derivative to compute the diffusive tendency
-    call grad_vert_cov(diag%scalar_field_placeholder,diag%friction_acc,grid)
+    call grad_vert_cov(diag%scalar_placeholder,diag%friction_acc,grid)
     
     ! 3.) horizontal diffusion of vertical velocity
     ! ---------------------------------------------
@@ -164,7 +164,7 @@ module mo_momentum_diff_diss
     do h_index=1,n_cells
       do layer_index=0,n_layers-1
         ji = layer_index*n_cells + h_index
-        diag%scalar_field_placeholder(ji) = &
+        diag%scalar_placeholder(ji) = &
         grid%inner_product_weights(h_index,layer_index+1,7)*state%wind(h_index + layer_index*n_vectors_per_layer) &
         + grid%inner_product_weights(h_index,layer_index+1,8)*state%wind(h_index + (layer_index+1)*n_vectors_per_layer)
       enddo
@@ -172,22 +172,22 @@ module mo_momentum_diff_diss
     !$omp end parallel do
     
     ! computing the horizontal gradient of the vertical velocity field
-    call grad_hor(diag%scalar_field_placeholder,diag%vector_field_placeholder,grid)
+    call grad_hor(diag%scalar_placeholder,diag%vector_placeholder,grid)
     ! multiplying by the already computed diffusion coefficient
     !$omp parallel do private(h_index,layer_index,vector_index)
     do h_index=1,n_edges
       do layer_index=0,n_layers-1
         vector_index = n_cells + h_index + layer_index*n_vectors_per_layer
-        diag%vector_field_placeholder(vector_index) = 0.5_wp &
+        diag%vector_placeholder(vector_index) = 0.5_wp &
         *(diag%viscosity(layer_index*n_cells + 1+grid%from_cell(h_index)) &
         + diag%viscosity(layer_index*n_cells + 1+grid%to_cell(h_index))) &
-        *diag%vector_field_placeholder(vector_index)
+        *diag%vector_placeholder(vector_index)
       enddo
     enddo
     !$omp end parallel do
     
     ! the divergence of the diffusive flux density results in the diffusive acceleration
-    call div_h(diag%vector_field_placeholder,diag%scalar_field_placeholder,grid)
+    call div_h(diag%vector_placeholder,diag%scalar_placeholder,grid)
     ! vertically averaging the divergence to half levels and dividing by the density
     !$omp parallel do private(ji,layer_index,h_index,vector_index)
     do ji=1,n_v_vectors-2*n_cells
@@ -196,8 +196,8 @@ module mo_momentum_diff_diss
       vector_index = h_index + (layer_index+1)*n_vectors_per_layer
       ! finally adding the result
       diag%friction_acc(vector_index) = diag%friction_acc(vector_index) + 0.5_wp*( &
-      diag%scalar_field_placeholder(h_index + layer_index*n_cells) &
-      + diag%scalar_field_placeholder(h_index + (layer_index+1)*n_cells))
+      diag%scalar_placeholder(h_index + layer_index*n_cells) &
+      + diag%scalar_placeholder(h_index + (layer_index+1)*n_cells))
       ! dividing by the density
       diag%friction_acc(vector_index) = diag%friction_acc(vector_index) &
       /(0.5_wp*(density_total(state%rho,-1+h_index+layer_index*n_cells) &

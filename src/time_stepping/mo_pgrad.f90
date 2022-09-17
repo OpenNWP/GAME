@@ -42,21 +42,21 @@ module mo_pgrad
     ! multiplying c_p by the full potential tempertature
     !$omp parallel do private(ji)
     do ji=1,n_scalars
-      diag%scalar_field_placeholder(ji) = c_d_p*(grid%theta_v_bg(ji) + state%theta_v_pert(ji))
+      diag%scalar_placeholder(ji) = c_d_p*(grid%theta_v_bg(ji) + state%theta_v_pert(ji))
     enddo
     !$omp end parallel do
     call grad(state%exner_pert,diag%pressure_gradient_acc_neg_nl,grid)
-    call scalar_times_vector(diag%scalar_field_placeholder,diag%pressure_gradient_acc_neg_nl, &
+    call scalar_times_vector(diag%scalar_placeholder,diag%pressure_gradient_acc_neg_nl, &
                              diag%pressure_gradient_acc_neg_nl,grid)
       
     ! 3.) the linear pressure gradient term
     ! -------------------------------------
     !$omp parallel do private(ji)
     do ji=1,n_scalars
-      diag%scalar_field_placeholder(ji) = c_d_p*state%theta_v_pert(ji)
+      diag%scalar_placeholder(ji) = c_d_p*state%theta_v_pert(ji)
     enddo
     !$omp end parallel do
-    call scalar_times_vector(diag%scalar_field_placeholder,grid%exner_bg_grad, &
+    call scalar_times_vector(diag%scalar_placeholder,grid%exner_bg_grad, &
                              diag%pressure_gradient_acc_neg_l,grid)
     
     ! 4.) The pressure gradient has to get a deceleration factor due to condensates.

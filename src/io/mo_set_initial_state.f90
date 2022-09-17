@@ -168,12 +168,12 @@ module mo_set_initial_state
     
     ! this is the moist air density which has not yet been hydrostatically balanced
     !$omp parallel workshare
-    diag%scalar_field_placeholder = pressure/(r_d*temperature_v)
+    diag%scalar_placeholder = pressure/(r_d*temperature_v)
     !$omp end parallel workshare
     
-    call scalar_times_vector(diag%scalar_field_placeholder,state%wind,diag%flux_density,grid)
+    call scalar_times_vector(diag%scalar_placeholder,state%wind,diag%flux_density,grid)
     ! Nowthe potential vorticity is evaluated.
-    call calc_pot_vort(state,diag%scalar_field_placeholder,diag,grid)
+    call calc_pot_vort(state,diag%scalar_placeholder,diag,grid)
     ! Nowthe generalized Coriolis term is evaluated.
     call vorticity_flux(diag,grid)
     
@@ -206,12 +206,12 @@ module mo_set_initial_state
         ! this is the full virtual potential temperature here
         state%theta_v_pert(scalar_index) = temperature_v(scalar_index)/state%exner_pert(scalar_index)
         
-        ! scalar_field_placeholder is the moist air gas density here
-        diag%scalar_field_placeholder(scalar_index) = p_0*state%exner_pert(scalar_index)**(c_d_p/r_d) &
+        ! scalar_placeholder is the moist air gas density here
+        diag%scalar_placeholder(scalar_index) = p_0*state%exner_pert(scalar_index)**(c_d_p/r_d) &
                                                       /(r_d*temperature_v(scalar_index))
         
         ! setting rhotheta_v according to its definition
-        state%rhotheta_v(scalar_index) = diag%scalar_field_placeholder(scalar_index)*state%theta_v_pert(scalar_index)
+        state%rhotheta_v(scalar_index) = diag%scalar_placeholder(scalar_index)*state%theta_v_pert(scalar_index)
       enddo
     enddo
     !$omp end parallel do
@@ -232,7 +232,7 @@ module mo_set_initial_state
         state%rho(jc*n_scalars + ji) = 0._wp
       enddo
       ! the moist air density
-      state%rho(n_condensed_constituents*n_scalars + ji) = diag%scalar_field_placeholder(ji)
+      state%rho(n_condensed_constituents*n_scalars + ji) = diag%scalar_placeholder(ji)
       ! water vapour density
       if (n_condensed_constituents==4) then
         state%rho((n_condensed_constituents+1)*n_scalars + ji) = water_vapour_density(ji)

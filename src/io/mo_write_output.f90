@@ -613,11 +613,11 @@ module mo_write_output
     
     !$omp parallel do private(ji)
     do ji=1,n_scalars
-      diag%scalar_field_placeholder(ji) = state%rho(n_condensed_constituents*n_scalars+ji)
+      diag%scalar_placeholder(ji) = state%rho(n_condensed_constituents*n_scalars+ji)
     enddo
     !$omp end parallel do
     
-    call calc_pot_vort(state,diag%scalar_field_placeholder,diag,grid)
+    call calc_pot_vort(state,diag%scalar_placeholder,diag,grid)
     call epv_diagnostics(state,diag,epv,grid)
     
     ! pressure level output

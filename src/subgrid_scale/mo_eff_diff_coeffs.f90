@@ -149,13 +149,13 @@ module mo_eff_diff_coeffs
   
   end subroutine
 
-  subroutine vert_vert_mom_viscosity(rho,tke,n_squared,layer_thickness,scalar_field_placeholder,molecular_diffusion_coeff)
+  subroutine vert_vert_mom_viscosity(rho,tke,n_squared,layer_thickness,scalar_placeholder,molecular_diffusion_coeff)
   
     real(wp), intent(in)    :: rho(n_constituents*n_scalars),tke(n_scalars), &
                                n_squared(n_scalars),layer_thickness(n_scalars),molecular_diffusion_coeff(n_scalars)
-    real(wp), intent(inout) :: scalar_field_placeholder(n_scalars)
+    real(wp), intent(inout) :: scalar_placeholder(n_scalars)
   
-    ! This subroutine multiplies scalar_field_placeholder (containing dw/dz) by the diffusion coefficient acting on w because of w.
+    ! This subroutine multiplies scalar_placeholder (containing dw/dz) by the diffusion coefficient acting on w because of w.
     
     integer  :: h_index,layer_index,ji
     real(wp) :: mom_diff_coeff
@@ -170,7 +170,7 @@ module mo_eff_diff_coeffs
         ! turbulent component
         + tke2vert_diff_coeff(tke(ji),n_squared(ji),layer_thickness(ji))
         
-        scalar_field_placeholder(ji) = rho(n_condensed_constituents*n_scalars+ji)*mom_diff_coeff*scalar_field_placeholder(ji)
+        scalar_placeholder(ji) = rho(n_condensed_constituents*n_scalars+ji)*mom_diff_coeff*scalar_placeholder(ji)
       enddo
     enddo
     !$omp end parallel do
@@ -252,15 +252,15 @@ module mo_eff_diff_coeffs
     
     ! calculating the full virtual potential temperature
     !$omp parallel workshare
-    diag%scalar_field_placeholder = grid%theta_v_bg+state%theta_v_pert
+    diag%scalar_placeholder = grid%theta_v_bg+state%theta_v_pert
     !$omp end parallel workshare
     ! vertical gradient of the full virtual potential temperature
-    call grad_vert_cov(diag%scalar_field_placeholder,diag%vector_field_placeholder,grid)
+    call grad_vert_cov(diag%scalar_placeholder,diag%vector_placeholder,grid)
     ! calculating the inverse full virtual potential temperature
     !$omp parallel workshare
-    diag%scalar_field_placeholder = 1.0/diag%scalar_field_placeholder
+    diag%scalar_placeholder = 1.0/diag%scalar_placeholder
     !$omp end parallel workshare
-    call scalar_times_vector_v(diag%scalar_field_placeholder,diag%vector_field_placeholder,diag%vector_field_placeholder)
+    call scalar_times_vector_v(diag%scalar_placeholder,diag%vector_placeholder,diag%vector_placeholder)
     
     ! multiplying by the gravity acceleration
     !$omp parallel do private(ji,layer_index,h_index,vector_index)
@@ -268,8 +268,8 @@ module mo_eff_diff_coeffs
       layer_index = (ji-1)/n_cells
       h_index = ji - layer_index*n_cells
       vector_index = h_index + layer_index*n_vectors_per_layer
-      diag%vector_field_placeholder(vector_index) &
-      = grid%gravity_m(vector_index)*diag%vector_field_placeholder(vector_index)
+      diag%vector_placeholder(vector_index) &
+      = grid%gravity_m(vector_index)*diag%vector_placeholder(vector_index)
     enddo
     !$omp end parallel do
     
@@ -279,16 +279,16 @@ module mo_eff_diff_coeffs
       layer_index = (ji-1)/n_cells
       h_index = ji - layer_index*n_cells
       if (layer_index==0) then
-        diag%n_squared(ji) = diag%vector_field_placeholder(n_vectors_per_layer+ji)
+        diag%n_squared(ji) = diag%vector_placeholder(n_vectors_per_layer+ji)
       elseif (layer_index==n_layers-1) then
         diag%n_squared(ji) &
-        = diag%vector_field_placeholder(n_vectors-n_vectors_per_layer-n_cells+h_index)
+        = diag%vector_placeholder(n_vectors-n_vectors_per_layer-n_cells+h_index)
       else
         diag%n_squared(ji) &
         = grid%inner_product_weights(h_index,layer_index+1,7) &
-        *diag%vector_field_placeholder(h_index+layer_index*n_vectors_per_layer) &
+        *diag%vector_placeholder(h_index+layer_index*n_vectors_per_layer) &
         + grid%inner_product_weights(h_index,layer_index+1,8) &
-        *diag%vector_field_placeholder(h_index+(layer_index+1)*n_vectors_per_layer)
+        *diag%vector_placeholder(h_index+(layer_index+1)*n_vectors_per_layer)
       endif
     enddo
     !$omp end parallel do

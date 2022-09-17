@@ -31,8 +31,8 @@ module mo_tke
     real(wp) :: decay_constant
     
     ! computing the advection
-    call grad(diag%tke,diag%vector_field_placeholder,grid)
-    call inner_product(diag%vector_field_placeholder,state%wind,diag%scalar_field_placeholder,grid)
+    call grad(diag%tke,diag%vector_placeholder,grid)
+    call inner_product(diag%vector_placeholder,state%wind,diag%scalar_placeholder,grid)
     
     ! loop over all scalar gridpoints
     !$omp parallel do private(ji,decay_constant)
@@ -45,7 +45,7 @@ module mo_tke
       ! prognostic equation for TKE
       diag%tke(ji) = diag%tke(ji) + dtime*( &
       ! advection
-      -diag%scalar_field_placeholder(ji) &
+      -diag%scalar_placeholder(ji) &
       ! production through dissipation of resolved energy
       + diag%heating_diss(ji)/state%rho(n_condensed_constituents*n_scalars+ji) &
       ! decay through molecular dissipation
