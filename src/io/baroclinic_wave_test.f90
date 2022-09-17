@@ -55,13 +55,13 @@ MODULE baroclinic_wave
        Rd    = 287.0_wp,               & ! Ideal gas const dry air (J kg^-1 K^1)
        g     = 9.80616_wp,             & ! Gravity (m s^2)
        cp    = 1004.5_wp,              & ! Specific heat capacity (J kg^-1 K^1)
-       Lvap  = 2.5d6,                 & ! Latent heat of vaporization of water
+       Lvap  = 2.5e6_wp,               & ! Latent heat of vaporization of water
        Rvap  = 461.5_wp,               & ! Ideal gas constnat for water vapor
        Mvap  = 0.608_wp,               & ! Ratio of molar mass of dry air/water
        pi    = 3.14159265358979_wp,    & ! pi
        p0    = 100000.0_wp,            & ! surface pressure (Pa)
-       kappa = 2._wp/7._wp,             & ! Ratio of Rd to cp
-       omega = 7.29212d-5,            & ! Reference rotation rate of the Earth (s^-1)
+       kappa = 2._wp/7._wp,            & ! Ratio of Rd to cp
+       omega = 7.29212e-5_wp,          & ! Reference rotation rate of the Earth (s^-1)
        deg2rad  = pi/180._wp             ! Conversion factor of degrees to radians
 
 !=======================================================================
@@ -82,7 +82,7 @@ MODULE baroclinic_wave
        pertlon    = pi/9._wp    ,      & ! Perturbation longitude
        pertlat    = 2._wp*pi/9._wp,    & ! Perturbation latitude
        pertz      = 15000._wp   ,      & ! Perturbation height cap
-       dxepsilon  = 1.d-5               ! Small value for numerical derivatives
+       dxepsilon  = 1.e-5_wp             ! Small value for numerical derivatives
  
   REAL(wp), PARAMETER ::               &
        moistqlat  = 2._wp*pi/9._wp,    & ! Humidity latitudinal width
