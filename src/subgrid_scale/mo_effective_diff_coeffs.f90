@@ -74,23 +74,23 @@ module mo_effective_diff_coeffs
       
       ! preliminary result
       diag%viscosity_triangles(ji) = 1._wp/6._wp*( &
-      diag%viscosity(scalar_base_index + 1+grid%from_cell(1+grid%vorticity_indices_triangles(3*(h_index-1)+1))) &
-      + diag%viscosity(scalar_base_index + 1+grid%to_cell(1+grid%vorticity_indices_triangles(3*(h_index-1)+1))) &
-      + diag%viscosity(scalar_base_index + 1+grid%from_cell(1+grid%vorticity_indices_triangles(3*(h_index-1)+2))) &
-      + diag%viscosity(scalar_base_index + 1+grid%to_cell(1+grid%vorticity_indices_triangles(3*(h_index-1)+2))) &
-      + diag%viscosity(scalar_base_index + 1+grid%from_cell(1+grid%vorticity_indices_triangles(3*(h_index-1)+3))) &
-      + diag%viscosity(scalar_base_index + 1+grid%to_cell(1+grid%vorticity_indices_triangles(3*(h_index-1)+3))))
+      diag%viscosity(scalar_base_index + 1+grid%from_cell(1+grid%vorticity_indices_triangles(h_index,1))) &
+      + diag%viscosity(scalar_base_index + 1+grid%to_cell(1+grid%vorticity_indices_triangles(h_index,1))) &
+      + diag%viscosity(scalar_base_index + 1+grid%from_cell(1+grid%vorticity_indices_triangles(h_index,2))) &
+      + diag%viscosity(scalar_base_index + 1+grid%to_cell(1+grid%vorticity_indices_triangles(h_index,2))) &
+      + diag%viscosity(scalar_base_index + 1+grid%from_cell(1+grid%vorticity_indices_triangles(h_index,3))) &
+      + diag%viscosity(scalar_base_index + 1+grid%to_cell(1+grid%vorticity_indices_triangles(h_index,3))))
       
       ! calculating and adding the molecular viscosity
       rho_base_index = n_condensed_constituents*n_scalars + layer_index*n_cells
       density_value = &
       1._wp/6._wp*( &
-      state%rho(rho_base_index + 1+grid%from_cell(1+grid%vorticity_indices_triangles(3*(h_index-1)+1))) &
-      + state%rho(rho_base_index + 1+grid%to_cell(1+grid%vorticity_indices_triangles(3*(h_index-1)+1))) &
-      + state%rho(rho_base_index + 1+grid%from_cell(1+grid%vorticity_indices_triangles(3*(h_index-1)+2))) &
-      + state%rho(rho_base_index + 1+grid%to_cell(1+grid%vorticity_indices_triangles(3*(h_index-1)+2))) &
-      + state%rho(rho_base_index + 1+grid%from_cell(1+grid%vorticity_indices_triangles(3*(h_index-1)+3))) &
-      + state%rho(rho_base_index + 1+grid%to_cell(1+grid%vorticity_indices_triangles(3*(h_index-1)+3))))
+      state%rho(rho_base_index + 1+grid%from_cell(1+grid%vorticity_indices_triangles(h_index,1))) &
+      + state%rho(rho_base_index + 1+grid%to_cell(1+grid%vorticity_indices_triangles(h_index,1))) &
+      + state%rho(rho_base_index + 1+grid%from_cell(1+grid%vorticity_indices_triangles(h_index,2))) &
+      + state%rho(rho_base_index + 1+grid%to_cell(1+grid%vorticity_indices_triangles(h_index,2))) &
+      + state%rho(rho_base_index + 1+grid%from_cell(1+grid%vorticity_indices_triangles(h_index,3))) &
+      + state%rho(rho_base_index + 1+grid%to_cell(1+grid%vorticity_indices_triangles(h_index,3))))
       
       ! multiplying by the mass density of the gas phase
       diag%viscosity_triangles(ji) = density_value*diag%viscosity_triangles(ji)

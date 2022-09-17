@@ -45,8 +45,8 @@ module mo_vorticities
         density_value = 0._wp
         do jk=1,4
           density_value = density_value &
-          + grid%density_to_rhombi_weights(4*(edge_vector_index_h-1)+jk) &
-          *density_field(layer_index*n_cells + 1+grid%density_to_rhombi_indices(4*(edge_vector_index_h-1)+jk))
+          + grid%density_to_rhombi_weights(edge_vector_index_h,jk) &
+          *density_field(layer_index*n_cells + 1+grid%density_to_rhombi_indices(edge_vector_index_h,jk))
         enddo
       ! interpolation of the density to the half level edges
       else
@@ -115,7 +115,7 @@ module mo_vorticities
       diag%rel_vort_on_triangles(ji) = 0._wp
       ! loop over the three edges of the triangle at hand
       do jk=1,3
-        vector_index = n_cells + layer_index*n_vectors_per_layer + 1+grid%vorticity_indices_triangles(3*(h_index-1)+jk)
+        vector_index = n_cells + layer_index*n_vectors_per_layer + 1+grid%vorticity_indices_triangles(h_index,jk)
         velocity_value = state%wind(vector_index)
         ! this corrects for terrain following coordinates
         length_rescale_factor = 1._wp
@@ -138,7 +138,7 @@ module mo_vorticities
           velocity_value = velocity_value+delta_z*vertical_gradient
         endif
         diag%rel_vort_on_triangles(ji) = diag%rel_vort_on_triangles(ji) + length_rescale_factor*grid%normal_distance(vector_index) &
-                                         *grid%vorticity_signs_triangles(3*(h_index-1)+jk)*velocity_value
+                                         *grid%vorticity_signs_triangles(h_index,jk)*velocity_value
       enddo
       
       ! dividing by the area (Stokes' Theorem)

@@ -155,7 +155,7 @@ module mo_derived_hor_quantities
     
     integer,  intent(in)  :: from_cell_dual(n_edges),to_cell_dual(n_edges)
     real(wp), intent(in)  :: direction(n_edges),direction_dual(n_edges)
-    integer,  intent(out) :: vorticity_indices_triangles(3*n_dual_scalars_h),vorticity_signs_triangles(3*n_dual_scalars_h)
+    integer,  intent(out) :: vorticity_indices_triangles(n_dual_scalars_h,3),vorticity_signs_triangles(n_dual_scalars_h,3)
     
     ! local variables
     integer             :: ji,jk,counter,sign_
@@ -166,7 +166,7 @@ module mo_derived_hor_quantities
       counter = 1
       do jk=1,n_edges
         if (from_cell_dual(jk)==ji-1 .or. to_cell_dual(jk)==ji-1) then
-          vorticity_indices_triangles(3*(ji-1)+counter) = jk-1
+          vorticity_indices_triangles(ji,counter) = jk-1
           sign_ = 1
           if (from_cell_dual(jk)==ji-1) then
             direction_change = find_turn_angle(direction_dual(jk),direction(jk))
@@ -180,7 +180,7 @@ module mo_derived_hor_quantities
               sign_ = -1
             endif
           endif
-          vorticity_signs_triangles(3*(ji-1)+counter) = sign_
+          vorticity_signs_triangles(ji,counter) = sign_
           counter = counter+1
         endif
       enddo
@@ -352,13 +352,13 @@ module mo_derived_hor_quantities
   end subroutine find_adjacent_edges
   
   subroutine calc_cell_area_unity(pent_hex_face_unity_sphere,lat_c_dual,lon_c_dual, &
-                                  adjacent_edges,vorticity_indices_pre)
+                                  adjacent_edges,vorticity_indices_triangles)
     
     ! This subroutine computes the areas of the cells (pentagons and hexagons) on the unity sphere.
     
     real(wp), intent(out) :: pent_hex_face_unity_sphere(n_cells)
     real(wp), intent(in)  :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
-    integer,  intent(in)  :: adjacent_edges(n_cells,6),vorticity_indices_pre(3*n_dual_scalars_h)
+    integer,  intent(in)  :: adjacent_edges(n_cells,6),vorticity_indices_triangles(n_dual_scalars_h,3)
     
     integer  :: ji,jk,check_1,check_2,check_3,counter,n_edges_of_cell,cell_vector_indices(6)
     real(wp) :: pent_hex_sum_unity_sphere,pent_hex_avg_unity_sphere_ideal,lat_points(6),lon_points(6)
@@ -374,9 +374,9 @@ module mo_derived_hor_quantities
       enddo
       counter = 1
       do jk=1,n_dual_scalars_h
-        check_1 = in_bool_checker(vorticity_indices_pre(3*(jk-1)+1),cell_vector_indices,n_edges_of_cell)
-        check_2 = in_bool_checker(vorticity_indices_pre(3*(jk-1)+2),cell_vector_indices,n_edges_of_cell)
-        check_3 = in_bool_checker(vorticity_indices_pre(3*(jk-1)+3),cell_vector_indices,n_edges_of_cell)
+        check_1 = in_bool_checker(vorticity_indices_triangles(jk,1),cell_vector_indices,n_edges_of_cell)
+        check_2 = in_bool_checker(vorticity_indices_triangles(jk,2),cell_vector_indices,n_edges_of_cell)
+        check_3 = in_bool_checker(vorticity_indices_triangles(jk,3),cell_vector_indices,n_edges_of_cell)
         if (check_1==1 .or. check_2==1 .or. check_3==1) then
           lat_points(counter) = lat_c_dual(jk)
           lon_points(counter) = lon_c_dual(jk)

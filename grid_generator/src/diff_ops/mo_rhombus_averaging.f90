@@ -21,13 +21,13 @@ module mo_rhombus_averaging
     
     ! This subroutine implements the averaging of scalar quantities to rhombi. Indices and weights are computed here for the highest layer but remain unchanged elsewhere.
 
-    integer,  intent(in)  :: vorticity_indices_triangles(3*n_dual_scalars_h),from_cell_dual(n_edges), &
+    integer,  intent(in)  :: vorticity_indices_triangles(n_dual_scalars_h,3),from_cell_dual(n_edges), &
                              to_cell_dual(n_edges),from_cell(n_edges),to_cell(n_edges)
     real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells),area_dual(n_dual_vectors), &
                              z_vector(n_vectors),lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
                              lat_e(n_edges),lon_e(n_edges)
-    integer,  intent(out) :: vorticity_indices_rhombi(n_edges,4),density_to_rhombus_indices(4*n_edges)
-    real(wp), intent(out) :: density_to_rhombus_weights(4*n_edges)
+    integer,  intent(out) :: vorticity_indices_rhombi(n_edges,4),density_to_rhombus_indices(n_edges,4)
+    real(wp), intent(out) :: density_to_rhombus_weights(n_edges,4)
 
     ! local variables
     integer  :: ji,jk,jl,jm,counter,indices_list_pre(6),indices_list(4),double_indices(2),density_to_rhombus_indices_pre(4), &
@@ -46,10 +46,10 @@ module mo_rhombus_averaging
       
       ! finding the vectors that are adjacent to the two triangles
       do jk=1,3
-        indices_list_pre(jk) = vorticity_indices_triangles(3*to_cell_dual(ji)+jk)
+        indices_list_pre(jk) = vorticity_indices_triangles(1+to_cell_dual(ji),jk)
       enddo
       do jk=1,3
-        indices_list_pre(3+jk) = vorticity_indices_triangles(3*from_cell_dual(ji)+jk)
+        indices_list_pre(3+jk) = vorticity_indices_triangles(1+from_cell_dual(ji),jk)
       enddo
       
       ! finding the two indices of the vector that occurs twice
@@ -101,7 +101,7 @@ module mo_rhombus_averaging
         call exit(1)
       endif
       do jk=1,4
-        density_to_rhombus_indices(4*(ji-1)+jk) = density_to_rhombus_indices_pre(jk)
+        density_to_rhombus_indices(ji,jk) = density_to_rhombus_indices_pre(jk)
       enddo
       ! now the weights
       rhombus_area = area_dual(1+n_edges+from_cell_dual(ji)) + area_dual(1+n_edges+to_cell_dual(ji))
@@ -109,14 +109,14 @@ module mo_rhombus_averaging
       first_case_counter = 0
       second_case_counter = 0
       do jk=1,4
-        if (density_to_rhombus_indices(4*(ji-1)+jk)==from_cell(ji) .or. density_to_rhombus_indices(4*(ji-1)+jk)==to_cell(ji)) then
+        if (density_to_rhombus_indices(ji,jk)==from_cell(ji) .or. density_to_rhombus_indices(ji,jk)==to_cell(ji)) then
           ! In this case, four triangles need to be summed up.
           first_case_counter = first_case_counter+1
           vector_h_index_1_found = 0
           jl = 1
           do while (vector_h_index_1_found==0)
-            if (from_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(4*(ji-1)+jk) .or. &
-                to_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(4*(ji-1)+jk)) then
+            if (from_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(ji,jk) .or. &
+                to_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(ji,jk)) then
               vector_h_index_1_found = 1
               vector_h_index_1 = vorticity_indices_rhombi(ji,jl)
             else
@@ -136,22 +136,22 @@ module mo_rhombus_averaging
           if (which_vertex_check_result==1) then
             dual_scalar_h_index_1 = to_cell_dual(1+vector_h_index_1)
           endif
-          triangle_1 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          lon_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+          triangle_1 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(ji,jk)), &
+                                          lon_c(1+density_to_rhombus_indices(ji,jk)), &
                                           lat_c_dual(1+dual_scalar_h_index_1), &
                                           lon_c_dual(1+dual_scalar_h_index_1), &
                                           lat_e(1+vector_h_index_1), &
                                           lon_e(1+vector_h_index_1))
-          triangle_2 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          lon_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+          triangle_2 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(ji,jk)), &
+                                          lon_c(1+density_to_rhombus_indices(ji,jk)), &
                                           lat_c_dual(1+dual_scalar_h_index_1), &
                                           lon_c_dual(1+dual_scalar_h_index_1), &
                                           lat_e(ji),lon_e(ji))
           vector_h_index_2_found = 0
           jl = 1
           do while (vector_h_index_2_found==0)
-            if ((from_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(4*(ji-1)+jk) &
-                 .or. to_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(4*(ji-1)+jk)) &
+            if ((from_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(ji,jk) &
+                 .or. to_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(ji,jk)) &
                  .and. vorticity_indices_rhombi(ji,jl)/=vector_h_index_1) then
               vector_h_index_2_found = 1
               vector_h_index_2 = vorticity_indices_rhombi(ji,jl)
@@ -172,18 +172,18 @@ module mo_rhombus_averaging
           if (which_vertex_check_result==1) then
             dual_scalar_h_index_2 = to_cell_dual(1+vector_h_index_2)
           endif
-          triangle_3 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          lon_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+          triangle_3 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(ji,jk)), &
+                                          lon_c(1+density_to_rhombus_indices(ji,jk)), &
                                           lat_c_dual(1+dual_scalar_h_index_2), &
                                           lon_c_dual(1+dual_scalar_h_index_2), &
                                           lat_e(ji),lon_e(ji))
-          triangle_4 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          lon_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+          triangle_4 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(ji,jk)), &
+                                          lon_c(1+density_to_rhombus_indices(ji,jk)), &
                                           lat_c_dual(1+dual_scalar_h_index_2), &
                                           lon_c_dual(1+dual_scalar_h_index_2), &
                                           lat_e(1+vector_h_index_2), &
                                           lon_e(1+vector_h_index_2))
-          density_to_rhombus_weights(4*(ji-1)+jk) = (radius + z_vector(n_cells+1))**2 &
+          density_to_rhombus_weights(ji,jk) = (radius + z_vector(n_cells+1))**2 &
                                                  *(triangle_1+triangle_2+triangle_3+triangle_4)/rhombus_area
         else
           ! In this case, only two triangles need to be summed up.
@@ -191,8 +191,8 @@ module mo_rhombus_averaging
           vector_h_index_1_found = 0
           jl = 1
           do while (vector_h_index_1_found==0)
-            if (from_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(4*(ji-1)+jk) .or. &
-                to_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(4*(ji-1)+jk)) then
+            if (from_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(ji,jk) .or. &
+                to_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(ji,jk)) then
               vector_h_index_1_found = 1
               vector_h_index_1 = vorticity_indices_rhombi(ji,jl)
             else
@@ -212,8 +212,8 @@ module mo_rhombus_averaging
           if (which_vertex_check_result==1) then
             dual_scalar_h_index_1 = to_cell_dual(1+vector_h_index_1)
           endif
-          triangle_1 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          lon_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+          triangle_1 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(ji,jk)), &
+                                          lon_c(1+density_to_rhombus_indices(ji,jk)), &
                                           lat_c_dual(1+dual_scalar_h_index_1), &
                                           lon_c_dual(1+dual_scalar_h_index_1), &
                                           lat_e(1+vector_h_index_1), &
@@ -221,8 +221,8 @@ module mo_rhombus_averaging
           vector_h_index_2_found = 0
           jl = 1
           do while (vector_h_index_2_found==0)
-            if ((from_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(4*(ji-1)+jk) &
-                .or. to_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(4*(ji-1)+jk)) &
+            if ((from_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(ji,jk) &
+                .or. to_cell(1+vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(ji,jk)) &
                 .and. vorticity_indices_rhombi(ji,jl)/=vector_h_index_1) then
               vector_h_index_2_found = 1
               vector_h_index_2 = vorticity_indices_rhombi(ji,jl)
@@ -230,13 +230,13 @@ module mo_rhombus_averaging
               jl = jl+1
             endif
           enddo
-          triangle_2 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
-                                          lon_c(1+density_to_rhombus_indices(4*(ji-1)+jk)), &
+          triangle_2 = calc_triangle_area(lat_c(1+density_to_rhombus_indices(ji,jk)), &
+                                          lon_c(1+density_to_rhombus_indices(ji,jk)), &
                                           lat_c_dual(1+dual_scalar_h_index_1), &
                                           lon_c_dual(1+dual_scalar_h_index_1), &
                                           lat_e(1+vector_h_index_2), &
                                           lon_e(1+vector_h_index_2))
-          density_to_rhombus_weights(4*(ji-1)+jk) = (radius + z_vector(n_cells+1))**2*(triangle_1+triangle_2)/rhombus_area
+          density_to_rhombus_weights(ji,jk) = (radius + z_vector(n_cells+1))**2*(triangle_1+triangle_2)/rhombus_area
         endif
       enddo
       if (first_case_counter/=2) then
@@ -249,8 +249,8 @@ module mo_rhombus_averaging
       endif
       check_sum = 0._wp
       do jk=1,4
-        check_sum = check_sum + density_to_rhombus_weights(4*(ji-1)+jk)
-        if (density_to_rhombus_weights(4*(ji-1)+jk)<=0._wp .or. density_to_rhombus_weights(4*(ji-1)+jk)>=1._wp) then
+        check_sum = check_sum + density_to_rhombus_weights(ji,jk)
+        if (density_to_rhombus_weights(ji,jk)<=0._wp .or. density_to_rhombus_weights(ji,jk)>=1._wp) then
           write(*,*) "Error in subroutine rhombus_averaging, position 6."
           call exit(1)
         endif

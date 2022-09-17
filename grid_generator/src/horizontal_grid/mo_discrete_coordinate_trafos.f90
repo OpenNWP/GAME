@@ -304,30 +304,28 @@ module mo_discrete_coordinate_trafos
     ! This subroutine computes the vertical vector indices to compute the z-coordinates of a dual scalar data point with.
     
     integer, intent(in)  :: from_cell(n_edges),to_cell(n_edges), &
-                            vorticity_indices_triangles(3*n_dual_scalars_h),dual_scalar_h_index
+                            vorticity_indices_triangles(n_dual_scalars_h,3),dual_scalar_h_index
     integer, intent(out) :: index_vector_for_dual_scalar_z(3)
         
     ! local variables
     integer :: ji,counter,check_result
     
     ! initialzing the result
-    index_vector_for_dual_scalar_z(1) = -1
-    index_vector_for_dual_scalar_z(2) = -1
-    index_vector_for_dual_scalar_z(3) = -1
+    index_vector_for_dual_scalar_z = -1
     
     counter = 1
     
     do ji=1,3
-      check_result = in_bool_checker(from_cell(1+vorticity_indices_triangles(3*dual_scalar_h_index + ji)), &
+      check_result = in_bool_checker(from_cell(1+vorticity_indices_triangles(dual_scalar_h_index+1,ji)), &
                                      index_vector_for_dual_scalar_z,3)
       if (check_result==0) then
-        index_vector_for_dual_scalar_z(counter) = from_cell(1+vorticity_indices_triangles(3*dual_scalar_h_index + ji))
+        index_vector_for_dual_scalar_z(counter) = from_cell(1+vorticity_indices_triangles(dual_scalar_h_index+1,ji))
         counter = counter+1
       endif
-      check_result = in_bool_checker(to_cell(1+vorticity_indices_triangles(3*dual_scalar_h_index + ji)), &
+      check_result = in_bool_checker(to_cell(1+vorticity_indices_triangles(dual_scalar_h_index+1,ji)), &
                                      index_vector_for_dual_scalar_z,3)
       if (check_result==0) then
-        index_vector_for_dual_scalar_z(counter) = to_cell(1+vorticity_indices_triangles(3*dual_scalar_h_index + ji))
+        index_vector_for_dual_scalar_z(counter) = to_cell(1+vorticity_indices_triangles(dual_scalar_h_index+1,ji))
         counter = counter+1
       endif
     enddo
