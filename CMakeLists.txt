@@ -38,6 +38,7 @@ src/io/mo_set_initial_state.f90
 src/io/mo_write_output.f90
 src/io/mo_grid_setup.f90
 src/io/mo_spatial_ops_for_output.f90
+src/io/baroclinic_wave_test.f90
 src/subgrid_scale/mo_effective_diff_coeffs.f90
 src/subgrid_scale/mo_tke.f90
 src/subgrid_scale/mo_pbl.f90
@@ -73,7 +74,6 @@ shared/mo_various_helpers.f90
 ../rte-rrtmgp/examples/mo_load_coefficients.F90
 ../rte-rrtmgp/examples/mo_simple_netcdf.F90
 ../rte-rrtmgp/examples/all-sky/mo_load_cloud_coefficients.F90
-../DCMIP2016/interface/baroclinic_wave_test.f90 
 )
 find_package(OpenMP)
 SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -O2 -Wall -Wpedantic -Wno-c-binding-type -I/usr/include -L/usr/lib/x86_64-linux-gnu")

@@ -44,7 +44,6 @@ Everything is easy and quick to install.
 
 	sudo apt-get install gfortran make cmake wget python3-pip libnetcdff-dev
 
-* Clone the DCMIP2016 repository: `git clone https://github.com/ClimateGlobalChange/DCMIP2016`
 * Clone our fork of the RTE+RRTMGP repository: `git clone https://github.com/OpenNWP/rte-rrtmgp`
 * `pip3 install global-land-mask netCDF4`
 
