@@ -5,21 +5,21 @@ module mo_vector_tend_expl
 
   ! In this module, the calculation of the explicit part of the momentum equation is managed.
   
-  use mo_definitions,           only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,              only: n_vectors_per_layer,n_vectors,n_cells,n_scalars,n_dual_vectors,n_edges, &
-                                      n_dual_scalars_h,n_dual_v_vectors,n_layers,n_h_vectors
-  use mo_gradient_operators,    only: grad
-  use mo_constituents_nml,      only: n_condensed_constituents,n_constituents
-  use mo_inner_product,         only: inner_product
-  use mo_vorticity_flux,        only: vorticity_flux
-  use mo_diff_nml,              only: lmom_diff_h,lmass_diff_h,ltemp_diff_h,lmom_diff_v
-  use mo_surface_nml,           only: pbl_scheme
-  use mo_tke,                   only: tke_update
-  use mo_momentum_diff_diss,    only: hor_momentum_diffusion,vert_momentum_diffusion,simple_dissipation_rate
-  use mo_multiplications,       only: scalar_times_vector
-  use mo_pbl,                   only: pbl_wind_tendency
-  use mo_effective_diff_coeffs, only: update_n_squared
-  use mo_vorticities,           only: calc_pot_vort
+  use mo_definitions,        only: wp,t_grid,t_state,t_diag
+  use mo_grid_nml,           only: n_vectors_per_layer,n_vectors,n_cells,n_scalars,n_dual_vectors,n_edges, &
+                                   n_dual_scalars_h,n_dual_v_vectors,n_layers,n_h_vectors
+  use mo_gradient_operators, only: grad
+  use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
+  use mo_inner_product,      only: inner_product
+  use mo_vorticity_flux,     only: vorticity_flux
+  use mo_diff_nml,           only: lmom_diff_h,lmass_diff_h,ltemp_diff_h,lmom_diff_v
+  use mo_surface_nml,        only: pbl_scheme
+  use mo_tke,                only: tke_update
+  use mo_momentum_diff_diss, only: hor_momentum_diffusion,vert_momentum_diffusion,simple_dissipation_rate
+  use mo_multiplications,    only: scalar_times_vector
+  use mo_pbl,                only: pbl_wind_tendency
+  use mo_eff_diff_coeffs,    only: update_n_squared
+  use mo_vorticities,        only: calc_pot_vort
   
   implicit none
   

@@ -39,7 +39,7 @@ src/io/mo_write_output.f90
 src/io/mo_grid_setup.f90
 src/io/mo_spatial_ops_for_output.f90
 src/io/baroclinic_wave_test.f90
-src/subgrid_scale/mo_effective_diff_coeffs.f90
+src/subgrid_scale/mo_eff_diff_coeffs.f90
 src/subgrid_scale/mo_tke.f90
 src/subgrid_scale/mo_pbl.f90
 src/radiation/mo_manage_radiation_calls.f90

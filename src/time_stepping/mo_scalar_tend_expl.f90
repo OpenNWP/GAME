@@ -5,16 +5,16 @@ module mo_scalar_tend_expl
   
   ! This module contains the horizontal (explicit) part of the constituent integration.
 
-  use mo_definitions,           only: wp,t_grid,t_state,t_diag
-  use mo_constants,             only: c_d_v,c_d_p
-  use mo_grid_nml,              only: n_scalars,n_vectors,n_edges,n_dual_v_vectors,n_dual_scalars_h
-  use mo_constituents_nml,      only: n_constituents,n_condensed_constituents,lmoist
-  use mo_derived,               only: c_v_mass_weighted_air
-  use mo_diff_nml,              only: lmass_diff_h,lmass_diff_v,ltemp_diff_h,ltemp_diff_v
-  use mo_multiplications,       only: scalar_times_vector_h,scalar_times_vector_v,scalar_times_vector_h_upstream
-  use mo_divergences,           only: div_h_tracer,div_h,add_vertical_div
-  use mo_gradient_operators,    only: grad
-  use mo_effective_diff_coeffs, only: scalar_diffusion_coeffs
+  use mo_definitions,        only: wp,t_grid,t_state,t_diag
+  use mo_constants,          only: c_d_v,c_d_p
+  use mo_grid_nml,           only: n_scalars,n_vectors,n_edges,n_dual_v_vectors,n_dual_scalars_h
+  use mo_constituents_nml,   only: n_constituents,n_condensed_constituents,lmoist
+  use mo_derived,            only: c_v_mass_weighted_air
+  use mo_diff_nml,           only: lmass_diff_h,lmass_diff_v,ltemp_diff_h,ltemp_diff_v
+  use mo_multiplications,    only: scalar_times_vector_h,scalar_times_vector_v,scalar_times_vector_h_upstream
+  use mo_divergences,        only: div_h_tracer,div_h,add_vertical_div
+  use mo_gradient_operators, only: grad
+  use mo_eff_diff_coeffs,    only: scalar_diffusion_coeffs
 
   implicit none
   
