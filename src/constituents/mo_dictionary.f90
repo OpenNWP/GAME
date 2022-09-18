@@ -188,7 +188,7 @@ module mo_dictionary
     real(wp), intent(in) :: temperature
     real(wp)             :: c_p_cond
   
-    if (mod(const_id,2)==0) then
+    if (mod(const_id-1,2)==0) then
       c_p_cond = c_p_ice(temperature)
     else
       c_p_cond = c_p_water(temperature)

@@ -69,8 +69,8 @@ module mo_derived
     ! This function calculates the total density of the air at a certain gridpoint.
     
     ! input arguments
-    real(wp),intent(in) :: rho(n_constituents*n_scalars)  ! density field
-    integer, intent(in) :: ji   ! indices of the gridpoint
+    real(wp),intent(in) :: rho(n_scalars,n_constituents) ! density field
+    integer, intent(in) :: ji                            ! indices of the gridpoint
     ! output
     real(wp)            :: density_total ! the result
     
@@ -79,8 +79,8 @@ module mo_derived
     
     density_total = 0._wp
     
-    do jc=0,n_constituents-1
-      density_total = density_total + rho(1+ji+jc*n_scalars)
+    do jc=1,n_constituents
+      density_total = density_total + rho(1+ji,jc)
     enddo
     
   end function density_total
@@ -119,7 +119,7 @@ module mo_derived
     
     ! This function calculates the specific gas constant of the gas phase.
     
-    real(wp), intent(in) :: rho(n_constituents*n_scalars)
+    real(wp), intent(in) :: rho(n_scalars,n_constituents)
     integer,  intent(in) :: grid_point_index
     real(wp)             :: gas_constant_diagnostics
     
@@ -128,10 +128,10 @@ module mo_derived
       gas_constant_diagnostics = r_d
     endif
     if (lmoist) then
-      gas_constant_diagnostics = (rho(n_condensed_constituents*n_scalars+1+grid_point_index) &
-                                  - rho((n_condensed_constituents + 1)*n_scalars+1+grid_point_index))*r_d &
-                                  + rho((n_condensed_constituents + 1)*n_scalars+1+grid_point_index)*r_v
-      gas_constant_diagnostics = gas_constant_diagnostics/rho(n_condensed_constituents*n_scalars+1+grid_point_index)
+      gas_constant_diagnostics = (rho(1+grid_point_index,n_condensed_constituents+1) &
+                                  - rho(1+grid_point_index,n_condensed_constituents+2))*r_d &
+                                  + rho(1+grid_point_index,n_condensed_constituents+2)*r_v
+      gas_constant_diagnostics = gas_constant_diagnostics/rho(1+grid_point_index,n_condensed_constituents+1)
     endif
   
   end function 
@@ -140,7 +140,7 @@ module mo_derived
   
     ! This function calculates the mass-weighted c_v of the air.
     
-    real(wp), intent(in) :: rho(n_constituents*n_scalars),temperature(n_scalars)
+    real(wp), intent(in) :: rho(n_scalars,n_constituents),temperature(n_scalars)
     integer,  intent(in) :: grid_point_index
     real(wp) :: c_v_mass_weighted_air
     
@@ -148,16 +148,13 @@ module mo_derived
     integer :: jc
     
     c_v_mass_weighted_air = 0._wp
-    do jc=0,n_condensed_constituents-1
+    do jc=1,n_condensed_constituents
       ! It is correct to use c_p here because the compression of the condensates has almost no effect on the air pressure.
-      c_v_mass_weighted_air = c_v_mass_weighted_air &
-                              +rho(jc*n_scalars+1+grid_point_index) &
-                              *c_p_cond(jc,temperature(1+grid_point_index))
+      c_v_mass_weighted_air = c_v_mass_weighted_air + rho(1+grid_point_index,jc+1)*c_p_cond(jc,temperature(1+grid_point_index))
     enddo
-    c_v_mass_weighted_air = rho(n_condensed_constituents*n_scalars+1+grid_point_index)*c_d_v
+    c_v_mass_weighted_air = rho(1+grid_point_index,n_condensed_constituents+1)*c_d_v
     if (lmoist) then
-      c_v_mass_weighted_air = c_v_mass_weighted_air &
-                              +rho((n_condensed_constituents+1)*n_scalars+1+grid_point_index)*c_v_v
+      c_v_mass_weighted_air = c_v_mass_weighted_air + rho(1+grid_point_index,n_condensed_constituents+2)*c_v_v
     endif
   
   end function c_v_mass_weighted_air

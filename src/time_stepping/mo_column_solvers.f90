@@ -415,7 +415,7 @@ module mo_column_solvers
               temperature_old_at_interface = diag%temperature(upper_index)
             endif
             vertical_flux_vector_rhs(jl) = density_old_at_interface*vertical_flux_vector_rhs(jl)
-            vertical_enthalpy_flux_vector(jl) = c_p_cond(jc-1,temperature_old_at_interface) &
+            vertical_enthalpy_flux_vector(jl) = c_p_cond(jc,temperature_old_at_interface) &
             *temperature_old_at_interface*vertical_flux_vector_rhs(jl)
           enddo
           if (rk_step==1 .and. jc==1) then
@@ -497,7 +497,7 @@ module mo_column_solvers
                 if (rk_step==1) then
                   diag%condensates_sediment_heat(base_index) = diag%condensates_sediment_heat(base_index) &
                   - snow_velocity &
-                  *diag%temperature(ji+n_scalars-n_cells)*c_p_cond(jc-1,diag%temperature(ji+n_scalars-n_cells)) &
+                  *diag%temperature(ji+n_scalars-n_cells)*c_p_cond(jc,diag%temperature(ji+n_scalars-n_cells)) &
                   *state_old%rho(ji+n_scalars - n_cells,jc) &
                   *grid%area(ji+n_vectors-n_cells)/grid%volume(ji,jl)
                 endif
@@ -509,7 +509,7 @@ module mo_column_solvers
                 if (rk_step==1) then
                   diag%condensates_sediment_heat(base_index) = diag%condensates_sediment_heat(base_index) &
                   -rain_velocity &
-                  *diag%temperature(ji+n_scalars-n_cells)*c_p_cond(jc-1,diag%temperature(ji+n_scalars-n_cells)) &
+                  *diag%temperature(ji+n_scalars-n_cells)*c_p_cond(jc,diag%temperature(ji+n_scalars-n_cells)) &
                   *state_old%rho(ji+n_scalars - n_cells,jc) &
                   *grid%area(ji+n_vectors-n_cells)/grid%volume(ji,jl)
                 endif
