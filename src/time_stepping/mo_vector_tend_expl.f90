@@ -59,6 +59,7 @@ module mo_vector_tend_expl
     ! Managing momentum diffusion
     ! ---------------------------
     
+    ! momentum diffusion and dissipation (only updated at the first RK step)
     if (rk_step==1) then
       ! updating the Brunt-Väisälä frequency and the TKE if any diffusion is switched on because it is required for computing the diffusion coefficients
       if (lmom_diff_h .or. lmass_diff_h .or. ltemp_diff_h) then

@@ -57,7 +57,7 @@ module mo_manage_pchevi
       call calc_h2otracers_source_rates(state_old,diag,grid)
     endif
     
-    ! Radiation is updated here.
+    ! upating radiation if necessary
     if (rad_config>0 .and. lrad_update) then
       call update_rad_fluxes(state_old,diag,grid,time_coordinate)
     endif
@@ -68,7 +68,7 @@ module mo_manage_pchevi
     do rk_step=1,2
     
       ! state_old remains unchanged the whole time.
-      ! At rk_step == 1, state_new contains garbage.
+      ! At rk_step==1, state_new contains garbage.
     
       ! 1.) explicit component of the momentum equation
       ! -----------------------------------------------
