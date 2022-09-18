@@ -23,7 +23,7 @@ module mo_momentum_diff_diss
   
   contains
 
-  subroutine hor_momentum_diffusion(state,diag,grid)
+  subroutine mom_diff_h(state,diag,grid)
     
     ! This subroutine is the horizontal momentum diffusion operator (horizontal diffusion of horizontal velocity).
     
@@ -84,9 +84,9 @@ module mo_momentum_diff_diss
     enddo
     !$omp end parallel do
   
-  end subroutine hor_momentum_diffusion
+  end subroutine mom_diff_h
   
-  subroutine vert_momentum_diffusion(state,diag,grid)
+  subroutine mom_diff_v(state,diag,grid)
   
     ! This subroutine is the vertical momentum diffusion. The horizontal diffusion has already been called at this points, so we can add the new tendencies.
     
@@ -205,7 +205,7 @@ module mo_momentum_diff_diss
     enddo
     !$omp end parallel do
   
-  end subroutine vert_momentum_diffusion
+  end subroutine mom_diff_v
 
   subroutine hor_calc_curl_of_vorticity(diag,grid)
   

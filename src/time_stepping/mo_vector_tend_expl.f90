@@ -15,7 +15,7 @@ module mo_vector_tend_expl
   use mo_diff_nml,           only: lmom_diff_h,lmass_diff_h,ltemp_diff_h,lmom_diff_v
   use mo_surface_nml,        only: pbl_scheme
   use mo_tke,                only: tke_update
-  use mo_momentum_diff_diss, only: hor_momentum_diffusion,vert_momentum_diffusion,simple_dissipation_rate
+  use mo_momentum_diff_diss, only: mom_diff_h,mom_diff_v,simple_dissipation_rate
   use mo_multiplications,    only: scalar_times_vector
   use mo_pbl,                only: pbl_wind_tendency
   use mo_eff_diff_coeffs,    only: update_n_squared
@@ -70,11 +70,11 @@ module mo_vector_tend_expl
       ! momentum diffusion and dissipation (only updated at the first RK step)
       ! horizontal momentum diffusion
       if (lmom_diff_h) then
-        call hor_momentum_diffusion(state,diag,grid)
+        call mom_diff_h(state,diag,grid)
       endif
       ! vertical momentum diffusion
       if (lmom_diff_v) then
-        call vert_momentum_diffusion(state,diag,grid)
+        call mom_diff_v(state,diag,grid)
       endif
       ! planetary boundary layer
       if (pbl_scheme>0) then
