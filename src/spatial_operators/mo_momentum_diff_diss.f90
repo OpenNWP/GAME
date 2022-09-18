@@ -34,12 +34,15 @@ module mo_momentum_diff_diss
     ! local variables
     integer :: h_index,layer_index,vector_index,scalar_index_from,scalar_index_to
     
+    ! Preparation of kinematic properties of the wind field
+    ! -----------------------------------------------------
     ! calculating the divergence of the wind field
     call div_h(state%wind,diag%wind_div,grid)
-    
     ! calculating the relative vorticity of the wind field
     call calc_rel_vort(state,diag,grid)
     
+    ! Computing the necessary diffusion coefficients
+    ! ----------------------------------------------
     ! calculating the effective horizontal kinematic viscosity
     call hor_viscosity(state,diag,grid)
     
