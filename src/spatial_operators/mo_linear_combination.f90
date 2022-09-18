@@ -25,7 +25,7 @@ module mo_linear_combination
     state_res%rho = coeff_1*state_1%rho+coeff_2*state_2%rho
     state_res%rhotheta_v = coeff_1*state_1%rhotheta_v+coeff_2*state_2%rhotheta_v
     state_res%theta_v_pert = state_res%rhotheta_v/ &
-                             state_res%rho(n_condensed_constituents*n_scalars+1:(n_condensed_constituents+1)*n_scalars) &
+                             state_res%rho(:,n_condensed_constituents+1) &
                              - grid%theta_v_bg
     state_res%exner_pert = coeff_1*state_1%exner_pert+coeff_2*state_2%exner_pert
     state_res%wind = coeff_1*state_1%wind+coeff_2*state_2%wind

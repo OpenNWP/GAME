@@ -227,15 +227,15 @@ module mo_set_initial_state
     
     !$omp parallel do private(ji,jc)
     do ji=1,n_scalars
-      do jc=0,n_condensed_constituents-1
+      do jc=1,n_condensed_constituents
         ! condensed densities are zero in all test states
-        state%rho(jc*n_scalars + ji) = 0._wp
+        state%rho(ji,jc) = 0._wp
       enddo
       ! the moist air density
-      state%rho(n_condensed_constituents*n_scalars + ji) = diag%scalar_placeholder(ji)
+      state%rho(ji,n_condensed_constituents+1) = diag%scalar_placeholder(ji)
       ! water vapour density
       if (n_condensed_constituents==4) then
-        state%rho((n_condensed_constituents+1)*n_scalars + ji) = water_vapour_density(ji)
+        state%rho(ji,n_condensed_constituents+2) = water_vapour_density(ji)
       endif
     enddo
     !$omp end parallel do
@@ -289,9 +289,9 @@ module mo_set_initial_state
     if (lmoist) then
       !$omp parallel do private(ji)
       do ji=1,n_scalars
-        if (rel_humidity(state%rho((n_condensed_constituents+1)*n_scalars+ji),temperature(ji))>1._wp) then
-          state%rho((n_condensed_constituents+1)*n_scalars + ji) = state%rho((n_condensed_constituents+1)*n_scalars+ji) &
-          /rel_humidity(state%rho((n_condensed_constituents+1)*n_scalars+ji),temperature(ji))
+        if (rel_humidity(state%rho(ji,n_condensed_constituents+2),temperature(ji))>1._wp) then
+          state%rho(ji,n_condensed_constituents+2) = state%rho(ji,n_condensed_constituents+2) &
+          /rel_humidity(state%rho(ji,n_condensed_constituents+2),temperature(ji))
         endif
       enddo
       !$omp end parallel do
@@ -302,10 +302,10 @@ module mo_set_initial_state
     !$omp parallel do private(ji,pressure,pot_temp_v)
     do ji=1,n_scalars
       temperature_v(ji) = temperature(ji) &
-      *(1._wp+state%rho((n_condensed_constituents+1)*n_scalars+ji)/state%rho(n_condensed_constituents*n_scalars+ji)*(m_d/m_v-1._wp))
-      pressure = state%rho(n_condensed_constituents*n_scalars+ji)*r_d*temperature_v(ji)
+      *(1._wp+state%rho(ji,n_condensed_constituents+2)/state%rho(ji,n_condensed_constituents+1)*(m_d/m_v-1._wp))
+      pressure = state%rho(ji,n_condensed_constituents+1)*r_d*temperature_v(ji)
       pot_temp_v = temperature_v(ji)*(p_0/pressure)**(r_d/c_d_p)
-      state%rhotheta_v(ji) = state%rho(n_condensed_constituents*n_scalars+ji)*pot_temp_v
+      state%rhotheta_v(ji) = state%rho(ji,n_condensed_constituents+1)*pot_temp_v
       ! calculating the virtual potential temperature perturbation
       state%theta_v_pert(ji) = pot_temp_v - grid%theta_v_bg(ji)
       ! calculating the Exner pressure perturbation
@@ -318,7 +318,7 @@ module mo_set_initial_state
     ! checking for negative densities
     !$omp parallel do private(ji)
     do ji=1,n_constituents*n_scalars
-      if (state%rho(ji)<0._wp) then
+      if (state%rho(ji,1)<0._wp) then
         write(*,*) "Negative density found."
         write(*,*) "Aborting."
         call exit(1)

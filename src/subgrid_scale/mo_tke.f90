@@ -40,14 +40,14 @@ module mo_tke
       ! decay constant, as derived from diffusion
       decay_constant = 8._wp*M_PI**2/mean_velocity_area &
       ! the vertical diffusion coefficient is neglected here because it is much smaller than the horizontal one
-      *diag%viscosity(ji)/state%rho(n_condensed_constituents*n_scalars+ji)
+      *diag%viscosity(ji)/state%rho(ji,n_condensed_constituents+1)
       
       ! prognostic equation for TKE
       diag%tke(ji) = diag%tke(ji) + dtime*( &
       ! advection
       -diag%scalar_placeholder(ji) &
       ! production through dissipation of resolved energy
-      + diag%heating_diss(ji)/state%rho(n_condensed_constituents*n_scalars+ji) &
+      + diag%heating_diss(ji)/state%rho(ji,n_condensed_constituents+1) &
       ! decay through molecular dissipation
       - decay_constant*diag%tke(ji))
       

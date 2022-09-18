@@ -75,7 +75,7 @@ module mo_scalar_tend_expl
         scalar_shift_index = (jc-1)*n_scalars
 
         ! The diffusion of the tracer density depends on its gradient.
-        call grad(state_scalar%rho(scalar_shift_index+1:scalar_shift_index+n_scalars),diag%vector_placeholder,grid)
+        call grad(state_scalar%rho(:,jc),diag%vector_placeholder,grid)
         ! Now the diffusive mass flux density can be obtained.
         call scalar_times_vector_h(diag%mass_diffusion_coeff_numerical_h, &
                                    diag%vector_placeholder,diag%vector_placeholder,grid)
@@ -106,23 +106,20 @@ module mo_scalar_tend_expl
         ! -------------------------------------------------------------------------------
         ! moist air
       if (jc==n_condensed_constituents+1) then
-        call scalar_times_vector_h(state_scalar%rho(scalar_shift_index+1:scalar_shift_index+n_scalars), &
-                                   state_wind%wind,diag%flux_density,grid)
+        call scalar_times_vector_h(state_scalar%rho(:,jc),state_wind%wind,diag%flux_density,grid)
         call div_h(diag%flux_density,diag%flux_density_div,grid)
       ! all other constituents
       else
-        call scalar_times_vector_h_upstream(state_scalar%rho(scalar_shift_index+1:scalar_shift_index+n_scalars), &
-                                            state_wind%wind,diag%flux_density,grid)
-        call div_h_tracer(diag%flux_density,state_scalar%rho(scalar_shift_index+1:scalar_shift_index+n_scalars), &
-                          state_wind%wind,diag%flux_density_div,grid)
+        call scalar_times_vector_h_upstream(state_scalar%rho(:,jc),state_wind%wind,diag%flux_density,grid)
+        call div_h_tracer(diag%flux_density,state_scalar%rho(:,jc),state_wind%wind,diag%flux_density_div,grid)
       endif
       
       ! adding the tendencies in all grid boxes
       !$omp parallel do private(ji,scalar_index)
       do ji=1,n_scalars
         scalar_index = scalar_shift_index + ji
-        state_tend%rho(scalar_index) &
-        = old_weight(jc)*state_tend%rho(scalar_index) &
+        state_tend%rho(ji,jc) &
+        = old_weight(jc)*state_tend%rho(ji,jc) &
         + new_weight(jc)*( &
         ! the advection
         - diag%flux_density_div(ji) &
@@ -139,7 +136,7 @@ module mo_scalar_tend_expl
       if (jc==n_condensed_constituents+1) then
         ! determining the virtual potential temperature
         !$omp parallel workshare
-        diag%scalar_placeholder = state_scalar%rhotheta_v/state_scalar%rho(scalar_shift_index+1:scalar_shift_index+n_scalars)
+        diag%scalar_placeholder = state_scalar%rhotheta_v/state_scalar%rho(:,jc)
         !$omp end parallel workshare
         
         call scalar_times_vector_h(diag%scalar_placeholder,diag%flux_density,diag%flux_density,grid)
@@ -154,7 +151,7 @@ module mo_scalar_tend_expl
           -diag%flux_density_div(ji) &
           ! the diabatic forcings
           ! weighting factor accounting for condensates
-          + c_d_v*state_scalar%rho(scalar_shift_index+ji)/c_v_mass_weighted_air(state_scalar%rho,diag%temperature,ji-1)*( &
+          + c_d_v*state_scalar%rho(ji,jc)/c_v_mass_weighted_air(state_scalar%rho,diag%temperature,ji-1)*( &
           ! dissipation through molecular + turbulent momentum diffusion
           diag%heating_diss(ji) &
           ! molecular + turbulent heat transport

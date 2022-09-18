@@ -91,7 +91,7 @@ module mo_write_output
       global_integral = 0._wp
       do ji=1,n_cells
         do jl=1,n_layers
-          global_integral = global_integral + state%rho((const_id-1)*n_scalars+ji+(jl-1)*n_cells)*grid%volume(ji,jl)
+          global_integral = global_integral + state%rho(ji+(jl-1)*n_cells,const_id)*grid%volume(ji,jl)
         enddo
       enddo
       if (const_id==n_constituents) then
@@ -127,7 +127,7 @@ module mo_write_output
     call inner_product(state%wind,state%wind,e_kin_density,grid)
     !$omp parallel do private(ji)
     do ji=1,n_scalars
-      e_kin_density(ji) = state%rho(n_condensed_constituents*n_scalars+ji)*e_kin_density(ji)
+      e_kin_density(ji) = state%rho(ji,n_condensed_constituents+1)*e_kin_density(ji)
     enddo
     !$omp end parallel do
     kinetic_integral = 0._wp
@@ -140,7 +140,7 @@ module mo_write_output
     allocate(pot_energy_density(n_scalars))
     !$omp parallel do private(ji)
     do ji=1,n_scalars
-      pot_energy_density(ji) = state%rho(n_condensed_constituents*n_scalars + ji)*grid%gravity_potential(ji)
+      pot_energy_density(ji) = state%rho(ji,n_condensed_constituents+1)*grid%gravity_potential(ji)
     enddo
     !$omp end parallel do
     potential_integral = 0._wp
@@ -153,7 +153,7 @@ module mo_write_output
     allocate(int_energy_density(n_scalars))
     !$omp parallel do private(ji)
     do ji=1,n_scalars
-      int_energy_density(ji) = state%rho(n_condensed_constituents*n_scalars + ji)*diag%temperature(ji)
+      int_energy_density(ji) = state%rho(ji,n_condensed_constituents+1)*diag%temperature(ji)
     enddo
     !$omp end parallel do
     internal_integral = 0._wp
@@ -265,7 +265,7 @@ module mo_write_output
       do ji=1,n_cells
         ! Now the aim is to determine the value of the mslp.
         temp_lowest_layer = diag%temperature((n_layers-1)*n_cells+ji)
-        pressure_value = state%rho(n_condensed_constituents*n_scalars + (n_layers-1)*n_cells + ji) &
+        pressure_value = state%rho((n_layers-1)*n_cells+ji,n_condensed_constituents+1) &
         *gas_constant_diagnostics(state%rho,(n_layers-1)*n_cells+ji-1)*temp_lowest_layer
         temp_mslp = temp_lowest_layer + standard_vert_lapse_rate*grid%z_scalar((n_layers-1)*n_cells + ji)
         mslp_factor = (1._wp - (temp_mslp - temp_lowest_layer)/temp_mslp)**(grid%gravity_m((n_layers-1)*n_vectors_per_layer + ji)/ &
@@ -339,7 +339,7 @@ module mo_write_output
           do jl=1,n_layers
             if (grid%z_scalar((jl-1)*n_cells+ji)<z_tropopause) then
               cloud_water_content = cloud_water_content &
-              + (state%rho(2*n_scalars + (jl-1)*n_cells + ji) + state%rho(3*n_scalars + (jl-1)*n_cells+ji)) &
+              + (state%rho((jl-1)*n_cells + ji,3) + state%rho((jl-1)*n_cells+ji,4)) &
               *(grid%z_vector(ji + (jl-1)*n_vectors_per_layer) - grid%z_vector(ji + jl*n_vectors_per_layer))
             endif
           enddo
@@ -354,12 +354,12 @@ module mo_write_output
           ! solid precipitation rate
           sprate(ji) = 0._wp
           if (n_condensed_constituents==4) then
-            sprate(ji) = snow_velocity*state%rho((n_layers-1)*n_cells+ji)
+            sprate(ji) = snow_velocity*state%rho((n_layers-1)*n_cells+ji,1)
           endif
           ! liquid precipitation rate
           rprate(ji) = 0._wp
           if (n_condensed_constituents==4) then
-            rprate(ji) = rain_velocity*state%rho(n_scalars + (n_layers-1)*n_cells+ji)
+            rprate(ji) = rain_velocity*state%rho((n_layers-1)*n_cells+ji,2)
           endif
           ! setting very small values to zero
           if (rprate(ji)<min_precip_rate) then
@@ -605,15 +605,15 @@ module mo_write_output
     !$omp parallel do private(ji)
     do ji=1,n_scalars
       if (n_constituents>=4) then
-        rh(ji) = 100._wp*rel_humidity(state%rho((n_condensed_constituents + 1)*n_scalars+ji),diag%temperature(ji))
+        rh(ji) = 100._wp*rel_humidity(state%rho(ji,n_condensed_constituents+2),diag%temperature(ji))
       endif
-      pressure(ji) = state%rho(n_condensed_constituents*n_scalars+ji)*gas_constant_diagnostics(state%rho,ji-1)*diag%temperature(ji)
+      pressure(ji) = state%rho(ji,n_condensed_constituents+1)*gas_constant_diagnostics(state%rho,ji-1)*diag%temperature(ji)
     enddo
     !$omp end parallel do
     
     !$omp parallel do private(ji)
     do ji=1,n_scalars
-      diag%scalar_placeholder(ji) = state%rho(n_condensed_constituents*n_scalars+ji)
+      diag%scalar_placeholder(ji) = state%rho(ji,n_condensed_constituents+1)
     enddo
     !$omp end parallel do
     
@@ -955,9 +955,9 @@ module mo_write_output
     else
       
       ! the mixing ratio
-      r = state%rho((n_condensed_constituents + 1)*n_scalars + scalar_index) &
-      /(state%rho(n_condensed_constituents*n_scalars + scalar_index) &
-      - state%rho((n_condensed_constituents + 1)*n_scalars + scalar_index))
+      r = state%rho(scalar_index,n_condensed_constituents+2) &
+      /(state%rho(scalar_index,n_condensed_constituents+1) &
+      - state%rho(scalar_index,n_condensed_constituents+2))
       
       ! now,the first two required parameters can already be computed
       alpha_1 = 0.2854_wp*(1._wp - 0.28e-3_wp*r)
@@ -973,7 +973,7 @@ module mo_write_output
       else
         saturation_pressure = saturation_pressure_over_ice(diag%temperature(scalar_index))
       endif
-      vapour_pressure = state%rho((n_condensed_constituents + 1)*n_scalars + scalar_index)*r_v*diag%temperature(scalar_index)
+      vapour_pressure = state%rho(scalar_index,n_condensed_constituents+2)*r_v*diag%temperature(scalar_index)
       rel_hum = vapour_pressure/saturation_pressure
       ! we compute t_lcl using Eq. (22) of Bolton (1980)
       t_lcl = 1._wp/(1._wp/(diag%temperature(scalar_index) - 55._wp) - log(rel_hum)/2840._wp) + 55._wp

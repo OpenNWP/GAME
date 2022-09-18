@@ -71,7 +71,7 @@ module mo_definitions
   
   type t_state
     
-    real(wp), allocatable :: rho(:)
+    real(wp), allocatable :: rho(:,:)
     real(wp), allocatable :: rhotheta_v(:)
     real(wp), allocatable :: theta_v_pert(:)
     real(wp), allocatable :: exner_pert(:)

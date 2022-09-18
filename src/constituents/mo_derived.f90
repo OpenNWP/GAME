@@ -107,8 +107,8 @@ module mo_derived
      !$omp parallel do private(ji)
       do ji=1,n_scalars
         diag%temperature(ji) = (grid%theta_v_bg(ji)+state%theta_v_pert(ji))*(grid%exner_bg(ji)+state%exner_pert(ji)) &
-        /(1._wp+state%rho((n_condensed_constituents+1)*n_scalars+ji) &
-        /state%rho(n_condensed_constituents*n_scalars+ji)*(m_d/m_v-1._wp))
+        /(1._wp+state%rho(ji,n_condensed_constituents+2) &
+        /state%rho(ji,n_condensed_constituents+1)*(m_d/m_v-1._wp))
       enddo
       !$omp end parallel do
     endif
