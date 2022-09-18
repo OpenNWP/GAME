@@ -186,11 +186,11 @@ module mo_write_output
                              lat_id,lon_id,layer_index,closest_index,second_closest_index,temperature_ids(n_layers), &
                              pressure_ids(n_layers),rel_hum_ids(n_layers),wind_u_ids(n_layers),wind_v_ids(n_layers), &
                              rel_vort_ids(n_layers),div_h_ids(n_layers),wind_w_ids(n_levels), &
-                             time_since_init_min,mslp_id,sp_id,rprate_id,sprate_id, &
+                             time_since_init_min,mslp_id,sp_id,rprate_id,sprate_id,dimids_vector_2(2), &
                              cape_id,tcc_id,t2_id,u10_id,v10_id,gusts_id,sfc_sw_down_id,gh_ids(n_pressure_levels), &
                              temp_p_ids(n_pressure_levels),rh_p_ids(n_pressure_levels),wind_u_p_ids(n_pressure_levels), &
                              wind_v_p_ids(n_pressure_levels),epv_p_ids(n_pressure_levels),rel_vort_p_ids(n_pressure_levels), &
-                             scalar_dimid,soil_dimid,vector_dimid,densities_dimid,densities_id,temperature_id,wind_id, &
+                             scalar_dimid,soil_dimid,vector_dimid,layer_dimid,densities_id,temperature_id,wind_id, &
                              tke_id,soil_id,time_step_10_m_wind,pressure_level_hpa
     real(wp)              :: delta_latitude,delta_longitude,lat_vector(n_lat_io_points),lon_vector(n_lon_io_points), &
                              min_precip_rate_mmh,min_precip_rate,cloud_water2cloudiness,temp_lowest_layer, &
@@ -891,14 +891,16 @@ module mo_write_output
       call nc_check(nf90_create(output_file,NF90_CLOBBER,ncid))
       call nc_check(nf90_def_dim(ncid,"single_int_index",1,single_int_dimid))
       call nc_check(nf90_def_dim(ncid,"scalar_index",n_scalars,scalar_dimid))
+      call nc_check(nf90_def_dim(ncid,"layer_index",n_layers,layer_dimid))
       call nc_check(nf90_def_dim(ncid,"soil_index",nsoillays*n_cells,soil_dimid))
       call nc_check(nf90_def_dim(ncid,"vector_index",n_vectors,vector_dimid))
-      call nc_check(nf90_def_dim(ncid,"densities_index",n_constituents*n_scalars,densities_dimid))
       
       ! Defining the variables.
       call nc_check(nf90_def_var(ncid,"start_date",NF90_INT,single_int_dimid,start_date_id))
       call nc_check(nf90_def_var(ncid,"start_hour",NF90_INT,single_int_dimid,start_hour_id))
-      call nc_check(nf90_def_var(ncid,"densities",NF90_REAL,densities_dimid,densities_id))
+      dimids_vector_2(1) = scalar_dimid
+      dimids_vector_2(2) = layer_dimid
+      call nc_check(nf90_def_var(ncid,"densities",NF90_REAL,dimids_vector_2,densities_id))
       call nc_check(nf90_put_att(ncid,densities_id,"units","kg/m^3"))
       call nc_check(nf90_def_var(ncid,"temperature",NF90_REAL,scalar_dimid,temperature_id))
       call nc_check(nf90_put_att(ncid,temperature_id,"units","K"))
