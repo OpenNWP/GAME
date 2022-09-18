@@ -366,10 +366,10 @@ module mo_column_solvers
     expl_weight = 1._wp - impl_weight
     
     ! loop over all relevant constituents
-    do jc=0,n_constituents-1
+    do jc=1,n_constituents
     
       ! This is done for all tracers apart from the main gaseous constituent.
-      if (jc/=n_condensed_constituents) then
+      if (jc/=n_condensed_constituents+1) then
         ! loop over all columns
         !$omp parallel do private(ji,jl,lower_index,upper_index,base_index,density_old_at_interface,&
         !$omp temperature_old_at_interface,c_vector,d_vector,e_vector,r_vector,vertical_flux_vector_impl,&
@@ -379,7 +379,7 @@ module mo_column_solvers
           ! diagnozing the vertical fluxes
           do jl=1,n_layers-1
             ! resetting the vertical enthalpy flux density divergence
-            if (rk_step==1 .and. jc==0) then
+            if (rk_step==1 .and. jc==1) then
               diag%condensates_sediment_heat((jl-1)*n_cells + ji) = 0._wp
             endif
             base_index = ji + (jl-1)*n_cells
@@ -391,15 +391,15 @@ module mo_column_solvers
             ! For condensed constituents, a sink velocity must be added.
             ! precipitation
             ! snow
-            if (jc<n_condensed_constituents/4) then
+            if (jc<=n_condensed_constituents/4) then
               vertical_flux_vector_impl(jl) = vertical_flux_vector_impl(jl) - snow_velocity
               vertical_flux_vector_rhs(jl) = vertical_flux_vector_rhs(jl) - snow_velocity
             ! rain
-            elseif (jc<n_condensed_constituents/2) then
+            elseif (jc<=n_condensed_constituents/2) then
               vertical_flux_vector_impl(jl) = vertical_flux_vector_impl(jl) - rain_velocity
               vertical_flux_vector_rhs(jl) = vertical_flux_vector_rhs(jl) - rain_velocity
             ! clouds
-            elseif (jc<n_condensed_constituents) then
+            elseif (jc<=n_condensed_constituents) then
               vertical_flux_vector_impl(jl) = vertical_flux_vector_impl(jl) - cloud_droplets_velocity
               vertical_flux_vector_rhs(jl) = vertical_flux_vector_rhs(jl) - cloud_droplets_velocity
             endif
@@ -408,17 +408,17 @@ module mo_column_solvers
             vertical_flux_vector_rhs(jl) = grid%area(ji + jl*n_vectors_per_layer)*vertical_flux_vector_rhs(jl)
             ! old density at the interface
             if (vertical_flux_vector_rhs(jl)>=0._wp) then
-              density_old_at_interface = state_old%rho(lower_index,jc+1)
+              density_old_at_interface = state_old%rho(lower_index,jc)
               temperature_old_at_interface = diag%temperature(lower_index)
             else
-              density_old_at_interface = state_old%rho(upper_index,jc+1)
+              density_old_at_interface = state_old%rho(upper_index,jc)
               temperature_old_at_interface = diag%temperature(upper_index)
             endif
             vertical_flux_vector_rhs(jl) = density_old_at_interface*vertical_flux_vector_rhs(jl)
-            vertical_enthalpy_flux_vector(jl) = c_p_cond(jc,temperature_old_at_interface) &
+            vertical_enthalpy_flux_vector(jl) = c_p_cond(jc-1,temperature_old_at_interface) &
             *temperature_old_at_interface*vertical_flux_vector_rhs(jl)
           enddo
-          if (rk_step==1 .and. jc==0) then
+          if (rk_step==1 .and. jc==1) then
             diag%condensates_sediment_heat((n_layers-1)*n_cells + ji) = 0._wp
           endif
           
@@ -451,15 +451,15 @@ module mo_column_solvers
               endif
               ! precipitation
               ! snow
-              if (jc<n_condensed_constituents/4) then
+              if (jc<=n_condensed_constituents/4) then
                 d_vector(jl) = d_vector(jl) + impl_weight*snow_velocity*dtime &
                 *grid%area(ji + n_vectors - n_cells)/grid%volume(ji,jl)
               ! rain
-              elseif (jc<n_condensed_constituents/2) then
+              elseif (jc<=n_condensed_constituents/2) then
                 d_vector(jl) = d_vector(jl) + impl_weight*rain_velocity*dtime &
                 *grid%area(ji + n_vectors - n_cells)/grid%volume(ji,jl)
               ! clouds
-              elseif (jc<n_condensed_constituents) then
+              elseif (jc<=n_condensed_constituents) then
                 d_vector(jl) = d_vector(jl) + impl_weight*cloud_droplets_velocity*dtime &
                 *grid%area(ji + n_vectors - n_cells)/grid%volume(ji,jl)
               endif
@@ -474,62 +474,62 @@ module mo_column_solvers
             endif
             ! the explicit component
             ! mass densities
-            r_vector(jl) = state_old%rho(base_index,jc+1) + dtime*state_tend%rho(base_index,jc+1)
+            r_vector(jl) = state_old%rho(base_index,jc) + dtime*state_tend%rho(base_index,jc)
             ! adding the explicit part of the vertical flux divergence
             if (jl==1) then
               r_vector(jl) = r_vector(jl) + expl_weight*dtime*vertical_flux_vector_rhs(jl)/grid%volume(ji,jl)
-              if (rk_step==1 .and. jc<n_condensed_constituents) then
+              if (rk_step==1 .and. jc<=n_condensed_constituents) then
                 diag%condensates_sediment_heat(base_index) = diag%condensates_sediment_heat(base_index) &
                 + vertical_enthalpy_flux_vector(jl)/grid%volume(ji,jl)
               endif
             elseif (jl==n_layers) then
               r_vector(jl) = r_vector(jl) - expl_weight*dtime*vertical_flux_vector_rhs(jl-1)/grid%volume(ji,jl)
-              if (rk_step==1 .and. jc<n_condensed_constituents) then
+              if (rk_step==1 .and. jc<=n_condensed_constituents) then
                 diag%condensates_sediment_heat(base_index) = diag%condensates_sediment_heat(base_index) &
                 - vertical_enthalpy_flux_vector(jl-1)/grid%volume(ji,jl)
               endif
               ! precipitation
               ! snow
-              if (jc<n_condensed_constituents/4) then
+              if (jc<=n_condensed_constituents/4) then
                 r_vector(jl) = r_vector(jl)-expl_weight*snow_velocity*dtime &
-                *state_old%rho(ji+n_scalars - n_cells,jc+1) &
+                *state_old%rho(ji+n_scalars - n_cells,jc) &
                 *grid%area(ji+n_vectors-n_cells)/grid%volume(ji,jl)
                 if (rk_step==1) then
                   diag%condensates_sediment_heat(base_index) = diag%condensates_sediment_heat(base_index) &
                   - snow_velocity &
-                  *diag%temperature(ji+n_scalars-n_cells)*c_p_cond(jc,diag%temperature(ji+n_scalars-n_cells)) &
-                  *state_old%rho(ji+n_scalars - n_cells,jc+1) &
+                  *diag%temperature(ji+n_scalars-n_cells)*c_p_cond(jc-1,diag%temperature(ji+n_scalars-n_cells)) &
+                  *state_old%rho(ji+n_scalars - n_cells,jc) &
                   *grid%area(ji+n_vectors-n_cells)/grid%volume(ji,jl)
                 endif
               ! rain
-              elseif (jc<n_condensed_constituents/2) then
+              elseif (jc<=n_condensed_constituents/2) then
                 r_vector(jl) = r_vector(jl) - expl_weight*rain_velocity*dtime &
-                *state_old%rho(ji + n_scalars - n_cells,jc+1) &
+                *state_old%rho(ji + n_scalars - n_cells,jc) &
                 *grid%area(ji+n_vectors-n_cells)/grid%volume(ji,jl)
                 if (rk_step==1) then
                   diag%condensates_sediment_heat(base_index) = diag%condensates_sediment_heat(base_index) &
                   -rain_velocity &
-                  *diag%temperature(ji+n_scalars-n_cells)*c_p_cond(jc,diag%temperature(ji+n_scalars-n_cells)) &
-                  *state_old%rho(ji+n_scalars - n_cells,jc+1) &
+                  *diag%temperature(ji+n_scalars-n_cells)*c_p_cond(jc-1,diag%temperature(ji+n_scalars-n_cells)) &
+                  *state_old%rho(ji+n_scalars - n_cells,jc) &
                   *grid%area(ji+n_vectors-n_cells)/grid%volume(ji,jl)
                 endif
               ! clouds
-              elseif (jc<n_condensed_constituents) then
+              elseif (jc<=n_condensed_constituents) then
                 r_vector(jl) = r_vector(jl) - expl_weight*cloud_droplets_velocity*dtime &
-                *state_old%rho(ji+n_scalars - n_cells,jc+1) &
+                *state_old%rho(ji+n_scalars - n_cells,jc) &
                 *grid%area(ji + n_vectors - n_cells)/grid%volume(ji,jl)
                 if (rk_step==1) then
                   diag%condensates_sediment_heat(base_index) = diag%condensates_sediment_heat(base_index) &
                   -cloud_droplets_velocity &
                   *diag%temperature(ji+n_scalars-n_cells)*c_p_cond(jc,diag%temperature(ji+n_scalars-n_cells)) &
-                  *state_old%rho(ji+n_scalars-n_cells,jc+1) &
+                  *state_old%rho(ji+n_scalars-n_cells,jc) &
                   *grid%area(ji+n_vectors-n_cells)/grid%volume(ji,jl)
                 endif
               endif
             else
               r_vector(jl) = r_vector(jl) + expl_weight*dtime &
               *(-vertical_flux_vector_rhs(jl-1) + vertical_flux_vector_rhs(jl))/grid%volume(ji,jl)
-              if (rk_step==1 .and. jc<n_condensed_constituents) then
+              if (rk_step==1 .and. jc<=n_condensed_constituents) then
                 diag%condensates_sediment_heat(base_index) = diag%condensates_sediment_heat(base_index) &
                 + (-vertical_enthalpy_flux_vector(jl-1) + vertical_enthalpy_flux_vector(jl))/grid%volume(ji,jl)
               endif
@@ -549,7 +549,7 @@ module mo_column_solvers
           ! writing the result into the new state
           do jl=1,n_layers
             base_index = ji + (jl-1)*n_cells
-            state_new%rho(base_index,jc+1) = solution_vector(jl)
+            state_new%rho(base_index,jc) = solution_vector(jl)
           enddo
         enddo ! horizontal index
         !$omp end parallel do
