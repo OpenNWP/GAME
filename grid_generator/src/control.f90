@@ -289,7 +289,6 @@ program control
   trsk_modified_curl_indices = trsk_modified_curl_indices+1
   adjacent_edges = adjacent_edges+1
   vorticity_indices_triangles = vorticity_indices_triangles+1
-  vorticity_indices_rhombi = vorticity_indices_rhombi+1
   to_cell_dual = to_cell_dual+1
   from_cell_dual = from_cell_dual+1
   vorticity_signs_triangles = vorticity_signs_triangles+1

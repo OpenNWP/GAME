@@ -21,7 +21,7 @@ module mo_inner_product
     ! local variables
     integer :: h_index,layer_index,ji,jk,n_edges_of_cell,base_index
     
-    !$omp parallel do private(h_index,layer_index,ji,n_edges_of_cell,base_index)
+    !$omp parallel do private(h_index,layer_index,ji,jk,n_edges_of_cell,base_index)
     do h_index=1,n_cells
       n_edges_of_cell = 6
       if (h_index<=n_pentagons) then
@@ -33,15 +33,15 @@ module mo_inner_product
         out_field(ji) = 0._wp
         do jk=1,n_edges_of_cell
           out_field(ji) = out_field(ji) + grid%inner_product_weights(h_index,layer_index+1,jk) &
-          *in_field_1(n_cells + layer_index*n_vectors_per_layer + 1 + grid%adjacent_edges(h_index,jk)) &
-          *in_field_2(n_cells + layer_index*n_vectors_per_layer + 1 + grid%adjacent_edges(h_index,jk))
+          *in_field_1(n_cells + layer_index*n_vectors_per_layer + grid%adjacent_edges(h_index,jk)) &
+          *in_field_2(n_cells + layer_index*n_vectors_per_layer + grid%adjacent_edges(h_index,jk))
         enddo
         out_field(ji) = out_field(ji) + grid%inner_product_weights(h_index,layer_index+1,7) &
         *in_field_1(h_index+layer_index*n_vectors_per_layer) &
         *in_field_2(h_index+layer_index*n_vectors_per_layer)
         out_field(ji) = out_field(ji) + grid%inner_product_weights(h_index,layer_index+1,8) &
-        *in_field_1(h_index + (layer_index + 1)*n_vectors_per_layer) &
-        *in_field_2(h_index + (layer_index + 1)*n_vectors_per_layer)
+        *in_field_1(h_index + (layer_index+1)*n_vectors_per_layer) &
+        *in_field_2(h_index + (layer_index+1)*n_vectors_per_layer)
       enddo
     enddo
     !$omp end parallel do
