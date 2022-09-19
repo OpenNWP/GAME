@@ -190,8 +190,8 @@ module mo_write_output
                              cape_id,tcc_id,t2_id,u10_id,v10_id,gusts_id,sfc_sw_down_id,gh_ids(n_pressure_levels), &
                              temp_p_ids(n_pressure_levels),rh_p_ids(n_pressure_levels),wind_u_p_ids(n_pressure_levels), &
                              wind_v_p_ids(n_pressure_levels),epv_p_ids(n_pressure_levels),rel_vort_p_ids(n_pressure_levels), &
-                             scalar_dimid,soil_dimid,vector_dimid,constituent_dimid,densities_id,temperature_id,wind_id, &
-                             tke_id,soil_id,time_step_10_m_wind,pressure_level_hpa
+                             scalar_dimid,soil_layer_dimid,vector_dimid,constituent_dimid,densities_id,temperature_id,wind_id, &
+                             tke_id,soil_id,time_step_10_m_wind,pressure_level_hpa,cell_dimid
     real(wp)              :: delta_latitude,delta_longitude,lat_vector(n_lat_io_points),lon_vector(n_lon_io_points), &
                              min_precip_rate_mmh,min_precip_rate,cloud_water2cloudiness,temp_lowest_layer, &
                              pressure_value,mslp_factor,sp_factor,temp_mslp,temp_surface,z_height,theta_v, &
@@ -289,7 +289,7 @@ module mo_write_output
         delta_z_temp = grid%z_vector(n_layers*n_vectors_per_layer+ji)+2._wp - grid%z_scalar(ji + (closest_index-1)*n_cells)
         ! real radiation
         if (lprog_soil_temp) then
-          temperature_gradient = (temp_closest - state%temperature_soil(ji))/ &
+          temperature_gradient = (temp_closest - state%temperature_soil(ji,1))/ &
                                  (grid%z_scalar(ji+(closest_index-1)*n_cells) - grid%z_vector(n_layers*n_vectors_per_layer+ji))
         ! no real radiation
         else
@@ -890,9 +890,10 @@ module mo_write_output
       
       call nc_check(nf90_create(output_file,NF90_CLOBBER,ncid))
       call nc_check(nf90_def_dim(ncid,"single_int_index",1,single_int_dimid))
+      call nc_check(nf90_def_dim(ncid,"cell_index",n_cells,cell_dimid))
       call nc_check(nf90_def_dim(ncid,"scalar_index",n_scalars,scalar_dimid))
       call nc_check(nf90_def_dim(ncid,"constituent_index",n_constituents,constituent_dimid))
-      call nc_check(nf90_def_dim(ncid,"soil_index",nsoillays*n_cells,soil_dimid))
+      call nc_check(nf90_def_dim(ncid,"soil_layer_index",nsoillays,soil_layer_dimid))
       call nc_check(nf90_def_dim(ncid,"vector_index",n_vectors,vector_dimid))
       
       ! Defining the variables.
@@ -908,7 +909,9 @@ module mo_write_output
       call nc_check(nf90_put_att(ncid,wind_id,"units","m/s"))
       call nc_check(nf90_def_var(ncid,"tke",NF90_REAL,scalar_dimid,tke_id))
       call nc_check(nf90_put_att(ncid,tke_id,"units","J/kg"))
-      call nc_check(nf90_def_var(ncid,"t_soil",NF90_REAL,soil_dimid,soil_id))
+      dimids_vector_2(1) = cell_dimid
+      dimids_vector_2(2) = soil_layer_dimid
+      call nc_check(nf90_def_var(ncid,"t_soil",NF90_REAL,dimids_vector_2,soil_id))
       call nc_check(nf90_put_att(ncid,soil_id,"units","K"))
       call nc_check(nf90_enddef(ncid))
       

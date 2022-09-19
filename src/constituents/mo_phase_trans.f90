@@ -255,16 +255,16 @@ module mo_phase_trans
         ! evaporation and latent heat rates
         if (grid%is_land(h_index)==0) then
           ! saturation pressure at surface temperature
-          if (state%temperature_soil(h_index)>=t_0) then
-            saturation_pressure_sfc = saturation_pressure_over_water(state%temperature_soil(h_index))
+          if (state%temperature_soil(h_index,1)>=t_0) then
+            saturation_pressure_sfc = saturation_pressure_over_water(state%temperature_soil(h_index,1))
             saturation_pressure_sfc = enhancement_factor_over_water(air_pressure)*saturation_pressure_sfc
           else
-            saturation_pressure_sfc = saturation_pressure_over_ice(state%temperature_soil(h_index))
+            saturation_pressure_sfc = saturation_pressure_over_ice(state%temperature_soil(h_index,1))
             saturation_pressure_sfc = enhancement_factor_over_ice(air_pressure)*saturation_pressure_sfc
           endif
             
           ! difference water vapour density between saturation at ground temperature and actual absolute humidity in the lowest model layer
-          diff_density_sfc = saturation_pressure_sfc/(r_v*state%temperature_soil(h_index)) &
+          diff_density_sfc = saturation_pressure_sfc/(r_v*state%temperature_soil(h_index,1)) &
           - state%rho(ji,n_condensed_constituents+2)
             
           ! evporation, sublimation
@@ -273,11 +273,11 @@ module mo_phase_trans
           max(0._wp,diff_density_sfc/diag%scalar_flux_resistance(h_index))/grid%layer_thickness(ji)
           
           ! calculating the latent heat flux density affecting the surface
-          if (state%temperature_soil(h_index)>=t_0) then
-            diag%power_flux_density_latent(h_index) = -phase_trans_heat(0,state%temperature_soil(h_index)) &
+          if (state%temperature_soil(h_index,1)>=t_0) then
+            diag%power_flux_density_latent(h_index) = -phase_trans_heat(0,state%temperature_soil(h_index,1)) &
             *max(0._wp, diff_density_sfc/diag%scalar_flux_resistance(h_index))
           else
-            diag%power_flux_density_latent(h_index) = -phase_trans_heat(1,state%temperature_soil(h_index)) &
+            diag%power_flux_density_latent(h_index) = -phase_trans_heat(1,state%temperature_soil(h_index,1)) &
             *max(0._wp, diff_density_sfc/diag%scalar_flux_resistance(h_index))
           endif
         endif

@@ -70,9 +70,9 @@ module mo_column_solvers
         
         ! the sensible power flux density
         diag%power_flux_density_sensible(ji) = 0.5_wp*c_d_v*(state_new%rho(base_index,n_condensed_constituents+1) &
-        *(temperature_gas_lowest_layer_old - state_old%temperature_soil(ji)) &
+        *(temperature_gas_lowest_layer_old - state_old%temperature_soil(ji,1)) &
         + state_old%rho(base_index,n_condensed_constituents+1) &
-        *(temperature_gas_lowest_layer_new - state_new%temperature_soil(ji)))/diag%scalar_flux_resistance(ji)
+        *(temperature_gas_lowest_layer_new - state_new%temperature_soil(ji,1)))/diag%scalar_flux_resistance(ji)
         
         ! contribution of sensible heat to rhotheta_v
         state_tend%rhotheta_v(base_index) = state_tend%rhotheta_v(base_index) &
@@ -189,12 +189,12 @@ module mo_column_solvers
         ! calculating the explicit part of the heat flux density
         do jl=1,nsoillays-1
           heat_flux_density_expl(jl) &
-          = -grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji)*(state_old%temperature_soil(ji+(jl-1)*n_cells) &
-          - state_old%temperature_soil(ji+jl*n_cells))/(grid%z_soil_center(jl) - grid%z_soil_center(jl+1))
+          = -grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji)*(state_old%temperature_soil(ji,jl) &
+          - state_old%temperature_soil(ji,jl+1))/(grid%z_soil_center(jl) - grid%z_soil_center(jl+1))
         enddo
         heat_flux_density_expl(nsoillays) &
         = -grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji)* &
-        (state_old%temperature_soil(ji+(nsoillays-1)*n_cells)-grid%t_const_soil(ji)) &
+        (state_old%temperature_soil(ji,nsoillays)-grid%t_const_soil(ji)) &
         /(2._wp*(grid%z_soil_center(nsoillays) - z_t_const))
         
         radiation_flux_density = diag%sfc_sw_in(ji) - diag%sfc_lw_out(ji)
@@ -207,7 +207,7 @@ module mo_column_solvers
         ! calculating the explicit part of the temperature change
         r_vector(n_layers) &
         ! old temperature
-        = state_old%temperature_soil(ji) &
+        = state_old%temperature_soil(ji,1) &
         ! sensible heat flux
         + (diag%power_flux_density_sensible(ji) &
         ! latent heat flux
@@ -223,7 +223,7 @@ module mo_column_solvers
           
           r_vector(jl+n_layers-1) &
           ! old temperature
-          = state_old%temperature_soil(ji+(jl-1)*n_cells) &
+          = state_old%temperature_soil(ji,jl) &
           ! heat conduction from above
           + 0.5_wp*(-heat_flux_density_expl(jl-1) &
           ! heat conduction from below
@@ -334,7 +334,7 @@ module mo_column_solvers
       ! soil temperature
       if (soil_switch==1) then
         do jl=1,nsoillays
-          state_target%temperature_soil(ji+(jl-1)*n_cells) = solution_vector(n_layers-1+jl)
+          state_target%temperature_soil(ji,jl) = solution_vector(n_layers-1+jl)
         enddo
       endif
       

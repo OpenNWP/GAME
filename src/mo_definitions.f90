@@ -76,7 +76,7 @@ module mo_definitions
     real(wp), allocatable :: theta_v_pert(:)
     real(wp), allocatable :: exner_pert(:)
     real(wp), allocatable :: wind(:)
-    real(wp), allocatable :: temperature_soil(:)
+    real(wp), allocatable :: temperature_soil(:,:)
   
   end type t_state
   

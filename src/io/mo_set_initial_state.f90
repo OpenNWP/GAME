@@ -342,7 +342,7 @@ module mo_set_initial_state
     type(t_grid),     intent(in)    :: grid                     ! grid quantities
     
     ! local variables
-    integer               :: soil_layer_index,ji,ncid,sst_id,soil_index,sst_avail,t_soil_avail,soil_id
+    integer               :: ji,jl,ncid,sst_id,soil_index,sst_avail,t_soil_avail,soil_id
     real(wp)              :: z_soil,t_sfc
     real(wp), allocatable :: sst(:)
     
@@ -393,13 +393,13 @@ module mo_set_initial_state
     endif
     
     ! setting what has not yet been set
-    !$omp parallel do private(ji,soil_layer_index,soil_index,z_soil,t_sfc)
+    !$omp parallel do private(ji,jl,soil_index,z_soil,t_sfc)
     do ji=1,n_cells
       ! sea surface temperature if SST is available
       if (grid%is_land(ji)==0 .and. sst_avail==1) then
         ! loop over all soil layers
-        do soil_layer_index=0,nsoillays-1
-          state%temperature_soil(ji+soil_layer_index*n_cells) = sst(ji)
+        do jl=1,nsoillays
+          state%temperature_soil(ji,jl) = sst(ji)
         enddo
       endif
       
@@ -411,11 +411,10 @@ module mo_set_initial_state
         t_sfc = temperature(n_scalars-n_cells+ji)
         
         ! loop over all soil layers
-        do soil_layer_index=0,nsoillays-1
+        do jl=1,nsoillays
           ! index of this soil grid point
-          soil_index = ji+soil_layer_index*n_cells
-          z_soil = z_t_const/nsoillays*(0.5_wp+soil_layer_index)
-          state%temperature_soil(soil_index) = t_sfc + (grid%t_const_soil(ji) - t_sfc)*z_soil/z_t_const
+          z_soil = z_t_const/nsoillays*(0.5_wp+jl-1)
+          state%temperature_soil(ji,jl) = t_sfc + (grid%t_const_soil(ji) - t_sfc)*z_soil/z_t_const
         enddo
       endif
     enddo
