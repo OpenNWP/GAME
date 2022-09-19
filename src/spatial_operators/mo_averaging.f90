@@ -33,33 +33,33 @@ module mo_averaging
     vertical_contravariant_corr = 0._wp
     
     n_edges_of_cell = 6
-    if (h_index<n_pentagons) then
+    if (h_index<=n_pentagons) then
       n_edges_of_cell = 5
     endif
     if (layer_index>=n_layers-n_oro_layers) then
       if (layer_index==n_layers-n_oro_layers) then
         do ji=1,n_edges_of_cell
-          vector_index = n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(1+h_index,ji)
+          vector_index = n_cells + layer_index*n_vectors_per_layer + grid%adjacent_edges(h_index,ji)
           vertical_contravariant_corr = vertical_contravariant_corr &
           -0.5_wp &
-          *grid%inner_product_weights(h_index+1,layer_index+1,ji) &
+          *grid%inner_product_weights(h_index,layer_index+1,ji) &
           *grid%slope(vector_index) &
           *vector_field(vector_index)
         enddo
       else
         do ji=1,n_edges_of_cell
-          vector_index = n_cells + (layer_index - 1)*n_vectors_per_layer + 1+grid%adjacent_edges(1+h_index,ji)
+          vector_index = n_cells + (layer_index-1)*n_vectors_per_layer + grid%adjacent_edges(h_index,ji)
           vertical_contravariant_corr = vertical_contravariant_corr &
           -0.5_wp &
-          *grid%inner_product_weights(h_index+1,layer_index+1,ji) &
+          *grid%inner_product_weights(h_index,layer_index+1,ji) &
           *grid%slope(vector_index) &
           *vector_field(vector_index)
         enddo
         do ji=1,n_edges_of_cell
-          vector_index = n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(1+h_index,ji)
+          vector_index = n_cells + layer_index*n_vectors_per_layer + grid%adjacent_edges(h_index,ji)
           vertical_contravariant_corr = vertical_contravariant_corr &
           -0.5_wp &
-          *grid%inner_product_weights(h_index+1,layer_index+1,ji) &
+          *grid%inner_product_weights(h_index,layer_index+1,ji) &
           *grid%slope(vector_index) &
           *vector_field(vector_index)
         enddo
@@ -79,19 +79,19 @@ module mo_averaging
     
     remap_verpri2horpri_vector &
     ! layer above
-    = grid%inner_product_weights(1+grid%from_cell(1+h_index),layer_index+1,7) &
-    *vector_field(layer_index*n_vectors_per_layer+1+grid%from_cell(1+h_index))
+    = grid%inner_product_weights(grid%from_cell(h_index),layer_index+1,7) &
+    *vector_field(layer_index*n_vectors_per_layer+grid%from_cell(h_index))
     remap_verpri2horpri_vector = remap_verpri2horpri_vector &
-    + grid%inner_product_weights(1+grid%to_cell(1+h_index),layer_index+1,7) &
-    *vector_field(layer_index*n_vectors_per_layer+1+grid%to_cell(1+h_index))
+    + grid%inner_product_weights(grid%to_cell(h_index),layer_index+1,7) &
+    *vector_field(layer_index*n_vectors_per_layer+grid%to_cell(h_index))
     ! layer below
     if (layer_index<n_layers-1) then
       remap_verpri2horpri_vector = remap_verpri2horpri_vector &
-      + grid%inner_product_weights(1+grid%from_cell(1+h_index),layer_index+1,8) &
-      *vector_field((layer_index + 1)*n_vectors_per_layer+1+grid%from_cell(1+h_index))
+      + grid%inner_product_weights(grid%from_cell(h_index),layer_index+1,8) &
+      *vector_field((layer_index+1)*n_vectors_per_layer+grid%from_cell(h_index))
       remap_verpri2horpri_vector = remap_verpri2horpri_vector &
-      + grid%inner_product_weights(1+grid%to_cell(1+h_index),layer_index+1,8) &
-      *vector_field((layer_index + 1)*n_vectors_per_layer+1+grid%to_cell(1+h_index))
+      + grid%inner_product_weights(grid%to_cell(h_index),layer_index+1,8) &
+      *vector_field((layer_index+1)*n_vectors_per_layer+grid%to_cell(h_index))
     endif
     ! horizontal average
     remap_verpri2horpri_vector = 0.5_wp*remap_verpri2horpri_vector
@@ -116,7 +116,7 @@ module mo_averaging
       layer_index = (ji-1)/n_edges
       h_index = ji - layer_index*n_edges
       vertical_gradient = remap_verpri2horpri_vector(cov_to_con_field,layer_index + (n_layers-n_oro_layers), &
-                                 h_index-1,grid)
+                                                     h_index,grid)
       vector_index = n_cells + (n_layers - n_oro_layers + layer_index)*n_vectors_per_layer + h_index
       cov_to_con_field(vector_index) = cov_to_con_field(vector_index) - grid%slope(vector_index)*vertical_gradient
     enddo
@@ -140,11 +140,11 @@ module mo_averaging
     
     vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
     
-    horizontal_covariant = vector_field(1+vector_index)
+    horizontal_covariant = vector_field(vector_index)
     
     if (layer_index>=n_layers-n_oro_layers) then
       vertical_component = remap_verpri2horpri_vector(vector_field,layer_index,h_index,grid)
-      horizontal_covariant = horizontal_covariant + grid%slope(1+vector_index)*vertical_component
+      horizontal_covariant = horizontal_covariant + grid%slope(vector_index)*vertical_component
     endif
    
   end function horizontal_covariant

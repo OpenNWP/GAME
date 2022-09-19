@@ -145,8 +145,8 @@ module mo_grid_setup
     !$omp parallel do private(ji,jk)
     do ji=1,n_cells
       do jk=1,6
-        if (grid%adjacent_edges(ji,jk)==-1) then
-          grid%adjacent_edges(ji,jk) = 0
+        if (grid%adjacent_edges(ji,jk)==0) then
+          grid%adjacent_edges(ji,jk) = 1
         endif
       enddo
     enddo

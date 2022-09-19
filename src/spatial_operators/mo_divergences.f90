@@ -38,20 +38,20 @@ module mo_divergences
         comp_h = 0._wp
         do jl=1,n_edges_of_cell
           comp_h = comp_h &
-          + in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(h_index,jl)) &
+          + in_field(n_cells + layer_index*n_vectors_per_layer + grid%adjacent_edges(h_index,jl)) &
           *grid%adjacent_signs(h_index,jl) &
-          *grid%area(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(h_index,jl))
+          *grid%area(n_cells + layer_index*n_vectors_per_layer + grid%adjacent_edges(h_index,jl))
         enddo
         comp_v = 0._wp
         if (layer_index==n_layers-n_oro_layers-1) then
-          contra_lower = vertical_contravariant_corr(in_field,layer_index+1,h_index-1,grid)
+          contra_lower = vertical_contravariant_corr(in_field,layer_index+1,h_index,grid)
           comp_v = -contra_lower*grid%area(h_index + (layer_index + 1)*n_vectors_per_layer)
         elseif (layer_index==n_layers-1) then
-          contra_upper = vertical_contravariant_corr(in_field,layer_index,h_index-1,grid)
+          contra_upper = vertical_contravariant_corr(in_field,layer_index,h_index,grid)
           comp_v = contra_upper*grid%area(h_index + layer_index*n_vectors_per_layer)
         elseif (layer_index>n_layers-n_oro_layers-1) then
-          contra_upper = vertical_contravariant_corr(in_field,layer_index,h_index-1,grid)
-          contra_lower = vertical_contravariant_corr(in_field,layer_index+1,h_index-1,grid)
+          contra_upper = vertical_contravariant_corr(in_field,layer_index,h_index,grid)
+          contra_lower = vertical_contravariant_corr(in_field,layer_index+1,h_index,grid)
           comp_v &
           = contra_upper*grid%area(h_index + layer_index*n_vectors_per_layer) &
           - contra_lower*grid%area(h_index + (layer_index+1)*n_vectors_per_layer)
@@ -85,21 +85,21 @@ module mo_divergences
         comp_h = 0._wp
         do jl=1,n_edges
           comp_h = comp_h &
-          + in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(h_index,jl)) &
+          + in_field(n_cells + layer_index*n_vectors_per_layer + grid%adjacent_edges(h_index,jl)) &
           *grid%adjacent_signs(h_index,jl) &
-          *grid%area(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(h_index,jl))
+          *grid%area(n_cells + layer_index*n_vectors_per_layer + grid%adjacent_edges(h_index,jl))
         enddo
         comp_v = 0._wp
         if (layer_index==n_layers-n_oro_layers-1) then
-          contra_lower = vertical_contravariant_corr(wind_field,layer_index+1,h_index-1,grid)
+          contra_lower = vertical_contravariant_corr(wind_field,layer_index+1,h_index,grid)
           if (contra_lower<=0._wp) then
             density_lower = density_field(ji)
           else
             density_lower = density_field(ji+n_cells)
           endif
           comp_v = -density_lower*contra_lower*grid%area(h_index + (layer_index+1)*n_vectors_per_layer)
-        elseif (layer_index == n_layers - 1) then
-          contra_upper = vertical_contravariant_corr(wind_field,layer_index,h_index-1,grid)
+        elseif (layer_index==n_layers-1) then
+          contra_upper = vertical_contravariant_corr(wind_field,layer_index,h_index,grid)
           if (contra_upper<=0._wp) then
             density_upper = density_field(ji-n_cells)
           else
@@ -107,13 +107,13 @@ module mo_divergences
           endif
           comp_v = density_upper*contra_upper*grid%area(h_index + layer_index*n_vectors_per_layer)
         elseif (layer_index>n_layers-n_oro_layers-1) then
-          contra_upper = vertical_contravariant_corr(wind_field,layer_index,h_index-1,grid)
+          contra_upper = vertical_contravariant_corr(wind_field,layer_index,h_index,grid)
           if (contra_upper<=0._wp) then
             density_upper = density_field(ji-n_cells)
           else
             density_upper = density_field(ji)
           endif
-          contra_lower = vertical_contravariant_corr(wind_field,layer_index+1,h_index-1,grid)
+          contra_lower = vertical_contravariant_corr(wind_field,layer_index+1,h_index,grid)
           if (contra_lower<=0._wp) then
             density_lower = density_field(ji)
           else
@@ -134,9 +134,9 @@ module mo_divergences
     
     ! This adds the divergence of the vertical component of a vector field to the input scalar field.  
     
-    real(wp), intent(in)  :: in_field(n_vectors)
-    real(wp), intent(out) :: out_field(n_scalars)
-    type(t_grid),  intent(in)    :: grid         ! grid quantities
+    real(wp), intent(in)      :: in_field(n_vectors)
+    real(wp), intent(out)     :: out_field(n_scalars)
+    type(t_grid),  intent(in) :: grid                 ! grid quantities
     
     ! local variables
     integer  :: h_index,layer_index,ji

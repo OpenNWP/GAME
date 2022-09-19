@@ -266,10 +266,10 @@ module mo_write_output
         ! Now the aim is to determine the value of the mslp.
         temp_lowest_layer = diag%temperature((n_layers-1)*n_cells+ji)
         pressure_value = state%rho((n_layers-1)*n_cells+ji,n_condensed_constituents+1) &
-        *gas_constant_diagnostics(state%rho,(n_layers-1)*n_cells+ji-1)*temp_lowest_layer
+        *gas_constant_diagnostics(state%rho,(n_layers-1)*n_cells+ji)*temp_lowest_layer
         temp_mslp = temp_lowest_layer + standard_vert_lapse_rate*grid%z_scalar((n_layers-1)*n_cells + ji)
         mslp_factor = (1._wp - (temp_mslp - temp_lowest_layer)/temp_mslp)**(grid%gravity_m((n_layers-1)*n_vectors_per_layer + ji)/ &
-        (gas_constant_diagnostics(state%rho,(n_layers-1)*n_cells+ji-1)*standard_vert_lapse_rate))
+        (gas_constant_diagnostics(state%rho,(n_layers-1)*n_cells+ji)*standard_vert_lapse_rate))
         mslp(ji) = pressure_value/mslp_factor
         
         ! Now the aim is to determine the value of the surface pressure.
@@ -277,7 +277,7 @@ module mo_write_output
         *(grid%z_scalar(ji + (n_layers-1)*n_cells) - grid%z_vector(n_vectors - n_cells+ji))
         sp_factor = (1._wp - (temp_surface - temp_lowest_layer)/temp_surface) &
                      **(grid%gravity_m((n_layers-1)*n_vectors_per_layer + ji)/ &
-                    (gas_constant_diagnostics(state%rho,(n_layers-1)*n_cells+ji-1)*standard_vert_lapse_rate))
+                    (gas_constant_diagnostics(state%rho,(n_layers-1)*n_cells+ji)*standard_vert_lapse_rate))
         sp(ji) = pressure_value/sp_factor
         
         ! Now the aim is to calculate the 2 m temperature.
@@ -389,7 +389,7 @@ module mo_write_output
           wind_tangential = 0._wp
           do jk=1,10
             wind_tangential = wind_tangential + grid%trsk_weights(ji,jk) &
-                              *wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_edges+1+grid%trsk_indices(ji,jk))
+                              *wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_edges+grid%trsk_indices(ji,jk))
           enddo
           wind_10_m_mean_u(ji) = wind_10_m_mean_u(ji) &
           + 1._wp/n_output_steps_10m_wind*wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_edges + ji)
@@ -404,14 +404,14 @@ module mo_write_output
       ! vertically extrapolating to ten meters above the surface
       !$omp parallel do private(ji,roughness_length_extrapolation,actual_roughness_length,z_sfc,z_agl,rescale_factor)
       do ji=1,n_edges
-        actual_roughness_length = 0.5_wp*(grid%roughness_length(1+grid%from_cell(ji)) + grid%roughness_length(1+grid%to_cell(ji)))
+        actual_roughness_length = 0.5_wp*(grid%roughness_length(grid%from_cell(ji)) + grid%roughness_length(grid%to_cell(ji)))
         ! roughness length of grass according to WMO
         roughness_length_extrapolation = 0.02_wp
-        if (grid%is_land(grid%from_cell(ji)+1)==0) then
+        if (grid%is_land(grid%from_cell(ji))==0) then
           roughness_length_extrapolation = actual_roughness_length
         endif
-        z_sfc = 0.5_wp*(grid%z_vector(n_vectors - n_cells + 1+grid%from_cell(ji)) &
-                        + grid%z_vector(n_vectors - n_cells + 1+grid%to_cell(ji)))
+        z_sfc = 0.5_wp*(grid%z_vector(n_vectors - n_cells + grid%from_cell(ji)) &
+                        + grid%z_vector(n_vectors - n_cells + grid%to_cell(ji)))
         z_agl = grid%z_vector(n_vectors - n_vectors_per_layer+ji) - z_sfc
         
         ! rescale factor for computing the wind in a height of 10 m
@@ -607,7 +607,7 @@ module mo_write_output
       if (n_constituents>=4) then
         rh(ji) = 100._wp*rel_humidity(state%rho(ji,n_condensed_constituents+2),diag%temperature(ji))
       endif
-      pressure(ji) = state%rho(ji,n_condensed_constituents+1)*gas_constant_diagnostics(state%rho,ji-1)*diag%temperature(ji)
+      pressure(ji) = state%rho(ji,n_condensed_constituents+1)*gas_constant_diagnostics(state%rho,ji)*diag%temperature(ji)
     enddo
     !$omp end parallel do
     

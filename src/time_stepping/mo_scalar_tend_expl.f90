@@ -151,7 +151,7 @@ module mo_scalar_tend_expl
           -diag%flux_density_div(ji) &
           ! the diabatic forcings
           ! weighting factor accounting for condensates
-          + c_d_v*state_scalar%rho(ji,jc)/c_v_mass_weighted_air(state_scalar%rho,diag%temperature,ji-1)*( &
+          + c_d_v*state_scalar%rho(ji,jc)/c_v_mass_weighted_air(state_scalar%rho,diag%temperature,ji)*( &
           ! dissipation through molecular + turbulent momentum diffusion
           diag%heating_diss(ji) &
           ! molecular + turbulent heat transport

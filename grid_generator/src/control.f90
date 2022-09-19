@@ -281,6 +281,21 @@ program control
   
   ! writing the result to a netCDF file
   
+  ! index shift
+  !$omp parallel workshare
+  to_cell = to_cell+1
+  from_cell = from_cell+1
+  trsk_indices = trsk_indices+1
+  trsk_modified_curl_indices = trsk_modified_curl_indices+1
+  adjacent_edges = adjacent_edges+1
+  vorticity_indices_triangles = vorticity_indices_triangles+1
+  vorticity_indices_rhombi = vorticity_indices_rhombi+1
+  to_cell_dual = to_cell_dual+1
+  from_cell_dual = from_cell_dual+1
+  vorticity_signs_triangles = vorticity_signs_triangles+1
+  density_to_rhombi_indices = density_to_rhombi_indices+1
+  !$omp end parallel workshare
+  
   write(*,*) "Starting to write to output file ..."
   call nc_check(nf90_create(trim(output_file),NF90_CLOBBER,ncid_g_prop))
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_index",n_scalars,scalar_dimid))

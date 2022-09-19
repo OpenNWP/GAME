@@ -33,8 +33,8 @@ module mo_spatial_ops_for_output
     tangential_wind = 0._wp
     ! loop over the maximum of ten edges 
     do ji=1,10
-      tangential_wind = tangential_wind + grid%trsk_weights(h_index+1,ji) &
-      *in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%trsk_indices(h_index+1,ji))
+      tangential_wind = tangential_wind + grid%trsk_weights(h_index,ji) &
+      *in_field(n_cells + layer_index*n_vectors_per_layer + grid%trsk_indices(h_index,ji))
     enddo
     
   end function tangential_wind
@@ -62,11 +62,11 @@ module mo_spatial_ops_for_output
                                 grid%adjacent_edges(h_index,jk),grid)
         out_field(ji) = out_field(ji) &
         + grid%inner_product_weights(h_index,layer_index+1,jk) &
-        *in_field_1(n_cells+layer_index*n_vectors_per_layer+1+grid%adjacent_edges(h_index,jk)) &
+        *in_field_1(n_cells+layer_index*n_vectors_per_layer+grid%adjacent_edges(h_index,jk)) &
         *tangential_wind_value
       enddo
       out_field(ji) = out_field(ji) + grid%inner_product_weights(h_index,layer_index+1,7)*in_field_1(h_index+ &
-                     layer_index*n_vectors_per_layer)*in_field_2(h_index+layer_index*n_vectors_per_layer)
+                      layer_index*n_vectors_per_layer)*in_field_2(h_index+layer_index*n_vectors_per_layer)
       out_field(ji) = out_field(ji) + grid%inner_product_weights(h_index,layer_index+1,8)*in_field_1(h_index+ &
                       (layer_index+1)*n_vectors_per_layer)*in_field_2(h_index+(layer_index+1)*n_vectors_per_layer)
     enddo
@@ -99,22 +99,22 @@ module mo_spatial_ops_for_output
       if (h_index>=n_cells+1) then
         ! determining the upper and lower weights
         layer_thickness = &
-        0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%from_cell(h_index-n_cells)) &
-        + grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%to_cell(h_index-n_cells))) &
-        - 0.5_wp*(grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%from_cell(h_index-n_cells)) &
-        + grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%to_cell(h_index-n_cells)))
+        0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + grid%from_cell(h_index-n_cells)) &
+        + grid%z_vector(layer_index*n_vectors_per_layer + grid%to_cell(h_index-n_cells))) &
+        - 0.5_wp*(grid%z_vector((layer_index+1)*n_vectors_per_layer + grid%from_cell(h_index-n_cells)) &
+        + grid%z_vector((layer_index+1)*n_vectors_per_layer + grid%to_cell(h_index-n_cells)))
         if (layer_index==0) then
           upper_weight = &
-          (0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%from_cell(h_index-n_cells)) &
-          + grid%z_vector(layer_index*n_vectors_per_layer + 1+grid%to_cell(h_index-n_cells))) &
+          (0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + grid%from_cell(h_index-n_cells)) &
+          + grid%z_vector(layer_index*n_vectors_per_layer + grid%to_cell(h_index-n_cells))) &
           - grid%z_vector(ji))/layer_thickness
         else
           upper_weight = 0.5_wp*(grid%z_vector(ji-n_vectors_per_layer) - grid%z_vector(ji))/layer_thickness
         endif
         if (layer_index==n_layers - 1) then
           lower_weight = (grid%z_vector(ji) &
-          - 0.5_wp*(grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%from_cell(h_index-n_cells)) &
-          + grid%z_vector((layer_index+1)*n_vectors_per_layer + 1+grid%to_cell(h_index-n_cells))))/layer_thickness
+          - 0.5_wp*(grid%z_vector((layer_index+1)*n_vectors_per_layer + grid%from_cell(h_index-n_cells)) &
+          + grid%z_vector((layer_index+1)*n_vectors_per_layer + grid%to_cell(h_index-n_cells))))/layer_thickness
         else
            lower_weight = 0.5_wp*(grid%z_vector(ji) - grid%z_vector(ji+n_vectors_per_layer))/layer_thickness
         endif
@@ -197,7 +197,7 @@ module mo_spatial_ops_for_output
       do jk=1,n_edges
         out_field(ji) = out_field(ji) + 0.5_wp &
         *grid%inner_product_weights(ji,n_layers,jk) &
-        *in_field(1+grid%adjacent_edges(ji,jk))
+        *in_field(grid%adjacent_edges(ji,jk))
       enddo
     enddo
     !$omp end parallel do
@@ -222,7 +222,7 @@ module mo_spatial_ops_for_output
       h_index = ji - layer_index*n_edges
       wind_1 = in_field(n_cells+layer_index*n_vectors_per_layer+h_index)
       ! finding the tangential component
-      wind_2 = tangential_wind(in_field,layer_index,h_index-1,grid)
+      wind_2 = tangential_wind(in_field,layer_index,h_index,grid)
       ! turning the Cartesian coordinate system to obtain u and v
       call passive_turn(wind_1,wind_2,-grid%direction(h_index), &
       out_field_u(n_cells+layer_index*n_vectors_per_layer+h_index), &
@@ -258,7 +258,7 @@ module mo_spatial_ops_for_output
       do jk=1,n_edges_of_cell
         out_field(ji) = out_field(ji) + 0.5_wp &
         *grid%inner_product_weights(h_index,layer_index+1,jk) &
-        *in_field(n_cells + layer_index*n_vectors_per_layer + 1+grid%adjacent_edges(h_index,jk))
+        *in_field(n_cells + layer_index*n_vectors_per_layer + grid%adjacent_edges(h_index,jk))
       enddo
     enddo
     !$omp end parallel do
@@ -290,7 +290,7 @@ module mo_spatial_ops_for_output
       do jk=1,n_edges
         out_field(ji) = out_field(ji) + 0.5_wp &
         *grid%inner_product_weights(h_index,layer_index+1,jk) &
-        *in_field(n_edges + layer_index*2*n_edges + 1+grid%adjacent_edges(h_index,jk))
+        *in_field(n_edges + layer_index*2*n_edges + grid%adjacent_edges(h_index,jk))
       enddo
     enddo
     !$omp end parallel do

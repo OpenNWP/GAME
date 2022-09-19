@@ -80,7 +80,7 @@ module mo_derived
     density_total = 0._wp
     
     do jc=1,n_constituents
-      density_total = density_total + rho(1+ji,jc)
+      density_total = density_total + rho(ji,jc)
     enddo
     
   end function density_total
@@ -128,10 +128,10 @@ module mo_derived
       gas_constant_diagnostics = r_d
     endif
     if (lmoist) then
-      gas_constant_diagnostics = (rho(1+grid_point_index,n_condensed_constituents+1) &
-                                  - rho(1+grid_point_index,n_condensed_constituents+2))*r_d &
-                                  + rho(1+grid_point_index,n_condensed_constituents+2)*r_v
-      gas_constant_diagnostics = gas_constant_diagnostics/rho(1+grid_point_index,n_condensed_constituents+1)
+      gas_constant_diagnostics = (rho(grid_point_index,n_condensed_constituents+1) &
+                                  - rho(grid_point_index,n_condensed_constituents+2))*r_d &
+                                  + rho(grid_point_index,n_condensed_constituents+2)*r_v
+      gas_constant_diagnostics = gas_constant_diagnostics/rho(grid_point_index,n_condensed_constituents+1)
     endif
   
   end function 
@@ -150,11 +150,11 @@ module mo_derived
     c_v_mass_weighted_air = 0._wp
     do jc=1,n_condensed_constituents
       ! It is correct to use c_p here because the compression of the condensates has almost no effect on the air pressure.
-      c_v_mass_weighted_air = c_v_mass_weighted_air + rho(1+grid_point_index,jc+1)*c_p_cond(jc,temperature(1+grid_point_index))
+      c_v_mass_weighted_air = c_v_mass_weighted_air + rho(grid_point_index,jc+1)*c_p_cond(jc,temperature(grid_point_index))
     enddo
-    c_v_mass_weighted_air = rho(1+grid_point_index,n_condensed_constituents+1)*c_d_v
+    c_v_mass_weighted_air = rho(grid_point_index,n_condensed_constituents+1)*c_d_v
     if (lmoist) then
-      c_v_mass_weighted_air = c_v_mass_weighted_air + rho(1+grid_point_index,n_condensed_constituents+2)*c_v_v
+      c_v_mass_weighted_air = c_v_mass_weighted_air + rho(grid_point_index,n_condensed_constituents+2)*c_v_v
     endif
   
   end function c_v_mass_weighted_air

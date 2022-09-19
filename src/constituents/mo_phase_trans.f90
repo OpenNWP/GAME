@@ -88,11 +88,11 @@ module mo_phase_trans
                 
           ! The amount of liquid water per volume that will evaporate.
           ! In case the air cannot take all the water, not everything will evaporate.
-          a = -r_v*phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji-1)
+          a = -r_v*phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji)
           b = r_v*diag%temperature(ji) - r_v*state%rho(ji,n_condensed_constituents+2) &
-          *phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji-1) &
+          *phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji) &
           + enhancement_factor*dsaturation_pressure_over_water_dT(diag%temperature(ji)) &
-          *phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji-1)
+          *phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji)
           c = water_vapour_pressure - saturation_pressure
           p = b/a
           q = c/a
@@ -122,11 +122,11 @@ module mo_phase_trans
           ! The amount of ice per volume that will sublimate.
           ! In case the air cannot take all the water, not everything will sublimate.
                 
-          a = -r_v*phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji-1)
+          a = -r_v*phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji)
           b = r_v*diag%temperature(ji) - r_v*state%rho(ji,n_condensed_constituents+2) &
-          *phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji-1) &
+          *phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji) &
           + enhancement_factor*dsaturation_pressure_over_ice_dT(diag%temperature(ji)) &
-          *phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji-1)
+          *phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji)
           c = water_vapour_pressure - saturation_pressure
           p = b/a
           q = c/a
@@ -156,11 +156,11 @@ module mo_phase_trans
           diag%phase_trans_rates(2*n_scalars+ji) = -state%rho(ji,3)/dtime
                 
           ! the vanishing of water vapour through the phase transition
-          a = -r_v*phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji-1)
+          a = -r_v*phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji)
           b = r_v*diag%temperature(ji) - r_v*state%rho(ji,n_condensed_constituents+2) &
-          *phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji-1) &
+          *phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji) &
           + enhancement_factor*dsaturation_pressure_over_water_dT(diag%temperature(ji)) &
-          *phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji-1)
+          *phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji)
           c = water_vapour_pressure - saturation_pressure
           p = b/a
           q = c/a
@@ -186,11 +186,11 @@ module mo_phase_trans
           diag%phase_trans_rates(3*n_scalars+ji) = -state%rho(ji,4)/dtime
                 
           ! the vanishing of water vapour through the phase transition
-          a = -r_v*phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji-1)
+          a = -r_v*phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji)
           b = r_v*diag%temperature(ji) - r_v*state%rho(ji,n_condensed_constituents+2) &
-          *phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji-1) &
+          *phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji) &
           + enhancement_factor*dsaturation_pressure_over_ice_dT(diag%temperature(ji)) &
-          *phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji-1)
+          *phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji)
           c = water_vapour_pressure - saturation_pressure
           p = b/a
           q = c/a
