@@ -42,15 +42,19 @@ time_to_next_analysis_min=-1
 /
 
 &constituents
+lmoist=.true.
 /
 
 &diff
 /
 
 &rad
+rad_config=0
 /
 
 &surface
+lprog_soil_temp=.true.
+lsfc_sensible_heat_flux=.true.
 /
 
 EOF

@@ -33,7 +33,7 @@ if write_out_dry_mass_integral == 1:
 	data = np.genfromtxt(output_dir + "/masses")
 	no_of_constituents = len(data[0, :]) - 1
 	if no_of_constituents == 1:
-		dry_mass_vector = data[0, 1]
+		dry_mass_vector = data[:, 1]
 		plt.plot(time_vector, 100.0*(dry_mass_vector/dry_mass_vector - 1.0))
 		plt.legend(["Dry mass"])
 	if no_of_constituents == 6:

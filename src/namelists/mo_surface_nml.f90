@@ -13,7 +13,7 @@ module mo_surface_nml
   logical :: lprog_soil_temp         ! switch for prognostic soil temperature
   integer :: pbl_scheme              ! planetary boundary layer scheme: 0: off, 1: NWP, 2: Held-Suarez
   
-  namelist /surface/nsoillays,lsfc_phase_trans,lprog_soil_temp,pbl_scheme
+  namelist /surface/nsoillays,lprog_soil_temp,lsfc_phase_trans,lsfc_sensible_heat_flux,pbl_scheme
   
   contains
   
@@ -24,9 +24,9 @@ module mo_surface_nml
     
     ! default values
     nsoillays = 5
+    lprog_soil_temp = .true.
     lsfc_phase_trans = .true.
     lsfc_sensible_heat_flux = .true.
-    lprog_soil_temp = .true.
     pbl_scheme = 1
     
     ! open and read namelist file
