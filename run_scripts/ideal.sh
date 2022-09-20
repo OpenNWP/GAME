@@ -46,15 +46,23 @@ lmoist=.true.
 /
 
 &diff
+lmom_diff_h=.true.
+lmom_diff_v=.true.
+ltemp_diff_h=.true.
+ltemp_diff_v=.true.
+lmass_diff_h=.true.
+lmass_diff_v=.true.
 /
 
 &rad
-rad_config=0
+rad_config=2
 /
 
 &surface
 lprog_soil_temp=.true.
 lsfc_sensible_heat_flux=.true.
+lsfc_sensible_heat_flux=.true.
+pbl_scheme=1
 /
 
 EOF
