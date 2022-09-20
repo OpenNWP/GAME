@@ -3,7 +3,7 @@
 
 module mo_tke
 
-  ! In this module, the TKE tendency is computed.
+  ! In this module, the TKE is updated.
 
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,           only: n_scalars,n_vectors,n_edges

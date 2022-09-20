@@ -45,10 +45,8 @@ module mo_pbl
         + (diag%v_squared(n_scalars - n_cells + grid%to_cell(ji)))**0.5_wp)
         z_agl = grid%z_vector(vector_index) - 0.5_wp*(grid%z_vector(n_vectors - n_cells + grid%from_cell(ji)) &
         + grid%z_vector(n_vectors - n_cells + grid%to_cell(ji)))
-        layer_thickness = 0.5_wp*(grid%z_vector(n_vectors - n_cells - n_vectors_per_layer + grid%from_cell(ji)) &
-        + grid%z_vector(n_vectors - n_cells - n_vectors_per_layer + grid%to_cell(ji))) &
-        - 0.5_wp*(grid%z_vector(n_vectors - n_cells + grid%from_cell(ji)) &
-        + grid%z_vector(n_vectors - n_cells + grid%to_cell(ji)))
+        layer_thickness = 0.5_wp*(grid%layer_thickness(n_scalars - n_cells + grid%from_cell(ji)) &
+                                  + grid%layer_thickness(n_scalars - n_cells + grid%to_cell(ji)))
         roughness_length_value = 0.5_wp*(grid%roughness_length(grid%from_cell(ji)) + grid%roughness_length(grid%to_cell(ji)))
         monin_obukhov_length_value = 0.5_wp*(diag%monin_obukhov_length(grid%from_cell(ji)) &
                                              + diag%monin_obukhov_length(grid%to_cell(ji)))

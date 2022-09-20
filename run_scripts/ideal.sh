@@ -24,7 +24,7 @@ cat > namelist.nml << EOF
 &grid
 res_id=5
 n_layers=26
-oro_id=0
+oro_id=1
 /
 
 &run
@@ -42,27 +42,27 @@ time_to_next_analysis_min=-1
 /
 
 &constituents
-lmoist=.false.
+lmoist=.true.
 /
 
 &diff
 lmom_diff_h=.true.
-lmom_diff_v=.false.
-ltemp_diff_h=.false.
-ltemp_diff_v=.false.
-lmass_diff_h=.false.
-lmass_diff_v=.false.
+lmom_diff_v=.true.
+ltemp_diff_h=.true.
+ltemp_diff_v=.true.
+lmass_diff_h=.true.
+lmass_diff_v=.true.
 /
 
 &rad
-rad_config=0
+rad_config=1
 /
 
 &surface
 lprog_soil_temp=.false.
 lsfc_sensible_heat_flux=.false.
 lsfc_sensible_heat_flux=.false.
-pbl_scheme=0
+pbl_scheme=1
 /
 
 EOF
