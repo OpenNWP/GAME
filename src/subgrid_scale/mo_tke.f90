@@ -3,7 +3,7 @@
 
 module mo_tke
 
-  ! In this module, turbulence-related quantities are computed.
+  ! In this module, the TKE tendency is computed.
 
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,           only: n_scalars,n_vectors,n_edges
@@ -22,9 +22,9 @@ module mo_tke
   
     ! This subroutine updates the specific turbulent kinetic energy (TKE), unit: J/kg.
     
-    type(t_state), intent(in)    :: state
-    type(t_diag),  intent(inout) :: diag
-    type(t_grid),  intent(in)    :: grid
+    type(t_state), intent(in)    :: state ! state variables
+    type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
     integer  :: ji
