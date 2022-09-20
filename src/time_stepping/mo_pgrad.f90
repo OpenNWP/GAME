@@ -11,7 +11,6 @@ module mo_pgrad
   use mo_gradient_operators, only: grad
   use mo_multiplications,    only: scalar_times_vector,scalar_times_vector_v
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
-  use mo_derived,            only: density_total
 
   implicit none
   
@@ -64,7 +63,7 @@ module mo_pgrad
     !$omp parallel do private(ji)
     do ji=1,n_scalars
       diag%pressure_gradient_decel_factor(ji) = state%rho(ji,n_condensed_constituents+1)/ &
-                                                density_total(state%rho,ji)
+                                                sum(state%rho(ji,:))
     enddo
     !$omp end parallel do
     call scalar_times_vector(diag%pressure_gradient_decel_factor,diag%pressure_gradient_acc_neg_nl, &
@@ -97,7 +96,7 @@ module mo_pgrad
     !$omp parallel do private(ji)
     do ji=1,n_scalars
       diag%pressure_gradient_decel_factor(ji) = state%rho(ji,n_condensed_constituents+1) &
-                                                /density_total(state%rho,ji) - 1._wp
+                                                /sum(state%rho(ji,:)) - 1._wp
     enddo
     !$omp end parallel do
     call scalar_times_vector_v(diag%pressure_gradient_decel_factor,grid%gravity_m,diag%pressure_grad_condensates_v)

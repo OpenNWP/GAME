@@ -63,27 +63,6 @@ module mo_derived
     calc_diffusion_coeff = 1.0_wp/3.0_wp*thermal_velocity*mean_free_path
     
   end function calc_diffusion_coeff
-  
-  function density_total(rho,ji)
-  
-    ! This function calculates the total density of the air at a certain gridpoint.
-    
-    ! input arguments
-    real(wp),intent(in) :: rho(n_scalars,n_constituents) ! density field
-    integer, intent(in) :: ji                            ! indices of the gridpoint
-    ! output
-    real(wp)            :: density_total ! the result
-    
-    ! local variables
-    integer :: jc
-    
-    density_total = 0._wp
-    
-    do jc=1,n_constituents
-      density_total = density_total + rho(ji,jc)
-    enddo
-    
-  end function density_total
 
   subroutine temperature_diagnostics(state,diag,grid)
     

@@ -10,7 +10,6 @@ module mo_momentum_diff_diss
   use mo_grid_nml,           only: n_scalars,n_vectors,n_cells,n_h_vectors, &
                                    n_dual_vectors_per_layer,n_dual_scalars_h,n_dual_vectors,n_edges, &
                                    n_layers,n_vectors_per_layer,n_dual_v_vectors,n_v_vectors
-  use mo_derived,            only: density_total
   use mo_constituents_nml,   only: n_constituents
   use mo_inner_product,      only: inner_product
   use mo_divergences,        only: div_h,add_vertical_div
@@ -82,7 +81,7 @@ module mo_momentum_diff_diss
         scalar_index_to = layer_index*n_cells + grid%to_cell(h_index)
         diag%friction_acc(vector_index) = &
         (diag%vector_placeholder(vector_index) - diag%curl_of_vorticity(vector_index)) &
-        /(0.5_wp*(density_total(state%rho,scalar_index_from) + density_total(state%rho,scalar_index_to)))
+        /(0.5_wp*(sum(state%rho(scalar_index_from,:)) + sum(state%rho(scalar_index_to,:))))
       enddo
     enddo
     !$omp end parallel do
@@ -141,8 +140,8 @@ module mo_momentum_diff_diss
       delta_z = z_upper - z_lower
       diag%friction_acc(vector_index) = diag%friction_acc(vector_index) &
       + (diag%vert_hor_viscosity(ji)*diag%dv_hdz(ji)-diag%vert_hor_viscosity(ji+n_edges)*diag%dv_hdz(ji+n_edges))/delta_z &
-      /(0.5_wp*(density_total(state%rho,layer_index*n_cells + grid%from_cell(h_index)) &
-      + density_total(state%rho,layer_index*n_cells + grid%to_cell(h_index))))
+      /(0.5_wp*(sum(state%rho(layer_index*n_cells + grid%from_cell(h_index),:)) &
+      + sum(state%rho(layer_index*n_cells + grid%to_cell(h_index),:))))
     enddo
     
     ! 2.) vertical diffusion of vertical velocity
@@ -203,8 +202,8 @@ module mo_momentum_diff_diss
       + diag%scalar_placeholder(h_index + (layer_index+1)*n_cells))
       ! dividing by the density
       diag%friction_acc(vector_index) = diag%friction_acc(vector_index) &
-      /(0.5_wp*(density_total(state%rho,h_index+layer_index*n_cells) &
-      + density_total(state%rho,h_index+(layer_index+1)*n_cells)))
+      /(0.5_wp*(sum(state%rho(h_index+layer_index*n_cells,:)) &
+      + sum(state%rho(h_index+(layer_index+1)*n_cells,:))))
     enddo
     !$omp end parallel do
   
@@ -314,7 +313,7 @@ module mo_momentum_diff_diss
     call inner_product(state%wind,diag%friction_acc,diag%heating_diss,grid)
     !$omp parallel do private(ji)
     do ji=1,n_scalars
-      diag%heating_diss(ji) = -density_total(state%rho,ji)*diag%heating_diss(ji)
+      diag%heating_diss(ji) = -sum(state%rho(ji,:))*diag%heating_diss(ji)
     enddo
     !$omp end parallel do
   
