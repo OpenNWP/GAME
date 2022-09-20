@@ -31,7 +31,7 @@ module mo_pgrad
     
     ! 2.) the nonlinear pressure gradient term
     ! Before calculating the pressure gradient acceleration, the old one must be saved for extrapolation.
-    if (.not.ltotally_first_step) then
+    if (.not. ltotally_first_step) then
       !$omp parallel do private(ji)
       do ji=1,n_vectors
         diag%pgrad_acc_old(ji) = -diag%pressure_gradient_acc_neg_nl(ji) - diag%pressure_gradient_acc_neg_l(ji)

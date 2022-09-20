@@ -41,7 +41,7 @@ module mo_vorticity_flux
           ! "Standard" component (vertical potential vorticity times horizontal mass flux density).
           ! ---------------------------------------------------------------------------------------
           ! from_cell comes before to_cell as usual.
-          if (grid%from_cell(h_index_shifted)<n_pentagons) then
+          if (grid%from_cell(h_index_shifted)<=n_pentagons) then
             do jk=1,4
               diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
               + grid%trsk_weights(h_index_shifted,jk) &
@@ -65,7 +65,7 @@ module mo_vorticity_flux
               endif
             enddo
           endif
-          if (grid%to_cell(h_index_shifted)<n_pentagons) then
+          if (grid%to_cell(h_index_shifted)<=n_pentagons) then
             do jk=6,10
               diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
               + grid%trsk_weights(h_index_shifted,jk) &

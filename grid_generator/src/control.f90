@@ -291,7 +291,6 @@ program control
   vorticity_indices_triangles = vorticity_indices_triangles+1
   to_cell_dual = to_cell_dual+1
   from_cell_dual = from_cell_dual+1
-  vorticity_signs_triangles = vorticity_signs_triangles+1
   density_to_rhombi_indices = density_to_rhombi_indices+1
   !$omp end parallel workshare
   
