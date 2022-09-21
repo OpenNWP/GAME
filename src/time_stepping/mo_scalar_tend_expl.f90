@@ -75,8 +75,7 @@ module mo_scalar_tend_expl
         ! The diffusion of the tracer density depends on its gradient.
         call grad(state_scalar%rho(:,:,jc),diag%vector_placeholder,grid)
         ! Now the diffusive mass flux density can be obtained.
-        call scalar_times_vector_h(diag%mass_diffusion_coeff_numerical_h, &
-                                   diag%vector_placeholder,diag%vector_placeholder,grid)
+        call scalar_times_vector_h(diag%mass_diffusion_coeff_numerical_h,diag%vector_placeholder,diag%vector_placeholder,grid)
         ! The divergence of the diffusive mass flux density is the diffusive mass source rate.
         call div_h(diag%vector_placeholder,diag%mass_diff_tendency(:,:,jc),grid)
         ! vertical mass diffusion

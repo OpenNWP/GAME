@@ -25,17 +25,12 @@ module mo_pgrad
     type(t_grid),  intent(inout) :: grid
     logical,       intent(in)    :: ltotally_first_step
     
-    ! local variables
-    integer :: ji
-    
     ! 2.) the nonlinear pressure gradient term
     ! Before calculating the pressure gradient acceleration, the old one must be saved for extrapolation.
     if (.not. ltotally_first_step) then
-      !$omp parallel do private(ji)
-      do ji=1,n_vectors
-        diag%pgrad_acc_old(ji) = -diag%pressure_gradient_acc_neg_nl(ji) - diag%pressure_gradient_acc_neg_l(ji)
-      enddo
-      !$omp end parallel do
+      !$omp parallel workshare
+      diag%pgrad_acc_old = -diag%pressure_gradient_acc_neg_nl - diag%pressure_gradient_acc_neg_l
+      !$omp end parallel workshare
     endif
     
     ! multiplying c_p by the full potential tempertature
@@ -43,16 +38,14 @@ module mo_pgrad
     diag%scalar_placeholder = c_d_p*(grid%theta_v_bg+state%theta_v_pert)
     !$omp end parallel workshare
     call grad(state%exner_pert,diag%pressure_gradient_acc_neg_nl,grid)
-    call scalar_times_vector(diag%scalar_placeholder,diag%pressure_gradient_acc_neg_nl, &
-                             diag%pressure_gradient_acc_neg_nl,grid)
+    call scalar_times_vector(diag%scalar_placeholder,diag%pressure_gradient_acc_neg_nl,diag%pressure_gradient_acc_neg_nl,grid)
       
     ! 3.) the linear pressure gradient term
     ! -------------------------------------
     !$omp parallel workshare
     diag%scalar_placeholder = c_d_p*state%theta_v_pert
     !$omp end parallel workshare
-    call scalar_times_vector(diag%scalar_placeholder,grid%exner_bg_grad, &
-                             diag%pressure_gradient_acc_neg_l,grid)
+    call scalar_times_vector(diag%scalar_placeholder,grid%exner_bg_grad,diag%pressure_gradient_acc_neg_l,grid)
     
     ! 4.) The pressure gradient has to get a deceleration factor due to condensates.
     ! ------------------------------------------------------------------------------
@@ -67,11 +60,9 @@ module mo_pgrad
     
     ! at the very fist step, the old time step pressure gradient acceleration must be saved here
     if (ltotally_first_step) then
-      !$omp parallel do private(ji)
-      do ji=1,n_vectors
-        diag%pgrad_acc_old(ji) = -diag%pressure_gradient_acc_neg_nl(ji) -diag%pressure_gradient_acc_neg_l(ji)
-      enddo
-      !$omp end parallel do
+      !$omp parallel workshare
+      diag%pgrad_acc_old = -diag%pressure_gradient_acc_neg_nl - diag%pressure_gradient_acc_neg_l
+      !$omp end parallel workshare
     endif
     
   end subroutine manage_pressure_gradient

@@ -26,9 +26,9 @@ module mo_phase_trans
     ! It assumes the following order for the constituents:
     ! precipitating ice - precipitating liquid water - cloud ice - liquid cloud water - moist air - water vapour
     
-    type(t_state), intent(in)    :: state
-    type(t_diag),  intent(inout) :: diag
-    type(t_grid),  intent(in)    :: grid
+    type(t_state), intent(in)    :: state ! the state which to use for computing the phase transition rates
+    type(t_diag),  intent(inout) :: diag  ! the diagnostic quantities
+    type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
     integer  :: ji,jl
