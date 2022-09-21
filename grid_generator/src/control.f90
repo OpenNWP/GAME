@@ -38,7 +38,7 @@ program control
                            normal_distance_dual_id,area_dual_id,f_vec_id,to_cell_id,layer_dimid,dimid_8, &
                            from_cell_id,to_cell_dual_id,from_cell_dual_id,adjacent_edges_id,trsk_indices_id, &
                            trsk_modified_curl_indices_id,adjacent_signs_id,dimid_10,dimid_5,dimid_4, &
-                           vorticity_signs_triangles_id,f_vec_dimid,scalar_dimid,cell_dimid,scalar_dual_h_dimid, &
+                           vorticity_signs_triangles_id,f_vec_dimid,cell_dimid,scalar_dual_h_dimid, &
                            vector_dimid,lat_dimid,lon_dimid,edge_dimid, &
                            vector_v_dimid_6,vector_dual_dimid,gravity_potential_id, &
                            vector_dual_area_dimid,dimid_3, &
@@ -52,15 +52,15 @@ program control
                            vorticity_indices_triangles(:,:),vorticity_indices_rhombi(:,:),to_cell_dual(:),from_cell_dual(:), &
                            adjacent_signs(:,:),vorticity_signs_triangles(:,:),density_to_rhombi_indices(:,:), &
                            interpol_indices(:,:,:),is_land(:)
-  real(wp), allocatable :: x_unity(:),y_unity(:),z_unity(:),lat_c(:),lon_c(:),z_scalar(:), &
-                           gravity_potential(:), &
+  real(wp), allocatable :: x_unity(:),y_unity(:),z_unity(:),lat_c(:),lon_c(:),z_scalar(:,:), &
+                           gravity_potential(:,:), &
                            z_vector(:),normal_distance(:),lat_e(:),lon_e(:),direction(:),volume(:,:), &
                            area(:),trsk_weights(:,:),lat_c_dual(:),lon_c_dual(:),z_scalar_dual(:), &
                            z_vector_dual(:), &
                            normal_distance_dual(:),direction_dual(:),area_dual(:),f_vec(:),triangle_face_unit_sphere(:), &
                            pent_hex_face_unity_sphere(:),rel_on_line_dual(:),inner_product_weights(:,:,:), &
                            density_to_rhombi_weights(:,:), &
-                           interpol_weights(:,:,:),exner_bg(:),theta_v_bg(:),oro(:),roughness_length(:),sfc_albedo(:), &
+                           interpol_weights(:,:,:),exner_bg(:,:),theta_v_bg(:,:),oro(:),roughness_length(:),sfc_albedo(:), &
                            sfc_rho_c(:),t_conductivity(:)
   real(wp)              :: lat_ico(12),lon_ico(12),min_oro,max_oro
   integer               :: edge_vertices(30,2),face_vertices(20,3),face_edges(20,3),face_edges_reverse(20,3)
@@ -84,8 +84,8 @@ program control
   allocate(z_unity(n_cells))
   allocate(lat_c(n_cells))
   allocate(lon_c(n_cells))
-  allocate(z_scalar(n_scalars))
-  allocate(gravity_potential(n_scalars))
+  allocate(z_scalar(n_cells,n_layers))
+  allocate(gravity_potential(n_cells,n_layers))
   allocate(z_vector(n_vectors))
   allocate(normal_distance(n_vectors))
   allocate(lat_e(n_edges))
@@ -108,8 +108,8 @@ program control
   allocate(inner_product_weights(n_cells,n_layers,8))
   allocate(density_to_rhombi_weights(n_edges,4))
   allocate(interpol_weights(n_lat_io_points,n_lon_io_points,5))
-  allocate(exner_bg(n_scalars))
-  allocate(theta_v_bg(n_scalars))
+  allocate(exner_bg(n_cells,n_layers))
+  allocate(theta_v_bg(n_cells,n_layers))
   allocate(oro(n_cells))
   allocate(roughness_length(n_cells))
   allocate(sfc_albedo(n_cells))
@@ -296,7 +296,6 @@ program control
   
   write(*,*) "Starting to write to output file ..."
   call nc_check(nf90_create(trim(output_file),NF90_CLOBBER,ncid_g_prop))
-  call nc_check(nf90_def_dim(ncid_g_prop,"scalar_index",n_scalars,scalar_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_8_index",8*n_scalars,scalar_8_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_2_index",2*n_scalars,scalar_2_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"cell_index",n_cells,cell_dimid))
@@ -330,12 +329,20 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"lon_c",NF90_REAL,cell_dimid,lon_c_id))
   call nc_check(nf90_def_var(ncid_g_prop,"lat_c_dual",NF90_REAL,scalar_dual_h_dimid,lat_c_dual_id))
   call nc_check(nf90_def_var(ncid_g_prop,"lon_c_dual",NF90_REAL,scalar_dual_h_dimid,lon_c_dual_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"z_scalar",NF90_REAL,scalar_dimid,z_scalar_id))
+  dimids_vector_2(1) = cell_dimid
+  dimids_vector_2(2) = layer_dimid
+  call nc_check(nf90_def_var(ncid_g_prop,"z_scalar",NF90_REAL,dimids_vector_2,z_scalar_id))
   call nc_check(nf90_put_att(ncid_g_prop,z_scalar_id,"units","m"))
-  call nc_check(nf90_def_var(ncid_g_prop,"theta_v_bg",NF90_REAL,scalar_dimid,theta_v_bg_id))
+  dimids_vector_2(1) = cell_dimid
+  dimids_vector_2(2) = layer_dimid
+  call nc_check(nf90_def_var(ncid_g_prop,"theta_v_bg",NF90_REAL,dimids_vector_2,theta_v_bg_id))
   call nc_check(nf90_put_att(ncid_g_prop,theta_v_bg_id,"units","K"))
-  call nc_check(nf90_def_var(ncid_g_prop,"exner_bg",NF90_REAL,scalar_dimid,exner_bg_id))
-  call nc_check(nf90_def_var(ncid_g_prop,"gravity_potential",NF90_REAL,scalar_dimid,gravity_potential_id))
+  dimids_vector_2(1) = cell_dimid
+  dimids_vector_2(2) = layer_dimid
+  call nc_check(nf90_def_var(ncid_g_prop,"exner_bg",NF90_REAL,dimids_vector_2,exner_bg_id))
+  dimids_vector_2(1) = cell_dimid
+  dimids_vector_2(2) = layer_dimid
+  call nc_check(nf90_def_var(ncid_g_prop,"gravity_potential",NF90_REAL,dimids_vector_2,gravity_potential_id))
   call nc_check(nf90_put_att(ncid_g_prop,gravity_potential_id,"units","m^2/s^2"))
   call nc_check(nf90_def_var(ncid_g_prop,"z_vector",NF90_REAL,vector_dimid,z_vector_id))
   call nc_check(nf90_put_att(ncid_g_prop,z_vector_id,"units","m"))

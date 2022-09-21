@@ -22,7 +22,7 @@ module mo_vertical_grid
 
     ! This function sets the z coordinates of the scalar data points.
     
-    real(wp), intent(out) :: z_scalar(n_scalars)
+    real(wp), intent(out) :: z_scalar(n_cells,n_layers)
     real(wp), intent(in)  :: oro(n_cells)
     real(wp), intent(in)  :: max_oro
     
@@ -60,7 +60,7 @@ module mo_vertical_grid
     
       ! placing the scalar points in the middle between the preliminary values of the adjacent levels
       do layer_index=0,n_layers-1
-        z_scalar(layer_index*n_cells+h_index) = 0.5_wp*( &
+        z_scalar(h_index,layer_index+1) = 0.5_wp*( &
         z_vertical_vector_pre(layer_index+1)+z_vertical_vector_pre(layer_index+2))
       enddo
     enddo
@@ -71,17 +71,13 @@ module mo_vertical_grid
   subroutine set_gravity_potential(z_scalar,gravity_potential)
 
     ! This subroutine computes the gravity potential.
-    real(wp), intent(in)  :: z_scalar(n_scalars)
-    real(wp), intent(out) :: gravity_potential(n_scalars)
-  
-    ! local variables
-    integer :: ji
     
-    !$omp parallel do private(ji)
-    do ji=1,n_scalars
-      gravity_potential(ji) = -gravity*(radius**2/(radius+z_scalar(ji))-radius)
-    enddo
-    !$omp end parallel do
+    real(wp), intent(in)  :: z_scalar(n_cells,n_layers)
+    real(wp), intent(out) :: gravity_potential(n_cells,n_layers)
+    
+    !$omp parallel workshare
+    gravity_potential = -gravity*(radius**2/(radius+z_scalar)-radius)
+    !$omp end parallel workshare
     
   end subroutine set_gravity_potential
   
@@ -236,8 +232,8 @@ module mo_vertical_grid
 
     ! This subroutine sets the hydrostatic background state.
     
-    real(wp), intent(in)  :: z_scalar(n_scalars),gravity_potential(n_scalars)
-    real(wp), intent(out) :: theta_v_bg(n_scalars),exner_bg(n_scalars)
+    real(wp), intent(in)  :: z_scalar(n_cells,n_layers),gravity_potential(n_scalars)
+    real(wp), intent(out) :: theta_v_bg(n_cells,n_layers),exner_bg(n_cells,n_layers)
   
     ! local variables
     integer  :: h_index,layer_index,scalar_index
@@ -248,21 +244,21 @@ module mo_vertical_grid
       ! integrating from bottom to top
       do layer_index=n_layers-1,0,-1
         scalar_index = layer_index*n_cells+h_index
-        temperature = standard_temp(z_scalar(scalar_index))
+        temperature = standard_temp(z_scalar(h_index,layer_index+1))
         ! lowest layer
         if (layer_index==n_layers-1) then
-          pressure = standard_pres(z_scalar(scalar_index))
-          exner_bg(scalar_index) = (pressure/p_0)**(r_d/c_d_p)
-          theta_v_bg(scalar_index) = temperature/exner_bg(scalar_index)
+          pressure = standard_pres(z_scalar(h_index,layer_index+1))
+          exner_bg(h_index,layer_index+1) = (pressure/p_0)**(r_d/c_d_p)
+          theta_v_bg(h_index,layer_index+1) = temperature/exner_bg(h_index,layer_index+1)
         ! other layers
         else
           ! solving a quadratic equation for the Exner pressure
-          b = -0.5_wp*exner_bg(scalar_index + n_cells)/standard_temp(z_scalar(scalar_index+n_cells)) &
-          *(temperature - standard_temp(z_scalar(scalar_index + n_cells)) &
+          b = -0.5_wp*exner_bg(h_index,layer_index+2)/standard_temp(z_scalar(h_index,layer_index+2)) &
+          *(temperature - standard_temp(z_scalar(h_index,layer_index+2)) &
           + 2._wp/c_d_p*(gravity_potential(scalar_index) - gravity_potential(scalar_index+n_cells)))
-          c = exner_bg(scalar_index+n_cells)**2*temperature/standard_temp(z_scalar(scalar_index+n_cells))
-          exner_bg(scalar_index) = b + (b**2 + c)**0.5_wp
-          theta_v_bg(scalar_index) = temperature/exner_bg(scalar_index)
+          c = exner_bg(h_index,layer_index+2)**2*temperature/standard_temp(z_scalar(h_index,layer_index+2))
+          exner_bg(h_index,layer_index+1) = b + (b**2 + c)**0.5_wp
+          theta_v_bg(h_index,layer_index+1) = temperature/exner_bg(h_index,layer_index+1)
         endif
       enddo
     enddo
@@ -304,16 +300,16 @@ module mo_vertical_grid
     ! This subroutine calculates the vertical position of the vector points as well as the normal distances of the primal grid.
   
     real(wp), intent(out) :: z_vector(n_vectors),normal_distance(n_vectors)
-    real(wp), intent(in)  :: z_scalar(n_scalars),lat_c(n_cells),lon_c(n_cells),oro(n_cells)
+    real(wp), intent(in)  :: z_scalar(n_cells,n_layers),lat_c(n_cells),lon_c(n_cells),oro(n_cells)
     integer,  intent(in)  :: from_cell(n_edges),to_cell(n_edges)
   
-    integer               :: ji,layer_index,h_index,upper_index,lower_index
+    integer               :: ji,layer_index,h_index
     real(wp)              :: min_thick,max_thick,thick_rel
     real(wp), allocatable :: lowest_thicknesses(:)
     
     allocate(lowest_thicknesses(n_cells))
     
-    !$omp parallel do private(ji,layer_index,h_index,upper_index,lower_index)
+    !$omp parallel do private(ji,layer_index,h_index)
     do ji=1,n_vectors
       layer_index = (ji-1)/n_vectors_per_layer
       h_index = ji - layer_index*n_vectors_per_layer
@@ -321,8 +317,8 @@ module mo_vertical_grid
       if (h_index>=n_cells+1) then
         ! placing the vector vertically in the middle between the two adjacent scalar points
         z_vector(ji) &
-        = 0.5_wp*(z_scalar(layer_index*n_cells + 1 + from_cell(h_index - n_cells)) &
-        + z_scalar(layer_index*n_cells + 1 + to_cell(h_index - n_cells)))
+        = 0.5_wp*(z_scalar(1+from_cell(h_index - n_cells),layer_index+1) &
+        + z_scalar(1+to_cell(h_index - n_cells),layer_index+1))
         ! calculating the horizontal distance
         normal_distance(ji) &
         = calculate_distance_h( &
@@ -330,22 +326,20 @@ module mo_vertical_grid
         lat_c(1+to_cell(h_index - n_cells)), lon_c(1+to_cell(h_index - n_cells)), &
         radius + z_vector(ji))
       else
-        upper_index = h_index + (layer_index - 1)*n_cells
-        lower_index = h_index + layer_index*n_cells
         ! highest level
         if (layer_index==0) then
           z_vector(ji) = toa
-          normal_distance(ji) = toa - z_scalar(lower_index)
+          normal_distance(ji) = toa - z_scalar(h_index,layer_index+1)
         ! lowest level
         elseif (layer_index==n_layers) then
           z_vector(ji) = oro(h_index)
-          normal_distance(ji) = z_scalar(upper_index) - z_vector(ji)
+          normal_distance(ji) = z_scalar(h_index,layer_index) - z_vector(ji)
           lowest_thicknesses(h_index) = z_vector(ji - n_vectors_per_layer) - z_vector(ji)
         ! inner levels
         else
-          normal_distance(ji) = z_scalar(upper_index) - z_scalar(lower_index)
+          normal_distance(ji) = z_scalar(h_index,layer_index) - z_scalar(h_index,layer_index+1)
           ! placing the vertical vector in the middle between the two adjacent scalar points
-          z_vector(ji) = z_scalar(lower_index) + 0.5_wp*normal_distance(ji)
+          z_vector(ji) = z_scalar(h_index,layer_index+1) + 0.5_wp*normal_distance(ji)
         endif
       endif
     enddo

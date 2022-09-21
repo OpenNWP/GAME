@@ -8,7 +8,7 @@ module mo_coriolis
   use mo_definitions,     only: wp
   use mo_constants,       only: EPSILON_SECURITY
   use mo_grid_nml,        only: radius,n_edges,n_dual_vectors,n_vectors,n_dual_scalars_h,n_cells, &
-                                n_pentagons,n_scalars
+                                n_pentagons,n_scalars,n_layers
   use mo_geodesy,         only: calc_triangle_area,sort_vertex_indices
   use mo_various_helpers, only: in_bool_checker
   
@@ -23,7 +23,7 @@ module mo_coriolis
     ! This subroutine implements the modified TRSK scheme proposed by Gassmann (2018). Indices and weights are computed here for the highest layer but remain unchanged elsewhere.
     
     real(wp), intent(in)  :: normal_distance(n_vectors),normal_distance_dual(n_dual_vectors),area(n_vectors), &
-                             z_scalar(n_scalars),lat_c(n_scalars),lon_c(n_scalars), &
+                             z_scalar(n_cells,n_layers),lat_c(n_scalars),lon_c(n_scalars), &
                              lat_e(n_vectors),lon_e(n_vectors), &
                              lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
                              z_vector(n_vectors)
@@ -43,7 +43,7 @@ module mo_coriolis
                 longitude_vertices(6),latitude_edges(6),longitude_edges(6),vector_of_areas(6), &
                 trsk_weights_pre(10),value_1,value_2,rescale_for_z_offset_1d,rescale_for_z_offset_2d
     
-    rescale_for_z_offset_1d = (radius+z_scalar(1))/(radius+z_vector(1))
+    rescale_for_z_offset_1d = (radius+z_scalar(1,1))/(radius+z_vector(1))
     rescale_for_z_offset_2d =rescale_for_z_offset_1d**2
     ! loop over all edges
     !$omp parallel do private(ji,jk,jl,jm,offset,sign_1,sign_2,n_edges_of_cell,index_offset,vertex_index_candidate_1, &
