@@ -39,33 +39,27 @@ module mo_pgrad
     endif
     
     ! multiplying c_p by the full potential tempertature
-    !$omp parallel do private(ji)
-    do ji=1,n_scalars
-      diag%scalar_placeholder(ji) = c_d_p*(grid%theta_v_bg(ji) + state%theta_v_pert(ji))
-    enddo
-    !$omp end parallel do
+    !$omp parallel workshare
+    diag%scalar_placeholder = c_d_p*(grid%theta_v_bg+state%theta_v_pert)
+    !$omp end parallel workshare
     call grad(state%exner_pert,diag%pressure_gradient_acc_neg_nl,grid)
     call scalar_times_vector(diag%scalar_placeholder,diag%pressure_gradient_acc_neg_nl, &
                              diag%pressure_gradient_acc_neg_nl,grid)
       
     ! 3.) the linear pressure gradient term
     ! -------------------------------------
-    !$omp parallel do private(ji)
-    do ji=1,n_scalars
-      diag%scalar_placeholder(ji) = c_d_p*state%theta_v_pert(ji)
-    enddo
-    !$omp end parallel do
+    !$omp parallel workshare
+    diag%scalar_placeholder = c_d_p*state%theta_v_pert
+    !$omp end parallel workshare
     call scalar_times_vector(diag%scalar_placeholder,grid%exner_bg_grad, &
                              diag%pressure_gradient_acc_neg_l,grid)
     
     ! 4.) The pressure gradient has to get a deceleration factor due to condensates.
     ! ------------------------------------------------------------------------------
-    !$omp parallel do private(ji)
-    do ji=1,n_scalars
-      diag%pressure_gradient_decel_factor(ji) = state%rho(ji,n_condensed_constituents+1)/ &
-                                                sum(state%rho(ji,1:n_condensed_constituents+1))
-    enddo
-    !$omp end parallel do
+    !$omp parallel workshare
+    diag%pressure_gradient_decel_factor = state%rho(:,:,n_condensed_constituents+1)/ &
+                                          sum(state%rho(:,:,1:n_condensed_constituents+1))
+    !$omp end parallel workshare
     call scalar_times_vector(diag%pressure_gradient_decel_factor,diag%pressure_gradient_acc_neg_nl, &
                              diag%pressure_gradient_acc_neg_nl,grid)
     call scalar_times_vector(diag%pressure_gradient_decel_factor,diag%pressure_gradient_acc_neg_l, &
@@ -90,15 +84,10 @@ module mo_pgrad
     type(t_diag),  intent(inout) :: diag
     type(t_grid),  intent(inout) :: grid
     
-    ! local variables
-    integer :: ji
-    
-    !$omp parallel do private(ji)
-    do ji=1,n_scalars
-      diag%pressure_gradient_decel_factor(ji) = state%rho(ji,n_condensed_constituents+1) &
-                                                /sum(state%rho(ji,1:n_condensed_constituents+1)) - 1._wp
-    enddo
-    !$omp end parallel do
+    !$omp parallel workshare
+    diag%pressure_gradient_decel_factor = state%rho(:,:,n_condensed_constituents+1) &
+                                          /sum(state%rho(:,:,1:n_condensed_constituents+1)) - 1._wp
+    !$omp end parallel workshare
     call scalar_times_vector_v(diag%pressure_gradient_decel_factor,grid%gravity_m,diag%pressure_grad_condensates_v)
   
   end subroutine calc_pressure_grad_condensates_v

@@ -81,8 +81,8 @@ module mo_momentum_diff_diss
         scalar_index_to = layer_index*n_cells + grid%to_cell(h_index)
         diag%friction_acc(vector_index) = &
         (diag%vector_placeholder(vector_index) - diag%curl_of_vorticity(vector_index)) &
-        /(0.5_wp*(sum(state%rho(scalar_index_from,1:n_condensed_constituents+1)) &
-                  + sum(state%rho(scalar_index_to,1:n_condensed_constituents+1))))
+        /(0.5_wp*(sum(state%rho(grid%from_cell(h_index),layer_index+1,1:n_condensed_constituents+1)) &
+                  + sum(state%rho(grid%to_cell(h_index),layer_index+1,1:n_condensed_constituents+1))))
       enddo
     enddo
     !$omp end parallel do
@@ -141,8 +141,8 @@ module mo_momentum_diff_diss
       delta_z = z_upper - z_lower
       diag%friction_acc(vector_index) = diag%friction_acc(vector_index) &
       + (diag%vert_hor_viscosity(ji)*diag%dv_hdz(ji)-diag%vert_hor_viscosity(ji+n_edges)*diag%dv_hdz(ji+n_edges))/delta_z &
-      /(0.5_wp*(sum(state%rho(layer_index*n_cells + grid%from_cell(h_index),1:n_condensed_constituents+1)) &
-      + sum(state%rho(layer_index*n_cells + grid%to_cell(h_index),1:n_condensed_constituents+1))))
+      /(0.5_wp*(sum(state%rho(grid%from_cell(h_index),layer_index+1,1:n_condensed_constituents+1)) &
+      + sum(state%rho(grid%to_cell(h_index),layer_index+1,1:n_condensed_constituents+1))))
     enddo
     
     ! 2.) vertical diffusion of vertical velocity
@@ -167,7 +167,7 @@ module mo_momentum_diff_diss
     do h_index=1,n_cells
       do layer_index=0,n_layers-1
         ji = layer_index*n_cells + h_index
-        diag%scalar_placeholder(ji) = &
+        diag%scalar_placeholder(h_index,layer_index+1) = &
         grid%inner_product_weights(h_index,layer_index+1,7)*state%wind(h_index + layer_index*n_vectors_per_layer) &
         + grid%inner_product_weights(h_index,layer_index+1,8)*state%wind(h_index + (layer_index+1)*n_vectors_per_layer)
       enddo
@@ -182,8 +182,8 @@ module mo_momentum_diff_diss
       do layer_index=0,n_layers-1
         vector_index = n_cells + h_index + layer_index*n_vectors_per_layer
         diag%vector_placeholder(vector_index) = 0.5_wp &
-        *(diag%viscosity(layer_index*n_cells + grid%from_cell(h_index)) &
-        + diag%viscosity(layer_index*n_cells + grid%to_cell(h_index))) &
+        *(diag%viscosity(grid%from_cell(h_index),layer_index+1) &
+        + diag%viscosity(grid%to_cell(h_index),layer_index+1)) &
         *diag%vector_placeholder(vector_index)
       enddo
     enddo
@@ -199,12 +199,12 @@ module mo_momentum_diff_diss
       vector_index = h_index + (layer_index+1)*n_vectors_per_layer
       ! finally adding the result
       diag%friction_acc(vector_index) = diag%friction_acc(vector_index) + 0.5_wp*( &
-      diag%scalar_placeholder(h_index + layer_index*n_cells) &
-      + diag%scalar_placeholder(h_index + (layer_index+1)*n_cells))
+      diag%scalar_placeholder(h_index,layer_index+1) &
+      + diag%scalar_placeholder(h_index,layer_index+2))
       ! dividing by the density
       diag%friction_acc(vector_index) = diag%friction_acc(vector_index) &
-      /(0.5_wp*(sum(state%rho(h_index+layer_index*n_cells,1:n_condensed_constituents+1)) &
-      + sum(state%rho(h_index+(layer_index+1)*n_cells,1:n_condensed_constituents+1))))
+      /(0.5_wp*(sum(state%rho(h_index,layer_index+1,1:n_condensed_constituents+1)) &
+      + sum(state%rho(h_index,layer_index+2,1:n_condensed_constituents+1))))
     enddo
     !$omp end parallel do
   
@@ -214,8 +214,8 @@ module mo_momentum_diff_diss
   
     ! This subroutine calculates the curl of the vertical vorticity.
     
-    type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
-    type(t_grid),  intent(in)    :: grid  ! grid quantities
+    type(t_diag), intent(inout) :: diag ! diagnostic quantities
+    type(t_grid), intent(in)    :: grid ! grid quantities
     
     ! local variables
     integer  :: ji,jk,layer_index,h_index,vector_index,upper_index_z,lower_index_z, &
@@ -231,10 +231,10 @@ module mo_momentum_diff_diss
       diag%curl_of_vorticity(vector_index) = 0._wp
       delta_z = 0._wp
       checkerboard_damping_weight = &
-      abs(diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + grid%to_cell_dual(h_index)) &
-      - diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + grid%from_cell_dual(h_index))) &
-      /(abs(diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + grid%to_cell_dual(h_index))) &
-      + abs(diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + grid%from_cell_dual(h_index))) + EPSILON_SECURITY)
+      abs(diag%rel_vort_on_triangles(grid%to_cell_dual(h_index),layer_index+1) &
+      - diag%rel_vort_on_triangles(grid%from_cell_dual(h_index),layer_index+1)) &
+      /(abs(diag%rel_vort_on_triangles(grid%to_cell_dual(h_index),layer_index+1)) &
+      + abs(diag%rel_vort_on_triangles(grid%from_cell_dual(h_index),layer_index+1)) + EPSILON_SECURITY)
       base_index = n_edges + layer_index*n_dual_vectors_per_layer
       ! horizontal difference of vertical vorticity (dzeta_z*dz)
       ! An averaging over three rhombi must be done.
@@ -261,9 +261,9 @@ module mo_momentum_diff_diss
       enddo
       ! adding the term damping the checkerboard pattern
       diag%curl_of_vorticity(vector_index) = diag%curl_of_vorticity(vector_index) &
-      + checkerboard_damping_weight*(diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + grid%to_cell_dual(h_index)) &
+      + checkerboard_damping_weight*(diag%rel_vort_on_triangles(grid%to_cell_dual(h_index),layer_index+1) &
       *grid%normal_distance_dual(base_index + grid%to_cell_dual(h_index)) &
-      - diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h + grid%from_cell_dual(h_index)) &
+      - diag%rel_vort_on_triangles(grid%from_cell_dual(h_index),layer_index+1) &
       *grid%normal_distance_dual(base_index + grid%from_cell_dual(h_index)))
       ! dividing by the area
       diag%curl_of_vorticity(vector_index) = diag%curl_of_vorticity(vector_index)/grid%area(vector_index)
@@ -309,12 +309,14 @@ module mo_momentum_diff_diss
     type(t_grid),  intent(in)    :: grid  ! grid properties
     
     ! local variables
-    integer :: ji ! horizontal index
+    integer :: ji,jl ! horizontal index
     
     call inner_product(state%wind,diag%friction_acc,diag%heating_diss,grid)
-    !$omp parallel do private(ji)
-    do ji=1,n_scalars
-      diag%heating_diss(ji) = -sum(state%rho(ji,1:n_condensed_constituents+1))*diag%heating_diss(ji)
+    !$omp parallel do private(ji,jl)
+    do ji=1,n_cells
+      do jl=1,n_layers
+        diag%heating_diss(ji,jl) = -sum(state%rho(ji,jl,1:n_condensed_constituents+1))*diag%heating_diss(ji,jl)
+      enddo
     enddo
     !$omp end parallel do
   

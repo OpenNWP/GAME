@@ -31,7 +31,7 @@ module mo_phase_trans
     type(t_grid),  intent(in)    :: grid
     
     ! local variables
-    integer  :: ji,layer_index,h_index
+    integer  :: ji,jl
     real(wp) :: diff_density,phase_trans_density,saturation_pressure,water_vapour_pressure, &
                 diff_density_sfc,saturation_pressure_sfc,dry_pressure,air_pressure, &
                 a,b,c,p,q,enhancement_factor,maximum_cloud_water_content
@@ -40,248 +40,248 @@ module mo_phase_trans
     maximum_cloud_water_content = 0.2e-3_wp
     
     ! loop over all grid boxes
-    !$omp parallel do private(ji,diff_density,phase_trans_density,saturation_pressure,water_vapour_pressure, &
-    !$omp layer_index,h_index,diff_density_sfc,saturation_pressure_sfc,dry_pressure,air_pressure, &
+    !$omp parallel do private(ji,jl,diff_density,phase_trans_density,saturation_pressure,water_vapour_pressure, &
+    !$omp diff_density_sfc,saturation_pressure_sfc,dry_pressure,air_pressure, &
     !$omp a,b,c,p,q,enhancement_factor)
-    do ji=1,n_scalars
-      ! Preparation
-      ! -----------
-      layer_index = (ji-1)/n_cells
-      
-      ! determining the saturation pressure
-      ! "positive" temperatures (the saturation pressure is different over water compared to over ice)
-      if (diag%temperature(ji)>=t_0) then
-        saturation_pressure = saturation_pressure_over_water(diag%temperature(ji))
-      ! "negative" temperatures
-      else
-        saturation_pressure = saturation_pressure_over_ice(diag%temperature(ji))
-      endif
-      
-      ! determining the water vapour pressure (using the EOS)
-      water_vapour_pressure = state%rho(ji,n_condensed_constituents+2)*r_v*diag%temperature(ji)
-      
-      ! determining the water vapour pressure (using the EOS)
-      dry_pressure = (state%rho(ji,n_condensed_constituents+1) - state%rho(ji,n_condensed_constituents+2)) &
-      *r_d*diag%temperature(ji)
+    do ji=1,n_cells
+      do jl=1,n_layers
+        ! Preparation
+        ! -----------
         
-      ! calculating the total air pressure
-      air_pressure = dry_pressure + water_vapour_pressure
-        
-      ! multiplying the saturation pressure by the enhancement factor
-      if (diag%temperature(ji)>=t_0) then
-        enhancement_factor = enhancement_factor_over_water(air_pressure)
-      ! "negative" temperatures
-      else
-        enhancement_factor = enhancement_factor_over_ice(air_pressure)
-      endif
-      
-      saturation_pressure = enhancement_factor*saturation_pressure
-        
-      ! Clouds
-      ! ------
-      ! the case where the air is not over-saturated
-      if (saturation_pressure>=water_vapour_pressure) then
-        ! temperature>=0° C
-        if (diag%temperature(ji)>=t_0) then
-          ! It is assumed that the still present ice vanishes within one time step.
-          diag%phase_trans_rates(2*n_scalars+ji) = -state%rho(ji,3)/dtime
-                
-          ! The amount of liquid water per volume that will evaporate.
-          ! In case the air cannot take all the water, not everything will evaporate.
-          a = -r_v*phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji)
-          b = r_v*diag%temperature(ji) - r_v*state%rho(ji,n_condensed_constituents+2) &
-          *phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji) &
-          + enhancement_factor*dsaturation_pressure_over_water_dT(diag%temperature(ji)) &
-          *phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji)
-          c = water_vapour_pressure - saturation_pressure
-          p = b/a
-          q = c/a
-          diff_density = -0.5_wp*p - (0.25_wp*p**2 - q)**0.5_wp
-          phase_trans_density = min(state%rho(ji,4), diff_density)
-                
-          ! the tendency for the water vapour
-          diag%phase_trans_rates(4*n_scalars+ji) = phase_trans_density/dtime
-                
-          ! The source rate for the liquid water consists of two terms:
-          ! 1.) the melting
-          ! 2.) the evaporation
-                
-          diag%phase_trans_rates(3*n_scalars+ji) = state%rho(ji,3)/dtime - phase_trans_density/dtime
-                
-          ! the heat source rates
-          diag%phase_trans_heating_rate(ji) &
-          ! melting
-          = diag%phase_trans_rates(2*n_scalars+ji)*phase_trans_heat(2,diag%temperature(ji)) &
-          ! evaporation
-          - phase_trans_density*phase_trans_heat(0,diag%temperature(ji))/dtime
-        ! temperature<0° C
+        ! determining the saturation pressure
+        ! "positive" temperatures (the saturation pressure is different over water compared to over ice)
+        if (diag%temperature(ji,jl)>=t_0) then
+          saturation_pressure = saturation_pressure_over_water(diag%temperature(ji,jl))
+        ! "negative" temperatures
         else
-          ! It is assumed that the still present liquid water vanishes within one time step.
-          diag%phase_trans_rates(3*n_scalars+ji) = -state%rho(ji,4)/dtime
-                
-          ! The amount of ice per volume that will sublimate.
-          ! In case the air cannot take all the water, not everything will sublimate.
-                
-          a = -r_v*phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji)
-          b = r_v*diag%temperature(ji) - r_v*state%rho(ji,n_condensed_constituents+2) &
-          *phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji) &
-          + enhancement_factor*dsaturation_pressure_over_ice_dT(diag%temperature(ji)) &
-          *phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji)
-          c = water_vapour_pressure - saturation_pressure
-          p = b/a
-          q = c/a
-          diff_density = -0.5_wp*p - (0.25_wp*p**2 - q)**0.5_wp
-          phase_trans_density = min(state%rho(ji,3), diff_density)
-                
-          ! the tendency for the water vapour
-          diag%phase_trans_rates(4*n_scalars+ji) = phase_trans_density/dtime
+          saturation_pressure = saturation_pressure_over_ice(diag%temperature(ji,jl))
+        endif
+        
+        ! determining the water vapour pressure (using the EOS)
+        water_vapour_pressure = state%rho(ji,jl,n_condensed_constituents+2)*r_v*diag%temperature(ji,jl)
+        
+        ! determining the water vapour pressure (using the EOS)
+        dry_pressure = (state%rho(ji,jl,n_condensed_constituents+1) - state%rho(ji,jl,n_condensed_constituents+2)) &
+        *r_d*diag%temperature(ji,jl)
           
-          ! the tendency for the ice contains two terms:
-          ! 1.) the freezing
-          ! 2.) the phase transition through sublimation
-          diag%phase_trans_rates(2*n_scalars+ji) = state%rho(ji,4)/dtime - phase_trans_density/dtime
-                
-          ! the heat source rates
-          diag%phase_trans_heating_rate(ji) &
-          ! the freezing
-          = -diag%phase_trans_rates(3*n_scalars+ji)*phase_trans_heat(2,diag%temperature(ji)) &
-          ! the sublimation
-          - phase_trans_density*phase_trans_heat(1,diag%temperature(ji))/dtime
+        ! calculating the total air pressure
+        air_pressure = dry_pressure + water_vapour_pressure
+          
+        ! multiplying the saturation pressure by the enhancement factor
+        if (diag%temperature(ji,jl)>=t_0) then
+          enhancement_factor = enhancement_factor_over_water(air_pressure)
+        ! "negative" temperatures
+        else
+          enhancement_factor = enhancement_factor_over_ice(air_pressure)
         endif
-      ! the case where the air is over-saturated
-      else
-        ! temperature>=0° C
-        if (diag%temperature(ji)>=t_0) then
-          ! It is assumed that the still present ice vanishes within one time step.
-          diag%phase_trans_rates(2*n_scalars+ji) = -state%rho(ji,3)/dtime
-                
-          ! the vanishing of water vapour through the phase transition
-          a = -r_v*phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji)
-          b = r_v*diag%temperature(ji) - r_v*state%rho(ji,n_condensed_constituents+2) &
-          *phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji) &
-          + enhancement_factor*dsaturation_pressure_over_water_dT(diag%temperature(ji)) &
-          *phase_trans_heat(0,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji)
-          c = water_vapour_pressure - saturation_pressure
-          p = b/a
-          q = c/a
-          diff_density = -0.5_wp*p - (0.25_wp*p**2 - q)**0.5_wp
-                
-          ! the tendency for the water vapour
-          diag%phase_trans_rates(4*n_scalars+ji) = diff_density/dtime
-                
-          ! The source rate for the liquid water consists of two terms:
-          ! 1.) the melting
-          ! 2.) the condensation
-          diag%phase_trans_rates(3*n_scalars+ji) = state%rho(ji,3)/dtime - diff_density/dtime
-                
-          ! the heat source rates
-          diag%phase_trans_heating_rate(ji) &
-          ! melting
-          = diag%phase_trans_rates(2*n_scalars+ji)*phase_trans_heat(2,diag%temperature(ji)) &
-          ! condensation
-          - diff_density*phase_trans_heat(0,diag%temperature(ji))/dtime
-        ! temperature<0° C
-        else   
-          ! It is assumed that the liquid water disappears within one time step.
-          diag%phase_trans_rates(3*n_scalars+ji) = -state%rho(ji,4)/dtime
-                
-          ! the vanishing of water vapour through the phase transition
-          a = -r_v*phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji)
-          b = r_v*diag%temperature(ji) - r_v*state%rho(ji,n_condensed_constituents+2) &
-          *phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji) &
-          + enhancement_factor*dsaturation_pressure_over_ice_dT(diag%temperature(ji)) &
-          *phase_trans_heat(1,diag%temperature(ji))/c_v_mass_weighted_air(state%rho,diag%temperature,ji)
-          c = water_vapour_pressure - saturation_pressure
-          p = b/a
-          q = c/a
-          diff_density = -0.5_wp*p - (0.25_wp*p**2 - q)**0.5_wp
-               
-          ! the tendency for the water vapour
-          diag%phase_trans_rates(4*n_scalars+ji) = diff_density/dtime
-            
-          ! The source rate for the cloud ice consists of two terms:
-          ! 1.) the freezing
-          ! 2.) the resublimation
-                
-          diag%phase_trans_rates(2*n_scalars+ji) = state%rho(ji,4)/dtime - diff_density/dtime
-                
-          ! the heat source rates
-          diag%phase_trans_heating_rate(ji) &
-          ! freezing
-          = -diag%phase_trans_rates(3*n_scalars+ji)*phase_trans_heat(2,diag%temperature(ji)) &
-          ! resublimation
-          - diff_density*phase_trans_heat(1,diag%temperature(ji))/dtime
-        endif
-      endif
-      
-      ! Precipitation
-      ! -------------
-      diag%phase_trans_rates(ji) = 0._wp
-      diag%phase_trans_rates(n_scalars+ji) = 0._wp
-      ! snow
-      if (diag%temperature(ji)<t_0) then
-        diag%phase_trans_rates(ji) = max(state%rho(ji,3) &
-                                         - maximum_cloud_water_content*state%rho(ji,5),0._wp)/1000._wp
-        ! the snow creation comes at the cost of cloud ice particles
-        diag%phase_trans_rates(2*n_scalars+ji) = diag%phase_trans_rates(2*n_scalars+ji) - diag%phase_trans_rates(ji)
-      ! rain
-      elseif (diag%temperature(ji)>=t_0) then
-        diag%phase_trans_rates(n_scalars+ji) = max(state%rho(ji,4) &
-                                          - maximum_cloud_water_content*state%rho(ji,5),0._wp)/1000._wp
-        ! the rain creation comes at the cost of cloud water particles
-        diag%phase_trans_rates(3*n_scalars+ji) = diag%phase_trans_rates(3*n_scalars+ji) - diag%phase_trans_rates(n_scalars+ji)
-      endif
         
-      ! turning of snow to rain
-      if (diag%temperature(ji)>=t_0 .and. state%rho(ji,1)>0._wp) then
-        diag%phase_trans_rates(ji) = -state%rho(ji,1)/dtime
-        diag%phase_trans_rates(n_scalars+ji) = diag%phase_trans_rates(n_scalars+ji) - diag%phase_trans_rates(ji)
-        diag%phase_trans_heating_rate(ji) = diag%phase_trans_heating_rate(ji) &
-                                            + diag%phase_trans_rates(ji)*phase_trans_heat(2,diag%temperature(ji))
-      endif
-      ! turning of rain to snow
-      if (diag%temperature(ji)<t_0 .and. state%rho(ji,2)>0._wp) then
-        diag%phase_trans_rates(n_scalars+ji) = -state%rho(ji,2)/dtime
-        diag%phase_trans_rates(ji) = diag%phase_trans_rates(ji) - diag%phase_trans_rates(n_scalars+ji)
-        diag%phase_trans_heating_rate(ji) = diag%phase_trans_heating_rate(ji) - &
-                                       diag%phase_trans_rates(n_scalars+ji)*phase_trans_heat(2,diag%temperature(ji))
-      endif
-        
-      ! Surface effects
-      ! ---------------
-      if (layer_index==n_layers - 1 .and. lsfc_phase_trans) then
-        h_index = ji - layer_index*n_cells
-        
-        ! evaporation and latent heat rates
-        if (grid%is_land(h_index)==0) then
-          ! saturation pressure at surface temperature
-          if (state%temperature_soil(h_index,1)>=t_0) then
-            saturation_pressure_sfc = saturation_pressure_over_water(state%temperature_soil(h_index,1))
-            saturation_pressure_sfc = enhancement_factor_over_water(air_pressure)*saturation_pressure_sfc
+        saturation_pressure = enhancement_factor*saturation_pressure
+          
+        ! Clouds
+        ! ------
+        ! the case where the air is not over-saturated
+        if (saturation_pressure>=water_vapour_pressure) then
+          ! temperature>=0° C
+          if (diag%temperature(ji,jl)>=t_0) then
+            ! It is assumed that the still present ice vanishes within one time step.
+            diag%phase_trans_rates(ji,jl,3) = -state%rho(ji,jl,3)/dtime
+                  
+            ! The amount of liquid water per volume that will evaporate.
+            ! In case the air cannot take all the water, not everything will evaporate.
+            a = -r_v*phase_trans_heat(0,diag%temperature(ji,jl))/c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl)
+            b = r_v*diag%temperature(ji,jl) - r_v*state%rho(ji,jl,n_condensed_constituents+2) &
+            *phase_trans_heat(0,diag%temperature(ji,jl))/c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl) &
+            + enhancement_factor*dsaturation_pressure_over_water_dT(diag%temperature(ji,jl)) &
+            *phase_trans_heat(0,diag%temperature(ji,jl))/c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl)
+            c = water_vapour_pressure - saturation_pressure
+            p = b/a
+            q = c/a
+            diff_density = -0.5_wp*p - (0.25_wp*p**2 - q)**0.5_wp
+            phase_trans_density = min(state%rho(ji,jl,4), diff_density)
+                  
+            ! the tendency for the water vapour
+            diag%phase_trans_rates(ji,jl,5) = phase_trans_density/dtime
+                  
+            ! The source rate for the liquid water consists of two terms:
+            ! 1.) the melting
+            ! 2.) the evaporation
+                  
+            diag%phase_trans_rates(ji,jl,4) = state%rho(ji,jl,3)/dtime - phase_trans_density/dtime
+                  
+            ! the heat source rates
+            diag%phase_trans_heating_rate(ji,jl) &
+            ! melting
+            = diag%phase_trans_rates(ji,jl,3)*phase_trans_heat(2,diag%temperature(ji,jl)) &
+            ! evaporation
+            - phase_trans_density*phase_trans_heat(0,diag%temperature(ji,jl))/dtime
+          ! temperature<0° C
           else
-            saturation_pressure_sfc = saturation_pressure_over_ice(state%temperature_soil(h_index,1))
-            saturation_pressure_sfc = enhancement_factor_over_ice(air_pressure)*saturation_pressure_sfc
+            ! It is assumed that the still present liquid water vanishes within one time step.
+            diag%phase_trans_rates(ji,jl,4) = -state%rho(ji,jl,4)/dtime
+                  
+            ! The amount of ice per volume that will sublimate.
+            ! In case the air cannot take all the water, not everything will sublimate.
+                  
+            a = -r_v*phase_trans_heat(1,diag%temperature(ji,jl))/c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl)
+            b = r_v*diag%temperature(ji,jl) - r_v*state%rho(ji,jl,n_condensed_constituents+2) &
+            *phase_trans_heat(1,diag%temperature(ji,jl))/c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl) &
+            + enhancement_factor*dsaturation_pressure_over_ice_dT(diag%temperature(ji,jl)) &
+            *phase_trans_heat(1,diag%temperature(ji,jl))/c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl)
+            c = water_vapour_pressure - saturation_pressure
+            p = b/a
+            q = c/a
+            diff_density = -0.5_wp*p - (0.25_wp*p**2 - q)**0.5_wp
+            phase_trans_density = min(state%rho(ji,jl,3), diff_density)
+                  
+            ! the tendency for the water vapour
+            diag%phase_trans_rates(ji,jl,5) = phase_trans_density/dtime
+            
+            ! the tendency for the ice contains two terms:
+            ! 1.) the freezing
+            ! 2.) the phase transition through sublimation
+            diag%phase_trans_rates(ji,jl,3) = state%rho(ji,jl,4)/dtime - phase_trans_density/dtime
+                  
+            ! the heat source rates
+            diag%phase_trans_heating_rate(ji,jl) &
+            ! the freezing
+            = -diag%phase_trans_rates(ji,jl,4)*phase_trans_heat(2,diag%temperature(ji,jl)) &
+            ! the sublimation
+            - phase_trans_density*phase_trans_heat(1,diag%temperature(ji,jl))/dtime
           endif
-            
-          ! difference water vapour density between saturation at ground temperature and actual absolute humidity in the lowest model layer
-          diff_density_sfc = saturation_pressure_sfc/(r_v*state%temperature_soil(h_index,1)) &
-          - state%rho(ji,n_condensed_constituents+2)
-            
-          ! evporation, sublimation
-          diag%phase_trans_rates(n_condensed_constituents*n_scalars+ji) = &
-          diag%phase_trans_rates(n_condensed_constituents*n_scalars+ji) + &
-          max(0._wp,diff_density_sfc/diag%scalar_flux_resistance(h_index))/grid%layer_thickness(ji)
-          
-          ! calculating the latent heat flux density affecting the surface
-          if (state%temperature_soil(h_index,1)>=t_0) then
-            diag%power_flux_density_latent(h_index) = -phase_trans_heat(0,state%temperature_soil(h_index,1)) &
-            *max(0._wp, diff_density_sfc/diag%scalar_flux_resistance(h_index))
-          else
-            diag%power_flux_density_latent(h_index) = -phase_trans_heat(1,state%temperature_soil(h_index,1)) &
-            *max(0._wp, diff_density_sfc/diag%scalar_flux_resistance(h_index))
+        ! the case where the air is over-saturated
+        else
+          ! temperature>=0° C
+          if (diag%temperature(ji,jl)>=t_0) then
+            ! It is assumed that the still present ice vanishes within one time step.
+            diag%phase_trans_rates(ji,jl,3) = -state%rho(ji,jl,3)/dtime
+                  
+            ! the vanishing of water vapour through the phase transition
+            a = -r_v*phase_trans_heat(0,diag%temperature(ji,jl))/c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl)
+            b = r_v*diag%temperature(ji,jl) - r_v*state%rho(ji,jl,n_condensed_constituents+2) &
+            *phase_trans_heat(0,diag%temperature(ji,jl))/c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl) &
+            + enhancement_factor*dsaturation_pressure_over_water_dT(diag%temperature(ji,jl)) &
+            *phase_trans_heat(0,diag%temperature(ji,jl))/c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl)
+            c = water_vapour_pressure - saturation_pressure
+            p = b/a
+            q = c/a
+            diff_density = -0.5_wp*p - (0.25_wp*p**2 - q)**0.5_wp
+                  
+            ! the tendency for the water vapour
+            diag%phase_trans_rates(ji,jl,5) = diff_density/dtime
+                  
+            ! The source rate for the liquid water consists of two terms:
+            ! 1.) the melting
+            ! 2.) the condensation
+            diag%phase_trans_rates(ji,jl,4) = state%rho(ji,jl,3)/dtime - diff_density/dtime
+                  
+            ! the heat source rates
+            diag%phase_trans_heating_rate(ji,jl) &
+            ! melting
+            = diag%phase_trans_rates(ji,jl,3)*phase_trans_heat(2,diag%temperature(ji,jl)) &
+            ! condensation
+            - diff_density*phase_trans_heat(0,diag%temperature(ji,jl))/dtime
+          ! temperature<0° C
+          else   
+            ! It is assumed that the liquid water disappears within one time step.
+            diag%phase_trans_rates(ji,jl,4) = -state%rho(ji,jl,4)/dtime
+                  
+            ! the vanishing of water vapour through the phase transition
+            a = -r_v*phase_trans_heat(1,diag%temperature(ji,jl))/c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl)
+            b = r_v*diag%temperature(ji,jl) - r_v*state%rho(ji,jl,n_condensed_constituents+2) &
+            *phase_trans_heat(1,diag%temperature(ji,jl))/c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl) &
+            + enhancement_factor*dsaturation_pressure_over_ice_dT(diag%temperature(ji,jl)) &
+            *phase_trans_heat(1,diag%temperature(ji,jl))/c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl)
+            c = water_vapour_pressure - saturation_pressure
+            p = b/a
+            q = c/a
+            diff_density = -0.5_wp*p - (0.25_wp*p**2 - q)**0.5_wp
+                 
+            ! the tendency for the water vapour
+            diag%phase_trans_rates(ji,jl,5) = diff_density/dtime
+              
+            ! The source rate for the cloud ice consists of two terms:
+            ! 1.) the freezing
+            ! 2.) the resublimation
+                  
+            diag%phase_trans_rates(ji,jl,3) = state%rho(ji,jl,4)/dtime - diff_density/dtime
+                  
+            ! the heat source rates
+            diag%phase_trans_heating_rate(ji,jl) &
+            ! freezing
+            = -diag%phase_trans_rates(ji,jl,4)*phase_trans_heat(2,diag%temperature(ji,jl)) &
+            ! resublimation
+            - diff_density*phase_trans_heat(1,diag%temperature(ji,jl))/dtime
           endif
         endif
-      endif
+        
+        ! Precipitation
+        ! -------------
+        diag%phase_trans_rates(ji,jl,1) = 0._wp
+        diag%phase_trans_rates(ji,jl,2) = 0._wp
+        ! snow
+        if (diag%temperature(ji,jl)<t_0) then
+          diag%phase_trans_rates(ji,jl,1) = max(state%rho(ji,jl,3) &
+                                           - maximum_cloud_water_content*state%rho(ji,jl,5),0._wp)/1000._wp
+          ! the snow creation comes at the cost of cloud ice particles
+          diag%phase_trans_rates(ji,jl,3) = diag%phase_trans_rates(ji,jl,3) - diag%phase_trans_rates(ji,jl,1)
+        ! rain
+        elseif (diag%temperature(ji,jl)>=t_0) then
+          diag%phase_trans_rates(ji,jl,2) = max(state%rho(ji,jl,4) &
+                                            - maximum_cloud_water_content*state%rho(ji,jl,5),0._wp)/1000._wp
+          ! the rain creation comes at the cost of cloud water particles
+          diag%phase_trans_rates(ji,jl,4) = diag%phase_trans_rates(ji,jl,4) - diag%phase_trans_rates(ji,jl,2)
+        endif
+          
+        ! turning of snow to rain
+        if (diag%temperature(ji,jl)>=t_0 .and. state%rho(ji,jl,1)>0._wp) then
+          diag%phase_trans_rates(ji,jl,1) = -state%rho(ji,jl,1)/dtime
+          diag%phase_trans_rates(ji,jl,2) = diag%phase_trans_rates(ji,jl,2) - diag%phase_trans_rates(ji,jl,1)
+          diag%phase_trans_heating_rate(ji,jl) = diag%phase_trans_heating_rate(ji,jl) &
+                                              + diag%phase_trans_rates(ji,jl,1)*phase_trans_heat(2,diag%temperature(ji,jl))
+        endif
+        ! turning of rain to snow
+        if (diag%temperature(ji,jl)<t_0 .and. state%rho(ji,jl,2)>0._wp) then
+          diag%phase_trans_rates(ji,jl,2) = -state%rho(ji,jl,2)/dtime
+          diag%phase_trans_rates(ji,jl,1) = diag%phase_trans_rates(ji,jl,1) - diag%phase_trans_rates(ji,jl,2)
+          diag%phase_trans_heating_rate(ji,jl) = diag%phase_trans_heating_rate(ji,jl) - &
+                                         diag%phase_trans_rates(ji,jl,2)*phase_trans_heat(2,diag%temperature(ji,jl))
+        endif
+          
+        ! Surface effects
+        ! ---------------
+        if (jl==n_layers .and. lsfc_phase_trans) then
+          
+          ! evaporation and latent heat rates
+          if (grid%is_land(ji)==0) then
+            ! saturation pressure at surface temperature
+            if (state%temperature_soil(ji,1)>=t_0) then
+              saturation_pressure_sfc = saturation_pressure_over_water(state%temperature_soil(ji,1))
+              saturation_pressure_sfc = enhancement_factor_over_water(air_pressure)*saturation_pressure_sfc
+            else
+              saturation_pressure_sfc = saturation_pressure_over_ice(state%temperature_soil(ji,1))
+              saturation_pressure_sfc = enhancement_factor_over_ice(air_pressure)*saturation_pressure_sfc
+            endif
+              
+            ! difference water vapour density between saturation at ground temperature and actual absolute humidity in the lowest model layer
+            diff_density_sfc = saturation_pressure_sfc/(r_v*state%temperature_soil(ji,1)) &
+            - state%rho(ji,jl,n_condensed_constituents+2)
+              
+            ! evporation, sublimation
+            diag%phase_trans_rates(ji,jl,n_condensed_constituents+1) = &
+            diag%phase_trans_rates(ji,jl,n_condensed_constituents+1) + &
+            max(0._wp,diff_density_sfc/diag%scalar_flux_resistance(ji))/grid%layer_thickness(ji,jl)
+            
+            ! calculating the latent heat flux density affecting the surface
+            if (state%temperature_soil(ji,1)>=t_0) then
+              diag%power_flux_density_latent(ji) = -phase_trans_heat(0,state%temperature_soil(ji,1)) &
+              *max(0._wp, diff_density_sfc/diag%scalar_flux_resistance(ji))
+            else
+              diag%power_flux_density_latent(ji) = -phase_trans_heat(1,state%temperature_soil(ji,1)) &
+              *max(0._wp, diff_density_sfc/diag%scalar_flux_resistance(ji))
+            endif
+          endif
+        endif
+      enddo
     enddo
   
   end subroutine calc_h2otracers_source_rates

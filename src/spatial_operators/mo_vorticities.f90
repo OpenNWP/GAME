@@ -112,7 +112,7 @@ module mo_vorticities
       layer_index = (ji-1)/n_dual_scalars_h
       h_index = ji - layer_index*n_dual_scalars_h
       ! clearing what has previously been here
-      diag%rel_vort_on_triangles(ji) = 0._wp
+      diag%rel_vort_on_triangles(h_index,layer_index+1) = 0._wp
       ! loop over the three edges of the triangle at hand
       do jk=1,3
         vector_index = n_cells + layer_index*n_vectors_per_layer + grid%vorticity_indices_triangles(h_index,jk)
@@ -137,13 +137,14 @@ module mo_vorticities
           ! Here, the vertical interpolation is made.
           velocity_value = velocity_value+delta_z*vertical_gradient
         endif
-        diag%rel_vort_on_triangles(ji) = diag%rel_vort_on_triangles(ji) + length_rescale_factor*grid%normal_distance(vector_index) &
-                                         *grid%vorticity_signs_triangles(h_index,jk)*velocity_value
+        diag%rel_vort_on_triangles(h_index,layer_index+1) = diag%rel_vort_on_triangles(h_index,layer_index+1) &
+                                                            + length_rescale_factor*grid%normal_distance(vector_index) &
+                                                            *grid%vorticity_signs_triangles(h_index,jk)*velocity_value
       enddo
       
       ! dividing by the area (Stokes' Theorem)
-      diag%rel_vort_on_triangles(ji) = diag%rel_vort_on_triangles(ji)/ &
-                                       grid%area_dual(n_edges + layer_index*n_dual_vectors_per_layer + h_index)
+      diag%rel_vort_on_triangles(h_index,layer_index+1) = diag%rel_vort_on_triangles(h_index,layer_index+1)/ &
+                                                          grid%area_dual(n_edges + layer_index*n_dual_vectors_per_layer + h_index)
     
     enddo
     !$omp end parallel do
@@ -174,9 +175,9 @@ module mo_vorticities
         base_index = n_edges+layer_index*n_dual_vectors_per_layer
         diag%rel_vort(ji) = ( &
         grid%area_dual(base_index+grid%from_cell_dual(h_index-n_edges)) &
-        *diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h+grid%from_cell_dual(h_index-n_edges)) &
+        *diag%rel_vort_on_triangles(grid%from_cell_dual(h_index-n_edges),layer_index+1) &
         + grid%area_dual(base_index+grid%to_cell_dual(h_index-n_edges)) &
-        *diag%rel_vort_on_triangles(layer_index*n_dual_scalars_h+grid%to_cell_dual(h_index-n_edges)))/( &
+        *diag%rel_vort_on_triangles(grid%to_cell_dual(h_index-n_edges),layer_index+1))/( &
         grid%area_dual(base_index+grid%from_cell_dual(h_index-n_edges)) &
         + grid%area_dual(base_index+grid%to_cell_dual(h_index-n_edges)))
       ! tangential (horizontal) vorticities

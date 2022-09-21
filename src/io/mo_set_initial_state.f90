@@ -36,11 +36,11 @@ module mo_set_initial_state
     type(t_grid),  intent(in)    :: grid
     
     ! local variables
-    integer               :: ji,jl,jc,layer_index,h_index,scalar_index,ncid_grid,latitude_vector_id, &
+    integer               :: ji,jl,jc,scalar_index,ncid_grid,latitude_vector_id, &
                              longitude_vector_id
     real(wp)              :: dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7,lat,lon,z_height,u,v, &
                              pressure_value,specific_humidity,dry_density,b,c,small_atmos_rescale
-    real(wp), allocatable :: pressure(:),temperature(:),temperature_v(:),water_vapour_density(:),latitude_vector(:), &
+    real(wp), allocatable :: pressure(:,:),temperature(:,:),temperature_v(:,:),water_vapour_density(:,:),latitude_vector(:), &
                              longitude_vector(:)
     character(len=128)    :: grid_file_name
     
@@ -59,10 +59,10 @@ module mo_set_initial_state
     dummy_6 = 0._wp
     dummy_7 = 0._wp
     
-    allocate(pressure(n_scalars))
-    allocate(temperature(n_scalars))
-    allocate(temperature_v(n_scalars))
-    allocate(water_vapour_density(n_scalars))
+    allocate(pressure(n_cells,n_layers))
+    allocate(temperature(n_cells,n_layers))
+    allocate(temperature_v(n_cells,n_layers))
+    allocate(water_vapour_density(n_cells,n_layers))
     
     !$omp parallel workshare
     pressure = 0._wp
@@ -72,42 +72,45 @@ module mo_set_initial_state
     !$omp end parallel workshare
     
     ! 3D scalar fields determined hereapart from density
-    !$omp parallel do private(ji,layer_index,h_index,lat,lon,z_height,dry_density,specific_humidity)
-    do ji=1,n_scalars
-      layer_index = (ji-1)/n_cells
-      h_index = ji - layer_index*n_cells
-        lat = grid%lat_c(h_index)
-        lon = grid%lon_c(h_index)
-        z_height = grid%z_scalar(ji)
+    !$omp parallel do private(ji,lat,lon,z_height,dry_density,specific_humidity)
+    do ji=1,n_cells
+      do jl=1,n_layers
+        lat = grid%lat_c(ji)
+        lon = grid%lon_c(ji)
+        z_height = grid%z_scalar(ji,jc)
         ! standard atmosphere
         if (ideal_input_id==0) then
-          temperature(ji) = grid%theta_v_bg(ji)*grid%exner_bg(ji)
-          temperature_v(ji) = temperature(ji)
-          pressure(ji) = p_0*grid%exner_bg(ji)**(c_d_p/r_d)
+          temperature(ji,jc) = grid%theta_v_bg(ji,jc)*grid%exner_bg(ji,jc)
+          temperature_v(ji,jc) = temperature(ji,jc)
+          pressure(ji,jc) = p_0*grid%exner_bg(ji,jc)**(c_d_p/r_d)
         endif
         ! dry Ullrich test
         if (ideal_input_id==1) then
-          call baroclinic_wave_test(1,0,1,small_atmos_rescale,lon,lat,pressure(ji),z_height,1,dummy_1,dummy_2,temperature(ji), &
-                                    dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
-          temperature_v(ji) = temperature(ji)
+          call baroclinic_wave_test(1,0,1,small_atmos_rescale,lon,lat,pressure(ji,jl),z_height,1,dummy_1,dummy_2, &
+                                    temperature(ji,jl),dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
+          temperature_v(ji,jl) = temperature(ji,jl)
         endif
         ! moist Ullrich test
         if (ideal_input_id==2) then
-          call baroclinic_wave_test(1,1,1,small_atmos_rescale,lon,lat,pressure(ji),z_height,1,dummy_1,dummy_2,temperature(ji), &
-                                    dummy_3,dummy_5,dummy_6,dry_density,specific_humidity)
-          temperature_v(ji) = temperature(ji)*(1._wp+specific_humidity*(m_d/m_v-1._wp))
-          water_vapour_density(ji) = dry_density*specific_humidity/(1._wp-specific_humidity)
+          call baroclinic_wave_test(1,1,1,small_atmos_rescale,lon,lat,pressure(ji,jl),z_height,1,dummy_1,dummy_2, &
+                                    temperature(ji,jl),dummy_3,dummy_5,dummy_6,dry_density,specific_humidity)
+          temperature_v(ji,jl) = temperature(ji,jl)*(1._wp+specific_humidity*(m_d/m_v-1._wp))
+          water_vapour_density(ji,jl) = dry_density*specific_humidity/(1._wp-specific_humidity)
         endif
+      enddo
     enddo
     !$omp end parallel do
     
     ! resricting the maximum relative humidity to 100 %
     if (n_condensed_constituents==4) then
-      !$omp parallel do private(ji)
-      do ji=1,n_scalars
-        if (rel_humidity(water_vapour_density(ji),temperature(ji))>1._wp) then
-          water_vapour_density(ji) = water_vapour_density(ji)/rel_humidity(water_vapour_density(ji),temperature(ji))
-        endif
+      !$omp parallel do private(ji,jl)
+      do ji=1,n_cells
+        do jl=1,n_layers
+          if (rel_humidity(water_vapour_density(ji,jl),temperature(ji,jl))>1._wp) then
+            water_vapour_density(ji,jl) = water_vapour_density(ji,jl) &
+                                          /rel_humidity(water_vapour_density(ji,jl),temperature(ji,jl))
+          endif
+        enddo
       enddo
       !$omp end parallel do
     endif
@@ -189,29 +192,28 @@ module mo_set_initial_state
         scalar_index = jl*n_cells + ji
         ! lowest layer
         if (jl==n_layers-1) then
-          pressure_value = pressure(scalar_index)
-          state%exner_pert(scalar_index) = (pressure_value/p_0)**(r_d/c_d_p)
+          pressure_value = pressure(ji,jl+1)
+          state%exner_pert(ji,jl+1) = (pressure_value/p_0)**(r_d/c_d_p)
         ! other layers
         else
           ! solving a quadratic equation for the Exner pressure
-          b = -0.5_wp*state%exner_pert(scalar_index + n_cells)/temperature_v(scalar_index + n_cells) &
-          *(temperature_v(scalar_index) - temperature_v(scalar_index + n_cells) &
-          + 2._wp/c_d_p*(grid%gravity_potential(scalar_index) - grid%gravity_potential(scalar_index + n_cells) &
-          + 0.5_wp*diag%v_squared(scalar_index) - 0.5_wp*diag%v_squared(scalar_index + n_cells) &
-          - (grid%z_scalar(scalar_index) - grid%z_scalar(scalar_index + n_cells)) &
+          b = -0.5_wp*state%exner_pert(ji,jl+2)/temperature_v(ji,jl+2) &
+          *(temperature_v(ji,jl+1) - temperature_v(ji,jl+2) &
+          + 2._wp/c_d_p*(grid%gravity_potential(ji,jl+1) - grid%gravity_potential(ji,jl+2) &
+          + 0.5_wp*diag%v_squared(ji,jl+1) - 0.5_wp*diag%v_squared(ji,jl+2) &
+          - (grid%z_scalar(ji,jl+1) - grid%z_scalar(ji,jl+2)) &
           *diag%pot_vort_tend(ji + (jl+1)*n_vectors_per_layer)))
-          c = state%exner_pert(scalar_index + n_cells)**2*temperature_v(scalar_index)/temperature_v(scalar_index + n_cells)
-          state%exner_pert(scalar_index) = b + (b**2+c)**0.5_wp
+          c = state%exner_pert(ji,jl+2)**2*temperature_v(ji,jl+1)/temperature_v(ji,jl+2)
+          state%exner_pert(ji,jl+1) = b + (b**2+c)**0.5_wp
         endif
         ! this is the full virtual potential temperature here
-        state%theta_v_pert(scalar_index) = temperature_v(scalar_index)/state%exner_pert(scalar_index)
+        state%theta_v_pert(ji,jl+1) = temperature_v(ji,jl+1)/state%exner_pert(ji,jl+1)
         
         ! scalar_placeholder is the moist air gas density here
-        diag%scalar_placeholder(scalar_index) = p_0*state%exner_pert(scalar_index)**(c_d_p/r_d) &
-                                                      /(r_d*temperature_v(scalar_index))
+        diag%scalar_placeholder(ji,jl+1) = p_0*state%exner_pert(ji,jl+1)**(c_d_p/r_d)/(r_d*temperature_v(ji,jl+1))
         
         ! setting rhotheta_v according to its definition
-        state%rhotheta_v(scalar_index) = diag%scalar_placeholder(scalar_index)*state%theta_v_pert(scalar_index)
+        state%rhotheta_v(ji,jl+1) = diag%scalar_placeholder(ji,jl+1)*state%theta_v_pert(ji,jl+1)
       enddo
     enddo
     !$omp end parallel do
@@ -225,20 +227,19 @@ module mo_set_initial_state
     state%theta_v_pert = state%theta_v_pert - grid%theta_v_bg
     !$omp end parallel workshare
     
-    !$omp parallel do private(ji,jc)
-    do ji=1,n_scalars
-      do jc=1,n_condensed_constituents
-        ! condensed densities are zero in all test states
-        state%rho(ji,jc) = 0._wp
-      enddo
-      ! the moist air density
-      state%rho(ji,n_condensed_constituents+1) = diag%scalar_placeholder(ji)
-      ! water vapour density
-      if (n_condensed_constituents==4) then
-        state%rho(ji,n_condensed_constituents+2) = water_vapour_density(ji)
-      endif
-    enddo
-    !$omp end parallel do
+    ! condensed densities are zero in all test states
+    !$omp parallel workshare
+    state%rho(:,:,1:n_condensed_constituents) = 0._wp
+    ! moist air density
+    state%rho(:,:,n_condensed_constituents+1) = diag%scalar_placeholder
+    !$omp end parallel workshare
+    
+    ! water vapour density
+    if (n_condensed_constituents==4) then
+      !$omp parallel workshare
+      state%rho(:,:,n_condensed_constituents+2) = water_vapour_density
+      !$omp end parallel workshare
+    endif
     
     deallocate(water_vapour_density)
     
@@ -257,11 +258,11 @@ module mo_set_initial_state
     type(t_grid),       intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer               :: ji,ncid,tke_id,tke_avail,densities_id,temperature_id,wind_id
+    integer               :: ji,jl,jc,ncid,tke_id,tke_avail,densities_id,temperature_id,wind_id
     real(wp)              :: pressure,pot_temp_v
-    real(wp), allocatable :: temperature(:),temperature_v(:)
+    real(wp), allocatable :: temperature(:,:),temperature_v(:,:)
     
-    allocate(temperature(n_scalars))
+    allocate(temperature(n_cells,n_layers))
     call nc_check(nf90_open(init_state_file,NF90_CLOBBER,ncid))
     call nc_check(nf90_inq_varid(ncid,"densities",densities_id))
     call nc_check(nf90_inq_varid(ncid,"temperature",temperature_id))
@@ -287,42 +288,50 @@ module mo_set_initial_state
     
     ! resricting the maximum relative humidity to 100 %
     if (lmoist) then
-      !$omp parallel do private(ji)
-      do ji=1,n_scalars
-        if (rel_humidity(state%rho(ji,n_condensed_constituents+2),temperature(ji))>1._wp) then
-          state%rho(ji,n_condensed_constituents+2) = state%rho(ji,n_condensed_constituents+2) &
-          /rel_humidity(state%rho(ji,n_condensed_constituents+2),temperature(ji))
-        endif
+      !$omp parallel do private(ji,jl)
+      do ji=1,n_cells
+        do jl=1,n_layers
+          if (rel_humidity(state%rho(ji,jl,n_condensed_constituents+2),temperature(ji,jl))>1._wp) then
+            state%rho(ji,jl,n_condensed_constituents+2) = state%rho(ji,jl,n_condensed_constituents+2) &
+            /rel_humidity(state%rho(ji,jl,n_condensed_constituents+2),temperature(ji,jl))
+          endif
+        enddo
       enddo
       !$omp end parallel do
     endif
     
     ! diagnostic thermodynamical quantities
-    allocate(temperature_v(n_scalars))
-    !$omp parallel do private(ji,pressure,pot_temp_v)
+    allocate(temperature_v(n_cells,n_layers))
+    !$omp parallel do private(ji,jl,pressure,pot_temp_v)
     do ji=1,n_scalars
-      temperature_v(ji) = temperature(ji) &
-      *(1._wp+state%rho(ji,n_condensed_constituents+2)/state%rho(ji,n_condensed_constituents+1)*(m_d/m_v-1._wp))
-      pressure = state%rho(ji,n_condensed_constituents+1)*r_d*temperature_v(ji)
-      pot_temp_v = temperature_v(ji)*(p_0/pressure)**(r_d/c_d_p)
-      state%rhotheta_v(ji) = state%rho(ji,n_condensed_constituents+1)*pot_temp_v
-      ! calculating the virtual potential temperature perturbation
-      state%theta_v_pert(ji) = pot_temp_v - grid%theta_v_bg(ji)
-      ! calculating the Exner pressure perturbation
-      state%exner_pert(ji) = temperature_v(ji)/(grid%theta_v_bg(ji)+state%theta_v_pert(ji)) - grid%exner_bg(ji)
+      do jl=1,n_layers
+        temperature_v(ji,jl) = temperature(ji,jl) &
+        *(1._wp+state%rho(ji,jl,n_condensed_constituents+2)/state%rho(ji,jl,n_condensed_constituents+1)*(m_d/m_v-1._wp))
+        pressure = state%rho(ji,jl,n_condensed_constituents+1)*r_d*temperature_v(ji,jl)
+        pot_temp_v = temperature_v(ji,jl)*(p_0/pressure)**(r_d/c_d_p)
+        state%rhotheta_v(ji,jl) = state%rho(ji,jl,n_condensed_constituents+1)*pot_temp_v
+        ! calculating the virtual potential temperature perturbation
+        state%theta_v_pert(ji,jl) = pot_temp_v - grid%theta_v_bg(ji,jl)
+        ! calculating the Exner pressure perturbation
+        state%exner_pert(ji,jl) = temperature_v(ji,jl)/(grid%theta_v_bg(ji,jl)+state%theta_v_pert(ji,jl)) - grid%exner_bg(ji,jl)
+      enddo
     enddo
     !$omp end parallel do
     
     deallocate(temperature_v)
     
     ! checking for negative densities
-    !$omp parallel do private(ji)
-    do ji=1,n_constituents*n_scalars
-      if (state%rho(ji,1)<0._wp) then
-        write(*,*) "Negative density found."
-        write(*,*) "Aborting."
-        call exit(1)
-      endif
+    !$omp parallel do private(ji,jl,jc)
+    do ji=1,n_cells
+      do jl=1,n_layers
+        do jc=1,n_constituents
+          if (state%rho(ji,jl,jc)<0._wp) then
+            write(*,*) "Negative density found."
+            write(*,*) "Aborting."
+            call exit(1)
+          endif
+        enddo
+      enddo
     enddo
     !$omp end parallel do
     

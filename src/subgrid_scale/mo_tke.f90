@@ -6,7 +6,7 @@ module mo_tke
   ! In this module, the TKE is updated.
 
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,           only: n_scalars,n_vectors,n_edges
+  use mo_grid_nml,           only: n_cells,n_layers
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
   use mo_constants,          only: M_PI
   use mo_grid_setup,         only: dtime
@@ -27,7 +27,7 @@ module mo_tke
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer  :: ji
+    integer  :: ji,jl
     real(wp) :: decay_constant
     
     ! computing the advection
@@ -35,27 +35,29 @@ module mo_tke
     call inner_product(diag%vector_placeholder,state%wind,diag%scalar_placeholder,grid)
     
     ! loop over all scalar gridpoints
-    !$omp parallel do private(ji,decay_constant)
-    do ji=1,n_scalars
-      ! decay constant, as derived from diffusion
-      decay_constant = 8._wp*M_PI**2/mean_velocity_area &
-      ! the vertical diffusion coefficient is neglected here because it is much smaller than the horizontal one
-      *diag%viscosity(ji)/state%rho(ji,n_condensed_constituents+1)
-      
-      ! prognostic equation for TKE
-      diag%tke(ji) = diag%tke(ji) + dtime*( &
-      ! advection
-      -diag%scalar_placeholder(ji) &
-      ! production through dissipation of resolved energy
-      + diag%heating_diss(ji)/state%rho(ji,n_condensed_constituents+1) &
-      ! decay through molecular dissipation
-      - decay_constant*diag%tke(ji))
-      
-      ! clipping negative values
-      if (diag%tke(ji)<0._wp) then
-        diag%tke(ji) = 0._wp
+    !$omp parallel do private(ji,jl,decay_constant)
+    do ji=1,n_cells
+      do jl=1,n_layers
+        ! decay constant, as derived from diffusion
+        decay_constant = 8._wp*M_PI**2/mean_velocity_area &
+        ! the vertical diffusion coefficient is neglected here because it is much smaller than the horizontal one
+        *diag%viscosity(ji,jl)/state%rho(ji,jl,n_condensed_constituents+1)
+        
+        ! prognostic equation for TKE
+        diag%tke(ji,jl) = diag%tke(ji,jl) + dtime*( &
+        ! advection
+        -diag%scalar_placeholder(ji,jl) &
+        ! production through dissipation of resolved energy
+        + diag%heating_diss(ji,jl)/state%rho(ji,jl,n_condensed_constituents+1) &
+        ! decay through molecular dissipation
+        - decay_constant*diag%tke(ji,jl))
+        
+        ! clipping negative values
+        if (diag%tke(ji,jl)<0._wp) then
+          diag%tke(ji,jl) = 0._wp
       endif
-    
+      
+      enddo
     enddo
     !$omp end parallel do
     

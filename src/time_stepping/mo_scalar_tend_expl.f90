@@ -7,7 +7,7 @@ module mo_scalar_tend_expl
 
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_constants,          only: c_d_v,c_d_p
-  use mo_grid_nml,           only: n_scalars,n_vectors,n_edges,n_dual_v_vectors,n_dual_scalars_h
+  use mo_grid_nml,           only: n_cells,n_scalars,n_layers,n_vectors,n_edges,n_dual_v_vectors,n_dual_scalars_h
   use mo_constituents_nml,   only: n_constituents,n_condensed_constituents,lmoist
   use mo_derived,            only: c_v_mass_weighted_air
   use mo_diff_nml,           only: lmass_diff_h,lmass_diff_v,ltemp_diff_h,ltemp_diff_v
@@ -32,7 +32,7 @@ module mo_scalar_tend_expl
     integer,       intent(in)    :: rk_step      ! Runge-Kutta step
     
     ! local variables
-    integer  :: ji,jc,scalar_shift_index,scalar_shift_index_phase_trans,scalar_index
+    integer  :: ji,jl,jc
     real(wp) :: old_weight(n_constituents),new_weight(n_constituents)
     
     ! Firstly,some things need to prepared.
@@ -72,21 +72,19 @@ module mo_scalar_tend_expl
     if (lmass_diff_h .and. rk_step==1) then
       ! loop over all constituents
       do jc=1,n_constituents
-        scalar_shift_index = (jc-1)*n_scalars
 
         ! The diffusion of the tracer density depends on its gradient.
-        call grad(state_scalar%rho(:,jc),diag%vector_placeholder,grid)
+        call grad(state_scalar%rho(:,:,jc),diag%vector_placeholder,grid)
         ! Now the diffusive mass flux density can be obtained.
         call scalar_times_vector_h(diag%mass_diffusion_coeff_numerical_h, &
                                    diag%vector_placeholder,diag%vector_placeholder,grid)
         ! The divergence of the diffusive mass flux density is the diffusive mass source rate.
-        call div_h(diag%vector_placeholder,diag%mass_diff_tendency(scalar_shift_index+1:scalar_shift_index+n_scalars),grid)
+        call div_h(diag%vector_placeholder,diag%mass_diff_tendency(:,:,jc),grid)
         ! vertical mass diffusion
         if (lmass_diff_v) then
           call scalar_times_vector_v(diag%mass_diffusion_coeff_numerical_v, &
                                      diag%vector_placeholder,diag%vector_placeholder)
-          call add_vertical_div(diag%vector_placeholder, &
-                                diag%mass_diff_tendency(scalar_shift_index+1:scalar_shift_index+n_scalars),grid)
+          call add_vertical_div(diag%vector_placeholder,diag%mass_diff_tendency(:,:,jc),grid)
         endif
       enddo
     endif
@@ -96,39 +94,29 @@ module mo_scalar_tend_expl
     
     ! loop over all constituents
     do jc=1,n_constituents
-      scalar_shift_index = (jc-1)*n_scalars
-      scalar_shift_index_phase_trans = scalar_shift_index
-      if (lmoist .and. jc==n_condensed_constituents+2) then
-        scalar_shift_index_phase_trans = scalar_shift_index - n_scalars
-      endif
       
         ! This is the mass advection,which needs to be carried out for all constituents.
         ! -------------------------------------------------------------------------------
         ! moist air
       if (jc==n_condensed_constituents+1) then
-        call scalar_times_vector_h(state_scalar%rho(:,jc),state_wind%wind,diag%flux_density,grid)
+        call scalar_times_vector_h(state_scalar%rho(:,:,jc),state_wind%wind,diag%flux_density,grid)
         call div_h(diag%flux_density,diag%flux_density_div,grid)
       ! all other constituents
       else
-        call scalar_times_vector_h_upstream(state_scalar%rho(:,jc),state_wind%wind,diag%flux_density,grid)
-        call div_h_tracer(diag%flux_density,state_scalar%rho(:,jc),state_wind%wind,diag%flux_density_div,grid)
+        call scalar_times_vector_h_upstream(state_scalar%rho(:,:,jc),state_wind%wind,diag%flux_density,grid)
+        call div_h_tracer(diag%flux_density,state_scalar%rho(:,:,jc),state_wind%wind,diag%flux_density_div,grid)
       endif
       
       ! adding the tendencies in all grid boxes
-      !$omp parallel do private(ji,scalar_index)
-      do ji=1,n_scalars
-        scalar_index = scalar_shift_index + ji
-        state_tend%rho(ji,jc) &
-        = old_weight(jc)*state_tend%rho(ji,jc) &
-        + new_weight(jc)*( &
-        ! the advection
-        - diag%flux_density_div(ji) &
-        ! the diffusion
-        + diag%mass_diff_tendency(scalar_shift_index+ji) &
-        ! phase transitions
-        + diag%phase_trans_rates(scalar_shift_index_phase_trans+ji))
-      enddo
-      !$omp end parallel do
+      !$omp parallel workshare
+      state_tend%rho(:,:,jc) = old_weight(jc)*state_tend%rho(:,:,jc) + new_weight(jc)*( &
+      ! the advection
+      - diag%flux_density_div &
+      ! the diffusion
+      + diag%mass_diff_tendency(:,:,jc) &
+      ! phase transitions
+      + diag%phase_trans_rates(:,:,min(jc,n_condensed_constituents+1)))
+      !$omp end parallel workshare
       
       ! Explicit component of the rho*theta_v integration
       ! -------------------------------------------------
@@ -136,37 +124,39 @@ module mo_scalar_tend_expl
       if (jc==n_condensed_constituents+1) then
         ! determining the virtual potential temperature
         !$omp parallel workshare
-        diag%scalar_placeholder = state_scalar%rhotheta_v/state_scalar%rho(:,jc)
+        diag%scalar_placeholder = state_scalar%rhotheta_v/state_scalar%rho(:,:,jc)
         !$omp end parallel workshare
         
         call scalar_times_vector_h(diag%scalar_placeholder,diag%flux_density,diag%flux_density,grid)
         call div_h(diag%flux_density,diag%flux_density_div,grid)
         ! adding the tendencies in all grid boxes
-        !$omp parallel do private(ji)
-        do ji=1,n_scalars
-          state_tend%rhotheta_v(ji) &
-          = old_weight(jc)*state_tend%rhotheta_v(ji) &
-          + new_weight(jc)*( &
-          ! the advection (resolved transport)
-          -diag%flux_density_div(ji) &
-          ! the diabatic forcings
-          ! weighting factor accounting for condensates
-          + c_d_v*state_scalar%rho(ji,jc)/c_v_mass_weighted_air(state_scalar%rho,diag%temperature,ji)*( &
-          ! dissipation through molecular + turbulent momentum diffusion
-          diag%heating_diss(ji) &
-          ! molecular + turbulent heat transport
-          + diag%temperature_diffusion_heating(ji) &
-          ! radiation
-          + diag%radiation_tendency(ji) &
-          ! phase transitions
-          + diag%phase_trans_heating_rate(ji) &
-          ! heating rate due to falling condensates
-          + diag%condensates_sediment_heat(ji) &
-          ! this has to be divided by c_p*exner
-          )/(c_d_p*(grid%exner_bg(ji) + state_scalar%exner_pert(ji))) &
-          ! tendency of due to phase transitions and mass diffusion
-          + (diag%phase_trans_rates(scalar_shift_index+ji) + diag%mass_diff_tendency(scalar_shift_index+ji)) &
-          *diag%scalar_placeholder(ji))
+        !$omp parallel do private(ji,jl)
+        do ji=1,n_cells
+          do jl=1,n_layers
+            state_tend%rhotheta_v(ji,jl) &
+            = old_weight(jc)*state_tend%rhotheta_v(ji,jl) &
+            + new_weight(jc)*( &
+            ! the advection (resolved transport)
+            -diag%flux_density_div(ji,jl) &
+            ! the diabatic forcings
+            ! weighting factor accounting for condensates
+            + c_d_v*state_scalar%rho(ji,jl,jc)/c_v_mass_weighted_air(state_scalar%rho,diag%temperature,ji,jl)*( &
+            ! dissipation through molecular + turbulent momentum diffusion
+            diag%heating_diss(ji,jl) &
+            ! molecular + turbulent heat transport
+            + diag%temperature_diffusion_heating(ji,jl) &
+            ! radiation
+            + diag%radiation_tendency(ji,jl) &
+            ! phase transitions
+            + diag%phase_trans_heating_rate(ji,jl) &
+            ! heating rate due to falling condensates
+            + diag%condensates_sediment_heat(ji,jl) &
+            ! this has to be divided by c_p*exner
+            )/(c_d_p*(grid%exner_bg(ji,jl) + state_scalar%exner_pert(ji,jl))) &
+            ! tendency of due to phase transitions and mass diffusion
+            + (diag%phase_trans_rates(ji,jl,jc) + diag%mass_diff_tendency(ji,jl,jc)) &
+            *diag%scalar_placeholder(ji,jl))
+          enddo
         enddo
         !$omp end parallel do
       endif

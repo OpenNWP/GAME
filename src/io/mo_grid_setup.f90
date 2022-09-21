@@ -35,16 +35,16 @@ module mo_grid_setup
     type(t_grid), intent(inout) :: grid
     
     ! local variables
-    integer  :: ncid,normal_distance_id,volume_id,area_id,z_scalar_id,z_vector_id,trsk_weights_id, &
-                area_dual_id,z_vector_dual_id,f_vec_id,to_cell_id,from_cell_id, &
-                to_cell_dual_id,from_cell_dual_id,adjacent_edges_id,trsk_indices_id, &
-                trsk_modified_curl_indices_id,adjacent_signs_id,direction_id,gravity_potential_id, &
-                inner_product_weights_id,density_to_rhombi_weights_id,density_to_rhombi_indices_id, &
-                normal_distance_dual_id,vorticity_indices_triangles_id,vorticity_signs_triangles_id, &
-                latitude_scalar_id,longitude_scalar_id,toa_id,radius_id,interpol_indices_id, &
-                interpol_weights_id,theta_v_bg_id,exner_bg_id,sfc_rho_c_id,sfc_albedo_id,roughness_length_id, &
-                is_land_id,t_conductivity_id,n_oro_layers_id,stretching_parameter_id,ji,layer_index,h_index
-    real(wp) :: sigma_soil,rescale_factor
+    integer            :: ncid,normal_distance_id,volume_id,area_id,z_scalar_id,z_vector_id,trsk_weights_id, &
+                          area_dual_id,z_vector_dual_id,f_vec_id,to_cell_id,from_cell_id, &
+                          to_cell_dual_id,from_cell_dual_id,adjacent_edges_id,trsk_indices_id, &
+                          trsk_modified_curl_indices_id,adjacent_signs_id,direction_id,gravity_potential_id, &
+                          inner_product_weights_id,density_to_rhombi_weights_id,density_to_rhombi_indices_id, &
+                          normal_distance_dual_id,vorticity_indices_triangles_id,vorticity_signs_triangles_id, &
+                          latitude_scalar_id,longitude_scalar_id,toa_id,radius_id,interpol_indices_id, &
+                          interpol_weights_id,theta_v_bg_id,exner_bg_id,sfc_rho_c_id,sfc_albedo_id,roughness_length_id, &
+                          is_land_id,t_conductivity_id,n_oro_layers_id,stretching_parameter_id,ji,layer_index,h_index,jl
+    real(wp)           :: sigma_soil,rescale_factor
     character(len=128) :: grid_file_name
     
     ! determining the grid file
@@ -143,12 +143,12 @@ module mo_grid_setup
     write(*,*) "Time step:",dtime,"s."
     
     ! calculating the layer thicknesses
-    !$omp parallel do private(ji,layer_index,h_index)
-    do ji=1,n_scalars
-      layer_index = (ji-1)/n_cells
-      h_index = ji - layer_index*n_cells
-      grid%layer_thickness(ji) = grid%z_vector(h_index + layer_index*n_vectors_per_layer) &
-      - grid%z_vector(h_index + (layer_index+1)*n_vectors_per_layer)
+    !$omp parallel do private(ji,jl)
+    do ji=1,n_cells
+      do jl=1,n_layers
+        grid%layer_thickness(ji,jl) = grid%z_vector(ji + (jl-1)*n_vectors_per_layer) &
+        - grid%z_vector(ji + jl*n_vectors_per_layer)
+      enddo
     enddo
     !$omp end parallel do
     

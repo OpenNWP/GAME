@@ -31,14 +31,16 @@ module mo_eff_diff_coeffs
     integer  :: ji,jl,scalar_index_from,scalar_index_to,vector_index,h_index,layer_index,scalar_base_index
     real(wp) :: density_value
     
-    !$omp parallel do private(ji)
-    do ji=1,n_scalars
-      ! molecular component
-      diag%molecular_diffusion_coeff(ji) = calc_diffusion_coeff(diag%temperature(ji), &
-                                                                state%rho(ji,n_condensed_constituents+1))
-      diag%viscosity(ji) = diag%molecular_diffusion_coeff(ji)
-      ! computing and adding the turbulent component
-      diag%viscosity(ji) = diag%viscosity(ji) + tke2hor_diff_coeff(diag%tke(ji),eff_hor_res)
+    !$omp parallel do private(ji,jl)
+    do ji=1,n_cells
+      do jl=1,n_layers
+        ! molecular component
+        diag%molecular_diffusion_coeff(ji,jl) = calc_diffusion_coeff(diag%temperature(ji,jl), &
+                                                                     state%rho(ji,jl,n_condensed_constituents+1))
+        diag%viscosity(ji,jl) = diag%molecular_diffusion_coeff(ji,jl)
+        ! computing and adding the turbulent component
+        diag%viscosity(ji,jl) = diag%viscosity(ji,jl) + tke2hor_diff_coeff(diag%tke(ji,jl),eff_hor_res)
+      enddo
     enddo
     !$omp end parallel do
     
@@ -54,11 +56,12 @@ module mo_eff_diff_coeffs
         scalar_index_to = jl*n_cells + grid%to_cell(ji)
         
         ! preliminary result
-        diag%viscosity_rhombi(vector_index) = 0.5_wp*(diag%viscosity(scalar_index_from) + diag%viscosity(scalar_index_to))
+        diag%viscosity_rhombi(vector_index) = 0.5_wp*(diag%viscosity(grid%from_cell(ji),jl+1) &
+                                                      + diag%viscosity(grid%to_cell(ji),jl+1))
         
         ! multiplying by the mass density of the gas phase
-       diag%viscosity_rhombi(vector_index) = 0.5_wp*(state%rho(scalar_index_from,n_condensed_constituents+1) &
-        + state%rho(scalar_index_to,n_condensed_constituents+1))*diag%viscosity_rhombi(vector_index) 
+       diag%viscosity_rhombi(vector_index) = 0.5_wp*(state%rho(grid%from_cell(ji),jl+1,n_condensed_constituents+1) &
+        + state%rho(grid%to_cell(ji),jl+1,n_condensed_constituents+1))*diag%viscosity_rhombi(vector_index) 
       enddo
     enddo
     !$omp end parallel do
@@ -73,35 +76,38 @@ module mo_eff_diff_coeffs
       scalar_base_index = layer_index*n_cells
       
       ! preliminary result
-      diag%viscosity_triangles(ji) = 1._wp/6._wp*( &
-      diag%viscosity(scalar_base_index + grid%from_cell(grid%vorticity_indices_triangles(h_index,1))) &
-      + diag%viscosity(scalar_base_index + grid%to_cell(grid%vorticity_indices_triangles(h_index,1))) &
-      + diag%viscosity(scalar_base_index + grid%from_cell(grid%vorticity_indices_triangles(h_index,2))) &
-      + diag%viscosity(scalar_base_index + grid%to_cell(grid%vorticity_indices_triangles(h_index,2))) &
-      + diag%viscosity(scalar_base_index + grid%from_cell(grid%vorticity_indices_triangles(h_index,3))) &
-      + diag%viscosity(scalar_base_index + grid%to_cell(grid%vorticity_indices_triangles(h_index,3))))
+      diag%viscosity_triangles(h_index,layer_index+1) = 1._wp/6._wp*( &
+      diag%viscosity(grid%from_cell(grid%vorticity_indices_triangles(h_index,1)),layer_index+1) &
+      + diag%viscosity(grid%to_cell(grid%vorticity_indices_triangles(h_index,1)),layer_index+1) &
+      + diag%viscosity(grid%from_cell(grid%vorticity_indices_triangles(h_index,2)),layer_index+1) &
+      + diag%viscosity(grid%to_cell(grid%vorticity_indices_triangles(h_index,2)),layer_index+1) &
+      + diag%viscosity(grid%from_cell(grid%vorticity_indices_triangles(h_index,3)),layer_index+1) &
+      + diag%viscosity(grid%to_cell(grid%vorticity_indices_triangles(h_index,3)),layer_index+1))
       
       ! calculating and adding the molecular viscosity
       density_value = &
       1._wp/6._wp*( &
-      state%rho(layer_index*n_cells+grid%from_cell(grid%vorticity_indices_triangles(h_index,1)),n_condensed_constituents+1) &
-      + state%rho(layer_index*n_cells+grid%to_cell(grid%vorticity_indices_triangles(h_index,1)),n_condensed_constituents+1) &
-      + state%rho(layer_index*n_cells+grid%from_cell(grid%vorticity_indices_triangles(h_index,2)),n_condensed_constituents+1) &
-      + state%rho(layer_index*n_cells+grid%to_cell(grid%vorticity_indices_triangles(h_index,2)),n_condensed_constituents+1) &
-      + state%rho(layer_index*n_cells+grid%from_cell(grid%vorticity_indices_triangles(h_index,3)),n_condensed_constituents+1) &
-      + state%rho(layer_index*n_cells+grid%to_cell(grid%vorticity_indices_triangles(h_index,3)),n_condensed_constituents+1))
+      state%rho(grid%from_cell(grid%vorticity_indices_triangles(h_index,1)),layer_index+1,n_condensed_constituents+1) &
+      + state%rho(grid%to_cell(grid%vorticity_indices_triangles(h_index,1)),layer_index+1,n_condensed_constituents+1) &
+      + state%rho(grid%from_cell(grid%vorticity_indices_triangles(h_index,2)),layer_index+1,n_condensed_constituents+1) &
+      + state%rho(grid%to_cell(grid%vorticity_indices_triangles(h_index,2)),layer_index+1,n_condensed_constituents+1) &
+      + state%rho(grid%from_cell(grid%vorticity_indices_triangles(h_index,3)),layer_index+1,n_condensed_constituents+1) &
+      + state%rho(grid%to_cell(grid%vorticity_indices_triangles(h_index,3)),layer_index+1,n_condensed_constituents+1))
       
       ! multiplying by the mass density of the gas phase
-      diag%viscosity_triangles(ji) = density_value*diag%viscosity_triangles(ji)
+      diag%viscosity_triangles(h_index,layer_index+1) = density_value*diag%viscosity_triangles(h_index,layer_index+1)
     enddo
     !$omp end parallel do
     
     ! Multiplying the viscosity in the cell centers by the gas density
     ! ----------------------------------------------------------------
-    !$omp parallel do private(ji)
-    do ji=1,n_scalars
-      ! multiplying by the density
-      diag%viscosity(ji) = state%rho(ji,n_condensed_constituents+1)*tke2hor_diff_coeff(diag%tke(ji),eff_hor_res)
+    !$omp parallel do private(ji,jl)
+    do ji=1,n_cells
+      do jl=1,n_layers
+        ! multiplying by the density
+        diag%viscosity(ji,jl) = state%rho(ji,jl,n_condensed_constituents+1) &
+                                *tke2hor_diff_coeff(diag%tke(ji,jl),eff_hor_res)
+      enddo
     enddo
     !$omp end parallel do
     
@@ -116,33 +122,34 @@ module mo_eff_diff_coeffs
     type(t_grid),  intent(in)    :: grid
     
     ! local variables
-    integer :: ji
+    integer :: ji,jl
     
     ! The diffusion coefficient only has to be calculated if it has not yet been done.
     if (lmom_diff_h) then
       call hor_viscosity(state,diag,grid)
     endif
-    !$omp parallel do private(ji)
-    do ji=1,n_scalars
+    !$omp parallel do private(ji,jl)
+    do ji=1,n_cells
+      do jl=1,n_layers
     
-      ! Computing the mass diffusion coefficient
-      ! ----------------------------------------
-      ! horizontal diffusion coefficient
-      diag%mass_diffusion_coeff_numerical_h(ji) = diag%viscosity(ji)/state%rho(ji,n_condensed_constituents+1)
-      ! vertical diffusion coefficient
-      diag%mass_diffusion_coeff_numerical_v(ji) &
-      ! molecular component
-      = diag%molecular_diffusion_coeff(ji) &
-      ! turbulent component
-      + tke2vert_diff_coeff(diag%tke(ji),diag%n_squared(ji),grid%layer_thickness(ji))
-      
-      ! Computing the temperature diffusion coefficient
-      ! -----------------------------------------------
-      diag%temp_diffusion_coeff_numerical_h(ji) = c_v_mass_weighted_air(state%rho,diag%temperature,ji) &
-                                                  *diag%mass_diffusion_coeff_numerical_h(ji)
-      diag%temp_diffusion_coeff_numerical_v(ji) = c_v_mass_weighted_air(state%rho,diag%temperature,ji) &
-                                                  *diag%mass_diffusion_coeff_numerical_v(ji)
-    
+        ! Computing the mass diffusion coefficient
+        ! ----------------------------------------
+        ! horizontal diffusion coefficient
+        diag%mass_diffusion_coeff_numerical_h(ji,jl) = diag%viscosity(ji,jl)/state%rho(ji,jl,n_condensed_constituents+1)
+        ! vertical diffusion coefficient
+        diag%mass_diffusion_coeff_numerical_v(ji,jl) &
+        ! molecular component
+        = diag%molecular_diffusion_coeff(ji,jl) &
+        ! turbulent component
+        + tke2vert_diff_coeff(diag%tke(ji,jl),diag%n_squared(ji,jl),grid%layer_thickness(ji,jl))
+        
+        ! Computing the temperature diffusion coefficient
+        ! -----------------------------------------------
+        diag%temp_diffusion_coeff_numerical_h(ji,jl) = c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl) &
+                                                       *diag%mass_diffusion_coeff_numerical_h(ji,jl)
+        diag%temp_diffusion_coeff_numerical_v(ji,jl) = c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl) &
+                                                       *diag%mass_diffusion_coeff_numerical_v(ji,jl)
+      enddo
     enddo
     !$omp end parallel do
   
@@ -150,9 +157,10 @@ module mo_eff_diff_coeffs
 
   subroutine vert_vert_mom_viscosity(rho,tke,n_squared,layer_thickness,scalar_placeholder,molecular_diffusion_coeff)
   
-    real(wp), intent(in)    :: rho(n_constituents*n_scalars),tke(n_scalars), &
-                               n_squared(n_scalars),layer_thickness(n_scalars),molecular_diffusion_coeff(n_scalars)
-    real(wp), intent(inout) :: scalar_placeholder(n_scalars)
+    real(wp), intent(in)    :: rho(n_cells,n_layers,n_constituents),tke(n_cells,n_layers), &
+                               n_squared(n_cells,n_layers),layer_thickness(n_cells,n_layers), &
+                               molecular_diffusion_coeff(n_cells,n_layers)
+    real(wp), intent(inout) :: scalar_placeholder(n_cells,n_layers)
   
     ! This subroutine multiplies scalar_placeholder (containing dw/dz) by the diffusion coefficient acting on w because of w.
     
@@ -165,11 +173,13 @@ module mo_eff_diff_coeffs
         ji = layer_index*n_cells + h_index
         mom_diff_coeff &
         ! molecular viscosity
-        = molecular_diffusion_coeff(ji) &
+        = molecular_diffusion_coeff(h_index,layer_index+1) &
         ! turbulent component
-        + tke2vert_diff_coeff(tke(ji),n_squared(ji),layer_thickness(ji))
+        + tke2vert_diff_coeff(tke(h_index,layer_index+1),n_squared(h_index,layer_index+1), &
+                              layer_thickness(h_index,layer_index+1))
         
-        scalar_placeholder(ji) = rho(n_condensed_constituents*n_scalars+ji)*mom_diff_coeff*scalar_placeholder(ji)
+        scalar_placeholder(h_index,layer_index+1) = rho(h_index,layer_index+1,n_condensed_constituents+1) &
+                                                    *mom_diff_coeff*scalar_placeholder(h_index,layer_index+1)
       enddo
     enddo
     !$omp end parallel do
@@ -196,32 +206,32 @@ module mo_eff_diff_coeffs
       h_index = ji - layer_index*n_edges
       scalar_base_index = layer_index*n_cells
       ! the turbulent component
-      mom_diff_coeff = 0.25_wp*(tke2vert_diff_coeff(diag%tke(scalar_base_index + grid%from_cell(h_index)), &
-      diag%n_squared(scalar_base_index+grid%from_cell(h_index)), &
-      grid%layer_thickness(scalar_base_index+grid%from_cell(h_index))) &
-      + tke2vert_diff_coeff(diag%tke(scalar_base_index + grid%to_cell(h_index)), &
-      diag%n_squared(scalar_base_index + grid%to_cell(h_index)), &
-      grid%layer_thickness(scalar_base_index + grid%to_cell(h_index))) &
-      + tke2vert_diff_coeff(diag%tke((layer_index+1)*n_cells + grid%from_cell(h_index)), &
-      diag%n_squared((layer_index+1)*n_cells + grid%from_cell(h_index)), &
-      grid%layer_thickness((layer_index+1)*n_cells + grid%from_cell(h_index))) &
-      + tke2vert_diff_coeff(diag%tke((layer_index+1)*n_cells + grid%to_cell(h_index)), &
-      diag%n_squared((layer_index+1)*n_cells + grid%to_cell(h_index)), &
-      grid%layer_thickness((layer_index+1)*n_cells + grid%to_cell(h_index))))
+      mom_diff_coeff = 0.25_wp*(tke2vert_diff_coeff(diag%tke(grid%from_cell(h_index),layer_index+1), &
+      diag%n_squared(grid%from_cell(h_index),layer_index+1), &
+      grid%layer_thickness(grid%from_cell(h_index),layer_index+1)) &
+      + tke2vert_diff_coeff(diag%tke(grid%to_cell(h_index),layer_index+1), &
+      diag%n_squared(grid%to_cell(h_index),layer_index+1), &
+      grid%layer_thickness(grid%to_cell(h_index),layer_index+1)) &
+      + tke2vert_diff_coeff(diag%tke(grid%from_cell(h_index),layer_index+2), &
+      diag%n_squared(grid%from_cell(h_index),layer_index+2), &
+      grid%layer_thickness(grid%from_cell(h_index),layer_index+2)) &
+      + tke2vert_diff_coeff(diag%tke(grid%to_cell(h_index),layer_index+2), &
+      diag%n_squared(grid%to_cell(h_index),layer_index+2), &
+      grid%layer_thickness(grid%to_cell(h_index),layer_index+2)))
       ! computing and adding the molecular viscosity
       ! the scalar variables need to be averaged to the vector points at half levels
-      molecular_viscosity = 0.25_wp*(diag%molecular_diffusion_coeff(scalar_base_index + grid%from_cell(h_index)) &
-      + diag%molecular_diffusion_coeff(scalar_base_index + grid%to_cell(h_index)) &
-      + diag%molecular_diffusion_coeff((layer_index+1)*n_cells + grid%from_cell(h_index)) &
-      + diag%molecular_diffusion_coeff((layer_index+1)*n_cells + grid%to_cell(h_index)))
+      molecular_viscosity = 0.25_wp*(diag%molecular_diffusion_coeff(grid%from_cell(h_index),layer_index+1) &
+      + diag%molecular_diffusion_coeff(grid%to_cell(h_index),layer_index+1) &
+      + diag%molecular_diffusion_coeff(grid%from_cell(h_index),layer_index+2) &
+      + diag%molecular_diffusion_coeff(grid%to_cell(h_index),layer_index+2))
       mom_diff_coeff = mom_diff_coeff+molecular_viscosity
       
       ! multiplying by the density (averaged to the half level edge)
       diag%vert_hor_viscosity(ji+n_edges) = &
-      0.25_wp*(state%rho(scalar_base_index + grid%from_cell(h_index),n_condensed_constituents+1) &
-      + state%rho(scalar_base_index + grid%to_cell(h_index),n_condensed_constituents+1) &
-      + state%rho((layer_index+1)*n_cells + grid%from_cell(h_index),n_condensed_constituents+1) &
-      + state%rho((layer_index+1)*n_cells + grid%to_cell(h_index),n_condensed_constituents+1)) &
+      0.25_wp*(state%rho(grid%from_cell(h_index),layer_index+1,n_condensed_constituents+1) &
+      + state%rho(grid%to_cell(h_index),layer_index+1,n_condensed_constituents+1) &
+      + state%rho(grid%from_cell(h_index),layer_index+2,n_condensed_constituents+1) &
+      + state%rho(grid%to_cell(h_index),layer_index+2,n_condensed_constituents+1)) &
       *mom_diff_coeff
     enddo
     !$omp end parallel do
@@ -278,12 +288,12 @@ module mo_eff_diff_coeffs
       layer_index = (ji-1)/n_cells
       h_index = ji - layer_index*n_cells
       if (layer_index==0) then
-        diag%n_squared(ji) = diag%vector_placeholder(n_vectors_per_layer+ji)
+        diag%n_squared(h_index,layer_index+1) = diag%vector_placeholder(n_vectors_per_layer+ji)
       elseif (layer_index==n_layers-1) then
-        diag%n_squared(ji) &
+        diag%n_squared(h_index,layer_index+1) &
         = diag%vector_placeholder(n_vectors-n_vectors_per_layer-n_cells+h_index)
       else
-        diag%n_squared(ji) &
+        diag%n_squared(h_index,layer_index+1) &
         = grid%inner_product_weights(h_index,layer_index+1,7) &
         *diag%vector_placeholder(h_index+layer_index*n_vectors_per_layer) &
         + grid%inner_product_weights(h_index,layer_index+1,8) &
