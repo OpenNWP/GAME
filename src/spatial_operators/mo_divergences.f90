@@ -20,7 +20,7 @@ module mo_divergences
     ! This subroutine computes the divergence of a horizontal vector field.
     
     real(wp),     intent(in)  :: in_field(n_vectors)
-    real(wp),     intent(out) :: out_field(n_scalars)
+    real(wp),     intent(out) :: out_field(n_cells,n_layers)
     type(t_grid), intent(in)  :: grid                 ! grid quantities
     
     ! local variables
@@ -56,7 +56,7 @@ module mo_divergences
           = contra_upper*grid%area(h_index + (jl-1)*n_vectors_per_layer) &
           - contra_lower*grid%area(h_index + jl*n_vectors_per_layer)
         endif
-        out_field(ji) = 1._wp/grid%volume(h_index,jl)*(comp_h + comp_v)
+        out_field(h_index,jl) = 1._wp/grid%volume(h_index,jl)*(comp_h + comp_v)
        enddo
     enddo
     
@@ -66,8 +66,8 @@ module mo_divergences
   
     ! This subroutine computes the divergence of a horizontal tracer flux density field.
     
-    real(wp),     intent(in)  :: in_field(n_vectors),density_field(n_scalars),wind_field(n_vectors)
-    real(wp),     intent(out) :: out_field(n_scalars)
+    real(wp),     intent(in)  :: in_field(n_vectors),density_field(n_cells,n_layers),wind_field(n_vectors)
+    real(wp),     intent(out) :: out_field(n_cells,n_layers)
     type(t_grid), intent(in)  :: grid                                                               ! grid quantities
     
     ! local variables
@@ -93,37 +93,37 @@ module mo_divergences
         if (layer_index==n_layers-n_oro_layers-1) then
           contra_lower = vertical_contravariant_corr(wind_field,layer_index+1,h_index,grid)
           if (contra_lower<=0._wp) then
-            density_lower = density_field(ji)
+            density_lower = density_field(h_index,layer_index+1)
           else
-            density_lower = density_field(ji+n_cells)
+            density_lower = density_field(h_index,layer_index+2)
           endif
           comp_v = -density_lower*contra_lower*grid%area(h_index + (layer_index+1)*n_vectors_per_layer)
         elseif (layer_index==n_layers-1) then
           contra_upper = vertical_contravariant_corr(wind_field,layer_index,h_index,grid)
           if (contra_upper<=0._wp) then
-            density_upper = density_field(ji-n_cells)
+            density_upper = density_field(h_index,layer_index)
           else
-            density_upper = density_field(ji)
+            density_upper = density_field(h_index,layer_index+1)
           endif
           comp_v = density_upper*contra_upper*grid%area(h_index + layer_index*n_vectors_per_layer)
         elseif (layer_index>n_layers-n_oro_layers-1) then
           contra_upper = vertical_contravariant_corr(wind_field,layer_index,h_index,grid)
           if (contra_upper<=0._wp) then
-            density_upper = density_field(ji-n_cells)
+            density_upper = density_field(h_index,layer_index)
           else
-            density_upper = density_field(ji)
+            density_upper = density_field(h_index,layer_index+1)
           endif
           contra_lower = vertical_contravariant_corr(wind_field,layer_index+1,h_index,grid)
           if (contra_lower<=0._wp) then
-            density_lower = density_field(ji)
+            density_lower = density_field(h_index,layer_index+1)
           else
-            density_lower = density_field(ji+n_cells)
+            density_lower = density_field(h_index,layer_index+2)
           endif
           comp_v &
           = density_upper*contra_upper*grid%area(h_index + layer_index*n_vectors_per_layer) &
           - density_lower*contra_lower*grid%area(h_index + (layer_index+1)*n_vectors_per_layer)
         endif
-        out_field(ji) = 1._wp/grid%volume(h_index,layer_index+1)*(comp_h + comp_v)
+        out_field(h_index,layer_index+1) = 1._wp/grid%volume(h_index,layer_index+1)*(comp_h + comp_v)
       enddo
     enddo
     !$omp end parallel do
@@ -134,9 +134,9 @@ module mo_divergences
     
     ! This adds the divergence of the vertical component of a vector field to the input scalar field.  
     
-    real(wp), intent(in)      :: in_field(n_vectors)
-    real(wp), intent(out)     :: out_field(n_scalars)
-    type(t_grid),  intent(in) :: grid                 ! grid quantities
+    real(wp),      intent(in)  :: in_field(n_vectors)
+    real(wp),      intent(out) :: out_field(n_cells,n_layers)
+    type(t_grid),  intent(in)  :: grid                        ! grid quantities
     
     ! local variables
     integer  :: h_index,layer_index,ji
@@ -158,7 +158,8 @@ module mo_divergences
         endif
         comp_v = contra_upper*grid%area(h_index + layer_index*n_vectors_per_layer) &
         - contra_lower*grid%area(h_index + (layer_index+1)*n_vectors_per_layer)
-        out_field(ji) = out_field(ji) + 1._wp/grid%volume(h_index,layer_index+1)*comp_v
+        out_field(h_index,layer_index+1) = out_field(h_index,layer_index+1) &
+                                           + 1._wp/grid%volume(h_index,layer_index+1)*comp_v
       enddo
     enddo
     !$omp end parallel do

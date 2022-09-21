@@ -18,9 +18,9 @@ module mo_gradient_operators
   
     ! This subroutine calculates the horizontal covariant gradient
     
-    real(wp),     intent(in)  :: in_field(n_scalars)  ! the scalar field of which to compute the gradient
-    real(wp),     intent(out) :: out_field(n_vectors) ! result (the gradient)
-    type(t_grid), intent(in)  :: grid                 ! grid quantities
+    real(wp),     intent(in)  :: in_field(n_cells,n_layers) ! the scalar field of which to compute the gradient
+    real(wp),     intent(out) :: out_field(n_vectors)       ! result (the gradient)
+    type(t_grid), intent(in)  :: grid                       ! grid quantities
     
     ! local variables
     integer :: h_index,layer_index,vector_index
@@ -30,8 +30,8 @@ module mo_gradient_operators
       do layer_index=0,n_layers-1
         vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
         out_field(vector_index) &
-        = (in_field(grid%to_cell(h_index)+layer_index*n_cells) &
-        - in_field(grid%from_cell(h_index)+layer_index*n_cells)) &
+        = (in_field(grid%to_cell(h_index),layer_index+1) &
+        - in_field(grid%from_cell(h_index),layer_index+1)) &
         /grid%normal_distance(vector_index)
       enddo
     enddo
@@ -43,22 +43,20 @@ module mo_gradient_operators
   
     ! This subroutine calculates the vertical covariant gradient.
     
-    real(wp),     intent(in)  :: in_field(n_scalars)  ! the scalar field of which to compute the gradient
-    real(wp),     intent(out) :: out_field(n_vectors) ! result (the gradient)
-    type(t_grid), intent(in)  :: grid                 ! grid quantities
+    real(wp),     intent(in)  :: in_field(n_cells,n_layers) ! the scalar field of which to compute the gradient
+    real(wp),     intent(out) :: out_field(n_vectors)       ! result (the gradient)
+    type(t_grid), intent(in)  :: grid                       ! grid quantities
     
-    integer :: ji,layer_index,h_index,lower_index,upper_index,vector_index
+    integer :: ji,layer_index,h_index,vector_index
     
     ! loop over the inner grid points
-    !$omp parallel do private(ji,layer_index,h_index,lower_index,upper_index,vector_index)
+    !$omp parallel do private(ji,layer_index,h_index,vector_index)
     do ji=n_cells+1,n_v_vectors-n_cells
       layer_index = (ji-1)/n_cells
       h_index = ji - layer_index*n_cells
-      lower_index = h_index + layer_index*n_cells
-      upper_index = h_index + (layer_index-1)*n_cells
       vector_index = h_index + layer_index*n_vectors_per_layer
       out_field(vector_index) &
-      = (in_field(upper_index)-in_field(lower_index))/grid%normal_distance(vector_index)
+      = (in_field(h_index,layer_index)-in_field(h_index,layer_index+1))/grid%normal_distance(vector_index)
     enddo
     !$omp end parallel do
   
@@ -83,9 +81,9 @@ module mo_gradient_operators
     
     ! This subroutine calculates the gradient (horizontally contravariant, vertically covariant).
     
-    real(wp),     intent(in)  :: in_field(n_scalars)  ! the scalar field of which to compute the gradient
-    real(wp),     intent(out) :: out_field(n_vectors) ! result (the gradient)
-    type(t_grid), intent(in)  :: grid                 ! grid quantities
+    real(wp),     intent(in)  :: in_field(n_cells,n_layers) ! the scalar field of which to compute the gradient
+    real(wp),     intent(out) :: out_field(n_vectors)       ! result (the gradient)
+    type(t_grid), intent(in)  :: grid                       ! grid quantities
     
     call grad_cov(in_field,out_field,grid)
     call vector_field_hor_cov_to_con(out_field,grid)
@@ -96,9 +94,9 @@ module mo_gradient_operators
     
     ! This function calculates the horizontal contravariant gradient.
     
-    real(wp),     intent(in)  :: in_field(n_scalars)  ! the scalar field of which to compute the gradient
-    real(wp),     intent(out) :: out_field(n_vectors) ! result (the gradient)
-    type(t_grid), intent(in)  :: grid                 ! grid quantities
+    real(wp),     intent(in)  :: in_field(n_cells,n_layers) ! the scalar field of which to compute the gradient
+    real(wp),     intent(out) :: out_field(n_vectors)       ! result (the gradient)
+    type(t_grid), intent(in)  :: grid                       ! grid quantities
     
     ! local variables
     integer :: ji,layer_index,h_index

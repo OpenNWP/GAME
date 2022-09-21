@@ -23,12 +23,12 @@ module mo_eff_diff_coeffs
     
     ! This subroutine computes the effective diffusion coefficient (molecular + turbulent).
     
-    type(t_state), intent(in)    :: state
-    type(t_diag),  intent(inout) :: diag
-    type(t_grid),  intent(in)    :: grid
+    type(t_state), intent(in)    :: state ! state variables
+    type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer  :: ji,jl,scalar_index_from,scalar_index_to,vector_index,h_index,layer_index,scalar_base_index
+    integer  :: ji,jl,vector_index,h_index,layer_index,scalar_base_index
     real(wp) :: density_value
     
     !$omp parallel do private(ji,jl)
@@ -46,14 +46,10 @@ module mo_eff_diff_coeffs
     
     ! Averaging the viscosity to rhombi
     ! ---------------------------------
-    !$omp parallel do private(ji,jl,scalar_index_from,scalar_index_to,vector_index)
+    !$omp parallel do private(ji,jl,vector_index)
     do ji=1,n_edges
       do jl=0,n_layers-1
         vector_index = n_cells + jl*n_vectors_per_layer + ji
-        
-        ! indices of the adjacent scalar grid points
-        scalar_index_from = jl*n_cells + grid%from_cell(ji)
-        scalar_index_to = jl*n_cells + grid%to_cell(ji)
         
         ! preliminary result
         diag%viscosity_rhombi(vector_index) = 0.5_wp*(diag%viscosity(grid%from_cell(ji),jl+1) &
@@ -117,9 +113,9 @@ module mo_eff_diff_coeffs
   
     ! This subroutine computes the scalar diffusion coefficients (including eddies).
     
-    type(t_state), intent(in)    :: state
-    type(t_diag),  intent(inout) :: diag
-    type(t_grid),  intent(in)    :: grid
+    type(t_state), intent(in)    :: state ! state variables
+    type(t_diag),  intent(inout) :: diag  ! diangostic quantities
+    type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
     integer :: ji,jl
@@ -164,22 +160,19 @@ module mo_eff_diff_coeffs
   
     ! This subroutine multiplies scalar_placeholder (containing dw/dz) by the diffusion coefficient acting on w because of w.
     
-    integer  :: h_index,layer_index,ji
+    integer  :: ji,jl
     real(wp) :: mom_diff_coeff
     
-    !$omp parallel do private(h_index,layer_index,ji,mom_diff_coeff)
-    do h_index=1,n_cells
-      do layer_index=0,n_layers-1
-        ji = layer_index*n_cells + h_index
+    !$omp parallel do private(ji,jl,mom_diff_coeff)
+    do ji=1,n_cells
+      do jl=1,n_layers
         mom_diff_coeff &
         ! molecular viscosity
-        = molecular_diffusion_coeff(h_index,layer_index+1) &
+        = molecular_diffusion_coeff(ji,jl) &
         ! turbulent component
-        + tke2vert_diff_coeff(tke(h_index,layer_index+1),n_squared(h_index,layer_index+1), &
-                              layer_thickness(h_index,layer_index+1))
+        + tke2vert_diff_coeff(tke(ji,jl),n_squared(ji,jl),layer_thickness(ji,jl))
         
-        scalar_placeholder(h_index,layer_index+1) = rho(h_index,layer_index+1,n_condensed_constituents+1) &
-                                                    *mom_diff_coeff*scalar_placeholder(h_index,layer_index+1)
+        scalar_placeholder(ji,jl) = rho(ji,jl,n_condensed_constituents+1)*mom_diff_coeff*scalar_placeholder(ji,jl)
       enddo
     enddo
     !$omp end parallel do

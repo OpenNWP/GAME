@@ -227,8 +227,8 @@ module mo_set_initial_state
     state%theta_v_pert = state%theta_v_pert - grid%theta_v_bg
     !$omp end parallel workshare
     
-    ! condensed densities are zero in all test states
     !$omp parallel workshare
+    ! condensed densities are zero in all test states
     state%rho(:,:,1:n_condensed_constituents) = 0._wp
     ! moist air density
     state%rho(:,:,n_condensed_constituents+1) = diag%scalar_placeholder

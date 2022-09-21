@@ -57,8 +57,7 @@ module mo_scalar_tend_expl
       ! The diffusion of the temperature depends on its gradient.
       call grad(diag%temperature,diag%vector_placeholder,grid)
       ! Now the diffusive temperature flux density can be obtained.
-      call scalar_times_vector_h(diag%temp_diffusion_coeff_numerical_h,diag%vector_placeholder, &
-                                 diag%flux_density,grid)
+      call scalar_times_vector_h(diag%temp_diffusion_coeff_numerical_h,diag%vector_placeholder,diag%flux_density,grid)
       ! The divergence of the diffusive temperature flux density is the diffusive temperature heating.
       call div_h(diag%flux_density,diag%temperature_diffusion_heating,grid)
       ! vertical temperature diffusion
@@ -82,8 +81,7 @@ module mo_scalar_tend_expl
         call div_h(diag%vector_placeholder,diag%mass_diff_tendency(:,:,jc),grid)
         ! vertical mass diffusion
         if (lmass_diff_v) then
-          call scalar_times_vector_v(diag%mass_diffusion_coeff_numerical_v, &
-                                     diag%vector_placeholder,diag%vector_placeholder)
+          call scalar_times_vector_v(diag%mass_diffusion_coeff_numerical_v,diag%vector_placeholder,diag%vector_placeholder)
           call add_vertical_div(diag%vector_placeholder,diag%mass_diff_tendency(:,:,jc),grid)
         endif
       enddo
