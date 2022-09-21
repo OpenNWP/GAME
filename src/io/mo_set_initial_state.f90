@@ -36,7 +36,7 @@ module mo_set_initial_state
     type(t_grid),  intent(in)    :: grid
     
     ! local variables
-    integer               :: ji,jl,jc,scalar_index,ncid_grid,latitude_vector_id, &
+    integer               :: ji,jl,scalar_index,ncid_grid,latitude_vector_id, &
                              longitude_vector_id
     real(wp)              :: dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7,lat,lon,z_height,u,v, &
                              pressure_value,specific_humidity,dry_density,b,c,small_atmos_rescale
@@ -77,12 +77,12 @@ module mo_set_initial_state
       do jl=1,n_layers
         lat = grid%lat_c(ji)
         lon = grid%lon_c(ji)
-        z_height = grid%z_scalar(ji,jc)
+        z_height = grid%z_scalar(ji,jl)
         ! standard atmosphere
         if (ideal_input_id==0) then
-          temperature(ji,jc) = grid%theta_v_bg(ji,jc)*grid%exner_bg(ji,jc)
-          temperature_v(ji,jc) = temperature(ji,jc)
-          pressure(ji,jc) = p_0*grid%exner_bg(ji,jc)**(c_d_p/r_d)
+          temperature(ji,jl) = grid%theta_v_bg(ji,jl)*grid%exner_bg(ji,jl)
+          temperature_v(ji,jl) = temperature(ji,jl)
+          pressure(ji,jl) = p_0*grid%exner_bg(ji,jl)**(c_d_p/r_d)
         endif
         ! dry Ullrich test
         if (ideal_input_id==1) then

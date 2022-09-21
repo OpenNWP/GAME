@@ -21,7 +21,7 @@ module mo_various_helpers
     integer              :: find_min_index
     
     ! local variables
-    integer        :: ji
+    integer  :: ji
     real(wp) :: current_min
     
     find_min_index = 1

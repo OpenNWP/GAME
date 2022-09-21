@@ -126,7 +126,7 @@ module mo_write_output
     allocate(e_kin_density(n_cells,n_layers))
     call inner_product(state%wind,state%wind,e_kin_density,grid)
     !$omp parallel do private(ji,jl)
-    do ji=1,n_scalars
+    do ji=1,n_cells
       do jl=1,n_layers
         e_kin_density(ji,jl) = state%rho(ji,jl,n_condensed_constituents+1)*e_kin_density(ji,jl)
       enddo
@@ -141,7 +141,7 @@ module mo_write_output
     deallocate(e_kin_density)
     allocate(pot_energy_density(n_cells,n_layers))
     !$omp parallel do private(ji,jl)
-    do ji=1,n_scalars
+    do ji=1,n_cells
       do jl=1,n_layers
         pot_energy_density(ji,jl) = state%rho(ji,jl,n_condensed_constituents+1)*grid%gravity_potential(ji,jl)
       enddo
@@ -250,7 +250,6 @@ module mo_write_output
     call temperature_diagnostics(state,diag,grid)
     time_since_init_min = int(t_write - t_init)
     time_since_init_min = time_since_init_min/60
-    
     ! Surface output including diagnostics.
     ! -------------------------------------
     if (lsurface_output) then
@@ -587,7 +586,7 @@ module mo_write_output
       
     endif
     
-    ! Diagnostics of quantities that are not surface-specific.    
+    ! Diagnostics of quantities that are not surface-specific.
     allocate(div_h_all_layers(n_cells,n_layers))
     call div_h(state%wind,div_h_all_layers,grid)
     call calc_rel_vort(state,diag,grid)
