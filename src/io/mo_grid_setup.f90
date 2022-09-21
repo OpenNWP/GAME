@@ -43,7 +43,7 @@ module mo_grid_setup
                           normal_distance_dual_id,vorticity_indices_triangles_id,vorticity_signs_triangles_id, &
                           latitude_scalar_id,longitude_scalar_id,toa_id,radius_id,interpol_indices_id, &
                           interpol_weights_id,theta_v_bg_id,exner_bg_id,sfc_rho_c_id,sfc_albedo_id,roughness_length_id, &
-                          is_land_id,t_conductivity_id,n_oro_layers_id,stretching_parameter_id,ji,layer_index,h_index,jl
+                          is_land_id,t_conductivity_id,n_oro_layers_id,stretching_parameter_id,ji,jl
     real(wp)           :: sigma_soil,rescale_factor
     character(len=128) :: grid_file_name
     

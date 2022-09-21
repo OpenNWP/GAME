@@ -107,7 +107,6 @@ module mo_manage_pchevi
       if (rk_step==2) then
         call scalar_tend_expl(state_new,state_new,state_tend,diag,grid,rk_step)
       endif
-      write(*,*) minval(state_tend%rho), maxval(state_tend%rho)
 
       ! 3.) vertical sound wave solver
       ! ------------------------------
