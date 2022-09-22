@@ -191,13 +191,13 @@ module mo_write_output
     integer               :: ji,jk,jl,jm,lat_lon_dimids(2),ncid,single_int_dimid,lat_dimid,lon_dimid,start_date_id,start_hour_id, &
                              lat_id,lon_id,layer_index,closest_index,second_closest_index,temperature_ids(n_layers), &
                              pressure_ids(n_layers),rel_hum_ids(n_layers),wind_u_ids(n_layers),wind_v_ids(n_layers), &
-                             rel_vort_ids(n_layers),div_h_ids(n_layers),wind_w_ids(n_levels), &
+                             rel_vort_ids(n_layers),div_h_ids(n_layers),wind_w_ids(n_levels),layer_dimid, &
                              time_since_init_min,mslp_id,sp_id,rprate_id,sprate_id,dimids_vector_2(2), &
                              cape_id,tcc_id,t2_id,u10_id,v10_id,gusts_id,sfc_sw_down_id,gh_ids(n_pressure_levels), &
                              temp_p_ids(n_pressure_levels),rh_p_ids(n_pressure_levels),wind_u_p_ids(n_pressure_levels), &
                              wind_v_p_ids(n_pressure_levels),epv_p_ids(n_pressure_levels),rel_vort_p_ids(n_pressure_levels), &
-                             scalar_dimid,soil_layer_dimid,vector_dimid,constituent_dimid,densities_id,temperature_id,wind_id, &
-                             tke_id,soil_id,time_step_10_m_wind,pressure_level_hpa,cell_dimid
+                             soil_layer_dimid,vector_dimid,constituent_dimid,densities_id,temperature_id,wind_id, &
+                             tke_id,soil_id,time_step_10_m_wind,pressure_level_hpa,cell_dimid,dimids_vector_3(3)
     real(wp)              :: delta_latitude,delta_longitude,lat_vector(n_lat_io_points),lon_vector(n_lon_io_points), &
                              min_precip_rate_mmh,min_precip_rate,cloud_water2cloudiness,temp_lowest_layer, &
                              pressure_value,mslp_factor,sp_factor,temp_mslp,temp_surface,z_height,theta_v, &
@@ -894,7 +894,7 @@ module mo_write_output
       call nc_check(nf90_create(output_file,NF90_CLOBBER,ncid))
       call nc_check(nf90_def_dim(ncid,"single_int_index",1,single_int_dimid))
       call nc_check(nf90_def_dim(ncid,"cell_index",n_cells,cell_dimid))
-      call nc_check(nf90_def_dim(ncid,"scalar_index",n_scalars,scalar_dimid))
+      call nc_check(nf90_def_dim(ncid,"layer_index",n_scalars,layer_dimid))
       call nc_check(nf90_def_dim(ncid,"constituent_index",n_constituents,constituent_dimid))
       call nc_check(nf90_def_dim(ncid,"soil_layer_index",nsoillays,soil_layer_dimid))
       call nc_check(nf90_def_dim(ncid,"vector_index",n_vectors,vector_dimid))
@@ -902,15 +902,20 @@ module mo_write_output
       ! Defining the variables.
       call nc_check(nf90_def_var(ncid,"start_date",NF90_INT,single_int_dimid,start_date_id))
       call nc_check(nf90_def_var(ncid,"start_hour",NF90_INT,single_int_dimid,start_hour_id))
-      dimids_vector_2(1) = scalar_dimid
-      dimids_vector_2(2) = constituent_dimid
-      call nc_check(nf90_def_var(ncid,"densities",NF90_REAL,dimids_vector_2,densities_id))
+      dimids_vector_3(1) = cell_dimid
+      dimids_vector_3(2) = layer_dimid
+      dimids_vector_3(3) = constituent_dimid
+      call nc_check(nf90_def_var(ncid,"densities",NF90_REAL,dimids_vector_3,densities_id))
       call nc_check(nf90_put_att(ncid,densities_id,"units","kg/m^3"))
-      call nc_check(nf90_def_var(ncid,"temperature",NF90_REAL,scalar_dimid,temperature_id))
+      dimids_vector_2(1) = cell_dimid
+      dimids_vector_2(2) = layer_dimid
+      call nc_check(nf90_def_var(ncid,"temperature",NF90_REAL,dimids_vector_2,temperature_id))
       call nc_check(nf90_put_att(ncid,temperature_id,"units","K"))
       call nc_check(nf90_def_var(ncid,"wind",NF90_REAL,vector_dimid,wind_id))
       call nc_check(nf90_put_att(ncid,wind_id,"units","m/s"))
-      call nc_check(nf90_def_var(ncid,"tke",NF90_REAL,scalar_dimid,tke_id))
+      dimids_vector_2(1) = cell_dimid
+      dimids_vector_2(2) = layer_dimid
+      call nc_check(nf90_def_var(ncid,"tke",NF90_REAL,dimids_vector_2,tke_id))
       call nc_check(nf90_put_att(ncid,tke_id,"units","J/kg"))
       dimids_vector_2(1) = cell_dimid
       dimids_vector_2(2) = soil_layer_dimid
