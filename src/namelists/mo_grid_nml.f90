@@ -14,8 +14,8 @@ module mo_grid_nml
   integer  :: oro_id                   ! orography ID
   integer  :: n_pentagons              ! number of pentagons
   integer  :: n_hexagons               ! number of hexagons
-  integer  :: n_cells              ! number of columns
-  integer  :: n_edges              ! number of horizontal vectors per layer
+  integer  :: n_cells                  ! number of columns
+  integer  :: n_edges                  ! number of horizontal vectors per layer
   integer  :: n_h_vectors              ! number of horizontal vectors
   integer  :: n_scalars                ! number of scalars
   integer  :: n_levels                 ! number of levels
