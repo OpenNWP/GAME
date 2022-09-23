@@ -130,28 +130,27 @@ module mo_set_initial_state
       do jl=0,n_layers-1
         lat = latitude_vector(ji)
         lon = longitude_vector(ji)
-        z_height = grid%z_vector(n_cells + ji + jl*n_vectors_per_layer)
+        z_height = grid%z_vector_h(ji,jl+1)
         ! standard atmosphere: no wind
         if (ideal_input_id==0) then
-          state%wind(n_cells + jl*n_vectors_per_layer + ji) = 0._wp          
+          state%wind_h(ji,jl+1) = 0._wp          
                 
           ! adding a "random" perturbation to the horizontal wind in the case of the Held-Suarez test case
           if (rad_config==2) then
-            state%wind(n_cells + jl*n_vectors_per_layer + ji) &
-            = state%wind(n_cells + jl*n_vectors_per_layer + ji) + 0.1_wp*mod(ji,17)/16._wp
+            state%wind_h(ji,jl+1) = state%wind_h(ji,jl+1) + 0.1_wp*mod(ji,17)/16._wp
           endif
         endif
         ! dry Ullrich test
         if (ideal_input_id==1) then
           call baroclinic_wave_test(1,0,1,small_atmos_rescale,lon,lat,dummy_1,z_height,1, &
                                     u,v,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
-          state%wind(n_cells + jl*n_vectors_per_layer + ji) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
+          state%wind_h(ji,jl+1) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
         endif
         ! moist Ullrich test
         if (ideal_input_id==2) then
           call baroclinic_wave_test(1,1,1,small_atmos_rescale,lon,lat,dummy_1,z_height,1, &
                                     u,v,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
-          state%wind(n_cells + jl*n_vectors_per_layer + ji) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
+          state%wind_h(ji,jl+1) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
         endif
       enddo
     enddo
@@ -161,27 +160,24 @@ module mo_set_initial_state
     deallocate(longitude_vector)
     
     ! setting the vertical wind field equal to zero
-    !$omp parallel do private(ji,jl)
-    do ji=1,n_cells
-      do jl=0,n_levels-1
-        state%wind(jl*n_vectors_per_layer + ji) = 0._wp
-      enddo
-    enddo
-    !$omp end parallel do
+    !$omp parallel workshare
+    state%wind_v = 0._wp
+    !$omp end parallel workshare
     
     ! this is the moist air density which has not yet been hydrostatically balanced
     !$omp parallel workshare
     diag%scalar_placeholder = pressure/(r_d*temperature_v)
     !$omp end parallel workshare
     
-    call scalar_times_vector(diag%scalar_placeholder,state%wind,diag%flux_density,grid)
+    call scalar_times_vector_h(diag%scalar_placeholder,state%wind_h,diag%flux_density_h,grid)
+    call scalar_times_vector_v(diag%scalar_placeholder,state%wind_v,diag%flux_density_v,grid)
     ! Nowthe potential vorticity is evaluated.
     call calc_pot_vort(state,diag%scalar_placeholder,diag,grid)
     ! Nowthe generalized Coriolis term is evaluated.
     call vorticity_flux(diag,grid)
     
     ! Kinetic energy is prepared for the gradient term of the Lamb transformation.
-    call inner_product(state%wind,state%wind,diag%v_squared,grid)
+    call inner_product(state%wind_h,state%wind_v,state%wind_h,state%wind_v,diag%v_squared,grid)
     
     ! density is determined out of the hydrostatic equation
     ! theta_v_pert and exner_pert are a misuse of name herethey contain the full values here
@@ -202,7 +198,7 @@ module mo_set_initial_state
           + 2._wp/c_d_p*(grid%gravity_potential(ji,jl+1) - grid%gravity_potential(ji,jl+2) &
           + 0.5_wp*diag%v_squared(ji,jl+1) - 0.5_wp*diag%v_squared(ji,jl+2) &
           - (grid%z_scalar(ji,jl+1) - grid%z_scalar(ji,jl+2)) &
-          *diag%pot_vort_tend(ji + (jl+1)*n_vectors_per_layer)))
+          *diag%pot_vort_tend_v(ji,jl+2)))
           c = state%exner_pert(ji,jl+2)**2*temperature_v(ji,jl+1)/temperature_v(ji,jl+2)
           state%exner_pert(ji,jl+1) = b + (b**2+c)**0.5_wp
         endif
@@ -258,7 +254,7 @@ module mo_set_initial_state
     type(t_grid),       intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer               :: ji,jl,jc,ncid,tke_id,tke_avail,densities_id,temperature_id,wind_id
+    integer               :: ji,jl,jc,ncid,tke_id,tke_avail,densities_id,temperature_id,wind_h_id,wind_v_id
     real(wp)              :: pressure,pot_temp_v
     real(wp), allocatable :: temperature(:,:),temperature_v(:,:)
     
@@ -266,7 +262,8 @@ module mo_set_initial_state
     call nc_check(nf90_open(init_state_file,NF90_CLOBBER,ncid))
     call nc_check(nf90_inq_varid(ncid,"densities",densities_id))
     call nc_check(nf90_inq_varid(ncid,"temperature",temperature_id))
-    call nc_check(nf90_inq_varid(ncid,"wind",wind_id))
+    call nc_check(nf90_inq_varid(ncid,"wind_h",wind_h_id))
+    call nc_check(nf90_inq_varid(ncid,"wind_v",wind_v_id))
     tke_avail = 0
     if (nf90_inq_varid(ncid,"tke",tke_id)==0) then
       tke_avail = 1
@@ -276,7 +273,8 @@ module mo_set_initial_state
     endif
     call nc_check(nf90_get_var(ncid,densities_id,state%rho))
     call nc_check(nf90_get_var(ncid,temperature_id,temperature))
-    call nc_check(nf90_get_var(ncid,wind_id,state%wind))
+    call nc_check(nf90_get_var(ncid,wind_h_id,state%wind_h))
+    call nc_check(nf90_get_var(ncid,wind_v_id,state%wind_v))
     if (tke_avail==1) then
       call nc_check(nf90_get_var(ncid,tke_id,diag%tke))
     else

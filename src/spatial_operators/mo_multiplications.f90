@@ -12,20 +12,6 @@ module mo_multiplications
   
   contains
 
-  subroutine scalar_times_vector(scalar_field,vector_field,out_field,grid)
-  
-    ! This subroutine multiplies the vector field vector_field by the scalar field scalar_field.
-    
-    real(wp),     intent(in)  :: scalar_field(n_cells,n_layers)
-    real(wp)                  :: vector_field(n_vectors)
-    real(wp),     intent(out) :: out_field(n_vectors)
-    type(t_grid), intent(in)  :: grid  ! grid quantities
-        
-    call scalar_times_vector_h(scalar_field,vector_field,out_field,grid)
-    call scalar_times_vector_v(scalar_field,vector_field,out_field)
-  
-  end subroutine scalar_times_vector
-
   subroutine scalar_times_vector_h(scalar_field,vector_field,out_field,grid)
   
     ! This subroutine multiplies a vector field by a scalar field at the horizontal gridpoints.

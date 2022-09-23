@@ -85,30 +85,6 @@ module mo_averaging
     remap_ver2hor = 0.5_wp*remap_ver2hor
   
   end function remap_ver2hor
-
-  subroutine vector_field_hor_cov_to_con(cov_to_con_field_h,cov_to_con_field_v,grid)
-  
-    ! This subroutine transforms the covariant horizontal measure numbers of a horizontal vector field to
-    ! contravariant measure numbers.
-    
-    real(wp),     intent(inout) :: cov_to_con_field_h(n_edges,n_layers) ! the vector field with which to operate
-    real(wp),     intent(in)    :: cov_to_con_field_v(n_cells,n_levels) ! the vector field with which to operate
-    type(t_grid), intent(in)    :: grid                                 ! grid quantities
-    
-    ! local variables
-    integer  :: ji,jl
-    
-    ! loop over all horizontal vector points in the orography layers
-    !$omp parallel do private(ji,jl)
-    do ji=1,n_edges
-      do jl=n_flat_layers+1,n_oro_layers
-        cov_to_con_field_h(ji,jl) = cov_to_con_field_h(ji,jl) - grid%slope(ji,jl) &
-                                    *remap_ver2hor(cov_to_con_field_v,ji,jl,grid)
-      enddo
-    enddo
-    !$omp end parallel do
-    
-  end subroutine vector_field_hor_cov_to_con
   
   function horizontal_covariant(vector_field_h,vector_field_v,layer_index,h_index,grid)
     

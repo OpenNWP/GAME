@@ -33,7 +33,7 @@ module mo_vorticity_flux
         ! Calculating the horizontal component of the vorticity flux term.
         ! ----------------------------------------------------------------
         if (h_index>=n_cells+1 .and. layer_index<n_layers) then
-          diag%pot_vort_tend(ji) = 0._wp
+          diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = 0._wp
           h_index_shifted = h_index - n_cells
           mass_flux_base_index = n_cells + layer_index*n_vectors_per_layer
           pot_vort_base_index = n_edges + layer_index*2*n_edges
@@ -43,49 +43,49 @@ module mo_vorticity_flux
           ! from_cell comes before to_cell as usual.
           if (grid%from_cell(h_index_shifted)<=n_pentagons) then
             do jk=1,4
-              diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
+              diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
               + grid%trsk_weights(h_index_shifted,jk) &
-              *diag%flux_density(mass_flux_base_index + grid%trsk_indices(h_index_shifted,jk)) &
-              *diag%pot_vort(pot_vort_base_index + grid%trsk_modified_curl_indices(h_index_shifted,jk))
+              *diag%flux_density_h(grid%trsk_indices(h_index_shifted,jk),layer_index+1) &
+              *diag%pot_vort_h(grid%trsk_modified_curl_indices(h_index_shifted,jk),layer_index+1)
             enddo
           else
             do jk=1,5
               if (jk==3) then
-                diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
+                diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
                 + grid%trsk_weights(h_index_shifted,jk) &
-                *diag%flux_density(mass_flux_base_index + grid%trsk_indices(h_index_shifted,jk)) &
+                *diag%flux_density_h(grid%trsk_indices(h_index_shifted,jk),layer_index+1) &
                 *0.5 &
-                *(diag%pot_vort(pot_vort_base_index + grid%trsk_modified_curl_indices(h_index_shifted,jk)) &
-                + diag%pot_vort(pot_vort_base_index + h_index_shifted))
+                *(diag%pot_vort_h(grid%trsk_modified_curl_indices(h_index_shifted,jk),layer_index+1) &
+                + diag%pot_vort_h(h_index_shifted,layer_index+1))
               else
-                diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
+                diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
                 + grid%trsk_weights(h_index_shifted,jk) &
-                *diag%flux_density(mass_flux_base_index + grid%trsk_indices(h_index_shifted,jk)) &
-                *diag%pot_vort(pot_vort_base_index + grid%trsk_modified_curl_indices(h_index_shifted,jk))
+                *diag%flux_density_h(grid%trsk_indices(h_index_shifted,jk),layer_index+1) &
+                *diag%pot_vort_h(grid%trsk_modified_curl_indices(h_index_shifted,jk),layer_index+1)
               endif
             enddo
           endif
           if (grid%to_cell(h_index_shifted)<=n_pentagons) then
             do jk=6,10
-              diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
+              diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
               + grid%trsk_weights(h_index_shifted,jk) &
-              *diag%flux_density(mass_flux_base_index + grid%trsk_indices(h_index_shifted,jk)) &
-              *diag%pot_vort(pot_vort_base_index + grid%trsk_modified_curl_indices(h_index_shifted,jk))
+              *diag%flux_density_h(grid%trsk_indices(h_index_shifted,jk),layer_index+1) &
+              *diag%pot_vort_h(grid%trsk_modified_curl_indices(h_index_shifted,jk),layer_index+1)
             enddo
           else
             do jk=6,10
               if (jk==8) then
-                diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
+                diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
                 + grid%trsk_weights(h_index_shifted,jk) &
-                *diag%flux_density(mass_flux_base_index + grid%trsk_indices(h_index_shifted,jk)) &
+                *diag%flux_density_h(grid%trsk_indices(h_index_shifted,jk),layer_index+1) &
                 *0.5 &
-                *(diag%pot_vort(pot_vort_base_index + grid%trsk_modified_curl_indices(h_index_shifted,jk)) &
-                + diag%pot_vort(pot_vort_base_index + h_index_shifted))
+                *(diag%pot_vort_h(grid%trsk_modified_curl_indices(h_index_shifted,jk),layer_index+1) &
+                + diag%pot_vort_h(h_index_shifted,layer_index+1))
               else
-                diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
+                diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
                 + grid%trsk_weights(h_index_shifted,jk) &
-                *diag%flux_density(mass_flux_base_index + grid%trsk_indices(h_index_shifted,jk)) &
-                *diag%pot_vort(pot_vort_base_index + grid%trsk_modified_curl_indices(h_index_shifted,jk))
+                *diag%flux_density_h(grid%trsk_indices(h_index_shifted,jk),layer_index+1) &
+                *diag%pot_vort_h(grid%trsk_modified_curl_indices(h_index_shifted,jk),layer_index+1)
               endif
             enddo
           endif
@@ -94,31 +94,31 @@ module mo_vorticity_flux
           ! ------------------------------------------------------------------------------------------------------
            
           ! effect of layer above
-          diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
+          diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
           - 0.5_wp &
           *grid%inner_product_weights(grid%from_cell(h_index_shifted),layer_index+1,7) &
-          *diag%flux_density(layer_index*n_vectors_per_layer + grid%from_cell(h_index_shifted)) &
-          *diag%pot_vort(h_index_shifted + layer_index*2*n_edges)
-          diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
+          *diag%flux_density_v(grid%from_cell(h_index_shifted),layer_index+1) &
+          *diag%pot_vort_h(h_index_shifted,layer_index+1)
+          diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
           - 0.5_wp &
           *grid%inner_product_weights(grid%to_cell(h_index_shifted),layer_index+1,7) &
-          *diag%flux_density(layer_index*n_vectors_per_layer + grid%to_cell(h_index_shifted)) &
-          *diag%pot_vort(h_index_shifted + layer_index*2*n_edges)
+          *diag%flux_density_v(grid%to_cell(h_index_shifted),layer_index+1) &
+          *diag%pot_vort_h(h_index_shifted,layer_index+1)
             ! effect of layer below
-          diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
+          diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
           - 0.5_wp &
           *grid%inner_product_weights(grid%from_cell(h_index_shifted),layer_index+1,8) &
-          *diag%flux_density((layer_index + 1)*n_vectors_per_layer + grid%from_cell(h_index_shifted)) &
-          *diag%pot_vort(h_index_shifted + (layer_index + 1)*2*n_edges)
-          diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
+          *diag%flux_density_v(grid%from_cell(h_index_shifted),layer_index+1) &
+          *diag%pot_vort_h(h_index_shifted,layer_index+2)
+          diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
           - 0.5_wp &
           *grid%inner_product_weights(grid%to_cell(h_index_shifted),layer_index+1,8) &
-          *diag%flux_density((layer_index + 1)*n_vectors_per_layer + grid%to_cell(h_index_shifted)) &
-          *diag%pot_vort(h_index_shifted + (layer_index + 1)*2*n_edges)
+          *diag%flux_density_v(grid%to_cell(h_index_shifted),layer_index+1) &
+          *diag%pot_vort_h(h_index_shifted,layer_index+2)
         ! Calculating the vertical component of the vorticity flux term.
         ! --------------------------------------------------------------
         elseif (h_index<=n_cells) then
-          diag%pot_vort_tend(ji) = 0._wp
+          diag%pot_vort_tend_v(h_index,layer_index+1) = 0._wp
           
           ! Determining the vertical acceleration due to the vorticity flux term.
           
@@ -134,22 +134,20 @@ module mo_vorticity_flux
           endif
           if (layer_index>=1) then
             do jk=1,n_edges_of_cell
-              diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
+              diag%pot_vort_tend_v(h_index,layer_index+1) = diag%pot_vort_tend_v(h_index,layer_index+1) &
               + vert_weight &
               *grid%inner_product_weights(h_index,layer_index,jk) &
-              *diag%flux_density(n_cells+(layer_index-1)*n_vectors_per_layer+ &
-                                 grid%adjacent_edges(h_index,jk)) &
-              *diag%pot_vort(layer_index*2*n_edges+grid%adjacent_edges(h_index,jk))
+              *diag%flux_density_h(grid%adjacent_edges(h_index,jk),layer_index) &
+              *diag%pot_vort_h(grid%adjacent_edges(h_index,jk),layer_index)
             enddo
           endif
           if (layer_index<=n_layers-1) then
             do jk=1,n_edges_of_cell
-              diag%pot_vort_tend(ji) = diag%pot_vort_tend(ji) &
+              diag%pot_vort_tend_v(h_index,layer_index+1) = diag%pot_vort_tend_v(h_index,layer_index+1) &
               + vert_weight &
               *grid%inner_product_weights(h_index,layer_index+1,jk) &
-              *diag%flux_density(n_cells + layer_index*n_vectors_per_layer+ &
-                                      grid%adjacent_edges(h_index,jk)) &
-              *diag%pot_vort(layer_index*2*n_edges+grid%adjacent_edges(h_index,jk))
+              *diag%flux_density_h(grid%adjacent_edges(h_index,jk),layer_index+1) &
+              *diag%pot_vort_h(grid%adjacent_edges(h_index,jk),layer_index+1)
             enddo
           endif
         endif

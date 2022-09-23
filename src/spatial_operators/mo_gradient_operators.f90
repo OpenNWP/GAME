@@ -7,8 +7,9 @@ module mo_gradient_operators
   
   use mo_definitions, only: wp,t_grid
   use mo_grid_nml,    only: n_vectors,n_edges,n_layers,n_scalars,n_cells,n_vectors_per_layer, &
-                            n_v_vectors,n_v_vectors
-  use mo_averaging,   only: vector_field_hor_cov_to_con
+                            n_v_vectors,n_v_vectors,n_levels
+  use mo_grid_setup,  only: n_flat_layers,n_oro_layers
+  use mo_averaging,   only: remap_ver2hor
   
   implicit none
   
@@ -32,7 +33,7 @@ module mo_gradient_operators
         out_field(vector_index) &
         = (in_field(grid%to_cell(h_index),layer_index+1) &
         - in_field(grid%from_cell(h_index),layer_index+1)) &
-        /grid%normal_distance(vector_index)
+        /grid%dx(h_index,layer_index+1)
       enddo
     enddo
     !$omp end parallel do
@@ -56,7 +57,7 @@ module mo_gradient_operators
       h_index = ji - layer_index*n_cells
       vector_index = h_index + layer_index*n_vectors_per_layer
       out_field(vector_index) &
-      = (in_field(h_index,layer_index)-in_field(h_index,layer_index+1))/grid%normal_distance(vector_index)
+      = (in_field(h_index,layer_index)-in_field(h_index,layer_index+1))/grid%dz(h_index,layer_index+1)
     enddo
     !$omp end parallel do
   
@@ -77,37 +78,28 @@ module mo_gradient_operators
   
   end subroutine grad_cov
   
-  subroutine grad(in_field,out_field,grid)
+  subroutine grad_hor(in_field,out_field_h,out_field_v,grid)
     
     ! This subroutine calculates the gradient (horizontally contravariant, vertically covariant).
     
     real(wp),     intent(in)  :: in_field(n_cells,n_layers) ! the scalar field of which to compute the gradient
-    real(wp),     intent(out) :: out_field(n_vectors)       ! result (the gradient)
-    type(t_grid), intent(in)  :: grid                       ! grid quantities
-    
-    call grad_cov(in_field,out_field,grid)
-    call vector_field_hor_cov_to_con(out_field,grid)
-    
-  end subroutine grad
-
-  subroutine grad_hor(in_field,out_field,grid)
-    
-    ! This function calculates the horizontal contravariant gradient.
-    
-    real(wp),     intent(in)  :: in_field(n_cells,n_layers) ! the scalar field of which to compute the gradient
-    real(wp),     intent(out) :: out_field(n_vectors)       ! result (the gradient)
+    real(wp),     intent(out) :: out_field_h(n_edges,n_layers)       ! result (the gradient)
+    real(wp),     intent(in)  :: out_field_v(n_cells,n_levels)       ! result (the gradient)
     type(t_grid), intent(in)  :: grid                       ! grid quantities
     
     ! local variables
-    integer :: ji,layer_index,h_index
+    integer :: ji,jl
     
-    call grad(in_field,out_field,grid)
+    call grad_hor_cov(in_field,out_field_h,grid)
     
-    !$omp parallel do private(ji,layer_index,h_index)
-    do ji=1,n_v_vectors
-      layer_index = (ji-1)/n_cells
-      h_index = ji - layer_index*n_cells
-      out_field(h_index + layer_index*n_vectors_per_layer) = 0._wp
+    ! transforms the covariant horizontal measure numbers of a horizontal vector field to
+    ! contravariant measure numbers.
+    ! loop over all horizontal vector points in the orography layers
+    !$omp parallel do private(ji,jl)
+    do ji=1,n_edges
+      do jl=n_flat_layers+1,n_oro_layers
+        out_field_h(ji,jl) = out_field_h(ji,jl) - grid%slope(ji,jl)*remap_ver2hor(out_field_v,ji,jl,grid)
+      enddo
     enddo
     !$omp end parallel do
     
