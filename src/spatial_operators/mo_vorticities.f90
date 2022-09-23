@@ -7,7 +7,7 @@ module mo_vorticities
 
   use mo_definitions, only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,    only: n_layers,n_edges,n_vectors,n_layers,n_dual_vectors_per_layer,n_dual_v_vectors, &
-                            n_dual_scalars_h,n_cells,n_vectors_per_layer,n_edges,n_dual_vectors, &
+                            n_triangles,n_cells,n_vectors_per_layer,n_edges,n_dual_vectors, &
                             n_scalars,n_levels
   use mo_grid_setup,  only: n_oro_layers,radius,toa
   use mo_averaging,   only: horizontal_covariant
@@ -111,8 +111,8 @@ module mo_vorticities
     !$omp parallel do private(ji,jk,layer_index,h_index,velocity_value,length_rescale_factor, &
     !$omp vector_index,index_for_vertical_gradient,vertical_gradient,delta_z)
     do ji=1,n_dual_v_vectors
-      layer_index = (ji-1)/n_dual_scalars_h
-      h_index = ji - layer_index*n_dual_scalars_h
+      layer_index = (ji-1)/n_triangles
+      h_index = ji - layer_index*n_triangles
       ! clearing what has previously been here
       diag%rel_vort_on_triangles(h_index,layer_index+1) = 0._wp
       ! loop over the three edges of the triangle at hand

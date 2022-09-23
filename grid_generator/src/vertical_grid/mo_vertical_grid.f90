@@ -9,7 +9,7 @@ module mo_vertical_grid
   use mo_constants,   only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv,r_d, &
                             p_0_standard,c_d_p,p_0
   use mo_grid_nml,    only: n_cells,n_scalars,n_vectors_per_layer,n_layers,n_levels, &
-                            n_vectors,n_dual_scalars_h,n_dual_scalars,n_edges, &
+                            n_vectors,n_triangles,n_dual_scalars,n_edges, &
                             n_dual_vectors,n_dual_vectors_per_layer,toa,n_oro_layers,stretching_parameter, &
                             radius
   use mo_geodesy,     only: calculate_vertical_area,calculate_distance_h
@@ -162,15 +162,15 @@ module mo_vertical_grid
     real(wp), intent(out) :: z_scalar_dual(n_dual_scalars)
     real(wp), intent(in)  :: z_vector(n_vectors)
     integer,  intent(in)  :: from_cell(n_edges),to_cell(n_edges), &
-                             vorticity_indices_triangles(n_dual_scalars_h,3)
+                             vorticity_indices_triangles(n_triangles,3)
 
     ! local variables
     integer :: ji,layer_index,h_index
   
     !$omp parallel do private(ji,layer_index,h_index)
     do ji=1,n_dual_scalars
-      layer_index = (ji-1)/n_dual_scalars_h
-      h_index = ji-layer_index*n_dual_scalars_h
+      layer_index = (ji-1)/n_triangles
+      h_index = ji-layer_index*n_triangles
       z_scalar_dual(ji) &
       = 1._wp/6._wp*( &
       z_vector(layer_index*n_vectors_per_layer+1+from_cell(1+vorticity_indices_triangles(h_index,1))) &
@@ -190,7 +190,7 @@ module mo_vertical_grid
   
     real(wp), intent(out) :: area_dual(n_dual_vectors)
     real(wp), intent(in)  :: z_vector_dual(n_dual_vectors),normal_distance(n_vectors),z_vector(n_vectors), &
-                             triangle_face_unit_sphere(n_dual_scalars_h)
+                             triangle_face_unit_sphere(n_triangles)
     integer,  intent(in)  :: from_cell(n_edges),to_cell(n_edges)
   
     ! local variables
@@ -364,9 +364,9 @@ module mo_vertical_grid
     
     real(wp), intent(out) :: z_vector_dual(n_dual_vectors),normal_distance_dual(n_dual_vectors)
     real(wp), intent(in)  :: z_scalar_dual(n_dual_scalars),z_vector(n_vectors), &
-                             lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
+                             lat_c_dual(n_triangles),lon_c_dual(n_triangles)
     integer, intent(in)   :: from_cell(n_edges),to_cell(n_edges),from_cell_dual(n_edges), &
-                             to_cell_dual(n_edges),vorticity_indices_triangles(n_dual_scalars_h,3)
+                             to_cell_dual(n_edges),vorticity_indices_triangles(n_triangles,3)
   
     ! local variables
     integer :: ji,layer_index,h_index,upper_index,lower_index
@@ -376,8 +376,8 @@ module mo_vertical_grid
       layer_index = (ji-1)/n_dual_vectors_per_layer
       h_index = ji - layer_index*n_dual_vectors_per_layer
       if (h_index>=n_edges+1) then
-        upper_index = h_index - n_edges + layer_index*n_dual_scalars_h
-        lower_index = h_index - n_edges + (layer_index+1)*n_dual_scalars_h
+        upper_index = h_index - n_edges + layer_index*n_triangles
+        lower_index = h_index - n_edges + (layer_index+1)*n_triangles
         normal_distance_dual(ji) = z_scalar_dual(upper_index) - z_scalar_dual(lower_index)
         z_vector_dual(ji) = 1._wp/3._wp*( &
         z_vector(n_cells + layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(h_index-n_edges,1)) &

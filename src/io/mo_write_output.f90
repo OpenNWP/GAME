@@ -10,7 +10,7 @@ module mo_write_output
   use mo_definitions,            only: wp,t_grid,t_state,t_diag
   use mo_constants,              only: c_d_p,r_d,t_0,EPSILON_SECURITY,c_d_v,r_v,p_0,M_PI,gravity
   use mo_grid_nml,               only: n_scalars,n_cells,n_vectors_per_layer,n_edges,n_dual_vectors, &
-                                       n_lat_io_points,n_lon_io_points,n_vectors,n_levels,n_layers,n_dual_scalars_h, &
+                                       n_lat_io_points,n_lon_io_points,n_vectors,n_levels,n_layers, &
                                        n_dual_v_vectors,n_latlon_io_points
   use mo_various_helpers,        only: nc_check,find_min_index,int2string
   use mo_geodesy,                only: passive_turn
@@ -124,7 +124,7 @@ module mo_write_output
       open(1,file="energy",status="old",position="append",action="write")
     endif
     allocate(e_kin_density(n_cells,n_layers))
-    call inner_product(state%wind,state%wind,e_kin_density,grid)
+    call inner_product(state%wind_h,state%wind_v,state%wind_h,state%wind_v,e_kin_density,grid)
     !$omp parallel do private(ji,jl)
     do ji=1,n_cells
       do jl=1,n_layers
@@ -191,12 +191,12 @@ module mo_write_output
     integer               :: ji,jk,jl,jm,lat_lon_dimids(2),ncid,single_int_dimid,lat_dimid,lon_dimid,start_date_id,start_hour_id, &
                              lat_id,lon_id,layer_index,closest_index,second_closest_index,temperature_ids(n_layers), &
                              pressure_ids(n_layers),rel_hum_ids(n_layers),wind_u_ids(n_layers),wind_v_ids(n_layers), &
-                             rel_vort_ids(n_layers),div_h_ids(n_layers),wind_w_ids(n_levels),layer_dimid, &
-                             time_since_init_min,mslp_id,sp_id,rprate_id,sprate_id,dimids_vector_2(2), &
+                             rel_vort_ids(n_layers),div_h_ids(n_layers),wind_w_ids(n_levels),layer_dimid,level_dimid, &
+                             time_since_init_min,mslp_id,sp_id,rprate_id,sprate_id,dimids_vector_2(2),wind_v_id, &
                              cape_id,tcc_id,t2_id,u10_id,v10_id,gusts_id,sfc_sw_down_id,gh_ids(n_pressure_levels), &
                              temp_p_ids(n_pressure_levels),rh_p_ids(n_pressure_levels),wind_u_p_ids(n_pressure_levels), &
                              wind_v_p_ids(n_pressure_levels),epv_p_ids(n_pressure_levels),rel_vort_p_ids(n_pressure_levels), &
-                             soil_layer_dimid,vector_dimid,constituent_dimid,densities_id,temperature_id,wind_id, &
+                             soil_layer_dimid,edge_dimid,constituent_dimid,densities_id,temperature_id,wind_h_id, &
                              tke_id,soil_id,time_step_10_m_wind,pressure_level_hpa,cell_dimid,dimids_vector_3(3)
     real(wp)              :: delta_latitude,delta_longitude,lat_vector(n_lat_io_points),lon_vector(n_lon_io_points), &
                              min_precip_rate_mmh,min_precip_rate,cloud_water2cloudiness,temp_lowest_layer, &
@@ -273,34 +273,31 @@ module mo_write_output
         pressure_value = state%rho(ji,n_layers,n_condensed_constituents+1) &
         *gas_constant_diagnostics(state%rho,ji,n_layers)*temp_lowest_layer
         temp_mslp = temp_lowest_layer + standard_vert_lapse_rate*grid%z_scalar(ji,n_layers)
-        mslp_factor = (1._wp - (temp_mslp - temp_lowest_layer)/temp_mslp)**(grid%gravity_m((n_layers-1)*n_vectors_per_layer + ji)/ &
+        mslp_factor = (1._wp - (temp_mslp - temp_lowest_layer)/temp_mslp)**(grid%gravity_m_v(ji,n_layers)/ &
         (gas_constant_diagnostics(state%rho,ji,n_layers)*standard_vert_lapse_rate))
         mslp(ji) = pressure_value/mslp_factor
         
         ! Now the aim is to determine the value of the surface pressure.
-        temp_surface = temp_lowest_layer + standard_vert_lapse_rate &
-        *(grid%z_scalar(ji,n_layers) - grid%z_vector(n_vectors - n_cells+ji))
+        temp_surface = temp_lowest_layer + standard_vert_lapse_rate*(grid%z_scalar(ji,n_layers) - grid%z_vector_v(ji,n_levels))
         sp_factor = (1._wp - (temp_surface - temp_lowest_layer)/temp_surface) &
-                     **(grid%gravity_m((n_layers-1)*n_vectors_per_layer + ji)/ &
-                    (gas_constant_diagnostics(state%rho,ji,n_layers)*standard_vert_lapse_rate))
+                     **(grid%gravity_m_v(ji,n_layers)/(gas_constant_diagnostics(state%rho,ji,n_layers)*standard_vert_lapse_rate))
         sp(ji) = pressure_value/sp_factor
         
         ! Now the aim is to calculate the 2 m temperature.
         do jl=1,n_layers
-          vector_to_minimize(jl) = abs(grid%z_vector(n_layers*n_vectors_per_layer+ji)+2._wp - grid%z_scalar(ji,jl))
+          vector_to_minimize(jl) = abs(grid%z_vector_v(ji,n_levels)+2._wp - grid%z_scalar(ji,jl))
         enddo
         closest_index = find_min_index(vector_to_minimize,n_layers)
         temp_closest = diag%temperature(ji,closest_index)
-        delta_z_temp = grid%z_vector(n_layers*n_vectors_per_layer+ji)+2._wp - grid%z_scalar(ji,closest_index)
+        delta_z_temp = grid%z_vector_v(ji,n_levels)+2._wp - grid%z_scalar(ji,closest_index)
         ! real radiation
         if (lprog_soil_temp) then
           temperature_gradient = (temp_closest - state%temperature_soil(ji,1))/ &
-                                 (grid%z_scalar(ji,closest_index) - grid%z_vector(n_layers*n_vectors_per_layer+ji))
+                                 (grid%z_scalar(ji,closest_index) - grid%z_vector_v(ji,n_levels))
         ! no real radiation
         else
           second_closest_index = closest_index-1
-          if (grid%z_scalar(ji,closest_index)>grid%z_vector(n_layers*n_vectors_per_layer + ji)+2._wp &
-              .and. closest_index<n_layers) then
+          if (grid%z_scalar(ji,closest_index)>grid%z_vector_v(ji,n_levels)+2._wp .and. closest_index<n_layers) then
             second_closest_index = closest_index+1
           endif
           temp_second_closest = diag%temperature(ji,second_closest_index)
@@ -324,7 +321,7 @@ module mo_write_output
           ! thickness of the gridbox
           delta_z = grid%layer_thickness(ji,layer_index)
           ! this is the candidate that we might want to add to the integral
-          cape_integrand = grid%gravity_m(layer_index*n_vectors_per_layer+ji)*(theta_e - theta_v)/theta_v
+          cape_integrand = grid%gravity_m_v(ji,layer_index+1)*(theta_e - theta_v)/theta_v
           ! we do not add negative values to CAPE (see the definition of CAPE)
           if (cape_integrand>0._wp) then
             cape(ji) = cape(ji) + cape_integrand*delta_z
@@ -342,9 +339,7 @@ module mo_write_output
           cloud_water_content = 0._wp
           do jl=1,n_layers
             if (grid%z_scalar(ji,jl)<z_tropopause) then
-              cloud_water_content = cloud_water_content &
-              + (state%rho(ji,jl,3) + state%rho(ji,jl,4)) &
-              *(grid%z_vector(ji + (jl-1)*n_vectors_per_layer) - grid%z_vector(ji + jl*n_vectors_per_layer))
+              cloud_water_content = cloud_water_content + (state%rho(ji,jl,3) + state%rho(ji,jl,4))*grid%layer_thickness(ji,jl)
             endif
           enddo
           ! some heuristic ansatz for the total cloud cover
@@ -414,9 +409,8 @@ module mo_write_output
         if (grid%is_land(grid%from_cell(ji))==0) then
           roughness_length_extrapolation = actual_roughness_length
         endif
-        z_sfc = 0.5_wp*(grid%z_vector(n_vectors - n_cells + grid%from_cell(ji)) &
-                        + grid%z_vector(n_vectors - n_cells + grid%to_cell(ji)))
-        z_agl = grid%z_vector(n_vectors - n_vectors_per_layer+ji) - z_sfc
+        z_sfc = 0.5_wp*(grid%z_vector_v(grid%from_cell(ji),n_levels) + grid%z_vector_v(grid%to_cell(ji),n_levels))
+        z_agl = grid%z_vector_h(ji,n_layers) - z_sfc
         
         ! rescale factor for computing the wind in a height of 10 m
         rescale_factor = log(10._wp/roughness_length_extrapolation)/log(z_agl/actual_roughness_length)
@@ -451,33 +445,31 @@ module mo_write_output
           
           ! calculating the wind speed in a height representing 850 hPa
           do jl=1,n_layers
-            vector_to_minimize(jl) = abs(grid%z_scalar(ji,jl) &
-                                         - (grid%z_vector(n_vectors-n_cells+ji) + u_850_proxy_height))
+            vector_to_minimize(jl) = abs(grid%z_scalar(ji,jl) - (grid%z_vector_v(ji,n_levels) + u_850_proxy_height))
           enddo
           closest_index = find_min_index(vector_to_minimize,n_layers)
           second_closest_index = closest_index-1
           if (closest_index<n_layers-1 &
-              .and. grid%z_scalar(ji,closest_index)-grid%z_vector(n_vectors-n_cells+ji)>u_850_proxy_height) then
+              .and. grid%z_scalar(ji,closest_index)-grid%z_vector_v(ji,n_levels)>u_850_proxy_height) then
             second_closest_index = closest_index+1
           endif
           u_850_surrogate = sqrt(diag%v_squared(ji,closest_index)) &
           + (sqrt(diag%v_squared(ji,closest_index))-sqrt(diag%v_squared(ji,second_closest_index))) &
           /(grid%z_scalar(ji,closest_index) - grid%z_scalar(ji,second_closest_index)) &
-          *(grid%z_vector(n_vectors - n_cells+ji) + u_850_proxy_height - grid%z_scalar(ji,closest_index))
+          *(grid%z_vector_v(ji,n_levels) + u_850_proxy_height - grid%z_scalar(ji,closest_index))
           ! calculating the wind speed in a height representing 950 hPa
           do jl=1,n_layers
-            vector_to_minimize(jl) = abs(grid%z_scalar(ji,jl) - (grid%z_vector(n_vectors - n_cells + ji) + u_950_proxy_height))
+            vector_to_minimize(jl) = abs(grid%z_scalar(ji,jl) - (grid%z_vector_v(ji,n_levels) + u_950_proxy_height))
           enddo
           closest_index = find_min_index(vector_to_minimize,n_layers)
           second_closest_index = closest_index-1
-          if (closest_index<n_layers &
-              .and. grid%z_scalar(ji,closest_index)-grid%z_vector(n_vectors-n_cells+ji)>u_950_proxy_height) then
+          if (closest_index<n_layers .and. grid%z_scalar(ji,closest_index)-grid%z_vector_v(ji,n_levels)>u_950_proxy_height) then
             second_closest_index = closest_index+1
           endif
           u_950_surrogate = sqrt(diag%v_squared(ji,closest_index)) &
           + (sqrt(diag%v_squared(ji,closest_index))-sqrt(diag%v_squared(ji,second_closest_index))) &
           /(grid%z_scalar(ji,closest_index) - grid%z_scalar(ji,second_closest_index)) &
-          *(grid%z_vector(n_vectors - n_cells+ji) + u_950_proxy_height - grid%z_scalar(ji,closest_index))
+          *(grid%z_vector_v(ji,n_levels) + u_950_proxy_height - grid%z_scalar(ji,closest_index))
           ! adding the baroclinic and convective component to the gusts
           wind_10_m_gusts_speed_at_cell(ji) = wind_10_m_gusts_speed_at_cell(ji) &
                                               + 0.6_wp*max(0._wp,u_850_surrogate - u_950_surrogate)
@@ -588,15 +580,15 @@ module mo_write_output
     
     ! Diagnostics of quantities that are not surface-specific.
     allocate(div_h_all_layers(n_cells,n_layers))
-    call div_h(state%wind,div_h_all_layers,grid)
+    call div_h(state%wind_v,div_h_all_layers,grid)
     call calc_rel_vort(state,diag,grid)
     allocate(rel_vort_scalar_field(n_cells,n_layers))
-    call curl_field_to_cells(diag%rel_vort,rel_vort_scalar_field,grid)
+    call curl_field_to_cells(diag%rel_vort_v,rel_vort_scalar_field,grid)
     
     ! Diagnozing the u and v wind components at the vector points.
     allocate(u_at_edge(n_vectors))
     allocate(v_at_edge(n_vectors))
-    call calc_uv_at_edge(state%wind,u_at_edge,v_at_edge,grid)
+    call calc_uv_at_edge(state%wind_h,u_at_edge,v_at_edge,grid)
     ! Averaging to cell centers for output.
     allocate(u_at_cell(n_cells,n_layers))
     allocate(v_at_cell(n_cells,n_layers))
@@ -875,8 +867,7 @@ module mo_write_output
       enddo
       
       do jl=1,n_levels
-        call interpolate_to_ll(state%wind(((jl-1)*n_vectors_per_layer+1):((jl-1)*n_vectors_per_layer+n_cells)), &
-                               lat_lon_output_field,grid)
+        call interpolate_to_ll(state%wind_h(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,wind_w_ids(jl),lat_lon_output_field))
       enddo
       
@@ -894,29 +885,48 @@ module mo_write_output
       call nc_check(nf90_create(output_file,NF90_CLOBBER,ncid))
       call nc_check(nf90_def_dim(ncid,"single_int_index",1,single_int_dimid))
       call nc_check(nf90_def_dim(ncid,"cell_index",n_cells,cell_dimid))
-      call nc_check(nf90_def_dim(ncid,"layer_index",n_scalars,layer_dimid))
+      call nc_check(nf90_def_dim(ncid,"edge_index",n_edges,edge_dimid))
+      call nc_check(nf90_def_dim(ncid,"layer_index",n_layers,layer_dimid))
+      call nc_check(nf90_def_dim(ncid,"level_index",n_levels,level_dimid))
       call nc_check(nf90_def_dim(ncid,"constituent_index",n_constituents,constituent_dimid))
       call nc_check(nf90_def_dim(ncid,"soil_layer_index",nsoillays,soil_layer_dimid))
-      call nc_check(nf90_def_dim(ncid,"vector_index",n_vectors,vector_dimid))
       
-      ! Defining the variables.
+      ! defining the variables
       call nc_check(nf90_def_var(ncid,"start_date",NF90_INT,single_int_dimid,start_date_id))
       call nc_check(nf90_def_var(ncid,"start_hour",NF90_INT,single_int_dimid,start_hour_id))
+
+      ! mass densities
       dimids_vector_3(1) = cell_dimid
       dimids_vector_3(2) = layer_dimid
       dimids_vector_3(3) = constituent_dimid
       call nc_check(nf90_def_var(ncid,"densities",NF90_REAL,dimids_vector_3,densities_id))
       call nc_check(nf90_put_att(ncid,densities_id,"units","kg/m^3"))
+      
+      ! temperature
       dimids_vector_2(1) = cell_dimid
       dimids_vector_2(2) = layer_dimid
       call nc_check(nf90_def_var(ncid,"temperature",NF90_REAL,dimids_vector_2,temperature_id))
       call nc_check(nf90_put_att(ncid,temperature_id,"units","K"))
-      call nc_check(nf90_def_var(ncid,"wind",NF90_REAL,vector_dimid,wind_id))
-      call nc_check(nf90_put_att(ncid,wind_id,"units","m/s"))
+      
+      ! horizontal wind
+      dimids_vector_2(1) = edge_dimid
+      dimids_vector_2(2) = layer_dimid
+      call nc_check(nf90_def_var(ncid,"wind_h",NF90_REAL,dimids_vector_2,wind_h_id))
+      call nc_check(nf90_put_att(ncid,wind_h_id,"units","m/s"))
+      
+      ! vertical wind
+      dimids_vector_2(1) = cell_dimid
+      dimids_vector_2(2) = level_dimid
+      call nc_check(nf90_def_var(ncid,"wind_v",NF90_REAL,dimids_vector_2,wind_v_id))
+      call nc_check(nf90_put_att(ncid,wind_v_id,"units","m/s"))
+      
+      ! TKE
       dimids_vector_2(1) = cell_dimid
       dimids_vector_2(2) = layer_dimid
       call nc_check(nf90_def_var(ncid,"tke",NF90_REAL,dimids_vector_2,tke_id))
       call nc_check(nf90_put_att(ncid,tke_id,"units","J/kg"))
+      
+      ! soil temperature
       dimids_vector_2(1) = cell_dimid
       dimids_vector_2(2) = soil_layer_dimid
       call nc_check(nf90_def_var(ncid,"t_soil",NF90_REAL,dimids_vector_2,soil_id))
@@ -928,7 +938,8 @@ module mo_write_output
       call nc_check(nf90_put_var(ncid,start_hour_id,start_hour))
       call nc_check(nf90_put_var(ncid,densities_id,state%rho))
       call nc_check(nf90_put_var(ncid,temperature_id,diag%temperature))
-      call nc_check(nf90_put_var(ncid,wind_id,state%wind))
+      call nc_check(nf90_put_var(ncid,wind_h_id,state%wind_h))
+      call nc_check(nf90_put_var(ncid,wind_v_id,state%wind_v))
       call nc_check(nf90_put_var(ncid,tke_id,diag%tke))
       call nc_check(nf90_put_var(ncid,soil_id,state%temperature_soil))
       

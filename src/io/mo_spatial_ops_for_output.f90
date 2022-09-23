@@ -8,7 +8,7 @@ module mo_spatial_ops_for_output
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,           only: n_cells,n_scalars,n_edges,n_layers,n_vectors_per_layer,n_vectors, &
                                    n_pentagons,n_h_vectors
-  use mo_gradient_operators, only: grad
+  use mo_gradient_operators, only: grad_hor,grad_vert
   use mo_geodesy,            only: passive_turn
   use mo_inner_product
   
@@ -86,10 +86,14 @@ module mo_spatial_ops_for_output
     ! allocating memory for quantities we need in order to determine the EPV
     integer               :: ji,jk,layer_index,h_index,scalar_index
     real(wp)              :: upper_weight,lower_weight,layer_thickness
-    real(wp), allocatable :: grad_pot_temp(:),pot_vort_as_tangential_vector_field(:)
+    real(wp), allocatable :: grad_pot_temp_h(:,:),grad_pot_temp_v(:,:), &
+                             pot_vort_as_tangential_vector_field_h(:,:), &
+                             pot_vort_as_tangential_vector_field_v(:,:)
     
-    allocate(grad_pot_temp(n_vectors))
-    allocate(pot_vort_as_tangential_vector_field(n_vectors))
+    allocate(grad_pot_temp_h(n_edges,n_layers))
+    allocate(grad_pot_temp_v(n_cells,n_levels))
+    allocate(pot_vort_as_tangential_vector_field_h(n_edges,n_layers))
+    allocate(pot_vort_as_tangential_vector_field_v(n_cells,n_levels))
     
     !$omp parallel do private(ji,jk,layer_index,h_index,scalar_index,upper_weight,lower_weight,layer_thickness)
     do ji=1,n_vectors
@@ -99,64 +103,65 @@ module mo_spatial_ops_for_output
       if (h_index>=n_cells+1) then
         ! determining the upper and lower weights
         layer_thickness = &
-        0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + grid%from_cell(h_index-n_cells)) &
-        + grid%z_vector(layer_index*n_vectors_per_layer + grid%to_cell(h_index-n_cells))) &
-        - 0.5_wp*(grid%z_vector((layer_index+1)*n_vectors_per_layer + grid%from_cell(h_index-n_cells)) &
-        + grid%z_vector((layer_index+1)*n_vectors_per_layer + grid%to_cell(h_index-n_cells)))
+        grid%layer_thickness(grid%from_cell(h_index-n_cells),layer_index+1) &
+        - grid%layer_thickness(grid%to_cell(h_index-n_cells),layer_index+1)
         if (layer_index==0) then
           upper_weight = &
-          (0.5_wp*(grid%z_vector(layer_index*n_vectors_per_layer + grid%from_cell(h_index-n_cells)) &
-          + grid%z_vector(layer_index*n_vectors_per_layer + grid%to_cell(h_index-n_cells))) &
-          - grid%z_vector(ji))/layer_thickness
+          (0.5_wp*(grid%z_vector_v(grid%from_cell(h_index-n_cells),1) + grid%z_vector_v(grid%to_cell(h_index-n_cells),1)) &
+          - grid%z_vector_h(h_index-n_cells,1))/layer_thickness
         else
-          upper_weight = 0.5_wp*(grid%z_vector(ji-n_vectors_per_layer) - grid%z_vector(ji))/layer_thickness
+          upper_weight = 0.5_wp*(grid%z_vector_h(h_index,layer_index) - grid%z_vector_h(h_index,layer_index+1))/layer_thickness
         endif
         if (layer_index==n_layers - 1) then
-          lower_weight = (grid%z_vector(ji) &
-          - 0.5_wp*(grid%z_vector((layer_index+1)*n_vectors_per_layer + grid%from_cell(h_index-n_cells)) &
-          + grid%z_vector((layer_index+1)*n_vectors_per_layer + grid%to_cell(h_index-n_cells))))/layer_thickness
+          lower_weight = (grid%z_vector_h(h_index,layer_index+1) &
+          - 0.5_wp*(grid%z_vector_v(grid%from_cell(h_index-n_cells),layer_index+2) &
+          + grid%z_vector_v(grid%to_cell(h_index-n_cells),layer_index+2)))/layer_thickness
         else
-           lower_weight = 0.5_wp*(grid%z_vector(ji) - grid%z_vector(ji+n_vectors_per_layer))/layer_thickness
+           lower_weight = 0.5_wp*(grid%z_vector_h(h_index,layer_index+1) - grid%z_vector_h(h_index,layer_index+2))/layer_thickness
         endif
         ! determining the horizontal potential vorticity at the primal vector point
-        pot_vort_as_tangential_vector_field(ji) = &
-        upper_weight*diag%pot_vort(layer_index*2*n_edges + h_index-n_cells) &
-        + lower_weight*diag%pot_vort((layer_index+1)*2*n_edges + h_index-n_cells)
+        pot_vort_as_tangential_vector_field_h(h_index-n_cells,n_layers+1) = &
+        upper_weight*diag%pot_vort_h(h_index-n_cells,layer_index+1) &
+        + lower_weight*diag%pot_vort_h(h_index-n_cells,layer_index+2)
       ! diagnozing the vertical component of the potential vorticity at the vertical vector points
       else
         ! initializing the value with zero
-        pot_vort_as_tangential_vector_field(ji) = 0._wp
+        pot_vort_as_tangential_vector_field_v(h_index,layer_index+1) = 0._wp
         ! highest layer
         if (layer_index==0) then
           do jk=1,6
             scalar_index = h_index
-            pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
+            pot_vort_as_tangential_vector_field_v(h_index,layer_index+1) &
+            = pot_vort_as_tangential_vector_field_v(h_index,layer_index+1) &
             + 0.5_wp*grid%inner_product_weights(h_index,layer_index+1,jk) &
-            *diag%pot_vort(n_edges + layer_index*2*n_edges + grid%adjacent_edges(h_index,jk))
+            *diag%pot_vort_v(grid%adjacent_edges(h_index,jk),layer_index+1)
           enddo
         ! lowest layer
         elseif (layer_index==n_layers) then
           do jk=1,6
             scalar_index = (n_layers-1)*n_cells + h_index
-            pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
+            pot_vort_as_tangential_vector_field_v(h_index,layer_index+1) &
+            = pot_vort_as_tangential_vector_field_v(h_index,layer_index+1) &
             + 0.5_wp*grid%inner_product_weights(h_index,layer_index,jk) &
-            *diag%pot_vort(n_edges + (layer_index-1)*2*n_edges + grid%adjacent_edges(h_index,jk))
+            *diag%pot_vort_v(grid%adjacent_edges(h_index,jk),layer_index)
           enddo
         ! inner domain
         else
           ! contribution of upper cell
           do jk=1,6
             scalar_index = (layer_index-1)*n_cells + h_index
-            pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
+            pot_vort_as_tangential_vector_field_v(h_index,layer_index+1) &
+            = pot_vort_as_tangential_vector_field_v(h_index,layer_index+1) &
             + 0.25_wp*grid%inner_product_weights(h_index,layer_index,jk) &
-            *diag%pot_vort(n_edges + (layer_index-1)*2*n_edges + grid%adjacent_edges(h_index,jk))
+            *diag%pot_vort_v(grid%adjacent_edges(h_index,jk),layer_index)
           enddo
           ! contribution of lower cell
           do jk=1,6
             scalar_index = layer_index*n_cells + h_index
-            pot_vort_as_tangential_vector_field(ji) = pot_vort_as_tangential_vector_field(ji) &
+            pot_vort_as_tangential_vector_field_v(h_index,layer_index+1) &
+            = pot_vort_as_tangential_vector_field_v(h_index,layer_index+1) &
             + 0.25_wp*grid%inner_product_weights(h_index,layer_index+1,jk) &
-            *diag%pot_vort(n_edges + layer_index*2*n_edges + grid%adjacent_edges(h_index,jk))
+            *diag%pot_vort_v(grid%adjacent_edges(h_index,jk),layer_index+1)
           enddo
         endif
       endif
@@ -164,12 +169,16 @@ module mo_spatial_ops_for_output
     !$omp end parallel do
     
     ! taking the gradient of the virtual potential temperature
-    call grad(grid%theta_v_bg+state%theta_v_pert,grad_pot_temp,grid)
-    call inner_product(pot_vort_as_tangential_vector_field,grad_pot_temp,epv,grid)
+    call grad_vert(grid%theta_v_bg+state%theta_v_pert,grad_pot_temp_v,grid)
+    call grad_hor(grid%theta_v_bg+state%theta_v_pert,grad_pot_temp_h,grad_pot_temp_v,grid)
+    call inner_product(pot_vort_as_tangential_vector_field_h,pot_vort_as_tangential_vector_field_v, &
+                       grad_pot_temp_h,grad_pot_temp_v,epv,grid)
     
     ! freeing the memory
-    deallocate(pot_vort_as_tangential_vector_field)
-    deallocate(grad_pot_temp)
+    deallocate(grad_pot_temp_h)
+    deallocate(grad_pot_temp_v)
+    deallocate(pot_vort_as_tangential_vector_field_h)
+    deallocate(pot_vort_as_tangential_vector_field_v)
   
   end subroutine epv_diagnostics
 
@@ -236,9 +245,9 @@ module mo_spatial_ops_for_output
     
     ! This subroutine averages a vector field from edges to cell centers.
     
-    real(wp), intent(in)  :: in_field(n_vectors)
-    real(wp), intent(out) :: out_field(n_scalars)
-    type(t_grid),  intent(in)  :: grid           ! grid quantities
+    real(wp),     intent(in)  :: in_field(n_vectors)
+    real(wp),     intent(out) :: out_field(n_scalars)
+    type(t_grid), intent(in)  :: grid                 ! grid quantities
     
     ! local variables
     integer :: ji,jk,layer_index,h_index,n_edges_of_cell

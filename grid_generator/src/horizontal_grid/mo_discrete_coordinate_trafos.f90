@@ -9,7 +9,7 @@ module mo_discrete_coordinate_trafos
   use mo_phys_sfc_properties, only: nc_check
   use mo_definitions,         only: wp
   use mo_constants,           only: M_PI
-  use mo_grid_nml,            only: n_cells,n_edges,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
+  use mo_grid_nml,            only: n_cells,n_edges,radius_rescale,n_triangles,orth_criterion_deg, &
                                     n_vectors,n_dual_vectors,res_id,n_pentagons,n_basic_edges, &
                                     n_points_per_edge,n_basic_triangles,n_vectors_per_inner_face
   use mo_various_helpers,     only: in_bool_checker
@@ -304,7 +304,7 @@ module mo_discrete_coordinate_trafos
     ! This subroutine computes the vertical vector indices to compute the z-coordinates of a dual scalar data point with.
     
     integer, intent(in)  :: from_cell(n_edges),to_cell(n_edges), &
-                            vorticity_indices_triangles(n_dual_scalars_h,3),dual_scalar_h_index
+                            vorticity_indices_triangles(n_triangles,3),dual_scalar_h_index
     integer, intent(out) :: index_vector_for_dual_scalar_z(3)
         
     ! local variables

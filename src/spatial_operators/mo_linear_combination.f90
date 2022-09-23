@@ -28,7 +28,8 @@ module mo_linear_combination
                              state_res%rho(:,:,n_condensed_constituents+1) &
                              - grid%theta_v_bg
     state_res%exner_pert = coeff_1*state_1%exner_pert+coeff_2*state_2%exner_pert
-    state_res%wind = coeff_1*state_1%wind+coeff_2*state_2%wind
+    state_res%wind_h = coeff_1*state_1%wind_h+coeff_2*state_2%wind_h
+    state_res%wind_v = coeff_1*state_1%wind_v+coeff_2*state_2%wind_v
     state_res%temperature_soil = coeff_1*state_1%temperature_soil+coeff_2*state_2%temperature_soil
     !$omp end parallel workshare
     

@@ -9,7 +9,7 @@ module mo_horizontal_generation
   use mo_phys_sfc_properties,        only: nc_check
   use mo_definitions,                only: wp
   use mo_constants,                  only: EPSILON_SECURITY,M_PI
-  use mo_grid_nml,                   only: n_cells,n_edges,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
+  use mo_grid_nml,                   only: n_cells,n_edges,radius_rescale,n_triangles,orth_criterion_deg, &
                                            n_lloyd_iterations,n_vectors,n_dual_vectors,n_pentagons,n_basic_edges, &
                                            n_basic_triangles,n_vectors_per_inner_face,n_points_per_edge,res_id, &
                                            n_triangles_per_face,n_triangles
@@ -367,7 +367,7 @@ module mo_horizontal_generation
     
     ! This subroutine computes the areas of the triangles on the unity sphere.
     
-    real(wp), intent(out) :: triangle_face_unit_sphere(n_dual_scalars_h)
+    real(wp), intent(out) :: triangle_face_unit_sphere(n_triangles)
     real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
     integer,  intent(in)  :: face_vertices(n_basic_triangles,3),face_edges(n_basic_triangles,3), &
                              face_edges_reverse(n_basic_triangles,3)
@@ -408,7 +408,7 @@ module mo_horizontal_generation
     enddo
     triangle_sum_unit_sphere = 0._wp
     triangle_avg_unit_sphere_ideal = 4._wp*M_PI/n_triangles
-    do ji=1,n_dual_scalars_h
+    do ji=1,n_triangles
       triangle_sum_unit_sphere = triangle_sum_unit_sphere + triangle_face_unit_sphere(ji)
       if (triangle_face_unit_sphere(ji)<=0._wp) then
         write(*,*) "triangle_face_unit_sphere contains a non-positive value."
@@ -481,7 +481,7 @@ module mo_horizontal_generation
     
     ! This function calculates the geographical coordinates of the dual scalar points.
     
-    real(wp), intent(out) :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
+    real(wp), intent(out) :: lat_c_dual(n_triangles),lon_c_dual(n_triangles)
     real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
     integer,  intent(in)  :: face_vertices(n_basic_triangles,3),face_edges(n_basic_triangles,3), &
                              face_edges_reverse(n_basic_triangles,3)

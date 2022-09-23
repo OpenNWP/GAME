@@ -8,7 +8,7 @@ module mo_divergences
   use mo_definitions, only: wp,t_grid
   use mo_grid_nml,    only: n_vectors,n_edges,n_layers,n_scalars,n_cells,n_vectors_per_layer, &
                             n_v_vectors,n_pentagons
-  use mo_grid_setup,  only: n_oro_layers
+  use mo_grid_setup,  only: n_flat_layers
   use mo_averaging,   only: vertical_contravariant_corr
   
   implicit none
@@ -24,39 +24,35 @@ module mo_divergences
     type(t_grid), intent(in)  :: grid                 ! grid quantities
     
     ! local variables
-    integer  :: h_index,ji,jl,jk,n_edges_of_cell
+    integer  :: ji,jl,jm,n_edges_of_cell
     real(wp) :: contra_upper,contra_lower,comp_h,comp_v
     
-    !$omp parallel do private(h_index,ji,jl,jk,n_edges_of_cell,contra_upper,contra_lower,comp_h,comp_v)
-    do h_index=1,n_cells
+    !$omp parallel do private(ji,jl,jm,n_edges_of_cell,contra_upper,contra_lower,comp_h,comp_v)
+    do ji=1,n_cells
       n_edges_of_cell = 6
-      if (h_index<=n_pentagons) then
+      if (ji<=n_pentagons) then
         n_edges_of_cell = 5
       endif
       do jl=1,n_layers
-        ji = (jl-1)*n_cells + h_index
         comp_h = 0._wp
-        do jk=1,n_edges_of_cell
+        do jm=1,n_edges_of_cell
           comp_h = comp_h &
-          + in_field(n_cells + (jl-1)*n_vectors_per_layer + grid%adjacent_edges(h_index,jk)) &
-          *grid%adjacent_signs(h_index,jk) &
-          *grid%area(n_cells + (jl-1)*n_vectors_per_layer + grid%adjacent_edges(h_index,jk))
+          + in_field(n_cells + (jl-1)*n_vectors_per_layer + grid%adjacent_edges(ji,jm)) &
+          *grid%adjacent_signs(ji,jm)*grid%area_h(grid%adjacent_edges(ji,jm),jl)
         enddo
         comp_v = 0._wp
-        if (jl==n_layers-n_oro_layers) then
-          contra_lower = vertical_contravariant_corr(in_field,jl,h_index,grid)
-          comp_v = -contra_lower*grid%area(h_index + jl*n_vectors_per_layer)
+        if (jl==n_flat_layers) then
+          contra_lower = vertical_contravariant_corr(in_field,jl,ji,grid)
+          comp_v = -contra_lower*grid%area_v(ji,jl+1)
         elseif (jl==n_layers) then
-          contra_upper = vertical_contravariant_corr(in_field,jl-1,h_index,grid)
-          comp_v = contra_upper*grid%area(h_index + (jl-1)*n_vectors_per_layer)
-        elseif (jl>n_layers-n_oro_layers) then
-          contra_upper = vertical_contravariant_corr(in_field,jl-1,h_index,grid)
-          contra_lower = vertical_contravariant_corr(in_field,jl,h_index,grid)
-          comp_v &
-          = contra_upper*grid%area(h_index + (jl-1)*n_vectors_per_layer) &
-          - contra_lower*grid%area(h_index + jl*n_vectors_per_layer)
+          contra_upper = vertical_contravariant_corr(in_field,jl-1,ji,grid)
+          comp_v = contra_upper*grid%area_v(ji,jl)
+        elseif (jl>n_flat_layers) then
+          contra_upper = vertical_contravariant_corr(in_field,jl-1,ji,grid)
+          contra_lower = vertical_contravariant_corr(in_field,jl,ji,grid)
+          comp_v = contra_upper*grid%area_v(ji,jl) - contra_lower*grid%area_v(ji,jl+1)
         endif
-        out_field(h_index,jl) = 1._wp/grid%volume(h_index,jl)*(comp_h + comp_v)
+        out_field(ji,jl) = 1._wp/grid%volume(ji,jl)*(comp_h + comp_v)
        enddo
     enddo
     
@@ -71,59 +67,56 @@ module mo_divergences
     type(t_grid), intent(in)  :: grid                                                               ! grid quantities
     
     ! local variables
-    integer  :: h_index,layer_index,ji,jk,n_edges
+    integer  :: ji,jl,jm,n_edges
     real(wp) :: contra_upper,contra_lower,comp_h,comp_v,density_lower,density_upper
 
-    !$omp parallel do private(h_index,layer_index,ji,jk,n_edges,contra_upper,contra_lower,comp_h,comp_v,density_lower,density_upper)
-    do h_index=1,n_cells
+    !$omp parallel do private(ji,jl,jm,n_edges,contra_upper,contra_lower,comp_h,comp_v,density_lower,density_upper)
+    do ji=1,n_cells
       n_edges = 6
-      if (h_index<=n_pentagons) then
+      if (ji<=n_pentagons) then
         n_edges = 5
       endif
-      do layer_index=0,n_layers-1
-        ji = layer_index*n_cells + h_index
+      do jl=1,n_layers
         comp_h = 0._wp
-        do jk=1,n_edges
+        do jm=1,n_edges
           comp_h = comp_h &
-          + in_field(n_cells + layer_index*n_vectors_per_layer + grid%adjacent_edges(h_index,jk)) &
-          *grid%adjacent_signs(h_index,jk) &
-          *grid%area(n_cells + layer_index*n_vectors_per_layer + grid%adjacent_edges(h_index,jk))
+          + in_field(n_cells + (jl-1)*n_vectors_per_layer + grid%adjacent_edges(ji,jm)) &
+          *grid%adjacent_signs(ji,jm) &
+          *grid%area_h(grid%adjacent_edges(ji,jm),jl)
         enddo
         comp_v = 0._wp
-        if (layer_index==n_layers-n_oro_layers-1) then
-          contra_lower = vertical_contravariant_corr(wind_field,layer_index+1,h_index,grid)
+        if (jl==n_flat_layers) then
+          contra_lower = vertical_contravariant_corr(wind_field,jl,ji,grid)
           if (contra_lower<=0._wp) then
-            density_lower = density_field(h_index,layer_index+1)
+            density_lower = density_field(ji,jl)
           else
-            density_lower = density_field(h_index,layer_index+2)
+            density_lower = density_field(ji,jl+1)
           endif
-          comp_v = -density_lower*contra_lower*grid%area(h_index + (layer_index+1)*n_vectors_per_layer)
-        elseif (layer_index==n_layers-1) then
-          contra_upper = vertical_contravariant_corr(wind_field,layer_index,h_index,grid)
+          comp_v = -density_lower*contra_lower*grid%area_v(ji,jl+1)
+        elseif (jl==n_layers) then
+          contra_upper = vertical_contravariant_corr(wind_field,jl-1,ji,grid)
           if (contra_upper<=0._wp) then
-            density_upper = density_field(h_index,layer_index)
+            density_upper = density_field(ji,jl-1)
           else
-            density_upper = density_field(h_index,layer_index+1)
+            density_upper = density_field(ji,jl)
           endif
-          comp_v = density_upper*contra_upper*grid%area(h_index + layer_index*n_vectors_per_layer)
-        elseif (layer_index>n_layers-n_oro_layers-1) then
-          contra_upper = vertical_contravariant_corr(wind_field,layer_index,h_index,grid)
+          comp_v = density_upper*contra_upper*grid%area_v(ji,jl)
+        elseif (jl>n_flat_layers) then
+          contra_upper = vertical_contravariant_corr(wind_field,jl-1,ji,grid)
           if (contra_upper<=0._wp) then
-            density_upper = density_field(h_index,layer_index)
+            density_upper = density_field(ji,jl-1)
           else
-            density_upper = density_field(h_index,layer_index+1)
+            density_upper = density_field(ji,jl)
           endif
-          contra_lower = vertical_contravariant_corr(wind_field,layer_index+1,h_index,grid)
+          contra_lower = vertical_contravariant_corr(wind_field,jl,ji,grid)
           if (contra_lower<=0._wp) then
-            density_lower = density_field(h_index,layer_index+1)
+            density_lower = density_field(ji,jl)
           else
-            density_lower = density_field(h_index,layer_index+2)
+            density_lower = density_field(ji,jl+1)
           endif
-          comp_v &
-          = density_upper*contra_upper*grid%area(h_index + layer_index*n_vectors_per_layer) &
-          - density_lower*contra_lower*grid%area(h_index + (layer_index+1)*n_vectors_per_layer)
+          comp_v = density_upper*contra_upper*grid%area_v(ji,jl) - density_lower*contra_lower*grid%area_v(ji,jl+1)
         endif
-        out_field(h_index,layer_index+1) = 1._wp/grid%volume(h_index,layer_index+1)*(comp_h + comp_v)
+        out_field(ji,jl) = 1._wp/grid%volume(ji,jl)*(comp_h + comp_v)
       enddo
     enddo
     !$omp end parallel do
@@ -139,27 +132,24 @@ module mo_divergences
     type(t_grid),  intent(in)  :: grid                        ! grid quantities
     
     ! local variables
-    integer  :: h_index,layer_index,ji
+    integer  :: ji,jl
     real(wp) :: contra_upper,contra_lower,comp_v
     
-    !$omp parallel do private(h_index,layer_index,ji,contra_upper,contra_lower,comp_v)
-    do h_index=1,n_cells
-      do layer_index=0,n_layers-1
-        ji = layer_index*n_cells + h_index
-        if (layer_index==0) then
+    !$omp parallel do private(ji,jl,contra_upper,contra_lower,comp_v)
+    do ji=1,n_cells
+      do jl=1,n_layers
+        if (jl==1) then
           contra_upper = 0._wp
-          contra_lower = in_field(h_index + (layer_index+1)*n_vectors_per_layer)
-        elseif (layer_index==n_layers-1) then
-            contra_upper = in_field(h_index + layer_index*n_vectors_per_layer)
+          contra_lower = in_field(ji + jl*n_vectors_per_layer)
+        elseif (jl==n_layers) then
+            contra_upper = in_field(ji + (jl-1)*n_vectors_per_layer)
             contra_lower = 0._wp
         else
-            contra_upper = in_field(h_index + layer_index*n_vectors_per_layer)
-            contra_lower = in_field(h_index + (layer_index+1)*n_vectors_per_layer)
+            contra_upper = in_field(ji + (jl-1)*n_vectors_per_layer)
+            contra_lower = in_field(ji + jl*n_vectors_per_layer)
         endif
-        comp_v = contra_upper*grid%area(h_index + layer_index*n_vectors_per_layer) &
-        - contra_lower*grid%area(h_index + (layer_index+1)*n_vectors_per_layer)
-        out_field(h_index,layer_index+1) = out_field(h_index,layer_index+1) &
-                                           + 1._wp/grid%volume(h_index,layer_index+1)*comp_v
+        comp_v = contra_upper*grid%area_v(ji,jl) - contra_lower*grid%area_v(ji,jl+1)
+        out_field(ji,jl) = out_field(ji,jl) + 1._wp/grid%volume(ji,jl)*comp_v
       enddo
     enddo
     !$omp end parallel do

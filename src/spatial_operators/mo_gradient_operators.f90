@@ -40,7 +40,7 @@ module mo_gradient_operators
     
   end subroutine grad_hor_cov
   
-  subroutine grad_vert_cov(in_field,out_field,grid)
+  subroutine grad_vert(in_field,out_field,grid)
   
     ! This subroutine calculates the vertical covariant gradient.
     
@@ -61,22 +61,7 @@ module mo_gradient_operators
     enddo
     !$omp end parallel do
   
-  end subroutine grad_vert_cov  
-  
-  subroutine grad_cov(in_field,out_field,grid)
-  
-    ! This subroutine calculates the horizontal covariant gradient
-    
-    real(wp),     intent(in)  :: in_field(n_scalars)  ! the scalar field of which to compute the gradient
-    real(wp),     intent(out) :: out_field(n_vectors) ! result (the gradient)
-    type(t_grid), intent(in)  :: grid                 ! grid quantities
-    
-    ! This subroutine calculates the covariant gradient.
-    
-    call grad_hor_cov(in_field,out_field,grid)
-    call grad_vert_cov(in_field,out_field,grid)
-  
-  end subroutine grad_cov
+  end subroutine grad_vert
   
   subroutine grad_hor(in_field,out_field_h,out_field_v,grid)
     

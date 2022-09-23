@@ -8,7 +8,7 @@ program control
   use netcdf
   use mo_definitions,            only: wp
   use mo_grid_nml,               only: n_scalars,n_cells,n_dual_h_vectors,n_dual_scalars, &
-                                       n_dual_scalars_h,n_dual_vectors,n_h_vectors,n_lat_io_points,n_layers,n_levels, &
+                                       n_triangles,n_dual_vectors,n_h_vectors,n_lat_io_points,n_layers,n_levels, &
                                        n_oro_layers,n_vectors,n_edges,radius_rescale,radius,res_id,stretching_parameter, &
                                        toa,grid_nml_setup,oro_id,n_lloyd_iterations,n_avg_points,luse_scalar_h_file, &
                                        scalar_h_file,n_lon_io_points
@@ -34,8 +34,8 @@ program control
   integer               :: n_lloyd_read_from_file, &
                            lat_c_id,lon_c_id,direction_id,lat_e_id,lon_e_id, &
                            lat_c_dual_id,lon_c_dual_id,dimid_6,dimids_vector_2(2),dimids_vector_3(3), &
-                           z_scalar_id,z_vector_id,normal_distance_id,volume_id,area_id,trsk_weights_id,z_vector_dual_id, &
-                           normal_distance_dual_id,area_dual_id,f_vec_id,to_cell_id,layer_dimid,dimid_8, &
+                           z_scalar_id,z_vector_id,dx_id,dz_id,volume_id,area_id,trsk_weights_id,z_vector_dual_id, &
+                           dy_id,dz_dual_id,area_dual_id,f_vec_id,to_cell_id,layer_dimid,dimid_8, &
                            from_cell_id,to_cell_dual_id,from_cell_dual_id,adjacent_edges_id,trsk_indices_id, &
                            trsk_modified_curl_indices_id,adjacent_signs_id,dimid_10,dimid_5,dimid_4, &
                            vorticity_signs_triangles_id,f_vec_dimid,cell_dimid,scalar_dual_h_dimid, &
@@ -54,10 +54,10 @@ program control
                            interpol_indices(:,:,:),is_land(:)
   real(wp), allocatable :: x_unity(:),y_unity(:),z_unity(:),lat_c(:),lon_c(:),z_scalar(:,:), &
                            gravity_potential(:,:), &
-                           z_vector(:),normal_distance(:),lat_e(:),lon_e(:),direction(:),volume(:,:), &
+                           z_vector(:),dx(:,:),dz(:,:),lat_e(:),lon_e(:),direction(:),volume(:,:), &
                            area(:),trsk_weights(:,:),lat_c_dual(:),lon_c_dual(:),z_scalar_dual(:), &
                            z_vector_dual(:), &
-                           normal_distance_dual(:),direction_dual(:),area_dual(:),f_vec(:),triangle_face_unit_sphere(:), &
+                           dy(:,:),dz_dual(:,:),direction_dual(:),area_dual(:),f_vec(:),triangle_face_unit_sphere(:), &
                            pent_hex_face_unity_sphere(:),rel_on_line_dual(:),inner_product_weights(:,:,:), &
                            density_to_rhombi_weights(:,:), &
                            interpol_weights(:,:,:),exner_bg(:,:),theta_v_bg(:,:),oro(:),roughness_length(:),sfc_albedo(:), &
@@ -87,22 +87,24 @@ program control
   allocate(z_scalar(n_cells,n_layers))
   allocate(gravity_potential(n_cells,n_layers))
   allocate(z_vector(n_vectors))
-  allocate(normal_distance(n_vectors))
+  allocate(dx(n_edges,n_layers))
+  allocate(dz(n_cells,n_levels))
   allocate(lat_e(n_edges))
   allocate(lon_e(n_edges))
   allocate(direction(n_edges))
   allocate(volume(n_cells,n_layers))
   allocate(area(n_vectors))
   allocate(trsk_weights(n_edges,10))
-  allocate(lat_c_dual(n_dual_scalars_h))
-  allocate(lon_c_dual(n_dual_scalars_h))
+  allocate(lat_c_dual(n_triangles))
+  allocate(lon_c_dual(n_triangles))
   allocate(z_scalar_dual(n_dual_scalars))
   allocate(z_vector_dual(n_dual_vectors))
-  allocate(normal_distance_dual(n_dual_vectors))
+  allocate(dy(n_edges,n_levels))
+  allocate(dz_dual(n_triangles,n_layers))
   allocate(direction_dual(n_edges))
   allocate(area_dual(n_dual_vectors))
   allocate(f_vec(2*n_edges))
-  allocate(triangle_face_unit_sphere(n_dual_scalars_h))
+  allocate(triangle_face_unit_sphere(n_triangles))
   allocate(pent_hex_face_unity_sphere(n_cells))
   allocate(rel_on_line_dual(n_edges))
   allocate(inner_product_weights(n_cells,n_layers,8))
@@ -120,12 +122,12 @@ program control
   allocate(trsk_indices(n_edges,10))
   allocate(trsk_modified_curl_indices(n_edges,10))
   allocate(adjacent_edges(n_cells,6))
-  allocate(vorticity_indices_triangles(n_dual_scalars_h,3))
+  allocate(vorticity_indices_triangles(n_triangles,3))
   allocate(vorticity_indices_rhombi(n_edges,4))
   allocate(to_cell_dual(n_edges))
   allocate(from_cell_dual(n_edges))
   allocate(adjacent_signs(n_cells,6))
-  allocate(vorticity_signs_triangles(n_dual_scalars_h,3))
+  allocate(vorticity_signs_triangles(n_triangles,3))
   allocate(density_to_rhombi_indices(n_edges,4))
   allocate(interpol_indices(n_lat_io_points,n_lon_io_points,5))
   allocate(is_land(n_cells))
@@ -217,7 +219,7 @@ program control
   ! 7.) setting the implicit quantities of the vertical grid
   !     ----------------------------------------------------
   write(*,*) "Determining vector z coordinates and normal distances of the primal grid ..."
-  call set_z_vector_and_normal_distance(z_vector,normal_distance,z_scalar,lat_c,lon_c, &
+  call set_z_vector_and_normal_distance(z_vector,dx,z_scalar,lat_c,lon_c, &
                                         from_cell,to_cell,oro)
   deallocate(oro)
   write(*,*) "Finished."
@@ -227,17 +229,17 @@ program control
   write(*,*) "Finished."
   
   write(*,*) "Determining vector z coordinates of the dual grid and distances of the dual grid ..."
-  call calc_z_vector_dual_and_normal_distance_dual(z_vector_dual,normal_distance_dual,z_scalar_dual,from_cell,to_cell,z_vector, &
+  call calc_z_vector_dual_and_normal_distance_dual(z_vector_dual,dy,z_scalar_dual,from_cell,to_cell,z_vector, &
                                                    from_cell_dual,to_cell_dual,lat_c_dual,lon_c_dual, &
                                                    vorticity_indices_triangles)
   write(*,*) "Finished."
   
   write(*,*) "Calculating areas ..."
-  call set_area(area,z_vector,z_vector_dual,normal_distance_dual,pent_hex_face_unity_sphere)
+  call set_area(area,z_vector,z_vector_dual,dy,pent_hex_face_unity_sphere)
   write(*,*) "Finished."
   
   write(*,*) "Calculating dual areas ..."
-  call set_area_dual(area_dual,z_vector_dual,normal_distance,z_vector,from_cell,to_cell,triangle_face_unit_sphere)
+  call set_area_dual(area_dual,z_vector_dual,dx,z_vector,from_cell,to_cell,triangle_face_unit_sphere)
   write(*,*) "Finished."
   
   write(*,*) "Calculating grid box volumes ..."
@@ -255,20 +257,20 @@ program control
   write(*,*) "Finished."
   
   write(*,*) "Calculating inner product weights ..."
-  call calc_inner_product(inner_product_weights,normal_distance,volume,area,z_scalar,z_vector,adjacent_edges)
+  call calc_inner_product(inner_product_weights,dx,volume,area,z_scalar,z_vector,adjacent_edges)
   write(*,*) "Finished."
   
   write(*,*) "Setting rhombus interpolation indices and weights ..."
   call rhombus_averaging(vorticity_indices_triangles,from_cell_dual, &
-                          to_cell_dual,vorticity_indices_rhombi,density_to_rhombi_indices,from_cell,to_cell,area_dual, &
-                          z_vector,lat_c_dual,lon_c_dual,density_to_rhombi_weights,lat_e, &
-                          lon_e,lat_c,lon_c)
+                         to_cell_dual,vorticity_indices_rhombi,density_to_rhombi_indices,from_cell,to_cell,area_dual, &
+                         z_vector,lat_c_dual,lon_c_dual,density_to_rhombi_weights,lat_e, &
+                         lon_e,lat_c,lon_c)
   write(*,*) "Finished."
   
   write(*,*) "Calculating Coriolis indices and weights ..."
-  call coriolis(from_cell_dual,to_cell_dual,trsk_modified_curl_indices,normal_distance,normal_distance_dual, &
-                 to_cell,area,z_scalar,lat_c,lon_c,lat_e,lon_e,lat_c_dual, &
-                  lon_c_dual,trsk_weights,trsk_indices,from_cell,adjacent_edges,z_vector)
+  call coriolis(from_cell_dual,to_cell_dual,trsk_modified_curl_indices,dx,dy, &
+                to_cell,area,z_scalar,lat_c,lon_c,lat_e,lon_e,lat_c_dual, &
+                lon_c_dual,trsk_weights,trsk_indices,from_cell,adjacent_edges,z_vector)
   write(*,*) "Finished."
   
   write(*,*) "Calculating interpolation to the lat-lon grid ..."
@@ -276,8 +278,7 @@ program control
   write(*,*) "Finished."
   
   ! A statistics file is created to compare the fundamental statistical properties of the grid with the literature.
-  call write_statistics_file(pent_hex_face_unity_sphere,normal_distance,normal_distance_dual, &
-                             z_vector,z_vector_dual,grid_name,statistics_file)
+  call write_statistics_file(pent_hex_face_unity_sphere,dx,dy,z_vector,z_vector_dual,grid_name,statistics_file)
   
   ! writing the result to a netCDF file
   
@@ -306,7 +307,7 @@ program control
   call nc_check(nf90_def_dim(ncid_g_prop,"index_8",8,dimid_8))
   call nc_check(nf90_def_dim(ncid_g_prop,"index_10",10,dimid_10))
   call nc_check(nf90_def_dim(ncid_g_prop,"layer_index",n_layers,layer_dimid))
-  call nc_check(nf90_def_dim(ncid_g_prop,"scalar_dual_h_index",n_dual_scalars_h,scalar_dual_h_dimid))
+  call nc_check(nf90_def_dim(ncid_g_prop,"scalar_dual_h_index",n_triangles,scalar_dual_h_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"vector_index",n_vectors,vector_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"edge_index",n_edges,edge_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"lat_index",n_lat_io_points,lat_dimid))
@@ -346,8 +347,10 @@ program control
   call nc_check(nf90_put_att(ncid_g_prop,gravity_potential_id,"units","m^2/s^2"))
   call nc_check(nf90_def_var(ncid_g_prop,"z_vector",NF90_REAL,vector_dimid,z_vector_id))
   call nc_check(nf90_put_att(ncid_g_prop,z_vector_id,"units","m"))
-  call nc_check(nf90_def_var(ncid_g_prop,"normal_distance",NF90_REAL,vector_dimid,normal_distance_id))
-  call nc_check(nf90_put_att(ncid_g_prop,normal_distance_id,"units","m"))
+  call nc_check(nf90_def_var(ncid_g_prop,"dx",NF90_REAL,vector_dimid,dx_id))
+  call nc_check(nf90_put_att(ncid_g_prop,dx_id,"units","m"))
+  call nc_check(nf90_def_var(ncid_g_prop,"dz",NF90_REAL,vector_dimid,dz_id))
+  call nc_check(nf90_put_att(ncid_g_prop,dz_id,"units","m"))
   dimids_vector_2(1) = cell_dimid
   dimids_vector_2(2) = layer_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"volume",NF90_REAL,dimids_vector_2,volume_id))
@@ -359,8 +362,10 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"trsk_weights",NF90_REAL,dimids_vector_2,trsk_weights_id))
   call nc_check(nf90_def_var(ncid_g_prop,"z_vector_dual",NF90_REAL,vector_dual_dimid,z_vector_dual_id))
   call nc_check(nf90_put_att(ncid_g_prop,z_vector_dual_id,"units","m"))
-  call nc_check(nf90_def_var(ncid_g_prop,"normal_distance_dual",NF90_REAL,vector_dual_dimid,normal_distance_dual_id))
-  call nc_check(nf90_put_att(ncid_g_prop,normal_distance_dual_id,"units","m"))
+  call nc_check(nf90_def_var(ncid_g_prop,"dy",NF90_REAL,vector_dual_dimid,dy_id))
+  call nc_check(nf90_put_att(ncid_g_prop,dy_id,"units","m"))
+  call nc_check(nf90_def_var(ncid_g_prop,"dz_dual",NF90_REAL,vector_dual_dimid,dz_dual_id))
+  call nc_check(nf90_put_att(ncid_g_prop,dz_dual_id,"units","m"))
   call nc_check(nf90_def_var(ncid_g_prop,"area_dual",NF90_REAL,vector_dual_dimid,area_dual_id))
   call nc_check(nf90_put_att(ncid_g_prop,area_dual_id,"units","m^2"))
   call nc_check(nf90_def_var(ncid_g_prop,"f_vec",NF90_REAL,f_vec_dimid,f_vec_id))
@@ -426,13 +431,15 @@ program control
   call nc_check(nf90_put_var(ncid_g_prop,exner_bg_id,exner_bg))
   call nc_check(nf90_put_var(ncid_g_prop,gravity_potential_id,gravity_potential))
   call nc_check(nf90_put_var(ncid_g_prop,z_vector_id,z_vector))
-  call nc_check(nf90_put_var(ncid_g_prop,normal_distance_id,normal_distance))
+  call nc_check(nf90_put_var(ncid_g_prop,dx_id,dx))
+  call nc_check(nf90_put_var(ncid_g_prop,dz_id,dz))
   call nc_check(nf90_put_var(ncid_g_prop,volume_id,volume))
   call nc_check(nf90_put_var(ncid_g_prop,area_id,area))
   call nc_check(nf90_put_var(ncid_g_prop,inner_product_weights_id,inner_product_weights))
   call nc_check(nf90_put_var(ncid_g_prop,trsk_weights_id,trsk_weights))
   call nc_check(nf90_put_var(ncid_g_prop,z_vector_dual_id,z_vector_dual))
-  call nc_check(nf90_put_var(ncid_g_prop,normal_distance_dual_id,normal_distance_dual))
+  call nc_check(nf90_put_var(ncid_g_prop,dy_id,dy))
+  call nc_check(nf90_put_var(ncid_g_prop,dz_dual_id,dz_dual))
   call nc_check(nf90_put_var(ncid_g_prop,area_dual_id,area_dual))
   call nc_check(nf90_put_var(ncid_g_prop,f_vec_id,f_vec))
   call nc_check(nf90_put_var(ncid_g_prop,direction_id,direction))
@@ -484,7 +491,8 @@ program control
   deallocate(lon_c)
   deallocate(z_scalar)
   deallocate(z_vector)
-  deallocate(normal_distance)
+  deallocate(dx)
+  deallocate(dz)
   deallocate(volume)
   deallocate(area)
   deallocate(trsk_weights)
@@ -492,7 +500,8 @@ program control
   deallocate(lon_c_dual)
   deallocate(z_scalar_dual)
   deallocate(z_vector_dual)
-  deallocate(normal_distance_dual)
+  deallocate(dy)
+  deallocate(dz_dual)
   deallocate(f_vec)
   deallocate(to_cell)
   deallocate(from_cell)

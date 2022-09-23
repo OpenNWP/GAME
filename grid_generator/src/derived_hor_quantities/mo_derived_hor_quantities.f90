@@ -6,7 +6,7 @@ module mo_derived_hor_quantities
   ! This module contains helper functions concerned with simple algebraic operations on vectors.
 
   use mo_definitions,     only: wp
-  use mo_grid_nml,        only: n_cells,n_edges,radius_rescale,n_dual_scalars_h,orth_criterion_deg, &
+  use mo_grid_nml,        only: n_cells,n_edges,radius_rescale,n_triangles,orth_criterion_deg, &
                                 n_lloyd_iterations,radius,n_vectors,n_dual_vectors,n_pentagons
   use mo_geodesy,         only: find_turn_angle,rad2deg,find_geodetic_direction,find_global_normal,find_geos, &
                                 find_between_point,rel_on_line,calc_spherical_polygon_area
@@ -24,7 +24,7 @@ module mo_derived_hor_quantities
     ! - where they are placed in between the dual scalar points
     ! - in which direction they point
     
-    real(wp), intent(in)  :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
+    real(wp), intent(in)  :: lat_c_dual(n_triangles),lon_c_dual(n_triangles), &
                              lat_e(n_edges),lon_e(n_edges)
     integer,  intent(in)  :: from_cell_dual(n_edges),to_cell_dual(n_edges)
     real(wp), intent(out) :: direction_dual(n_edges),rel_on_line_dual(n_edges)
@@ -82,7 +82,7 @@ module mo_derived_hor_quantities
     ! This subroutine determines the directions of the dual vectors.
     
     integer,  intent(out) :: to_cell_dual(n_edges),from_cell_dual(n_edges)
-    real(wp), intent(in)  :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
+    real(wp), intent(in)  :: lat_c_dual(n_triangles),lon_c_dual(n_triangles), &
                              direction(n_edges)
     real(wp), intent(out) :: direction_dual(n_edges),rel_on_line_dual(n_edges)
     
@@ -155,14 +155,14 @@ module mo_derived_hor_quantities
     
     integer,  intent(in)  :: from_cell_dual(n_edges),to_cell_dual(n_edges)
     real(wp), intent(in)  :: direction(n_edges),direction_dual(n_edges)
-    integer,  intent(out) :: vorticity_indices_triangles(n_dual_scalars_h,3),vorticity_signs_triangles(n_dual_scalars_h,3)
+    integer,  intent(out) :: vorticity_indices_triangles(n_triangles,3),vorticity_signs_triangles(n_triangles,3)
     
     ! local variables
     integer             :: ji,jk,counter,sign_
     real(wp)            :: direction_change
     
     !$omp parallel do private(ji,jk,counter,sign_,direction_change)
-    do ji=1,n_dual_scalars_h
+    do ji=1,n_triangles
       counter = 1
       do jk=1,n_edges
         if (from_cell_dual(jk)==ji-1 .or. to_cell_dual(jk)==ji-1) then
@@ -357,8 +357,8 @@ module mo_derived_hor_quantities
     ! This subroutine computes the areas of the cells (pentagons and hexagons) on the unity sphere.
     
     real(wp), intent(out) :: pent_hex_face_unity_sphere(n_cells)
-    real(wp), intent(in)  :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
-    integer,  intent(in)  :: adjacent_edges(n_cells,6),vorticity_indices_triangles(n_dual_scalars_h,3)
+    real(wp), intent(in)  :: lat_c_dual(n_triangles),lon_c_dual(n_triangles)
+    integer,  intent(in)  :: adjacent_edges(n_cells,6),vorticity_indices_triangles(n_triangles,3)
     
     integer  :: ji,jk,check_1,check_2,check_3,counter,n_edges_of_cell,cell_vector_indices(6)
     real(wp) :: pent_hex_sum_unity_sphere,pent_hex_avg_unity_sphere_ideal,lat_points(6),lon_points(6)
@@ -373,7 +373,7 @@ module mo_derived_hor_quantities
         cell_vector_indices(jk) = adjacent_edges(ji,jk)
       enddo
       counter = 1
-      do jk=1,n_dual_scalars_h
+      do jk=1,n_triangles
         check_1 = in_bool_checker(vorticity_indices_triangles(jk,1),cell_vector_indices,n_edges_of_cell)
         check_2 = in_bool_checker(vorticity_indices_triangles(jk,2),cell_vector_indices,n_edges_of_cell)
         check_3 = in_bool_checker(vorticity_indices_triangles(jk,3),cell_vector_indices,n_edges_of_cell)

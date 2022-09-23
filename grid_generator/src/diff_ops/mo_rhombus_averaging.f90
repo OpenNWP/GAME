@@ -7,7 +7,7 @@ module mo_rhombus_averaging
 
   use mo_definitions,     only: wp
   use mo_constants,       only: EPSILON_SECURITY
-  use mo_grid_nml,        only: n_edges,radius,n_cells,n_dual_scalars_h,n_dual_vectors,n_vectors
+  use mo_grid_nml,        only: n_edges,radius,n_cells,n_triangles,n_dual_vectors,n_vectors
   use mo_geodesy,         only: calc_triangle_area
   use mo_various_helpers, only: in_bool_checker
 
@@ -21,10 +21,10 @@ module mo_rhombus_averaging
     
     ! This subroutine implements the averaging of scalar quantities to rhombi. Indices and weights are computed here for the highest layer but remain unchanged elsewhere.
 
-    integer,  intent(in)  :: vorticity_indices_triangles(n_dual_scalars_h,3),from_cell_dual(n_edges), &
+    integer,  intent(in)  :: vorticity_indices_triangles(n_triangles,3),from_cell_dual(n_edges), &
                              to_cell_dual(n_edges),from_cell(n_edges),to_cell(n_edges)
     real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells),area_dual(n_dual_vectors), &
-                             z_vector(n_vectors),lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h), &
+                             z_vector(n_vectors),lat_c_dual(n_triangles),lon_c_dual(n_triangles), &
                              lat_e(n_edges),lon_e(n_edges)
     integer,  intent(out) :: vorticity_indices_rhombi(n_edges,4),density_to_rhombus_indices(n_edges,4)
     real(wp), intent(out) :: density_to_rhombus_weights(n_edges,4)

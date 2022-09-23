@@ -9,7 +9,7 @@ module mo_set_initial_state
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_constants,        only: p_0,r_d,c_d_p,m_d,m_v
   use mo_grid_nml,         only: n_scalars,n_cells,n_vectors,n_vectors_per_layer,n_edges,n_levels,n_dual_vectors, &
-                                 n_layers,oro_id,res_id,n_dual_v_vectors,n_dual_scalars_h
+                                 n_layers,oro_id,res_id,n_dual_v_vectors,n_triangles
   use mo_constituents_nml, only: n_condensed_constituents,n_constituents,lmoist
   use mo_surface_nml,      only: nsoillays
   use mo_derived,          only: rel_humidity
@@ -18,7 +18,7 @@ module mo_set_initial_state
   use mo_io_nml,           only: ideal_input_id,init_state_file
   use mo_rad_nml,          only: rad_config
   use baroclinic_wave,     only: baroclinic_wave_test
-  use mo_multiplications,  only: scalar_times_vector
+  use mo_multiplications,  only: scalar_times_vector_h,scalar_times_vector_v
   use mo_vorticities,      only: calc_pot_vort
   use mo_vorticity_flux,   only: vorticity_flux
   use mo_inner_product,    only: inner_product
@@ -170,7 +170,7 @@ module mo_set_initial_state
     !$omp end parallel workshare
     
     call scalar_times_vector_h(diag%scalar_placeholder,state%wind_h,diag%flux_density_h,grid)
-    call scalar_times_vector_v(diag%scalar_placeholder,state%wind_v,diag%flux_density_v,grid)
+    call scalar_times_vector_v(diag%scalar_placeholder,state%wind_v,diag%flux_density_v)
     ! Nowthe potential vorticity is evaluated.
     call calc_pot_vort(state,diag%scalar_placeholder,diag,grid)
     ! Nowthe generalized Coriolis term is evaluated.

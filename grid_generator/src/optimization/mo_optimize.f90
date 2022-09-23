@@ -6,7 +6,7 @@ module mo_optimize
   ! The Lloyd algorithm is implemented here.
 
   use mo_definitions,           only: wp
-  use mo_grid_nml,              only: n_cells,n_pentagons,n_edges,n_dual_scalars_h,n_basic_triangles
+  use mo_grid_nml,              only: n_cells,n_pentagons,n_edges,n_triangles,n_basic_triangles
   use mo_geodesy,               only: calc_triangle_area,find_global_normal,sort_vertex_indices,find_geos
   use mo_various_helpers,       only: in_bool_checker
   use mo_horizontal_generation, only: set_scalar_h_dual_coords
@@ -23,7 +23,7 @@ module mo_optimize
     ! The result is (almost) a SCVT.
 	
     real(wp), intent(inout) :: lat_c(n_cells),lon_c(n_cells), &
-                               lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
+                               lat_c_dual(n_triangles),lon_c_dual(n_triangles)
     integer,  intent(in)    :: n_iterations,face_edges(n_basic_triangles,3),face_edges_reverse(n_basic_triangles,3), &
                                face_vertices(n_basic_triangles,3), &
                                adjacent_edges(n_cells,6),from_cell_dual(n_edges), &
@@ -48,7 +48,7 @@ module mo_optimize
     ! This subroutine calculates the barycenters (centers of gravity) of the cells.
     
     real(wp), intent(inout) :: lat_c(n_cells),lon_c(n_cells)
-    real(wp), intent(in)    :: lat_c_dual(n_dual_scalars_h),lon_c_dual(n_dual_scalars_h)
+    real(wp), intent(in)    :: lat_c_dual(n_triangles),lon_c_dual(n_triangles)
     integer,  intent(in)    :: adjacent_edges(n_cells,6), &
                                from_cell_dual(n_edges),to_cell_dual(n_edges)
     

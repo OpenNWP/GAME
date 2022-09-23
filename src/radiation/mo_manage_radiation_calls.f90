@@ -67,7 +67,7 @@ module mo_manage_radiation_calls
       call create_rad_array_scalar_h(state%temperature_soil,radiation%temp_sfc,rad_block_index)
       call create_rad_array_scalar_h(grid%sfc_albedo,radiation%sfc_albedo,rad_block_index)
       call create_rad_array_scalar(grid%z_scalar,radiation%z_scal,rad_block_index)
-      call create_rad_array_vector(grid%z_vector,radiation%z_vect,rad_block_index)
+      call create_rad_array_vector(grid%z_vector_v,radiation%z_vect,rad_block_index)
       call create_rad_array_mass_den(state%rho,radiation%rho,rad_block_index)
       call create_rad_array_scalar(diag%temperature,radiation%temp,rad_block_index)
       ! calling the radiation routine
