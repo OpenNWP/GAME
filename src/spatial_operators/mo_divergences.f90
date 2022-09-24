@@ -58,13 +58,15 @@ module mo_divergences
     
   end subroutine div_h
 
-  subroutine div_h_tracer(in_field,density_field,wind_field,out_field,grid)
+  subroutine div_h_tracer(in_field,density_field,wind_field_h,out_field,grid)
   
     ! This subroutine computes the divergence of a horizontal tracer flux density field.
     
-    real(wp),     intent(in)  :: in_field(n_vectors),density_field(n_cells,n_layers),wind_field(n_vectors)
-    real(wp),     intent(out) :: out_field(n_cells,n_layers)
-    type(t_grid), intent(in)  :: grid                                                               ! grid quantities
+    real(wp),     intent(in)  :: in_field(n_edges,n_layers)      ! horizontal vector field to compute the divergence of
+    real(wp),     intent(in)  :: density_field(n_cells,n_layers) ! generalized density field
+    real(wp),     intent(in)  :: wind_field_h(n_edges,n_layers)  ! horizontal wind field
+    real(wp),     intent(out) :: out_field(n_cells,n_layers)     ! result
+    type(t_grid), intent(in)  :: grid                            ! grid quantities
     
     ! local variables
     integer  :: ji,jl,jm,n_edges
@@ -80,13 +82,11 @@ module mo_divergences
         comp_h = 0._wp
         do jm=1,n_edges
           comp_h = comp_h &
-          + in_field(n_cells + (jl-1)*n_vectors_per_layer + grid%adjacent_edges(ji,jm)) &
-          *grid%adjacent_signs(ji,jm) &
-          *grid%area_h(grid%adjacent_edges(ji,jm),jl)
+          + in_field(grid%adjacent_edges(ji,jm),jl)*grid%adjacent_signs(ji,jm)*grid%area_h(grid%adjacent_edges(ji,jm),jl)
         enddo
         comp_v = 0._wp
         if (jl==n_flat_layers) then
-          contra_lower = vertical_contravariant_corr(wind_field,jl,ji,grid)
+          contra_lower = vertical_contravariant_corr(wind_field_h,jl,jl+1,grid)
           if (contra_lower<=0._wp) then
             density_lower = density_field(ji,jl)
           else
@@ -94,7 +94,7 @@ module mo_divergences
           endif
           comp_v = -density_lower*contra_lower*grid%area_v(ji,jl+1)
         elseif (jl==n_layers) then
-          contra_upper = vertical_contravariant_corr(wind_field,jl-1,ji,grid)
+          contra_upper = vertical_contravariant_corr(wind_field_h,ji,jl,grid)
           if (contra_upper<=0._wp) then
             density_upper = density_field(ji,jl-1)
           else
@@ -102,13 +102,13 @@ module mo_divergences
           endif
           comp_v = density_upper*contra_upper*grid%area_v(ji,jl)
         elseif (jl>n_flat_layers) then
-          contra_upper = vertical_contravariant_corr(wind_field,jl-1,ji,grid)
+          contra_upper = vertical_contravariant_corr(wind_field_h,ji,jl,grid)
           if (contra_upper<=0._wp) then
             density_upper = density_field(ji,jl-1)
           else
             density_upper = density_field(ji,jl)
           endif
-          contra_lower = vertical_contravariant_corr(wind_field,jl,ji,grid)
+          contra_lower = vertical_contravariant_corr(wind_field_h,ji,jl+1,grid)
           if (contra_lower<=0._wp) then
             density_lower = density_field(ji,jl)
           else
