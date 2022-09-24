@@ -187,7 +187,7 @@ program control
                                to_cell_dual,from_cell_dual,rel_on_line_dual)
   
   ! setting the Coriolis vector
-  call set_f_vec(lat_e,direction_dual,f_vec_h)
+  call set_f_vec(lat_e,direction_dual,f_vec_h,f_vec_v)
   
   ! calculating the dual cells on the unity sphere
   call calc_triangle_area_unity(triangle_face_unit_sphere,lat_c,lon_c,face_edges, &

@@ -123,26 +123,30 @@ module mo_derived_hor_quantities
   
   end subroutine direct_tangential_unity
   
-  subroutine set_f_vec(lat_e,direction_dual,f_vec)
+  subroutine set_f_vec(lat_e,direction_dual,f_vec_h,f_vec_v)
   
     ! This subroutine sets the Coriolis vector (vertical at horizontal primal vector points,
     ! horizontal at horizontal dual vector points).
     
-    real(wp), intent(in)  :: lat_e(n_edges),direction_dual(n_edges)
-    real(wp), intent(out) :: f_vec(2*n_edges)
+    real(wp), intent(in)  :: lat_e(n_edges)          ! latitudes of the edges
+    real(wp), intent(in)  :: direction_dual(n_edges) ! directions of the dual vectors
+    real(wp), intent(out) :: f_vec_h(n_edges)        ! horizontal Coriolis component
+    real(wp), intent(out) :: f_vec_v(n_edges)        ! vertical Coriolis component
     
     ! local variables
     integer :: ji
   
+    ! horizontal component at dual vector points
     !$omp parallel do private(ji)
-    do ji=1,2*n_edges
-      ! horizontal component at dual vector points
-      if (ji<=n_edges) then
-        f_vec(ji) = 2._wp*omega/radius_rescale*cos(lat_e(ji))*sin(direction_dual(ji))
-      ! vertical component at primal vector points
-      else
-        f_vec(ji) = 2._wp*omega/radius_rescale*sin(lat_e(ji-n_edges))
-      endif
+    do ji=1,n_edges
+      f_vec_h(ji) = 2._wp*omega/radius_rescale*cos(lat_e(ji))*sin(direction_dual(ji))
+    enddo
+    !$omp end parallel do
+  
+    ! vertical component at primal vector points
+    !$omp parallel do private(ji)
+    do ji=1,n_edges
+      f_vec_v(ji) = 2._wp*omega/radius_rescale*sin(lat_e(ji))
     enddo
     !$omp end parallel do
   
