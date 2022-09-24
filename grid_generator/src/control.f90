@@ -328,27 +328,48 @@ program control
   call nc_check(nf90_def_dim(ncid_g_prop,"single_int_dimid_index",1,single_int_dimid))
   
   ! defining the variables
+  ! number of Lloyd iterations
   call nc_check(nf90_def_var(ncid_g_prop,"n_lloyd_iterations",NF90_INT,single_int_dimid,n_lloyd_iterations_id))
+  
+  ! number of layers following the orography
   call nc_check(nf90_def_var(ncid_g_prop,"n_oro_layers",NF90_INT,single_int_dimid,n_oro_layers_id))
+  
+  ! stretching parameter of the vertical grid
   call nc_check(nf90_def_var(ncid_g_prop,"stretching_parameter",NF90_REAL,single_double_dimid,stretching_parameter_id))
+  
+  ! top of atmosphere
   call nc_check(nf90_def_var(ncid_g_prop,"toa",NF90_REAL,single_double_dimid,toa_id))
   call nc_check(nf90_put_att(ncid_g_prop,toa_id,"units","m"))
+  
+  ! radius of the Earth
   call nc_check(nf90_def_var(ncid_g_prop,"radius",NF90_REAL,single_double_dimid,radius_id))
   call nc_check(nf90_put_att(ncid_g_prop,radius_id,"units","m"))
+  
+  ! latitudes of cells
   call nc_check(nf90_def_var(ncid_g_prop,"lat_c",NF90_REAL,cell_dimid,lat_c_id))
+  
+  ! longitudes of cells
   call nc_check(nf90_def_var(ncid_g_prop,"lon_c",NF90_REAL,cell_dimid,lon_c_id))
+  
+  ! latitudes of triangles
   call nc_check(nf90_def_var(ncid_g_prop,"lat_c_dual",NF90_REAL,scalar_dual_h_dimid,lat_c_dual_id))
+  
+  ! longitudes of triangles
   call nc_check(nf90_def_var(ncid_g_prop,"lon_c_dual",NF90_REAL,scalar_dual_h_dimid,lon_c_dual_id))
+  
+  ! vertical positions of scalar data points
   dimids_vector_2(1) = cell_dimid
   dimids_vector_2(2) = layer_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"z_scalar",NF90_REAL,dimids_vector_2,z_scalar_id))
   call nc_check(nf90_put_att(ncid_g_prop,z_scalar_id,"units","m"))
+  
+  ! background virtual potential temperature
   dimids_vector_2(1) = cell_dimid
   dimids_vector_2(2) = layer_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"theta_v_bg",NF90_REAL,dimids_vector_2,theta_v_bg_id))
   call nc_check(nf90_put_att(ncid_g_prop,theta_v_bg_id,"units","K"))
-  dimids_vector_2(1) = cell_dimid
-  dimids_vector_2(2) = layer_dimid
+  
+  ! background Exner pressure
   call nc_check(nf90_def_var(ncid_g_prop,"exner_bg",NF90_REAL,dimids_vector_2,exner_bg_id))
   
   ! gravity potential
@@ -467,31 +488,54 @@ program control
   dimids_vector_2(2) = dimid_6
   call nc_check(nf90_def_var(ncid_g_prop,"adjacent_edges",NF90_INT,dimids_vector_2,adjacent_edges_id))
   
+  ! interpolation indices for the lat-lon interpolation
   dimids_vector_3(1) = lat_dimid
   dimids_vector_3(2) = lon_dimid
   dimids_vector_3(3) = dimid_5
   call nc_check(nf90_def_var(ncid_g_prop,"interpol_indices",NF90_INT,dimids_vector_3,interpol_indices_id))
+  
+  ! TRSK indices
   dimids_vector_2(1) = edge_dimid
   dimids_vector_2(2) = dimid_10
   call nc_check(nf90_def_var(ncid_g_prop,"trsk_indices",NF90_INT,dimids_vector_2,trsk_indices_id))
+  
+  ! modified TRSK indices
   call nc_check(nf90_def_var(ncid_g_prop,"trsk_modified_curl_indices",NF90_INT,dimids_vector_2,trsk_modified_curl_indices_id))
+  
+  ! adjacent signs of each cell (indicating the vector directions)
   call nc_check(nf90_def_var(ncid_g_prop,"adjacent_signs",NF90_INT,dimids_vector_2,adjacent_signs_id))
+  
+  ! signs for calculating the vorticities on triangles (indicating the directions of the grid vectors)
   dimids_vector_2(1) = scalar_dual_h_dimid
   dimids_vector_2(2) = dimid_3
   call nc_check(nf90_def_var(ncid_g_prop,"vorticity_signs_triangles",NF90_INT,dimids_vector_2,vorticity_signs_triangles_id))
+  ! the indices for calculating the vorticities on triangles
   call nc_check(nf90_def_var(ncid_g_prop,"vorticity_indices_triangles", &
                              NF90_INT,dimids_vector_2,vorticity_indices_triangles_id))
+  
+  ! indices for averaging the density to rhombi
   dimids_vector_2(1) = edge_dimid
   dimids_vector_2(2) = dimid_4
   call nc_check(nf90_def_var(ncid_g_prop,"density_to_rhombi_indices",NF90_INT,dimids_vector_2,density_to_rhombi_indices_id))
+  
+  ! surface albedo
   call nc_check(nf90_def_var(ncid_g_prop,"sfc_albedo",NF90_REAL,cell_dimid,sfc_albedo_id))
+  
+  ! surface volumetric heat capacity
   call nc_check(nf90_def_var(ncid_g_prop,"sfc_rho_c",NF90_REAL,cell_dimid,sfc_rho_c_id))
   call nc_check(nf90_put_att(ncid_g_prop,sfc_rho_c_id,"units","J/(K*m**3)"))
+  
+  ! land-sea mask
   call nc_check(nf90_def_var(ncid_g_prop,"is_land",NF90_INT,cell_dimid,is_land_id))
+  
+  ! temperature conductivity of the surface
   call nc_check(nf90_def_var(ncid_g_prop,"t_conductivity",NF90_REAL,cell_dimid,t_conductivity_id))
   call nc_check(nf90_put_att(ncid_g_prop,t_conductivity_id,"units","m^2/2"))
+  
+  ! roughness length of the surface
   call nc_check(nf90_def_var(ncid_g_prop,"roughness_length",NF90_REAL,cell_dimid,roughness_length_id))
   call nc_check(nf90_put_att(ncid_g_prop,roughness_length_id,"units","m"))
+  
   call nc_check(nf90_enddef(ncid_g_prop))
   
   ! writing the values to the variables
