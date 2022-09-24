@@ -6,60 +6,59 @@ module mo_inner_product
   ! In this file, the inner product weights are computed.
 
   use mo_definitions, only: wp
-  use mo_grid_nml,    only: n_cells,n_scalars,n_vectors_per_layer, &
-                            n_vectors,n_layers,n_pentagons,grid_nml_setup
+  use mo_grid_nml,    only: n_cells,n_scalars,n_vectors_per_layer,n_edges, &
+                            n_vectors,n_layers,n_pentagons,n_levels
   
   implicit none
   
   contains             
   
-  subroutine calc_inner_product(inner_product_weights,normal_distance,volume,area,z_scalar,z_vector,adjacent_edges)
+  subroutine calc_inner_product(inner_product_weights,dx,volume,area_h,area_v,z_scalar,z_vector_v,adjacent_edges)
 
     ! This subroutine computes the geometrical weights for computing the inner product.
 
-    real(wp), intent(out) :: inner_product_weights(n_cells,n_layers,8)
-    real(wp), intent(in)  :: normal_distance(n_vectors),volume(n_cells,n_layers),area(n_vectors), &
-                             z_scalar(n_cells,n_layers),z_vector(n_vectors)
-    integer,  intent(in)  :: adjacent_edges(n_cells,6)
+    real(wp), intent(out) :: inner_product_weights(n_cells,n_layers,8) ! the result
+    real(wp), intent(in)  :: dx(n_edges,n_layers)                      ! horizontal grid point distances
+    real(wp), intent(in)  :: volume(n_cells,n_layers)                  ! volumes of the grid boxes
+    real(wp), intent(in)  :: area_h(n_edges,n_layers)                  ! horizontal areas
+    real(wp), intent(in)  :: area_v(n_cells,n_levels)                  ! vertical areas
+    real(wp), intent(in)  :: z_scalar(n_cells,n_layers)                ! vertical coordinates of the scalar grid points
+    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)              ! vertical coordinates of the vertical vector grid points
+    integer,  intent(in)  :: adjacent_edges(n_cells,6)                 ! adjacent edges of each cell
 
     ! local variables
-    integer  :: ji,jk,layer_index,h_index
+    integer  :: ji,jl,jm
     real(wp) :: delta_z
     
-    !$omp parallel do private(ji,jk,layer_index,h_index,delta_z)
-    do ji=1,n_scalars
-      layer_index = (ji-1)/n_cells
-      h_index = ji-layer_index*n_cells
-      do jk=1,6
-        if (jk<6 .or. h_index>n_pentagons) then
-          inner_product_weights(h_index,1+layer_index,jk) = area(n_cells+layer_index*n_vectors_per_layer &
-                                               +1+adjacent_edges(h_index,jk))
-          inner_product_weights(h_index,1+layer_index,jk) = inner_product_weights(h_index,1+layer_index,jk) &
-                                      *normal_distance(n_cells+layer_index*n_vectors_per_layer+1+adjacent_edges(h_index,jk))
-          inner_product_weights(h_index,1+layer_index,jk) = inner_product_weights(h_index,1+layer_index,jk) &
-          /(2._wp*volume(h_index,layer_index+1))
+    !$omp parallel do private(ji,jl,jm,delta_z)
+    do ji=1,n_cells
+      do jl=1,n_layers
+      do jm=1,6
+        if (jm<6 .or. ji>n_pentagons) then
+          inner_product_weights(ji,jl,jm) = area_h(1+adjacent_edges(ji,jm),jl)
+          inner_product_weights(ji,jl,jm) = inner_product_weights(ji,jl,jm)*dx(1+adjacent_edges(ji,jm),jl)
+          inner_product_weights(ji,jl,jm) = inner_product_weights(ji,jl,jm)/(2._wp*volume(ji,jl))
         else
-          inner_product_weights(h_index,1+layer_index,jk) = 0._wp
+          inner_product_weights(ji,jl,jm) = 0._wp
         endif
       enddo
       ! upper w
-      if (layer_index==0) then
-        delta_z = 2._wp*(z_vector(h_index)-z_scalar(h_index,layer_index+1))
+      if (jl==1) then
+        delta_z = 2._wp*(z_vector_v(ji,1)-z_scalar(ji,jl))
       else
-        delta_z = z_scalar(h_index,layer_index)-z_scalar(h_index,layer_index+1)
+        delta_z = z_scalar(ji,jl-1)-z_scalar(ji,jl)
       endif
-      inner_product_weights(h_index,1+layer_index,7) = area(h_index+layer_index*n_vectors_per_layer)*delta_z &
-      /(2._wp*volume(h_index,layer_index+1))
+      inner_product_weights(ji,jl,7) = area_v(ji,jl)*delta_z/(2._wp*volume(ji,jl))
       ! lower w
-      if (layer_index==n_layers-1) then
-        delta_z = 2._wp*(z_scalar(h_index,layer_index+1)-z_vector(n_layers*n_vectors_per_layer+h_index))
+      if (jl==n_layers) then
+        delta_z = 2._wp*(z_scalar(ji,jl)-z_vector_v(ji,n_levels))
       else
-        delta_z = z_scalar(h_index,layer_index+1)-z_scalar(h_index,layer_index+2)
+        delta_z = z_scalar(ji,jl)-z_scalar(ji,jl+1)
       endif
       
-      inner_product_weights(h_index,1+layer_index,8) = area(h_index+(layer_index+1)*n_vectors_per_layer)*delta_z &
-      /(2._wp*volume(h_index,layer_index+1))
+      inner_product_weights(ji,jl,8) = area_v(ji,jl+1)*delta_z/(2._wp*volume(ji,jl))
     
+      enddo
     enddo
     !$omp end parallel do
   

@@ -38,7 +38,7 @@ program control
                            dy_id,dz_dual_id,area_dual_v_id,f_vec_h_id,to_cell_id,layer_dimid,dimid_8,z_vector_dual_v_id, &
                            from_cell_id,to_cell_dual_id,from_cell_dual_id,adjacent_edges_id,trsk_indices_id, &
                            trsk_modified_curl_indices_id,adjacent_signs_id,dimid_10,dimid_5,dimid_4, &
-                           vorticity_signs_triangles_id,f_vec_dimid,cell_dimid,scalar_dual_h_dimid, &
+                           vorticity_signs_triangles_id,cell_dimid,scalar_dual_h_dimid, &
                            vector_dimid,lat_dimid,lon_dimid,edge_dimid,z_vector_v_id,f_vec_v_id, &
                            vector_v_dimid_6,vector_dual_dimid,gravity_potential_id,area_v_id, &
                            vector_dual_area_dimid,dimid_3,level_dimid,area_dual_h_id, &
@@ -262,7 +262,7 @@ program control
   write(*,*) "Finished."
   
   write(*,*) "Calculating inner product weights ..."
-  call calc_inner_product(inner_product_weights,dx,volume,area_h,z_scalar,z_vector_v,adjacent_edges)
+  call calc_inner_product(inner_product_weights,dx,volume,area_h,area_v,z_scalar,z_vector_v,adjacent_edges)
   write(*,*) "Finished."
   
   write(*,*) "Setting rhombus interpolation indices and weights ..."
@@ -319,7 +319,6 @@ program control
   call nc_check(nf90_def_dim(ncid_g_prop,"lat_index",n_lat_io_points,lat_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"lon_index",n_lon_io_points,lon_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"vector_v_6_index",6*n_levels*n_cells,vector_v_dimid_6))
-  call nc_check(nf90_def_dim(ncid_g_prop,"f_vec_index",2*n_edges,f_vec_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"vector_index_dual",n_dual_vectors,vector_dual_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"vector_index_dual_area",n_dual_h_vectors+n_h_vectors,vector_dual_area_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"vector_index_h_2_dual",2*n_dual_h_vectors,vector_h_dual_dimid_2))
@@ -405,20 +404,28 @@ program control
   call nc_check(nf90_put_att(ncid_g_prop,area_dual_v_id,"units","m^2"))
   
   ! horizontal Coriolis component
-  call nc_check(nf90_def_var(ncid_g_prop,"f_vec_h",NF90_REAL,f_vec_dimid,f_vec_h_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"f_vec_h",NF90_REAL,edge_dimid,f_vec_h_id))
   call nc_check(nf90_put_att(ncid_g_prop,f_vec_h_id,"units","1/s"))
   
   ! vertical Coriolis component
-  call nc_check(nf90_def_var(ncid_g_prop,"f_vec_v",NF90_REAL,f_vec_dimid,f_vec_v_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"f_vec_v",NF90_REAL,edge_dimid,f_vec_v_id))
   call nc_check(nf90_put_att(ncid_g_prop,f_vec_v_id,"units","1/s"))
   
+  ! directions of the primal grid horizontal vectors
   call nc_check(nf90_def_var(ncid_g_prop,"direction",NF90_REAL,edge_dimid,direction_id))
+  
+  ! latitudes of the edges
   call nc_check(nf90_def_var(ncid_g_prop,"lat_e",NF90_REAL,edge_dimid,lat_e_id))
+  
+  ! longitudes of the edges
   call nc_check(nf90_def_var(ncid_g_prop,"lon_e",NF90_REAL,edge_dimid,lon_e_id))
+  
+  ! inner product weights
   dimids_vector_3(1) = cell_dimid
   dimids_vector_3(2) = layer_dimid
   dimids_vector_3(3) = dimid_8
   call nc_check(nf90_def_var(ncid_g_prop,"inner_product_weights",NF90_REAL,dimids_vector_3,inner_product_weights_id))
+  
   dimids_vector_2(1) = edge_dimid
   dimids_vector_2(2) = dimid_4
   call nc_check(nf90_def_var(ncid_g_prop,"density_to_rhombi_weights",NF90_REAL,dimids_vector_2,density_to_rhombi_weights_id))
