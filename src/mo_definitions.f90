@@ -105,7 +105,6 @@ module mo_definitions
     real(wp), allocatable :: v_squared(:,:)
     real(wp), allocatable :: wind_div(:,:)
     real(wp), allocatable :: curl_of_vorticity_h(:,:)
-    real(wp), allocatable :: curl_of_vorticity_v(:,:)
     real(wp), allocatable :: scalar_placeholder(:,:)
     real(wp), allocatable :: vector_placeholder_h(:,:)
     real(wp), allocatable :: vector_placeholder_v(:,:)
