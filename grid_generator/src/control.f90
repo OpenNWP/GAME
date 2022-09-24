@@ -263,7 +263,7 @@ program control
   
   write(*,*) "Setting rhombus interpolation indices and weights ..."
   call rhombus_averaging(vorticity_indices_triangles,from_cell_dual,to_cell_dual,vorticity_indices_rhombi, &
-                         density_to_rhombi_indices,from_cell,to_cell,area_dual_h,z_vector_h,lat_c_dual, &
+                         density_to_rhombi_indices,from_cell,to_cell,area_dual_v,z_vector_h,lat_c_dual, &
                          lon_c_dual,density_to_rhombi_weights,lat_e,lon_e,lat_c,lon_c)
   write(*,*) "Finished."
   

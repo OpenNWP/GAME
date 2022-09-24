@@ -7,7 +7,7 @@ module mo_rhombus_averaging
 
   use mo_definitions,     only: wp
   use mo_constants,       only: EPSILON_SECURITY
-  use mo_grid_nml,        only: n_edges,radius,n_cells,n_triangles,n_dual_vectors,n_vectors
+  use mo_grid_nml,        only: n_edges,radius,n_cells,n_triangles,n_layers
   use mo_geodesy,         only: calc_triangle_area
   use mo_various_helpers, only: in_bool_checker
 
@@ -16,15 +16,15 @@ module mo_rhombus_averaging
   contains
   
   subroutine rhombus_averaging(vorticity_indices_triangles,from_cell_dual,to_cell_dual, &
-                               vorticity_indices_rhombi,density_to_rhombus_indices,from_cell,to_cell,area_dual, &
-                               z_vector,lat_c_dual,lon_c_dual,density_to_rhombus_weights,lat_e,lon_e,lat_c,lon_c)
+                               vorticity_indices_rhombi,density_to_rhombus_indices,from_cell,to_cell,area_dual_v, &
+                               z_vector_h,lat_c_dual,lon_c_dual,density_to_rhombus_weights,lat_e,lon_e,lat_c,lon_c)
     
     ! This subroutine implements the averaging of scalar quantities to rhombi. Indices and weights are computed here for the highest layer but remain unchanged elsewhere.
 
     integer,  intent(in)  :: vorticity_indices_triangles(n_triangles,3),from_cell_dual(n_edges), &
                              to_cell_dual(n_edges),from_cell(n_edges),to_cell(n_edges)
-    real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells),area_dual(n_dual_vectors), &
-                             z_vector(n_vectors),lat_c_dual(n_triangles),lon_c_dual(n_triangles), &
+    real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells),area_dual_v(n_triangles,n_layers), &
+                             z_vector_h(n_edges,n_layers),lat_c_dual(n_triangles),lon_c_dual(n_triangles), &
                              lat_e(n_edges),lon_e(n_edges)
     integer,  intent(out) :: vorticity_indices_rhombi(n_edges,4),density_to_rhombus_indices(n_edges,4)
     real(wp), intent(out) :: density_to_rhombus_weights(n_edges,4)
@@ -104,7 +104,7 @@ module mo_rhombus_averaging
         density_to_rhombus_indices(ji,jk) = density_to_rhombus_indices_pre(jk)
       enddo
       ! now the weights
-      rhombus_area = area_dual(1+n_edges+from_cell_dual(ji)) + area_dual(1+n_edges+to_cell_dual(ji))
+      rhombus_area = area_dual_v(1+from_cell_dual(ji),1) + area_dual_v(1+to_cell_dual(ji),1)
       ! This is a sum over the four primal cells which are needed for the density interpolation.
       first_case_counter = 0
       second_case_counter = 0
@@ -183,7 +183,7 @@ module mo_rhombus_averaging
                                           lon_c_dual(1+dual_scalar_h_index_2), &
                                           lat_e(1+vector_h_index_2), &
                                           lon_e(1+vector_h_index_2))
-          density_to_rhombus_weights(ji,jk) = (radius + z_vector(n_cells+1))**2 &
+          density_to_rhombus_weights(ji,jk) = (radius + z_vector_h(1,1))**2 &
                                                  *(triangle_1+triangle_2+triangle_3+triangle_4)/rhombus_area
         else
           ! In this case, only two triangles need to be summed up.
@@ -236,7 +236,7 @@ module mo_rhombus_averaging
                                           lon_c_dual(1+dual_scalar_h_index_1), &
                                           lat_e(1+vector_h_index_2), &
                                           lon_e(1+vector_h_index_2))
-          density_to_rhombus_weights(ji,jk) = (radius + z_vector(n_cells+1))**2*(triangle_1+triangle_2)/rhombus_area
+          density_to_rhombus_weights(ji,jk) = (radius + z_vector_h(1,1))**2*(triangle_1+triangle_2)/rhombus_area
         endif
       enddo
       if (first_case_counter/=2) then
