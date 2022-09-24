@@ -189,7 +189,7 @@ module mo_vorticities
         ! At the lower boundary, w vanishes. Furthermore, the covariant velocity below the surface is also zero.
           if (layer_index==n_layers) then
             index_3 = base_index - n_edges + h_index
-            covar_3 = horizontal_covariant(state%wind_h,state%wind_v,layer_index-1,h_index,grid)
+            covar_3 = horizontal_covariant(state%wind_h,state%wind_v,h_index,layer_index,grid)
             diag%rel_vort_h(h_index,n_levels) = 1._wp/grid%area_dual_h(h_index,n_levels) &
                                                 *grid%dx(h_index,n_layers)*covar_3
           else
@@ -197,8 +197,8 @@ module mo_vorticities
             index_2 = base_index + grid%from_cell(h_index)
             index_3 = base_index - n_edges + h_index
             index_4 = base_index + grid%to_cell(h_index)
-            covar_1 = horizontal_covariant(state%wind_h,state%wind_v,layer_index,h_index,grid)
-            covar_3 = horizontal_covariant(state%wind_h,state%wind_v,layer_index-1,h_index,grid)
+            covar_1 = horizontal_covariant(state%wind_h,state%wind_v,h_index,layer_index+1,grid)
+            covar_3 = horizontal_covariant(state%wind_h,state%wind_v,h_index,layer_index,grid)
             diag%rel_vort_h(h_index,layer_index+1) = 1._wp/grid%area_dual_h(h_index,layer_index+1)*( &
             -grid%dx(h_index,layer_index+1)*covar_1 &
             + grid%dz(grid%from_cell(h_index),layer_index+1)*state%wind_v(grid%from_cell(h_index),layer_index+1) &

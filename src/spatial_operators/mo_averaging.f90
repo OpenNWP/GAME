@@ -86,22 +86,21 @@ module mo_averaging
   
   end function remap_ver2hor
   
-  function horizontal_covariant(vector_field_h,vector_field_v,layer_index,h_index,grid)
+  function horizontal_covariant(vector_field_h,vector_field_v,ji,jl,grid)
     
     ! This function calculates the horizontal covariant component of a vector field out of the horizontal contravariant and the vertical covariant components
     ! contravariant measure numbers.
     
     real(wp),     intent(in) :: vector_field_h(n_edges,n_layers) ! the horizontal vector field to operate with
     real(wp),     intent(in) :: vector_field_v(n_cells,n_levels) ! the vertical vector field to operate with
-    integer,      intent(in) :: layer_index,h_index              ! spatial indices
+    integer,      intent(in) :: ji,jl                            ! spatial indices
     type(t_grid), intent(in) :: grid                             ! grid quantities
     real(wp)                 :: horizontal_covariant             ! the result
     
-    horizontal_covariant = vector_field_h(h_index,layer_index+1)
+    horizontal_covariant = vector_field_h(ji,jl)
     
-    if (layer_index>=n_layers-n_oro_layers) then
-      horizontal_covariant = horizontal_covariant + grid%slope(h_index,layer_index+1) &
-                                                    *remap_ver2hor(vector_field_v,layer_index,h_index,grid)
+    if (jl>n_flat_layers) then
+      horizontal_covariant = horizontal_covariant + grid%slope(ji,jl)*remap_ver2hor(vector_field_v,ji,jl,grid)
     endif
    
   end function horizontal_covariant
