@@ -52,12 +52,12 @@ module mo_eff_diff_coeffs
         vector_index = n_cells + jl*n_vectors_per_layer + ji
         
         ! preliminary result
-        diag%viscosity_rhombi(vector_index) = 0.5_wp*(diag%viscosity(grid%from_cell(ji),jl+1) &
+        diag%viscosity_rhombi(ji,jl+1) = 0.5_wp*(diag%viscosity(grid%from_cell(ji),jl+1) &
                                                       + diag%viscosity(grid%to_cell(ji),jl+1))
         
         ! multiplying by the mass density of the gas phase
-       diag%viscosity_rhombi(vector_index) = 0.5_wp*(state%rho(grid%from_cell(ji),jl+1,n_condensed_constituents+1) &
-        + state%rho(grid%to_cell(ji),jl+1,n_condensed_constituents+1))*diag%viscosity_rhombi(vector_index) 
+       diag%viscosity_rhombi(ji,jl+1) = 0.5_wp*(state%rho(grid%from_cell(ji),jl+1,n_condensed_constituents+1) &
+        + state%rho(grid%to_cell(ji),jl+1,n_condensed_constituents+1))*diag%viscosity_rhombi(ji,jl+1) 
       enddo
     enddo
     !$omp end parallel do

@@ -7,13 +7,12 @@ program control
   ! All the memory needed for the integration is allocated and freed here.
 
   use mo_definitions,            only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,               only: n_layers,n_cells,n_vectors,n_edges,n_dual_vectors, &
-                                       n_dual_scalars_h,n_h_vectors,n_lat_io_points,n_lon_io_points, &
-                                       n_vectors_per_layer,grid_nml_setup
+  use mo_grid_nml,               only: n_layers,n_cells,n_edges,n_triangles,n_h_vectors,n_lat_io_points,n_lon_io_points, &
+                                       n_levels,grid_nml_setup
   use mo_constituents_nml,       only: cloud_droplets_velocity,rain_velocity,snow_velocity,n_constituents, &
                                        n_condensed_constituents,constituents_nml_setup
   use mo_run_nml,                only: run_span_min,run_nml_setup,t_init
-  use mo_grid_setup,             only: eff_hor_res,radius_rescale,set_grid_properties,dtime
+  use mo_grid_setup,             only: eff_hor_res,radius_rescale,set_grid_properties,dtime,toa
   use mo_io_nml,                 only: n_output_steps_10m_wind,lwrite_integrals,write_out_interval_min, &
                                        io_nml_setup,ideal_input_id
   use mo_surface_nml,            only: nsoillays,surface_nml_setup
@@ -26,7 +25,7 @@ program control
   use mo_rrtmgp_coupler,         only: radiation_init
   use mo_manage_pchevi,          only: manage_pchevi
   use mo_linear_combination,     only: linear_combine_two_states
-  use mo_gradient_operators,     only: grad_hor_cov,grad
+  use mo_gradient_operators,     only: grad_hor_cov,grad_hor,grad_vert
   use mo_inner_product,          only: inner_product
 
   implicit none
@@ -35,10 +34,10 @@ program control
   type(t_diag)          :: diag
   type(t_grid)          :: grid
   logical               :: ltotally_first_step,lrad_update
-  integer               :: ji,time_step_counter,h_index,wind_lowest_layer_step_counter,time_step_10_m_wind
+  integer               :: ji,time_step_counter,wind_lowest_layer_step_counter,time_step_10_m_wind
   real(wp)              :: t_0,t_write,t_rad_update,new_weight,old_weight,max_speed_hor,max_speed_ver, &
                            normal_dist_min_hor,normal_dist_min_ver,init_timestamp,begin_timestamp,end_timestamp
-  real(wp), allocatable :: wind_h_lowest_layer(:)
+  real(wp), allocatable :: wind_h_lowest_layer(:,:)
   character(len=82)     :: stars
 
   ! taking the timestamp to measure the performance
@@ -67,24 +66,33 @@ program control
   ! Allocating memory
   ! ------------------
   
-  allocate(grid%normal_distance(n_vectors))
+  allocate(grid%dx(n_edges,n_layers))
+  allocate(grid%dz(n_cells,n_levels))
   allocate(grid%volume(n_cells,n_layers))
-  allocate(grid%area(n_vectors))
+  allocate(grid%area_h(n_edges,n_layers))
+  allocate(grid%area_v(n_cells,n_levels))
   allocate(grid%z_scalar(n_cells,n_layers))
-  allocate(grid%z_vector(n_vectors))
+  allocate(grid%z_vector_h(n_edges,n_layers))
+  allocate(grid%z_vector_v(n_cells,n_levels))
   allocate(grid%gravity_potential(n_cells,n_layers))
-  allocate(grid%gravity_m(n_vectors))
-  allocate(grid%slope(n_vectors))
+  allocate(grid%gravity_m_h(n_edges,n_layers))
+  allocate(grid%gravity_m_v(n_cells,n_levels))
+  allocate(grid%slope(n_edges,n_layers))
   allocate(grid%theta_v_bg(n_cells,n_layers))
   allocate(grid%exner_bg(n_cells,n_layers))
-  allocate(grid%exner_bg_grad(n_vectors))
+  allocate(grid%exner_bg_grad_h(n_edges,n_layers))
+  allocate(grid%exner_bg_grad_v(n_cells,n_levels))
   allocate(grid%layer_thickness(n_cells,n_layers))
-  allocate(grid%area_dual(n_dual_vectors))
-  allocate(grid%z_vector_dual(n_dual_vectors))
-  allocate(grid%normal_distance_dual(n_dual_vectors))
-  allocate(grid%vorticity_indices_triangles(n_dual_scalars_h,3))
-  allocate(grid%vorticity_signs_triangles(n_dual_scalars_h,3))
-  allocate(grid%f_vec(2*n_edges))
+  allocate(grid%area_dual_h(n_edges,n_levels))
+  allocate(grid%area_dual_v(n_triangles,n_layers))
+  allocate(grid%z_vector_dual_h(n_edges,n_levels))
+  allocate(grid%z_vector_dual_v(n_triangles,n_layers))
+  allocate(grid%dy(n_edges,n_levels))
+  allocate(grid%dz_dual(n_triangles,n_layers))
+  allocate(grid%vorticity_indices_triangles(n_triangles,3))
+  allocate(grid%vorticity_signs_triangles(n_triangles,3))
+  allocate(grid%f_vec_h(n_edges))
+  allocate(grid%f_vec_v(n_edges))
   allocate(grid%trsk_indices(n_edges,10))
   allocate(grid%trsk_modified_curl_indices(n_edges,10))
   allocate(grid%from_cell(n_edges))
@@ -114,32 +122,40 @@ program control
   allocate(state_1%rhotheta_v(n_cells,n_layers))
   allocate(state_1%theta_v_pert(n_cells,n_layers))
   allocate(state_1%exner_pert(n_cells,n_layers))
-  allocate(state_1%wind(n_vectors))
+  allocate(state_1%wind_h(n_edges,n_layers))
+  allocate(state_1%wind_v(n_cells,n_levels))
   allocate(state_1%temperature_soil(n_cells,nsoillays))
   allocate(state_2%rho(n_cells,n_layers,n_constituents))
   allocate(state_2%rhotheta_v(n_cells,n_layers))
   allocate(state_2%theta_v_pert(n_cells,n_layers))
   allocate(state_2%exner_pert(n_cells,n_layers))
-  allocate(state_2%wind(n_vectors))
+  allocate(state_2%wind_h(n_edges,n_layers))
+  allocate(state_2%wind_v(n_cells,n_levels))
   allocate(state_2%temperature_soil(n_cells,nsoillays))
   allocate(state_tend%rho(n_cells,n_layers,n_constituents))
   allocate(state_tend%rhotheta_v(n_cells,n_layers))
   allocate(state_tend%theta_v_pert(n_cells,n_layers))
   allocate(state_tend%exner_pert(n_cells,n_layers))
-  allocate(state_tend%wind(n_vectors))
+  allocate(state_tend%wind_h(n_edges,n_layers))
+  allocate(state_tend%wind_v(n_cells,n_levels))
   allocate(state_tend%temperature_soil(n_cells,nsoillays))
-  allocate(diag%flux_density(n_vectors))
+  allocate(diag%flux_density_h(n_edges,n_layers))
+  allocate(diag%flux_density_v(n_cells,n_levels))
   allocate(diag%flux_density_div(n_cells,n_layers))
-  allocate(diag%rel_vort_on_triangles(n_dual_scalars_h,n_layers))
-  allocate(diag%rel_vort((2*n_layers+1)*n_edges))
-  allocate(diag%pot_vort((2*n_layers+1)*n_edges))
+  allocate(diag%rel_vort_on_triangles(n_triangles,n_layers))
+  allocate(diag%rel_vort_h(n_edges,n_levels))
+  allocate(diag%rel_vort_v(n_edges,n_layers))
+  allocate(diag%pot_vort_h(n_edges,n_levels))
+  allocate(diag%pot_vort_v(n_edges,n_layers))
   allocate(diag%temperature(n_cells,n_layers))
   allocate(diag%c_g_p_field(n_cells,n_layers))
   allocate(diag%v_squared(n_cells,n_layers))
   allocate(diag%wind_div(n_cells,n_layers))
-  allocate(diag%curl_of_vorticity(n_vectors))
+  allocate(diag%curl_of_vorticity_h(n_edges,n_layers))
+  allocate(diag%curl_of_vorticity_v(n_cells,n_levels))
   allocate(diag%scalar_placeholder(n_cells,n_layers))
-  allocate(diag%vector_placeholder(n_vectors))
+  allocate(diag%vector_placeholder_h(n_edges,n_layers))
+  allocate(diag%vector_placeholder_v(n_cells,n_levels))
   allocate(diag%n_squared(n_cells,n_layers))
   allocate(diag%dv_hdz(n_h_vectors+n_edges))
   allocate(diag%scalar_flux_resistance(n_cells))
@@ -148,7 +164,8 @@ program control
   allocate(diag%roughness_velocity(n_cells))
   allocate(diag%monin_obukhov_length(n_cells))
   allocate(diag%temperature_diffusion_heating(n_cells,n_layers))
-  allocate(diag%friction_acc(n_vectors))
+  allocate(diag%friction_acc_h(n_edges,n_layers))
+  allocate(diag%friction_acc_v(n_cells,n_levels))
   allocate(diag%heating_diss(n_cells,n_layers))
   allocate(diag%molecular_diffusion_coeff(n_cells,n_layers))
   allocate(diag%mass_diffusion_coeff_numerical_h(n_cells,n_layers))
@@ -161,16 +178,21 @@ program control
   allocate(diag%phase_trans_rates(n_cells,n_layers,n_condensed_constituents+1))
   allocate(diag%phase_trans_heating_rate(n_cells,n_layers))
   allocate(diag%viscosity(n_cells,n_layers))
-  allocate(diag%viscosity_rhombi(n_vectors))
-  allocate(diag%viscosity_triangles(n_dual_scalars_h,n_layers))
+  allocate(diag%viscosity_rhombi(n_edges,n_layers))
+  allocate(diag%viscosity_triangles(n_triangles,n_layers))
   allocate(diag%vert_hor_viscosity(n_h_vectors+n_edges))
   allocate(diag%tke(n_cells,n_layers))
-  allocate(diag%pgrad_acc_old(n_vectors))
-  allocate(diag%pressure_gradient_acc_neg_nl(n_vectors))
-  allocate(diag%pressure_gradient_acc_neg_l(n_vectors))
-  allocate(diag%pressure_grad_condensates_v(n_vectors))
-  allocate(diag%v_squared_grad(n_vectors))
-  allocate(diag%pot_vort_tend(n_vectors))
+  allocate(diag%pgrad_acc_old_h(n_edges,n_layers))
+  allocate(diag%pgrad_acc_old_v(n_cells,n_levels))
+  allocate(diag%pressure_gradient_acc_neg_nl_h(n_edges,n_layers))
+  allocate(diag%pressure_gradient_acc_neg_nl_v(n_cells,n_levels))
+  allocate(diag%pressure_gradient_acc_neg_l_h(n_edges,n_layers))
+  allocate(diag%pressure_gradient_acc_neg_l_v(n_cells,n_levels))
+  allocate(diag%pressure_grad_condensates_v(n_cells,n_levels))
+  allocate(diag%v_squared_grad_h(n_edges,n_layers))
+  allocate(diag%v_squared_grad_v(n_cells,n_levels))
+  allocate(diag%pot_vort_tend_h(n_edges,n_layers))
+  allocate(diag%pot_vort_tend_v(n_cells,n_levels))
   allocate(diag%sfc_sw_in(n_cells))
   allocate(diag%sfc_lw_out(n_cells))
   allocate(diag%radiation_tendency(n_cells,n_layers))
@@ -178,7 +200,8 @@ program control
   allocate(state_write%rhotheta_v(n_cells,n_layers))
   allocate(state_write%theta_v_pert(n_cells,n_layers))
   allocate(state_write%exner_pert(n_cells,n_layers))
-  allocate(state_write%wind(n_vectors))
+  allocate(state_write%wind_h(n_edges,n_layers))
+  allocate(state_write%wind_v(n_cells,n_levels))
   allocate(state_write%temperature_soil(n_cells,nsoillays))
   
   ! reading the grid
@@ -189,8 +212,10 @@ program control
   call rad_nml_setup()
   
   call grad_hor_cov(grid%z_scalar,grid%slope,grid)
-  call grad(grid%gravity_potential,grid%gravity_m,grid)
-  call grad(grid%exner_bg,grid%exner_bg_grad,grid)
+  call grad_vert(grid%gravity_potential,grid%gravity_m_v,grid)
+  call grad_hor(grid%gravity_potential,grid%gravity_m_h,grid%gravity_m_v,grid)
+  call grad_vert(grid%exner_bg,grid%exner_bg_grad_v,grid)
+  call grad_hor(grid%exner_bg,grid%exner_bg_grad_h,grid%exner_bg_grad_v,grid)
   write(*,*) "Grid loaded successfully."
   
   ! rescaling times for small Earth experiments
@@ -219,15 +244,15 @@ program control
   ! finding the minimum horizontal grid distance
   normal_dist_min_hor = eff_hor_res
   do ji=1,n_edges
-    if (grid%normal_distance(n_vectors - n_vectors_per_layer + ji)<normal_dist_min_hor) then
-      normal_dist_min_hor = grid%normal_distance(n_vectors - n_vectors_per_layer + ji)
+    if (grid%dx(ji,n_layers)<normal_dist_min_hor) then
+      normal_dist_min_hor = grid%dx(ji,n_layers)
     endif
   enddo
   ! finding the minimum vertical grid distance
-  normal_dist_min_ver = grid%z_vector(1)/n_layers
+  normal_dist_min_ver = toa/n_layers
   do ji=1,n_cells
-    if (grid%normal_distance(n_vectors - n_vectors_per_layer - n_cells + ji)<normal_dist_min_ver) then
-      normal_dist_min_ver = grid%normal_distance(n_vectors - n_vectors_per_layer - n_cells + ji)
+    if (grid%dz(ji,n_layers)<normal_dist_min_ver) then
+      normal_dist_min_ver = grid%dz(ji,n_layers)
     endif
   enddo
   
@@ -245,17 +270,15 @@ program control
   write(*,*) "It begins."
   write(*,*) stars
   
-  allocate(wind_h_lowest_layer(n_output_steps_10m_wind*n_edges))
-  !$omp parallel do private(h_index)
-  do h_index=1,n_edges
-    ! here,for all output time steps,the initial value is used
-    do time_step_10_m_wind=1,n_output_steps_10m_wind
-      wind_h_lowest_layer((time_step_10_m_wind-1)*n_edges + h_index) = state_1%wind(n_vectors - n_vectors_per_layer + h_index)
-    enddo
+  allocate(wind_h_lowest_layer(n_edges,n_output_steps_10m_wind))
+  ! here,for all output time steps,the initial value is used
+  do time_step_10_m_wind=1,n_output_steps_10m_wind
+    !$omp parallel workshare
+    wind_h_lowest_layer(:,time_step_10_m_wind) = state_1%wind_h(:,n_layers)
+    !$omp end parallel workshare
   enddo
-  !$omp end parallel do
   call temperature_diagnostics(state_1,diag,grid)
-  call inner_product(state_1%wind,state_1%wind,diag%v_squared,grid)
+  call inner_product(state_1%wind_h,state_1%wind_v,state_1%wind_h,state_1%wind_v,diag%v_squared,grid)
   
   ! time coordinate of the old RK step
   t_0 = t_init
@@ -287,7 +310,7 @@ program control
   
   ! Preparation of the actual integration.
   ! --------------------------------------
-  wind_lowest_layer_step_counter = 0
+  wind_lowest_layer_step_counter = 1
   call linear_combine_two_states(state_1,state_1,state_2,1._wp,0._wp,grid)
   
   ! This is the loop over the time steps.
@@ -342,21 +365,15 @@ program control
   
     ! 5 minutes before the output time,the wind in the lowest layer needs to be collected for 10 m wind diag.
     if (t_0>=t_write-radius_rescale*300._wp) then
-      if (wind_lowest_layer_step_counter<n_output_steps_10m_wind) then
+      if (wind_lowest_layer_step_counter<=n_output_steps_10m_wind) then
         if (mod(time_step_counter,2)==0) then
-          !$omp parallel do private(h_index)
-          do h_index=1,n_edges
-            wind_h_lowest_layer(wind_lowest_layer_step_counter*n_edges + h_index) &
-            = state_1%wind(n_vectors - n_vectors_per_layer + h_index)
-          enddo
-          !$omp end parallel do
+          !$omp parallel workshare
+          wind_h_lowest_layer(:,wind_lowest_layer_step_counter) = state_1%wind_h(:,n_layers)
+          !$omp end parallel workshare
         else
-          !$omp parallel do private(h_index)
-          do h_index=1,n_edges
-            wind_h_lowest_layer(wind_lowest_layer_step_counter*n_edges + h_index) &
-            = state_2%wind(n_vectors - n_vectors_per_layer + h_index)
-          enddo
-          !$omp end parallel do
+          !$omp parallel workshare
+          wind_h_lowest_layer(:,wind_lowest_layer_step_counter) = state_2%wind_h(:,n_layers)
+          !$omp end parallel workshare
         endif
         wind_lowest_layer_step_counter = wind_lowest_layer_step_counter+1
       endif
@@ -377,11 +394,9 @@ program control
       write(*,fmt="(A,F10.3,A2)") " Run progress:",(t_0+dtime-t_init)/3600._wp,"h"
       
       ! resetting the wind in the lowest layer to zero
-      !$omp parallel do private(ji)
-      do ji=1,n_output_steps_10m_wind*n_edges
-        wind_h_lowest_layer(ji) = 0._wp
-      enddo
-      !$omp end parallel do
+      !$omp parallel workshare
+      wind_h_lowest_layer = 0._wp
+      !$omp end parallel workshare
       wind_lowest_layer_step_counter = 0
     
     endif
@@ -403,24 +418,33 @@ program control
   
   ! Clean-up.
   ! ---------
-  deallocate(grid%normal_distance)
+  deallocate(grid%dx)
+  deallocate(grid%dz)
   deallocate(grid%volume)
-  deallocate(grid%area)
+  deallocate(grid%area_h)
+  deallocate(grid%area_v)
   deallocate(grid%z_scalar)
-  deallocate(grid%z_vector)
+  deallocate(grid%z_vector_h)
+  deallocate(grid%z_vector_v)
   deallocate(grid%gravity_potential)
-  deallocate(grid%gravity_m)
+  deallocate(grid%gravity_m_h)
+  deallocate(grid%gravity_m_v)
   deallocate(grid%slope)
   deallocate(grid%theta_v_bg)
   deallocate(grid%exner_bg)
-  deallocate(grid%exner_bg_grad)
+  deallocate(grid%exner_bg_grad_h)
+  deallocate(grid%exner_bg_grad_v)
   deallocate(grid%layer_thickness)
-  deallocate(grid%area_dual)
-  deallocate(grid%z_vector_dual)
-  deallocate(grid%normal_distance_dual)
+  deallocate(grid%area_dual_h)
+  deallocate(grid%area_dual_v)
+  deallocate(grid%z_vector_dual_h)
+  deallocate(grid%z_vector_dual_v)
+  deallocate(grid%dy)
+  deallocate(grid%dz_dual)
   deallocate(grid%vorticity_indices_triangles)
   deallocate(grid%vorticity_signs_triangles)
-  deallocate(grid%f_vec)
+  deallocate(grid%f_vec_h)
+  deallocate(grid%f_vec_v)
   deallocate(grid%trsk_indices)
   deallocate(grid%trsk_modified_curl_indices)
   deallocate(grid%from_cell)
@@ -450,32 +474,40 @@ program control
   deallocate(state_1%rhotheta_v)
   deallocate(state_1%theta_v_pert)
   deallocate(state_1%exner_pert)
-  deallocate(state_1%wind)
+  deallocate(state_1%wind_h)
+  deallocate(state_1%wind_v)
   deallocate(state_1%temperature_soil)
   deallocate(state_2%rho)
   deallocate(state_2%rhotheta_v)
   deallocate(state_2%theta_v_pert)
   deallocate(state_2%exner_pert)
-  deallocate(state_2%wind)
+  deallocate(state_2%wind_h)
+  deallocate(state_2%wind_v)
   deallocate(state_2%temperature_soil)
   deallocate(state_tend%rho)
   deallocate(state_tend%rhotheta_v)
   deallocate(state_tend%theta_v_pert)
   deallocate(state_tend%exner_pert)
-  deallocate(state_tend%wind)
+  deallocate(state_tend%wind_h)
+  deallocate(state_tend%wind_v)
   deallocate(state_tend%temperature_soil)
-  deallocate(diag%flux_density)
+  deallocate(diag%flux_density_h)
+  deallocate(diag%flux_density_v)
   deallocate(diag%flux_density_div)
   deallocate(diag%rel_vort_on_triangles)
-  deallocate(diag%rel_vort)
-  deallocate(diag%pot_vort)
+  deallocate(diag%rel_vort_h)
+  deallocate(diag%rel_vort_v)
+  deallocate(diag%pot_vort_h)
+  deallocate(diag%pot_vort_v)
   deallocate(diag%temperature)
   deallocate(diag%c_g_p_field)
   deallocate(diag%v_squared)
   deallocate(diag%wind_div)
-  deallocate(diag%curl_of_vorticity)
+  deallocate(diag%curl_of_vorticity_h)
+  deallocate(diag%curl_of_vorticity_v)
   deallocate(diag%scalar_placeholder)
-  deallocate(diag%vector_placeholder)
+  deallocate(diag%vector_placeholder_h)
+  deallocate(diag%vector_placeholder_v)
   deallocate(diag%n_squared)
   deallocate(diag%dv_hdz)
   deallocate(diag%scalar_flux_resistance)
@@ -484,7 +516,8 @@ program control
   deallocate(diag%roughness_velocity)
   deallocate(diag%monin_obukhov_length)
   deallocate(diag%temperature_diffusion_heating)
-  deallocate(diag%friction_acc)
+  deallocate(diag%friction_acc_h)
+  deallocate(diag%friction_acc_v)
   deallocate(diag%heating_diss)
   deallocate(diag%molecular_diffusion_coeff)
   deallocate(diag%mass_diffusion_coeff_numerical_h)
@@ -501,12 +534,17 @@ program control
   deallocate(diag%viscosity_triangles)
   deallocate(diag%vert_hor_viscosity)
   deallocate(diag%tke)
-  deallocate(diag%pgrad_acc_old)
-  deallocate(diag%pressure_gradient_acc_neg_nl)
-  deallocate(diag%pressure_gradient_acc_neg_l)
+  deallocate(diag%pgrad_acc_old_h)
+  deallocate(diag%pgrad_acc_old_v)
+  deallocate(diag%pressure_gradient_acc_neg_nl_h)
+  deallocate(diag%pressure_gradient_acc_neg_nl_v)
+  deallocate(diag%pressure_gradient_acc_neg_l_h)
+  deallocate(diag%pressure_gradient_acc_neg_l_v)
   deallocate(diag%pressure_grad_condensates_v)
-  deallocate(diag%v_squared_grad)
-  deallocate(diag%pot_vort_tend)
+  deallocate(diag%v_squared_grad_h)
+  deallocate(diag%v_squared_grad_v)
+  deallocate(diag%pot_vort_tend_h)
+  deallocate(diag%pot_vort_tend_v)
   deallocate(diag%sfc_sw_in)
   deallocate(diag%sfc_lw_out)
   deallocate(diag%radiation_tendency)
@@ -514,7 +552,8 @@ program control
   deallocate(state_write%rhotheta_v)
   deallocate(state_write%theta_v_pert)
   deallocate(state_write%exner_pert)
-  deallocate(state_write%wind)
+  deallocate(state_write%wind_h)
+  deallocate(state_write%wind_v)
   deallocate(state_write%temperature_soil)
   write(*,*) stars
   call cpu_time(end_timestamp)

@@ -131,7 +131,7 @@ module mo_definitions
     real(wp), allocatable :: phase_trans_rates(:,:,:)
     real(wp), allocatable :: phase_trans_heating_rate(:,:)
     real(wp), allocatable :: viscosity(:,:)
-    real(wp), allocatable :: viscosity_rhombi(:)
+    real(wp), allocatable :: viscosity_rhombi(:,:)
     real(wp), allocatable :: viscosity_triangles(:,:)
     real(wp), allocatable :: vert_hor_viscosity(:)
     real(wp), allocatable :: tke(:,:)

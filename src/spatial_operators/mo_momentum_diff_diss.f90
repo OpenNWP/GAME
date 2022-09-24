@@ -60,8 +60,7 @@ module mo_momentum_diff_diss
         ! multiplying the diffusion coefficient by the relative vorticity
         ! rel_vort is a misuse of name
         diag%rel_vort_h(h_index,layer_index+1) &
-        = diag%viscosity_rhombi(n_cells + layer_index*n_vectors_per_layer + h_index) &
-        *diag%rel_vort_h(h_index,layer_index+1)
+        = diag%viscosity_rhombi(h_index,layer_index+1)*diag%rel_vort_h(h_index,layer_index+1)
       enddo
     enddo
     !$omp end parallel do
