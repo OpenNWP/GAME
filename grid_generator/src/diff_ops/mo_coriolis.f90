@@ -8,7 +8,7 @@ module mo_coriolis
   use mo_definitions,     only: wp
   use mo_constants,       only: EPSILON_SECURITY
   use mo_grid_nml,        only: radius,n_edges,n_dual_vectors,n_vectors,n_triangles,n_cells, &
-                                n_pentagons,n_scalars,n_layers
+                                n_pentagons,n_scalars,n_layers,toa,n_levels
   use mo_geodesy,         only: calc_triangle_area,sort_vertex_indices
   use mo_various_helpers, only: in_bool_checker
   
@@ -16,17 +16,15 @@ module mo_coriolis
   
   contains
 
-  subroutine coriolis(from_cell_dual,to_cell_dual,trsk_modified_curl_indices,normal_distance,normal_distance_dual, &
-                      to_cell,area,z_scalar,lat_c,lon_c,lat_e,lon_e, &
-                      lat_c_dual,lon_c_dual,trsk_weights,trsk_indices,from_cell,adjacent_edges,z_vector)
+  subroutine coriolis(from_cell_dual,to_cell_dual,trsk_modified_curl_indices,dx,dy,to_cell,area_v,z_scalar,lat_c,lon_c, &
+                      lat_e,lon_e,lat_c_dual,lon_c_dual,trsk_weights,trsk_indices,from_cell,adjacent_edges,z_vector_h)
     
     ! This subroutine implements the modified TRSK scheme proposed by Gassmann (2018). Indices and weights are computed here for the highest layer but remain unchanged elsewhere.
     
-    real(wp), intent(in)  :: normal_distance(n_vectors),normal_distance_dual(n_dual_vectors),area(n_vectors), &
+    real(wp), intent(in)  :: dx(n_edges,n_layers),dy(n_edges,n_levels),area_v(n_cells,n_levels), &
                              z_scalar(n_cells,n_layers),lat_c(n_scalars),lon_c(n_scalars), &
                              lat_e(n_vectors),lon_e(n_vectors), &
-                             lat_c_dual(n_triangles),lon_c_dual(n_triangles), &
-                             z_vector(n_vectors)
+                             lat_c_dual(n_triangles),lon_c_dual(n_triangles),z_vector_h(n_edges,n_layers)
     integer,  intent(in)  :: from_cell_dual(n_edges),to_cell_dual(n_edges), &
                              to_cell(n_edges),from_cell(n_edges),adjacent_edges(n_cells,6)
     real(wp), intent(out) :: trsk_weights(n_edges,10)
@@ -43,7 +41,7 @@ module mo_coriolis
                 longitude_vertices(6),latitude_edges(6),longitude_edges(6),vector_of_areas(6), &
                 trsk_weights_pre(10),value_1,value_2,rescale_for_z_offset_1d,rescale_for_z_offset_2d
     
-    rescale_for_z_offset_1d = (radius+z_scalar(1,1))/(radius+z_vector(1))
+    rescale_for_z_offset_1d = (radius+z_scalar(1,1))/(radius+toa)
     rescale_for_z_offset_2d =rescale_for_z_offset_1d**2
     ! loop over all edges
     !$omp parallel do private(ji,jk,jl,jm,offset,sign_1,sign_2,n_edges_of_cell,index_offset,vertex_index_candidate_1, &
@@ -169,12 +167,12 @@ module mo_coriolis
                                             latitude_vertices(1+indices_resorted(jl)), &
                                             longitude_vertices(1+indices_resorted(jl)), &
                                             latitude_edges(jl),longitude_edges(jl))
-            vector_of_areas(jl) = (radius+z_vector(n_cells+ji))**2*(triangle_1+triangle_2)
+            vector_of_areas(jl) = (radius+z_vector_h(ji,1))**2*(triangle_1+triangle_2)
             check_sum = check_sum+vector_of_areas(jl)
           enddo
           
           ! checking wether the triangles sum up to the cell area
-          if (abs(check_sum/(rescale_for_z_offset_2d*area(1+from_or_to_cell(ji)))-1._wp)>EPSILON_SECURITY) then
+          if (abs(check_sum/(rescale_for_z_offset_2d*area_v(1+from_or_to_cell(ji),1))-1._wp)>EPSILON_SECURITY) then
             write(*,*) "Problem 3 in TRSK implementation detected."
             call exit(1)
           endif
@@ -203,7 +201,7 @@ module mo_coriolis
           endif
                 
           ! dividing by the cell area
-          sum_of_weights = sum_of_weights/(rescale_for_z_offset_2d*area(1+from_or_to_cell(ji)))
+          sum_of_weights = sum_of_weights/(rescale_for_z_offset_2d*area_v(1+from_or_to_cell(ji),1))
           ! checking for reliability
           if (sum_of_weights<0._wp .or. sum_of_weights>1._wp) then
             write(*,*) "Problem 4 in TRSK implementation detected."
@@ -212,8 +210,8 @@ module mo_coriolis
           ! Eq. (33) of the TRSK paper
           trsk_weights(ji,jk) = sign_1*(sum_of_weights-0.5_wp)*sign_2
           ! weighting by geometrical grid prefactors, the minus sign accounts for the fact that our tangential direction is reversed compared to TRSK
-          trsk_weights(ji,jk) = -rescale_for_z_offset_1d*normal_distance_dual(1+trsk_indices(ji,jk))/ &
-                                     normal_distance(n_cells+ji)*trsk_weights(ji,jk)
+          trsk_weights(ji,jk) = -rescale_for_z_offset_1d*dy(1+trsk_indices(ji,jk),1)/ &
+                                 dx(ji,1)*trsk_weights(ji,jk)
         endif
       enddo
       
@@ -353,8 +351,7 @@ module mo_coriolis
       do jk=1,10
         first_index = trsk_indices(ji,jk)
         if (first_index/=-1) then
-          value_1 = normal_distance(n_cells+ji) &
-                    /(rescale_for_z_offset_1d*normal_distance_dual(1+first_index))*trsk_weights(ji,jk)
+          value_1 = dx(ji,1)/(rescale_for_z_offset_1d*dy(1+first_index,1))*trsk_weights(ji,jk)
           second_index_1 = -1
           second_index_2 = -1
           do jl=1,10
@@ -367,8 +364,7 @@ module mo_coriolis
             write(*,*) "Problem 10 in TRSK implementation detected."
             call exit(1)
           endif
-          value_2 = normal_distance(n_cells+1+first_index) &
-                    /(rescale_for_z_offset_1d*normal_distance_dual(ji))*trsk_weights(second_index_1,second_index_2)
+          value_2 = dx(1+first_index,1)/(rescale_for_z_offset_1d*dy(ji,1))*trsk_weights(second_index_1,second_index_2)
           check_sum = value_1+value_2
           if (abs(check_sum)>EPSILON_SECURITY) then
             write(*,*) "Problem 11 in TRSK implementation detected."
