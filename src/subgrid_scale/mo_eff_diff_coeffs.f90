@@ -6,10 +6,10 @@ module mo_eff_diff_coeffs
   ! This module computes the effective diffusion coefficients.
   
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
-  use mo_gradient_operators, only: grad_vert_cov
+  use mo_gradient_operators, only: grad_vert
   use mo_multiplications,    only: scalar_times_vector_v
   use mo_grid_nml,           only: n_cells,n_layers,n_scalars,n_vectors_per_layer,n_vectors,n_v_vectors, &
-                                   n_edges,n_h_vectors,n_dual_scalars_h,n_dual_v_vectors
+                                   n_edges,n_h_vectors,n_triangles,n_dual_v_vectors
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
   use mo_derived,            only: c_v_mass_weighted_air,calc_diffusion_coeff
   use mo_diff_nml,           only: lmom_diff_h
@@ -66,8 +66,8 @@ module mo_eff_diff_coeffs
     ! ------------------------------------
     !$omp parallel do private(ji,layer_index,h_index,density_value,scalar_base_index)
     do ji=1,n_dual_v_vectors
-      layer_index = (ji-1)/n_dual_scalars_h
-      h_index = ji - layer_index*n_dual_scalars_h
+      layer_index = (ji-1)/n_triangles
+      h_index = ji - layer_index*n_triangles
       
       scalar_base_index = layer_index*n_cells
       
@@ -250,47 +250,36 @@ module mo_eff_diff_coeffs
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer :: ji,layer_index,h_index,vector_index
+    integer :: jl
     
     ! calculating the full virtual potential temperature
     !$omp parallel workshare
     diag%scalar_placeholder = grid%theta_v_bg+state%theta_v_pert
     !$omp end parallel workshare
     ! vertical gradient of the full virtual potential temperature
-    call grad_vert_cov(diag%scalar_placeholder,diag%vector_placeholder,grid)
+    call grad_vert(diag%scalar_placeholder,diag%vector_placeholder_v,grid)
     ! calculating the inverse full virtual potential temperature
     !$omp parallel workshare
     diag%scalar_placeholder = 1.0/diag%scalar_placeholder
     !$omp end parallel workshare
-    call scalar_times_vector_v(diag%scalar_placeholder,diag%vector_placeholder,diag%vector_placeholder)
+    call scalar_times_vector_v(diag%scalar_placeholder,diag%vector_placeholder_v,diag%vector_placeholder_v)
     
     ! multiplying by the gravity acceleration
-    !$omp parallel do private(ji,layer_index,h_index,vector_index)
-    do ji=n_cells+1,n_v_vectors-n_cells
-      layer_index = (ji-1)/n_cells
-      h_index = ji - layer_index*n_cells
-      vector_index = h_index + layer_index*n_vectors_per_layer
-      diag%vector_placeholder(vector_index) &
-      = grid%gravity_m(vector_index)*diag%vector_placeholder(vector_index)
-    enddo
-    !$omp end parallel do
+    !$omp parallel workshare
+    diag%vector_placeholder_v = grid%gravity_m_v*diag%vector_placeholder_v
+    !$omp end parallel workshare
     
     ! averaging vertically to the scalar points
-    !$omp parallel do private(ji,layer_index,h_index)
-    do ji=1,n_scalars
-      layer_index = (ji-1)/n_cells
-      h_index = ji - layer_index*n_cells
-      if (layer_index==0) then
-        diag%n_squared(h_index,layer_index+1) = diag%vector_placeholder(n_vectors_per_layer+ji)
-      elseif (layer_index==n_layers-1) then
-        diag%n_squared(h_index,layer_index+1) &
-        = diag%vector_placeholder(n_vectors-n_vectors_per_layer-n_cells+h_index)
+    !$omp parallel do private(jl)
+    do jl=1,n_layers
+      if (jl==1) then
+        diag%n_squared(:,jl) = diag%vector_placeholder_v(:,jl+1)
+      elseif (jl==n_layers) then
+        diag%n_squared(:,jl) = diag%vector_placeholder_v(:,jl)
       else
-        diag%n_squared(h_index,layer_index+1) &
-        = grid%inner_product_weights(h_index,layer_index+1,7) &
-        *diag%vector_placeholder(h_index+layer_index*n_vectors_per_layer) &
-        + grid%inner_product_weights(h_index,layer_index+1,8) &
-        *diag%vector_placeholder(h_index+(layer_index+1)*n_vectors_per_layer)
+        diag%n_squared(:,jl) &
+        = grid%inner_product_weights(:,jl,7)*diag%vector_placeholder_v(:,jl) &
+        + grid%inner_product_weights(:,jl,8)*diag%vector_placeholder_v(:,jl+1)
       endif
     enddo
     !$omp end parallel do
@@ -301,8 +290,8 @@ module mo_eff_diff_coeffs
   
     ! This function returns the horizontal kinematic eddy viscosity as a function of the specific TKE.
     
-    real(wp), intent(in)  :: tke,effective_resolution
-    real(wp)              :: tke2hor_diff_coeff
+    real(wp), intent(in) :: tke,effective_resolution
+    real(wp)             :: tke2hor_diff_coeff
     
     ! local variables
     real(wp) :: mean_velocity,mean_free_path
