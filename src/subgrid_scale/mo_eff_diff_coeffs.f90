@@ -28,7 +28,7 @@ module mo_eff_diff_coeffs
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer  :: ji,jl,vector_index,h_index,layer_index,scalar_base_index
+    integer  :: ji,jl
     real(wp) :: density_value
     
     !$omp parallel do private(ji,jl)
@@ -46,52 +46,51 @@ module mo_eff_diff_coeffs
     
     ! Averaging the viscosity to rhombi
     ! ---------------------------------
-    !$omp parallel do private(ji,jl,vector_index)
+    !$omp parallel do private(ji,jl)
     do ji=1,n_edges
-      do jl=0,n_layers-1
-        vector_index = n_cells + jl*n_vectors_per_layer + ji
-        
+      do jl=1,n_layers
+      
         ! preliminary result
-        diag%viscosity_rhombi(ji,jl+1) = 0.5_wp*(diag%viscosity(grid%from_cell(ji),jl+1) &
-                                                      + diag%viscosity(grid%to_cell(ji),jl+1))
+        diag%viscosity_rhombi(ji,jl) = 0.5_wp*(diag%viscosity(grid%from_cell(ji),jl) &
+                                                      + diag%viscosity(grid%to_cell(ji),jl))
         
         ! multiplying by the mass density of the gas phase
-       diag%viscosity_rhombi(ji,jl+1) = 0.5_wp*(state%rho(grid%from_cell(ji),jl+1,n_condensed_constituents+1) &
-        + state%rho(grid%to_cell(ji),jl+1,n_condensed_constituents+1))*diag%viscosity_rhombi(ji,jl+1) 
+       diag%viscosity_rhombi(ji,jl) = 0.5_wp*(state%rho(grid%from_cell(ji),jl,n_condensed_constituents+1) &
+        + state%rho(grid%to_cell(ji),jl,n_condensed_constituents+1))*diag%viscosity_rhombi(ji,jl)
+        
       enddo
     enddo
     !$omp end parallel do
     
     ! Averaging the viscosity to triangles
     ! ------------------------------------
-    !$omp parallel do private(ji,layer_index,h_index,density_value,scalar_base_index)
-    do ji=1,n_dual_v_vectors
-      layer_index = (ji-1)/n_triangles
-      h_index = ji - layer_index*n_triangles
+    !$omp parallel do private(ji,jl,density_value)
+    do ji=1,n_triangles
+      do jl=1,n_layers
       
-      scalar_base_index = layer_index*n_cells
-      
-      ! preliminary result
-      diag%viscosity_triangles(h_index,layer_index+1) = 1._wp/6._wp*( &
-      diag%viscosity(grid%from_cell(grid%vorticity_indices_triangles(h_index,1)),layer_index+1) &
-      + diag%viscosity(grid%to_cell(grid%vorticity_indices_triangles(h_index,1)),layer_index+1) &
-      + diag%viscosity(grid%from_cell(grid%vorticity_indices_triangles(h_index,2)),layer_index+1) &
-      + diag%viscosity(grid%to_cell(grid%vorticity_indices_triangles(h_index,2)),layer_index+1) &
-      + diag%viscosity(grid%from_cell(grid%vorticity_indices_triangles(h_index,3)),layer_index+1) &
-      + diag%viscosity(grid%to_cell(grid%vorticity_indices_triangles(h_index,3)),layer_index+1))
-      
-      ! calculating and adding the molecular viscosity
-      density_value = &
-      1._wp/6._wp*( &
-      state%rho(grid%from_cell(grid%vorticity_indices_triangles(h_index,1)),layer_index+1,n_condensed_constituents+1) &
-      + state%rho(grid%to_cell(grid%vorticity_indices_triangles(h_index,1)),layer_index+1,n_condensed_constituents+1) &
-      + state%rho(grid%from_cell(grid%vorticity_indices_triangles(h_index,2)),layer_index+1,n_condensed_constituents+1) &
-      + state%rho(grid%to_cell(grid%vorticity_indices_triangles(h_index,2)),layer_index+1,n_condensed_constituents+1) &
-      + state%rho(grid%from_cell(grid%vorticity_indices_triangles(h_index,3)),layer_index+1,n_condensed_constituents+1) &
-      + state%rho(grid%to_cell(grid%vorticity_indices_triangles(h_index,3)),layer_index+1,n_condensed_constituents+1))
-      
-      ! multiplying by the mass density of the gas phase
-      diag%viscosity_triangles(h_index,layer_index+1) = density_value*diag%viscosity_triangles(h_index,layer_index+1)
+        ! preliminary result
+        diag%viscosity_triangles(ji,jl) = 1._wp/6._wp*( &
+        diag%viscosity(grid%from_cell(grid%vorticity_indices_triangles(ji,1)),jl) &
+        + diag%viscosity(grid%to_cell(grid%vorticity_indices_triangles(ji,1)),jl) &
+        + diag%viscosity(grid%from_cell(grid%vorticity_indices_triangles(ji,2)),jl) &
+        + diag%viscosity(grid%to_cell(grid%vorticity_indices_triangles(ji,2)),jl) &
+        + diag%viscosity(grid%from_cell(grid%vorticity_indices_triangles(ji,3)),jl) &
+        + diag%viscosity(grid%to_cell(grid%vorticity_indices_triangles(ji,3)),jl))
+        
+        ! calculating and adding the molecular viscosity
+        density_value = &
+        1._wp/6._wp*( &
+        state%rho(grid%from_cell(grid%vorticity_indices_triangles(ji,1)),jl,n_condensed_constituents+1) &
+        + state%rho(grid%to_cell(grid%vorticity_indices_triangles(ji,1)),jl,n_condensed_constituents+1) &
+        + state%rho(grid%from_cell(grid%vorticity_indices_triangles(ji,2)),jl,n_condensed_constituents+1) &
+        + state%rho(grid%to_cell(grid%vorticity_indices_triangles(ji,2)),jl,n_condensed_constituents+1) &
+        + state%rho(grid%from_cell(grid%vorticity_indices_triangles(ji,3)),jl,n_condensed_constituents+1) &
+        + state%rho(grid%to_cell(grid%vorticity_indices_triangles(ji,3)),jl,n_condensed_constituents+1))
+        
+        ! multiplying by the mass density of the gas phase
+        diag%viscosity_triangles(ji,jl) = density_value*diag%viscosity_triangles(ji,jl)
+        
+      enddo
     enddo
     !$omp end parallel do
     

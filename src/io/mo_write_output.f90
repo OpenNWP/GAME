@@ -183,7 +183,7 @@ module mo_write_output
     type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     real(wp), intent(in)  :: t_init,t_write, &
-                             wind_h_lowest_layer_array(n_output_steps_10m_wind*n_edges)
+                             wind_h_lowest_layer_array(n_edges,n_output_steps_10m_wind)
     logical,       intent(in)    :: ltotally_first_step
   
     ! local variables
@@ -388,10 +388,10 @@ module mo_write_output
           wind_tangential = 0._wp
           do jk=1,10
             wind_tangential = wind_tangential + grid%trsk_weights(ji,jk) &
-                              *wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_edges+grid%trsk_indices(ji,jk))
+                              *wind_h_lowest_layer_array(grid%trsk_indices(ji,jk),time_step_10_m_wind)
           enddo
           wind_10_m_mean_u(ji) = wind_10_m_mean_u(ji) &
-          + 1._wp/n_output_steps_10m_wind*wind_h_lowest_layer_array((time_step_10_m_wind-1)*n_edges + ji)
+          + 1._wp/n_output_steps_10m_wind*wind_h_lowest_layer_array(ji,time_step_10_m_wind)
           wind_10_m_mean_v(ji) = wind_10_m_mean_v(ji) + 1._wp/n_output_steps_10m_wind*wind_tangential
         enddo
         ! passive turn to obtain the u- and v-components of the wind
@@ -843,24 +843,31 @@ module mo_write_output
       call nc_check(nf90_put_var(ncid,lon_id,lon_vector))
       do jl=1,n_layers
       
+        ! temperature
         call interpolate_to_ll(diag%temperature(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,temperature_ids(jl),lat_lon_output_field))
         
+        ! pressure
         call interpolate_to_ll(pressure(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,pressure_ids(jl),lat_lon_output_field))
         
+        ! relative humidity
         call interpolate_to_ll(rh(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,rel_hum_ids(jl),lat_lon_output_field))
         
+        ! zonal wind
         call interpolate_to_ll(u_at_cell(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,wind_u_ids(jl),lat_lon_output_field))
         
+        ! meridional wind
         call interpolate_to_ll(v_at_cell(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,wind_v_ids(jl),lat_lon_output_field))
         
+        ! relative vorticity
         call interpolate_to_ll(rel_vort_scalar_field(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,rel_vort_ids(jl),lat_lon_output_field))
         
+        ! horizontal divergence
         call interpolate_to_ll(div_h_all_layers(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,div_h_ids(jl),lat_lon_output_field))
         

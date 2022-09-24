@@ -44,20 +44,16 @@ module mo_gradient_operators
   
     ! This subroutine calculates the vertical covariant gradient.
     
-    real(wp),     intent(in)  :: in_field(n_cells,n_layers) ! the scalar field of which to compute the gradient
-    real(wp),     intent(out) :: out_field(n_vectors)       ! result (the gradient)
-    type(t_grid), intent(in)  :: grid                       ! grid quantities
+    real(wp),     intent(in)  :: in_field(n_cells,n_layers)  ! the scalar field of which to compute the vertical gradient
+    real(wp),     intent(out) :: out_field(n_cells,n_levels) ! result (the vertical gradient)
+    type(t_grid), intent(in)  :: grid                        ! grid quantities
     
-    integer :: ji,layer_index,h_index,vector_index
+    integer :: jl ! layer index
     
     ! loop over the inner grid points
-    !$omp parallel do private(ji,layer_index,h_index,vector_index)
-    do ji=n_cells+1,n_v_vectors-n_cells
-      layer_index = (ji-1)/n_cells
-      h_index = ji - layer_index*n_cells
-      vector_index = h_index + layer_index*n_vectors_per_layer
-      out_field(vector_index) &
-      = (in_field(h_index,layer_index)-in_field(h_index,layer_index+1))/grid%dz(h_index,layer_index+1)
+    !$omp parallel do private(jl)
+    do jl=2,n_layers
+      out_field(:,jl) = (in_field(:,jl-1) - in_field(:,jl))/grid%dz(:,jl)
     enddo
     !$omp end parallel do
   
