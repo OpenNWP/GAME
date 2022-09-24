@@ -10,7 +10,7 @@ module mo_tke
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
   use mo_constants,          only: M_PI
   use mo_grid_setup,         only: dtime
-  use mo_gradient_operators, only: grad
+  use mo_gradient_operators, only: grad_hor,grad_vert
   use mo_inner_product,      only: inner_product
   use mo_grid_setup,         only: mean_velocity_area
 
@@ -31,8 +31,9 @@ module mo_tke
     real(wp) :: decay_constant
     
     ! computing the advection
-    call grad(diag%tke,diag%vector_placeholder,grid)
-    call inner_product(diag%vector_placeholder,state%wind,diag%scalar_placeholder,grid)
+    call grad_vert(diag%tke,diag%vector_placeholder_v,grid)
+    call grad_hor(diag%tke,diag%vector_placeholder_h,diag%vector_placeholder_v,grid)
+    call inner_product(diag%vector_placeholder_h,diag%vector_placeholder_v,state%wind_h,state%wind_v,diag%scalar_placeholder,grid)
     
     ! loop over all scalar gridpoints
     !$omp parallel do private(ji,jl,decay_constant)

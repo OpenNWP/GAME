@@ -9,7 +9,7 @@ module mo_pbl
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_diff_nml,         only: h_prandtl,karman
   use mo_grid_nml,         only: n_scalars,n_cells,n_vectors_per_layer,n_layers,n_vectors,n_edges,n_vectors_per_layer, &
-                                 n_h_vectors
+                                 n_h_vectors,n_levels
   use mo_surface_nml,      only: lprog_soil_temp,pbl_scheme
   use mo_constituents_nml, only: n_constituents
   use mo_grid_setup,       only: dtime
@@ -43,8 +43,8 @@ module mo_pbl
         ! averaging some quantities to the vector point
         wind_speed_lowest_layer = 0.5_wp*((diag%v_squared(grid%from_cell(ji),n_layers))**0.5_wp &
         + (diag%v_squared(grid%to_cell(ji),n_layers))**0.5_wp)
-        z_agl = grid%z_vector(vector_index) - 0.5_wp*(grid%z_vector(n_vectors - n_cells + grid%from_cell(ji)) &
-        + grid%z_vector(n_vectors - n_cells + grid%to_cell(ji)))
+        z_agl = grid%z_vector_h(ji,n_layers) - 0.5_wp*(grid%z_vector_v(grid%from_cell(ji),n_levels) &
+        + grid%z_vector_v(grid%to_cell(ji),n_levels))
         layer_thickness = 0.5_wp*(grid%layer_thickness(grid%from_cell(ji),n_layers) &
                                   + grid%layer_thickness(grid%to_cell(ji),n_layers))
         roughness_length_value = 0.5_wp*(grid%roughness_length(grid%from_cell(ji)) + grid%roughness_length(grid%to_cell(ji)))
@@ -62,8 +62,8 @@ module mo_pbl
         endif
       
         ! adding the momentum flux into the surface as an acceleration
-        diag%friction_acc(vector_index) = diag%friction_acc(vector_index) &
-        - wind_rescale_factor*state%wind(vector_index)/flux_resistance/layer_thickness
+        diag%friction_acc_h(ji,n_layers) = diag%friction_acc_h(ji,n_layers) &
+        - wind_rescale_factor*state%wind_h(ji,n_layers)/flux_resistance/layer_thickness
       enddo
       !$omp end parallel do
     endif
@@ -98,9 +98,9 @@ module mo_pbl
         pressure_value_lowest_layer = p_0*exner_from**(c_d_p/r_d)
         temp_surface = temp_lowest_layer &
         + standard_vert_lapse_rate*(grid%z_scalar(grid%from_cell(h_index),n_layers) &
-        - grid%z_vector(n_vectors - n_cells + grid%from_cell(h_index)))
+        - grid%z_vector_v(grid%from_cell(h_index),n_levels))
         surface_p_factor = (1._wp - (temp_surface - temp_lowest_layer)/temp_surface) &
-        **(grid%gravity_m((n_layers-1)*n_vectors_per_layer + grid%from_cell(h_index))/ &
+        **(grid%gravity_m_v(grid%from_cell(h_index),n_layers)/ &
         (gas_constant_diagnostics(state%rho,grid%from_cell(h_index),n_layers)*standard_vert_lapse_rate))
         pressure_sfc_from = pressure_value_lowest_layer/surface_p_factor
         ! calculating the surface pressure at the to scalar point
@@ -109,9 +109,9 @@ module mo_pbl
         pressure_value_lowest_layer = p_0*exner_to**(c_d_p/r_d)
         temp_surface = temp_lowest_layer &
         + standard_vert_lapse_rate*(grid%z_scalar(grid%to_cell(h_index),n_layers) &
-        - grid%z_vector(n_vectors - n_cells + grid%to_cell(h_index)))
+        - grid%z_vector_v(grid%to_cell(h_index),n_levels))
         surface_p_factor = (1._wp - (temp_surface - temp_lowest_layer)/temp_surface) &
-        **(grid%gravity_m((n_layers-1)*n_vectors_per_layer + grid%to_cell(h_index))/ &
+        **(grid%gravity_m_v(grid%to_cell(h_index),n_layers)/ &
         (gas_constant_diagnostics(state%rho,grid%to_cell(h_index),n_layers)*standard_vert_lapse_rate))
         pressure_sfc_to = pressure_value_lowest_layer/surface_p_factor
         ! averaging the surface pressure to the vector point
@@ -120,8 +120,8 @@ module mo_pbl
         ! calculating sigma
         sigma = pressure/pressure_sfc
         ! finally calculating the friction acceleration
-        diag%friction_acc(vector_index) = diag%friction_acc(vector_index) &
-        - bndr_lr_visc_max*max(0._wp,(sigma-sigma_b)/(1._wp-sigma_b))*state%wind(vector_index)
+        diag%friction_acc_h(ji,n_layers) = diag%friction_acc_h(ji,n_layers) &
+        - bndr_lr_visc_max*max(0._wp,(sigma-sigma_b)/(1._wp-sigma_b))*state%wind_h(ji,n_layers)
       enddo
       !$omp end parallel do
     endif
@@ -147,7 +147,7 @@ module mo_pbl
     !$omp parallel do private(ji,u_lowest_layer,u10,z_agl,theta_v_lowest_layer,theta_v_second_layer, &
     !$omp dz,dtheta_v_dz,w_pert,theta_v_pert_value,w_pert_theta_v_pert_avg)
     do ji=1,n_cells
-      z_agl = grid%z_scalar(ji,n_layers)-grid%z_vector(n_vectors-n_cells+ji)
+      z_agl = grid%z_scalar(ji,n_layers)-grid%z_vector_v(ji,n_levels)
       
       ! wind speed in the lowest layer
       u_lowest_layer = diag%v_squared(ji,n_layers)**0.5_wp
@@ -196,7 +196,7 @@ module mo_pbl
       !$omp parallel do private(ji)
       do ji=1,n_cells
         diag%scalar_flux_resistance(ji) = calc_scalar_flux_resistance(diag%roughness_velocity(ji), &
-                                           grid%z_scalar(ji,n_layers)-grid%z_vector(n_layers*n_vectors_per_layer+ji), &
+                                           grid%z_scalar(ji,n_layers)-grid%z_vector_v(ji,n_levels), &
                                            grid%roughness_length(ji),diag%monin_obukhov_length(ji))
       enddo
       !$omp end parallel do
