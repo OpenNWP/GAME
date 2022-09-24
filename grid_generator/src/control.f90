@@ -302,6 +302,8 @@ program control
   
   write(*,*) "Starting to write to output file ..."
   call nc_check(nf90_create(trim(output_file),NF90_CLOBBER,ncid_g_prop))
+  
+  ! defining the dimensions
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_8_index",8*n_scalars,scalar_8_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"scalar_2_index",2*n_scalars,scalar_2_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"cell_index",n_cells,cell_dimid))
@@ -324,6 +326,8 @@ program control
   call nc_check(nf90_def_dim(ncid_g_prop,"vector_index_h_2_dual",2*n_dual_h_vectors,vector_h_dual_dimid_2))
   call nc_check(nf90_def_dim(ncid_g_prop,"single_double_dimid_index",1,single_double_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"single_int_dimid_index",1,single_int_dimid))
+  
+  ! defining the variables
   call nc_check(nf90_def_var(ncid_g_prop,"n_lloyd_iterations",NF90_INT,single_int_dimid,n_lloyd_iterations_id))
   call nc_check(nf90_def_var(ncid_g_prop,"n_oro_layers",NF90_INT,single_int_dimid,n_oro_layers_id))
   call nc_check(nf90_def_var(ncid_g_prop,"stretching_parameter",NF90_REAL,single_double_dimid,stretching_parameter_id))
@@ -346,6 +350,8 @@ program control
   dimids_vector_2(1) = cell_dimid
   dimids_vector_2(2) = layer_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"exner_bg",NF90_REAL,dimids_vector_2,exner_bg_id))
+  
+  ! gravity potential
   dimids_vector_2(1) = cell_dimid
   dimids_vector_2(2) = layer_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"gravity_potential",NF90_REAL,dimids_vector_2,gravity_potential_id))
@@ -363,14 +369,18 @@ program control
   call nc_check(nf90_put_att(ncid_g_prop,dx_id,"units","m"))
   call nc_check(nf90_def_var(ncid_g_prop,"dz",NF90_REAL,vector_dimid,dz_id))
   call nc_check(nf90_put_att(ncid_g_prop,dz_id,"units","m"))
+  
+  ! grid box volumes
   dimids_vector_2(1) = cell_dimid
   dimids_vector_2(2) = layer_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"volume",NF90_REAL,dimids_vector_2,volume_id))
   call nc_check(nf90_put_att(ncid_g_prop,volume_id,"units","m^3"))
   
+  ! horizontal areas of the primal grid
   call nc_check(nf90_def_var(ncid_g_prop,"area_h",NF90_REAL,vector_dimid,area_h_id))
   call nc_check(nf90_put_att(ncid_g_prop,area_h_id,"units","m^2"))
   
+  ! vertical areas of the primal grid
   call nc_check(nf90_def_var(ncid_g_prop,"area_v",NF90_REAL,vector_dimid,area_v_id))
   call nc_check(nf90_put_att(ncid_g_prop,area_v_id,"units","m^2"))
   
@@ -390,8 +400,11 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"z_vector_dual_v",NF90_REAL,dimids_vector_2,z_vector_dual_v_id))
   call nc_check(nf90_put_att(ncid_g_prop,z_vector_dual_v_id,"units","m"))
   
+  ! horizontal distances of the dual grid
   call nc_check(nf90_def_var(ncid_g_prop,"dy",NF90_REAL,vector_dual_dimid,dy_id))
   call nc_check(nf90_put_att(ncid_g_prop,dy_id,"units","m"))
+  
+  ! vertical distances of the dual grid
   call nc_check(nf90_def_var(ncid_g_prop,"dz_dual",NF90_REAL,vector_dual_dimid,dz_dual_id))
   call nc_check(nf90_put_att(ncid_g_prop,dz_dual_id,"units","m"))
   
@@ -426,20 +439,34 @@ program control
   dimids_vector_3(3) = dimid_8
   call nc_check(nf90_def_var(ncid_g_prop,"inner_product_weights",NF90_REAL,dimids_vector_3,inner_product_weights_id))
   
+  ! weights for interpolating to rhombi
   dimids_vector_2(1) = edge_dimid
   dimids_vector_2(2) = dimid_4
   call nc_check(nf90_def_var(ncid_g_prop,"density_to_rhombi_weights",NF90_REAL,dimids_vector_2,density_to_rhombi_weights_id))
+  
+  ! weights for interpolating to the lat-lon grid
   dimids_vector_3(1) = lat_dimid
   dimids_vector_3(2) = lon_dimid
   dimids_vector_3(3) = dimid_5
   call nc_check(nf90_def_var(ncid_g_prop,"interpol_weights",NF90_REAL,dimids_vector_3,interpol_weights_id))
+  
+  ! from cells
   call nc_check(nf90_def_var(ncid_g_prop,"from_cell",NF90_INT,edge_dimid,from_cell_id))
+  
+  ! to cells
   call nc_check(nf90_def_var(ncid_g_prop,"to_cell",NF90_INT,edge_dimid,to_cell_id))
+  
+  ! dual grid from cells
   call nc_check(nf90_def_var(ncid_g_prop,"from_cell_dual",NF90_INT,edge_dimid,from_cell_dual_id))
+  
+  ! dual grid to cells
   call nc_check(nf90_def_var(ncid_g_prop,"to_cell_dual",NF90_INT,edge_dimid,to_cell_dual_id))
+  
+  ! neighbouring egdes of each cell
   dimids_vector_2(1) = cell_dimid
   dimids_vector_2(2) = dimid_6
   call nc_check(nf90_def_var(ncid_g_prop,"adjacent_edges",NF90_INT,dimids_vector_2,adjacent_edges_id))
+  
   dimids_vector_3(1) = lat_dimid
   dimids_vector_3(2) = lon_dimid
   dimids_vector_3(3) = dimid_5
@@ -466,6 +493,8 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"roughness_length",NF90_REAL,cell_dimid,roughness_length_id))
   call nc_check(nf90_put_att(ncid_g_prop,roughness_length_id,"units","m"))
   call nc_check(nf90_enddef(ncid_g_prop))
+  
+  ! writing the values to the variables
   call nc_check(nf90_put_var(ncid_g_prop,n_oro_layers_id,n_oro_layers))
   call nc_check(nf90_put_var(ncid_g_prop,n_lloyd_iterations_id,n_lloyd_iterations))
   call nc_check(nf90_put_var(ncid_g_prop,stretching_parameter_id,stretching_parameter))
