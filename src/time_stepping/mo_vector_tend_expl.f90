@@ -7,8 +7,8 @@ module mo_vector_tend_expl
   
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,           only: n_vectors_per_layer,n_vectors,n_cells,n_scalars,n_dual_vectors,n_edges, &
-                                   n_dual_scalars_h,n_dual_v_vectors,n_layers,n_h_vectors
-  use mo_gradient_operators, only: grad
+                                   n_dual_v_vectors,n_layers,n_h_vectors,n_levels
+  use mo_gradient_operators, only: grad_hor,grad_vert
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
   use mo_inner_product,      only: inner_product
   use mo_vorticity_flux,     only: vorticity_flux
@@ -16,7 +16,7 @@ module mo_vector_tend_expl
   use mo_surface_nml,        only: pbl_scheme
   use mo_tke,                only: tke_update
   use mo_momentum_diff_diss, only: mom_diff_h,mom_diff_v,simple_dissipation_rate
-  use mo_multiplications,    only: scalar_times_vector
+  use mo_multiplications,    only: scalar_times_vector_h,scalar_times_vector_v
   use mo_pbl,                only: pbl_wind_tendency
   use mo_eff_diff_coeffs,    only: update_n_squared
   use mo_vorticities,        only: calc_pot_vort
@@ -37,22 +37,23 @@ module mo_vector_tend_expl
     logical,       intent(in)    :: ltotally_first_step ! switch for the very first step of the whole model run
                                
     ! local variables
-    integer  :: ji,layer_index,h_index
     real(wp) :: old_weight,new_weight,old_hor_pgrad_weight,current_hor_pgrad_weight,current_ver_pgrad_weight
   
     ! Managing momentum advection
     ! ---------------------------
     
     if (rk_step==2 .or. ltotally_first_step) then
-      call scalar_times_vector(state%rho(:,:,n_condensed_constituents+1),state%wind,diag%flux_density,grid)
+      call scalar_times_vector_h(state%rho(:,:,n_condensed_constituents+1),state%wind_h,diag%flux_density_h,grid)
+      call scalar_times_vector_v(state%rho(:,:,n_condensed_constituents+1),state%wind_v,diag%flux_density_v)
       ! Now, the "potential vorticity" is evaluated.
       call calc_pot_vort(state,state%rho(:,:,n_condensed_constituents+1),diag,grid)
       ! Now, the generalized Coriolis term is evaluated.
       call vorticity_flux(diag,grid)
       ! Kinetic energy is prepared for the gradient term of the Lamb transformation.
-      call inner_product(state%wind,state%wind,diag%v_squared,grid)
+      call inner_product(state%wind_h,state%wind_v,state%wind_h,state%wind_v,diag%v_squared,grid)
       ! Taking the gradient of the kinetic energy
-      call grad(diag%v_squared,diag%v_squared_grad,grid)
+      call grad_vert(diag%v_squared,diag%v_squared_grad_v,grid)
+      call grad_hor(diag%v_squared,diag%v_squared_grad_h,diag%v_squared_grad_v,grid)
     endif
     
     ! Managing momentum diffusion
@@ -95,46 +96,41 @@ module mo_vector_tend_expl
     current_hor_pgrad_weight = 0.5_wp + impl_thermo_weight
     old_hor_pgrad_weight = 1._wp - current_hor_pgrad_weight
     current_ver_pgrad_weight = 1._wp - impl_thermo_weight
-    !$omp parallel do private(ji,layer_index,h_index)
-    do ji=1,n_vectors
-      layer_index = (ji-1)/n_vectors_per_layer
-      h_index = ji - layer_index*n_vectors_per_layer
-      ! upper and lower boundary
-      if (ji<=n_cells .or. ji>=n_vectors-n_cells+1) then
-        state_tend%wind(ji) = 0._wp
-      ! horizontal case
-      elseif (h_index>=n_cells+1) then
-        state_tend%wind(ji) = &
-        old_weight*state_tend%wind(ji) + new_weight*( &
-        ! explicit component of pressure gradient acceleration
-        ! old time step component
-        old_hor_pgrad_weight*diag%pgrad_acc_old(ji) &
-        ! current time step component
-        - current_hor_pgrad_weight*(diag%pressure_gradient_acc_neg_nl(ji) + diag%pressure_gradient_acc_neg_l(ji)) &
-        ! generalized Coriolis term
-        + diag%pot_vort_tend(ji) &
-        ! kinetic energy term
-        - 0.5_wp*diag%v_squared_grad(ji) &
-        ! momentum diffusion
-        + diag%friction_acc(ji))
-      ! vertical case
-      elseif (h_index<=n_cells) then
-        state_tend%wind(ji) = &
-        old_weight*state_tend%wind(ji) + new_weight*( &
-        ! explicit component of pressure gradient acceleration
-        ! current time step component
-        -current_ver_pgrad_weight*(diag%pressure_gradient_acc_neg_nl(ji) + diag%pressure_gradient_acc_neg_l(ji)) &
-        ! generalized Coriolis term
-        + diag%pot_vort_tend(ji) &
-        ! kinetic energy term
-        - 0.5_wp*diag%v_squared_grad(ji) &
-        ! momentum diffusion
-        + diag%friction_acc(ji) &
-        ! effect of condensates on the pressure gradient acceleration
-        + diag%pressure_grad_condensates_v(ji))
-      endif
-    enddo
-    !$omp end parallel do
+    !$omp parallel workshare
+    ! upper and lower boundary
+    state_tend%wind_v(:,1) = 0._wp
+    state_tend%wind_v(:,n_levels) = 0._wp
+      
+    ! horizontal case
+    state_tend%wind_h = &
+    old_weight*state_tend%wind_h + new_weight*( &
+    ! explicit component of pressure gradient acceleration
+    ! old time step component
+    old_hor_pgrad_weight*diag%pgrad_acc_old_h &
+    ! current time step component
+    - current_hor_pgrad_weight*(diag%pressure_gradient_acc_neg_nl_h + diag%pressure_gradient_acc_neg_l_h) &
+    ! generalized Coriolis term
+    + diag%pot_vort_tend_h &
+    ! kinetic energy term
+    - 0.5_wp*diag%v_squared_grad_h &
+    ! momentum diffusion
+    + diag%friction_acc_h)
+        
+    ! vertical case
+    state_tend%wind_v = &
+    old_weight*state_tend%wind_v + new_weight*( &
+    ! explicit component of pressure gradient acceleration
+    ! current time step component
+    -current_ver_pgrad_weight*(diag%pressure_gradient_acc_neg_nl_v + diag%pressure_gradient_acc_neg_l_v) &
+    ! generalized Coriolis term
+    + diag%pot_vort_tend_v &
+    ! kinetic energy term
+    - 0.5_wp*diag%v_squared_grad_v &
+    ! momentum diffusion
+    + diag%friction_acc_v &
+    ! effect of condensates on the pressure gradient acceleration
+    + diag%pressure_grad_condensates_v)
+    !$omp end parallel workshare
   
   end subroutine vector_tend_expl
 

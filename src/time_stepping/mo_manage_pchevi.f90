@@ -8,7 +8,7 @@ module mo_manage_pchevi
   use mo_definitions,            only: wp,t_grid,t_state,t_diag
   use mo_constituents_nml,       only: n_constituents,lmoist,n_condensed_constituents
   use mo_grid_nml,               only: n_layers,n_vectors_per_layer,n_cells,n_vectors,n_dual_vectors,n_scalars, &
-                                       n_dual_scalars_h,n_dual_v_vectors,n_h_vectors,n_edges
+                                       n_dual_v_vectors,n_h_vectors,n_edges
   use mo_grid_setup,             only: dtime
   use mo_column_solvers,         only: three_band_solver_ver_waves,three_band_solver_gen_densities
   use mo_surface_nml,            only: nsoillays,lsfc_sensible_heat_flux,lsfc_phase_trans,pbl_scheme
@@ -39,7 +39,7 @@ module mo_manage_pchevi
     real(wp),      intent(in)    :: time_coordinate     ! epoch timestamp of the old time step
     
     ! local variabels
-    integer :: ji,jl,vector_index,rk_step
+    integer :: rk_step
     
     ! Preparations
     ! ------------
@@ -89,14 +89,9 @@ module mo_manage_pchevi
       endif
       
       ! time stepping for the horizontal momentum can be directly executed
-      !$omp parallel do private(ji,jl,vector_index)
-      do ji=1,n_edges
-        do jl=0,n_layers-1
-          vector_index = n_cells + jl*n_vectors_per_layer + ji
-          state_new%wind(vector_index) = state_old%wind(vector_index) + dtime*state_tend%wind(vector_index)
-        enddo
-      enddo
-      !$omp end parallel do
+      !$omp parallel workshare
+      state_new%wind_h = state_old%wind_h + dtime*state_tend%wind_h
+      !$omp end parallel workshare
       ! Horizontal velocity can be considered to be updated from now on.
 
       ! 2.) explicit component of the generalized density equations
