@@ -6,7 +6,7 @@ module mo_multiplications
   ! In this module, algebraic multiplications of fields are collected.
   
   use mo_definitions, only: wp,t_grid
-  use mo_grid_nml,    only: n_vectors,n_edges,n_layers,n_cells,n_vectors_per_layer
+  use mo_grid_nml,    only: n_edges,n_layers,n_cells,n_levels
   
   implicit none
   
@@ -17,22 +17,19 @@ module mo_multiplications
     ! This subroutine multiplies a vector field by a scalar field at the horizontal gridpoints.
     
     real(wp),     intent(in)  :: scalar_field(n_cells,n_layers)
-    real(wp)                  :: vector_field(n_vectors)
-    real(wp),     intent(out) :: out_field(n_vectors)
-    type(t_grid), intent(in)  :: grid  ! grid quantities
+    real(wp)                  :: vector_field(n_edges,n_layers)
+    real(wp),     intent(out) :: out_field(n_edges,n_layers) ! result
+    type(t_grid), intent(in)  :: grid                        ! grid quantities
     
     ! local variables
-    integer  :: h_index,layer_index,vector_index
+    integer  :: ji,jl
     real(wp) :: scalar_value
     
-    !$omp parallel do private(h_index,layer_index,vector_index,scalar_value)
-    do h_index=1,n_edges
-      do layer_index=0,n_layers-1
-        vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
-        scalar_value &
-        = 0.5_wp*(scalar_field(grid%from_cell(h_index),layer_index+1) &
-        + scalar_field(grid%to_cell(h_index),layer_index+1))
-        out_field(vector_index) = scalar_value*vector_field(vector_index)
+    !$omp parallel do private(ji,jl,scalar_value)
+    do ji=1,n_edges
+      do jl=1,n_layers
+        scalar_value  = 0.5_wp*(scalar_field(grid%from_cell(ji),jl) + scalar_field(grid%to_cell(ji),jl))
+        out_field(ji,jl) = scalar_value*vector_field(ji,jl)
       enddo
     enddo
     !$omp end parallel do
@@ -44,24 +41,24 @@ module mo_multiplications
     ! This subroutine multiplies a vector field by a scalar field.
     ! The scalar field value from the upstream gridpoint is used.
     
-    real(wp),     intent(in)  :: scalar_field(n_cells,n_layers),vector_field(n_vectors)
-    real(wp),     intent(out) :: out_field(n_vectors)
-    type(t_grid), intent(in)  :: grid                  ! grid quantities
+    real(wp),     intent(in)  :: scalar_field(n_cells,n_layers)
+    real(wp),     intent(in)  :: vector_field(n_edges,n_layers)
+    real(wp),     intent(out) :: out_field(n_edges,n_layers)    ! result
+    type(t_grid), intent(in)  :: grid                           ! grid quantities
     
     ! local variables
-    integer  :: h_index,layer_index,vector_index
+    integer  :: ji,jl
     real(wp) :: scalar_value
     
-    !$omp parallel do private(h_index,layer_index,vector_index,scalar_value)
-    do h_index=1,n_edges
-      do layer_index=0,n_layers-1
-        vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
-        if (vector_field(vector_index)>=0._wp) then
-          scalar_value = scalar_field(grid%from_cell(h_index),layer_index+1)
+    !$omp parallel do private(ji,jl,scalar_value)
+    do ji=1,n_edges
+      do jl=1,n_layers
+        if (vector_field(ji,jl)>=0._wp) then
+          scalar_value = scalar_field(grid%from_cell(ji),jl)
         else
-          scalar_value = scalar_field(grid%to_cell(h_index),layer_index+1)
+          scalar_value = scalar_field(grid%to_cell(ji),jl)
         endif
-        out_field(vector_index) = scalar_value*vector_field(vector_index)
+        out_field(ji,jl) = scalar_value*vector_field(ji,jl)
       enddo
     enddo
     !$omp end parallel do
@@ -73,19 +70,18 @@ module mo_multiplications
     ! This subroutine multiplies a vector field by a scalar field at the vertical gridpoints.
     
     real(wp), intent(in)  :: scalar_field(n_cells,n_layers)
-    real(wp)              :: vector_field(n_vectors)
-    real(wp), intent(out) :: out_field(n_vectors)
+    real(wp)              :: vector_field(n_cells,n_levels)
+    real(wp), intent(out) :: out_field(n_cells,n_levels)
   
     ! local variables
-    integer  :: h_index,layer_index,ji
+    integer  :: ji,jl
     real(wp) :: scalar_value
     
-    !$omp parallel do private(h_index,layer_index,ji,scalar_value)
-    do h_index=1,n_cells
-      do layer_index=1,n_layers-1
-        ji = layer_index*n_vectors_per_layer + h_index
-        scalar_value = 0.5_wp*(scalar_field(h_index,layer_index) + scalar_field(h_index,layer_index+1))
-        out_field(ji) = scalar_value*vector_field(ji)
+    !$omp parallel do private(ji,jl,scalar_value)
+    do ji=1,n_cells
+      do jl=2,n_layers
+        scalar_value = 0.5_wp*(scalar_field(ji,jl-1) + scalar_field(ji,jl))
+        out_field(ji,jl) = scalar_value*vector_field(ji,jl)
       enddo
     enddo
     !$omp end parallel do
