@@ -7,7 +7,7 @@ module mo_scalar_tend_expl
 
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_constants,          only: c_d_v,c_d_p
-  use mo_grid_nml,           only: n_cells,n_scalars,n_layers,n_vectors,n_edges,n_dual_v_vectors
+  use mo_grid_nml,           only: n_cells,n_layers
   use mo_constituents_nml,   only: n_constituents,n_condensed_constituents,lmoist
   use mo_derived,            only: c_v_mass_weighted_air
   use mo_diff_nml,           only: lmass_diff_h,lmass_diff_v,ltemp_diff_h,ltemp_diff_v
@@ -121,13 +121,16 @@ module mo_scalar_tend_expl
       ! -------------------------------------------------
       
       if (jc==n_condensed_constituents+1) then
+      
         ! determining the virtual potential temperature
         !$omp parallel workshare
         diag%scalar_placeholder = state_scalar%rhotheta_v/state_scalar%rho(:,:,jc)
         !$omp end parallel workshare
         
+        ! calculating the divergence of the horizontal virtual potential temperature density
         call scalar_times_vector_h(diag%scalar_placeholder,diag%flux_density_h,diag%flux_density_h,grid)
         call div_h(diag%flux_density_h,diag%flux_density_div,grid)
+        
         ! adding the tendencies in all grid boxes
         !$omp parallel do private(ji,jl)
         do ji=1,n_cells

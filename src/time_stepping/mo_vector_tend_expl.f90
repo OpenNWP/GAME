@@ -6,10 +6,9 @@ module mo_vector_tend_expl
   ! In this module, the calculation of the explicit part of the momentum equation is managed.
   
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,           only: n_vectors_per_layer,n_vectors,n_cells,n_scalars,n_dual_vectors,n_edges, &
-                                   n_dual_v_vectors,n_layers,n_h_vectors,n_levels
+  use mo_grid_nml,           only: n_levels
   use mo_gradient_operators, only: grad_hor,grad_vert
-  use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
+  use mo_constituents_nml,   only: n_condensed_constituents
   use mo_inner_product,      only: inner_product
   use mo_vorticity_flux,     only: vorticity_flux
   use mo_diff_nml,           only: lmom_diff_h,lmass_diff_h,ltemp_diff_h,lmom_diff_v
@@ -96,14 +95,15 @@ module mo_vector_tend_expl
     current_hor_pgrad_weight = 0.5_wp + impl_thermo_weight
     old_hor_pgrad_weight = 1._wp - current_hor_pgrad_weight
     current_ver_pgrad_weight = 1._wp - impl_thermo_weight
+    
     !$omp parallel workshare
+    
     ! upper and lower boundary
     state_tend%wind_v(:,1) = 0._wp
     state_tend%wind_v(:,n_levels) = 0._wp
       
     ! horizontal case
-    state_tend%wind_h = &
-    old_weight*state_tend%wind_h + new_weight*( &
+    state_tend%wind_h = old_weight*state_tend%wind_h + new_weight*( &
     ! explicit component of pressure gradient acceleration
     ! old time step component
     old_hor_pgrad_weight*diag%pgrad_acc_old_h &
@@ -117,8 +117,7 @@ module mo_vector_tend_expl
     + diag%friction_acc_h)
         
     ! vertical case
-    state_tend%wind_v = &
-    old_weight*state_tend%wind_v + new_weight*( &
+    state_tend%wind_v = old_weight*state_tend%wind_v + new_weight*( &
     ! explicit component of pressure gradient acceleration
     ! current time step component
     -current_ver_pgrad_weight*(diag%pressure_gradient_acc_neg_nl_v + diag%pressure_gradient_acc_neg_l_v) &

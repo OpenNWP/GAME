@@ -19,9 +19,9 @@ module mo_divergences
   
     ! This subroutine computes the divergence of a horizontal vector field.
     
-    real(wp),     intent(in)  :: in_field(n_vectors)
-    real(wp),     intent(out) :: out_field(n_cells,n_layers)
-    type(t_grid), intent(in)  :: grid                 ! grid quantities
+    real(wp),     intent(in)  :: in_field(n_edges,n_layers)  ! vector field to compute the divergence of
+    real(wp),     intent(out) :: out_field(n_cells,n_layers) ! result
+    type(t_grid), intent(in)  :: grid                        ! grid quantities
     
     ! local variables
     integer  :: ji,jl,jm,n_edges_of_cell
@@ -37,19 +37,19 @@ module mo_divergences
         comp_h = 0._wp
         do jm=1,n_edges_of_cell
           comp_h = comp_h &
-          + in_field(n_cells + (jl-1)*n_vectors_per_layer + grid%adjacent_edges(ji,jm)) &
+          + in_field(grid%adjacent_edges(ji,jm),jl) &
           *grid%adjacent_signs(ji,jm)*grid%area_h(grid%adjacent_edges(ji,jm),jl)
         enddo
         comp_v = 0._wp
         if (jl==n_flat_layers) then
-          contra_lower = vertical_contravariant_corr(in_field,jl,ji,grid)
+          contra_lower = vertical_contravariant_corr(in_field,ji,jl+1,grid)
           comp_v = -contra_lower*grid%area_v(ji,jl+1)
         elseif (jl==n_layers) then
-          contra_upper = vertical_contravariant_corr(in_field,jl-1,ji,grid)
+          contra_upper = vertical_contravariant_corr(in_field,ji,jl,grid)
           comp_v = contra_upper*grid%area_v(ji,jl)
         elseif (jl>n_flat_layers) then
-          contra_upper = vertical_contravariant_corr(in_field,jl-1,ji,grid)
-          contra_lower = vertical_contravariant_corr(in_field,jl,ji,grid)
+          contra_upper = vertical_contravariant_corr(in_field,ji,jl,grid)
+          contra_lower = vertical_contravariant_corr(in_field,ji,jl+1,grid)
           comp_v = contra_upper*grid%area_v(ji,jl) - contra_lower*grid%area_v(ji,jl+1)
         endif
         out_field(ji,jl) = 1._wp/grid%volume(ji,jl)*(comp_h + comp_v)

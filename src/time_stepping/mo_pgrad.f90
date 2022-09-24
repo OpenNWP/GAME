@@ -10,7 +10,7 @@ module mo_pgrad
   use mo_constants,          only: c_d_p
   use mo_gradient_operators, only: grad_hor,grad_vert
   use mo_multiplications,    only: scalar_times_vector_h,scalar_times_vector_v
-  use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
+  use mo_constituents_nml,   only: n_condensed_constituents
 
   implicit none
   
