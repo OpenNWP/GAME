@@ -8,7 +8,7 @@ module mo_vertical_grid
   use mo_definitions, only: wp
   use mo_constants,   only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv,r_d, &
                             p_0_standard,c_d_p,p_0
-  use mo_grid_nml,    only: n_cells,n_scalars,n_vectors_per_layer,n_layers,n_levels, &
+  use mo_grid_nml,    only: n_cells,n_vectors_per_layer,n_layers,n_levels, &
                             n_vectors,n_triangles,n_dual_scalars,n_edges, &
                             n_dual_vectors,n_dual_vectors_per_layer,toa,n_oro_layers,stretching_parameter, &
                             radius
@@ -22,36 +22,36 @@ module mo_vertical_grid
 
     ! This function sets the z coordinates of the scalar data points.
     
-    real(wp), intent(out) :: z_scalar(n_cells,n_layers)
-    real(wp), intent(in)  :: oro(n_cells)
-    real(wp), intent(in)  :: max_oro
+    real(wp), intent(out) :: z_scalar(n_cells,n_layers) ! z-coordinates of scalar points
+    real(wp), intent(in)  :: oro(n_cells)               ! orography
+    real(wp), intent(in)  :: max_oro                    ! maximum of the orography
     
     ! local variables
-    integer  :: h_index,level_index,layer_index
+    integer  :: ji,jl
     real(wp) :: A,B,sigma_z,z_rel,z_vertical_vector_pre(n_levels)
     
     ! the heights are defined according to z_k = A_k + B_k*oro with A_0 = toa, A_{N_LEVELS} = 0, B_0 = 0, B_{N_LEVELS} = 1
     
     ! loop over all columns
-    !$omp parallel do private(h_index,level_index,layer_index,A,B,sigma_z,z_rel,z_vertical_vector_pre)
-    do h_index=1,n_cells
+    !$omp parallel do private(ji,jl,A,B,sigma_z,z_rel,z_vertical_vector_pre)
+    do ji=1,n_cells
     
       ! filling up z_vertical_vector_pre
-      do level_index=1,n_levels
-        z_rel = 1._wp-(level_index-1._wp)/n_layers ! z/toa
+      do jl=1,n_levels
+        z_rel = 1._wp-(jl-1._wp)/n_layers ! z/toa
         sigma_z = z_rel**stretching_parameter
         A = sigma_z*toa ! the height without orography
         ! B corrects for orography
-        if (level_index>=n_layers-n_oro_layers+1) then
-          B = (level_index-(n_layers-n_oro_layers)-1._wp)/n_oro_layers
+        if (jl>=n_layers-n_oro_layers+1) then
+          B = (jl-(n_layers-n_oro_layers)-1._wp)/n_oro_layers
         else
           B = 0._wp
         endif
-        z_vertical_vector_pre(level_index) = A + B*oro(h_index)
+        z_vertical_vector_pre(jl) = A + B*oro(ji)
       enddo
     
       ! doing a check
-      if (h_index==1) then
+      if (ji==1) then
         if (max_oro>=z_vertical_vector_pre(n_layers-n_oro_layers+1)) then
           write(*,*) "Maximum of orography larger or equal to the height of the lowest flat level."
           call exit(1)
@@ -59,9 +59,9 @@ module mo_vertical_grid
       endif
     
       ! placing the scalar points in the middle between the preliminary values of the adjacent levels
-      do layer_index=0,n_layers-1
-        z_scalar(h_index,layer_index+1) = 0.5_wp*( &
-        z_vertical_vector_pre(layer_index+1)+z_vertical_vector_pre(layer_index+2))
+      do jl=1,n_layers
+        z_scalar(ji,jl) = 0.5_wp*( &
+        z_vertical_vector_pre(jl)+z_vertical_vector_pre(jl+1))
       enddo
     enddo
     !$omp end parallel do
@@ -72,8 +72,8 @@ module mo_vertical_grid
 
     ! This subroutine computes the gravity potential.
     
-    real(wp), intent(in)  :: z_scalar(n_cells,n_layers)
-    real(wp), intent(out) :: gravity_potential(n_cells,n_layers)
+    real(wp), intent(in)  :: z_scalar(n_cells,n_layers)          ! z-coordinates of scalar points
+    real(wp), intent(out) :: gravity_potential(n_cells,n_layers) ! gravity potential
     
     !$omp parallel workshare
     gravity_potential = -gravity*(radius**2/(radius+z_scalar)-radius)
@@ -82,25 +82,24 @@ module mo_vertical_grid
   end subroutine set_gravity_potential
   
   
-  subroutine set_volume(volume,z_vector,area)
+  subroutine set_volume(volume,z_vector_v,area_v)
 
     ! This subroutine computes the volumes of the grid boxes.
   
-    real(wp), intent(out) :: volume(n_cells,n_layers)
-    real(wp), intent(in)  :: z_vector(n_vectors)
-    real(wp), intent(in)  :: area(n_vectors)
+    real(wp), intent(out) :: volume(n_cells,n_layers)     ! the volumes of teh grid boxes
+    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels) ! z-coordinates of vertical vector points
+    real(wp), intent(in)  :: area_v(n_cells,n_levels)     ! vertical areas
   
     ! local variables
     integer  :: ji,jl
-    real(wp) :: radius_1,radius_2, base_area
+    real(wp) :: radius_1,radius_2
     
-    !$omp parallel do private(ji,jl,radius_1,radius_2,base_area)
+    !$omp parallel do private(ji,jl,radius_1,radius_2)
     do ji=1,n_cells
       do jl=1,n_layers
-        base_area = area(ji+jl*n_vectors_per_layer)
-        radius_1 = radius+z_vector(ji+jl*n_vectors_per_layer)
-        radius_2 = radius+z_vector(ji+(jl-1)*n_vectors_per_layer)
-        volume(ji,jl) = base_area/(3._wp*radius_1**2)*(radius_2**3-radius_1**3)
+        radius_1 = radius+z_vector_v(ji,jl+1)
+        radius_2 = radius+z_vector_v(ji,jl)
+        volume(ji,jl) = area_v(ji,jl+1)/(3._wp*radius_1**2)*(radius_2**3-radius_1**3)
       enddo
     enddo
     !$omp end parallel do
@@ -232,33 +231,34 @@ module mo_vertical_grid
 
     ! This subroutine sets the hydrostatic background state.
     
-    real(wp), intent(in)  :: z_scalar(n_cells,n_layers),gravity_potential(n_scalars)
-    real(wp), intent(out) :: theta_v_bg(n_cells,n_layers),exner_bg(n_cells,n_layers)
+    real(wp), intent(in)  :: z_scalar(n_cells,n_layers)          ! z-coordinates of scalar vector points
+    real(wp), intent(in)  :: gravity_potential(n_cells,n_layers) ! gravit potential
+    real(wp), intent(out) :: theta_v_bg(n_cells,n_layers)        ! background virtual potential temperature
+    real(wp), intent(out) :: exner_bg(n_cells,n_layers)          ! background Exner pressure
   
     ! local variables
-    integer  :: h_index,layer_index,scalar_index
+    integer  :: ji,jl
     real(wp) :: temperature,pressure,b,c
   
-    !$omp parallel do private(h_index,layer_index,scalar_index,temperature,pressure,b,c)
-    do h_index=1,n_cells
+    !$omp parallel do private(ji,jl,temperature,pressure,b,c)
+    do ji=1,n_cells
       ! integrating from bottom to top
-      do layer_index=n_layers-1,0,-1
-        scalar_index = layer_index*n_cells+h_index
-        temperature = standard_temp(z_scalar(h_index,layer_index+1))
+      do jl=n_layers,1,-1
+        temperature = standard_temp(z_scalar(ji,jl))
         ! lowest layer
-        if (layer_index==n_layers-1) then
-          pressure = standard_pres(z_scalar(h_index,layer_index+1))
-          exner_bg(h_index,layer_index+1) = (pressure/p_0)**(r_d/c_d_p)
-          theta_v_bg(h_index,layer_index+1) = temperature/exner_bg(h_index,layer_index+1)
+        if (jl==n_layers) then
+          pressure = standard_pres(z_scalar(ji,jl))
+          exner_bg(ji,jl) = (pressure/p_0)**(r_d/c_d_p)
+          theta_v_bg(ji,jl) = temperature/exner_bg(ji,jl)
         ! other layers
         else
           ! solving a quadratic equation for the Exner pressure
-          b = -0.5_wp*exner_bg(h_index,layer_index+2)/standard_temp(z_scalar(h_index,layer_index+2)) &
-          *(temperature - standard_temp(z_scalar(h_index,layer_index+2)) &
-          + 2._wp/c_d_p*(gravity_potential(scalar_index) - gravity_potential(scalar_index+n_cells)))
-          c = exner_bg(h_index,layer_index+2)**2*temperature/standard_temp(z_scalar(h_index,layer_index+2))
-          exner_bg(h_index,layer_index+1) = b + (b**2 + c)**0.5_wp
-          theta_v_bg(h_index,layer_index+1) = temperature/exner_bg(h_index,layer_index+1)
+          b = -0.5_wp*exner_bg(ji,jl+1)/standard_temp(z_scalar(ji,jl+1)) &
+          *(temperature - standard_temp(z_scalar(ji,jl+1)) &
+          + 2._wp/c_d_p*(gravity_potential(ji,jl) - gravity_potential(ji,jl+1)))
+          c = exner_bg(ji,jl+1)**2*temperature/standard_temp(z_scalar(ji,jl+1))
+          exner_bg(ji,jl) = b + (b**2 + c)**0.5_wp
+          theta_v_bg(ji,jl) = temperature/exner_bg(ji,jl)
         endif
       enddo
     enddo

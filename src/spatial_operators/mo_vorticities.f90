@@ -223,7 +223,7 @@ module mo_vorticities
     type(t_diag), intent(inout) :: diag ! diagnostic quantities
     type(t_grid), intent(in)    :: grid ! grid quantities
     
-    integer :: jl
+    integer :: jl ! layer index
     
     ! horizontal
     !$omp parallel do private(jl)
