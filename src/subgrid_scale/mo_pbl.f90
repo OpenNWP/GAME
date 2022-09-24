@@ -28,17 +28,16 @@ module mo_pbl
     type(t_grid),  intent(in)    :: grid  ! grid properties
   
     ! local variables
-    integer  :: ji,vector_index,layer_index, h_index
+    integer  :: ji,layer_index, h_index
     real(wp) :: flux_resistance,wind_speed_lowest_layer,z_agl,layer_thickness,roughness_length_value, &
                 monin_obukhov_length_value,wind_rescale_factor,bndr_lr_visc_max,sigma_b,standard_vert_lapse_rate, &
                 exner_from,exner_to,pressure_from,pressure_to,pressure,temp_lowest_layer, pressure_value_lowest_layer, &
                 temp_surface,surface_p_factor,pressure_sfc_from,pressure_sfc_to,pressure_sfc,sigma
   
     if (pbl_scheme==1) then
-      !$omp parallel do private(ji,vector_index,flux_resistance,wind_speed_lowest_layer,z_agl, &
+      !$omp parallel do private(ji,flux_resistance,wind_speed_lowest_layer,z_agl, &
       !$omp layer_thickness,monin_obukhov_length_value,wind_rescale_factor,roughness_length_value)
       do ji=1,n_edges
-        vector_index = n_vectors - n_vectors_per_layer + ji
       
         ! averaging some quantities to the vector point
         wind_speed_lowest_layer = 0.5_wp*((diag%v_squared(grid%from_cell(ji),n_layers))**0.5_wp &
@@ -74,13 +73,12 @@ module mo_pbl
       bndr_lr_visc_max = 1._wp/86400._wp ! maximum friction coefficient in the boundary layer
       sigma_b = 0.7_wp ! boundary layer height in sigma-p coordinates
       standard_vert_lapse_rate = 0.0065_wp
-      !$omp parallel do private(layer_index,h_index,vector_index,exner_from,exner_to,pressure_from,pressure_to,pressure, &
+      !$omp parallel do private(layer_index,h_index,exner_from,exner_to,pressure_from,pressure_to,pressure, &
       !$omp temp_lowest_layer,pressure_value_lowest_layer,temp_surface,surface_p_factor, &
       !$omp pressure_sfc_from,pressure_sfc_to,pressure_sfc,sigma)
       do ji=1,n_h_vectors
         layer_index = (ji-1)/n_edges
         h_index = ji - layer_index*n_edges
-        vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
         ! calculating the pressure at the horizontal vector point
         exner_from = grid%exner_bg(grid%from_cell(h_index),layer_index+1) &
         + state%exner_pert(grid%from_cell(h_index),layer_index+1)
@@ -137,7 +135,7 @@ module mo_pbl
     type(t_grid),  intent(inout) :: grid  ! grid properties
     
     ! local variables
-    integer  :: ji
+    integer  :: ji ! horizontal index
     real(wp) :: u_lowest_layer,u10,z_agl,theta_v_lowest_layer,theta_v_second_layer, &
                 dz,dtheta_v_dz,w_pert,theta_v_pert_value,w_pert_theta_v_pert_avg,w_theta_v_corr
     
