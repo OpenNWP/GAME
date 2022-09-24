@@ -229,7 +229,7 @@ program control
   write(*,*) "Finished."
   
   write(*,*) "Determining scalar z coordinates of the dual grid ..."
-  call set_z_scalar_dual(z_scalar_dual,z_vector_h,from_cell,to_cell,vorticity_indices_triangles)
+  call set_z_scalar_dual(z_scalar_dual,z_vector_v,from_cell,to_cell,vorticity_indices_triangles)
   write(*,*) "Finished."
   
   write(*,*) "Determining vector z coordinates of the dual grid and distances of the dual grid ..."

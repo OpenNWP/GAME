@@ -154,30 +154,30 @@ module mo_vertical_grid
     
   end function standard_pres
   
-  subroutine set_z_scalar_dual(z_scalar_dual,z_vector,from_cell,to_cell,vorticity_indices_triangles)
+  subroutine set_z_scalar_dual(z_scalar_dual,z_vector_v,from_cell,to_cell,vorticity_indices_triangles)
   
     ! This subroutine sets the z coordinates of the dual scalar points.
   
-    real(wp), intent(out) :: z_scalar_dual(n_dual_scalars)
-    real(wp), intent(in)  :: z_vector(n_vectors)
+    real(wp), intent(out) :: z_scalar_dual(n_triangles,n_levels)
+    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)
     integer,  intent(in)  :: from_cell(n_edges),to_cell(n_edges), &
                              vorticity_indices_triangles(n_triangles,3)
 
     ! local variables
-    integer :: ji,layer_index,h_index
+    integer :: ji,jl
   
-    !$omp parallel do private(ji,layer_index,h_index)
-    do ji=1,n_dual_scalars
-      layer_index = (ji-1)/n_triangles
-      h_index = ji-layer_index*n_triangles
-      z_scalar_dual(ji) &
-      = 1._wp/6._wp*( &
-      z_vector(layer_index*n_vectors_per_layer+1+from_cell(1+vorticity_indices_triangles(h_index,1))) &
-      + z_vector(layer_index*n_vectors_per_layer+1+from_cell(1+vorticity_indices_triangles(h_index,2))) &
-      + z_vector(layer_index*n_vectors_per_layer+1+from_cell(1+vorticity_indices_triangles(h_index,3))) &
-      + z_vector(layer_index*n_vectors_per_layer+1+to_cell(1+vorticity_indices_triangles(h_index,1))) &
-      + z_vector(layer_index*n_vectors_per_layer+1+to_cell(1+vorticity_indices_triangles(h_index,2))) &
-      + z_vector(layer_index*n_vectors_per_layer+1+to_cell(1+vorticity_indices_triangles(h_index,3))))
+    !$omp parallel do private(ji,jl)
+    do ji=1,n_triangles
+      do jl=1,n_levels
+        z_scalar_dual(ji,jl) &
+        = 1._wp/6._wp*( &
+        z_vector_v(1+from_cell(1+vorticity_indices_triangles(ji,1)),jl) &
+        + z_vector_v(1+from_cell(1+vorticity_indices_triangles(ji,2)),jl) &
+        + z_vector_v(1+from_cell(1+vorticity_indices_triangles(ji,3)),jl) &
+        + z_vector_v(1+to_cell(1+vorticity_indices_triangles(ji,1)),jl) &
+        + z_vector_v(1+to_cell(1+vorticity_indices_triangles(ji,2)),jl) &
+        + z_vector_v(1+to_cell(1+vorticity_indices_triangles(ji,3)),jl))
+      enddo
     enddo
     !$omp end parallel do
     
