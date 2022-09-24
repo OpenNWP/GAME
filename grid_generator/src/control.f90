@@ -224,8 +224,7 @@ program control
   ! 7.) setting the implicit quantities of the vertical grid
   !     ----------------------------------------------------
   write(*,*) "Determining vector z coordinates and normal distances of the primal grid ..."
-  call set_z_vector_and_normal_distance(z_vector_h,dx,z_scalar,lat_c,lon_c, &
-                                        from_cell,to_cell,oro)
+  call set_z_vector_and_normal_distance(z_vector_h,z_vector_v,dx,dz,z_scalar,lat_c,lon_c,from_cell,to_cell,oro)
   deallocate(oro)
   write(*,*) "Finished."
   

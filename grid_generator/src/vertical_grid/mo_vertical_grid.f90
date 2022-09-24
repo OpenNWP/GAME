@@ -295,60 +295,68 @@ module mo_vertical_grid
     
   end subroutine set_area
   
-  subroutine set_z_vector_and_normal_distance(z_vector,normal_distance,z_scalar,lat_c,lon_c,from_cell,to_cell,oro)
+  subroutine set_z_vector_and_normal_distance(z_vector_h,z_vector_v,dx,dz,z_scalar,lat_c,lon_c,from_cell,to_cell,oro)
 
     ! This subroutine calculates the vertical position of the vector points as well as the normal distances of the primal grid.
   
-    real(wp), intent(out) :: z_vector(n_vectors),normal_distance(n_vectors)
-    real(wp), intent(in)  :: z_scalar(n_cells,n_layers),lat_c(n_cells),lon_c(n_cells),oro(n_cells)
-    integer,  intent(in)  :: from_cell(n_edges),to_cell(n_edges)
+    real(wp), intent(out) :: z_vector_h(n_edges,n_layers)
+    real(wp), intent(out) :: z_vector_v(n_cells,n_levels)
+    real(wp), intent(out) :: dx(n_edges,n_layers)
+    real(wp), intent(out) :: dz(n_cells,n_levels)
+    real(wp), intent(in)  :: z_scalar(n_cells,n_layers)
+    real(wp), intent(in)  :: lat_c(n_cells)
+    real(wp), intent(in)  :: lon_c(n_cells)
+    real(wp), intent(in)  :: oro(n_cells)
+    integer,  intent(in)  :: from_cell(n_edges)
+    integer,  intent(in)  :: to_cell(n_edges)
   
-    integer               :: ji,layer_index,h_index
+    integer               :: ji,jl
     real(wp)              :: min_thick,max_thick,thick_rel
     real(wp), allocatable :: lowest_thicknesses(:)
     
     allocate(lowest_thicknesses(n_cells))
     
-    !$omp parallel do private(ji,layer_index,h_index)
-    do ji=1,n_vectors
-      layer_index = (ji-1)/n_vectors_per_layer
-      h_index = ji - layer_index*n_vectors_per_layer
-      ! horizontal grid points
-      if (h_index>=n_cells+1) then
+    ! horizontal vector points
+    !$omp parallel do private(ji,jl)
+    do ji=1,n_edges
+      do jl=1,n_layers
         ! placing the vector vertically in the middle between the two adjacent scalar points
-        z_vector(ji) &
-        = 0.5_wp*(z_scalar(1+from_cell(h_index - n_cells),layer_index+1) &
-        + z_scalar(1+to_cell(h_index - n_cells),layer_index+1))
+        z_vector_h(ji,jl) = 0.5_wp*(z_scalar(1+from_cell(ji),jl) + z_scalar(1+to_cell(ji),jl))
         ! calculating the horizontal distance
-        normal_distance(ji) &
-        = calculate_distance_h( &
-        lat_c(1+from_cell(h_index - n_cells)), lon_c(1+from_cell(h_index - n_cells)), &
-        lat_c(1+to_cell(h_index - n_cells)), lon_c(1+to_cell(h_index - n_cells)), &
-        radius + z_vector(ji))
-      else
+        dx(ji,jl) = calculate_distance_h( &
+        lat_c(1+from_cell(ji)), lon_c(1+from_cell(ji)),lat_c(1+to_cell(ji)), lon_c(1+to_cell(ji)), &
+        radius + z_vector_h(ji,jl))
+      enddo
+    enddo
+    !$omp end parallel do
+    
+    ! vertical vector points
+    !$omp parallel do private(ji,jl)
+    do ji=1,n_cells
+      do jl=1,n_levels
         ! highest level
-        if (layer_index==0) then
-          z_vector(ji) = toa
-          normal_distance(ji) = toa - z_scalar(h_index,layer_index+1)
+        if (jl==1) then
+          z_vector_v(ji,1) = toa
+          dz(ji,1) = toa - z_scalar(ji,1)
         ! lowest level
-        elseif (layer_index==n_layers) then
-          z_vector(ji) = oro(h_index)
-          normal_distance(ji) = z_scalar(h_index,layer_index) - z_vector(ji)
-          lowest_thicknesses(h_index) = z_vector(ji - n_vectors_per_layer) - z_vector(ji)
+        elseif (jl==n_levels) then
+          z_vector_v(ji,n_levels) = oro(ji)
+          dz(ji,n_levels) = z_scalar(ji,n_layers) - z_vector_v(ji,n_levels)
         ! inner levels
         else
-          normal_distance(ji) = z_scalar(h_index,layer_index) - z_scalar(h_index,layer_index+1)
+          dz(ji,jl) = z_scalar(ji,jl-1) - z_scalar(ji,jl)
           ! placing the vertical vector in the middle between the two adjacent scalar points
-          z_vector(ji) = z_scalar(h_index,layer_index+1) + 0.5_wp*normal_distance(ji)
+          z_vector_v(ji,jl) = z_scalar(ji,jl) + 0.5_wp*dz(ji,jl)
         endif
-      endif
+      enddo
     enddo
     !$omp end parallel do
     
     !$omp parallel workshare
+    lowest_thicknesses = z_vector_v(:,n_layers) - z_vector_v(:,n_levels)
     min_thick = minval(lowest_thicknesses)
     !$omp end parallel workshare
-    max_thick = z_vector(1) - z_vector(n_vectors_per_layer+1)
+    max_thick = toa - z_vector_v(1,2)
     thick_rel = max_thick/min_thick
     write(*,*) "ratio of maximum to minimum layer thickness (including orography):", thick_rel
     
