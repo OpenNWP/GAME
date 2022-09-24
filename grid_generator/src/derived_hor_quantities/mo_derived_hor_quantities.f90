@@ -6,8 +6,8 @@ module mo_derived_hor_quantities
   ! This module contains helper functions concerned with simple algebraic operations on vectors.
 
   use mo_definitions,     only: wp
-  use mo_grid_nml,        only: n_cells,n_edges,radius_rescale,n_triangles,orth_criterion_deg, &
-                                n_lloyd_iterations,radius,n_vectors,n_dual_vectors,n_pentagons
+  use mo_grid_nml,        only: n_cells,n_edges,radius_rescale,n_triangles,orth_criterion_deg,n_levels, &
+                                n_lloyd_iterations,radius,n_vectors,n_dual_vectors,n_pentagons,toa,n_layers
   use mo_geodesy,         only: find_turn_angle,rad2deg,find_geodetic_direction,find_global_normal,find_geos, &
                                 find_between_point,rel_on_line,calc_spherical_polygon_area
   use mo_constants,       only: omega,EPSILON_SECURITY,M_PI
@@ -24,8 +24,7 @@ module mo_derived_hor_quantities
     ! - where they are placed in between the dual scalar points
     ! - in which direction they point
     
-    real(wp), intent(in)  :: lat_c_dual(n_triangles),lon_c_dual(n_triangles), &
-                             lat_e(n_edges),lon_e(n_edges)
+    real(wp), intent(in)  :: lat_c_dual(n_triangles),lon_c_dual(n_triangles),lat_e(n_edges),lon_e(n_edges)
     integer,  intent(in)  :: from_cell_dual(n_edges),to_cell_dual(n_edges)
     real(wp), intent(out) :: direction_dual(n_edges),rel_on_line_dual(n_edges)
     
@@ -48,8 +47,7 @@ module mo_derived_hor_quantities
   
   end subroutine set_dual_vector_h_atttributes
 
-  subroutine set_vector_h_attributes(from_cell,to_cell,lat_c,lon_c, &
-                                     lat_e,lon_e,direction)
+  subroutine set_vector_h_attributes(from_cell,to_cell,lat_c,lon_c,lat_e,lon_e,direction)
     
     ! This subroutine sets the geographical coordinates and the directions of the horizontal vector points.
     
@@ -197,21 +195,17 @@ module mo_derived_hor_quantities
   
   end subroutine calc_vorticity_indices_triangles
   
-  subroutine write_statistics_file(pent_hex_face_unity_sphere,normal_distance,normal_distance_dual,z_vector,z_vector_dual, &
-                                   grid_name,statistics_file_name)
+  subroutine write_statistics_file(pent_hex_face_unity_sphere,dx,dy,z_vector_h, grid_name,statistics_file_name)
     
     ! This subroutine writes out statistical properties of the grid to a text file.
     
-    real(wp),         intent(in) :: pent_hex_face_unity_sphere(n_cells), &
-                                    normal_distance(n_vectors),normal_distance_dual(n_dual_vectors)
-    real(wp),         intent(in) :: z_vector(n_vectors),z_vector_dual(n_dual_vectors)
+    real(wp),         intent(in) :: pent_hex_face_unity_sphere(n_cells),dx(n_edges,n_layers),dy(n_edges,n_levels)
+    real(wp),         intent(in) :: z_vector_h(n_edges,n_layers)
     character(len=1), intent(in) :: grid_name,statistics_file_name
     
     ! local variables
-    integer               :: ji
-    real(wp)              :: area_max,area_min,normal_distance_h_min,normal_distance_h_max, &
-                             normal_distance_dual_h_min,normal_distance_dual_h_max
-    real(wp), allocatable :: horizontal_distance(:),horizontal_distance_dual(:)
+    real(wp)              :: area_max,area_min,dx_min,dx_max,dy_min,dy_max
+    real(wp), allocatable :: distance_vector(:)
     
     !$omp parallel workshare
     area_min = minval(pent_hex_face_unity_sphere)
@@ -221,52 +215,39 @@ module mo_derived_hor_quantities
     area_max = maxval(pent_hex_face_unity_sphere)
     !$omp end parallel workshare
     
-    allocate(horizontal_distance(n_edges))
-    !$omp parallel do private(ji)
-    do ji=1,n_edges
-      horizontal_distance(ji) = radius/(radius+z_vector(n_cells+ji))*normal_distance(n_cells+ji)
-    enddo
-    !$omp end parallel do
+    allocate(distance_vector(n_edges))
     
     !$omp parallel workshare
-    normal_distance_h_min = minval(horizontal_distance)
+    distance_vector = radius/(radius+z_vector_h(:,1))*dx(:,1)
+    dx_min = minval(distance_vector)
     !$omp end parallel workshare
     
     !$omp parallel workshare
-    normal_distance_h_max = maxval(horizontal_distance)
-    !$omp end parallel workshare
-    
-    allocate(horizontal_distance_dual(n_edges))
-    !$omp parallel do private(ji)
-    do ji=1,n_edges
-      horizontal_distance_dual(ji) = radius/(radius+z_vector_dual(ji))*normal_distance_dual(ji)
-    enddo
-    !$omp end parallel do
-    
-    !$omp parallel workshare
-    normal_distance_dual_h_min = minval(horizontal_distance_dual)
+    dx_max = maxval(distance_vector)
     !$omp end parallel workshare
     
     !$omp parallel workshare
-    normal_distance_dual_h_max = maxval(horizontal_distance_dual)
+    distance_vector = radius/(radius+toa)*dy(:,1)
+    dy_min = minval(distance_vector)
     !$omp end parallel workshare
     
-    return
+    !$omp parallel workshare
+    dy_max = maxval(radius/(radius+toa)*dy(:,1))
+    !$omp end parallel workshare
     
-    deallocate(horizontal_distance)
-    deallocate(horizontal_distance_dual)
+    deallocate(distance_vector)
+    
     open(1,file=trim(statistics_file_name))
     write(1,fmt="(A,A)") "Statistical properties of grid ",trim(grid_name)
     write(1,*) ""
     write(1,fmt="(A,I4)") "Number of Lloyd iterations: ",n_lloyd_iterations
     write(1,fmt="(A,F6.3)") "Ratio of minimum to maximum area:",area_min/area_max
-    write(1,fmt="(A,F11.3,A2)") "Shortest horizontal normal distance (rescaled to MSL):",normal_distance_h_min," m"
-    write(1,fmt="(A,F11.3,A2)") "Longest horizontal normal distance (rescaled to MSL):",normal_distance_h_max," m"
-    write(1,fmt="(A,F6.3)") "Ratio of shortest to longest horizontal normal distance:",normal_distance_h_min/normal_distance_h_max
-    write(1,fmt="(A,F11.3)") "Shortest horizontal normal distance dual (rescaled to MSL):",normal_distance_dual_h_min
-    write(1,fmt="(A,F11.3)") "Longest horizontal normal distance dual (rescaled to MSL):",normal_distance_dual_h_max
-    write(1,fmt="(A,F6.3)") "Ratio of shortest to longest dual horizontal normal distance:", &
-               normal_distance_dual_h_min/normal_distance_dual_h_max
+    write(1,fmt="(A,F11.3,A2)") "Shortest horizontal normal distance (rescaled to MSL):",dx_min," m"
+    write(1,fmt="(A,F11.3,A2)") "Longest horizontal normal distance (rescaled to MSL):",dx_max," m"
+    write(1,fmt="(A,F6.3)") "Ratio of shortest to longest horizontal normal distance:",dx_min/dx_max
+    write(1,fmt="(A,F11.3)") "Shortest horizontal normal distance dual (rescaled to MSL):",dy_min
+    write(1,fmt="(A,F11.3)") "Longest horizontal normal distance dual (rescaled to MSL):",dy_max
+    write(1,fmt="(A,F6.3)") "Ratio of shortest to longest dual horizontal normal distance:", dy_min/dy_max
     close(1)
     
   end subroutine write_statistics_file
