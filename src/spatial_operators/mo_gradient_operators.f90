@@ -6,9 +6,8 @@ module mo_gradient_operators
   ! This module contains the gradient operators.
   
   use mo_definitions, only: wp,t_grid
-  use mo_grid_nml,    only: n_vectors,n_edges,n_layers,n_scalars,n_cells,n_vectors_per_layer, &
-                            n_v_vectors,n_v_vectors,n_levels
-  use mo_grid_setup,  only: n_flat_layers,n_oro_layers
+  use mo_grid_nml,    only: n_edges,n_layers,n_cells,n_levels
+  use mo_grid_setup,  only: n_flat_layers
   use mo_averaging,   only: remap_ver2hor
   
   implicit none
@@ -19,21 +18,17 @@ module mo_gradient_operators
   
     ! This subroutine calculates the horizontal covariant gradient
     
-    real(wp),     intent(in)  :: in_field(n_cells,n_layers) ! the scalar field of which to compute the gradient
-    real(wp),     intent(out) :: out_field(n_vectors)       ! result (the gradient)
-    type(t_grid), intent(in)  :: grid                       ! grid quantities
+    real(wp),     intent(in)  :: in_field(n_cells,n_layers)  ! the scalar field of which to compute the horizontal covariant gradient
+    real(wp),     intent(out) :: out_field(n_edges,n_layers) ! result (the horizontal gradient)
+    type(t_grid), intent(in)  :: grid                        ! grid quantities
     
     ! local variables
-    integer :: h_index,layer_index,vector_index
+    integer :: ji,jl
     
-    !$omp parallel do private(h_index,layer_index,vector_index)
-    do h_index=1,n_edges
-      do layer_index=0,n_layers-1
-        vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
-        out_field(vector_index) &
-        = (in_field(grid%to_cell(h_index),layer_index+1) &
-        - in_field(grid%from_cell(h_index),layer_index+1)) &
-        /grid%dx(h_index,layer_index+1)
+    !$omp parallel do private(ji,jl)
+    do ji=1,n_edges
+      do jl=1,n_layers
+        out_field(ji,jl) = (in_field(grid%to_cell(ji),jl) - in_field(grid%from_cell(ji),jl))/grid%dx(ji,jl)
       enddo
     enddo
     !$omp end parallel do
@@ -63,10 +58,10 @@ module mo_gradient_operators
     
     ! This subroutine calculates the gradient (horizontally contravariant, vertically covariant).
     
-    real(wp),     intent(in)  :: in_field(n_cells,n_layers) ! the scalar field of which to compute the gradient
-    real(wp),     intent(out) :: out_field_h(n_edges,n_layers)       ! result (the gradient)
-    real(wp),     intent(in)  :: out_field_v(n_cells,n_levels)       ! result (the gradient)
-    type(t_grid), intent(in)  :: grid                       ! grid quantities
+    real(wp),     intent(in)  :: in_field(n_cells,n_layers)    ! the scalar field of which to compute the gradient
+    real(wp),     intent(out) :: out_field_h(n_edges,n_layers) ! result (the horizontal gradient)
+    real(wp),     intent(in)  :: out_field_v(n_cells,n_levels) ! result (the vertical gradient)
+    type(t_grid), intent(in)  :: grid                          ! grid quantities
     
     ! local variables
     integer :: ji,jl
@@ -78,7 +73,7 @@ module mo_gradient_operators
     ! loop over all horizontal vector points in the orography layers
     !$omp parallel do private(ji,jl)
     do ji=1,n_edges
-      do jl=n_flat_layers+1,n_oro_layers
+      do jl=n_flat_layers+1,n_layers
         out_field_h(ji,jl) = out_field_h(ji,jl) - grid%slope(ji,jl)*remap_ver2hor(out_field_v,ji,jl,grid)
       enddo
     enddo
