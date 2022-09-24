@@ -127,8 +127,8 @@ module mo_divergences
     
     ! This adds the divergence of the vertical component of a vector field to the input scalar field.  
     
-    real(wp),      intent(in)  :: in_field(n_vectors)
-    real(wp),      intent(out) :: out_field(n_cells,n_layers)
+    real(wp),      intent(in)  :: in_field(n_cells,n_edges)   ! the vertical vector field to compute the divergence of
+    real(wp),      intent(out) :: out_field(n_cells,n_layers) ! result
     type(t_grid),  intent(in)  :: grid                        ! grid quantities
     
     ! local variables
@@ -140,13 +140,13 @@ module mo_divergences
       do jl=1,n_layers
         if (jl==1) then
           contra_upper = 0._wp
-          contra_lower = in_field(ji + jl*n_vectors_per_layer)
+          contra_lower = in_field(ji,jl+1)
         elseif (jl==n_layers) then
-            contra_upper = in_field(ji + (jl-1)*n_vectors_per_layer)
+            contra_upper = in_field(ji,jl)
             contra_lower = 0._wp
         else
-            contra_upper = in_field(ji + (jl-1)*n_vectors_per_layer)
-            contra_lower = in_field(ji + jl*n_vectors_per_layer)
+            contra_upper = in_field(ji,jl)
+            contra_lower = in_field(ji,jl+1)
         endif
         comp_v = contra_upper*grid%area_v(ji,jl) - contra_lower*grid%area_v(ji,jl+1)
         out_field(ji,jl) = out_field(ji,jl) + 1._wp/grid%volume(ji,jl)*comp_v
