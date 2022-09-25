@@ -20,12 +20,12 @@ module mo_pgrad
     
     ! This subroutine computes the pressure gradient acceleration.
     
-    type(t_state), intent(in)    :: state
-    type(t_diag),  intent(inout) :: diag
-    type(t_grid),  intent(inout) :: grid
-    logical,       intent(in)    :: ltotally_first_step
+    type(t_state), intent(in)    :: state               ! state variables
+    type(t_diag),  intent(inout) :: diag                ! diagnostic quantities
+    type(t_grid),  intent(inout) :: grid                ! grid quantities
+    logical,       intent(in)    :: ltotally_first_step ! switch indicating the first step of the model run
     
-    ! 2.) the nonlinear pressure gradient term
+    ! 1.) the nonlinear pressure gradient term
     ! Before calculating the pressure gradient acceleration, the old one must be saved for extrapolation.
     if (.not. ltotally_first_step) then
       !$omp parallel workshare
@@ -43,7 +43,7 @@ module mo_pgrad
     call scalar_times_vector_h(diag%scalar_placeholder,diag%pressure_gradient_acc_neg_nl_h,diag%pressure_gradient_acc_neg_nl_h,grid)
     call scalar_times_vector_v(diag%scalar_placeholder,diag%pressure_gradient_acc_neg_nl_v,diag%pressure_gradient_acc_neg_nl_v)
       
-    ! 3.) the linear pressure gradient term
+    ! 2.) the linear pressure gradient term
     ! -------------------------------------
     !$omp parallel workshare
     diag%scalar_placeholder = c_d_p*state%theta_v_pert
@@ -51,7 +51,7 @@ module mo_pgrad
     call scalar_times_vector_h(diag%scalar_placeholder,grid%exner_bg_grad_h,diag%pressure_gradient_acc_neg_l_h,grid)
     call scalar_times_vector_v(diag%scalar_placeholder,grid%exner_bg_grad_v,diag%pressure_gradient_acc_neg_l_v)
     
-    ! 4.) The pressure gradient has to get a deceleration factor due to condensates.
+    ! 3.) The pressure gradient has to get a deceleration factor due to condensates.
     ! ------------------------------------------------------------------------------
     !$omp parallel workshare
     diag%pressure_gradient_decel_factor = state%rho(:,:,n_condensed_constituents+1)/ &

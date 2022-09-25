@@ -195,13 +195,14 @@ module mo_derived_hor_quantities
   
   end subroutine calc_vorticity_indices_triangles
   
-  subroutine write_statistics_file(pent_hex_face_unity_sphere,dx,dy,z_vector_h, grid_name,statistics_file_name)
+  subroutine write_statistics_file(pent_hex_face_unity_sphere,dx,dy,z_vector_h,grid_name,statistics_file_name)
     
     ! This subroutine writes out statistical properties of the grid to a text file.
     
-    real(wp),         intent(in) :: pent_hex_face_unity_sphere(n_cells),dx(n_edges,n_layers),dy(n_edges,n_levels)
-    real(wp),         intent(in) :: z_vector_h(n_edges,n_layers)
-    character(len=1), intent(in) :: grid_name,statistics_file_name
+    real(wp),           intent(in) :: pent_hex_face_unity_sphere(n_cells),dx(n_edges,n_layers),dy(n_edges,n_levels)
+    real(wp),           intent(in) :: z_vector_h(n_edges,n_layers)
+    character(len=128), intent(in) :: grid_name
+    character(len=256), intent(in) :: statistics_file_name
     
     ! local variables
     real(wp)              :: area_max,area_min,dx_min,dx_max,dy_min,dy_max
