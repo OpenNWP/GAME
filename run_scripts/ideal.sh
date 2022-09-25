@@ -60,9 +60,9 @@ rad_config=1
 /
 
 &surface
-lprog_soil_temp=.false.
-lsfc_sensible_heat_flux=.false.
-lsfc_sensible_heat_flux=.false.
+lprog_soil_temp=.true.
+lsfc_sensible_heat_flux=.true.
+lsfc_sensible_heat_flux=.true.
 pbl_scheme=1
 /
 
