@@ -29,7 +29,7 @@ module mo_momentum_diff_diss
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer :: h_index,layer_index,scalar_index_from,scalar_index_to
+    integer :: ji
     
     ! Preparation of kinematic properties of the wind field
     ! -----------------------------------------------------
@@ -52,16 +52,11 @@ module mo_momentum_diff_diss
     call grad_hor(diag%wind_div,diag%vector_placeholder_h,diag%vector_placeholder_v,grid)
     
     ! off-diagonal component
-    !$omp parallel do private(h_index,layer_index)
-    do h_index=1,n_edges
-      do layer_index=0,n_layers-1
-        ! multiplying the diffusion coefficient by the relative vorticity
-        ! rel_vort is a misuse of name
-        diag%rel_vort_h(h_index,layer_index+1) &
-        = diag%viscosity_rhombi(h_index,layer_index+1)*diag%rel_vort_h(h_index,layer_index+1)
-      enddo
-    enddo
-    !$omp end parallel do
+    !$omp parallel workshare
+    ! multiplying the diffusion coefficient by the relative vorticity
+    ! rel_vort_v is a misuse of name
+    diag%rel_vort_v = diag%viscosity_rhombi*diag%rel_vort_v
+    !$omp end parallel workshare
     
     ! rel_vort_on_triangles is a misuse of name
     !$omp parallel workshare
@@ -71,16 +66,11 @@ module mo_momentum_diff_diss
     call hor_calc_curl_of_vorticity(diag,grid)
     
     ! adding up the two components of the momentum diffusion acceleration and dividing by the density at the edge
-    !$omp parallel do private(h_index,layer_index,scalar_index_from,scalar_index_to)
-    do h_index=1,n_edges
-      do layer_index=0,n_layers-1
-        scalar_index_from = layer_index*n_cells + grid%from_cell(h_index)
-        scalar_index_to = layer_index*n_cells + grid%to_cell(h_index)
-        diag%friction_acc_h(h_index,layer_index+1) = &
-        (diag%vector_placeholder_h(h_index,layer_index+1) - diag%curl_of_vorticity_h(h_index,layer_index+1)) &
-        /(0.5_wp*(sum(state%rho(grid%from_cell(h_index),layer_index+1,1:n_condensed_constituents+1)) &
-                  + sum(state%rho(grid%to_cell(h_index),layer_index+1,1:n_condensed_constituents+1))))
-      enddo
+    !$omp parallel do private(ji)
+    do ji=1,n_edges
+      diag%friction_acc_h(ji,:) = (diag%vector_placeholder_h(ji,:) - diag%curl_of_vorticity_h(ji,:)) &
+                                  /(0.5_wp*(sum(state%rho(grid%from_cell(ji),:,1:n_condensed_constituents+1)) &
+                                  + sum(state%rho(grid%to_cell(ji),:,1:n_condensed_constituents+1))))
     enddo
     !$omp end parallel do
   
