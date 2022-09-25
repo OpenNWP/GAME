@@ -378,49 +378,59 @@ module mo_vertical_grid
   
   end subroutine set_z_vector_and_normal_distance
   
-  subroutine calc_z_vector_dual_and_normal_distance_dual(z_vector_dual,normal_distance_dual,z_scalar_dual,from_cell,to_cell, &
-                                                         z_vector,from_cell_dual,to_cell_dual,lat_c_dual,lon_c_dual, &
-                                                         vorticity_indices_triangles)
+  subroutine calc_z_vector_dual_and_normal_distance_dual(z_vector_dual_h,z_vector_dual_v,dy,dz_dual,z_scalar_dual, &
+                                                         from_cell,to_cell,z_vector_h,z_vector_v,from_cell_dual, &
+                                                         to_cell_dual,lat_c_dual,lon_c_dual,vorticity_indices_triangles)
   
     ! This subroutine sets the z coordinates of the dual vector points as well as the normal distances of the dual grid.
     
-    real(wp), intent(out) :: z_vector_dual(n_dual_vectors),normal_distance_dual(n_dual_vectors)
-    real(wp), intent(in)  :: z_scalar_dual(n_dual_scalars),z_vector(n_vectors), &
-                             lat_c_dual(n_triangles),lon_c_dual(n_triangles)
-    integer, intent(in)   :: from_cell(n_edges),to_cell(n_edges),from_cell_dual(n_edges), &
-                             to_cell_dual(n_edges),vorticity_indices_triangles(n_triangles,3)
+    real(wp), intent(out) :: z_vector_dual_h(n_edges,n_levels)
+    real(wp), intent(out) :: z_vector_dual_v(n_triangles,n_layers)
+    real(wp), intent(out) :: dy(n_edges,n_levels)
+    real(wp), intent(out) :: dz_dual(n_triangles,n_layers)
+    real(wp), intent(in)  :: z_scalar_dual(n_triangles,n_levels)
+    real(wp), intent(in)  :: z_vector_h(n_edges,n_layers)
+    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)
+    real(wp), intent(in)  :: lat_c_dual(n_triangles)
+    real(wp), intent(in)  :: lon_c_dual(n_triangles)
+    integer,  intent(in)  :: from_cell(n_edges)
+    integer,  intent(in)  :: to_cell(n_edges)
+    integer,  intent(in)  :: from_cell_dual(n_edges)
+    integer,  intent(in)  :: to_cell_dual(n_edges)
+    integer,  intent(in)  :: vorticity_indices_triangles(n_triangles,3)
   
     ! local variables
-    integer :: ji,layer_index,h_index,upper_index,lower_index
+    integer :: ji,jl
     
-    !$omp parallel do private(ji,layer_index,h_index,upper_index,lower_index)
-    do ji=1,n_dual_vectors
-      layer_index = (ji-1)/n_dual_vectors_per_layer
-      h_index = ji - layer_index*n_dual_vectors_per_layer
-      if (h_index>=n_edges+1) then
-        upper_index = h_index - n_edges + layer_index*n_triangles
-        lower_index = h_index - n_edges + (layer_index+1)*n_triangles
-        normal_distance_dual(ji) = z_scalar_dual(upper_index) - z_scalar_dual(lower_index)
-        z_vector_dual(ji) = 1._wp/3._wp*( &
-        z_vector(n_cells + layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(h_index-n_edges,1)) &
-        + z_vector(n_cells+layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(h_index-n_edges,2)) &
-        + z_vector(n_cells+layer_index*n_vectors_per_layer+1+vorticity_indices_triangles(h_index-n_edges,3)))
-      else
-        if (layer_index==0) then
-          z_vector_dual(ji) = toa
-        elseif (layer_index==n_layers) then
-          z_vector_dual(ji) = 0.5_wp*(z_vector(n_layers*n_vectors_per_layer+1+from_cell(h_index)) &
-          + z_vector(n_layers*n_vectors_per_layer+1+to_cell(h_index)))
+    !$omp parallel do private(ji,jl)
+    do ji=1,n_triangles
+      do jl=1,n_layers
+        dz_dual(ji,jl) = z_scalar_dual(ji,jl) - z_scalar_dual(ji,jl+1)
+        z_vector_dual_v(ji,jl) = 1._wp/3._wp*( &
+        z_vector_h(1+vorticity_indices_triangles(ji,1),jl) &
+        + z_vector_h(1+vorticity_indices_triangles(ji,2),jl) &
+        + z_vector_h(1+vorticity_indices_triangles(ji,3),jl))
+      enddo
+    enddo
+    !$omp end parallel do
+      
+    !$omp parallel do private(ji,jl)
+    do ji=1,n_edges
+      do jl=1,n_levels
+        if (jl==1) then
+          z_vector_dual_h(ji,jl) = toa
+        elseif (jl==n_levels) then
+          z_vector_dual_h(ji,n_levels) = 0.5_wp*(z_vector_v(1+from_cell(ji),n_levels) &
+                                                 + z_vector_v(1+to_cell(ji),n_levels))
         else
-          z_vector_dual(ji) = 0.5_wp*(z_vector(n_cells+h_index+(layer_index-1)*n_vectors_per_layer) &
-          + z_vector(n_cells + h_index + layer_index*n_vectors_per_layer))
+          z_vector_dual_h(ji,jl) = 0.5_wp*(z_vector_h(ji,jl-1) + z_vector_h(ji,jl))
         endif
-        normal_distance_dual(ji) = calculate_distance_h(lat_c_dual(1+from_cell_dual(h_index)), &
-        lon_c_dual(1+from_cell_dual(h_index)), &
-        lat_c_dual(1+to_cell_dual(h_index)), & 
-        lon_c_dual(1+to_cell_dual(h_index)), &
-        radius+z_vector_dual(ji))
-      endif
+        dy(ji,jl) = calculate_distance_h(lat_c_dual(1+from_cell_dual(ji)), &
+                                         lon_c_dual(1+from_cell_dual(ji)), &
+                                         lat_c_dual(1+to_cell_dual(ji)), & 
+                                         lon_c_dual(1+to_cell_dual(ji)), &
+                                         radius+z_vector_dual_h(ji,jl))
+      enddo
     enddo
     !$omp end parallel do
   

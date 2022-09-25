@@ -230,8 +230,8 @@ program control
   write(*,*) "Finished."
   
   write(*,*) "Determining vector z coordinates of the dual grid and distances of the dual grid ..."
-  call calc_z_vector_dual_and_normal_distance_dual(z_vector_dual_h,dy,z_scalar_dual,from_cell,to_cell,z_vector_h, &
-                                                   from_cell_dual,to_cell_dual,lat_c_dual,lon_c_dual, &
+  call calc_z_vector_dual_and_normal_distance_dual(z_vector_dual_h,z_vector_dual_v,dy,dz_dual,z_scalar_dual,from_cell,to_cell, &
+                                                   z_vector_h,z_vector_v,from_cell_dual,to_cell_dual,lat_c_dual,lon_c_dual, &
                                                    vorticity_indices_triangles)
   write(*,*) "Finished."
   
