@@ -22,8 +22,7 @@ module mo_write_output
   use mo_derived,                only: rel_humidity,gas_constant_diagnostics,temperature_diagnostics
   use mo_run_nml,                only: run_id,start_date,start_hour
   use mo_vorticities,            only: calc_rel_vort,calc_pot_vort
-  use mo_spatial_ops_for_output, only: inner_product_tangential,epv_diagnostics,edges_to_cells_lowest_layer, &
-                                       calc_uv_at_edge,edges_to_cells
+  use mo_spatial_ops_for_output, only: epv_diagnostics,edges_to_cells_lowest_layer,calc_uv_at_edge,edges_to_cells
   use mo_divergences,            only: div_h
   use mo_inner_product,          only: inner_product
   

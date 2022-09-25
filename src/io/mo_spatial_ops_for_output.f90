@@ -38,35 +38,40 @@ module mo_spatial_ops_for_output
     
   end function tangential_wind
 
-  subroutine inner_product_tangential(in_field_1,in_field_2,out_field,grid)
+  subroutine inner_product_tangential(in_field_1_h,in_field_1_v,in_field_2_h,in_field_2_v,out_field,grid)
   
     ! This subroutine computes the inner product of the two vector fields in_field_1 and in_field_2.
-    ! The difference to the normal inner product is, that in_field_1 is given in tangential components.
+    ! The difference to the normal inner product is, that in_field_1_h is given in tangential components.
     
-    real(wp),      intent(in)  :: in_field_1(n_vectors),in_field_2(n_vectors) ! fields of which to take the inner product
-    real(wp),      intent(out) :: out_field(n_scalars)                        ! the result
-    type(t_grid),  intent(in)  :: grid                                        ! grid quantities
+    real(wp),      intent(in)  :: in_field_1_h(n_edges,n_layers) ! first field of which to take the inner product (horizontal component)
+    real(wp),      intent(in)  :: in_field_1_v(n_cells,n_levels) ! first field of which to take the inner product (vertical component)
+    real(wp),      intent(in)  :: in_field_2_h(n_edges,n_layers) ! second field of which to take the inner product (horizontal component)
+    real(wp),      intent(in)  :: in_field_2_v(n_cells,n_levels) ! second field of which to take the inner product (vertical component)
+    real(wp),      intent(out) :: out_field(n_cells,n_layers)    ! the result
+    type(t_grid),  intent(in)  :: grid                           ! grid quantities
     
     ! local variables
-    integer  :: ji,jm,layer_index,h_index
+    integer  :: ji,jl,jm,n_edges_of_cell
     real(wp) :: tangential_wind_value
     
-    !$omp parallel do private(ji,jm,layer_index,h_index,tangential_wind_value)
-    do ji=1,n_scalars
-      layer_index = (ji-1)/n_cells
-      h_index = ji - layer_index*n_cells
-      out_field(ji) = 0._wp
-      do jm=1,6
-        tangential_wind_value = tangential_wind(in_field_2,grid%adjacent_edges(h_index,jm),layer_index,grid)
-        out_field(ji) = out_field(ji) &
-        + grid%inner_product_weights(h_index,layer_index+1,jm) &
-        *in_field_1(n_cells+layer_index*n_vectors_per_layer+grid%adjacent_edges(h_index,jm)) &
-        *tangential_wind_value
+    !$omp parallel do private(ji,jl,jm,n_edges_of_cell,tangential_wind_value)
+    do ji=1,n_cells
+      do jl=1,n_layers
+      
+        n_edges_of_cell = 6
+        if (ji<=n_pentagons) then
+          n_edges_of_cell = 5
+        endif
+      
+        out_field(ji,jl) = 0._wp
+        do jm=1,n_edges_of_cell
+          tangential_wind_value = tangential_wind(in_field_2_h,grid%adjacent_edges(ji,jm),jl,grid)
+          out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(ji,jl,jm) &
+                             *in_field_1_h(grid%adjacent_edges(ji,jm),jl)*tangential_wind_value
+        enddo
+        out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(ji,jl,7)*in_field_1_v(ji,jl)*in_field_2_v(ji,jl)
+        out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(ji,jl,8)*in_field_1_v(ji,jl+1)*in_field_2_v(ji,jl+1)
       enddo
-      out_field(ji) = out_field(ji) + grid%inner_product_weights(h_index,layer_index+1,7)*in_field_1(h_index+ &
-                      layer_index*n_vectors_per_layer)*in_field_2(h_index+layer_index*n_vectors_per_layer)
-      out_field(ji) = out_field(ji) + grid%inner_product_weights(h_index,layer_index+1,8)*in_field_1(h_index+ &
-                      (layer_index+1)*n_vectors_per_layer)*in_field_2(h_index+(layer_index+1)*n_vectors_per_layer)
     enddo
     !$omp end parallel do
     
@@ -152,8 +157,8 @@ module mo_spatial_ops_for_output
     ! taking the gradient of the virtual potential temperature
     call grad_vert(grid%theta_v_bg+state%theta_v_pert,grad_pot_temp_v,grid)
     call grad_hor(grid%theta_v_bg+state%theta_v_pert,grad_pot_temp_h,grad_pot_temp_v,grid)
-    call inner_product(pot_vort_as_tangential_vector_field_h,pot_vort_as_tangential_vector_field_v, &
-                       grad_pot_temp_h,grad_pot_temp_v,epv,grid)
+    call inner_product_tangential(pot_vort_as_tangential_vector_field_h,pot_vort_as_tangential_vector_field_v, &
+                                  grad_pot_temp_h,grad_pot_temp_v,epv,grid)
     
     ! freeing the memory
     deallocate(grad_pot_temp_h)
