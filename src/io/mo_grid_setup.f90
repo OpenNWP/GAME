@@ -80,6 +80,7 @@ module mo_grid_setup
     call nc_check(nf90_inq_varid(ncid,"to_cell_dual",to_cell_dual_id))
     call nc_check(nf90_inq_varid(ncid,"direction",direction_id))
     call nc_check(nf90_inq_varid(ncid,"dy",dy_id))
+    call nc_check(nf90_inq_varid(ncid,"dz_dual",dz_dual_id))
     call nc_check(nf90_inq_varid(ncid,"from_cell",from_cell_id))
     call nc_check(nf90_inq_varid(ncid,"from_cell_dual",from_cell_dual_id))
     call nc_check(nf90_inq_varid(ncid,"adjacent_edges",adjacent_edges_id))

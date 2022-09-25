@@ -36,50 +36,46 @@ module mo_averaging
     if (ji<=n_pentagons) then
       n_edges_of_cell = 5
     endif
-    if (jl>=n_layers-n_oro_layers) then
-      if (jl==n_layers-n_oro_layers) then
+    if (jl>n_flat_layers) then
+      if (jl==n_flat_layers+1) then
         do jm=1,n_edges_of_cell
           vertical_contravariant_corr = vertical_contravariant_corr &
-          -0.5_wp*grid%inner_product_weights(ji,jl+1,jm)*grid%slope(grid%adjacent_edges(ji,jm),jl) &
-          *vector_field_h(grid%adjacent_edges(ji,jm),jl)
+          - 0.5_wp*grid%inner_product_weights(ji,jl-1,jm)*grid%slope(grid%adjacent_edges(ji,jm),jl-1) &
+          *vector_field_h(grid%adjacent_edges(ji,jm),jl-1)
         enddo
       else
         do jm=1,n_edges_of_cell
           vertical_contravariant_corr = vertical_contravariant_corr &
-          -0.5_wp*grid%inner_product_weights(ji,jl,jm)*grid%slope(grid%adjacent_edges(ji,jm),jl) &
-          *vector_field_h(grid%adjacent_edges(ji,jm),jl)
+          - 0.5_wp*grid%inner_product_weights(ji,jl-1,jm)*grid%slope(grid%adjacent_edges(ji,jm),jl-1) &
+          *vector_field_h(grid%adjacent_edges(ji,jm),jl-1)
         enddo
         do jm=1,n_edges_of_cell
           vertical_contravariant_corr = vertical_contravariant_corr &
-          -0.5_wp*grid%inner_product_weights(ji,jl+1,jm)*grid%slope(grid%adjacent_edges(ji,jm),jl+1) &
-          *vector_field_h(grid%adjacent_edges(ji,jm),jl+1)
+          - 0.5_wp*grid%inner_product_weights(ji,jl,jm)*grid%slope(grid%adjacent_edges(ji,jm),jl) &
+          *vector_field_h(grid%adjacent_edges(ji,jm),jl)
         enddo
       endif
     endif
   
   end function vertical_contravariant_corr
 
-  function remap_ver2hor(vector_field,ji,jl,grid)
+  function remap_ver2hor(vector_field_v,ji,jl,grid)
     
     ! This function reconstructs the vertical vector component at edge ji in layer jl.
     
-    real(wp),     intent(in) :: vector_field(n_vectors) ! vector field which to reconstruct
-    integer,      intent(in) :: ji,jl                   ! spatial indices
-    type(t_grid), intent(in) :: grid                    ! grid quantities
-    real(wp)                 :: remap_ver2hor           ! the result
+    real(wp),     intent(in) :: vector_field_v(n_cells,n_edges) ! vector field which to reconstruct
+    integer,      intent(in) :: ji,jl                           ! spatial indices
+    type(t_grid), intent(in) :: grid                            ! grid quantities
+    real(wp)                 :: remap_ver2hor                   ! the result
     
     remap_ver2hor &
     ! layer above
-    = grid%inner_product_weights(grid%from_cell(ji),jl+1,7) &
-    *vector_field(jl*n_vectors_per_layer+grid%from_cell(ji))
-    remap_ver2hor = remap_ver2hor + grid%inner_product_weights(grid%to_cell(ji),jl+1,7) &
-                                    *vector_field(jl*n_vectors_per_layer+grid%to_cell(ji))
+    = grid%inner_product_weights(grid%from_cell(ji),jl,7)*vector_field_v(grid%from_cell(ji),jl)
+    remap_ver2hor = remap_ver2hor + grid%inner_product_weights(grid%to_cell(ji),jl,7)*vector_field_v(grid%to_cell(ji),jl)
     ! layer below
-    if (jl<n_layers-1) then
-      remap_ver2hor = remap_ver2hor + grid%inner_product_weights(grid%from_cell(ji),jl+1,8) &
-                                      *vector_field((jl+1)*n_vectors_per_layer+grid%from_cell(ji))
-      remap_ver2hor = remap_ver2hor + grid%inner_product_weights(grid%to_cell(ji),jl+1,8) &
-                                      *vector_field((jl+1)*n_vectors_per_layer+grid%to_cell(ji))
+    if (jl<n_layers) then
+      remap_ver2hor = remap_ver2hor + grid%inner_product_weights(grid%from_cell(ji),jl,8)*vector_field_v(grid%from_cell(ji),jl+1)
+      remap_ver2hor = remap_ver2hor + grid%inner_product_weights(grid%to_cell(ji),jl,8)*vector_field_v(grid%to_cell(ji),jl+1)
     endif
     ! horizontal average
     remap_ver2hor = 0.5_wp*remap_ver2hor

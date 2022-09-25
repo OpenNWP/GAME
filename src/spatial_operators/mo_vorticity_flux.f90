@@ -87,7 +87,7 @@ module mo_vorticity_flux
         - 0.5_wp*grid%inner_product_weights(grid%from_cell(ji),jl,8) &
         *diag%flux_density_v(grid%from_cell(ji),jl+1)*diag%pot_vort_h(ji,jl+1)
         diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
-        - 0.5_wp*grid%inner_product_weights(grid%to_cell(ji),jl+1,8) &
+        - 0.5_wp*grid%inner_product_weights(grid%to_cell(ji),jl,8) &
         *diag%flux_density_v(grid%to_cell(ji),jl)*diag%pot_vort_h(ji,jl+1)
           
       enddo

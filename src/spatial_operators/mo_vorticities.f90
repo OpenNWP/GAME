@@ -65,7 +65,7 @@ module mo_vorticities
           - 0.5_wp*(density_field(grid%from_cell(ji),2) + density_field(grid%to_cell(ji),2))) &
           /(grid%z_vector_h(ji,1) - grid%z_vector_h(ji,2)) &
           ! delta z
-          *(toa - grid%z_vector_v(ji,1))
+          *(toa - grid%z_vector_h(ji,1))
         ! linear extrapolation to the surface
         elseif (jl==n_levels) then
           density_value = &
@@ -166,7 +166,7 @@ module mo_vorticities
     !$omp parallel do private(ji,jl)
     do ji=1,n_edges
       do jl=1,n_layers
-        diag%rel_vort_v(ji,jl+1) = ( &
+        diag%rel_vort_v(ji,jl) = ( &
         grid%area_dual_v(grid%from_cell_dual(ji),jl)*diag%rel_vort_on_triangles(grid%from_cell_dual(ji),jl) &
         + grid%area_dual_v(grid%to_cell_dual(ji),jl)*diag%rel_vort_on_triangles(grid%to_cell_dual(ji),jl))/( &
         grid%area_dual_v(grid%from_cell_dual(ji),jl) + grid%area_dual_v(grid%to_cell_dual(ji),jl))
