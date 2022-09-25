@@ -163,20 +163,18 @@ module mo_vertical_grid
                              vorticity_indices_triangles(n_triangles,3)
 
     ! local variables
-    integer :: ji,jl
+    integer :: ji ! horizontal loop index
   
-    !$omp parallel do private(ji,jl)
+    !$omp parallel do private(ji)
     do ji=1,n_triangles
-      do jl=1,n_levels
-        z_scalar_dual(ji,jl) &
-        = 1._wp/6._wp*( &
-        z_vector_v(1+from_cell(1+vorticity_indices_triangles(ji,1)),jl) &
-        + z_vector_v(1+from_cell(1+vorticity_indices_triangles(ji,2)),jl) &
-        + z_vector_v(1+from_cell(1+vorticity_indices_triangles(ji,3)),jl) &
-        + z_vector_v(1+to_cell(1+vorticity_indices_triangles(ji,1)),jl) &
-        + z_vector_v(1+to_cell(1+vorticity_indices_triangles(ji,2)),jl) &
-        + z_vector_v(1+to_cell(1+vorticity_indices_triangles(ji,3)),jl))
-      enddo
+      z_scalar_dual(ji,:) &
+      = 1._wp/6._wp*( &
+      z_vector_v(1+from_cell(1+vorticity_indices_triangles(ji,1)),:) &
+      + z_vector_v(1+from_cell(1+vorticity_indices_triangles(ji,2)),:) &
+      + z_vector_v(1+from_cell(1+vorticity_indices_triangles(ji,3)),:) &
+      + z_vector_v(1+to_cell(1+vorticity_indices_triangles(ji,1)),:) &
+      + z_vector_v(1+to_cell(1+vorticity_indices_triangles(ji,2)),:) &
+      + z_vector_v(1+to_cell(1+vorticity_indices_triangles(ji,3)),:))
     enddo
     !$omp end parallel do
     
@@ -214,14 +212,14 @@ module mo_vertical_grid
         if (jl==1) then
           radius_1 = radius + z_vector_h(ji,jl)
           radius_2 = radius + toa
-          base_distance = dx(ji,jl+1)
+          base_distance = dx(ji,jl)
         else if (jl==n_levels) then
           radius_1 = radius + 0.5_wp*(z_vector_v(1+from_cell(ji),n_levels) + z_vector_v(1+to_cell(ji),n_levels))
           radius_2 = radius + z_vector_h(ji,n_layers)
           base_distance = dx(ji,n_layers)*radius_1/radius_2
         else
-          radius_1 = radius + z_vector_h(ji,jl-1)
-          radius_2 = radius + z_vector_h(ji,jl)
+          radius_1 = radius + z_vector_h(ji,jl)
+          radius_2 = radius + z_vector_h(ji,jl-1)
           base_distance = dx(ji,jl)
         endif
         area_dual_h(ji,jl) = calculate_vertical_area(base_distance,radius_1,radius_2)
@@ -282,7 +280,8 @@ module mo_vertical_grid
     real(wp), intent(in)  :: pent_hex_face_unity_sphere(n_cells)
   
     ! local variables
-    integer  :: ji,jl
+    integer  :: ji ! horizontal loop index
+    integer  :: jl ! vertical loop index
     real(wp) :: base_distance,radius_1,radius_2
     
     ! areas with horizontal normal
