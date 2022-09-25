@@ -185,9 +185,7 @@ module mo_spatial_ops_for_output
       endif
       ! loop over all edges of the respective cell
       do jm=1,n_edges
-        out_field(ji) = out_field(ji) + 0.5_wp &
-        *grid%inner_product_weights(ji,n_layers,jm) &
-        *in_field(grid%adjacent_edges(ji,jm))
+        out_field(ji) = out_field(ji) + 0.5_wp*grid%inner_product_weights(ji,n_layers,jm)*in_field(grid%adjacent_edges(ji,jm))
       enddo
     enddo
     !$omp end parallel do
@@ -198,25 +196,25 @@ module mo_spatial_ops_for_output
   
     ! This subroutine diagnozes eastward and northward components of a vector field at edges.
     
-    real(wp),      intent(in)  :: in_field(n_vectors)                           ! vector field of which to compute the u- and v-components
-    real(wp),      intent(out) :: out_field_u(n_vectors),out_field_v(n_vectors) ! results
-    type(t_grid),  intent(in)  :: grid                                          ! grid quantities
+    real(wp),      intent(in)  :: in_field(n_edges,n_layers)    ! vector field of which to compute the u- and v-components
+    real(wp),      intent(out) :: out_field_u(n_edges,n_layers) ! result (u-component)
+    real(wp),      intent(out) :: out_field_v(n_edges,n_layers) ! result (v-component)
+    type(t_grid),  intent(in)  :: grid                          ! grid quantities
     
     ! local variables
-    integer  :: ji,layer_index,h_index
+    integer  :: ji
+    integer  :: jl
     real(wp) :: wind_1,wind_2 ! orthogonal and tangential component at edge, respectively
     
-    !$omp parallel do private(ji,layer_index,h_index,wind_1,wind_2)
-    do ji=1,n_h_vectors
-      layer_index = (ji-1)/n_edges
-      h_index = ji - layer_index*n_edges
-      wind_1 = in_field(n_cells+layer_index*n_vectors_per_layer+h_index)
-      ! finding the tangential component
-      wind_2 = tangential_wind(in_field,h_index,layer_index+1,grid)
-      ! turning the Cartesian coordinate system to obtain u and v
-      call passive_turn(wind_1,wind_2,-grid%direction(h_index), &
-      out_field_u(n_cells+layer_index*n_vectors_per_layer+h_index), &
-      out_field_v(n_cells+layer_index*n_vectors_per_layer+h_index))
+    !$omp parallel do private(ji,jl,wind_1,wind_2)
+    do ji=1,n_edges
+      do jl=1,n_layers
+        wind_1 = in_field(ji,jl)
+        ! finding the tangential component
+        wind_2 = tangential_wind(in_field,ji,jl,grid)
+        ! turning the Cartesian coordinate system to obtain u and v
+        call passive_turn(wind_1,wind_2,-grid%direction(ji),out_field_u(ji,jl),out_field_v(ji,jl))
+      enddo
     enddo
     !$omp end parallel do
     
@@ -224,31 +222,29 @@ module mo_spatial_ops_for_output
 
   subroutine edges_to_cells(in_field,out_field,grid)
     
-    ! This subroutine averages a vector field from edges to cell centers.
+    ! This subroutine averages a horizontal vector field from edges to cell centers.
     
-    real(wp),     intent(in)  :: in_field(n_vectors)
-    real(wp),     intent(out) :: out_field(n_scalars)
+    real(wp),     intent(in)  :: in_field(n_edges,n_layers)
+    real(wp),     intent(out) :: out_field(n_cells,n_layers)
     type(t_grid), intent(in)  :: grid                 ! grid quantities
     
     ! local variables
-    integer :: ji,jm,layer_index,h_index,n_edges_of_cell
+    integer :: ji,jl,jm,n_edges_of_cell
     
-    !$omp parallel do private (ji,jm,layer_index,h_index,n_edges_of_cell)
-    do ji=1,n_scalars
-      layer_index = (ji-1)/n_cells
-      h_index = ji - layer_index*n_cells
-      ! initializing the result with zero
-      out_field(ji) = 0._wp
-      ! determining the number of edges of the cell at hand
-      n_edges_of_cell = 6
-      if (h_index<=n_pentagons) then
-        n_edges_of_cell = 5
-      endif
-      ! loop over all cell edges
-      do jm=1,n_edges_of_cell
-        out_field(ji) = out_field(ji) + 0.5_wp &
-        *grid%inner_product_weights(h_index,layer_index+1,jm) &
-        *in_field(n_cells + layer_index*n_vectors_per_layer + grid%adjacent_edges(h_index,jm))
+    !$omp parallel do private (ji,jl,jm,n_edges_of_cell)
+    do ji=1,n_cells
+      do jl=1,n_layers
+        ! initializing the result with zero
+        out_field(ji,jl) = 0._wp
+        ! determining the number of edges of the cell at hand
+        n_edges_of_cell = 6
+        if (ji<=n_pentagons) then
+          n_edges_of_cell = 5
+        endif
+        ! loop over all cell edges
+        do jm=1,n_edges_of_cell
+          out_field(ji,jl) = out_field(ji,jl) + 0.5_wp*grid%inner_product_weights(ji,jl,jm)*in_field(grid%adjacent_edges(ji,jm),jl)
+        enddo
       enddo
     enddo
     !$omp end parallel do

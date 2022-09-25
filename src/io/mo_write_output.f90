@@ -212,7 +212,7 @@ module mo_write_output
                              epv_on_p_levels(:,:),u_on_p_levels(:,:),v_on_p_levels(:,:),zeta_on_p_levels(:,:), &
                              wind_10_m_mean_u_at_cell(:),wind_10_m_mean_v_at_cell(:),wind_10_m_gusts_speed_at_cell(:), &
                              div_h_all_layers(:,:),rel_vort_scalar_field(:,:),rh(:,:),epv(:,:),pressure(:,:), &
-                             lat_lon_output_field(:,:),u_at_cell(:,:),v_at_cell(:,:),u_at_edge(:),v_at_edge(:)
+                             lat_lon_output_field(:,:),u_at_cell(:,:),v_at_cell(:,:),u_at_edge(:,:),v_at_edge(:,:)
     character(len=64)     :: output_file,output_file_p_level,varname
   
     write(*,*) "Writing output ..."
@@ -586,8 +586,8 @@ module mo_write_output
     call curl_field_to_cells(diag%rel_vort_v,rel_vort_scalar_field,grid)
     
     ! Diagnozing the u and v wind components at the vector points.
-    allocate(u_at_edge(n_vectors))
-    allocate(v_at_edge(n_vectors))
+    allocate(u_at_edge(n_edges,n_cells))
+    allocate(v_at_edge(n_edges,n_cells))
     call calc_uv_at_edge(state%wind_h,u_at_edge,v_at_edge,grid)
     ! Averaging to cell centers for output.
     allocate(u_at_cell(n_cells,n_layers))
