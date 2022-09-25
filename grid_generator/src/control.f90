@@ -96,7 +96,7 @@ program control
   allocate(trsk_weights(n_edges,10))
   allocate(lat_c_dual(n_triangles))
   allocate(lon_c_dual(n_triangles))
-  allocate(z_scalar_dual(n_triangles,n_layers))
+  allocate(z_scalar_dual(n_triangles,n_levels))
   allocate(z_vector_dual_h(n_edges,n_levels))
   allocate(z_vector_dual_v(n_triangles,n_layers))
   allocate(dy(n_edges,n_levels))
@@ -220,7 +220,7 @@ program control
   
   ! 7.) setting the implicit quantities of the vertical grid
   !     ----------------------------------------------------
-  write(*,*) "Determining vector z coordinates and normal distances of the primal grid ..."
+  write(*,*) "Determining z coordinates and normal distances of the primal grid vector data points ..."
   call set_z_vector_and_normal_distance(z_vector_h,z_vector_v,dx,dz,z_scalar,lat_c,lon_c,from_cell,to_cell,oro)
   deallocate(oro)
   write(*,*) "Finished."

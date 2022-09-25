@@ -36,6 +36,7 @@ module mo_grid_nml
   integer            :: n_vectors_per_inner_face ! number of horizontal vectors per inner triangle face
   real(wp)           :: toa                      ! top of atmosphere in meters above MSL
   integer            :: n_oro_layers             ! number of layers following the orography
+  integer            :: n_flat_layers            ! number of flat layers
   real(wp)           :: stretching_parameter     ! vertical grid stretching parameter
   real(wp)           :: radius_rescale           ! radius rescaling factor
   real(wp)           :: radius                   ! radius of the planet to construct the grid for
@@ -87,6 +88,7 @@ module mo_grid_nml
     n_vectors_per_inner_face = 3*(2**RES_ID-1)*2**res_id/2
     toa = 41152._wp
     n_oro_layers = 23
+    n_flat_layers = n_layers - n_oro_layers
     stretching_parameter = 1.3_wp
     radius_rescale = 1._wp
     radius = radius_rescale*r_e

@@ -41,8 +41,7 @@ module mo_rhombus_averaging
     !$omp vector_h_index_1,vector_h_index_2,vector_h_index_1_found,vector_h_index_2_found,which_vertex_check_result, &
     !$omp first_case_counter,second_case_counter,triangle_1,triangle_2,triangle_3,triangle_4,rhombus_area,check_sum)
     do ji=1,n_edges
-      double_indices(1) = -1
-      double_indices(2) = -1
+      double_indices = -1
       
       ! finding the vectors that are adjacent to the two triangles
       do jk=1,3
@@ -184,7 +183,7 @@ module mo_rhombus_averaging
                                           lat_e(1+vector_h_index_2), &
                                           lon_e(1+vector_h_index_2))
           density_to_rhombus_weights(ji,jk) = (radius + z_vector_h(1,1))**2 &
-                                                 *(triangle_1+triangle_2+triangle_3+triangle_4)/rhombus_area
+                                              *(triangle_1+triangle_2+triangle_3+triangle_4)/rhombus_area
         else
           ! In this case, only two triangles need to be summed up.
           second_case_counter = second_case_counter+1

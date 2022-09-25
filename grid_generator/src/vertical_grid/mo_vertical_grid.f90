@@ -11,7 +11,7 @@ module mo_vertical_grid
   use mo_grid_nml,    only: n_cells,n_vectors_per_layer,n_layers,n_levels, &
                             n_vectors,n_triangles,n_dual_scalars,n_edges, &
                             n_dual_vectors,n_dual_vectors_per_layer,toa,n_oro_layers,stretching_parameter, &
-                            radius
+                            radius,n_flat_layers
   use mo_geodesy,     only: calculate_vertical_area,calculate_distance_h
   
   implicit none
@@ -42,8 +42,8 @@ module mo_vertical_grid
         sigma_z = z_rel**stretching_parameter
         A = sigma_z*toa ! the height without orography
         ! B corrects for orography
-        if (jl>=n_layers-n_oro_layers+1) then
-          B = (jl-(n_layers-n_oro_layers)-1._wp)/n_oro_layers
+        if (jl>n_flat_layers) then
+          B = (jl-n_flat_layers-1._wp)/n_oro_layers
         else
           B = 0._wp
         endif
@@ -52,7 +52,7 @@ module mo_vertical_grid
     
       ! doing a check
       if (ji==1) then
-        if (max_oro>=z_vertical_vector_pre(n_layers-n_oro_layers+1)) then
+        if (max_oro>=z_vertical_vector_pre(n_flat_layers+1)) then
           write(*,*) "Maximum of orography larger or equal to the height of the lowest flat level."
           call exit(1)
         endif
@@ -60,8 +60,7 @@ module mo_vertical_grid
     
       ! placing the scalar points in the middle between the preliminary values of the adjacent levels
       do jl=1,n_layers
-        z_scalar(ji,jl) = 0.5_wp*( &
-        z_vertical_vector_pre(jl)+z_vertical_vector_pre(jl+1))
+        z_scalar(ji,jl) = 0.5_wp*(z_vertical_vector_pre(jl) + z_vertical_vector_pre(jl+1))
       enddo
     enddo
     !$omp end parallel do
@@ -190,7 +189,7 @@ module mo_vertical_grid
   
     real(wp), intent(out) :: area_dual_h(n_edges,n_levels)
     real(wp), intent(out) :: area_dual_v(n_triangles,n_layers)
-    real(wp), intent(in)  :: z_vector_dual_v(n_triangles,n_levels)
+    real(wp), intent(in)  :: z_vector_dual_v(n_triangles,n_layers)
     real(wp), intent(in)  :: dx(n_edges,n_layers)
     real(wp), intent(in)  :: z_vector_h(n_edges,n_layers)
     real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)
@@ -299,11 +298,9 @@ module mo_vertical_grid
     !$omp end parallel do
     
     ! areas with vertical normal
-    !$omp parallel do private(ji,jl)
-    do ji=1,n_edges
-      do jl=1,n_levels
-        area_v(ji,jl) = pent_hex_face_unity_sphere(ji)*(radius+z_vector_v(ji,jl))**2
-      enddo
+    !$omp parallel do private(jl)
+    do jl=1,n_levels
+      area_v(:,jl) = pent_hex_face_unity_sphere*(radius+z_vector_v(:,jl))**2
     enddo
     !$omp end parallel do
     
@@ -338,8 +335,7 @@ module mo_vertical_grid
         z_vector_h(ji,jl) = 0.5_wp*(z_scalar(1+from_cell(ji),jl) + z_scalar(1+to_cell(ji),jl))
         ! calculating the horizontal distance
         dx(ji,jl) = calculate_distance_h( &
-        lat_c(1+from_cell(ji)), lon_c(1+from_cell(ji)),lat_c(1+to_cell(ji)), lon_c(1+to_cell(ji)), &
-        radius + z_vector_h(ji,jl))
+        lat_c(1+from_cell(ji)),lon_c(1+from_cell(ji)),lat_c(1+to_cell(ji)),lon_c(1+to_cell(ji)),radius+z_vector_h(ji,jl))
       enddo
     enddo
     !$omp end parallel do
