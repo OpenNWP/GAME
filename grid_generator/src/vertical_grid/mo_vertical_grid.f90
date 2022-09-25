@@ -236,7 +236,7 @@ module mo_vertical_grid
     ! This subroutine sets the hydrostatic background state.
     
     real(wp), intent(in)  :: z_scalar(n_cells,n_layers)          ! z-coordinates of scalar vector points
-    real(wp), intent(in)  :: gravity_potential(n_cells,n_layers) ! gravit potential
+    real(wp), intent(in)  :: gravity_potential(n_cells,n_layers) ! gravity potential
     real(wp), intent(out) :: theta_v_bg(n_cells,n_layers)        ! background virtual potential temperature
     real(wp), intent(out) :: exner_bg(n_cells,n_layers)          ! background Exner pressure
   

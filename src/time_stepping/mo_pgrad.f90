@@ -48,8 +48,8 @@ module mo_pgrad
     !$omp parallel workshare
     diag%scalar_placeholder = c_d_p*state%theta_v_pert
     !$omp end parallel workshare
-    call scalar_times_vector_h(diag%scalar_placeholder,grid%exner_bg_grad_h,diag%pressure_gradient_acc_neg_l_v,grid)
-    call scalar_times_vector_v(diag%scalar_placeholder,grid%exner_bg_grad_h,diag%pressure_gradient_acc_neg_l_v)
+    call scalar_times_vector_h(diag%scalar_placeholder,grid%exner_bg_grad_h,diag%pressure_gradient_acc_neg_l_h,grid)
+    call scalar_times_vector_v(diag%scalar_placeholder,grid%exner_bg_grad_v,diag%pressure_gradient_acc_neg_l_v)
     
     ! 4.) The pressure gradient has to get a deceleration factor due to condensates.
     ! ------------------------------------------------------------------------------

@@ -36,8 +36,7 @@ module mo_set_initial_state
     type(t_grid),  intent(in)    :: grid
     
     ! local variables
-    integer               :: ji,jl,scalar_index,ncid_grid,latitude_vector_id, &
-                             longitude_vector_id
+    integer               :: ji,jl,ncid_grid,latitude_vector_id,longitude_vector_id
     real(wp)              :: dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7,lat,lon,z_height,u,v, &
                              pressure_value,specific_humidity,dry_density,b,c,small_atmos_rescale
     real(wp), allocatable :: pressure(:,:),temperature(:,:),temperature_v(:,:),water_vapour_density(:,:),latitude_vector(:), &
@@ -181,35 +180,33 @@ module mo_set_initial_state
     
     ! density is determined out of the hydrostatic equation
     ! theta_v_pert and exner_pert are a misuse of name herethey contain the full values here
-    !$omp parallel do private(ji,scalar_index,b,c,pressure_value)
+    !$omp parallel do private(ji,jl,b,c,pressure_value)
     do ji=1,n_cells
       ! integrating from bottom to top
-      do jl=n_layers-1,0,-1
-        scalar_index = jl*n_cells + ji
+      do jl=n_layers,1,-1
         ! lowest layer
-        if (jl==n_layers-1) then
-          pressure_value = pressure(ji,jl+1)
-          state%exner_pert(ji,jl+1) = (pressure_value/p_0)**(r_d/c_d_p)
+        if (jl==n_layers) then
+          pressure_value = pressure(ji,jl)
+          state%exner_pert(ji,jl) = (pressure_value/p_0)**(r_d/c_d_p)
         ! other layers
         else
           ! solving a quadratic equation for the Exner pressure
-          b = -0.5_wp*state%exner_pert(ji,jl+2)/temperature_v(ji,jl+2) &
-          *(temperature_v(ji,jl+1) - temperature_v(ji,jl+2) &
-          + 2._wp/c_d_p*(grid%gravity_potential(ji,jl+1) - grid%gravity_potential(ji,jl+2) &
-          + 0.5_wp*diag%v_squared(ji,jl+1) - 0.5_wp*diag%v_squared(ji,jl+2) &
-          - (grid%z_scalar(ji,jl+1) - grid%z_scalar(ji,jl+2)) &
-          *diag%pot_vort_tend_v(ji,jl+2)))
-          c = state%exner_pert(ji,jl+2)**2*temperature_v(ji,jl+1)/temperature_v(ji,jl+2)
-          state%exner_pert(ji,jl+1) = b + (b**2+c)**0.5_wp
+          b = -0.5_wp*state%exner_pert(ji,jl+1)/temperature_v(ji,jl+1) &
+          *(temperature_v(ji,jl) - temperature_v(ji,jl+1) &
+          + 2._wp/c_d_p*(grid%gravity_potential(ji,jl) - grid%gravity_potential(ji,jl+1) &
+          + 0.5_wp*diag%v_squared(ji,jl) - 0.5_wp*diag%v_squared(ji,jl+1) &
+          - (grid%z_scalar(ji,jl) - grid%z_scalar(ji,jl+1))*diag%pot_vort_tend_v(ji,jl+1)))
+          c = state%exner_pert(ji,jl+1)**2*temperature_v(ji,jl)/temperature_v(ji,jl+1)
+          state%exner_pert(ji,jl) = b + (b**2+c)**0.5_wp
         endif
         ! this is the full virtual potential temperature here
-        state%theta_v_pert(ji,jl+1) = temperature_v(ji,jl+1)/state%exner_pert(ji,jl+1)
+        state%theta_v_pert(ji,jl) = temperature_v(ji,jl)/state%exner_pert(ji,jl)
         
         ! scalar_placeholder is the moist air gas density here
-        diag%scalar_placeholder(ji,jl+1) = p_0*state%exner_pert(ji,jl+1)**(c_d_p/r_d)/(r_d*temperature_v(ji,jl+1))
+        diag%scalar_placeholder(ji,jl) = p_0*state%exner_pert(ji,jl)**(c_d_p/r_d)/(r_d*temperature_v(ji,jl))
         
         ! setting rhotheta_v according to its definition
-        state%rhotheta_v(ji,jl+1) = diag%scalar_placeholder(ji,jl+1)*state%theta_v_pert(ji,jl+1)
+        state%rhotheta_v(ji,jl) = diag%scalar_placeholder(ji,jl)*state%theta_v_pert(ji,jl)
       enddo
     enddo
     !$omp end parallel do
