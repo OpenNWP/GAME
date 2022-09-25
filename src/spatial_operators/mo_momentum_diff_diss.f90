@@ -85,7 +85,7 @@ module mo_momentum_diff_diss
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer  :: ji,layer_index,h_index
+    integer  :: ji,jl,layer_index,h_index
     real(wp) :: z_upper,z_lower,delta_z
     
     ! 1.) vertical diffusion of horizontal velocity
@@ -147,14 +147,11 @@ module mo_momentum_diff_diss
     ! 3.) horizontal diffusion of vertical velocity
     ! ---------------------------------------------
     ! averaging the vertical velocity vertically to cell centers, using the inner product weights
-    !$omp parallel do private(h_index,layer_index,ji)
-    do h_index=1,n_cells
-      do layer_index=0,n_layers-1
-        ji = layer_index*n_cells + h_index
-        diag%scalar_placeholder(h_index,layer_index+1) = &
-        grid%inner_product_weights(h_index,layer_index+1,7)*state%wind_v(h_index,layer_index+1) &
-        + grid%inner_product_weights(h_index,layer_index+1,8)*state%wind_v(h_index,layer_index+2)
-      enddo
+    !$omp parallel do private(jl)
+    do jl=1,n_layers
+      diag%scalar_placeholder(:,jl) = &
+      grid%inner_product_weights(:,jl,7)*state%wind_v(:,jl) &
+      + grid%inner_product_weights(:,jl,8)*state%wind_v(:,jl+1)
     enddo
     !$omp end parallel do
     
@@ -162,12 +159,12 @@ module mo_momentum_diff_diss
     call grad_vert(diag%scalar_placeholder,diag%vector_placeholder_v,grid)
     call grad_hor(diag%scalar_placeholder,diag%vector_placeholder_h,diag%vector_placeholder_v,grid)
     ! multiplying by the already computed diffusion coefficient
-    !$omp parallel do private(h_index,layer_index)
-    do h_index=1,n_edges
-      do layer_index=0,n_layers-1
-        diag%vector_placeholder_h(h_index,layer_index+1) = 0.5_wp &
-        *(diag%viscosity(grid%from_cell(h_index),layer_index+1) + diag%viscosity(grid%to_cell(h_index),layer_index+1)) &
-        *diag%vector_placeholder_h(h_index,layer_index+1)
+    !$omp parallel do private(ji,jl)
+    do ji=1,n_edges
+      do jl=1,n_layers
+        diag%vector_placeholder_h(ji,jl) = 0.5_wp &
+        *(diag%viscosity(grid%from_cell(ji),jl) + diag%viscosity(grid%to_cell(ji),jl)) &
+        *diag%vector_placeholder_h(ji,jl)
       enddo
     enddo
     !$omp end parallel do

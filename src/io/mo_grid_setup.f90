@@ -8,8 +8,7 @@ module mo_grid_setup
   use netcdf
   use mo_constants,       only: t_0,r_e,M_PI
   use mo_definitions,     only: wp,t_grid
-  use mo_grid_nml,        only: n_vectors_per_layer,n_vectors,n_layers,n_scalars,n_cells,n_latlon_io_points, &
-                                n_dual_vectors,n_edges,n_triangles,oro_id,res_id
+  use mo_grid_nml,        only: n_layers,n_cells,oro_id,res_id
   use mo_surface_nml,     only: nsoillays
   use mo_various_helpers, only: int2string,nc_check
 
@@ -160,11 +159,9 @@ module mo_grid_setup
     write(*,*) "Time step:",dtime,"s."
     
     ! calculating the layer thicknesses
-    !$omp parallel do private(ji,jl)
-    do ji=1,n_cells
-      do jl=1,n_layers
-        grid%layer_thickness(ji,jl) = grid%z_vector_v(ji,jl) - grid%z_vector_v(ji,jl+1)
-      enddo
+    !$omp parallel do private(jl)
+    do jl=1,n_layers
+      grid%layer_thickness(:,jl) = grid%z_vector_v(:,jl) - grid%z_vector_v(:,jl+1)
     enddo
     !$omp end parallel do
     
