@@ -21,75 +21,70 @@ module mo_vorticities
     ! This subroutine calculates the potential vorticity.
     ! It is called "potential vorticity", but it is not Ertel's potential vorticity. It is the absolute vorticity divided by the density.
     
-    type(t_state), intent(in)    :: state                    ! state variables
-    real(wp),      intent(in)    :: density_field(n_scalars) ! mass density field
-    type(t_diag),  intent(inout) :: diag                     ! diagnostic quantities
-    type(t_grid),  intent(in)    :: grid                     ! grid quantities
+    type(t_state), intent(in)    :: state                           ! state variables
+    real(wp),      intent(in)    :: density_field(n_cells,n_layers) ! mass density field
+    type(t_diag),  intent(inout) :: diag                            ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid                            ! grid quantities
     
     ! local variables
-    integer  :: ji,jk,layer_index,h_index,edge_vector_index_h,upper_from_cell,upper_to_cell
+    integer  :: ji,jl,jm
     real(wp) :: density_value
     
     call calc_rel_vort(state,diag,grid)
     ! pot_vort is a misuse of name here
     call add_f_to_rel_vort(diag,grid)
     
-    ! determining the density value by which we need to divide
-    !$omp parallel do private(ji,jk,layer_index,h_index,edge_vector_index_h,upper_from_cell,upper_to_cell,density_value)
-    do ji=1,n_layers*2*n_edges+n_edges
-      layer_index = (ji-1)/(2*n_edges)
-      h_index = ji - layer_index*2*n_edges
-      ! interpolation of the density to the center of the rhombus
-      if (h_index>=n_edges+1) then
-        edge_vector_index_h = h_index - n_edges
+    ! vertical potential vorticities (located at full level eddges)
+    !$omp parallel do private(ji,jl,jm,density_value)
+    do ji=1,n_edges
+      do jl=1,n_layers
+        ! interpolation of the density to the center of the rhombus
         density_value = 0._wp
-        do jk=1,4
+        do jm=1,4
           density_value = density_value &
-          + grid%density_to_rhombi_weights(edge_vector_index_h,jk) &
-          *density_field(layer_index*n_cells + grid%density_to_rhombi_indices(edge_vector_index_h,jk))
+          + grid%density_to_rhombi_weights(ji,jm)*density_field(grid%density_to_rhombi_indices(ji,jm),jl)
         enddo
         
         ! division by the density to obtain the "potential vorticity"
-        diag%pot_vort_v(h_index-n_edges,layer_index+1) = diag%pot_vort_v(h_index-n_edges,layer_index+1)/density_value
-      
-      ! interpolation of the density to the half level edges
-      else
+        diag%pot_vort_v(ji,jl) = diag%pot_vort_v(ji,jl)/density_value
+      enddo
+    enddo
+    
+    ! horizontal potential vorticities (locates at half level edges)
+    !$omp parallel do private(ji,jl,density_value)
+    do ji=1,n_edges
+      do jl=1,n_levels
+        ! interpolation of the density to the half level edges
         ! linear extrapolation to the TOA
-        if (layer_index==0) then
+        if (jl==1) then
           density_value &
-          = 0.5_wp*(density_field(grid%from_cell(h_index)) + density_field(grid%to_cell(h_index))) &
+          = 0.5_wp*(density_field(grid%from_cell(ji),1) + density_field(grid%to_cell(ji),1)) &
           ! the gradient
-          + (0.5_wp*(density_field(grid%from_cell(h_index)) + density_field(grid%to_cell(h_index))) &
-          - 0.5_wp*(density_field(grid%from_cell(h_index)+n_cells) &
-          + density_field(grid%to_cell(h_index) + n_cells)))/(grid%z_vector_h(h_index,1) - grid%z_vector_h(h_index,2)) &
+          + (0.5_wp*(density_field(grid%from_cell(ji),1) + density_field(grid%to_cell(ji),1)) &
+          - 0.5_wp*(density_field(grid%from_cell(ji),2) + density_field(grid%to_cell(ji),2))) &
+          /(grid%z_vector_h(ji,1) - grid%z_vector_h(ji,2)) &
           ! delta z
-          *(toa - grid%z_vector_v(h_index,1))
+          *(toa - grid%z_vector_v(ji,1))
         ! linear extrapolation to the surface
-        elseif (layer_index==n_layers) then
+        elseif (jl==n_levels) then
           density_value = &
-          0.5_wp*(density_field((layer_index-1)*n_cells + grid%from_cell(h_index)) &
-          + density_field((layer_index-1)*n_cells + grid%to_cell(h_index))) &
+          0.5_wp*(density_field(grid%from_cell(ji),n_layers) + density_field(grid%to_cell(ji),n_layers)) &
           ! the gradient
-          + (0.5_wp*(density_field((layer_index-2)*n_cells + grid%from_cell(h_index)) &
-          + density_field((layer_index-2)*n_cells + grid%to_cell(h_index))) &
-          - 0.5_wp*(density_field((layer_index-1)*n_cells + grid%from_cell(h_index)) &
-          + density_field((layer_index-1)*n_cells + grid%to_cell(h_index)))) &
-          /(grid%z_vector_h(h_index,layer_index-1) - grid%z_vector_h(h_index,layer_index)) &
+          + (0.5_wp*(density_field(grid%from_cell(ji),n_layers-1) + density_field(grid%to_cell(ji),n_layers-1)) &
+          - 0.5_wp*(density_field(grid%from_cell(ji),n_layers) + density_field(grid%to_cell(ji),n_layers))) &
+          /(grid%z_vector_h(ji,n_layers-1) - grid%z_vector_h(ji,n_layers)) &
           ! delta z
-          *(0.5_wp*(grid%z_vector_v(grid%from_cell(h_index),n_levels) + grid%z_vector_v(grid%to_cell(h_index),n_levels)) &
-          - grid%z_vector_h(h_index,n_layers))
+          *(0.5_wp*(grid%z_vector_v(grid%from_cell(ji),n_levels) + grid%z_vector_v(grid%to_cell(ji),n_levels)) &
+          - grid%z_vector_h(ji,n_layers))
         else
-          upper_from_cell = (layer_index-1)*n_cells + grid%from_cell(h_index)
-          upper_to_cell = (layer_index-1)*n_cells + grid%to_cell(h_index)
-          density_value = 0.25_wp*(density_field(upper_from_cell) + density_field(upper_to_cell) &
-          + density_field(upper_from_cell + n_cells) + density_field(upper_to_cell + n_cells))
+          density_value = 0.25_wp*(density_field(grid%from_cell(ji),jl-1) + density_field(grid%to_cell(ji),jl-1) &
+                                   + density_field(grid%from_cell(ji),jl) + density_field(grid%to_cell(ji),jl))
         endif
         
         ! division by the density to obtain the "potential vorticity"
-        diag%pot_vort_h(h_index,layer_index+1) = diag%pot_vort_h(h_index,layer_index+1)/density_value
+        diag%pot_vort_h(ji,jl) = diag%pot_vort_h(ji,jl)/density_value
     
-      endif
-    
+      enddo
     enddo
     !$omp end parallel do
   
