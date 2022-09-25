@@ -55,7 +55,7 @@ module mo_pgrad
     ! ------------------------------------------------------------------------------
     !$omp parallel workshare
     diag%pressure_gradient_decel_factor = state%rho(:,:,n_condensed_constituents+1)/ &
-                                          sum(state%rho(:,:,1:n_condensed_constituents+1))
+                                          sum(state%rho(:,:,1:n_condensed_constituents+1),3)
     !$omp end parallel workshare
     call scalar_times_vector_h(diag%pressure_gradient_decel_factor,diag%pressure_gradient_acc_neg_nl_h, &
                                diag%pressure_gradient_acc_neg_nl_h,grid)
@@ -86,7 +86,7 @@ module mo_pgrad
     
     !$omp parallel workshare
     diag%pressure_gradient_decel_factor = state%rho(:,:,n_condensed_constituents+1) &
-                                          /sum(state%rho(:,:,1:n_condensed_constituents+1)) - 1._wp
+                                          /sum(state%rho(:,:,1:n_condensed_constituents+1),3) - 1._wp
     !$omp end parallel workshare
     call scalar_times_vector_v(diag%pressure_gradient_decel_factor,grid%gravity_m_v,diag%pressure_grad_condensates_v)
   

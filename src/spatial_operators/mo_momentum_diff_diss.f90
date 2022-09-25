@@ -69,8 +69,8 @@ module mo_momentum_diff_diss
     !$omp parallel do private(ji)
     do ji=1,n_edges
       diag%friction_acc_h(ji,:) = (diag%vector_placeholder_h(ji,:) - diag%curl_of_vorticity_h(ji,:)) &
-                                  /(0.5_wp*(sum(state%rho(grid%from_cell(ji),:,1:n_condensed_constituents+1)) &
-                                  + sum(state%rho(grid%to_cell(ji),:,1:n_condensed_constituents+1))))
+                                  /(0.5_wp*(sum(state%rho(grid%from_cell(ji),:,1:n_condensed_constituents+1),2) &
+                                  + sum(state%rho(grid%to_cell(ji),:,1:n_condensed_constituents+1),2)))
     enddo
     !$omp end parallel do
   
@@ -280,7 +280,7 @@ module mo_momentum_diff_diss
     
     call inner_product(state%wind_h,state%wind_v,diag%friction_acc_h,diag%friction_acc_v,diag%heating_diss,grid)
     !$omp parallel workshare
-    diag%heating_diss = -sum(state%rho(:,:,1:n_condensed_constituents+1))*diag%heating_diss
+    diag%heating_diss = -sum(state%rho(:,:,1:n_condensed_constituents+1),3)*diag%heating_diss
     !$omp end parallel workshare
   
   end subroutine simple_dissipation_rate
