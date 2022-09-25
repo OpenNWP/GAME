@@ -6,9 +6,7 @@ module mo_vorticities
   ! Here, vorticities are calculated. The word "vorticity" hereby refers to both vertical and tangential components.
 
   use mo_definitions, only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,    only: n_layers,n_edges,n_vectors,n_layers,n_dual_vectors_per_layer,n_dual_v_vectors, &
-                            n_triangles,n_cells,n_vectors_per_layer,n_edges,n_dual_vectors, &
-                            n_scalars,n_levels
+  use mo_grid_nml,    only: n_layers,n_edges,n_layers,n_triangles,n_cells,n_edges,n_levels
   use mo_grid_setup,  only: n_flat_layers,radius,toa
   use mo_averaging,   only: horizontal_covariant
   
