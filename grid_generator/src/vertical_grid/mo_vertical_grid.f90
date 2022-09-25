@@ -320,6 +320,7 @@ module mo_vertical_grid
     integer,  intent(in)  :: from_cell(n_edges)
     integer,  intent(in)  :: to_cell(n_edges)
   
+    ! local variables
     integer               :: ji,jl
     real(wp)              :: min_thick,max_thick,thick_rel
     real(wp), allocatable :: lowest_thicknesses(:)
@@ -367,7 +368,7 @@ module mo_vertical_grid
     !$omp end parallel workshare
     max_thick = toa - z_vector_v(1,2)
     thick_rel = max_thick/min_thick
-    write(*,*) "ratio of maximum to minimum layer thickness (including orography):", thick_rel
+    write(*,*) "ratio of maximum to minimum layer thickness (including orography):",thick_rel
     
     deallocate(lowest_thicknesses)
   
@@ -395,7 +396,8 @@ module mo_vertical_grid
     integer,  intent(in)  :: vorticity_indices_triangles(n_triangles,3)
   
     ! local variables
-    integer :: ji,jl
+    integer :: ji ! horizontal loop index
+    integer :: jl ! vertical loop index
     
     !$omp parallel do private(ji,jl)
     do ji=1,n_triangles

@@ -6,8 +6,7 @@ module mo_inner_product
   ! In this file, the inner product weights are computed.
 
   use mo_definitions, only: wp
-  use mo_grid_nml,    only: n_cells,n_scalars,n_vectors_per_layer,n_edges, &
-                            n_vectors,n_layers,n_pentagons,n_levels
+  use mo_grid_nml,    only: n_cells,n_edges,n_layers,n_pentagons,n_levels
   
   implicit none
   
@@ -33,31 +32,31 @@ module mo_inner_product
     !$omp parallel do private(ji,jl,jm,delta_z)
     do ji=1,n_cells
       do jl=1,n_layers
-      do jm=1,6
-        if (jm<6 .or. ji>n_pentagons) then
-          inner_product_weights(ji,jl,jm) = area_h(1+adjacent_edges(ji,jm),jl)
-          inner_product_weights(ji,jl,jm) = inner_product_weights(ji,jl,jm)*dx(1+adjacent_edges(ji,jm),jl)
-          inner_product_weights(ji,jl,jm) = inner_product_weights(ji,jl,jm)/(2._wp*volume(ji,jl))
+        do jm=1,6
+          if (jm<6 .or. ji>n_pentagons) then
+            inner_product_weights(ji,jl,jm) = area_h(1+adjacent_edges(ji,jm),jl)
+            inner_product_weights(ji,jl,jm) = inner_product_weights(ji,jl,jm)*dx(1+adjacent_edges(ji,jm),jl)
+            inner_product_weights(ji,jl,jm) = inner_product_weights(ji,jl,jm)/(2._wp*volume(ji,jl))
+          else
+            inner_product_weights(ji,jl,jm) = 0._wp
+          endif
+        enddo
+        ! upper w
+        if (jl==1) then
+          delta_z = 2._wp*(z_vector_v(ji,1)-z_scalar(ji,jl))
         else
-          inner_product_weights(ji,jl,jm) = 0._wp
+          delta_z = z_scalar(ji,jl-1)-z_scalar(ji,jl)
         endif
-      enddo
-      ! upper w
-      if (jl==1) then
-        delta_z = 2._wp*(z_vector_v(ji,1)-z_scalar(ji,jl))
-      else
-        delta_z = z_scalar(ji,jl-1)-z_scalar(ji,jl)
-      endif
-      inner_product_weights(ji,jl,7) = area_v(ji,jl)*delta_z/(2._wp*volume(ji,jl))
-      ! lower w
-      if (jl==n_layers) then
-        delta_z = 2._wp*(z_scalar(ji,jl)-z_vector_v(ji,n_levels))
-      else
-        delta_z = z_scalar(ji,jl)-z_scalar(ji,jl+1)
-      endif
-      
-      inner_product_weights(ji,jl,8) = area_v(ji,jl+1)*delta_z/(2._wp*volume(ji,jl))
-    
+        inner_product_weights(ji,jl,7) = area_v(ji,jl)*delta_z/(2._wp*volume(ji,jl))
+        ! lower w
+        if (jl==n_layers) then
+          delta_z = 2._wp*(z_scalar(ji,jl)-z_vector_v(ji,n_levels))
+        else
+          delta_z = z_scalar(ji,jl)-z_scalar(ji,jl+1)
+        endif
+        
+        inner_product_weights(ji,jl,8) = area_v(ji,jl+1)*delta_z/(2._wp*volume(ji,jl))
+        
       enddo
     enddo
     !$omp end parallel do

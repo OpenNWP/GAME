@@ -309,7 +309,7 @@ program control
   call nc_check(nf90_def_dim(ncid_g_prop,"index_10",10,dimid_10))
   call nc_check(nf90_def_dim(ncid_g_prop,"layer_index",n_layers,layer_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"level_index",n_levels,level_dimid))
-  call nc_check(nf90_def_dim(ncid_g_prop,"scalar_dual_h_index",n_triangles,triangle_dimid))
+  call nc_check(nf90_def_dim(ncid_g_prop,"triangle_index",n_triangles,triangle_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"edge_index",n_edges,edge_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"lat_index",n_lat_io_points,lat_dimid))
   call nc_check(nf90_def_dim(ncid_g_prop,"lon_index",n_lon_io_points,lon_dimid))

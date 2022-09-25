@@ -7,8 +7,7 @@ module mo_coriolis
 
   use mo_definitions,     only: wp
   use mo_constants,       only: EPSILON_SECURITY
-  use mo_grid_nml,        only: radius,n_edges,n_dual_vectors,n_vectors,n_triangles,n_cells, &
-                                n_pentagons,n_scalars,n_layers,toa,n_levels
+  use mo_grid_nml,        only: radius,n_edges,n_triangles,n_cells,n_pentagons,n_layers,toa,n_levels
   use mo_geodesy,         only: calc_triangle_area,sort_vertex_indices
   use mo_various_helpers, only: in_bool_checker
   
@@ -22,8 +21,8 @@ module mo_coriolis
     ! This subroutine implements the modified TRSK scheme proposed by Gassmann (2018). Indices and weights are computed here for the highest layer but remain unchanged elsewhere.
     
     real(wp), intent(in)  :: dx(n_edges,n_layers),dy(n_edges,n_levels),area_v(n_cells,n_levels), &
-                             z_scalar(n_cells,n_layers),lat_c(n_scalars),lon_c(n_scalars), &
-                             lat_e(n_vectors),lon_e(n_vectors), &
+                             z_scalar(n_cells,n_layers),lat_c(n_cells),lon_c(n_cells), &
+                             lat_e(n_edges),lon_e(n_edges), &
                              lat_c_dual(n_triangles),lon_c_dual(n_triangles),z_vector_h(n_edges,n_layers)
     integer,  intent(in)  :: from_cell_dual(n_edges),to_cell_dual(n_edges), &
                              to_cell(n_edges),from_cell(n_edges),adjacent_edges(n_cells,6)
