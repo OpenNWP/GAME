@@ -236,11 +236,12 @@ program control
   write(*,*) "Finished."
   
   write(*,*) "Calculating areas ..."
-  call set_area(area_h,z_vector_h,z_vector_dual_h,dy,pent_hex_face_unity_sphere)
+  call set_area(area_h,area_v,z_vector_v,z_vector_dual_h,dy,pent_hex_face_unity_sphere)
   write(*,*) "Finished."
   
   write(*,*) "Calculating dual areas ..."
-  call set_area_dual(area_dual_h,z_vector_dual_h,dx,z_vector_h,from_cell,to_cell,triangle_face_unit_sphere)
+  call set_area_dual(area_dual_h,area_dual_v,z_vector_dual_v,dx,z_vector_h,z_vector_v, &
+                     from_cell,to_cell,triangle_face_unit_sphere)
   write(*,*) "Finished."
   
   write(*,*) "Calculating grid box volumes ..."
@@ -394,13 +395,13 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"volume",NF90_REAL,dimids_vector_2,volume_id))
   call nc_check(nf90_put_att(ncid_g_prop,volume_id,"units","m^3"))
   
-  ! horizontal areas of the primal grid
+  ! areas of the primal grid with horizontal normal
   dimids_vector_2(1) = edge_dimid
   dimids_vector_2(2) = layer_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"area_h",NF90_REAL,dimids_vector_2,area_h_id))
   call nc_check(nf90_put_att(ncid_g_prop,area_h_id,"units","m^2"))
   
-  ! vertical areas of the primal grid
+  ! areas of the primal grid with vertical normal
   dimids_vector_2(1) = cell_dimid
   dimids_vector_2(2) = level_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"area_v",NF90_REAL,dimids_vector_2,area_v_id))
@@ -434,13 +435,13 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"dz_dual",NF90_REAL,dimids_vector_2,dz_dual_id))
   call nc_check(nf90_put_att(ncid_g_prop,dz_dual_id,"units","m"))
   
-  ! horizontal areas of the dual grid
+  ! areas of the dual grid with horizontal normal
   dimids_vector_2(1) = edge_dimid
   dimids_vector_2(2) = level_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"area_dual_h",NF90_REAL,dimids_vector_2,area_dual_h_id))
   call nc_check(nf90_put_att(ncid_g_prop,area_dual_h_id,"units","m^2"))
 
-  ! vertical areas of the dual grid
+  ! areas of the dual grid with vertical normal
   dimids_vector_2(1) = triangle_dimid
   dimids_vector_2(2) = layer_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"area_dual_v",NF90_REAL,dimids_vector_2,area_dual_v_id))

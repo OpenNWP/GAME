@@ -183,45 +183,50 @@ module mo_vertical_grid
     
   end subroutine set_z_scalar_dual
   
-  subroutine set_area_dual(area_dual,z_vector_dual,normal_distance,z_vector,from_cell,to_cell,triangle_face_unit_sphere)
+  subroutine set_area_dual(area_dual_h,area_dual_v,z_vector_dual_v,dx,z_vector_h,z_vector_v, &
+                           from_cell,to_cell,triangle_face_unit_sphere)
 
     ! This subroutine computes the areas of the dual grid.
   
-    real(wp), intent(out) :: area_dual(n_dual_vectors)
-    real(wp), intent(in)  :: z_vector_dual(n_dual_vectors),normal_distance(n_vectors),z_vector(n_vectors), &
-                             triangle_face_unit_sphere(n_triangles)
-    integer,  intent(in)  :: from_cell(n_edges),to_cell(n_edges)
+    real(wp), intent(out) :: area_dual_h(n_edges,n_levels)
+    real(wp), intent(out) :: area_dual_v(n_triangles,n_layers)
+    real(wp), intent(in)  :: z_vector_dual_v(n_triangles,n_levels)
+    real(wp), intent(in)  :: dx(n_edges,n_layers)
+    real(wp), intent(in)  :: z_vector_h(n_edges,n_layers)
+    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)
+    real(wp), intent(in)  :: triangle_face_unit_sphere(n_triangles)
+    integer,  intent(in)  :: from_cell(n_edges)
+    integer,  intent(in)  :: to_cell(n_edges)
   
     ! local variables
-    integer  :: ji,layer_index,h_index,primal_vector_index
+    integer  :: ji,jl
     real(wp) :: radius_1,radius_2,base_distance
   
-    !$omp parallel do private(ji,layer_index,h_index,primal_vector_index,radius_1,radius_2,base_distance)
-    do ji=1,n_dual_vectors
-      layer_index = (ji-1)/n_dual_vectors_per_layer
-      h_index = ji - layer_index*n_dual_vectors_per_layer
-      if (h_index>=n_edges+1) then
-        area_dual(ji) = (radius + z_vector_dual(ji))**2*triangle_face_unit_sphere(h_index-n_edges)
-      else
-        if (layer_index==0) then
-          primal_vector_index = n_cells + h_index
-          radius_1 = radius + z_vector(primal_vector_index)
+    ! dual areas with vertical normal
+    !$omp parallel do private(jl)
+    do jl=1,n_layers
+      area_dual_v(:,jl) = (radius + z_vector_dual_v(:,jl))**2*triangle_face_unit_sphere
+    enddo
+    
+    ! dual areas with horizontal normal
+    !$omp parallel do private(ji,jl,radius_1,radius_2,base_distance)
+    do ji=1,n_edges
+      do jl=1,n_levels
+        if (jl==1) then
+          radius_1 = radius + z_vector_h(ji,jl)
           radius_2 = radius + toa
-          base_distance = normal_distance(primal_vector_index)
-        else if (layer_index==n_layers) then
-          primal_vector_index = n_cells + (n_layers-1)*n_vectors_per_layer + h_index
-          radius_1 = radius + 0.5_wp*(z_vector(n_layers*n_vectors_per_layer + 1 + from_cell(h_index)) &
-          + z_vector(n_layers*n_vectors_per_layer + 1 + to_cell(h_index)))
-          radius_2 = radius + z_vector(primal_vector_index)
-          base_distance = normal_distance(primal_vector_index)*radius_1/radius_2
+          base_distance = dx(ji,jl+1)
+        else if (jl==n_levels) then
+          radius_1 = radius + 0.5_wp*(z_vector_v(1+from_cell(ji),n_levels) + z_vector_v(1+to_cell(ji),n_levels))
+          radius_2 = radius + z_vector_h(ji,n_layers)
+          base_distance = dx(ji,n_layers)*radius_1/radius_2
         else
-          primal_vector_index = n_cells + layer_index*n_vectors_per_layer + h_index
-          radius_1 = radius + z_vector(primal_vector_index)
-          radius_2 = radius + z_vector(primal_vector_index - n_vectors_per_layer)
-          base_distance = normal_distance(primal_vector_index)
+          radius_1 = radius + z_vector_h(ji,jl-1)
+          radius_2 = radius + z_vector_h(ji,jl)
+          base_distance = dx(ji,jl)
         endif
-        area_dual(ji) = calculate_vertical_area(base_distance,radius_1,radius_2)
-      endif
+        area_dual_h(ji,jl) = calculate_vertical_area(base_distance,radius_1,radius_2)
+      enddo
     enddo
     !$omp end parallel do
     
@@ -266,30 +271,39 @@ module mo_vertical_grid
   
   end subroutine set_background_state
   
-  subroutine set_area(area,z_vector,z_vector_dual,normal_distance_dual,pent_hex_face_unity_sphere)
+  subroutine set_area(area_h,area_v,z_vector_v,z_vector_dual_h,dy,pent_hex_face_unity_sphere)
 
     ! This function sets the areas of the grid boxes.
-    real(wp), intent(out) :: area(n_vectors)
-    real(wp), intent(in)  :: z_vector(n_vectors),z_vector_dual(n_dual_vectors), &
-                             normal_distance_dual(n_dual_vectors),pent_hex_face_unity_sphere(n_cells)
+    
+    real(wp), intent(out) :: area_h(n_edges,n_layers)
+    real(wp), intent(out) :: area_v(n_cells,n_levels)
+    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)
+    real(wp), intent(in)  :: z_vector_dual_h(n_edges,n_levels)
+    real(wp), intent(in)  :: dy(n_edges,n_levels)
+    real(wp), intent(in)  :: pent_hex_face_unity_sphere(n_cells)
   
     ! local variables
-    integer  :: ji,layer_index,h_index,dual_vector_index
+    integer  :: ji,jl
     real(wp) :: base_distance,radius_1,radius_2
     
-    !$omp parallel do private(ji,layer_index,h_index,dual_vector_index,base_distance,radius_1,radius_2)
-    do ji=1,n_vectors
-      layer_index = (ji-1)/n_vectors_per_layer
-      h_index = ji-layer_index*n_vectors_per_layer
-      if (h_index<=n_cells) then
-        area(ji) = pent_hex_face_unity_sphere(h_index)*(radius+z_vector(ji))**2
-      else
-        dual_vector_index = (layer_index+1)*n_dual_vectors_per_layer + h_index - n_cells
-        radius_1 = radius+z_vector_dual(dual_vector_index)
-        radius_2 = radius+z_vector_dual(dual_vector_index - n_dual_vectors_per_layer)
-        base_distance = normal_distance_dual(dual_vector_index)
-        area(ji) = calculate_vertical_area(base_distance,radius_1,radius_2)
-      endif
+    ! areas with horizontal normal
+    !$omp parallel do private(ji,jl,base_distance,radius_1,radius_2)
+    do ji=1,n_edges
+      do jl=1,n_layers
+        radius_1 = radius+z_vector_dual_h(ji,jl+1)
+        radius_2 = radius+z_vector_dual_h(ji,jl)
+        base_distance = dy(ji,jl+1)
+        area_h(ji,jl) = calculate_vertical_area(base_distance,radius_1,radius_2)
+      enddo
+    enddo
+    !$omp end parallel do
+    
+    ! areas with vertical normal
+    !$omp parallel do private(ji,jl)
+    do ji=1,n_edges
+      do jl=1,n_levels
+        area_v(ji,jl) = pent_hex_face_unity_sphere(ji)*(radius+z_vector_v(ji,jl))**2
+      enddo
     enddo
     !$omp end parallel do
     
@@ -364,9 +378,9 @@ module mo_vertical_grid
   
   end subroutine set_z_vector_and_normal_distance
   
-  subroutine calc_z_vector_dual_and_normal_distance_dual(z_vector_dual,normal_distance_dual, &
-  z_scalar_dual,from_cell,to_cell,z_vector, &
-  from_cell_dual,to_cell_dual,lat_c_dual,lon_c_dual,vorticity_indices_triangles)
+  subroutine calc_z_vector_dual_and_normal_distance_dual(z_vector_dual,normal_distance_dual,z_scalar_dual,from_cell,to_cell, &
+                                                         z_vector,from_cell_dual,to_cell_dual,lat_c_dual,lon_c_dual, &
+                                                         vorticity_indices_triangles)
   
     ! This subroutine sets the z coordinates of the dual vector points as well as the normal distances of the dual grid.
     
