@@ -9,7 +9,7 @@ module mo_vorticities
   use mo_grid_nml,    only: n_layers,n_edges,n_vectors,n_layers,n_dual_vectors_per_layer,n_dual_v_vectors, &
                             n_triangles,n_cells,n_vectors_per_layer,n_edges,n_dual_vectors, &
                             n_scalars,n_levels
-  use mo_grid_setup,  only: n_oro_layers,radius,toa
+  use mo_grid_setup,  only: n_flat_layers,radius,toa
   use mo_averaging,   only: horizontal_covariant
   
   implicit none
@@ -99,51 +99,49 @@ module mo_vorticities
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer  :: ji,jk,layer_index,h_index,vector_index,index_for_vertical_gradient
+    integer  :: ji,jl,jm,jl_for_vertical_gradient
     real(wp) :: velocity_value,length_rescale_factor,vertical_gradient,delta_z
     
     ! loop over all triangles
-    !$omp parallel do private(ji,jk,layer_index,h_index,velocity_value,length_rescale_factor, &
-    !$omp vector_index,index_for_vertical_gradient,vertical_gradient,delta_z)
-    do ji=1,n_dual_v_vectors
-      layer_index = (ji-1)/n_triangles
-      h_index = ji - layer_index*n_triangles
-      ! clearing what has previously been here
-      diag%rel_vort_on_triangles(h_index,layer_index+1) = 0._wp
-      ! loop over the three edges of the triangle at hand
-      do jk=1,3
-        vector_index = n_cells + layer_index*n_vectors_per_layer + grid%vorticity_indices_triangles(h_index,jk)
-        velocity_value = state%wind_h(grid%vorticity_indices_triangles(h_index,jk),layer_index+1)
-        ! this corrects for terrain following coordinates
-        length_rescale_factor = 1._wp
-        if (layer_index>=n_layers-n_oro_layers) then
-          length_rescale_factor = (radius + grid%z_vector_dual_h(h_index,layer_index+1)) &
-          /(radius+grid%z_vector_h(grid%vorticity_indices_triangles(h_index,jk),layer_index+1))
-          delta_z = grid%z_vector_dual_v(h_index,layer_index+1) &
-          - grid%z_vector_h(grid%vorticity_indices_triangles(h_index,jk),layer_index+1)
-          if (delta_z>0._wp) then
-            index_for_vertical_gradient = vector_index - n_vectors_per_layer
-          else
-            if (layer_index==n_layers-1) then
-              index_for_vertical_gradient = layer_index + 1 - 1
+    !$omp parallel do private(ji,jl,jm,velocity_value,length_rescale_factor, &
+    !$omp jl_for_vertical_gradient,vertical_gradient,delta_z)
+    do ji=1,n_triangles
+      do jl=1,n_layers
+        ! clearing what has previously been here
+        diag%rel_vort_on_triangles(ji,jl) = 0._wp
+        ! loop over the three edges of the triangle at hand
+        do jm=1,3
+          velocity_value = state%wind_h(grid%vorticity_indices_triangles(ji,jm),jl)
+          ! this corrects for terrain following coordinates
+          length_rescale_factor = 1._wp
+          if (jl>n_flat_layers) then
+            length_rescale_factor = (radius + grid%z_vector_dual_v(ji,jl)) &
+            /(radius+grid%z_vector_h(grid%vorticity_indices_triangles(ji,jm),jl))
+            delta_z = grid%z_vector_dual_v(ji,jl) &
+            - grid%z_vector_h(grid%vorticity_indices_triangles(ji,jm),jl)
+            if (delta_z>0._wp) then
+              jl_for_vertical_gradient = jl-1
             else
-              index_for_vertical_gradient = layer_index + 1 + 1
+              if (jl==n_layers) then
+                jl_for_vertical_gradient = jl-1
+              else
+                jl_for_vertical_gradient = jl+1
+              endif
             endif
+            vertical_gradient = (state%wind_h(ji,jl) - state%wind_h(ji,jl_for_vertical_gradient)) &
+                                /(grid%z_vector_h(ji,jl) - grid%z_vector_h(ji,jl_for_vertical_gradient))
+            ! Here, the vertical interpolation is made.
+            velocity_value = velocity_value+delta_z*vertical_gradient
           endif
-          vertical_gradient = (state%wind_h(h_index,layer_index+1) - state%wind_h(h_index,index_for_vertical_gradient)) &
-                              /(grid%z_vector_h(h_index,layer_index+1) - grid%z_vector_h(h_index,index_for_vertical_gradient))
-          ! Here, the vertical interpolation is made.
-          velocity_value = velocity_value+delta_z*vertical_gradient
-        endif
-        diag%rel_vort_on_triangles(h_index,layer_index+1) = diag%rel_vort_on_triangles(h_index,layer_index+1) &
-                                       + length_rescale_factor*grid%dx(grid%vorticity_indices_triangles(h_index,jk),layer_index+1) &
-                                       *grid%vorticity_signs_triangles(h_index,jk)*velocity_value
-      enddo
+          diag%rel_vort_on_triangles(ji,jl) = diag%rel_vort_on_triangles(ji,jl) &
+                                              + length_rescale_factor*grid%dx(grid%vorticity_indices_triangles(ji,jm),jl) &
+                                              *grid%vorticity_signs_triangles(ji,jm)*velocity_value
+        enddo
+        
+        ! dividing by the area (Stokes' Theorem)
+        diag%rel_vort_on_triangles(ji,jl) = diag%rel_vort_on_triangles(ji,jl)/grid%area_dual_v(ji,jl)
       
-      ! dividing by the area (Stokes' Theorem)
-      diag%rel_vort_on_triangles(h_index,layer_index+1) = diag%rel_vort_on_triangles(h_index,layer_index+1)/ &
-                                                          grid%area_dual_v(h_index,layer_index+1)
-    
+      enddo
     enddo
     !$omp end parallel do
     
