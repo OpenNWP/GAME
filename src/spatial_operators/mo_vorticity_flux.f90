@@ -20,139 +20,102 @@ module mo_vorticity_flux
     type(t_grid), intent(in)    :: grid ! grid quantities
     
     ! local variables
-    integer  :: ji,jk,h_index,layer_index,h_index_shifted,n_edges_of_cell,mass_flux_base_index,pot_vort_base_index
-    real(wp) :: vert_weight
+    integer  :: ji,jl,jm,n_edges_of_cell
     
-    !$omp parallel do private(ji,jk,h_index,layer_index,n_edges_of_cell,vert_weight,h_index_shifted, &
-    !$omp mass_flux_base_index,pot_vort_base_index)
-    do h_index=1,n_vectors_per_layer
-      do layer_index=0,n_layers
-      
-        ji = layer_index*n_vectors_per_layer + h_index
+    ! Calculating the horizontal component of the vorticity flux term.
+    ! ----------------------------------------------------------------
+    !$omp parallel do private(ji,jl,jm)
+    do ji=1,n_edges
+      do jl=1,n_layers
+        diag%pot_vort_tend_h(ji,jl) = 0._wp
         
-        ! Calculating the horizontal component of the vorticity flux term.
-        ! ----------------------------------------------------------------
-        if (h_index>=n_cells+1 .and. layer_index<n_layers) then
-          diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = 0._wp
-          h_index_shifted = h_index - n_cells
-          mass_flux_base_index = n_cells + layer_index*n_vectors_per_layer
-          pot_vort_base_index = n_edges + layer_index*2*n_edges
-          
-          ! "Standard" component (vertical potential vorticity times horizontal mass flux density).
-          ! ---------------------------------------------------------------------------------------
-          ! from_cell comes before to_cell as usual.
-          if (grid%from_cell(h_index_shifted)<=n_pentagons) then
-            do jk=1,4
-              diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
-              + grid%trsk_weights(h_index_shifted,jk) &
-              *diag%flux_density_h(grid%trsk_indices(h_index_shifted,jk),layer_index+1) &
-              *diag%pot_vort_h(grid%trsk_modified_curl_indices(h_index_shifted,jk),layer_index+1)
-            enddo
-          else
-            do jk=1,5
-              if (jk==3) then
-                diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
-                + grid%trsk_weights(h_index_shifted,jk) &
-                *diag%flux_density_h(grid%trsk_indices(h_index_shifted,jk),layer_index+1) &
-                *0.5 &
-                *(diag%pot_vort_h(grid%trsk_modified_curl_indices(h_index_shifted,jk),layer_index+1) &
-                + diag%pot_vort_h(h_index_shifted,layer_index+1))
-              else
-                diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
-                + grid%trsk_weights(h_index_shifted,jk) &
-                *diag%flux_density_h(grid%trsk_indices(h_index_shifted,jk),layer_index+1) &
-                *diag%pot_vort_h(grid%trsk_modified_curl_indices(h_index_shifted,jk),layer_index+1)
-              endif
-            enddo
-          endif
-          if (grid%to_cell(h_index_shifted)<=n_pentagons) then
-            do jk=6,10
-              diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
-              + grid%trsk_weights(h_index_shifted,jk) &
-              *diag%flux_density_h(grid%trsk_indices(h_index_shifted,jk),layer_index+1) &
-              *diag%pot_vort_h(grid%trsk_modified_curl_indices(h_index_shifted,jk),layer_index+1)
-            enddo
-          else
-            do jk=6,10
-              if (jk==8) then
-                diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
-                + grid%trsk_weights(h_index_shifted,jk) &
-                *diag%flux_density_h(grid%trsk_indices(h_index_shifted,jk),layer_index+1) &
-                *0.5 &
-                *(diag%pot_vort_h(grid%trsk_modified_curl_indices(h_index_shifted,jk),layer_index+1) &
-                + diag%pot_vort_h(h_index_shifted,layer_index+1))
-              else
-                diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
-                + grid%trsk_weights(h_index_shifted,jk) &
-                *diag%flux_density_h(grid%trsk_indices(h_index_shifted,jk),layer_index+1) &
-                *diag%pot_vort_h(grid%trsk_modified_curl_indices(h_index_shifted,jk),layer_index+1)
-              endif
-            enddo
-          endif
-            
-          ! Horizontal "non-standard" component (horizontal potential vorticity times vertical mass flux density).
-          ! ------------------------------------------------------------------------------------------------------
-           
-          ! effect of layer above
-          diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
-          - 0.5_wp &
-          *grid%inner_product_weights(grid%from_cell(h_index_shifted),layer_index+1,7) &
-          *diag%flux_density_v(grid%from_cell(h_index_shifted),layer_index+1) &
-          *diag%pot_vort_h(h_index_shifted,layer_index+1)
-          diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
-          - 0.5_wp &
-          *grid%inner_product_weights(grid%to_cell(h_index_shifted),layer_index+1,7) &
-          *diag%flux_density_v(grid%to_cell(h_index_shifted),layer_index+1) &
-          *diag%pot_vort_h(h_index_shifted,layer_index+1)
-            ! effect of layer below
-          diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
-          - 0.5_wp &
-          *grid%inner_product_weights(grid%from_cell(h_index_shifted),layer_index+1,8) &
-          *diag%flux_density_v(grid%from_cell(h_index_shifted),layer_index+1) &
-          *diag%pot_vort_h(h_index_shifted,layer_index+2)
-          diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) = diag%pot_vort_tend_h(h_index-n_cells,layer_index+1) &
-          - 0.5_wp &
-          *grid%inner_product_weights(grid%to_cell(h_index_shifted),layer_index+1,8) &
-          *diag%flux_density_v(grid%to_cell(h_index_shifted),layer_index+1) &
-          *diag%pot_vort_h(h_index_shifted,layer_index+2)
-        ! Calculating the vertical component of the vorticity flux term.
-        ! --------------------------------------------------------------
-        elseif (h_index<=n_cells) then
-          diag%pot_vort_tend_v(h_index,layer_index+1) = 0._wp
-          
-          ! Determining the vertical acceleration due to the vorticity flux term.
-          
-          ! determining the number of edges
-          n_edges_of_cell = 6
-          if (h_index<=n_pentagons) then
-            n_edges_of_cell = 5
-          endif
-          ! determining the vertical interpolation weight
-          vert_weight = 0.5_wp
-          if (layer_index==0 .or. layer_index==n_layers) then
-            vert_weight = 1._wp
-          endif
-          if (layer_index>=1) then
-            do jk=1,n_edges_of_cell
-              diag%pot_vort_tend_v(h_index,layer_index+1) = diag%pot_vort_tend_v(h_index,layer_index+1) &
-              + vert_weight &
-              *grid%inner_product_weights(h_index,layer_index,jk) &
-              *diag%flux_density_h(grid%adjacent_edges(h_index,jk),layer_index) &
-              *diag%pot_vort_h(grid%adjacent_edges(h_index,jk),layer_index)
-            enddo
-          endif
-          if (layer_index<=n_layers-1) then
-            do jk=1,n_edges_of_cell
-              diag%pot_vort_tend_v(h_index,layer_index+1) = diag%pot_vort_tend_v(h_index,layer_index+1) &
-              + vert_weight &
-              *grid%inner_product_weights(h_index,layer_index+1,jk) &
-              *diag%flux_density_h(grid%adjacent_edges(h_index,jk),layer_index+1) &
-              *diag%pot_vort_h(grid%adjacent_edges(h_index,jk),layer_index+1)
-            enddo
-          endif
+        ! "Standard" component (vertical potential vorticity times horizontal mass flux density).
+        ! ---------------------------------------------------------------------------------------
+        ! from_cell comes before to_cell as usual.
+        if (grid%from_cell(ji)<=n_pentagons) then
+          do jm=1,4
+            diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
+            + grid%trsk_weights(ji,jm)*diag%flux_density_h(grid%trsk_indices(ji,jm),jl) &
+            *diag%pot_vort_v(grid%trsk_modified_curl_indices(ji,jm),jl)
+          enddo
+        else
+          do jm=1,5
+            if (jm==3) then
+              diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
+              + grid%trsk_weights(ji,jm)*diag%flux_density_h(grid%trsk_indices(ji,jm),jl) &
+              *0.5*(diag%pot_vort_v(grid%trsk_modified_curl_indices(ji,jm),jl) + diag%pot_vort_v(ji,jl))
+            else
+              diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
+              + grid%trsk_weights(ji,jm) &
+              *diag%flux_density_h(grid%trsk_indices(ji,jm),jl) &
+              *diag%pot_vort_v(grid%trsk_modified_curl_indices(ji,jm),jl)
+            endif
+          enddo
         endif
+        if (grid%to_cell(ji)<=n_pentagons) then
+          do jm=6,10
+            diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
+            + grid%trsk_weights(ji,jm)*diag%flux_density_h(grid%trsk_indices(ji,jm),jl) &
+            *diag%pot_vort_v(grid%trsk_modified_curl_indices(ji,jm),jl)
+          enddo
+        else
+          do jm=6,10
+            if (jm==8) then
+              diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
+              + grid%trsk_weights(ji,jm)*diag%flux_density_h(grid%trsk_indices(ji,jm),jl) &
+              *0.5_wp*(diag%pot_vort_v(grid%trsk_modified_curl_indices(ji,jm),jl) + diag%pot_vort_v(ji,jl))
+            else
+              diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
+              + grid%trsk_weights(ji,jm)*diag%flux_density_h(grid%trsk_indices(ji,jm),jl) &
+              *diag%pot_vort_v(grid%trsk_modified_curl_indices(ji,jm),jl)
+            endif
+          enddo
+        endif
+        
+        ! Horizontal "non-standard" component (horizontal potential vorticity times vertical mass flux density).
+        ! ------------------------------------------------------------------------------------------------------
+         
+        ! effect of layer above
+        diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
+        - 0.5_wp*grid%inner_product_weights(grid%from_cell(ji),jl,7) &
+        *diag%flux_density_v(grid%from_cell(ji),jl)*diag%pot_vort_h(ji,jl)
+        diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
+        - 0.5_wp*grid%inner_product_weights(grid%to_cell(ji),jl,7) &
+        *diag%flux_density_v(grid%to_cell(ji),jl)*diag%pot_vort_h(ji,jl)
+        ! effect of layer below
+        diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
+        - 0.5_wp*grid%inner_product_weights(grid%from_cell(ji),jl,8) &
+        *diag%flux_density_v(grid%from_cell(ji),jl+1)*diag%pot_vort_h(ji,jl+1)
+        diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
+        - 0.5_wp*grid%inner_product_weights(grid%to_cell(ji),jl+1,8) &
+        *diag%flux_density_v(grid%to_cell(ji),jl)*diag%pot_vort_h(ji,jl+1)
+          
       enddo
     enddo
+    !$omp end parallel do
+      
+    ! Calculating the vertical component of the vorticity flux term.
+    ! --------------------------------------------------------------
+    !$omp parallel do private(ji,jl,n_edges_of_cell)
+    do ji=1,n_cells
+      do jl=2,n_layers
+        diag%pot_vort_tend_v(ji,jl) = 0._wp
+        
+        ! Determining the vertical acceleration due to the vorticity flux term.
+        
+        ! determining the number of edges
+        n_edges_of_cell = 6
+        if (ji<=n_pentagons) then
+          n_edges_of_cell = 5
+        endif
+        do jm=1,n_edges_of_cell
+          diag%pot_vort_tend_v(ji,jl) = diag%pot_vort_h(grid%adjacent_edges(ji,jm),jl) &
+          *0.5_wp*(grid%inner_product_weights(ji,jl-1,jm)*diag%flux_density_h(grid%adjacent_edges(ji,jm),jl-1) &
+          + grid%inner_product_weights(ji,jl,jm)*diag%flux_density_h(grid%adjacent_edges(ji,jm),jl))
+        enddo
+      enddo
+    enddo
+    !$omp end parallel do
   
   end subroutine vorticity_flux
   
