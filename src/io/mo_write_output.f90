@@ -23,7 +23,7 @@ module mo_write_output
   use mo_run_nml,                only: run_id,start_date,start_hour
   use mo_vorticities,            only: calc_rel_vort,calc_pot_vort
   use mo_spatial_ops_for_output, only: inner_product_tangential,epv_diagnostics,edges_to_cells_lowest_layer, &
-                                       calc_uv_at_edge,edges_to_cells,curl_field_to_cells
+                                       calc_uv_at_edge,edges_to_cells
   use mo_divergences,            only: div_h
   use mo_inner_product,          only: inner_product
   
@@ -583,7 +583,7 @@ module mo_write_output
     call div_h(state%wind_v,div_h_all_layers,grid)
     call calc_rel_vort(state,diag,grid)
     allocate(rel_vort_scalar_field(n_cells,n_layers))
-    call curl_field_to_cells(diag%rel_vort_v,rel_vort_scalar_field,grid)
+    call edges_to_cells(diag%rel_vort_v,rel_vort_scalar_field,grid)
     
     ! Diagnozing the u and v wind components at the vector points.
     allocate(u_at_edge(n_edges,n_cells))

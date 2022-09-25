@@ -250,38 +250,6 @@ module mo_spatial_ops_for_output
     !$omp end parallel do
     
   end subroutine edges_to_cells
-  
-  subroutine curl_field_to_cells(in_field,out_field,grid)
-    
-    ! This subroutine averages a curl field from edges to cell centers.
-    
-    real(wp),      intent(in)  :: in_field((2*n_layers+1)*n_edges) ! the vorticity field to average
-    real(wp),      intent(out) :: out_field(n_scalars)                 ! the resulting scalar field
-    type(t_grid),  intent(in)  :: grid                                 ! grid quantities
-    
-    integer :: ji,jm,layer_index,h_index,n_edges
-    
-    !$omp parallel do private (ji,jm,layer_index,h_index,n_edges)
-    do ji=1,n_scalars
-      layer_index = (ji-1)/n_cells
-      h_index = ji - layer_index*n_cells
-      ! initializing the result with zero
-      out_field(ji) = 0._wp
-      ! determining the number of edges of the cell at hand
-      n_edges = 6
-      if (h_index<=n_pentagons) then
-        n_edges = 5
-      endif
-      ! loop over all edges of the respective cell
-      do jm=1,n_edges
-        out_field(ji) = out_field(ji) + 0.5_wp &
-        *grid%inner_product_weights(h_index,layer_index+1,jm) &
-        *in_field(n_edges + layer_index*2*n_edges + grid%adjacent_edges(h_index,jm))
-      enddo
-    enddo
-    !$omp end parallel do
-    
-  end subroutine curl_field_to_cells
 
 end module mo_spatial_ops_for_output
 
