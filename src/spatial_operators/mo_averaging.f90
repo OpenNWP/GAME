@@ -39,8 +39,8 @@ module mo_averaging
       if (jl==n_flat_layers+1) then
         do jm=1,n_edges_of_cell
           vertical_contravariant_corr = vertical_contravariant_corr &
-          - 0.5_wp*grid%inner_product_weights(ji,jl-1,jm)*grid%slope(grid%adjacent_edges(ji,jm),jl-1) &
-          *vector_field_h(grid%adjacent_edges(ji,jm),jl-1)
+          - 0.5_wp*grid%inner_product_weights(ji,jl,jm)*grid%slope(grid%adjacent_edges(ji,jm),jl) &
+          *vector_field_h(grid%adjacent_edges(ji,jm),jl)
         enddo
       else
         do jm=1,n_edges_of_cell
@@ -62,10 +62,10 @@ module mo_averaging
     
     ! This function reconstructs the vertical vector component at edge ji in layer jl.
     
-    real(wp),     intent(in) :: vector_field_v(n_cells,n_edges) ! vector field which to reconstruct
-    integer,      intent(in) :: ji,jl                           ! spatial indices
-    type(t_grid), intent(in) :: grid                            ! grid quantities
-    real(wp)                 :: remap_ver2hor                   ! the result
+    real(wp),     intent(in) :: vector_field_v(n_cells,n_levels) ! vector field which to reconstruct
+    integer,      intent(in) :: ji,jl                            ! spatial indices
+    type(t_grid), intent(in) :: grid                             ! grid quantities
+    real(wp)                 :: remap_ver2hor                    ! the result
     
     remap_ver2hor &
     ! layer above

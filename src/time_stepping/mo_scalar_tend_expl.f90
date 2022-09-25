@@ -36,7 +36,7 @@ module mo_scalar_tend_expl
     real(wp) :: old_weight(n_constituents),new_weight(n_constituents)
     
     ! Firstly,some things need to prepared.
-    ! --------------------------------------
+    ! -------------------------------------
     
     ! determining the RK weights
     do jc=1,n_constituents
@@ -135,8 +135,7 @@ module mo_scalar_tend_expl
         !$omp parallel do private(ji,jl)
         do ji=1,n_cells
           do jl=1,n_layers
-            state_tend%rhotheta_v(ji,jl) &
-            = old_weight(jc)*state_tend%rhotheta_v(ji,jl) &
+            state_tend%rhotheta_v(ji,jl) = old_weight(jc)*state_tend%rhotheta_v(ji,jl) &
             + new_weight(jc)*( &
             ! the advection (resolved transport)
             -diag%flux_density_div(ji,jl) &

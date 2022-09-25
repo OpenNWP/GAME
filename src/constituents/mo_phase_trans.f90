@@ -97,7 +97,7 @@ module mo_phase_trans
             p = b/a
             q = c/a
             diff_density = -0.5_wp*p - (0.25_wp*p**2 - q)**0.5_wp
-            phase_trans_density = min(state%rho(ji,jl,4), diff_density)
+            phase_trans_density = min(state%rho(ji,jl,4),diff_density)
                   
             ! the tendency for the water vapour
             diag%phase_trans_rates(ji,jl,5) = phase_trans_density/dtime

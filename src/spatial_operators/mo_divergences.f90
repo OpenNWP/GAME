@@ -36,8 +36,7 @@ module mo_divergences
       do jl=1,n_layers
         comp_h = 0._wp
         do jm=1,n_edges_of_cell
-          comp_h = comp_h &
-          + in_field(grid%adjacent_edges(ji,jm),jl) &
+          comp_h = comp_h + in_field(grid%adjacent_edges(ji,jm),jl) &
           *grid%adjacent_signs(ji,jm)*grid%area_h(grid%adjacent_edges(ji,jm),jl)
         enddo
         comp_v = 0._wp
