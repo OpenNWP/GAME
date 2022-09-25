@@ -396,7 +396,7 @@ program control
       !$omp parallel workshare
       wind_h_lowest_layer = 0._wp
       !$omp end parallel workshare
-      wind_lowest_layer_step_counter = 0
+      wind_lowest_layer_step_counter = 1
     
     endif
     

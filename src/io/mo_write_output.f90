@@ -579,7 +579,7 @@ module mo_write_output
     
     ! Diagnostics of quantities that are not surface-specific.
     allocate(div_h_all_layers(n_cells,n_layers))
-    call div_h(state%wind_v,div_h_all_layers,grid)
+    call div_h(state%wind_h,div_h_all_layers,grid)
     call calc_rel_vort(state,diag,grid)
     allocate(rel_vort_scalar_field(n_cells,n_layers))
     call edges_to_cells(diag%rel_vort_v,rel_vort_scalar_field,grid)
