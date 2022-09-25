@@ -155,20 +155,19 @@ module mo_vorticities
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer  :: ji,jl
+    integer  :: ji ! horizontal loop index
+    integer  :: jl ! vertical loop index
     
     ! calling the subroutine which computes the relative vorticity on triangles
     call calc_rel_vort_on_triangles(state,diag,grid)
                         
     ! vertical vorticities       
-    !$omp parallel do private(ji,jl)
+    !$omp parallel do private(ji)
     do ji=1,n_edges
-      do jl=1,n_layers
-        diag%rel_vort_v(ji,jl) = ( &
-        grid%area_dual_v(grid%from_cell_dual(ji),jl)*diag%rel_vort_on_triangles(grid%from_cell_dual(ji),jl) &
-        + grid%area_dual_v(grid%to_cell_dual(ji),jl)*diag%rel_vort_on_triangles(grid%to_cell_dual(ji),jl))/( &
-        grid%area_dual_v(grid%from_cell_dual(ji),jl) + grid%area_dual_v(grid%to_cell_dual(ji),jl))
-      enddo
+      diag%rel_vort_v(ji,:) = ( &
+      grid%area_dual_v(grid%from_cell_dual(ji),:)*diag%rel_vort_on_triangles(grid%from_cell_dual(ji),:) &
+      + grid%area_dual_v(grid%to_cell_dual(ji),:)*diag%rel_vort_on_triangles(grid%to_cell_dual(ji),:))/ &
+      (grid%area_dual_v(grid%from_cell_dual(ji),:) + grid%area_dual_v(grid%to_cell_dual(ji),:))
     enddo
     !$omp end parallel do
           
@@ -177,16 +176,16 @@ module mo_vorticities
     do ji=1,n_edges
       do jl=2,n_levels
         ! At the lower boundary, w vanishes. Furthermore, the covariant velocity below the surface is also zero.
-          if (jl==n_levels) then
-            diag%rel_vort_h(ji,n_levels) = 1._wp/grid%area_dual_h(ji,n_levels) &
-                                           *grid%dx(ji,n_layers)*horizontal_covariant(state%wind_h,state%wind_v,ji,n_layers,grid)
-          else
-            diag%rel_vort_h(ji,jl) = 1._wp/grid%area_dual_h(ji,jl)*( &
-            -grid%dx(ji,jl)*horizontal_covariant(state%wind_h,state%wind_v,ji,jl,grid) &
-            + grid%dz(grid%from_cell(ji),jl)*state%wind_v(grid%from_cell(ji),jl) &
-            + grid%dx(ji,jl-1)*horizontal_covariant(state%wind_h,state%wind_v,ji,jl-1,grid) &
-            - grid%dz(grid%to_cell(ji),jl)*state%wind_v(grid%to_cell(ji),jl))
-          endif
+        if (jl==n_levels) then
+          diag%rel_vort_h(ji,n_levels) = 1._wp/grid%area_dual_h(ji,n_levels) &
+                                         *grid%dx(ji,n_layers)*horizontal_covariant(state%wind_h,state%wind_v,ji,n_layers,grid)
+        else
+          diag%rel_vort_h(ji,jl) = 1._wp/grid%area_dual_h(ji,jl)*( &
+          -grid%dx(ji,jl)*horizontal_covariant(state%wind_h,state%wind_v,ji,jl,grid) &
+          + grid%dz(grid%from_cell(ji),jl)*state%wind_v(grid%from_cell(ji),jl) &
+          + grid%dx(ji,jl-1)*horizontal_covariant(state%wind_h,state%wind_v,ji,jl-1,grid) &
+          - grid%dz(grid%to_cell(ji),jl)*state%wind_v(grid%to_cell(ji),jl))
+        endif
       enddo
     enddo
     !$omp end parallel do
