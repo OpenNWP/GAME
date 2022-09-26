@@ -17,14 +17,15 @@ module mo_held_suarez
 
   subroutine held_suar(latitude_scalar,mass_densities,temperature_gas,radiation_tendency)
   
-    real(wp), intent(in)  :: latitude_scalar(n_cells_rad)
-    real(wp), intent(in)  :: mass_densities(n_cells_rad,n_layers,n_constituents)
-    real(wp), intent(in)  :: temperature_gas(n_cells_rad,n_layers)
-    real(wp), intent(out) :: radiation_tendency(n_cells_rad,n_layers)
+    real(wp), intent(in)  :: latitude_scalar(n_cells_rad)                        ! latitudes of the scalar grid points in this radiation block
+    real(wp), intent(in)  :: mass_densities(n_cells_rad,n_layers,n_constituents) ! mass densities in this radiation block
+    real(wp), intent(in)  :: temperature_gas(n_cells_rad,n_layers)               ! temperature of the gas phase in this radiation block
+    real(wp), intent(out) :: radiation_tendency(n_cells_rad,n_layers)            ! resulting heating rate in W/m**3
     
     ! local variables
-    integer  :: ji,jl
-    real(wp) :: pressure
+    integer  :: ji       ! horizontal index
+    integer  :: jl       ! layer index
+    real(wp) :: pressure ! air pressure
   
     !$omp parallel do private(ji,jl,pressure)
     do ji=1,n_cells_rad
