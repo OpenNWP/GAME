@@ -52,11 +52,11 @@ module mo_eff_diff_coeffs
       
         ! preliminary result
         diag%viscosity_rhombi(ji,jl) = 0.5_wp*(diag%viscosity(grid%from_cell(ji),jl) &
-                                                      + diag%viscosity(grid%to_cell(ji),jl))
+                                             + diag%viscosity(grid%to_cell(ji),jl))
         
         ! multiplying by the mass density of the gas phase
        diag%viscosity_rhombi(ji,jl) = 0.5_wp*(state%rho(grid%from_cell(ji),jl,n_condensed_constituents+1) &
-        + state%rho(grid%to_cell(ji),jl,n_condensed_constituents+1))*diag%viscosity_rhombi(ji,jl)
+                       + state%rho(grid%to_cell(ji),jl,n_condensed_constituents+1))*diag%viscosity_rhombi(ji,jl)
         
       enddo
     enddo

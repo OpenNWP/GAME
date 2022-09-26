@@ -91,24 +91,25 @@ module mo_momentum_diff_diss
     ! 1.) vertical diffusion of horizontal velocity
     ! ---------------------------------------------
     ! calculating the vertical gradient of the horizontal velocity at half levels
-    !$omp parallel do private(ji,layer_index,h_index)
-    do ji=n_edges+1,n_h_vectors+n_edges
-      layer_index = (ji-1)/n_edges
-      h_index = ji - layer_index*n_edges
-      ! at the surface
-      if (layer_index==n_layers) then
-        diag%dv_hdz(h_index,layer_index+1) = state%wind_h(h_index,layer_index)/(grid%z_vector_h(h_index,layer_index) &
-        - 0.5_wp*(grid%z_vector_v(grid%from_cell(h_index),n_levels) + grid%z_vector_v(grid%to_cell(h_index),n_levels)))
-      ! inner layers
-      elseif (layer_index>=1) then
-        diag%dv_hdz(h_index,layer_index+1) = (state%wind_h(h_index,layer_index) - state%wind_h(h_index,layer_index+1)) &
-        /(grid%z_vector_h(h_index,layer_index) - grid%z_vector_h(h_index,layer_index+1))
-      endif
-      ! the second derivative is assumed to vanish at the TOA
-      if (layer_index==1) then
-        diag%dv_hdz(h_index,1) = diag%dv_hdz(h_index,2)
-      endif
+    !$omp parallel do private(ji,jl)
+    do ji=1,n_edges
+      do jl=2,n_levels
+        ! at the surface
+        if (jl==n_levels) then
+          diag%dv_hdz(ji,jl) = state%wind_h(ji,n_layers)/(grid%z_vector_h(ji,n_layers) &
+          - 0.5_wp*(grid%z_vector_v(grid%from_cell(ji),n_levels) + grid%z_vector_v(grid%to_cell(ji),n_levels)))
+        ! inner layers
+        else
+          diag%dv_hdz(ji,jl) = (state%wind_h(ji,jl-1) - state%wind_h(ji,jl)) &
+                               /(grid%z_vector_h(ji,jl-1) - grid%z_vector_h(ji,jl))
+        endif
+      enddo
     enddo
+   
+    ! the second derivative is assumed to vanish at the TOA
+    !$omp parallel workshare
+    diag%dv_hdz(:,1) = diag%dv_hdz(:,2)
+    !$omp end parallel workshare
    
     ! calculating the respective diffusion coefficient
     call vert_hor_mom_viscosity(state,diag,grid)
@@ -157,13 +158,11 @@ module mo_momentum_diff_diss
     call grad_vert(diag%scalar_placeholder,diag%vector_placeholder_v,grid)
     call grad_hor(diag%scalar_placeholder,diag%vector_placeholder_h,diag%vector_placeholder_v,grid)
     ! multiplying by the already computed diffusion coefficient
-    !$omp parallel do private(ji,jl)
+    !$omp parallel do private(jl)
     do ji=1,n_edges
-      do jl=1,n_layers
-        diag%vector_placeholder_h(ji,jl) = 0.5_wp &
-        *(diag%viscosity(grid%from_cell(ji),jl) + diag%viscosity(grid%to_cell(ji),jl)) &
-        *diag%vector_placeholder_h(ji,jl)
-      enddo
+      diag%vector_placeholder_h(ji,:) = 0.5_wp &
+      *(diag%viscosity(grid%from_cell(ji),:) + diag%viscosity(grid%to_cell(ji),:)) &
+      *diag%vector_placeholder_h(ji,:)
     enddo
     !$omp end parallel do
     
