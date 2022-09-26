@@ -169,12 +169,12 @@ module mo_vertical_grid
     do ji=1,n_triangles
       z_scalar_dual(ji,:) &
       = 1._wp/6._wp*( &
-      z_vector_v(1+from_cell(1+vorticity_indices_triangles(ji,1)),:) &
-      + z_vector_v(1+from_cell(1+vorticity_indices_triangles(ji,2)),:) &
-      + z_vector_v(1+from_cell(1+vorticity_indices_triangles(ji,3)),:) &
-      + z_vector_v(1+to_cell(1+vorticity_indices_triangles(ji,1)),:) &
-      + z_vector_v(1+to_cell(1+vorticity_indices_triangles(ji,2)),:) &
-      + z_vector_v(1+to_cell(1+vorticity_indices_triangles(ji,3)),:))
+      z_vector_v(from_cell(vorticity_indices_triangles(ji,1)),:) &
+      + z_vector_v(from_cell(vorticity_indices_triangles(ji,2)),:) &
+      + z_vector_v(from_cell(vorticity_indices_triangles(ji,3)),:) &
+      + z_vector_v(to_cell(vorticity_indices_triangles(ji,1)),:) &
+      + z_vector_v(to_cell(vorticity_indices_triangles(ji,2)),:) &
+      + z_vector_v(to_cell(vorticity_indices_triangles(ji,3)),:))
     enddo
     !$omp end parallel do
     
@@ -214,7 +214,7 @@ module mo_vertical_grid
           radius_2 = radius + toa
           base_distance = dx(ji,jl)
         else if (jl==n_levels) then
-          radius_1 = radius + 0.5_wp*(z_vector_v(1+from_cell(ji),n_levels) + z_vector_v(1+to_cell(ji),n_levels))
+          radius_1 = radius + 0.5_wp*(z_vector_v(from_cell(ji),n_levels) + z_vector_v(to_cell(ji),n_levels))
           radius_2 = radius + z_vector_h(ji,n_layers)
           base_distance = dx(ji,n_layers)*radius_1/radius_2
         else
@@ -332,10 +332,10 @@ module mo_vertical_grid
     do ji=1,n_edges
       do jl=1,n_layers
         ! placing the vector vertically in the middle between the two adjacent scalar points
-        z_vector_h(ji,jl) = 0.5_wp*(z_scalar(1+from_cell(ji),jl) + z_scalar(1+to_cell(ji),jl))
+        z_vector_h(ji,jl) = 0.5_wp*(z_scalar(from_cell(ji),jl) + z_scalar(to_cell(ji),jl))
         ! calculating the horizontal distance
         dx(ji,jl) = calculate_distance_h( &
-        lat_c(1+from_cell(ji)),lon_c(1+from_cell(ji)),lat_c(1+to_cell(ji)),lon_c(1+to_cell(ji)),radius+z_vector_h(ji,jl))
+        lat_c(from_cell(ji)),lon_c(from_cell(ji)),lat_c(to_cell(ji)),lon_c(to_cell(ji)),radius+z_vector_h(ji,jl))
       enddo
     enddo
     !$omp end parallel do
@@ -404,9 +404,9 @@ module mo_vertical_grid
       do jl=1,n_layers
         dz_dual(ji,jl) = z_scalar_dual(ji,jl) - z_scalar_dual(ji,jl+1)
         z_vector_dual_v(ji,jl) = 1._wp/3._wp*( &
-        z_vector_h(1+vorticity_indices_triangles(ji,1),jl) &
-        + z_vector_h(1+vorticity_indices_triangles(ji,2),jl) &
-        + z_vector_h(1+vorticity_indices_triangles(ji,3),jl))
+        z_vector_h(vorticity_indices_triangles(ji,1),jl) &
+        + z_vector_h(vorticity_indices_triangles(ji,2),jl) &
+        + z_vector_h(vorticity_indices_triangles(ji,3),jl))
       enddo
     enddo
     !$omp end parallel do
@@ -417,15 +417,15 @@ module mo_vertical_grid
         if (jl==1) then
           z_vector_dual_h(ji,jl) = toa
         elseif (jl==n_levels) then
-          z_vector_dual_h(ji,n_levels) = 0.5_wp*(z_vector_v(1+from_cell(ji),n_levels) &
-                                                 + z_vector_v(1+to_cell(ji),n_levels))
+          z_vector_dual_h(ji,n_levels) = 0.5_wp*(z_vector_v(from_cell(ji),n_levels) &
+                                                 + z_vector_v(to_cell(ji),n_levels))
         else
           z_vector_dual_h(ji,jl) = 0.5_wp*(z_vector_h(ji,jl-1) + z_vector_h(ji,jl))
         endif
-        dy(ji,jl) = calculate_distance_h(lat_c_dual(1+from_cell_dual(ji)), &
-                                         lon_c_dual(1+from_cell_dual(ji)), &
-                                         lat_c_dual(1+to_cell_dual(ji)), & 
-                                         lon_c_dual(1+to_cell_dual(ji)), &
+        dy(ji,jl) = calculate_distance_h(lat_c_dual(from_cell_dual(ji)), &
+                                         lon_c_dual(from_cell_dual(ji)), &
+                                         lat_c_dual(to_cell_dual(ji)), & 
+                                         lon_c_dual(to_cell_dual(ji)), &
                                          radius+z_vector_dual_h(ji,jl))
       enddo
     enddo

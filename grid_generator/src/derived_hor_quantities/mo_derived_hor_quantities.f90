@@ -33,15 +33,15 @@ module mo_derived_hor_quantities
     
     !$omp parallel do private(ji)
     do ji=1,n_edges
-      rel_on_line_dual(ji) = rel_on_line(lat_c_dual(1+from_cell_dual(ji)),lon_c_dual(1+from_cell_dual(ji)), &
-      lat_c_dual(1+to_cell_dual(ji)),lon_c_dual(1+to_cell_dual(ji)),lat_e(ji),lon_e(ji))
+      rel_on_line_dual(ji) = rel_on_line(lat_c_dual(from_cell_dual(ji)),lon_c_dual(from_cell_dual(ji)), &
+      lat_c_dual(to_cell_dual(ji)),lon_c_dual(to_cell_dual(ji)),lat_e(ji),lon_e(ji))
       if (abs(rel_on_line_dual(ji)-0.5_wp)>0.14_wp) then
         write(*,*) "Bisection error."
         call exit(1)
       endif
       direction_dual(ji) = find_geodetic_direction( &
-      lat_c_dual(1+from_cell_dual(ji)),lon_c_dual(1+from_cell_dual(ji)), &
-      lat_c_dual(1+to_cell_dual(ji)),lon_c_dual(1+to_cell_dual(ji)),rel_on_line_dual(ji))
+      lat_c_dual(from_cell_dual(ji)),lon_c_dual(from_cell_dual(ji)), &
+      lat_c_dual(to_cell_dual(ji)),lon_c_dual(to_cell_dual(ji)),rel_on_line_dual(ji))
     enddo
     !$omp end parallel do
   
@@ -61,14 +61,14 @@ module mo_derived_hor_quantities
 
     !$omp parallel do private(ji,x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,x_res,y_res,z_res,lat_res,lon_res)
     do ji=1,n_edges
-      call find_global_normal(lat_c(1+from_cell(ji)),lon_c(1+from_cell(ji)),x_point_1,y_point_1,z_point_1)
-      call find_global_normal(lat_c(1+to_cell(ji)),lon_c(1+to_cell(ji)),x_point_2,y_point_2,z_point_2)
+      call find_global_normal(lat_c(from_cell(ji)),lon_c(from_cell(ji)),x_point_1,y_point_1,z_point_1)
+      call find_global_normal(lat_c(to_cell(ji)),lon_c(to_cell(ji)),x_point_2,y_point_2,z_point_2)
       call find_between_point(x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,0.5_wp,x_res,y_res,z_res)
       call find_geos(x_res,y_res,z_res,lat_res,lon_res)
       lat_e(ji) = lat_res
       lon_e(ji) = lon_res
-      direction(ji) = find_geodetic_direction(lat_c(1+from_cell(ji)),lon_c(1+from_cell(ji)), &
-                                              lat_c(1+to_cell(ji)),lon_c(1+to_cell(ji)),0.5_wp)
+      direction(ji) = find_geodetic_direction(lat_c(from_cell(ji)),lon_c(from_cell(ji)), &
+                                              lat_c(to_cell(ji)),lon_c(to_cell(ji)),0.5_wp)
     enddo
     !$omp end parallel do
     
@@ -98,10 +98,10 @@ module mo_derived_hor_quantities
         to_cell_dual(ji) = temp_index
         rel_on_line_dual(ji) = 1._wp - rel_on_line_dual(ji)
         ! calculating the direction
-        direction_dual(ji) = find_geodetic_direction(lat_c_dual(1+from_cell_dual(ji)), &
-                                                     lon_c_dual(1+from_cell_dual(ji)), &
-                                                     lat_c_dual(1+to_cell_dual(ji)), &
-                                                     lon_c_dual(1+to_cell_dual(ji)), &
+        direction_dual(ji) = find_geodetic_direction(lat_c_dual(from_cell_dual(ji)), &
+                                                     lon_c_dual(from_cell_dual(ji)), &
+                                                     lat_c_dual(to_cell_dual(ji)), &
+                                                     lon_c_dual(+to_cell_dual(ji)), &
                                                      rel_on_line_dual(ji))
       endif
     enddo
@@ -160,29 +160,29 @@ module mo_derived_hor_quantities
     integer,  intent(out) :: vorticity_indices_triangles(n_triangles,3),vorticity_signs_triangles(n_triangles,3)
     
     ! local variables
-    integer             :: ji,jk,counter,sign_
+    integer             :: ji,jk,counter,vorticity_sign
     real(wp)            :: direction_change
     
-    !$omp parallel do private(ji,jk,counter,sign_,direction_change)
+    !$omp parallel do private(ji,jk,counter,vorticity_sign,direction_change)
     do ji=1,n_triangles
       counter = 1
       do jk=1,n_edges
-        if (from_cell_dual(jk)==ji-1 .or. to_cell_dual(jk)==ji-1) then
-          vorticity_indices_triangles(ji,counter) = jk-1
-          sign_ = 1
-          if (from_cell_dual(jk)==ji-1) then
+        if (from_cell_dual(jk)==ji .or. to_cell_dual(jk)==ji) then
+          vorticity_indices_triangles(ji,counter) = jk
+          vorticity_sign = 1
+          if (from_cell_dual(jk)==ji) then
             direction_change = find_turn_angle(direction_dual(jk),direction(jk))
             if (rad2deg(direction_change)<-orth_criterion_deg) then
-              sign_ = -1
+              vorticity_sign = -1
             endif
           endif
-          if (to_cell_dual(jk)==ji-1) then
+          if (to_cell_dual(jk)==ji) then
             direction_change = find_turn_angle(direction_dual(jk),direction(jk))
             if (rad2deg(direction_change)>orth_criterion_deg) then
-              sign_ = -1
+              vorticity_sign = -1
             endif
           endif
-          vorticity_signs_triangles(ji,counter) = sign_
+          vorticity_signs_triangles(ji,counter) = vorticity_sign
           counter = counter+1
         endif
       enddo
@@ -269,16 +269,16 @@ module mo_derived_hor_quantities
     do ji=1,n_cells
       counter = 1
       do jk=1,n_edges
-        if (from_cell(jk)==ji-1 .or. to_cell(jk)==ji-1) then
+        if (from_cell(jk)==ji .or. to_cell(jk)==ji) then
           if (from_cell(jk)==to_cell(jk)) then
             write(*,*) "It is from_cell == to_cell at the following grid point:", jk
             call exit(1)
           endif
-          adjacent_edges(ji,counter) = jk-1
-          if (from_cell(jk)==ji-1) then
+          adjacent_edges(ji,counter) = jk
+          if (from_cell(jk)==ji) then
             adjacent_signs(ji,counter) = 1
           endif
-          if (to_cell(jk)==ji-1) then
+          if (to_cell(jk)==ji) then
             adjacent_signs(ji,counter) = -1
           endif
           counter = counter+1
@@ -295,7 +295,7 @@ module mo_derived_hor_quantities
         call exit(1)
       endif
       if (ji<=n_pentagons) then
-        adjacent_edges(ji,6) = -1
+        adjacent_edges(ji,6) = 0
         adjacent_signs(ji,6) = 0
       endif
     enddo
@@ -313,7 +313,7 @@ module mo_derived_hor_quantities
         endif
         double_check = 0
         do jl=1,n_edges_of_cell
-          if (adjacent_edges(jk,jl)==ji-1) then
+          if (adjacent_edges(jk,jl)==ji) then
             counter = counter+1
             double_check = double_check+1
             sign_sum_check = sign_sum_check+adjacent_signs(jk,jl)

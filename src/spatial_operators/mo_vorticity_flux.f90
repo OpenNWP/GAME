@@ -33,7 +33,7 @@ module mo_vorticity_flux
         ! ---------------------------------------------------------------------------------------
         ! from_cell comes before to_cell as usual.
         if (grid%from_cell(ji)<=n_pentagons) then
-          do jm=1,4
+          do jm=1,5
             diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
             + grid%trsk_weights(ji,jm)*diag%flux_density_h(grid%trsk_indices(ji,jm),jl) &
             *diag%pot_vort_v(grid%trsk_modified_curl_indices(ji,jm),jl)

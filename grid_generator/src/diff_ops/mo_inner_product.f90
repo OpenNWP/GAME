@@ -34,8 +34,8 @@ module mo_inner_product
       do jl=1,n_layers
         do jm=1,6
           if (jm<6 .or. ji>n_pentagons) then
-            inner_product_weights(ji,jl,jm) = area_h(1+adjacent_edges(ji,jm),jl)
-            inner_product_weights(ji,jl,jm) = inner_product_weights(ji,jl,jm)*dx(1+adjacent_edges(ji,jm),jl)
+            inner_product_weights(ji,jl,jm) = area_h(adjacent_edges(ji,jm),jl)
+            inner_product_weights(ji,jl,jm) = inner_product_weights(ji,jl,jm)*dx(adjacent_edges(ji,jm),jl)
             inner_product_weights(ji,jl,jm) = inner_product_weights(ji,jl,jm)/(2._wp*volume(ji,jl))
           else
             inner_product_weights(ji,jl,jm) = 0._wp

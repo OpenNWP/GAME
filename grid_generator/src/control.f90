@@ -147,6 +147,15 @@ program control
     call set_from_to_cell(from_cell,to_cell,face_edges,face_edges_reverse,face_vertices,edge_vertices)
     ! By setting the from_cell_dual and to_cell_dual arrrays,the discrete positions of the dual scalar points are determined.
     call set_from_to_cell_dual(from_cell_dual,to_cell_dual,face_edges,face_edges_reverse)
+    
+    ! index shift
+    !$omp parallel workshare
+    to_cell = to_cell+1
+    from_cell = from_cell+1
+    to_cell_dual = to_cell_dual+1
+    from_cell_dual = from_cell_dual+1
+    !$omp end parallel workshare
+  
   else
     call read_horizontal_explicit(lat_c,lon_c,from_cell,to_cell,from_cell_dual, &
                                   to_cell_dual,scalar_h_file,n_lloyd_read_from_file)
@@ -282,19 +291,6 @@ program control
   call write_statistics_file(pent_hex_face_unity_sphere,dx,dy,z_vector_h,grid_name,statistics_file)
   
   ! writing the result to a netCDF file
-  
-  ! index shift
-  !$omp parallel workshare
-  to_cell = to_cell+1
-  from_cell = from_cell+1
-  trsk_indices = trsk_indices+1
-  trsk_modified_curl_indices = trsk_modified_curl_indices+1
-  adjacent_edges = adjacent_edges+1
-  vorticity_indices_triangles = vorticity_indices_triangles+1
-  to_cell_dual = to_cell_dual+1
-  from_cell_dual = from_cell_dual+1
-  density_to_rhombi_indices = density_to_rhombi_indices+1
-  !$omp end parallel workshare
   
   write(*,*) "Starting to write to output file ..."
   call nc_check(nf90_create(trim(output_file),NF90_CLOBBER,ncid_g_prop))

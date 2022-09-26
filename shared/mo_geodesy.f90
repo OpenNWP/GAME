@@ -459,12 +459,12 @@ module mo_geodesy
     integer,  intent(out) :: indices_resorted(number_of_vertices)
     
     ! local variables
-    integer        :: ji,jk,index_array(number_of_vertices-1),first_index,second_index,third_index,index_candidates(2),check, &
-                      needs_to_be_reversed,counter,neighbour(2*number_of_vertices),indices_resorted_w_dir(number_of_vertices)
+    integer  :: ji,jk,index_array(number_of_vertices-1),first_index,second_index,third_index,index_candidates(2),check, &
+               needs_to_be_reversed,counter,neighbour(2*number_of_vertices),indices_resorted_w_dir(number_of_vertices)
     real(wp) :: x_center,y_center,z_center,x_points(number_of_vertices), &
-                      y_points(number_of_vertices),z_points(number_of_vertices), &
-                      lat_center,lon_center,distance_candidate,distance_array(number_of_vertices-1),angle_sum, &
-                      new_direction,direction_1,direction_2
+                y_points(number_of_vertices),z_points(number_of_vertices), &
+                lat_center,lon_center,distance_candidate,distance_array(number_of_vertices-1),angle_sum, &
+                new_direction,direction_1,direction_2
     
     ! calculating the Cartesian coordinates of the vertices
     do ji=1,number_of_vertices
@@ -553,8 +553,6 @@ module mo_geodesy
       enddo
     endif
     
-    indices_resorted = indices_resorted - 1
-    
   end subroutine sort_vertex_indices
 
   function calc_spherical_polygon_area(lat_points,lon_points,number_of_edges)
@@ -591,7 +589,6 @@ module mo_geodesy
     
     ! sorting the vertex indices
     call sort_vertex_indices(lat_points,lon_points,number_of_edges,indices_resorted)
-    indices_resorted = indices_resorted+1
     
     ! sorting the vertex points
     do ji=1,number_of_edges
