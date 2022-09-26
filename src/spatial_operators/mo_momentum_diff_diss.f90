@@ -97,16 +97,16 @@ module mo_momentum_diff_diss
       h_index = ji - layer_index*n_edges
       ! at the surface
       if (layer_index==n_layers) then
-        diag%dv_hdz(ji,layer_index+1) = state%wind_h(h_index,layer_index)/(grid%z_vector_h(h_index,layer_index) &
+        diag%dv_hdz(h_index,layer_index+1) = state%wind_h(h_index,layer_index)/(grid%z_vector_h(h_index,layer_index) &
         - 0.5_wp*(grid%z_vector_v(grid%from_cell(h_index),n_levels) + grid%z_vector_v(grid%to_cell(h_index),n_levels)))
       ! inner layers
       elseif (layer_index>=1) then
-        diag%dv_hdz(ji,layer_index+1) = (state%wind_h(h_index,layer_index) - state%wind_h(h_index,layer_index+1)) &
+        diag%dv_hdz(h_index,layer_index+1) = (state%wind_h(h_index,layer_index) - state%wind_h(h_index,layer_index+1)) &
         /(grid%z_vector_h(h_index,layer_index) - grid%z_vector_h(h_index,layer_index+1))
       endif
       ! the second derivative is assumed to vanish at the TOA
       if (layer_index==1) then
-        diag%dv_hdz(ji,1) = diag%dv_hdz(ji,2)
+        diag%dv_hdz(h_index,1) = diag%dv_hdz(h_index,2)
       endif
     enddo
    

@@ -203,12 +203,12 @@ module mo_eff_diff_coeffs
         + tke2vert_diff_coeff(diag%tke(grid%to_cell(ji),jl-1), &
         diag%n_squared(grid%to_cell(ji),jl-1), &
         grid%layer_thickness(grid%to_cell(ji),jl-1)) &
-        + tke2vert_diff_coeff(diag%tke(grid%from_cell(ji),jl+1), &
-        diag%n_squared(grid%from_cell(ji),jl+1), &
-        grid%layer_thickness(grid%from_cell(ji),jl+1)) &
-        + tke2vert_diff_coeff(diag%tke(grid%to_cell(ji),jl+1), &
-        diag%n_squared(grid%to_cell(ji),jl+1), &
-        grid%layer_thickness(grid%to_cell(ji),jl+1)))
+        + tke2vert_diff_coeff(diag%tke(grid%from_cell(ji),jl), &
+        diag%n_squared(grid%from_cell(ji),jl), &
+        grid%layer_thickness(grid%from_cell(ji),jl)) &
+        + tke2vert_diff_coeff(diag%tke(grid%to_cell(ji),jl), &
+        diag%n_squared(grid%to_cell(ji),jl), &
+        grid%layer_thickness(grid%to_cell(ji),jl)))
         ! computing and adding the molecular viscosity
         ! the scalar variables need to be averaged to the vector points at half levels
         molecular_viscosity = 0.25_wp*(diag%molecular_diffusion_coeff(grid%from_cell(ji),jl-1) &
