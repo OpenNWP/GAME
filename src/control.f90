@@ -7,7 +7,7 @@ program control
   ! All the memory needed for the integration is allocated and freed here.
 
   use mo_definitions,            only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,               only: n_layers,n_cells,n_edges,n_triangles,n_h_vectors,n_lat_io_points,n_lon_io_points, &
+  use mo_grid_nml,               only: n_layers,n_cells,n_edges,n_triangles,n_lat_io_points,n_lon_io_points, &
                                        n_levels,grid_nml_setup
   use mo_constituents_nml,       only: cloud_droplets_velocity,rain_velocity,snow_velocity,n_constituents, &
                                        n_condensed_constituents,constituents_nml_setup
@@ -156,7 +156,7 @@ program control
   allocate(diag%vector_placeholder_h(n_edges,n_layers))
   allocate(diag%vector_placeholder_v(n_cells,n_levels))
   allocate(diag%n_squared(n_cells,n_layers))
-  allocate(diag%dv_hdz(n_h_vectors+n_edges))
+  allocate(diag%dv_hdz(n_edges,n_levels))
   allocate(diag%scalar_flux_resistance(n_cells))
   allocate(diag%power_flux_density_sensible(n_cells))
   allocate(diag%power_flux_density_latent(n_cells))
@@ -179,7 +179,7 @@ program control
   allocate(diag%viscosity(n_cells,n_layers))
   allocate(diag%viscosity_rhombi(n_edges,n_layers))
   allocate(diag%viscosity_triangles(n_triangles,n_layers))
-  allocate(diag%vert_hor_viscosity(n_h_vectors+n_edges))
+  allocate(diag%vert_hor_viscosity(n_edges,n_levels))
   allocate(diag%tke(n_cells,n_layers))
   allocate(diag%pgrad_acc_old_h(n_edges,n_layers))
   allocate(diag%pgrad_acc_old_v(n_cells,n_levels))

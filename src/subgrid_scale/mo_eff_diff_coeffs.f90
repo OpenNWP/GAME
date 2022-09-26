@@ -8,8 +8,7 @@ module mo_eff_diff_coeffs
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_gradient_operators, only: grad_vert
   use mo_multiplications,    only: scalar_times_vector_v
-  use mo_grid_nml,           only: n_cells,n_layers,n_scalars,n_vectors_per_layer,n_vectors,n_v_vectors, &
-                                   n_edges,n_h_vectors,n_triangles,n_dual_v_vectors
+  use mo_grid_nml,           only: n_cells,n_layers,n_edges,n_triangles,n_levels
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
   use mo_derived,            only: c_v_mass_weighted_air,calc_diffusion_coeff
   use mo_diff_nml,           only: lmom_diff_h
@@ -28,8 +27,9 @@ module mo_eff_diff_coeffs
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer  :: ji,jl
-    real(wp) :: density_value
+    integer  :: ji            ! horizontal loop index
+    integer  :: jl            ! vertical loop index
+    real(wp) :: density_value ! mass density value
     
     !$omp parallel do private(ji,jl)
     do ji=1,n_cells
@@ -117,7 +117,8 @@ module mo_eff_diff_coeffs
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer :: ji,jl
+    integer :: ji ! horizontal loop index
+    integer :: jl ! vertical loop index
     
     ! The diffusion coefficient only has to be calculated if it has not yet been done.
     if (lmom_diff_h) then
@@ -183,58 +184,57 @@ module mo_eff_diff_coeffs
     ! This subroutine computes the effective viscosity (eddy + molecular viscosity) for the vertical diffusion of horizontal velocity.
     ! This quantity is located at the half level edges.
     
-    type(t_state), intent(in)    :: state
-    type(t_diag),  intent(inout) :: diag
-    type(t_grid),  intent(in)    :: grid
+    type(t_state), intent(in)    :: state ! state variables
+    type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer  :: ji,layer_index,h_index,scalar_base_index
+    integer  :: ji,jl
     real(wp) :: mom_diff_coeff,molecular_viscosity
     
     ! loop over horizontal vector points at half levels
-    !$omp parallel do private(ji,layer_index,h_index,mom_diff_coeff,molecular_viscosity,scalar_base_index)
-    do ji=1,n_h_vectors-n_edges
-      layer_index = (ji-1)/n_edges
-      h_index = ji - layer_index*n_edges
-      scalar_base_index = layer_index*n_cells
-      ! the turbulent component
-      mom_diff_coeff = 0.25_wp*(tke2vert_diff_coeff(diag%tke(grid%from_cell(h_index),layer_index+1), &
-      diag%n_squared(grid%from_cell(h_index),layer_index+1), &
-      grid%layer_thickness(grid%from_cell(h_index),layer_index+1)) &
-      + tke2vert_diff_coeff(diag%tke(grid%to_cell(h_index),layer_index+1), &
-      diag%n_squared(grid%to_cell(h_index),layer_index+1), &
-      grid%layer_thickness(grid%to_cell(h_index),layer_index+1)) &
-      + tke2vert_diff_coeff(diag%tke(grid%from_cell(h_index),layer_index+2), &
-      diag%n_squared(grid%from_cell(h_index),layer_index+2), &
-      grid%layer_thickness(grid%from_cell(h_index),layer_index+2)) &
-      + tke2vert_diff_coeff(diag%tke(grid%to_cell(h_index),layer_index+2), &
-      diag%n_squared(grid%to_cell(h_index),layer_index+2), &
-      grid%layer_thickness(grid%to_cell(h_index),layer_index+2)))
-      ! computing and adding the molecular viscosity
-      ! the scalar variables need to be averaged to the vector points at half levels
-      molecular_viscosity = 0.25_wp*(diag%molecular_diffusion_coeff(grid%from_cell(h_index),layer_index+1) &
-      + diag%molecular_diffusion_coeff(grid%to_cell(h_index),layer_index+1) &
-      + diag%molecular_diffusion_coeff(grid%from_cell(h_index),layer_index+2) &
-      + diag%molecular_diffusion_coeff(grid%to_cell(h_index),layer_index+2))
-      mom_diff_coeff = mom_diff_coeff+molecular_viscosity
-      
-      ! multiplying by the density (averaged to the half level edge)
-      diag%vert_hor_viscosity(ji+n_edges) = &
-      0.25_wp*(state%rho(grid%from_cell(h_index),layer_index+1,n_condensed_constituents+1) &
-      + state%rho(grid%to_cell(h_index),layer_index+1,n_condensed_constituents+1) &
-      + state%rho(grid%from_cell(h_index),layer_index+2,n_condensed_constituents+1) &
-      + state%rho(grid%to_cell(h_index),layer_index+2,n_condensed_constituents+1)) &
-      *mom_diff_coeff
+    !$omp parallel do private(ji,jl,mom_diff_coeff,molecular_viscosity)
+    do ji=1,n_edges
+      do jl=2,n_layers
+        ! the turbulent component
+        mom_diff_coeff = 0.25_wp*(tke2vert_diff_coeff(diag%tke(grid%from_cell(ji),jl-1), &
+        diag%n_squared(grid%from_cell(ji),jl-1), &
+        grid%layer_thickness(grid%from_cell(ji),jl-1)) &
+        + tke2vert_diff_coeff(diag%tke(grid%to_cell(ji),jl-1), &
+        diag%n_squared(grid%to_cell(ji),jl-1), &
+        grid%layer_thickness(grid%to_cell(ji),jl-1)) &
+        + tke2vert_diff_coeff(diag%tke(grid%from_cell(ji),jl+1), &
+        diag%n_squared(grid%from_cell(ji),jl+1), &
+        grid%layer_thickness(grid%from_cell(ji),jl+1)) &
+        + tke2vert_diff_coeff(diag%tke(grid%to_cell(ji),jl+1), &
+        diag%n_squared(grid%to_cell(ji),jl+1), &
+        grid%layer_thickness(grid%to_cell(ji),jl+1)))
+        ! computing and adding the molecular viscosity
+        ! the scalar variables need to be averaged to the vector points at half levels
+        molecular_viscosity = 0.25_wp*(diag%molecular_diffusion_coeff(grid%from_cell(ji),jl-1) &
+        + diag%molecular_diffusion_coeff(grid%to_cell(ji),jl-1) &
+        + diag%molecular_diffusion_coeff(grid%from_cell(ji),jl) &
+        + diag%molecular_diffusion_coeff(grid%to_cell(ji),jl))
+        mom_diff_coeff = mom_diff_coeff+molecular_viscosity
+        
+        ! multiplying by the density (averaged to the half level edge)
+        diag%vert_hor_viscosity(ji,jl) = &
+        0.25_wp*(state%rho(grid%from_cell(ji),jl-1,n_condensed_constituents+1) &
+        + state%rho(grid%to_cell(ji),jl-1,n_condensed_constituents+1) &
+        + state%rho(grid%from_cell(ji),jl,n_condensed_constituents+1) &
+        + state%rho(grid%to_cell(ji),jl,n_condensed_constituents+1)) &
+        *mom_diff_coeff
+      enddo
     enddo
     !$omp end parallel do
     
     ! for now, we set the vertical diffusion coefficient at the TOA equal to the vertical diffusion coefficient in the layer below
     !$omp parallel workshare
-    diag%vert_hor_viscosity(1:n_edges) = diag%vert_hor_viscosity(n_edges+1:2*n_edges)
+    diag%vert_hor_viscosity(:,1) = diag%vert_hor_viscosity(:,2)
     !$omp end parallel workshare
     ! for now, we set the vertical diffusion coefficient at the surface equal to the vertical diffusion coefficient in the layer above
     !$omp parallel workshare
-    diag%vert_hor_viscosity(n_h_vectors+1:n_h_vectors+n_edges) = diag%vert_hor_viscosity(n_h_vectors-n_edges+1:n_h_vectors)
+    diag%vert_hor_viscosity(:,n_levels) = diag%vert_hor_viscosity(:,n_layers)
     !$omp end parallel workshare
     
   

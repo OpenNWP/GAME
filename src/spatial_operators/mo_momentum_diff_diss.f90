@@ -97,16 +97,16 @@ module mo_momentum_diff_diss
       h_index = ji - layer_index*n_edges
       ! at the surface
       if (layer_index==n_layers) then
-        diag%dv_hdz(ji) = state%wind_h(h_index,layer_index)/(grid%z_vector_h(h_index,layer_index) &
+        diag%dv_hdz(ji,layer_index+1) = state%wind_h(h_index,layer_index)/(grid%z_vector_h(h_index,layer_index) &
         - 0.5_wp*(grid%z_vector_v(grid%from_cell(h_index),n_levels) + grid%z_vector_v(grid%to_cell(h_index),n_levels)))
       ! inner layers
       elseif (layer_index>=1) then
-        diag%dv_hdz(ji) = (state%wind_h(h_index,layer_index) - state%wind_h(h_index,layer_index+1)) &
+        diag%dv_hdz(ji,layer_index+1) = (state%wind_h(h_index,layer_index) - state%wind_h(h_index,layer_index+1)) &
         /(grid%z_vector_h(h_index,layer_index) - grid%z_vector_h(h_index,layer_index+1))
       endif
       ! the second derivative is assumed to vanish at the TOA
       if (layer_index==1) then
-        diag%dv_hdz(ji-n_edges) = diag%dv_hdz(ji)
+        diag%dv_hdz(ji,1) = diag%dv_hdz(ji,2)
       endif
     enddo
    
@@ -114,19 +114,17 @@ module mo_momentum_diff_diss
     call vert_hor_mom_viscosity(state,diag,grid)
                            
     ! now, the second derivative needs to be taken
-    !$omp parallel do private(ji,layer_index,h_index,z_upper,z_lower,delta_z)
-    do ji=1,n_h_vectors
-      layer_index = (ji-1)/n_edges
-      h_index = ji - layer_index*n_edges
-      z_upper = 0.5_wp*(grid%z_vector_v(grid%from_cell(h_index),layer_index+1) &
-      + grid%z_vector_v(grid%to_cell(h_index),layer_index+1))
-      z_lower = 0.5_wp*(grid%z_vector_v(grid%from_cell(h_index),layer_index+2) &
-      + grid%z_vector_v(grid%to_cell(h_index),layer_index+2))
-      delta_z = z_upper - z_lower
-      diag%friction_acc_h(h_index,layer_index+1) = diag%friction_acc_h(h_index,layer_index+1) &
-      + (diag%vert_hor_viscosity(ji)*diag%dv_hdz(ji)-diag%vert_hor_viscosity(ji+n_edges)*diag%dv_hdz(ji+n_edges))/delta_z &
-      /(0.5_wp*(sum(state%rho(grid%from_cell(h_index),layer_index+1,1:n_condensed_constituents+1)) &
-      + sum(state%rho(grid%to_cell(h_index),layer_index+1,1:n_condensed_constituents+1))))
+    !$omp parallel do private(ji,jl,z_upper,z_lower,delta_z)
+    do ji=1,n_edges
+      do jl=1,n_layers
+        z_upper = 0.5_wp*(grid%z_vector_v(grid%from_cell(ji),jl) + grid%z_vector_v(grid%to_cell(ji),jl))
+        z_lower = 0.5_wp*(grid%z_vector_v(grid%from_cell(ji),jl+1) + grid%z_vector_v(grid%to_cell(ji),jl+1))
+        delta_z = z_upper - z_lower
+        diag%friction_acc_h(ji,jl) = diag%friction_acc_h(ji,jl) &
+        + (diag%vert_hor_viscosity(ji,jl)*diag%dv_hdz(ji,jl)-diag%vert_hor_viscosity(ji,jl+1)*diag%dv_hdz(ji,jl+1))/delta_z &
+        /(0.5_wp*(sum(state%rho(grid%from_cell(ji),jl,1:n_condensed_constituents+1)) &
+        + sum(state%rho(grid%to_cell(jl),jl,1:n_condensed_constituents+1))))
+      enddo
     enddo
     
     ! 2.) vertical diffusion of vertical velocity

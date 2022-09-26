@@ -7,7 +7,7 @@ module mo_column_solvers
 
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_constants,        only: r_d,c_d_v,c_d_p,M_PI
-  use mo_grid_nml,         only: n_scalars,n_layers,n_cells,n_vectors_per_layer,n_vectors,n_levels
+  use mo_grid_nml,         only: n_layers,n_cells,n_levels
   use mo_grid_setup,       only: z_t_const
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents,cloud_droplets_velocity,rain_velocity,&
                                  snow_velocity
