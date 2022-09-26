@@ -19,13 +19,7 @@ fi
 
 if [ $luse_scalar_h_file = ".true." ]
 then
-  if [ ! -f $scalar_h_coords_file ]
-  then
-    echo "$scalar_h_coords_file does not exist."
-    echo "Aborting."
-    exit
-  fi
-  echo "Horizontal coordinates of the generating points (the scalar points in terms of the model) will be read from file $scalar_h_coords_file."
+  echo "Horizontal coordinates of the generating points (the scalar points in terms of the model) will be read from a file."
 fi
 
 echo "model top: "$toa" m"
