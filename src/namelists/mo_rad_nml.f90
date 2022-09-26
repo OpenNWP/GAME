@@ -13,8 +13,7 @@ module mo_rad_nml
   
   integer            :: rad_config                  ! ID that configures the radiation
   integer            :: n_rad_blocks                ! number of radiation domains
-  integer            :: n_scals_rad                 ! number of scalars per radiation domain
-  integer            :: n_scals_rad_h               ! numbers of horizontal scalars per layer of the radiaiton domain
+  integer            :: n_cells_rad                 ! numbers of horizontal scalars per layer of the radiaiton domain
   real(wp)           :: radiation_dtime             ! radiation_dtime
   character(len=128) :: rrtmgp_coefficients_file_sw ! the name of the short wave data file
   character(len=128) :: rrtmgp_coefficients_file_lw ! the name of the long wave data file
@@ -33,8 +32,7 @@ module mo_rad_nml
   
     rad_config = 1
     n_rad_blocks = 18
-    n_scals_rad = n_scalars/n_rad_blocks
-    n_scals_rad_h = n_cells/n_rad_blocks
+    n_cells_rad = n_cells/n_rad_blocks
     radiation_dtime = 60._wp*1e-3_wp*eff_hor_res
     ! the radiation time step is never longer then three hours
     if (radiation_dtime>10800._wp) then

@@ -159,11 +159,11 @@ module mo_definitions
     real(wp), allocatable :: sfc_lw_out(:)
     real(wp), allocatable :: sfc_albedo(:)
     real(wp), allocatable :: temp_sfc(:)
-    real(wp), allocatable :: z_scal(:)
-    real(wp), allocatable :: z_vect(:)
-    real(wp), allocatable :: rho(:)
-    real(wp), allocatable :: temp(:)
-    real(wp), allocatable :: rad_tend(:)
+    real(wp), allocatable :: z_scal(:,:)
+    real(wp), allocatable :: z_vect(:,:)
+    real(wp), allocatable :: rho(:,:,:)
+    real(wp), allocatable :: temp(:,:)
+    real(wp), allocatable :: rad_tend(:,:)
   
   end type t_radiation
 

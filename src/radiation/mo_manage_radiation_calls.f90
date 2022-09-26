@@ -6,8 +6,8 @@ module mo_manage_radiation_calls
   ! This module manages the calls to the radiation routines.
 
   use mo_definitions,      only: wp,t_grid,t_state,t_diag,t_radiation
-  use mo_grid_nml,         only: n_scalars,n_cells,n_vectors_per_layer,n_vectors,n_layers
-  use mo_rad_nml,          only: n_scals_rad_h,n_scals_rad,n_rad_blocks,rad_config
+  use mo_grid_nml,         only: n_scalars,n_cells,n_vectors_per_layer,n_vectors,n_layers,n_levels
+  use mo_rad_nml,          only: n_cells_rad,n_rad_blocks,rad_config
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents
   use mo_surface_nml,      only: nsoillays
   use mo_held_suarez,      only: held_suar
@@ -35,19 +35,19 @@ module mo_manage_radiation_calls
     endif
     ! loop over all radiation blocks
     !$omp parallel do private(rad_block_index,radiation)
-    do rad_block_index=0,n_rad_blocks-1
+    do rad_block_index=1,n_rad_blocks
     
-      allocate(radiation%lat_scal(n_scals_rad_h))
-      allocate(radiation%lon_scal(n_scals_rad_h))
-      allocate(radiation%sfc_sw_in(n_scals_rad_h))
-      allocate(radiation%sfc_lw_out(n_scals_rad_h))
-      allocate(radiation%sfc_albedo(n_scals_rad_h))
-      allocate(radiation%temp_sfc(n_scals_rad_h))
-      allocate(radiation%z_scal(n_scals_rad))
-      allocate(radiation%z_vect(n_scals_rad+n_scals_rad_h))
-      allocate(radiation%rho(n_constituents*n_scals_rad))
-      allocate(radiation%temp(n_scals_rad))
-      allocate(radiation%rad_tend(n_scals_rad))
+      allocate(radiation%lat_scal(n_cells_rad))
+      allocate(radiation%lon_scal(n_cells_rad))
+      allocate(radiation%sfc_sw_in(n_cells_rad))
+      allocate(radiation%sfc_lw_out(n_cells_rad))
+      allocate(radiation%sfc_albedo(n_cells_rad))
+      allocate(radiation%temp_sfc(n_cells_rad))
+      allocate(radiation%z_scal(n_cells_rad,n_layers))
+      allocate(radiation%z_vect(n_cells_rad,n_levels))
+      allocate(radiation%rho(n_cells_rad,n_layers,n_constituents))
+      allocate(radiation%temp(n_cells_rad,n_layers))
+      allocate(radiation%rad_tend(n_cells_rad,n_layers))
       
       radiation%lat_scal = 0._wp
       radiation%lon_scal = 0._wp
@@ -112,18 +112,16 @@ module mo_manage_radiation_calls
 
     ! This subroutine cuts out a slice of a scalar field for hand-over to the radiation routine (done for RAM efficiency reasons).
     
-    real(wp),intent(in)  :: in_array(n_scalars)
-    real(wp),intent(out) :: out_array(n_scals_rad)
-    integer              :: rad_block_index
+    real(wp), intent(in)  :: in_array(n_cells,n_layers)
+    real(wp), intent(out) :: out_array(n_cells_rad,n_layers)
+    integer               :: rad_block_index
     
     ! local variables
-    integer :: ji,layer_index,h_index
+    integer :: ji ! horizontal loop index
     
     ! loop over all elements of the resulting array
-    do ji=1,n_scals_rad
-      layer_index = (ji-1)/n_scals_rad_h
-      h_index = ji - layer_index*n_scals_rad_h
-      out_array(ji) = in_array(rad_block_index*n_scals_rad_h + h_index + layer_index*n_cells)
+    do ji=1,n_cells_rad
+      out_array(ji,:) = in_array((rad_block_index-1)*n_cells_rad+ji,:)
     enddo
   
   end subroutine create_rad_array_scalar
@@ -132,16 +130,16 @@ module mo_manage_radiation_calls
 
     ! This subroutine cuts out a slice of a horizontal scalar field for hand-over to the radiation routine (done for RAM efficiency reasons).
     
-    real(wp),intent(in)  :: in_array(n_cells)
-    real(wp),intent(out) :: out_array(n_scals_rad_h)
-    integer              :: rad_block_index
+    real(wp), intent(in)  :: in_array(n_cells)
+    real(wp), intent(out) :: out_array(n_cells_rad)
+    integer               :: rad_block_index
     
     ! local variables
-    integer :: ji
+    integer :: ji ! horizontal loop index
     
     ! loop over all elements of the resulting array
-    do ji=1,n_scals_rad_h
-      out_array(ji) = in_array(rad_block_index*n_scals_rad_h + ji)
+    do ji=1,n_cells_rad
+      out_array(ji) = in_array((rad_block_index-1)*n_cells_rad+ji)
     enddo
   
   end subroutine create_rad_array_scalar_h
@@ -150,18 +148,17 @@ module mo_manage_radiation_calls
 
     ! This subroutine cuts out a slice of a vector field for hand-over to the radiation routine (done for RAM efficiency reasons).
   ! Only the vertical vector points are taken into account since only they are needed by the radiation.
-    real(wp),intent(in)  :: in_array(n_vectors)
-    real(wp),intent(out) :: out_array(n_scals_rad+n_scals_rad_h)
-    integer              :: rad_block_index
+
+    real(wp), intent(in)  :: in_array(n_cells,n_levels)
+    real(wp), intent(out) :: out_array(n_cells_rad,n_levels)
+    integer               :: rad_block_index
     
     ! local variables
-    integer :: ji,layer_index,h_index
+    integer :: ji ! horizontal loop index
     
     ! loop over all elements of the resulting array
-    do ji=1,n_scals_rad+n_scals_rad_h
-      layer_index = (ji-1)/n_scals_rad_h
-      h_index = ji - layer_index*n_scals_rad_h
-      out_array(ji) = in_array(rad_block_index*n_scals_rad_h + h_index + layer_index*n_vectors_per_layer)
+    do ji=1,n_cells_rad
+      out_array(ji,:) = in_array((rad_block_index-1)*n_cells_rad+ji,:)
     enddo
   
   end subroutine create_rad_array_vector
@@ -170,22 +167,16 @@ module mo_manage_radiation_calls
 
     ! This subroutine does same thing as create_rad_array_scalar,only for a mass density field.
     
-    real(wp),intent(in)  :: in_array(n_constituents*n_scalars)
-    real(wp),intent(out) :: out_array(n_constituents*n_scals_rad)
-    integer              :: rad_block_index
+    real(wp), intent(in)  :: in_array(n_cells,n_layers,n_constituents)
+    real(wp), intent(out) :: out_array(n_cells_rad,n_layers,n_constituents)
+    integer               :: rad_block_index
     
     ! local variables
-    integer :: const_id,ji,layer_index,h_index
+    integer :: ji
     
-    ! loop over all constituents
-    do const_id=1,n_constituents
-       ! loop over all elements of the resulting array
-      do ji=1,n_scals_rad
-        layer_index = (ji-1)/n_scals_rad_h
-        h_index = ji - layer_index*n_scals_rad_h
-        out_array((const_id-1)*n_scals_rad+ji) = in_array((const_id-1)*n_scalars+rad_block_index*n_scals_rad_h &
-                                                          +h_index+layer_index*n_cells)
-      enddo
+   ! loop over all cells of the resulting array
+    do ji=1,n_cells_rad
+      out_array(ji,:,:) = in_array((rad_block_index-1)*n_cells_rad+ji,:,:)
     enddo
   
   end subroutine create_rad_array_mass_den
@@ -194,18 +185,16 @@ module mo_manage_radiation_calls
 
     ! This subroutine reverses what create_rad_array_scalar has done.
     
-    real(wp),intent(in)  :: in_array(n_scals_rad)
-    real(wp),intent(out) :: out_array(n_scalars)
-    integer              :: rad_block_index
+    real(wp), intent(in)  :: in_array(n_cells_rad,n_layers)
+    real(wp), intent(out) :: out_array(n_cells,n_layers)
+    integer               :: rad_block_index
     
     ! local variables
-    integer :: ji,layer_index,h_index
+    integer :: ji
     
-    ! loop over all elements of the resulting array
-    do ji=1,n_scals_rad
-      layer_index = (ji-1)/n_scals_rad_h
-      h_index = ji - layer_index*n_scals_rad_h
-      out_array(rad_block_index*n_scals_rad_h+layer_index*n_cells+h_index) = in_array(ji)
+    ! loop over all cells of the resulting array
+    do ji=1,n_cells_rad
+      out_array((rad_block_index-1)*n_cells_rad+ji,:) = in_array(ji,:)
     enddo
   
   end subroutine remap_to_original
@@ -214,17 +203,18 @@ module mo_manage_radiation_calls
 
     ! This subroutine reverses what create_rad_array_scalar_h has done.
     
-    real(wp),intent(in)  :: in_array(n_scals_rad_h)
-    real(wp),intent(out) :: out_array(n_cells)
-    integer              :: rad_block_index
+    real(wp), intent(in)  :: in_array(n_cells_rad)
+    real(wp), intent(out) :: out_array(n_cells)
+    integer               :: rad_block_index
     
     ! local variables
     integer :: ji
     
     ! loop over all elements of the resulting array
-    do ji=1,n_scals_rad_h
-      out_array(rad_block_index*n_scals_rad_h+ji) = in_array(ji)
+    do ji=1,n_cells_rad
+      out_array((rad_block_index-1)*n_cells_rad+ji) = in_array(ji)
     enddo
+  
   
   end subroutine remap_to_original_scalar_h
 

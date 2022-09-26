@@ -8,7 +8,8 @@ module mo_held_suarez
   use mo_definitions,      only: wp
   use mo_constants,        only: c_d_v,r_d,p_0
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents
-  use mo_rad_nml,          only: n_scals_rad,n_scals_rad_h
+  use mo_grid_nml,         only: n_layers
+  use mo_rad_nml,          only: n_cells_rad
   
   implicit none
   
@@ -16,22 +17,23 @@ module mo_held_suarez
 
   subroutine held_suar(latitude_scalar,mass_densities,temperature_gas,radiation_tendency)
   
-    real(wp), intent(in)  :: latitude_scalar(n_scals_rad_h), &
-                             mass_densities(n_constituents*n_scals_rad),temperature_gas(n_scals_rad)
-    real(wp), intent(out) :: radiation_tendency(n_scals_rad)
+    real(wp), intent(in)  :: latitude_scalar(n_cells_rad)
+    real(wp), intent(in)  :: mass_densities(n_cells_rad,n_layers,n_constituents)
+    real(wp), intent(in)  :: temperature_gas(n_cells_rad,n_layers)
+    real(wp), intent(out) :: radiation_tendency(n_cells_rad,n_layers)
     
     ! local variables
-    integer  :: ji,layer_index,h_index
+    integer  :: ji,jl
     real(wp) :: pressure
   
-    !$omp parallel do private(ji,layer_index,h_index,pressure)
-    do ji=1,n_scals_rad
-      layer_index = (ji-1)/n_scals_rad_h
-      h_index = ji - layer_index*n_scals_rad_h
-      pressure = mass_densities(n_condensed_constituents*n_scals_rad + ji)*r_d*temperature_gas(ji)
-      radiation_tendency(ji) = -k_t(latitude_scalar(h_index),pressure) &
-                               *(temperature_gas(ji) - t_eq(latitude_scalar(h_index),pressure))
-      radiation_tendency(ji) = c_d_v*mass_densities(n_condensed_constituents*n_scals_rad_h + ji)*radiation_tendency(ji)
+    !$omp parallel do private(ji,jl,pressure)
+    do ji=1,n_cells_rad
+      do jl=1,n_layers
+        pressure = mass_densities(ji,jl,n_condensed_constituents+1)*r_d*temperature_gas(ji,jl)
+        radiation_tendency(ji,jl) = -k_t(latitude_scalar(ji),pressure) &
+                                    *(temperature_gas(ji,jl) - t_eq(latitude_scalar(ji),pressure))
+        radiation_tendency(ji,jl) = c_d_v*mass_densities(ji,jl,n_condensed_constituents+1)*radiation_tendency(ji,jl)
+      enddo
     enddo
     !$omp end parallel do
     
