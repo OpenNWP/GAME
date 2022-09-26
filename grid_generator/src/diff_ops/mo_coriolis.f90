@@ -379,7 +379,6 @@ module mo_coriolis
         if (trsk_indices(ji,jk)==0) then
           trsk_indices(ji,jk) = 1
           trsk_modified_curl_indices(ji,jk) = 1
-          write(*,*) trsk_weights(ji,jk)
         endif
       enddo
     enddo
