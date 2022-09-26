@@ -31,14 +31,14 @@ module mo_rhombus_averaging
 
     ! local variables
     integer  :: ji,jk,jl,jm,counter,indices_list_pre(6),indices_list(4),double_indices(2),density_to_rhombus_indices_pre(4), &
-                density_to_rhombus_index_candidate,check_counter,dual_scalar_h_index_1,dual_scalar_h_index_2, &
-                vector_h_index_1,vector_h_index_2,vector_h_index_1_found,vector_h_index_2_found, &
+                density_to_rhombus_index_candidate,check_counter,triangle_index_1,triangle_index_2, &
+                edge_index_1,edge_index_2,edge_index_1_found,edge_index_2_found, &
                 which_vertex_check_result,first_case_counter,second_case_counter
     real(wp) :: triangle_1,triangle_2,triangle_3,triangle_4,rhombus_area,check_sum
     
     !$omp parallel do private(ji,jk,jl,jm,counter,indices_list_pre,indices_list,double_indices,density_to_rhombus_indices_pre, &
-    !$omp density_to_rhombus_index_candidate,check_counter,dual_scalar_h_index_1,dual_scalar_h_index_2, &
-    !$omp vector_h_index_1,vector_h_index_2,vector_h_index_1_found,vector_h_index_2_found,which_vertex_check_result, &
+    !$omp density_to_rhombus_index_candidate,check_counter,triangle_index_1,triangle_index_2, &
+    !$omp edge_index_1,edge_index_2,edge_index_1_found,edge_index_2_found,which_vertex_check_result, &
     !$omp first_case_counter,second_case_counter,triangle_1,triangle_2,triangle_3,triangle_4,rhombus_area,check_sum)
     do ji=1,n_edges
       double_indices = -1
@@ -111,130 +111,112 @@ module mo_rhombus_averaging
         if (density_to_rhombus_indices(ji,jk)==from_cell(ji) .or. density_to_rhombus_indices(ji,jk)==to_cell(ji)) then
           ! In this case, four triangles need to be summed up.
           first_case_counter = first_case_counter+1
-          vector_h_index_1_found = 0
+          edge_index_1_found = 0
           jl = 1
-          do while (vector_h_index_1_found==0)
+          do while (edge_index_1_found==0)
             if (from_cell(vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(ji,jk) .or. &
                 to_cell(vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(ji,jk)) then
-              vector_h_index_1_found = 1
-              vector_h_index_1 = vorticity_indices_rhombi(ji,jl)
+              edge_index_1_found = 1
+              edge_index_1 = vorticity_indices_rhombi(ji,jl)
             else
               jl = jl+1
             endif
           enddo
-          dual_scalar_h_index_1 = from_cell_dual(vector_h_index_1)
+          triangle_index_1 = from_cell_dual(edge_index_1)
           which_vertex_check_result = 1
           do jm=1,4
             if (jm/=jl) then
-              if (from_cell_dual(vorticity_indices_rhombi(ji,jm))==dual_scalar_h_index_1 .or. &
-                  to_cell_dual(vorticity_indices_rhombi(ji,jm))==dual_scalar_h_index_1) then
+              if (from_cell_dual(vorticity_indices_rhombi(ji,jm))==triangle_index_1 .or. &
+                  to_cell_dual(vorticity_indices_rhombi(ji,jm))==triangle_index_1) then
                 which_vertex_check_result = 0
               endif
             endif
           enddo
           if (which_vertex_check_result==1) then
-            dual_scalar_h_index_1 = to_cell_dual(vector_h_index_1)
+            triangle_index_1 = to_cell_dual(edge_index_1)
           endif
-          triangle_1 = calc_triangle_area(lat_c(density_to_rhombus_indices(ji,jk)), &
-                                          lon_c(density_to_rhombus_indices(ji,jk)), &
-                                          lat_c_dual(dual_scalar_h_index_1), &
-                                          lon_c_dual(dual_scalar_h_index_1), &
-                                          lat_e(vector_h_index_1), &
-                                          lon_e(vector_h_index_1))
-          triangle_2 = calc_triangle_area(lat_c(density_to_rhombus_indices(ji,jk)), &
-                                          lon_c(density_to_rhombus_indices(ji,jk)), &
-                                          lat_c_dual(dual_scalar_h_index_1), &
-                                          lon_c_dual(dual_scalar_h_index_1), &
-                                          lat_e(ji),lon_e(ji))
-          vector_h_index_2_found = 0
+          triangle_1 = calc_triangle_area(lat_c(density_to_rhombus_indices(ji,jk)),lon_c(density_to_rhombus_indices(ji,jk)), &
+                                          lat_c_dual(triangle_index_1),lon_c_dual(triangle_index_1), &
+                                          lat_e(edge_index_1),lon_e(edge_index_1))
+          triangle_2 = calc_triangle_area(lat_c(density_to_rhombus_indices(ji,jk)),lon_c(density_to_rhombus_indices(ji,jk)), &
+                                          lat_c_dual(triangle_index_1),lon_c_dual(triangle_index_1),lat_e(ji),lon_e(ji))
+          edge_index_2_found = 0
           jl = 1
-          do while (vector_h_index_2_found==0)
+          do while (edge_index_2_found==0)
             if ((from_cell(vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(ji,jk) &
                  .or. to_cell(vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(ji,jk)) &
-                 .and. vorticity_indices_rhombi(ji,jl)/=vector_h_index_1) then
-              vector_h_index_2_found = 1
-              vector_h_index_2 = vorticity_indices_rhombi(ji,jl)
+                 .and. vorticity_indices_rhombi(ji,jl)/=edge_index_1) then
+              edge_index_2_found = 1
+              edge_index_2 = vorticity_indices_rhombi(ji,jl)
             else
               jl = jl+1
             endif
           enddo
-          dual_scalar_h_index_2 = from_cell_dual(vector_h_index_2)
+          triangle_index_2 = from_cell_dual(edge_index_2)
           which_vertex_check_result = 1
           do jm=1,4
             if (jm/=jl) then
-              if (from_cell_dual(vorticity_indices_rhombi(ji,jm))==dual_scalar_h_index_2 .or. &
-                to_cell_dual(vorticity_indices_rhombi(ji,jm))==dual_scalar_h_index_2) then
+              if (from_cell_dual(vorticity_indices_rhombi(ji,jm))==triangle_index_2 .or. &
+                to_cell_dual(vorticity_indices_rhombi(ji,jm))==triangle_index_2) then
                 which_vertex_check_result = 0
               endif
             endif
           enddo
           if (which_vertex_check_result==1) then
-            dual_scalar_h_index_2 = to_cell_dual(vector_h_index_2)
+            triangle_index_2 = to_cell_dual(edge_index_2)
           endif
-          triangle_3 = calc_triangle_area(lat_c(density_to_rhombus_indices(ji,jk)), &
-                                          lon_c(density_to_rhombus_indices(ji,jk)), &
-                                          lat_c_dual(dual_scalar_h_index_2), &
-                                          lon_c_dual(dual_scalar_h_index_2), &
-                                          lat_e(ji),lon_e(ji))
-          triangle_4 = calc_triangle_area(lat_c(density_to_rhombus_indices(ji,jk)), &
-                                          lon_c(density_to_rhombus_indices(ji,jk)), &
-                                          lat_c_dual(dual_scalar_h_index_2), &
-                                          lon_c_dual(dual_scalar_h_index_2), &
-                                          lat_e(vector_h_index_2), &
-                                          lon_e(vector_h_index_2))
+          triangle_3 = calc_triangle_area(lat_c(density_to_rhombus_indices(ji,jk)),lon_c(density_to_rhombus_indices(ji,jk)), &
+                                          lat_c_dual(triangle_index_2),lon_c_dual(triangle_index_2),lat_e(ji),lon_e(ji))
+          triangle_4 = calc_triangle_area(lat_c(density_to_rhombus_indices(ji,jk)),lon_c(density_to_rhombus_indices(ji,jk)), &
+                                          lat_c_dual(triangle_index_2),lon_c_dual(triangle_index_2), &
+                                          lat_e(edge_index_2),lon_e(edge_index_2))
           density_to_rhombus_weights(ji,jk) = (radius + z_vector_h(1,1))**2 &
                                               *(triangle_1+triangle_2+triangle_3+triangle_4)/rhombus_area
         else
           ! In this case, only two triangles need to be summed up.
           second_case_counter = second_case_counter+1
-          vector_h_index_1_found = 0
+          edge_index_1_found = 0
           jl = 1
-          do while (vector_h_index_1_found==0)
+          do while (edge_index_1_found==0)
             if (from_cell(vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(ji,jk) .or. &
                 to_cell(vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(ji,jk)) then
-              vector_h_index_1_found = 1
-              vector_h_index_1 = vorticity_indices_rhombi(ji,jl)
+              edge_index_1_found = 1
+              edge_index_1 = vorticity_indices_rhombi(ji,jl)
             else
               jl = jl+1
             endif
           enddo
-          dual_scalar_h_index_1 = from_cell_dual(vector_h_index_1)
+          triangle_index_1 = from_cell_dual(edge_index_1)
           which_vertex_check_result = 1
           do jm=1,4
             if (jm/=jl) then
-              if (from_cell_dual(vorticity_indices_rhombi(ji,jm))==dual_scalar_h_index_1 .or. &
-                  to_cell_dual(vorticity_indices_rhombi(ji,jm))==dual_scalar_h_index_1) then
+              if (from_cell_dual(vorticity_indices_rhombi(ji,jm))==triangle_index_1 .or. &
+                  to_cell_dual(vorticity_indices_rhombi(ji,jm))==triangle_index_1) then
                 which_vertex_check_result = 0
               endif
             endif
           enddo
           if (which_vertex_check_result==1) then
-            dual_scalar_h_index_1 = to_cell_dual(vector_h_index_1)
+            triangle_index_1 = to_cell_dual(edge_index_1)
           endif
-          triangle_1 = calc_triangle_area(lat_c(density_to_rhombus_indices(ji,jk)), &
-                                          lon_c(density_to_rhombus_indices(ji,jk)), &
-                                          lat_c_dual(dual_scalar_h_index_1), &
-                                          lon_c_dual(dual_scalar_h_index_1), &
-                                          lat_e(vector_h_index_1), &
-                                          lon_e(vector_h_index_1))
-          vector_h_index_2_found = 0
+          triangle_1 = calc_triangle_area(lat_c(density_to_rhombus_indices(ji,jk)),lon_c(density_to_rhombus_indices(ji,jk)), &
+                                          lat_c_dual(triangle_index_1),lon_c_dual(triangle_index_1), &
+                                          lat_e(edge_index_1),lon_e(edge_index_1))
+          edge_index_2_found = 0
           jl = 1
-          do while (vector_h_index_2_found==0)
+          do while (edge_index_2_found==0)
             if ((from_cell(vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(ji,jk) &
                 .or. to_cell(vorticity_indices_rhombi(ji,jl))==density_to_rhombus_indices(ji,jk)) &
-                .and. vorticity_indices_rhombi(ji,jl)/=vector_h_index_1) then
-              vector_h_index_2_found = 1
-              vector_h_index_2 = vorticity_indices_rhombi(ji,jl)
+                .and. vorticity_indices_rhombi(ji,jl)/=edge_index_1) then
+              edge_index_2_found = 1
+              edge_index_2 = vorticity_indices_rhombi(ji,jl)
             else
               jl = jl+1
             endif
           enddo
-          triangle_2 = calc_triangle_area(lat_c(density_to_rhombus_indices(ji,jk)), &
-                                          lon_c(density_to_rhombus_indices(ji,jk)), &
-                                          lat_c_dual(dual_scalar_h_index_1), &
-                                          lon_c_dual(dual_scalar_h_index_1), &
-                                          lat_e(vector_h_index_2), &
-                                          lon_e(vector_h_index_2))
+          triangle_2 = calc_triangle_area(lat_c(density_to_rhombus_indices(ji,jk)),lon_c(density_to_rhombus_indices(ji,jk)), &
+                                          lat_c_dual(triangle_index_1),lon_c_dual(triangle_index_1), &
+                                          lat_e(edge_index_2),lon_e(edge_index_2))
           density_to_rhombus_weights(ji,jk) = (radius + z_vector_h(1,1))**2*(triangle_1+triangle_2)/rhombus_area
         endif
       enddo

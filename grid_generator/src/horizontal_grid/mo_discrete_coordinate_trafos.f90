@@ -298,44 +298,6 @@ module mo_discrete_coordinate_trafos
   
   end function upscale_scalar_point
 
-  subroutine find_v_vector_indices_for_dual_scalar_z(from_cell,to_cell,vorticity_indices_triangles, &
-                                                     dual_scalar_h_index,index_vector_for_dual_scalar_z) 
-    
-    ! This subroutine computes the vertical vector indices to compute the z-coordinates of a dual scalar data point with.
-    
-    integer, intent(in)  :: from_cell(n_edges),to_cell(n_edges), &
-                            vorticity_indices_triangles(n_triangles,3),dual_scalar_h_index
-    integer, intent(out) :: index_vector_for_dual_scalar_z(3)
-        
-    ! local variables
-    integer :: ji,counter,check_result
-    
-    ! initialzing the result
-    index_vector_for_dual_scalar_z = -1
-    
-    counter = 1
-    
-    do ji=1,3
-      check_result = in_bool_checker(from_cell(1+vorticity_indices_triangles(dual_scalar_h_index+1,ji)), &
-                                     index_vector_for_dual_scalar_z,3)
-      if (check_result==0) then
-        index_vector_for_dual_scalar_z(counter) = from_cell(1+vorticity_indices_triangles(dual_scalar_h_index+1,ji))
-        counter = counter+1
-      endif
-      check_result = in_bool_checker(to_cell(1+vorticity_indices_triangles(dual_scalar_h_index+1,ji)), &
-                                     index_vector_for_dual_scalar_z,3)
-      if (check_result==0) then
-        index_vector_for_dual_scalar_z(counter) = to_cell(1+vorticity_indices_triangles(dual_scalar_h_index+1,ji))
-        counter = counter+1
-      endif
-    enddo
-    if (counter/=4) then
-      write(*,*) "Error in subroutine find_v_vector_indices_for_dual_scalar_z."
-      call exit(1)
-    endif
-  
-  end subroutine find_v_vector_indices_for_dual_scalar_z
-
   subroutine find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id_local, &
                                                                         triangle_on_face_index, &
                                                                         lpoints_downwards,lspecial_case,llast_triangle)
