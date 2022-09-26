@@ -246,9 +246,9 @@ module mo_set_initial_state
     
     ! This subroutine reads the initial state of the model atmosphere from a netCDF file.
     
-    type(t_state),      intent(inout) :: state ! state variables
-    type(t_diag),       intent(inout) :: diag  ! diagnostic quantities
-    type(t_grid),       intent(in)    :: grid  ! grid quantities
+    type(t_state), intent(inout) :: state ! state variables
+    type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
     integer               :: ji,jl,jc,ncid,tke_id,tke_avail,densities_id,temperature_id,wind_h_id,wind_v_id
@@ -298,7 +298,7 @@ module mo_set_initial_state
     ! diagnostic thermodynamical quantities
     allocate(temperature_v(n_cells,n_layers))
     !$omp parallel do private(ji,jl,pressure,pot_temp_v)
-    do ji=1,n_scalars
+    do ji=1,n_cells
       do jl=1,n_layers
         temperature_v(ji,jl) = temperature(ji,jl) &
         *(1._wp+state%rho(ji,jl,n_condensed_constituents+2)/state%rho(ji,jl,n_condensed_constituents+1)*(m_d/m_v-1._wp))

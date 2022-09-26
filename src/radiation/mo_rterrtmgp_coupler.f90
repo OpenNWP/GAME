@@ -58,55 +58,38 @@ module mo_rrtmgp_coupler
   end subroutine radiation_init
   
   subroutine calc_radiative_flux_convergence(latitude_scalar,longitude_scalar,z_scalar,z_vector,mass_densities, &
-                                              temperature_gas,radiation_tendency,temp_sfc,sfc_sw_in,sfc_lw_out, &
-                                              sfc_albedo,time_coord)
+                                             temperature_gas,radiation_tendency,temp_sfc,sfc_sw_in,sfc_lw_out, &
+                                             sfc_albedo,time_coord)
   
-    ! This is the function that is called by the dynamical core. The dycore hands over
+    ! This is the subroutine that is called by the dynamical core. The dycore hands over
     ! the thermodynamic state as well as meta data (time stamp, coordinates) and gets
     ! back radiative flux convergences in W/m^3.
     
-    ! the time coordinate (UTC time stamp)
-    real(wp)                           :: time_coord
-    ! the latitude coordinates of the scalar data points
-    real(wp), intent(in)               :: latitude_scalar(n_cells_rad)
-    ! the longitude coordinates of the scalar data points
-    real(wp), intent(in)               :: longitude_scalar(n_cells_rad)
-    ! the vertical positions of the scalar data points
-    real(wp), intent(in)               :: z_scalar(n_cells_rad,n_layers)
-    ! the vertical positions of the vector data points
-    real(wp), intent(in)               :: z_vector(n_cells_rad,n_levels)
-    ! the mass densities of the model atmosphere
-    real(wp), intent(in)               :: mass_densities(n_cells_rad,n_layers,n_constituents)
-    ! the temperature of the model atmosphere
-    real(wp), intent(in)               :: temperature_gas(n_cells_rad,n_layers)
-    ! the result (in W/m^3)
-    real(wp), intent(inout)            :: radiation_tendency(n_cells_rad,n_layers)
-    ! surface temperature
-    real(wp), intent(in)               :: temp_sfc(n_cells_rad)
-    ! surface shortwave in
-    real(wp), intent(inout)            :: sfc_sw_in(n_cells_rad)
-    ! surface longwave out
-    real(wp), intent(inout)            :: sfc_lw_out(n_cells_rad)
-    ! surface albedo for all bands
-    real(wp), intent(in)               :: sfc_albedo(n_cells_rad)
+    real(wp), intent(in)    :: time_coord                                          ! the time coordinate (UTC time stamp)
+    real(wp), intent(in)    :: latitude_scalar(n_cells_rad)                        ! the latitude coordinates of the scalar data points
+    real(wp), intent(in)    :: longitude_scalar(n_cells_rad)                       ! the longitude coordinates of the scalar data points
+    real(wp), intent(in)    :: z_scalar(n_cells_rad,n_layers)                      ! the vertical positions of the scalar data points
+    real(wp), intent(in)    :: z_vector(n_cells_rad,n_levels)                      ! the vertical positions of the vector data points
+    real(wp), intent(in)    :: mass_densities(n_cells_rad,n_layers,n_constituents) ! the mass densities of the model atmosphere
+    real(wp), intent(in)    :: temperature_gas(n_cells_rad,n_layers)               ! the temperature of the model atmosphere
+    real(wp), intent(inout) :: radiation_tendency(n_cells_rad,n_layers)            ! the result (in W/m**3)
+    real(wp), intent(in)    :: temp_sfc(n_cells_rad)                               ! surface temperature
+    real(wp), intent(inout) :: sfc_sw_in(n_cells_rad)                              ! surface shortwave in
+    real(wp), intent(inout) :: sfc_lw_out(n_cells_rad)                             ! surface longwave out
+    real(wp), intent(in)    :: sfc_albedo(n_cells_rad)                             ! surface albedo for all bands
     
     ! local variables
-    ! the gas concentrations (object holding all information on the composition
-    ! of the gas phase)
-    type(ty_gas_concs)                :: gas_concentrations_sw
-    type(ty_gas_concs)                :: gas_concentrations_lw
-    ! the spectral properties of the gas phase
-    type(ty_gas_optics_rrtmgp)        :: k_dist_sw,k_dist_lw
-    ! the spectral properties of the clouds
-    type(ty_cloud_optics)             :: cloud_optics_sw,cloud_optics_lw
-    ! solar zenith angle
-    real(wp)                          :: mu_0(n_cells_rad)
-    ! number of points where it is day
-    integer                           :: n_day_points
-    ! loop indices and helper variables
-    integer                           :: ji,jl,ji_day
-    ! the indices of columns where it is day
-    integer                           :: day_indices(n_cells_rad)
+    type(ty_gas_concs)                :: gas_concentrations_sw ! the gas concentrations (object holding all information on the composition of the gas phase
+                                                                                       ! for the SW calculation)
+    type(ty_gas_concs)                :: gas_concentrations_lw ! the gas concentrations (object holding all information on the composition of the gas phase
+                                                                                       ! for the LW calculation)
+    type(ty_gas_optics_rrtmgp)        :: k_dist_sw,k_dist_lw   ! the spectral properties of the gas phase
+    type(ty_cloud_optics)             :: cloud_optics_sw                               ! the spectral properties of the clouds for the SW calculation
+    type(ty_cloud_optics)             :: cloud_optics_lw                               ! the spectral properties of the clouds for the LW calculation
+    real(wp)                          :: mu_0(n_cells_rad)                             ! solar zenith angle
+    integer                           :: n_day_points                                  ! number of points where it is day
+    integer                           :: ji,jl,ji_day                                  ! loop indices
+    integer                           :: day_indices(n_cells_rad)                      ! the indices of columns where it is day
     ! the resulting fluxes
     type(ty_fluxes_broadband)         :: fluxes,fluxes_day
     ! short wave optical properties
@@ -503,7 +486,7 @@ module mo_rrtmgp_coupler
     
   subroutine calc_power_density(day_only,n_day_points,day_indices,fluxes,z_vector,radiation_tendency)
   
-    ! this is essentially the negative vertical divergence operator
+    ! This subroutine is essentially the negative vertical divergence operator.
     
     ! true for short wave calculations (for efficiency)
     logical, intent(in)                   :: day_only
@@ -514,7 +497,7 @@ module mo_rrtmgp_coupler
     type(ty_fluxes_broadband), intent(in) :: fluxes
     ! as usual
     real(wp), intent(in)                  :: z_vector(n_cells_rad,n_levels)
-    ! the result (in W/m^3)
+    ! the result (in W/m**3)
     real(wp), intent(inout)               :: radiation_tendency(n_cells_rad,n_layers)
   
     ! local variables
@@ -566,36 +549,33 @@ module mo_rrtmgp_coupler
   
   real(wp) function coszenith(lat,lon,t)
   
-    ! calculates the cosine of the zenith angle at a given
-    ! point and time
+    ! Thi function calculates the cosine of the zenith angle at a given point and time.
   
-  	! the coordinates of the place we look at
-    real(wp), intent(in) :: lat
-    real(wp), intent(in) :: lon
-    ! the unix time stamp of the time
-    real(wp), intent(in) :: t
+    real(wp), intent(in) :: lat ! the latitude of the place we look at
+    real(wp), intent(in) :: lon ! the longitude of the place we look at
+    real(wp), intent(in) :: t   ! the unix time stamp of the time
     
     ! local variables
-    real(wp)                          :: normal_vector_rel2_earth(3)
-    real(wp)                          :: normal_vector_rel2_sun  (3)
-    real(wp)                          :: sun_2_earth             (3)
+    real(wp) :: normal_vector_rel2_earth(3)
+    real(wp) :: normal_vector_rel2_sun(3)
+    real(wp) :: sun_2_earth(3)
     ! obliquity of the earth's axis
-    real(wp)                          :: obliquity
+    real(wp) :: obliquity
     ! rotation speed of the earth
-    real(wp)                          :: omega
+    real(wp) :: omega
     ! revolution speed of the earth around the sun
-    real(wp)                          :: omega_rev
+    real(wp) :: omega_rev
     ! a reference time
-    real(wp)                          :: t_0
+    real(wp) :: t_0
     ! a transformed time
-    real(wp)                          :: t_transformed
+    real(wp) :: t_transformed
     ! the rotation angle of the earth
-    real(wp)                          :: rot_angle
+    real(wp) :: rot_angle
     ! At the time t_0,the earth has been at an angle phi_0_earth_rotation
     ! around itself and at an angle phi_0_earth_around_sun around the sun.
-    real(wp)                          :: phi_0_earth_around_sun
-    real(wp)                          :: phi_0_earth_rotation
-    real(wp)                          :: trans_earth2sun         (3,3)
+    real(wp) :: phi_0_earth_around_sun
+    real(wp) :: phi_0_earth_rotation
+    real(wp) :: trans_earth2sun(3,3)
     
     omega = 7.292115e-5_wp
     omega_rev = 1.99099e-7_wp
@@ -639,10 +619,10 @@ module mo_rrtmgp_coupler
     sun_2_earth(3) = 0._wp
     
     ! the result
-    coszenith = DOT_PRODUCT(normal_vector_rel2_sun,-sun_2_earth)
+    coszenith = dot_product(normal_vector_rel2_sun,-sun_2_earth)
     
     ! the night case
-    if (coszenith < 0._wp) then
+    if (coszenith<0._wp) then
       coszenith = 0._wp
     endif
   
@@ -650,24 +630,18 @@ module mo_rrtmgp_coupler
   
   subroutine set_vol_mix_ratios(mass_densities,sw_bool,n_day_points,day_indices,z_scalar,gas_concentrations)
     
-    ! computes volume mixing ratios out of the model variables
+    ! This subroutine computes volume mixing ratios based on the model variables.
     
-    ! mass densities of the constituents
-    real(wp), intent(in)              :: mass_densities(:,:,:)
-    ! short wave switch
-    logical,  intent(in)              :: sw_bool
-    ! as usual
-    integer,  intent(in)              :: n_day_points
-    ! the indices of the points where it is day
-    integer,  intent(in)              :: day_indices(n_cells_rad)
-    ! z coordinates of scalar data points
-    real(wp), intent(in)              :: z_scalar(n_cells_rad,n_layers)
-    type(ty_gas_concs), intent(inout) :: gas_concentrations
+    real(wp),           intent(in)    :: mass_densities(:,:,:)          ! mass densities of the constituents
+    logical,            intent(in)    :: sw_bool                        ! short wave switch
+    integer,            intent(in)    :: n_day_points                   ! number of points where it is day
+    integer,            intent(in)    :: day_indices(n_cells_rad)       ! the indices of the points where it is day
+    real(wp),           intent(in)    :: z_scalar(n_cells_rad,n_layers) ! z coordinates of scalar data points
+    type(ty_gas_concs), intent(inout) :: gas_concentrations             ! object holding gas concentrations
     
-    ! the volume mixing ratio of a gas
-    real(wp) :: vol_mix_ratio(n_cells_rad,n_layers)
-    ! loop indices
-    integer  :: jc,ji,jl
+    ! local variables
+    real(wp) :: vol_mix_ratio(n_cells_rad,n_layers) ! the volume mixing ratio of one gas
+    integer  :: jc,ji,jl                            ! loop indices
     
     ! setting the volume mixing ratios of the gases
     do jc=1,size(active_gases)
@@ -707,9 +681,8 @@ module mo_rrtmgp_coupler
           if (sw_bool .and. n_condensed_constituents==4) then
             do ji=1,n_day_points
               do jl=1,n_layers
-                vol_mix_ratio(ji,jl) = & 
-                mass_densities(day_indices(ji),jl,n_condensed_constituents+2)*r_v/ &
-                (mass_densities(day_indices(ji),jl,n_condensed_constituents+1)*r_d)
+                vol_mix_ratio(ji,jl) = mass_densities(day_indices(ji),jl,n_condensed_constituents+2)*r_v/ &
+                                      (mass_densities(day_indices(ji),jl,n_condensed_constituents+1)*r_d)
               enddo
             enddo
           ! in the long wave case,all points matter
