@@ -85,7 +85,7 @@ module mo_divergences
         enddo
         comp_v = 0._wp
         if (jl==n_flat_layers) then
-          contra_lower = vertical_contravariant_corr(wind_field_h,jl,jl+1,grid)
+          contra_lower = vertical_contravariant_corr(wind_field_h,ji,jl+1,grid)
           if (contra_lower<=0._wp) then
             density_lower = density_field(ji,jl)
           else
