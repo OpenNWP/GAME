@@ -6,7 +6,6 @@ module mo_pgrad
   ! In this module, the explicit component of the pressure gradient acceleration is managed.
 
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,           only: n_scalars,n_vectors
   use mo_constants,          only: c_d_p
   use mo_gradient_operators, only: grad_hor,grad_vert
   use mo_multiplications,    only: scalar_times_vector_h,scalar_times_vector_v

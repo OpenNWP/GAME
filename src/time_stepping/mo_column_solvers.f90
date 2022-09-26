@@ -154,8 +154,7 @@ module mo_column_solvers
         *(-1._wp/grid%volume(ji,jl) + 1._wp/grid%volume(ji,jl+1)))
         ! right hand side
         r_vector(jl) = -(state_old%wind_v(ji,jl+1) + dtime*state_tend%wind_v(ji,jl+1)) &
-        *(grid%z_scalar(ji,jl) - grid%z_scalar(ji,jl+1)) &
-        /(impl_weight*dtime**2*c_d_p) &
+        *(grid%z_scalar(ji,jl) - grid%z_scalar(ji,jl+1))/(impl_weight*dtime**2*c_d_p) &
         + theta_v_int_new(jl)*(exner_pert_expl(jl) - exner_pert_expl(jl+1))/dtime &
         + 0.5_wp/dtime*(theta_v_pert_expl(jl) + theta_v_pert_expl(jl+1))*(grid%exner_bg(ji,jl) - grid%exner_bg(ji,jl+1)) &
         - (grid%z_scalar(ji,jl) - grid%z_scalar(ji,jl+1))/(impl_weight*dtime**2*c_d_p) &
@@ -184,10 +183,8 @@ module mo_column_solvers
           = -grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji)*(state_old%temperature_soil(ji,jl) &
           - state_old%temperature_soil(ji,jl+1))/(grid%z_soil_center(jl) - grid%z_soil_center(jl+1))
         enddo
-        heat_flux_density_expl(nsoillays) &
-        = -grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji)* &
-        (state_old%temperature_soil(ji,nsoillays)-grid%t_const_soil(ji)) &
-        /(2._wp*(grid%z_soil_center(nsoillays) - z_t_const))
+        heat_flux_density_expl(nsoillays) = -grid%sfc_rho_c(ji)*grid%t_conduc_soil(ji)* &
+        (state_old%temperature_soil(ji,nsoillays)-grid%t_const_soil(ji))/(2._wp*(grid%z_soil_center(nsoillays) - z_t_const))
         
         radiation_flux_density = diag%sfc_sw_in(ji) - diag%sfc_lw_out(ji)
         resulting_temperature_change = radiation_flux_density/((grid%z_soil_interface(1) - grid%z_soil_interface(2)) &
@@ -273,11 +270,9 @@ module mo_column_solvers
       ! mass density
       do jl=1,n_layers
         if (jl==1) then
-          state_target%rho(ji,jl,n_condensed_constituents+1) &
-          = rho_expl(jl) + dtime*(solution_vector(jl))/grid%volume(ji,jl)
+          state_target%rho(ji,jl,n_condensed_constituents+1) = rho_expl(jl) + dtime*(solution_vector(jl))/grid%volume(ji,jl)
         elseif (jl==n_layers) then
-          state_target%rho(ji,jl,n_condensed_constituents+1) &
-          = rho_expl(jl) + dtime*(-solution_vector(jl-1))/grid%volume(ji,jl)
+          state_target%rho(ji,jl,n_condensed_constituents+1) = rho_expl(jl) + dtime*(-solution_vector(jl-1))/grid%volume(ji,jl)
         else
           state_target%rho(ji,jl,n_condensed_constituents+1) &
           = rho_expl(jl) + dtime*(-solution_vector(jl-1) + solution_vector(jl))/grid%volume(ji,jl)
@@ -298,23 +293,21 @@ module mo_column_solvers
         endif
       enddo
       ! vertical velocity
-      do jl=1,n_layers-1
-        density_interface_new = 0.5_wp*(state_target%rho(ji,jl,n_condensed_constituents+1) &
-        + state_target%rho(ji,jl+1,n_condensed_constituents+1))
-        state_target%wind_v(ji,jl+1) &
-        = (2._wp*solution_vector(jl)/grid%area_v(ji,jl+1) &
-        - density_interface_new*state_old%wind_v(ji,jl+1))/rho_int_old(jl)
+      do jl=2,n_layers
+        density_interface_new = 0.5_wp*(state_target%rho(ji,jl-1,n_condensed_constituents+1) &
+                                      + state_target%rho(ji,jl,n_condensed_constituents+1))
+        state_target%wind_v(ji,jl)  = (2._wp*solution_vector(jl-1)/grid%area_v(ji,jl) &
+                                       - density_interface_new*state_old%wind_v(ji,jl))/rho_int_old(jl-1)
       enddo
       ! virtual potential temperature perturbation
       do jl=1,n_layers
-        state_target%theta_v_pert(ji,jl) = state_target%rhotheta_v(ji,jl) &
-                                           /state_target%rho(ji,jl,n_condensed_constituents+1) &
-        - grid%theta_v_bg(ji,jl)
+        state_target%theta_v_pert(ji,jl) = state_target%rhotheta_v(ji,jl)/state_target%rho(ji,jl,n_condensed_constituents+1) &
+                                           - grid%theta_v_bg(ji,jl)
       enddo
       ! Exner pressure perturbation
       do jl=1,n_layers
         state_target%exner_pert(ji,jl) = state_old%exner_pert(ji,jl) + grid%volume(ji,jl) &
-        *gamma_(jl)*(state_target%rhotheta_v(ji,jl) - state_old%rhotheta_v(ji,jl))
+                                         *gamma_(jl)*(state_target%rhotheta_v(ji,jl) - state_old%rhotheta_v(ji,jl))
       enddo
       
       ! soil temperature

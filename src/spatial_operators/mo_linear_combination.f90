@@ -6,9 +6,7 @@ module mo_linear_combination
   ! This module  contains a function for linearly combining two states.
 
   use mo_definitions,      only: wp,t_state,t_grid
-  use mo_grid_nml,         only: n_scalars
-  use mo_surface_nml,      only: nsoillays
-  use mo_constituents_nml, only: n_constituents,n_condensed_constituents
+  use mo_constituents_nml, only: n_condensed_constituents
   
   implicit none
   

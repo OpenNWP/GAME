@@ -9,7 +9,7 @@ module mo_derived
   use mo_run_nml,          only: lmoist
   use mo_constants,        only: m_d,n_a,k_b,M_PI,t_0,r_v,c_d_v,c_v_v,r_d,m_v
   use mo_dictionary,       only: saturation_pressure_over_water,saturation_pressure_over_ice,c_p_cond
-  use mo_grid_nml,         only: n_scalars,n_cells,n_layers
+  use mo_grid_nml,         only: n_cells,n_layers
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents
   
   implicit none

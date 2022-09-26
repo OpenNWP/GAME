@@ -10,8 +10,8 @@ module mo_discrete_coordinate_trafos
   use mo_definitions,         only: wp
   use mo_constants,           only: M_PI
   use mo_grid_nml,            only: n_cells,n_edges,radius_rescale,n_triangles,orth_criterion_deg, &
-                                    n_vectors,n_dual_vectors,res_id,n_pentagons,n_basic_edges, &
-                                    n_points_per_edge,n_basic_triangles,n_vectors_per_inner_face
+                                    res_id,n_pentagons,n_basic_edges,n_points_per_edge,n_basic_triangles, &
+                                    n_vectors_per_inner_face
   use mo_various_helpers,     only: in_bool_checker
   
   implicit none

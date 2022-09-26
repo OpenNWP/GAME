@@ -10,9 +10,8 @@ module mo_horizontal_generation
   use mo_definitions,                only: wp
   use mo_constants,                  only: EPSILON_SECURITY,M_PI
   use mo_grid_nml,                   only: n_cells,n_edges,radius_rescale,n_triangles,orth_criterion_deg, &
-                                           n_lloyd_iterations,n_vectors,n_dual_vectors,n_pentagons,n_basic_edges, &
-                                           n_basic_triangles,n_vectors_per_inner_face,n_points_per_edge,res_id, &
-                                           n_triangles_per_face,n_triangles
+                                           n_lloyd_iterations,n_pentagons,n_basic_edges,n_triangles_per_face,n_triangles, &
+                                           n_basic_triangles,n_vectors_per_inner_face,n_points_per_edge,res_id
   use mo_geodesy,                    only: find_geodetic_direction,find_between_point,normalize_cartesian,find_geos, &
                                            rad2deg,find_turn_angle,calc_triangle_area,find_voronoi_center_sphere, &
                                            find_global_normal

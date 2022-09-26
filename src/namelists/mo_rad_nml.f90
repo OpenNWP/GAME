@@ -6,7 +6,7 @@ module mo_rad_nml
   ! This is the namelists the configures the basic run properties of a model integration.
   
   use mo_definitions, only: wp
-  use mo_grid_nml,    only: n_scalars,n_cells
+  use mo_grid_nml,    only: n_cells
   use mo_grid_setup,  only: eff_hor_res
   
   implicit none

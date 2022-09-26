@@ -9,9 +9,7 @@ module mo_write_output
   use netcdf
   use mo_definitions,            only: wp,t_grid,t_state,t_diag
   use mo_constants,              only: c_d_p,r_d,t_0,EPSILON_SECURITY,c_d_v,r_v,p_0,M_PI,gravity
-  use mo_grid_nml,               only: n_scalars,n_cells,n_vectors_per_layer,n_edges,n_dual_vectors, &
-                                       n_lat_io_points,n_lon_io_points,n_vectors,n_levels,n_layers, &
-                                       n_dual_v_vectors,n_latlon_io_points
+  use mo_grid_nml,               only: n_cells,n_edges,n_lat_io_points,n_lon_io_points,n_levels,n_layers
   use mo_various_helpers,        only: nc_check,find_min_index,int2string
   use mo_geodesy,                only: passive_turn
   use mo_constituents_nml,       only: n_constituents,n_condensed_constituents,lmoist,rain_velocity,snow_velocity

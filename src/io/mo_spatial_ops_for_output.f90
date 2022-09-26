@@ -6,11 +6,10 @@ module mo_spatial_ops_for_output
   ! In this module, those spatial operators are collected which are only needed for the output.
   
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,           only: n_cells,n_scalars,n_edges,n_layers,n_vectors_per_layer,n_vectors, &
-                                   n_pentagons,n_h_vectors
+  use mo_grid_nml,           only: n_cells,n_edges,n_layers,n_pentagons,n_levels
   use mo_gradient_operators, only: grad_hor,grad_vert
   use mo_geodesy,            only: passive_turn
-  use mo_inner_product
+  use mo_inner_product,      only: inner_product
   
   implicit none
   

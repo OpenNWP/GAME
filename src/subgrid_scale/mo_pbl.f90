@@ -8,8 +8,7 @@ module mo_pbl
   use mo_constants,        only: EPSILON_SECURITY,M_PI,gravity,p_0,c_d_p,r_d
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_diff_nml,         only: h_prandtl,karman
-  use mo_grid_nml,         only: n_scalars,n_cells,n_vectors_per_layer,n_layers,n_vectors,n_edges,n_vectors_per_layer, &
-                                 n_h_vectors,n_levels
+  use mo_grid_nml,         only: n_cells,n_layers,n_edges,n_levels
   use mo_surface_nml,      only: lprog_soil_temp,pbl_scheme
   use mo_constituents_nml, only: n_constituents
   use mo_grid_setup,       only: dtime

@@ -7,7 +7,7 @@ module mo_derived_hor_quantities
 
   use mo_definitions,     only: wp
   use mo_grid_nml,        only: n_cells,n_edges,radius_rescale,n_triangles,orth_criterion_deg,n_levels, &
-                                n_lloyd_iterations,radius,n_vectors,n_dual_vectors,n_pentagons,toa,n_layers
+                                n_lloyd_iterations,radius,n_pentagons,toa,n_layers
   use mo_geodesy,         only: find_turn_angle,rad2deg,find_geodetic_direction,find_global_normal,find_geos, &
                                 find_between_point,rel_on_line,calc_spherical_polygon_area
   use mo_constants,       only: omega,EPSILON_SECURITY,M_PI

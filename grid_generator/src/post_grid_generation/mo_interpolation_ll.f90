@@ -7,7 +7,7 @@ module mo_interpolation_ll
 
   use mo_definitions,     only: wp
   use mo_constants,       only: M_PI,EPSILON_SECURITY
-  use mo_grid_nml,        only: n_cells,n_lat_io_points,n_lon_io_points,n_latlon_io_points
+  use mo_grid_nml,        only: n_cells,n_lat_io_points,n_lon_io_points
   use mo_geodesy,         only: calculate_distance_h
   use mo_various_helpers, only: find_min_index_exclude
   

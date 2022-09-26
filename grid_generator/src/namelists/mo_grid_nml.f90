@@ -17,22 +17,12 @@ module mo_grid_nml
   integer            :: n_hexagons               ! number of hexagons
   integer            :: n_cells                  ! number of cells
   integer            :: n_edges                  ! number of edges
-  integer            :: n_h_vectors              ! number of horizontal vectors
-  integer            :: n_scalars                ! number of scalars
   integer            :: n_levels                 ! number of levels
-  integer            :: n_v_vectors              ! number of vertical vectors
-  integer            :: n_vectors_per_layer      ! number of vectors per layer
-  integer            :: n_vectors                ! number of vectors
   integer            :: n_basic_triangles        ! number of basic triangles of the icosaheron
   integer            :: n_basic_edges            ! number of basic edges of the icosaheron
   integer            :: n_points_per_edge        ! number of points per edge
   integer            :: n_triangles              ! the number of triangles of the grid
   integer            :: n_triangles_per_face     ! the number of triangles per face
-  integer            :: n_dual_scalars           ! the number of dual scalars
-  integer            :: n_dual_vectors_per_layer ! the number of dual vectors per layer
-  integer            :: n_dual_h_vectors         ! the number of horizontal dual vectors per layer
-  integer            :: n_dual_v_vectors         ! the number of vertical dual vectors per layer
-  integer            :: n_dual_vectors           ! the number of dual vectors
   integer            :: n_vectors_per_inner_face ! number of horizontal vectors per inner triangle face
   real(wp)           :: toa                      ! top of atmosphere in meters above MSL
   integer            :: n_oro_layers             ! number of layers following the orography
@@ -42,7 +32,6 @@ module mo_grid_nml
   real(wp)           :: radius                   ! radius of the planet to construct the grid for
   integer            :: n_lat_io_points          ! number of points of the post-processing lat-lon grid in lat direction
   integer            :: n_lon_io_points          ! number of points of the post-processing lat-lon grid in lon direction
-  integer            :: n_latlon_io_points       ! number of points of the post-processing lat-lon grid
   integer            :: n_avg_points             ! number of points used for smoothing the orography
   integer            :: oro_id                   ! orography ID
   integer            :: n_lloyd_iterations       ! number of Lloyd iterations used for the optimization
@@ -68,23 +57,13 @@ module mo_grid_nml
     n_pentagons = 12
     n_hexagons = 10*(2**(2*res_id)-1)
     n_cells = n_pentagons+n_hexagons
-    n_scalars = n_layers*n_cells
     n_edges = (5*n_pentagons/2 + 6/2*n_hexagons)
-    n_h_vectors = n_layers*n_edges
     n_levels = n_layers+1
-    n_v_vectors = n_levels*n_cells
-    n_vectors_per_layer = n_edges+n_cells
-    n_vectors = n_h_vectors+n_v_vectors
     n_basic_triangles = 20
     n_basic_edges = 3*n_basic_triangles/2
     n_points_per_edge = 2**res_id-1
     n_triangles = n_basic_triangles*4**res_id
     n_triangles_per_face = n_triangles/n_basic_triangles
-    n_dual_scalars = n_levels*n_triangles
-    n_dual_vectors_per_layer = n_edges+n_triangles
-    n_dual_h_vectors = n_levels*n_edges
-    n_dual_v_vectors = n_layers*n_triangles
-    n_dual_vectors = n_dual_h_vectors+n_dual_v_vectors
     n_vectors_per_inner_face = 3*(2**RES_ID-1)*2**res_id/2
     toa = 41152._wp
     n_oro_layers = 23
@@ -94,9 +73,8 @@ module mo_grid_nml
     radius = radius_rescale*r_e
     n_lat_io_points = 2*2**res_id
     n_lon_io_points = 2*n_lat_io_points
-    n_latlon_io_points = n_lat_io_points*n_lon_io_points
     n_avg_points = 7
-    oro_id = 0
+    oro_id = 1
     n_lloyd_iterations = 2000
     mean_velocity_area = 2._wp/3._wp*4._wp*M_PI*radius**2/n_cells
     eff_hor_res = sqrt(4._wp*M_PI*radius**2/n_cells)

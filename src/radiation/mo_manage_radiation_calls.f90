@@ -6,7 +6,7 @@ module mo_manage_radiation_calls
   ! This module manages the calls to the radiation routines.
 
   use mo_definitions,      only: wp,t_grid,t_state,t_diag,t_radiation
-  use mo_grid_nml,         only: n_scalars,n_cells,n_vectors_per_layer,n_vectors,n_layers,n_levels
+  use mo_grid_nml,         only: n_cells,n_layers,n_levels
   use mo_rad_nml,          only: n_cells_rad,n_rad_blocks,rad_config
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents
   use mo_surface_nml,      only: nsoillays

@@ -7,8 +7,7 @@ module mo_manage_pchevi
   
   use mo_definitions,            only: wp,t_grid,t_state,t_diag
   use mo_constituents_nml,       only: n_constituents,lmoist,n_condensed_constituents
-  use mo_grid_nml,               only: n_layers,n_vectors_per_layer,n_cells,n_vectors,n_dual_vectors,n_scalars, &
-                                       n_dual_v_vectors,n_h_vectors,n_edges
+  use mo_grid_nml,               only: n_layers,n_cells,n_edges
   use mo_grid_setup,             only: dtime
   use mo_column_solvers,         only: three_band_solver_ver_waves,three_band_solver_gen_densities
   use mo_surface_nml,            only: nsoillays,lsfc_sensible_heat_flux,lsfc_phase_trans,pbl_scheme

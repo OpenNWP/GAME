@@ -8,8 +8,7 @@ module mo_set_initial_state
   use netcdf
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_constants,        only: p_0,r_d,c_d_p,m_d,m_v
-  use mo_grid_nml,         only: n_scalars,n_cells,n_vectors,n_vectors_per_layer,n_edges,n_levels,n_dual_vectors, &
-                                 n_layers,oro_id,res_id,n_dual_v_vectors,n_triangles
+  use mo_grid_nml,         only: n_cells,n_edges,n_levels,n_layers,oro_id,res_id,n_triangles
   use mo_constituents_nml, only: n_condensed_constituents,n_constituents,lmoist
   use mo_surface_nml,      only: nsoillays
   use mo_derived,          only: rel_humidity
@@ -341,9 +340,9 @@ module mo_set_initial_state
     
     ! This subroutine sets the soil and SST temperature.
     
-    type(t_state),    intent(inout) :: state                    ! state to which to write
-    real(wp),         intent(in)    :: temperature(n_scalars)   ! air temperature
-    type(t_grid),     intent(in)    :: grid                     ! grid quantities
+    type(t_state), intent(inout) :: state                         ! state to which to write
+    real(wp),      intent(in)    :: temperature(n_cells,n_layers) ! air temperature
+    type(t_grid),  intent(in)    :: grid                          ! grid quantities
     
     ! local variables
     integer               :: ji,jl,ncid,sst_id,soil_index,sst_avail,t_soil_avail,soil_id
@@ -412,7 +411,7 @@ module mo_set_initial_state
       ! and the depth of constant temperature    
       if ((grid%is_land(ji)==1 .and. t_soil_avail==0) .or. (grid%is_land(ji)==0 .and. sst_avail==0)) then
         ! setting the surface temperature identical to the air temperature in the lowest layer
-        t_sfc = temperature(n_scalars-n_cells+ji)
+        t_sfc = temperature(ji,1)
         
         ! loop over all soil layers
         do jl=1,nsoillays
