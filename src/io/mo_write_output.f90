@@ -187,8 +187,8 @@ module mo_write_output
   
     ! local variables
     logical               :: lcontains_nan
-    integer               :: ji,jk,jl,jm,lat_lon_dimids(2),ncid,single_int_dimid,lat_dimid,lon_dimid,start_date_id,start_hour_id, &
-                             lat_id,lon_id,layer_index,closest_index,second_closest_index,temperature_ids(n_layers), &
+    integer               :: ji,jl,jm,lat_lon_dimids(2),ncid,single_int_dimid,lat_dimid,lon_dimid,start_date_id,start_hour_id, &
+                             lat_id,lon_id,closest_index,second_closest_index,temperature_ids(n_layers), &
                              pressure_ids(n_layers),rel_hum_ids(n_layers),wind_u_ids(n_layers),wind_v_ids(n_layers), &
                              rel_vort_ids(n_layers),div_h_ids(n_layers),wind_w_ids(n_levels),layer_dimid,level_dimid, &
                              time_since_init_min,mslp_id,sp_id,rprate_id,sprate_id,dimids_vector_2(2),wind_v_id, &
@@ -265,7 +265,7 @@ module mo_write_output
       standard_vert_lapse_rate = 0.0065_wp
       !$omp parallel do private(ji,jl,temp_lowest_layer,pressure_value,mslp_factor,sp_factor,temp_mslp,temp_surface, &
       !$omp z_height,theta_v,cape_integrand,delta_z,temp_closest,temp_second_closest,delta_z_temp,temperature_gradient, &
-      !$omp theta_e,layer_index,closest_index,second_closest_index,cloud_water_content,vector_to_minimize)
+      !$omp theta_e,closest_index,second_closest_index,cloud_water_content,vector_to_minimize)
       do ji=1,n_cells
         ! Now the aim is to determine the value of the mslp.
         temp_lowest_layer = diag%temperature(ji,n_layers)
@@ -310,23 +310,23 @@ module mo_write_output
         ! diagnozing CAPE
         ! initializing CAPE with zero
         cape(ji) = 0._wp
-        layer_index = n_layers - 1
-        z_height = grid%z_scalar(ji,layer_index+1)
+        jl = n_layers
+        z_height = grid%z_scalar(ji,jl)
         ! pseduovirtual potential temperature of the particle in the lowest layer
-        theta_e = pseudopotential_temperature(state,diag,ji,layer_index,grid)
+        theta_e = pseudopotential_temperature(state,diag,ji,jl,grid)
         do while (z_height<z_tropopause)
           ! full virtual potential temperature in the grid box
-          theta_v = grid%theta_v_bg(ji,layer_index+1) + state%theta_v_pert(ji,layer_index+1)
+          theta_v = grid%theta_v_bg(ji,jl) + state%theta_v_pert(ji,jl)
           ! thickness of the gridbox
-          delta_z = grid%layer_thickness(ji,layer_index)
+          delta_z = grid%layer_thickness(ji,jl)
           ! this is the candidate that we might want to add to the integral
-          cape_integrand = grid%gravity_m_v(ji,layer_index+1)*(theta_e - theta_v)/theta_v
+          cape_integrand = grid%gravity_m_v(ji,jl)*(theta_e - theta_v)/theta_v
           ! we do not add negative values to CAPE (see the definition of CAPE)
           if (cape_integrand>0._wp) then
             cape(ji) = cape(ji) + cape_integrand*delta_z
           endif
-          layer_index = layer_index-1
-          z_height = grid%z_scalar(ji,layer_index+1)
+          jl = jl-1
+          z_height = grid%z_scalar(ji,jl)
         enddo
         
         sfc_sw_down(ji) = diag%sfc_sw_in(ji)/(1._wp-grid%sfc_albedo(ji)+EPSILON_SECURITY)
@@ -377,7 +377,7 @@ module mo_write_output
       allocate(wind_10_m_mean_u(n_edges))
       allocate(wind_10_m_mean_v(n_edges))
       ! temporal average over the ten minutes output interval
-      !$omp parallel do private(ji,jk,time_step_10_m_wind,wind_tangential,wind_u_value,wind_v_value)
+      !$omp parallel do private(ji,jm,time_step_10_m_wind,wind_tangential,wind_u_value,wind_v_value)
       do ji=1,n_edges
         ! initializing the means with zero
         wind_10_m_mean_u(ji) = 0._wp
@@ -385,9 +385,9 @@ module mo_write_output
         ! loop over the time steps
         do time_step_10_m_wind=1,n_output_steps_10m_wind
           wind_tangential = 0._wp
-          do jk=1,10
-            wind_tangential = wind_tangential + grid%trsk_weights(ji,jk) &
-                              *wind_h_lowest_layer_array(grid%trsk_indices(ji,jk),time_step_10_m_wind)
+          do jm=1,10
+            wind_tangential = wind_tangential + grid%trsk_weights(ji,jm) &
+                              *wind_h_lowest_layer_array(grid%trsk_indices(ji,jm),time_step_10_m_wind)
           enddo
           wind_10_m_mean_u(ji) = wind_10_m_mean_u(ji) &
           + 1._wp/n_output_steps_10m_wind*wind_h_lowest_layer_array(ji,time_step_10_m_wind)

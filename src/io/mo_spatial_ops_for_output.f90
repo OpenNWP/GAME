@@ -18,8 +18,7 @@ module mo_spatial_ops_for_output
 
   function tangential_wind(in_field_h,ji,jl,grid)
   
-    ! This function computes the tangential component of the vector field in_field at edge h_index in layer layer_index
-    ! using the TRSK weights.
+    ! This function computes the tangential component of the vector field in_field at edge ji in layer jl using the TRSK weights.
     
     real(wp),     intent(in) :: in_field_h(n_edges,n_layers) ! vector field of which to compute the tangential component
     integer,      intent(in) :: ji,jl                        ! spatial indices

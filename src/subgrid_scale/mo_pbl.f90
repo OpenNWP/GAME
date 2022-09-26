@@ -28,7 +28,7 @@ module mo_pbl
     type(t_grid),  intent(in)    :: grid  ! grid properties
   
     ! local variables
-    integer  :: ji,layer_index, h_index
+    integer  :: ji,jl
     real(wp) :: flux_resistance,wind_speed_lowest_layer,z_agl,layer_thickness,roughness_length_value, &
                 monin_obukhov_length_value,wind_rescale_factor,bndr_lr_visc_max,sigma_b,standard_vert_lapse_rate, &
                 exner_from,exner_to,pressure_from,pressure_to,pressure,temp_lowest_layer, pressure_value_lowest_layer, &
@@ -73,53 +73,48 @@ module mo_pbl
       bndr_lr_visc_max = 1._wp/86400._wp ! maximum friction coefficient in the boundary layer
       sigma_b = 0.7_wp ! boundary layer height in sigma-p coordinates
       standard_vert_lapse_rate = 0.0065_wp
-      !$omp parallel do private(layer_index,h_index,exner_from,exner_to,pressure_from,pressure_to,pressure, &
+      !$omp parallel do private(ji,jl,exner_from,exner_to,pressure_from,pressure_to,pressure, &
       !$omp temp_lowest_layer,pressure_value_lowest_layer,temp_surface,surface_p_factor, &
       !$omp pressure_sfc_from,pressure_sfc_to,pressure_sfc,sigma)
-      do ji=1,n_h_vectors
-        layer_index = (ji-1)/n_edges
-        h_index = ji - layer_index*n_edges
-        ! calculating the pressure at the horizontal vector point
-        exner_from = grid%exner_bg(grid%from_cell(h_index),layer_index+1) &
-        + state%exner_pert(grid%from_cell(h_index),layer_index+1)
-        exner_to = grid%exner_bg(grid%to_cell(h_index),layer_index+1) &
-        + state%exner_pert(grid%to_cell(h_index),layer_index+1)
-        pressure_from = p_0*exner_from**(c_d_p/r_d)
-        pressure_to = p_0*exner_to**(c_d_p/r_d)
-        pressure = 0.5_wp*(pressure_from+pressure_to)
-      
-        ! calculating the surface pressure at the horizontal vecor point
-        ! calculating the surface pressure at the from scalar point
-        temp_lowest_layer = diag%temperature(grid%from_cell(h_index),n_layers)
-        exner_from = grid%exner_bg(grid%from_cell(h_index),n_layers) &
-        + state%exner_pert(grid%from_cell(h_index),n_layers)
-        pressure_value_lowest_layer = p_0*exner_from**(c_d_p/r_d)
-        temp_surface = temp_lowest_layer &
-        + standard_vert_lapse_rate*(grid%z_scalar(grid%from_cell(h_index),n_layers) &
-        - grid%z_vector_v(grid%from_cell(h_index),n_levels))
-        surface_p_factor = (1._wp - (temp_surface - temp_lowest_layer)/temp_surface) &
-        **(grid%gravity_m_v(grid%from_cell(h_index),n_layers)/ &
-        (gas_constant_diagnostics(state%rho,grid%from_cell(h_index),n_layers)*standard_vert_lapse_rate))
-        pressure_sfc_from = pressure_value_lowest_layer/surface_p_factor
-        ! calculating the surface pressure at the to scalar point
-        temp_lowest_layer = diag%temperature(grid%to_cell(h_index),n_layers)
-        exner_to = grid%exner_bg(grid%to_cell(h_index),n_layers) + state%exner_pert(grid%to_cell(h_index),n_layers)
-        pressure_value_lowest_layer = p_0*exner_to**(c_d_p/r_d)
-        temp_surface = temp_lowest_layer &
-        + standard_vert_lapse_rate*(grid%z_scalar(grid%to_cell(h_index),n_layers) &
-        - grid%z_vector_v(grid%to_cell(h_index),n_levels))
-        surface_p_factor = (1._wp - (temp_surface - temp_lowest_layer)/temp_surface) &
-        **(grid%gravity_m_v(grid%to_cell(h_index),n_layers)/ &
-        (gas_constant_diagnostics(state%rho,grid%to_cell(h_index),n_layers)*standard_vert_lapse_rate))
-        pressure_sfc_to = pressure_value_lowest_layer/surface_p_factor
-        ! averaging the surface pressure to the vector point
-        pressure_sfc = 0.5_wp*(pressure_sfc_from+pressure_sfc_to)
-      
-        ! calculating sigma
-        sigma = pressure/pressure_sfc
-        ! finally calculating the friction acceleration
-        diag%friction_acc_h(ji,n_layers) = diag%friction_acc_h(ji,n_layers) &
-        - bndr_lr_visc_max*max(0._wp,(sigma-sigma_b)/(1._wp-sigma_b))*state%wind_h(ji,n_layers)
+      do ji=1,n_edges
+        do jl=1,n_layers
+          ! calculating the pressure at the horizontal vector point
+          exner_from = grid%exner_bg(grid%from_cell(ji),jl) + state%exner_pert(grid%from_cell(ji),jl)
+          exner_to = grid%exner_bg(grid%to_cell(ji),jl) + state%exner_pert(grid%to_cell(ji),jl)
+          pressure_from = p_0*exner_from**(c_d_p/r_d)
+          pressure_to = p_0*exner_to**(c_d_p/r_d)
+          pressure = 0.5_wp*(pressure_from+pressure_to)
+        
+          ! calculating the surface pressure at the horizontal vector point
+          ! calculating the surface pressure at the from scalar point
+          temp_lowest_layer = diag%temperature(grid%from_cell(ji),n_layers)
+          exner_from = grid%exner_bg(grid%from_cell(ji),n_layers) + state%exner_pert(grid%from_cell(ji),n_layers)
+          pressure_value_lowest_layer = p_0*exner_from**(c_d_p/r_d)
+          temp_surface = temp_lowest_layer  + standard_vert_lapse_rate*(grid%z_scalar(grid%from_cell(ji),n_layers) &
+                                                                      - grid%z_vector_v(grid%from_cell(ji),n_levels))
+          surface_p_factor = (1._wp - (temp_surface-temp_lowest_layer)/temp_surface) &
+                             **(grid%gravity_m_v(grid%from_cell(ji),n_layers)/ &
+                             (gas_constant_diagnostics(state%rho,grid%from_cell(ji),n_layers)*standard_vert_lapse_rate))
+          pressure_sfc_from = pressure_value_lowest_layer/surface_p_factor
+          ! calculating the surface pressure at the to scalar point
+          temp_lowest_layer = diag%temperature(grid%to_cell(ji),n_layers)
+          exner_to = grid%exner_bg(grid%to_cell(ji),n_layers) + state%exner_pert(grid%to_cell(ji),n_layers)
+          pressure_value_lowest_layer = p_0*exner_to**(c_d_p/r_d)
+          temp_surface = temp_lowest_layer + standard_vert_lapse_rate*(grid%z_scalar(grid%to_cell(ji),n_layers) &
+                                                                     - grid%z_vector_v(grid%to_cell(ji),n_levels))
+          surface_p_factor = (1._wp - (temp_surface-temp_lowest_layer)/temp_surface) &
+                             **(grid%gravity_m_v(grid%to_cell(ji),n_layers)/ &
+                             (gas_constant_diagnostics(state%rho,grid%to_cell(ji),n_layers)*standard_vert_lapse_rate))
+          pressure_sfc_to = pressure_value_lowest_layer/surface_p_factor
+          ! averaging the surface pressure to the vector point
+          pressure_sfc = 0.5_wp*(pressure_sfc_from+pressure_sfc_to)
+        
+          ! calculating sigma
+          sigma = pressure/pressure_sfc
+          ! finally calculating the friction acceleration
+          diag%friction_acc_h(ji,jl) = diag%friction_acc_h(ji,jl) &
+          - bndr_lr_visc_max*max(0._wp,(sigma-sigma_b)/(1._wp-sigma_b))*state%wind_h(ji,jl)
+        enddo
       enddo
       !$omp end parallel do
     endif
