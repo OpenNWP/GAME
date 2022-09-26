@@ -89,7 +89,7 @@ module mo_vorticity_flux
         *diag%flux_density_v(grid%from_cell(ji),jl+1)*diag%pot_vort_h(ji,jl+1)
         diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
         - 0.5_wp*grid%inner_product_weights(grid%to_cell(ji),jl,8) &
-        *diag%flux_density_v(grid%to_cell(ji),jl)*diag%pot_vort_h(ji,jl+1)
+        *diag%flux_density_v(grid%to_cell(ji),jl+1)*diag%pot_vort_h(ji,jl+1)
           
       enddo
     enddo
@@ -110,7 +110,8 @@ module mo_vorticity_flux
           n_edges_of_cell = 5
         endif
         do jm=1,n_edges_of_cell
-          diag%pot_vort_tend_v(ji,jl) = diag%pot_vort_h(grid%adjacent_edges(ji,jm),jl) &
+          diag%pot_vort_tend_v(ji,jl) = diag%pot_vort_tend_v(ji,jl) &
+          + diag%pot_vort_h(grid%adjacent_edges(ji,jm),jl) &
           *0.5_wp*(grid%inner_product_weights(ji,jl-1,jm)*diag%flux_density_h(grid%adjacent_edges(ji,jm),jl-1) &
           + grid%inner_product_weights(ji,jl,jm)*diag%flux_density_h(grid%adjacent_edges(ji,jm),jl))
         enddo
