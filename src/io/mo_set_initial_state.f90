@@ -411,7 +411,7 @@ module mo_set_initial_state
       ! and the depth of constant temperature    
       if ((grid%is_land(ji)==1 .and. t_soil_avail==0) .or. (grid%is_land(ji)==0 .and. sst_avail==0)) then
         ! setting the surface temperature identical to the air temperature in the lowest layer
-        t_sfc = temperature(ji,1)
+        t_sfc = temperature(ji,n_layers)
         
         ! loop over all soil layers
         do jl=1,nsoillays
