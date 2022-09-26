@@ -57,9 +57,9 @@ module mo_rrtmgp_coupler
     
   end subroutine radiation_init
   
-  subroutine calc_radiative_flux_convergence(latitude_scalar,longitude_scalar, &
-  z_scalar,z_vector,mass_densities,temperature_gas,radiation_tendency, &
-  temp_sfc,sfc_sw_in,sfc_lw_out,sfc_albedo,time_coord)
+  subroutine calc_radiative_flux_convergence(latitude_scalar,longitude_scalar,z_scalar,z_vector,mass_densities, &
+                                              temperature_gas,radiation_tendency,temp_sfc,sfc_sw_in,sfc_lw_out, &
+                                              sfc_albedo,time_coord)
   
     ! This is the function that is called by the dynamical core. The dycore hands over
     ! the thermodynamic state as well as meta data (time stamp, coordinates) and gets
@@ -218,8 +218,8 @@ module mo_rrtmgp_coupler
       do jl=1,n_layers
         temperature_rad(ji,jl) = temperature_gas(ji,jl)
         ! the pressure is diagnozed here, using the equation of state for ideal gases
-        pressure_rad(ji,jl) = r_d &
-        *mass_densities(ji,jl,n_condensed_constituents)*temperature_rad(ji,jl)
+        pressure_rad(ji,jl) = r_d*mass_densities(ji,jl,n_condensed_constituents+1)*temperature_rad(ji,jl) &
+                            + r_v*mass_densities(ji,jl,n_condensed_constituents+2)*temperature_rad(ji,jl)
       enddo
     enddo
     
