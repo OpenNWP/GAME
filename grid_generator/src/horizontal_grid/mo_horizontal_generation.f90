@@ -445,30 +445,30 @@ module mo_horizontal_generation
         edge_index = (ji-1)/(n_points_per_edge+1)
         on_edge_index = ji-1 - edge_index*(n_points_per_edge+1)
         if(on_edge_index==0) then
-          from_cell(ji) = edge_vertices(edge_index+1,1)
-          to_cell(ji) = n_pentagons + edge_index*n_points_per_edge
+          from_cell(ji) = edge_vertices(edge_index+1,1) + 1
+          to_cell(ji) = n_pentagons + edge_index*n_points_per_edge + 1
         elseif (on_edge_index==n_points_per_edge) then
-          from_cell(ji) = n_pentagons + (edge_index+1)*n_points_per_edge - 1
-          to_cell(ji) = edge_vertices(edge_index+1,2)
+          from_cell(ji) = n_pentagons + (edge_index+1)*n_points_per_edge
+          to_cell(ji) = edge_vertices(edge_index+1,2) + 1
         else
-          from_cell(ji) = n_pentagons + edge_index*n_points_per_edge + on_edge_index - 1
-          to_cell(ji) = n_pentagons + edge_index*n_points_per_edge + on_edge_index
+          from_cell(ji) = n_pentagons + edge_index*n_points_per_edge + on_edge_index
+          to_cell(ji) = n_pentagons + edge_index*n_points_per_edge + on_edge_index + 1
         endif
       else
         call find_triangle_indices_from_h_vector_index(ji-1,point_1,point_2,point_3,point_4,point_5,point_6, &
                                                        dual_scalar_on_face_index, &
                                                        small_triangle_edge_index,face_edges,face_vertices,face_edges_reverse)
         if (small_triangle_edge_index==0) then
-          from_cell(ji) = point_1
-          to_cell(ji) = point_3
+          from_cell(ji) = point_1 + 1
+          to_cell(ji) = point_3 + 1
         endif
         if (small_triangle_edge_index==1) then
-          from_cell(ji) = point_1
-          to_cell(ji) = point_2
+          from_cell(ji) = point_1 + 1
+          to_cell(ji) = point_2 + 1
         endif
         if (small_triangle_edge_index==2) then
-          from_cell(ji) = point_3
-          to_cell(ji) = point_2
+          from_cell(ji) = point_3 + 1
+          to_cell(ji) = point_2 + 1
         endif
       endif
     enddo
@@ -610,7 +610,7 @@ module mo_horizontal_generation
             triangle_on_face_index = on_edge_index*(2*n_points_per_edge + 2 - on_edge_index)
           endif
         endif
-        to_cell_dual(ji) = face_index_1*n_triangles_per_face + triangle_on_face_index
+        to_cell_dual(ji) = face_index_1*n_triangles_per_face + triangle_on_face_index + 1
         if (edge_rel_to_face_2==1) then
           if (face_edges_reverse(face_index_2+1,edge_rel_to_face_2)==0) then
             triangle_on_face_index = 2*on_edge_index
@@ -632,7 +632,7 @@ module mo_horizontal_generation
             triangle_on_face_index = on_edge_index*(2*n_points_per_edge + 2 - on_edge_index)
           endif
         endif
-        from_cell_dual(ji) = face_index_2*n_triangles_per_face + triangle_on_face_index
+        from_cell_dual(ji) = face_index_2*n_triangles_per_face + triangle_on_face_index + 1
       else
         face_index = (ji-1 - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
         on_face_index = ji-1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
@@ -640,15 +640,15 @@ module mo_horizontal_generation
         small_triangle_edge_index = on_face_index - 3*triangle_on_face_index
         call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_1,coord_2,coord_1_points_amount)
         if (small_triangle_edge_index==0) then
-          from_cell_dual(ji) = face_index*n_triangles_per_face + 2*triangle_on_face_index + coord_2
+          from_cell_dual(ji) = face_index*n_triangles_per_face + 2*triangle_on_face_index + coord_2 + 1
           to_cell_dual(ji) = from_cell_dual(ji) + 1
         endif
         if (small_triangle_edge_index==1) then
-          from_cell_dual(ji) = face_index*n_triangles_per_face + 2*triangle_on_face_index + 1 + coord_2
+          from_cell_dual(ji) = face_index*n_triangles_per_face + 2*triangle_on_face_index + 1 + coord_2 + 1
           to_cell_dual(ji) = from_cell_dual(ji) + 1
         endif
         if (small_triangle_edge_index==2) then
-          from_cell_dual(ji) = face_index*n_triangles_per_face + 2*triangle_on_face_index + 1 + coord_2
+          from_cell_dual(ji) = face_index*n_triangles_per_face + 2*triangle_on_face_index + 1 + coord_2 + 1
           to_cell_dual(ji) = from_cell_dual(ji) + 2*coord_1_points_amount
         endif
       endif

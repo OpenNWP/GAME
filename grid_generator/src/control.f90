@@ -147,15 +147,6 @@ program control
     call set_from_to_cell(from_cell,to_cell,face_edges,face_edges_reverse,face_vertices,edge_vertices)
     ! By setting the from_cell_dual and to_cell_dual arrrays,the discrete positions of the dual scalar points are determined.
     call set_from_to_cell_dual(from_cell_dual,to_cell_dual,face_edges,face_edges_reverse)
-    
-    ! index shift
-    !$omp parallel workshare
-    to_cell = to_cell+1
-    from_cell = from_cell+1
-    to_cell_dual = to_cell_dual+1
-    from_cell_dual = from_cell_dual+1
-    !$omp end parallel workshare
-  
   else
     call read_horizontal_explicit(lat_c,lon_c,from_cell,to_cell,from_cell_dual, &
                                   to_cell_dual,scalar_h_file,n_lloyd_read_from_file)
