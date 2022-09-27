@@ -378,13 +378,13 @@ module mo_horizontal_generation
                 triangle_on_face_index
     real(wp) :: triangle_sum_unit_sphere,triangle_avg_unit_sphere_ideal
     
-    do ji=0,n_edges-1
-      if (ji>=n_basic_edges*(n_points_per_edge+1)) then
-        call find_triangle_indices_from_h_vector_index(ji,point_1,point_2,point_3,point_4,point_5,point_6, &
+    do ji=1,n_edges
+      if (ji>n_basic_edges*(n_points_per_edge+1)) then
+        call find_triangle_indices_from_h_vector_index(ji-1,point_1,point_2,point_3,point_4,point_5,point_6, &
                                                        dual_scalar_on_face_index,small_triangle_edge_index, &
                                                        face_edges,face_vertices,face_edges_reverse)
-        face_index = (ji - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
-        on_face_index = ji - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
+        face_index = (ji - 1 - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
+        on_face_index = ji - 1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
         triangle_on_face_index = on_face_index/3
         call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_1,coord_2,coord_1_points_amount)
         dual_scalar_index = dual_scalar_on_face_index + face_index*n_triangles/n_basic_triangles
@@ -560,13 +560,13 @@ module mo_horizontal_generation
         edge_index = (ji-1)/(n_points_per_edge+1)
         on_edge_index = ji - 1 - edge_index*(n_points_per_edge+1)
         first_face_found = 0
-        do jk=0,n_basic_triangles-1
-          if (face_edges(jk+1,1)==edge_index .or. face_edges(jk+1,2)==edge_index .or. face_edges(jk+1,3)==edge_index) then
+        do jk=1,n_basic_triangles
+          if (face_edges(jk,1)==edge_index .or. face_edges(jk,2)==edge_index .or. face_edges(jk,3)==edge_index) then
             if (first_face_found==0) then
-              face_index_1 = jk
+              face_index_1 = jk - 1
               first_face_found = 1
             else
-              face_index_2 = jk
+              face_index_2 = jk - 1
             endif
           endif
         enddo
