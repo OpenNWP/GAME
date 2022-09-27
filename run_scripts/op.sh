@@ -22,6 +22,9 @@ export OMP_NUM_THREADS=${BASH_ARGV[9]}
 cat > namelist.nml << EOF
 
 &grid
+res_id=5
+n_layers=26
+oro_id=1
 /
 
 &run
@@ -43,9 +46,16 @@ time_to_next_analysis_min=${BASH_ARGV[8]}
 /
 
 &diff
+lmom_diff_h=.true.
+lmom_diff_v=.true.
+ltemp_diff_h=.true.
+ltemp_diff_v=.true.
+lmass_diff_h=.true.
+lmass_diff_v=.true.
 /
 
 &rad
+rad_config=1
 rrtmgp_coefficients_file_sw = "$game_home_dir/../rte-rrtmgp/rrtmgp/data/rrtmgp-data-sw-g112-210809.nc"
 rrtmgp_coefficients_file_lw = "$game_home_dir/../rte-rrtmgp/rrtmgp/data/rrtmgp-data-lw-g128-210809.nc"
 cloud_coefficients_file_sw = "$game_home_dir/../rte-rrtmgp/extensions/cloud_optics/rrtmgp-cloud-optics-coeffs-sw.nc"
@@ -53,6 +63,10 @@ cloud_coefficients_file_lw = "$game_home_dir/../rte-rrtmgp/extensions/cloud_opti
 /
 
 &surface
+lprog_soil_temp=.true.
+lsfc_sensible_heat_flux=.true.
+lsfc_sensible_heat_flux=.true.
+pbl_scheme=1
 /
 
 EOF
