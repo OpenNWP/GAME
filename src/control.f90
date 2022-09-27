@@ -276,12 +276,12 @@ program control
     wind_h_lowest_layer(:,time_step_10_m_wind) = state_1%wind_h(:,n_layers)
     !$omp end parallel workshare
   enddo
-  call temperature_diagnostics(state_1,diag,grid)
-  call inner_product(state_1%wind_h,state_1%wind_v,state_1%wind_h,state_1%wind_v,diag%v_squared,grid)
   
   ! time coordinate of the old RK step
   t_0 = t_init
   
+  ! for radiation and writing output it is necessary that the temperature is set correctly
+  call temperature_diagnostics(state_1,diag,grid)
   ! configuring radiation and calculating radiative fluxes for the first time
   t_rad_update = t_0
   if (rad_config>0) then
@@ -297,6 +297,7 @@ program control
   ltotally_first_step = .true.
   ! writing out the initial state of the model run
   t_write = t_init
+  call inner_product(state_1%wind_h,state_1%wind_v,state_1%wind_h,state_1%wind_v,diag%v_squared,grid)
   call write_out(state_1,diag,grid,wind_h_lowest_layer,t_init,t_write,ltotally_first_step)
   t_write = t_0 + 60._wp*write_out_interval_min
   

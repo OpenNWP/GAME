@@ -400,10 +400,7 @@ module mo_set_initial_state
     do ji=1,n_cells
       ! sea surface temperature if SST is available
       if (grid%is_land(ji)==0 .and. sst_avail==1) then
-        ! loop over all soil layers
-        do jl=1,nsoillays
-          state%temperature_soil(ji,jl) = sst(ji)
-        enddo
+        state%temperature_soil(ji,:) = sst(ji)
       endif
       
       ! if the soil temperature over land or the SST over water is not available in the initialization
