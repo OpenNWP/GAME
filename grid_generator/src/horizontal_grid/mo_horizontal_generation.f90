@@ -293,28 +293,29 @@ module mo_horizontal_generation
       y_unity(ji) = y_res
       z_unity(ji) = z_res
     enddo
-    do ji=0,n_basic_triangles-1
+    ! loop over all triangles of the icosahedron
+    do ji=1,n_basic_triangles
       ! refining the grid on this triangle surface from res_id_local-1 to res_id_local
       do res_id_local=1,res_id
         n_triangles_per_face = 4**(res_id_local-1)
-        do jk=0,n_triangles_per_face-1
+        do jk=1,n_triangles_per_face
           if (res_id_local==1) then
             dual_scalar_on_face_index = 1
-            call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji,res_id_local, &
+            call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji-1,res_id_local, &
                                                                           point_1,point_2,point_3, &
                                                                           face_vertices,face_edges,face_edges_reverse)
             point_1 = upscale_scalar_point(res_id_local,point_1)
             point_2 = upscale_scalar_point(res_id_local,point_2)
             point_3 = upscale_scalar_point(res_id_local,point_3)
             lpoints_upwards = .true.
-            call set_scalar_coordinates(face_vertices(ji+1,1),face_vertices(ji+1,2),face_vertices(ji+1,3), &
+            call set_scalar_coordinates(face_vertices(ji,1),face_vertices(ji,2),face_vertices(ji,3), &
                                         point_1,point_2,point_3,lpoints_upwards,x_unity,y_unity, &
                                         z_unity,lat_c,lon_c)
           else
-            call find_triangle_edge_points_from_dual_scalar_on_face_index(jk,ji,res_id_local-1, &
+            call find_triangle_edge_points_from_dual_scalar_on_face_index(jk-1,ji-1,res_id_local-1, &
                                                                           edgepoint_1,edgepoint_2,edgepoint_3, &
                                                                           face_vertices,face_edges,face_edges_reverse)
-            call find_triangle_on_face_index_from_dual_scalar_on_face_index(jk,res_id_local-1,triangle_on_face_index, &
+            call find_triangle_on_face_index_from_dual_scalar_on_face_index(jk-1,res_id_local-1,triangle_on_face_index, &
                                                                             lpoints_downwards,ldump,llast_triangle)
             call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local-1,coord_1,coord_2, &
                                                          coord_1_points_amount)
@@ -333,13 +334,13 @@ module mo_horizontal_generation
               base_index_down_triangles = base_index_down_triangles + 12
               base_index_up_triangles = base_index_down_triangles + 3
             endif
-            old_triangle_on_line_index = jk - base_index_old
+            old_triangle_on_line_index = jk-1 - base_index_old
             if (.not. lpoints_downwards) then
               dual_scalar_on_face_index = base_index_down_triangles + 1 + 2*old_triangle_on_line_index
             else
               dual_scalar_on_face_index = base_index_up_triangles + 2*old_triangle_on_line_index
             endif
-            call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji,res_id_local, &
+            call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji-1,res_id_local, &
                                                                           point_1,point_2,point_3, &
                                                                           face_vertices,face_edges,face_edges_reverse)
             edgepoint_1 = upscale_scalar_point(res_id_local-1,edgepoint_1)
@@ -493,13 +494,13 @@ module mo_horizontal_generation
     !$omp parallel do private(ji,lat_res,lon_res,point_1,point_2,point_3,point_4,point_5,point_6,dual_scalar_on_face_index, &
     !$omp small_triangle_edge_index,dual_scalar_index,coord_1,coord_2,coord_1_points_amount,face_index, &
     !$omp on_face_index,triangle_on_face_index)
-    do ji=0,n_edges-1
-      if (ji>=n_basic_edges*(n_points_per_edge+1)) then
-        call find_triangle_indices_from_h_vector_index(ji,point_1,point_2,point_3,point_4,point_5,point_6, &
+    do ji=1,n_edges
+      if (ji>n_basic_edges*(n_points_per_edge+1)) then
+        call find_triangle_indices_from_h_vector_index(ji-1,point_1,point_2,point_3,point_4,point_5,point_6, &
                                                        dual_scalar_on_face_index, &
                                                        small_triangle_edge_index,face_edges,face_vertices,face_edges_reverse)
-        face_index = (ji - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
-        on_face_index = ji - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
+        face_index = (ji-1 - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
+        on_face_index = ji-1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
         triangle_on_face_index = on_face_index/3
         call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_1,coord_2,coord_1_points_amount)
         dual_scalar_index = dual_scalar_on_face_index + face_index*n_triangles_per_face
@@ -549,15 +550,15 @@ module mo_horizontal_generation
     !$omp parallel do private(ji,jk,coord_1,coord_2,on_face_index,on_edge_index,edge_index,small_triangle_edge_index, &
     !$omp coord_1_points_amount,first_face_found,face_index,edge_rel_to_face_1,edge_rel_to_face_2,face_index_1, &
     !$omp face_index_2,triangle_on_face_index)
-    do ji=0,n_edges-1
+    do ji=1,n_edges
       edge_rel_to_face_1 = 0
       edge_rel_to_face_2 = 0
       face_index_1 = 0
       face_index_2 = 0
       triangle_on_face_index = 0
-      if (ji<n_basic_edges*(n_points_per_edge+1)) then
-        edge_index = ji/(n_points_per_edge+1)
-        on_edge_index = ji - edge_index*(n_points_per_edge+1)
+      if (ji<=n_basic_edges*(n_points_per_edge+1)) then
+        edge_index = (ji-1)/(n_points_per_edge+1)
+        on_edge_index = ji - 1 - edge_index*(n_points_per_edge+1)
         first_face_found = 0
         do jk=0,n_basic_triangles-1
           if (face_edges(jk+1,1)==edge_index .or. face_edges(jk+1,2)==edge_index .or. face_edges(jk+1,3)==edge_index) then
@@ -609,7 +610,7 @@ module mo_horizontal_generation
             triangle_on_face_index = on_edge_index*(2*n_points_per_edge + 2 - on_edge_index)
           endif
         endif
-        to_cell_dual(ji+1) = face_index_1*n_triangles_per_face + triangle_on_face_index
+        to_cell_dual(ji) = face_index_1*n_triangles_per_face + triangle_on_face_index
         if (edge_rel_to_face_2==1) then
           if (face_edges_reverse(face_index_2+1,edge_rel_to_face_2)==0) then
             triangle_on_face_index = 2*on_edge_index
@@ -631,24 +632,24 @@ module mo_horizontal_generation
             triangle_on_face_index = on_edge_index*(2*n_points_per_edge + 2 - on_edge_index)
           endif
         endif
-        from_cell_dual(ji+1) = face_index_2*n_triangles_per_face + triangle_on_face_index
+        from_cell_dual(ji) = face_index_2*n_triangles_per_face + triangle_on_face_index
       else
-        face_index = (ji - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
-        on_face_index = ji - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
+        face_index = (ji-1 - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
+        on_face_index = ji-1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
         triangle_on_face_index = on_face_index/3
         small_triangle_edge_index = on_face_index - 3*triangle_on_face_index
         call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_1,coord_2,coord_1_points_amount)
         if (small_triangle_edge_index==0) then
-          from_cell_dual(ji+1) = face_index*n_triangles_per_face + 2*triangle_on_face_index + coord_2
-          to_cell_dual(ji+1) = from_cell_dual(ji+1) + 1
+          from_cell_dual(ji) = face_index*n_triangles_per_face + 2*triangle_on_face_index + coord_2
+          to_cell_dual(ji) = from_cell_dual(ji) + 1
         endif
         if (small_triangle_edge_index==1) then
-          from_cell_dual(ji+1) = face_index*n_triangles_per_face + 2*triangle_on_face_index + 1 + coord_2
-          to_cell_dual(ji+1) = from_cell_dual(ji+1) + 1
+          from_cell_dual(ji) = face_index*n_triangles_per_face + 2*triangle_on_face_index + 1 + coord_2
+          to_cell_dual(ji) = from_cell_dual(ji) + 1
         endif
         if (small_triangle_edge_index==2) then
-          from_cell_dual(ji+1) = face_index*n_triangles_per_face + 2*triangle_on_face_index + 1 + coord_2
-          to_cell_dual(ji+1) = from_cell_dual(ji+1) + 2*coord_1_points_amount
+          from_cell_dual(ji) = face_index*n_triangles_per_face + 2*triangle_on_face_index + 1 + coord_2
+          to_cell_dual(ji) = from_cell_dual(ji) + 2*coord_1_points_amount
         endif
       endif
     enddo
