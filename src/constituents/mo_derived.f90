@@ -40,29 +40,6 @@ module mo_derived
     rel_humidity = vapour_pressure/saturation_pressure
     
   end function rel_humidity
-  
-  function calc_diffusion_coeff(temperature,density)
-  
-    ! This function calculates the molecular diffusion coefficient.
-  
-    real(wp), intent(in) :: temperature,density
-    real(wp)             :: calc_diffusion_coeff
-    
-    ! local variables
-    real(wp) :: particle_radius,particle_mass,thermal_velocity,particle_density,cross_section,mean_free_path
-
-    ! these things are hardly ever modified
-    particle_radius = 130e-12_wp
-    particle_mass = m_d/n_a
-    
-    ! actual calculation
-    thermal_velocity = sqrt(8.0_wp*k_b*temperature/(M_PI*particle_mass))
-    particle_density = density/particle_mass
-    cross_section = 4.0_wp*M_PI*particle_radius**2
-    mean_free_path = 1.0_wp/(sqrt(2.0_wp)*particle_density*cross_section)
-    calc_diffusion_coeff = 1.0_wp/3.0_wp*thermal_velocity*mean_free_path
-    
-  end function calc_diffusion_coeff
 
   subroutine temperature_diagnostics(state,diag,grid)
     
@@ -130,6 +107,29 @@ module mo_derived
     endif
   
   end function c_v_mass_weighted_air
+  
+  function calc_diffusion_coeff(temperature,density)
+  
+    ! This function calculates the molecular diffusion coefficient.
+  
+    real(wp), intent(in) :: temperature,density
+    real(wp)             :: calc_diffusion_coeff
+    
+    ! local variables
+    real(wp) :: particle_radius,particle_mass,thermal_velocity,particle_density,cross_section,mean_free_path
+
+    ! these things are hardly ever modified
+    particle_radius = 130e-12_wp
+    particle_mass = m_d/n_a
+    
+    ! actual calculation
+    thermal_velocity = sqrt(8.0_wp*k_b*temperature/(M_PI*particle_mass))
+    particle_density = density/particle_mass
+    cross_section = 4.0_wp*M_PI*particle_radius**2
+    mean_free_path = 1.0_wp/(sqrt(2.0_wp)*particle_density*cross_section)
+    calc_diffusion_coeff = 1.0_wp/3.0_wp*thermal_velocity*mean_free_path
+    
+  end function calc_diffusion_coeff
 
 end module mo_derived
 
