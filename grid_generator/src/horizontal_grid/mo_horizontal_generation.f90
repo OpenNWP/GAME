@@ -378,26 +378,26 @@ module mo_horizontal_generation
       if (ji>n_basic_edges*(n_points_per_edge+1)) then
         call find_triangle_indices_from_h_vector_index(ji-1,point_1,point_2,point_3,point_4,point_5,point_6, &
                                                        dual_scalar_on_face_index,small_triangle_edge_index, &
-                                                       face_edges-1,face_vertices-1,face_edges_reverse)
+                                                       face_edges,face_vertices,face_edges_reverse)
         face_index = (ji - 1 - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
         on_face_index = ji - 1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
         triangle_on_face_index = on_face_index/3
         call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_1,coord_2,coord_1_points_amount)
         dual_scalar_index = dual_scalar_on_face_index + face_index*n_triangles/n_basic_triangles
-        triangle_face_unit_sphere(1+dual_scalar_index) = calc_triangle_area(lat_c(1+point_1),lon_c(1+point_1), &
-                                                                            lat_c(1+point_2),lon_c(1+point_2), &
-                                                                            lat_c(1+point_3),lon_c(1+point_3))
-        triangle_face_unit_sphere(1+dual_scalar_index-1) = calc_triangle_area(lat_c(1+point_4),lon_c(1+point_4), &
-                                                                              lat_c(1+point_1),lon_c(1+point_1), &
-                                                                              lat_c(1+point_3),lon_c(1+point_3))
+        triangle_face_unit_sphere(dual_scalar_index+1) = calc_triangle_area(lat_c(point_1),lon_c(point_1), &
+                                                                            lat_c(point_2),lon_c(point_2), &
+                                                                            lat_c(point_3),lon_c(point_3))
+        triangle_face_unit_sphere(dual_scalar_index) = calc_triangle_area(lat_c(point_4),lon_c(point_4), &
+                                                                          lat_c(point_1),lon_c(point_1), &
+                                                                          lat_c(point_3),lon_c(point_3))
         if (coord_1==coord_1_points_amount-1) then
-          triangle_face_unit_sphere(1+dual_scalar_index+1) = calc_triangle_area(lat_c(1+point_1),lon_c(1+point_1), &
-                                                                                lat_c(1+point_5),lon_c(1+point_5), &
-                                                                                lat_c(1+point_2),lon_c(1+point_2))
+          triangle_face_unit_sphere(dual_scalar_index+2) = calc_triangle_area(lat_c(point_1),lon_c(point_1), &
+                                                                              lat_c(point_5),lon_c(point_5), &
+                                                                              lat_c(point_2),lon_c(point_2))
           if (coord_2==n_points_per_edge-1) then
-            triangle_face_unit_sphere(1+dual_scalar_index+2) = calc_triangle_area(lat_c(1+point_3),lon_c(1+point_3), &
-                                                                                  lat_c(1+point_2),lon_c(1+point_2), &
-                                                                                  lat_c(1+point_6),lon_c(1+point_6))
+            triangle_face_unit_sphere(dual_scalar_index+3) = calc_triangle_area(lat_c(point_3),lon_c(point_3), &
+                                                                                lat_c(point_2),lon_c(point_2), &
+                                                                                lat_c(point_6),lon_c(point_6))
           endif
         endif
       endif
@@ -453,18 +453,18 @@ module mo_horizontal_generation
       else
         call find_triangle_indices_from_h_vector_index(ji-1,point_1,point_2,point_3,point_4,point_5,point_6, &
                                                        dual_scalar_on_face_index, &
-                                                       small_triangle_edge_index,face_edges-1,face_vertices-1,face_edges_reverse)
+                                                       small_triangle_edge_index,face_edges,face_vertices,face_edges_reverse)
         if (small_triangle_edge_index==0) then
-          from_cell(ji) = point_1 + 1
-          to_cell(ji) = point_3 + 1
+          from_cell(ji) = point_1
+          to_cell(ji) = point_3
         endif
         if (small_triangle_edge_index==1) then
-          from_cell(ji) = point_1 + 1
-          to_cell(ji) = point_2 + 1
+          from_cell(ji) = point_1
+          to_cell(ji) = point_2
         endif
         if (small_triangle_edge_index==2) then
-          from_cell(ji) = point_3 + 1
-          to_cell(ji) = point_2 + 1
+          from_cell(ji) = point_3
+          to_cell(ji) = point_2
         endif
       endif
     enddo
@@ -494,35 +494,31 @@ module mo_horizontal_generation
       if (ji>n_basic_edges*(n_points_per_edge+1)) then
         call find_triangle_indices_from_h_vector_index(ji-1,point_1,point_2,point_3,point_4,point_5,point_6, &
                                                        dual_scalar_on_face_index, &
-                                                       small_triangle_edge_index,face_edges-1,face_vertices-1,face_edges_reverse)
+                                                       small_triangle_edge_index,face_edges,face_vertices,face_edges_reverse)
         face_index = (ji-1 - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
         on_face_index = ji-1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
         triangle_on_face_index = on_face_index/3
         call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_1,coord_2,coord_1_points_amount)
         dual_scalar_index = dual_scalar_on_face_index + face_index*n_triangles_per_face
         ! We want to construct a Voronoi gird,that's why we choose this function for calculating the dual cell centers.
-        call find_voronoi_center_sphere(lat_c(1+point_1),lon_c(1+point_1), &
-                                        lat_c(1+point_2),lon_c(1+point_2), &
-                                        lat_c(1+point_3),lon_c(1+point_3),lat_res,lon_res)
-        lat_c_dual(1+dual_scalar_index) = lat_res
-        lon_c_dual(1+dual_scalar_index) = lon_res
-        call find_voronoi_center_sphere(lat_c(1+point_4),lon_c(1+point_4), &
-                                        lat_c(1+point_1),lon_c(1+point_1), &
-                                        lat_c(1+point_3),lon_c(1+point_3),lat_res,lon_res)
-        lat_c_dual(1+dual_scalar_index-1) = lat_res
-        lon_c_dual(1+dual_scalar_index-1) = lon_res
+        call find_voronoi_center_sphere(lat_c(point_1),lon_c(point_1),lat_c(point_2),lon_c(point_2), &
+                                        lat_c(point_3),lon_c(point_3),lat_res,lon_res)
+        lat_c_dual(dual_scalar_index+1) = lat_res
+        lon_c_dual(dual_scalar_index+1) = lon_res
+        call find_voronoi_center_sphere(lat_c(point_4),lon_c(point_4),lat_c(point_1),lon_c(point_1), &
+                                        lat_c(point_3),lon_c(point_3),lat_res,lon_res)
+        lat_c_dual(dual_scalar_index) = lat_res
+        lon_c_dual(dual_scalar_index) = lon_res
         if (coord_1==coord_1_points_amount-1) then
-          call find_voronoi_center_sphere(lat_c(1+point_1),lon_c(1+point_1), &
-                                          lat_c(1+point_5),lon_c(1+point_5), &
-                                          lat_c(1+point_2),lon_c(1+point_2),lat_res,lon_res)
-          lat_c_dual(1+dual_scalar_index+1) = lat_res
-          lon_c_dual(1+dual_scalar_index+1) = lon_res
+          call find_voronoi_center_sphere(lat_c(point_1),lon_c(point_1),lat_c(point_5),lon_c(point_5), &
+                                          lat_c(point_2),lon_c(point_2),lat_res,lon_res)
+          lat_c_dual(dual_scalar_index+2) = lat_res
+          lon_c_dual(dual_scalar_index+2) = lon_res
           if (coord_2==n_points_per_edge-1) then
-            call find_voronoi_center_sphere(lat_c(1+point_3),lon_c(1+point_3), &
-                                            lat_c(1+point_2),lon_c(1+point_2), &
-                                            lat_c(1+point_6),lon_c(1+point_6),lat_res,lon_res)
-            lat_c_dual(1+dual_scalar_index+2) = lat_res
-            lon_c_dual(1+dual_scalar_index+2) = lon_res
+            call find_voronoi_center_sphere(lat_c(point_3),lon_c(point_3),lat_c(point_2),lon_c(point_2), &
+                                            lat_c(point_6),lon_c(point_6),lat_res,lon_res)
+            lat_c_dual(dual_scalar_index+3) = lat_res
+            lon_c_dual(dual_scalar_index+3) = lon_res
           endif
         endif
       endif

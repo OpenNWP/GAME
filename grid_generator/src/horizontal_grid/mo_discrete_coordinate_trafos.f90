@@ -60,33 +60,33 @@ module mo_discrete_coordinate_trafos
     scalar_points_per_inner_face = find_scalar_points_per_inner_face(res_id_local)
     if (coord_2==0) then
       if (face_edges_reverse(face_index+1,1)==0) then
-        point_1 = n_pentagons + face_edges(face_index+1,1)*points_per_edge + coord_1
+        point_1 = n_pentagons + (face_edges(face_index+1,1)-1)*points_per_edge + coord_1 + 1
       else
-        point_1 = n_pentagons + (face_edges(face_index+1,1) + 1)*points_per_edge - 1 - coord_1
+        point_1 = n_pentagons + face_edges(face_index+1,1)*points_per_edge - coord_1
       endif
     else
         point_1 = n_pentagons + points_per_edge*n_basic_edges + face_index*scalar_points_per_inner_face + &
-                  triangle_on_face_index - points_per_edge 
+                  triangle_on_face_index - points_per_edge + 1
     endif
     if (coord_1==points_per_edge-1-coord_2) then
       if (face_edges_reverse(face_index+1,2)==0) then
-        point_2 = n_pentagons + face_edges(face_index+1,2)*points_per_edge + coord_2
+        point_2 = n_pentagons + (face_edges(face_index+1,2)-1)*points_per_edge + coord_2 + 1
       else
-        point_2 = n_pentagons + (face_edges(face_index+1,2) + 1)*points_per_edge - 1 - coord_2 
+        point_2 = n_pentagons + face_edges(face_index+1,2)*points_per_edge - coord_2 
       endif
     else
         point_2 = n_pentagons + points_per_edge*n_basic_edges + face_index*scalar_points_per_inner_face + &
-                  triangle_on_face_index - coord_2 
+                  triangle_on_face_index - coord_2 + 1
     endif
     if (coord_1==0) then
       if (face_edges_reverse(face_index+1,3)==0) then
-        point_3 = n_pentagons + (face_edges(face_index+1,3) + 1)*points_per_edge - 1 - coord_2 
+        point_3 = n_pentagons + face_edges(face_index+1,3)*points_per_edge - coord_2 
       else
-        point_3 = n_pentagons + face_edges(face_index+1,3)*points_per_edge + coord_2 
+        point_3 = n_pentagons + (face_edges(face_index+1,3)-1)*points_per_edge + coord_2 + 1
       endif
     else
       point_3 = n_pentagons + points_per_edge*n_basic_edges + face_index*scalar_points_per_inner_face + &
-                triangle_on_face_index - 1 - coord_2 
+                triangle_on_face_index - coord_2 
     endif
     if (coord_2==0) then
       if (coord_1==0) then
@@ -119,7 +119,7 @@ module mo_discrete_coordinate_trafos
           point_5 = point_2 + 1
         endif
       endif
-      if (coord_2 == points_per_edge - 1) then
+      if (coord_2==points_per_edge-1) then
         point_6 = face_vertices(face_index+1,3)
       endif
     endif
@@ -146,42 +146,42 @@ module mo_discrete_coordinate_trafos
     call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local,coord_1,coord_2,coord_1_points_amount)
     points_per_edge = find_points_per_edge(res_id_local)
     call find_triangle_edge_points(triangle_on_face_index,face_index,res_id_local,rhombuspoint_1,rhombuspoint_2,rhombuspoint_3, &
-                                   rhombuspoint_4,addpoint_1,addpoint_2,dump,face_vertices-1,face_edges-1,face_edges_reverse)
+                                   rhombuspoint_4,addpoint_1,addpoint_2,dump,face_vertices,face_edges,face_edges_reverse)
     if (lpoints_downwards) then
-      point_1 = rhombuspoint_1+1
-      point_2 = rhombuspoint_2+1
-      point_3 = rhombuspoint_3+1
+      point_1 = rhombuspoint_1
+      point_2 = rhombuspoint_2
+      point_3 = rhombuspoint_3
     else
       if (coord_1==coord_1_points_amount-1) then
         if (coord_2==points_per_edge-1) then
           if (llast_triangle) then
-            point_1 = rhombuspoint_3+1
-            point_2 = rhombuspoint_2+1
-            point_3 = addpoint_2+1
+            point_1 = rhombuspoint_3
+            point_2 = rhombuspoint_2
+            point_3 = addpoint_2
           elseif (lspecial_case) then
-            point_1 = rhombuspoint_1+1
-            point_2 = addpoint_1+1
-            point_3 = rhombuspoint_2+1
+            point_1 = rhombuspoint_1
+            point_2 = addpoint_1
+            point_3 = rhombuspoint_2
           else
-            point_1 = rhombuspoint_4+1
-            point_2 = rhombuspoint_1+1
-            point_3 = rhombuspoint_3+1
+            point_1 = rhombuspoint_4
+            point_2 = rhombuspoint_1
+            point_3 = rhombuspoint_3
           endif
         else
           if (lspecial_case) then
-            point_1 = rhombuspoint_1+1
-            point_2 = addpoint_1+1
-            point_3 = rhombuspoint_2+1
+            point_1 = rhombuspoint_1
+            point_2 = addpoint_1
+            point_3 = rhombuspoint_2
           else
-            point_1 = rhombuspoint_4+1
-            point_2 = rhombuspoint_1+1
-            point_3 = rhombuspoint_3 +1 
+            point_1 = rhombuspoint_4
+            point_2 = rhombuspoint_1
+            point_3 = rhombuspoint_3
           endif
         endif
       else
-        point_1 = rhombuspoint_4+1
-        point_2 = rhombuspoint_1+1
-        point_3 = rhombuspoint_3+1
+        point_1 = rhombuspoint_4
+        point_2 = rhombuspoint_1
+        point_3 = rhombuspoint_3
       endif
     endif
   
