@@ -304,8 +304,8 @@ module mo_horizontal_generation
             point_2 = upscale_scalar_point(res_id_local,point_2)
             point_3 = upscale_scalar_point(res_id_local,point_3)
             lpoints_upwards = .true.
-            call set_scalar_coordinates(face_vertices(ji,1)-1,face_vertices(ji,2)-1,face_vertices(ji,3)-1, &
-                                        point_1,point_2,point_3,lpoints_upwards,x_unity,y_unity, &
+            call set_scalar_coordinates(face_vertices(ji,1),face_vertices(ji,2),face_vertices(ji,3), &
+                                        1+point_1,1+point_2,1+point_3,lpoints_upwards,x_unity,y_unity, &
                                         z_unity,lat_c,lon_c)
           else
             call find_triangle_edge_points_from_dual_scalar_on_face_index(jk-1,ji-1,res_id_local-1, &
@@ -349,7 +349,7 @@ module mo_horizontal_generation
             if (lpoints_downwards) then
               lpoints_upwards = .false.
             endif
-            call set_scalar_coordinates(edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3, &
+            call set_scalar_coordinates(edgepoint_1+1,edgepoint_2+1,edgepoint_3+1,1+point_1,1+point_2,1+point_3, &
                                         lpoints_upwards,x_unity,y_unity,z_unity,lat_c,lon_c)
           endif
         enddo
@@ -667,70 +667,70 @@ module mo_horizontal_generation
     real(wp) :: x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm,lat_res,lon_res
 
     ! first point
-    call find_between_point(x_unity(1+edgepoint_1),y_unity(1+edgepoint_1),z_unity(1+edgepoint_1), &
-                            x_unity(1+edgepoint_2),y_unity(1+edgepoint_2),z_unity(1+edgepoint_2), &
+    call find_between_point(x_unity(edgepoint_1),y_unity(edgepoint_1),z_unity(edgepoint_1), &
+                            x_unity(edgepoint_2),y_unity(edgepoint_2),z_unity(edgepoint_2), &
                             0.5_wp,x_res,y_res,z_res)
     call normalize_cartesian(x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm)
     if (lpoints_upwards) then
-      x_unity(1+point_1) = x_res_norm
-      y_unity(1+point_1) = y_res_norm
-      z_unity(1+point_1) = z_res_norm
+      x_unity(point_1) = x_res_norm
+      y_unity(point_1) = y_res_norm
+      z_unity(point_1) = z_res_norm
     else
-      x_unity(1+point_2) = x_res_norm
-      y_unity(1+point_2) = y_res_norm
-      z_unity(1+point_2) = z_res_norm
+      x_unity(point_2) = x_res_norm
+      y_unity(point_2) = y_res_norm
+      z_unity(point_2) = z_res_norm
     endif
     call find_geos(x_res,y_res,z_res,lat_res,lon_res)
     if (lpoints_upwards) then
-      lat_c(1+point_1) = lat_res
-      lon_c(1+point_1) = lon_res
+      lat_c(point_1) = lat_res
+      lon_c(point_1) = lon_res
     else
-      lat_c(1+point_2) = lat_res
-      lon_c(1+point_2) = lon_res
+      lat_c(point_2) = lat_res
+      lon_c(point_2) = lon_res
     endif
     ! second point
-    call find_between_point(x_unity(1+edgepoint_2),y_unity(1+edgepoint_2),z_unity(1+edgepoint_2), &
-                            x_unity(1+edgepoint_3),y_unity(1+edgepoint_3),z_unity(1+edgepoint_3), &
+    call find_between_point(x_unity(edgepoint_2),y_unity(edgepoint_2),z_unity(edgepoint_2), &
+                            x_unity(edgepoint_3),y_unity(edgepoint_3),z_unity(edgepoint_3), &
                             0.5_wp,x_res,y_res,z_res)
     call normalize_cartesian(x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm)
     if (lpoints_upwards) then
-      x_unity(1+point_2) = x_res_norm
-      y_unity(1+point_2) = y_res_norm
-      z_unity(1+point_2) = z_res_norm
+      x_unity(point_2) = x_res_norm
+      y_unity(point_2) = y_res_norm
+      z_unity(point_2) = z_res_norm
     else
-      x_unity(1+point_3) = x_res_norm
-      y_unity(1+point_3) = y_res_norm
-      z_unity(1+point_3) = z_res_norm
+      x_unity(point_3) = x_res_norm
+      y_unity(point_3) = y_res_norm
+      z_unity(point_3) = z_res_norm
     endif
     call find_geos(x_res,y_res,z_res,lat_res,lon_res)
     if (lpoints_upwards) then
-      lat_c(1+point_2) = lat_res
-      lon_c(1+point_2) = lon_res
+      lat_c(point_2) = lat_res
+      lon_c(point_2) = lon_res
     else
-      lat_c(1+point_3) = lat_res
-      lon_c(1+point_3) = lon_res
+      lat_c(point_3) = lat_res
+      lon_c(point_3) = lon_res
     endif
     ! third point
-    call find_between_point(x_unity(1+edgepoint_3),y_unity(1+edgepoint_3),z_unity(1+edgepoint_3), &
-                            x_unity(1+edgepoint_1),y_unity(1+edgepoint_1),z_unity(1+edgepoint_1), &
+    call find_between_point(x_unity(edgepoint_3),y_unity(edgepoint_3),z_unity(edgepoint_3), &
+                            x_unity(edgepoint_1),y_unity(edgepoint_1),z_unity(edgepoint_1), &
                             0.5_wp,x_res,y_res,z_res)
     call normalize_cartesian(x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm)
     if (lpoints_upwards) then
-      x_unity(1+point_3) = x_res_norm
-      y_unity(1+point_3) = y_res_norm
-      z_unity(1+point_3) = z_res_norm
+      x_unity(point_3) = x_res_norm
+      y_unity(point_3) = y_res_norm
+      z_unity(point_3) = z_res_norm
     else
-      x_unity(1+point_1) = x_res_norm
-      y_unity(1+point_1) = y_res_norm
-      z_unity(1+point_1) = z_res_norm
+      x_unity(point_1) = x_res_norm
+      y_unity(point_1) = y_res_norm
+      z_unity(point_1) = z_res_norm
     endif
     call find_geos(x_res,y_res,z_res,lat_res,lon_res)
     if (lpoints_upwards) then
-      lat_c(1+point_3) = lat_res
-      lon_c(1+point_3) = lon_res
+      lat_c(point_3) = lat_res
+      lon_c(point_3) = lon_res
     else
-      lat_c(1+point_1) = lat_res
-      lon_c(1+point_1) = lon_res
+      lat_c(point_1) = lat_res
+      lon_c(point_1) = lon_res
     endif
   
   end subroutine set_scalar_coordinates
