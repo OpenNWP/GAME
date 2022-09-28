@@ -299,7 +299,7 @@ module mo_horizontal_generation
             dual_scalar_on_face_index = 1
             call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji-1,res_id_local, &
                                                                           point_1,point_2,point_3, &
-                                                                          face_vertices-1,face_edges-1,face_edges_reverse)
+                                                                          face_vertices,face_edges,face_edges_reverse)
             point_1 = upscale_scalar_point(res_id_local,point_1)
             point_2 = upscale_scalar_point(res_id_local,point_2)
             point_3 = upscale_scalar_point(res_id_local,point_3)
@@ -310,7 +310,7 @@ module mo_horizontal_generation
           else
             call find_triangle_edge_points_from_dual_scalar_on_face_index(jk-1,ji-1,res_id_local-1, &
                                                                           edgepoint_1,edgepoint_2,edgepoint_3, &
-                                                                          face_vertices-1,face_edges-1,face_edges_reverse)
+                                                                          face_vertices,face_edges,face_edges_reverse)
             call find_triangle_on_face_index_from_dual_scalar_on_face_index(jk-1,res_id_local-1,triangle_on_face_index, &
                                                                             lpoints_downwards,ldump,llast_triangle)
             call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local-1,coord_1,coord_2, &
@@ -338,7 +338,7 @@ module mo_horizontal_generation
             endif
             call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji-1,res_id_local, &
                                                                           point_1,point_2,point_3, &
-                                                                          face_vertices-1,face_edges-1,face_edges_reverse)
+                                                                          face_vertices,face_edges,face_edges_reverse)
             edgepoint_1 = upscale_scalar_point(res_id_local-1,edgepoint_1)
             edgepoint_2 = upscale_scalar_point(res_id_local-1,edgepoint_2)
             edgepoint_3 = upscale_scalar_point(res_id_local-1,edgepoint_3)

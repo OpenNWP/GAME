@@ -146,7 +146,7 @@ module mo_discrete_coordinate_trafos
     call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local,coord_1,coord_2,coord_1_points_amount)
     points_per_edge = find_points_per_edge(res_id_local)
     call find_triangle_edge_points(triangle_on_face_index,face_index,res_id_local,rhombuspoint_1,rhombuspoint_2,rhombuspoint_3, &
-                                   rhombuspoint_4,addpoint_1,addpoint_2,dump,face_vertices,face_edges,face_edges_reverse)
+                                   rhombuspoint_4,addpoint_1,addpoint_2,dump,face_vertices-1,face_edges-1,face_edges_reverse)
     if (lpoints_downwards) then
       point_1 = rhombuspoint_1
       point_2 = rhombuspoint_2
