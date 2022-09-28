@@ -252,7 +252,6 @@ module mo_horizontal_generation
         call exit(1)
       endif
     enddo
-    face_edges = face_edges-1
     
   end subroutine 
 
@@ -300,7 +299,7 @@ module mo_horizontal_generation
             dual_scalar_on_face_index = 1
             call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji-1,res_id_local, &
                                                                           point_1,point_2,point_3, &
-                                                                          face_vertices-1,face_edges,face_edges_reverse)
+                                                                          face_vertices-1,face_edges-1,face_edges_reverse)
             point_1 = upscale_scalar_point(res_id_local,point_1)
             point_2 = upscale_scalar_point(res_id_local,point_2)
             point_3 = upscale_scalar_point(res_id_local,point_3)
@@ -311,7 +310,7 @@ module mo_horizontal_generation
           else
             call find_triangle_edge_points_from_dual_scalar_on_face_index(jk-1,ji-1,res_id_local-1, &
                                                                           edgepoint_1,edgepoint_2,edgepoint_3, &
-                                                                          face_vertices-1,face_edges,face_edges_reverse)
+                                                                          face_vertices-1,face_edges-1,face_edges_reverse)
             call find_triangle_on_face_index_from_dual_scalar_on_face_index(jk-1,res_id_local-1,triangle_on_face_index, &
                                                                             lpoints_downwards,ldump,llast_triangle)
             call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local-1,coord_1,coord_2, &
@@ -339,7 +338,7 @@ module mo_horizontal_generation
             endif
             call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji-1,res_id_local, &
                                                                           point_1,point_2,point_3, &
-                                                                          face_vertices-1,face_edges,face_edges_reverse)
+                                                                          face_vertices-1,face_edges-1,face_edges_reverse)
             edgepoint_1 = upscale_scalar_point(res_id_local-1,edgepoint_1)
             edgepoint_2 = upscale_scalar_point(res_id_local-1,edgepoint_2)
             edgepoint_3 = upscale_scalar_point(res_id_local-1,edgepoint_3)
@@ -379,7 +378,7 @@ module mo_horizontal_generation
       if (ji>n_basic_edges*(n_points_per_edge+1)) then
         call find_triangle_indices_from_h_vector_index(ji-1,point_1,point_2,point_3,point_4,point_5,point_6, &
                                                        dual_scalar_on_face_index,small_triangle_edge_index, &
-                                                       face_edges,face_vertices-1,face_edges_reverse)
+                                                       face_edges-1,face_vertices-1,face_edges_reverse)
         face_index = (ji - 1 - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
         on_face_index = ji - 1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
         triangle_on_face_index = on_face_index/3
@@ -454,7 +453,7 @@ module mo_horizontal_generation
       else
         call find_triangle_indices_from_h_vector_index(ji-1,point_1,point_2,point_3,point_4,point_5,point_6, &
                                                        dual_scalar_on_face_index, &
-                                                       small_triangle_edge_index,face_edges,face_vertices-1,face_edges_reverse)
+                                                       small_triangle_edge_index,face_edges-1,face_vertices-1,face_edges_reverse)
         if (small_triangle_edge_index==0) then
           from_cell(ji) = point_1 + 1
           to_cell(ji) = point_3 + 1
@@ -495,7 +494,7 @@ module mo_horizontal_generation
       if (ji>n_basic_edges*(n_points_per_edge+1)) then
         call find_triangle_indices_from_h_vector_index(ji-1,point_1,point_2,point_3,point_4,point_5,point_6, &
                                                        dual_scalar_on_face_index, &
-                                                       small_triangle_edge_index,face_edges,face_vertices-1,face_edges_reverse)
+                                                       small_triangle_edge_index,face_edges-1,face_vertices-1,face_edges_reverse)
         face_index = (ji-1 - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
         on_face_index = ji-1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
         triangle_on_face_index = on_face_index/3
@@ -558,7 +557,7 @@ module mo_horizontal_generation
         on_edge_index = ji - 1 - edge_index*(n_points_per_edge+1)
         first_face_found = 0
         do jk=1,n_basic_triangles
-          if (face_edges(jk,1)==edge_index .or. face_edges(jk,2)==edge_index .or. face_edges(jk,3)==edge_index) then
+          if (face_edges(jk,1)-1==edge_index .or. face_edges(jk,2)-1==edge_index .or. face_edges(jk,3)-1==edge_index) then
             if (first_face_found==0) then
               face_index_1 = jk - 1
               first_face_found = 1
@@ -568,22 +567,22 @@ module mo_horizontal_generation
           endif
         enddo
         
-        if (face_edges(face_index_1+1,1)==edge_index) then
+        if (face_edges(face_index_1+1,1)-1==edge_index) then
           edge_rel_to_face_1 = 1
         endif
-        if (face_edges(face_index_1+1,2)==edge_index) then
+        if (face_edges(face_index_1+1,2)-1==edge_index) then
           edge_rel_to_face_1 = 2
         endif
-        if (face_edges(face_index_1+1,3)==edge_index) then
+        if (face_edges(face_index_1+1,3)-1==edge_index) then
           edge_rel_to_face_1 = 3
         endif
-        if (face_edges(face_index_2+1,1)==edge_index) then
+        if (face_edges(face_index_2+1,1)-1==edge_index) then
           edge_rel_to_face_2 = 1
         endif
-        if (face_edges(face_index_2+1,2)==edge_index) then
+        if (face_edges(face_index_2+1,2)-1==edge_index) then
           edge_rel_to_face_2 = 2
         endif
-        if (face_edges(face_index_2+1,3)==edge_index) then
+        if (face_edges(face_index_2+1,3)-1==edge_index) then
           edge_rel_to_face_2 = 3
         endif
         if (edge_rel_to_face_1==1) then

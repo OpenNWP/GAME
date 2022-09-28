@@ -138,9 +138,8 @@ module mo_discrete_coordinate_trafos
     
     ! local variables
     logical :: lspecial_case,lpoints_downwards,llast_triangle
-    integer :: triangle_on_face_index, &
-               rhombuspoint_1,rhombuspoint_2,rhombuspoint_3,rhombuspoint_4,coord_1,coord_2,coord_1_points_amount, &
-               points_per_edge,dump,addpoint_1,addpoint_2 
+    integer :: triangle_on_face_index,rhombuspoint_1,rhombuspoint_2,rhombuspoint_3,rhombuspoint_4,coord_1,coord_2, &
+               coord_1_points_amount,points_per_edge,dump,addpoint_1,addpoint_2 
     
     call find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id_local,triangle_on_face_index, &
                                                                     lpoints_downwards,lspecial_case,llast_triangle)
@@ -298,9 +297,9 @@ module mo_discrete_coordinate_trafos
   
   end function upscale_scalar_point
 
-  subroutine find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id_local, &
-                                                                        triangle_on_face_index, &
-                                                                        lpoints_downwards,lspecial_case,llast_triangle)
+  subroutine find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id_local,
+                                                                        triangle_on_face_index,lpoints_downwards,lspecial_case, &
+                                                                        llast_triangle)
     
     ! This subroutine finds the on face index of a triangle from the dual scalar on face index and some further
     ! properties of this triangle (wether it points upwards or downwards,...).

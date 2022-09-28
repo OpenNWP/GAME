@@ -22,21 +22,17 @@ module mo_optimize
     ! This subroutine manages the grid optimization with Lloyd's algorithm.
     ! The result is (almost) a SCVT.
 	
-    real(wp), intent(inout) :: lat_c(n_cells),lon_c(n_cells), &
-                               lat_c_dual(n_triangles),lon_c_dual(n_triangles)
+    real(wp), intent(inout) :: lat_c(n_cells),lon_c(n_cells),lat_c_dual(n_triangles),lon_c_dual(n_triangles)
     integer,  intent(in)    :: n_iterations,face_edges(n_basic_triangles,3),face_edges_reverse(n_basic_triangles,3), &
-                               face_vertices(n_basic_triangles,3), &
-                               adjacent_edges(n_cells,6),from_cell_dual(n_edges), &
+                               face_vertices(n_basic_triangles,3),adjacent_edges(n_cells,6),from_cell_dual(n_edges), &
                                to_cell_dual(n_edges)
 	
     ! local variables
     integer :: ji
 	
     do ji=1,n_iterations
-      call set_scalar_h_dual_coords(lat_c_dual,lon_c_dual,lat_c,lon_c, &
-                                    face_edges,face_edges_reverse,face_vertices)
-      call find_cell_cgs(lat_c,lon_c,lat_c_dual,lon_c_dual, &
-                         adjacent_edges,from_cell_dual,to_cell_dual)
+      call set_scalar_h_dual_coords(lat_c_dual,lon_c_dual,lat_c,lon_c,face_edges,face_edges_reverse,face_vertices)
+      call find_cell_cgs(lat_c,lon_c,lat_c_dual,lon_c_dual,adjacent_edges,from_cell_dual,to_cell_dual)
       write(*,*) "Optimizing grid - iteration",ji,"completed."
     enddo
 	
@@ -49,8 +45,7 @@ module mo_optimize
     
     real(wp), intent(inout) :: lat_c(n_cells),lon_c(n_cells)
     real(wp), intent(in)    :: lat_c_dual(n_triangles),lon_c_dual(n_triangles)
-    integer,  intent(in)    :: adjacent_edges(n_cells,6), &
-                               from_cell_dual(n_edges),to_cell_dual(n_edges)
+    integer,  intent(in)    :: adjacent_edges(n_cells,6),from_cell_dual(n_edges),to_cell_dual(n_edges)
     
     ! local variables
     integer  :: ji,jk,n_edges_of_cell,counter,vertex_index_candidate_1,vertex_index_candidate_2,check_result, &
