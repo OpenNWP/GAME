@@ -148,40 +148,40 @@ module mo_discrete_coordinate_trafos
     call find_triangle_edge_points(triangle_on_face_index,face_index,res_id_local,rhombuspoint_1,rhombuspoint_2,rhombuspoint_3, &
                                    rhombuspoint_4,addpoint_1,addpoint_2,dump,face_vertices-1,face_edges-1,face_edges_reverse)
     if (lpoints_downwards) then
-      point_1 = rhombuspoint_1
-      point_2 = rhombuspoint_2
-      point_3 = rhombuspoint_3
+      point_1 = rhombuspoint_1+1
+      point_2 = rhombuspoint_2+1
+      point_3 = rhombuspoint_3+1
     else
       if (coord_1==coord_1_points_amount-1) then
         if (coord_2==points_per_edge-1) then
           if (llast_triangle) then
-            point_1 = rhombuspoint_3
-            point_2 = rhombuspoint_2
-            point_3 = addpoint_2
+            point_1 = rhombuspoint_3+1
+            point_2 = rhombuspoint_2+1
+            point_3 = addpoint_2+1
           elseif (lspecial_case) then
-            point_1 = rhombuspoint_1
-            point_2 = addpoint_1
-            point_3 = rhombuspoint_2
+            point_1 = rhombuspoint_1+1
+            point_2 = addpoint_1+1
+            point_3 = rhombuspoint_2+1
           else
-            point_1 = rhombuspoint_4
-            point_2 = rhombuspoint_1
-            point_3 = rhombuspoint_3  
+            point_1 = rhombuspoint_4+1
+            point_2 = rhombuspoint_1+1
+            point_3 = rhombuspoint_3+1
           endif
         else
           if (lspecial_case) then
-            point_1 = rhombuspoint_1
-            point_2 = addpoint_1
-            point_3 = rhombuspoint_2
+            point_1 = rhombuspoint_1+1
+            point_2 = addpoint_1+1
+            point_3 = rhombuspoint_2+1
           else
-            point_1 = rhombuspoint_4
-            point_2 = rhombuspoint_1
-            point_3 = rhombuspoint_3  
+            point_1 = rhombuspoint_4+1
+            point_2 = rhombuspoint_1+1
+            point_3 = rhombuspoint_3 +1 
           endif
         endif
       else
-        point_1 = rhombuspoint_4
-        point_2 = rhombuspoint_1
-        point_3 = rhombuspoint_3
+        point_1 = rhombuspoint_4+1
+        point_2 = rhombuspoint_1+1
+        point_3 = rhombuspoint_3+1
       endif
     endif
   
@@ -277,22 +277,22 @@ module mo_discrete_coordinate_trafos
     
     points_per_edge = find_points_per_edge(res_id_local)
     scalar_points_per_inner_face = find_scalar_points_per_inner_face(res_id_local)
-    if (old_index<n_pentagons) then
+    if (old_index<=n_pentagons) then
       upscale_scalar_point = old_index
-    elseif (old_index<n_pentagons+n_basic_edges*points_per_edge) then
-      edge_index = (old_index - n_pentagons)/points_per_edge
-      on_edge_index = old_index - (n_pentagons + edge_index*points_per_edge)
-      upscale_scalar_point = n_pentagons + edge_index*n_points_per_edge + 2**(res_id - res_id_local)*(on_edge_index + 1) - 1
+    elseif (old_index<=n_pentagons+n_basic_edges*points_per_edge) then
+      edge_index = (old_index - 1 - n_pentagons)/points_per_edge
+      on_edge_index = old_index - 1 - (n_pentagons + edge_index*points_per_edge)
+      upscale_scalar_point = n_pentagons + edge_index*n_points_per_edge + 2**(res_id - res_id_local)*(on_edge_index + 1)
     else
-      face_index = (old_index - (n_pentagons + n_basic_edges*points_per_edge))/scalar_points_per_inner_face
-      on_face_index = old_index - (n_pentagons + n_basic_edges*points_per_edge + face_index*scalar_points_per_inner_face)
+      face_index = (old_index - 1 - (n_pentagons + n_basic_edges*points_per_edge))/scalar_points_per_inner_face
+      on_face_index = old_index - 1 - (n_pentagons + n_basic_edges*points_per_edge + face_index*scalar_points_per_inner_face)
       on_face_index_local = on_face_index + points_per_edge
       call find_coords_from_triangle_on_face_index(on_face_index_local,res_id_local,coord_1,coord_2,coord_1_points_amount)
       coord_1 = (coord_1+1)*2**(res_id-res_id_local) - 1
       coord_2 = coord_2*2**(res_id-res_id_local)
       on_face_index = find_triangle_on_face_index_from_coords(coord_1,coord_2)
       upscale_scalar_point = n_pentagons + n_basic_edges*n_points_per_edge + &
-                             face_index*scalar_points_per_inner_face_full_grid + on_face_index - n_points_per_edge
+                             face_index*scalar_points_per_inner_face_full_grid + on_face_index - n_points_per_edge + 1
     endif
   
   end function upscale_scalar_point

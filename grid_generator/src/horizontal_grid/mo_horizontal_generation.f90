@@ -305,7 +305,7 @@ module mo_horizontal_generation
             point_3 = upscale_scalar_point(res_id_local,point_3)
             lpoints_upwards = .true.
             call set_scalar_coordinates(face_vertices(ji,1),face_vertices(ji,2),face_vertices(ji,3), &
-                                        1+point_1,1+point_2,1+point_3,lpoints_upwards,x_unity,y_unity, &
+                                        point_1,point_2,point_3,lpoints_upwards,x_unity,y_unity, &
                                         z_unity,lat_c,lon_c)
           else
             call find_triangle_edge_points_from_dual_scalar_on_face_index(jk-1,ji-1,res_id_local-1, &
@@ -349,7 +349,7 @@ module mo_horizontal_generation
             if (lpoints_downwards) then
               lpoints_upwards = .false.
             endif
-            call set_scalar_coordinates(edgepoint_1+1,edgepoint_2+1,edgepoint_3+1,1+point_1,1+point_2,1+point_3, &
+            call set_scalar_coordinates(edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3, &
                                         lpoints_upwards,x_unity,y_unity,z_unity,lat_c,lon_c)
           endif
         enddo
