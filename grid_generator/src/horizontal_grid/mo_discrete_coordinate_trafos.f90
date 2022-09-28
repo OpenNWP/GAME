@@ -297,7 +297,7 @@ module mo_discrete_coordinate_trafos
   
   end function upscale_scalar_point
 
-  subroutine find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id_local,
+  subroutine find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id_local, &
                                                                         triangle_on_face_index,lpoints_downwards,lspecial_case, &
                                                                         llast_triangle)
     
