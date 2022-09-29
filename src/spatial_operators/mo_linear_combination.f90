@@ -14,17 +14,15 @@ module mo_linear_combination
 
   subroutine linear_combine_two_states(state_1,state_2,state_res,coeff_1,coeff_2,grid)
   
-    type(t_state), intent(inout) :: state_1,state_2
-    type(t_state), intent(out)   :: state_res
-    real(wp),      intent(in)    :: coeff_1,coeff_2
-    type(t_grid),  intent(in)    :: grid
+    type(t_state), intent(inout) :: state_1,state_2 ! the states to linearly combine
+    type(t_state), intent(out)   :: state_res       ! the resulting state
+    real(wp),      intent(in)    :: coeff_1,coeff_2 ! the coefficients for the linear combination
+    type(t_grid),  intent(in)    :: grid            ! grid quantities (needed for the background state)
   
     !$omp parallel workshare
     state_res%rho = coeff_1*state_1%rho+coeff_2*state_2%rho
     state_res%rhotheta_v = coeff_1*state_1%rhotheta_v+coeff_2*state_2%rhotheta_v
-    state_res%theta_v_pert = state_res%rhotheta_v/ &
-                             state_res%rho(:,:,n_condensed_constituents+1) &
-                             - grid%theta_v_bg
+    state_res%theta_v_pert = state_res%rhotheta_v/state_res%rho(:,:,n_condensed_constituents+1) - grid%theta_v_bg
     state_res%exner_pert = coeff_1*state_1%exner_pert+coeff_2*state_2%exner_pert
     state_res%wind_h = coeff_1*state_1%wind_h+coeff_2*state_2%wind_h
     state_res%wind_v = coeff_1*state_1%wind_v+coeff_2*state_2%wind_v
