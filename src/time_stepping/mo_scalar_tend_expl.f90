@@ -38,7 +38,7 @@ module mo_scalar_tend_expl
     ! Firstly,some things need to prepared.
     ! -------------------------------------
     
-    ! determining the RK weights
+    ! determining the time stepping weights
     do jc=1,n_constituents
       new_weight(jc) = 1._wp
       if (rk_step==2 .and. jc/=n_condensed_constituents+1) then
@@ -72,7 +72,6 @@ module mo_scalar_tend_expl
     if (lmass_diff_h .and. rk_step==1) then
       ! loop over all constituents
       do jc=1,n_constituents
-
         ! The diffusion of the tracer density depends on its gradient.
         call grad_vert(state_scalar%rho(:,:,jc),diag%vector_placeholder_v,grid)
         call grad_hor(state_scalar%rho(:,:,jc),diag%vector_placeholder_h,diag%vector_placeholder_v,grid)
