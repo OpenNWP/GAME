@@ -49,7 +49,7 @@ module mo_vorticities
     enddo
     !$omp end parallel do
     
-    ! horizontal potential vorticities (locates at half level edges)
+    ! horizontal potential vorticities (located at half level edges)
     !$omp parallel do private(ji,jl,density_value)
     do ji=1,n_edges
       do jl=1,n_levels
@@ -116,8 +116,7 @@ module mo_vorticities
           if (jl>n_flat_layers) then
             length_rescale_factor = (radius + grid%z_vector_dual_v(ji,jl)) &
             /(radius+grid%z_vector_h(grid%vorticity_indices_triangles(ji,jm),jl))
-            delta_z = grid%z_vector_dual_v(ji,jl) &
-            - grid%z_vector_h(grid%vorticity_indices_triangles(ji,jm),jl)
+            delta_z = grid%z_vector_dual_v(ji,jl) - grid%z_vector_h(grid%vorticity_indices_triangles(ji,jm),jl)
             if (delta_z>0._wp) then
               jl_for_vertical_gradient = jl-1
             else
