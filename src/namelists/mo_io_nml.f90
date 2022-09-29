@@ -70,7 +70,7 @@ module mo_io_nml
                                            start_day_str // start_hour_str // ".nc"
     
     if (ideal_input_id==-1) then
-      write(*,*) "Initialization state file:", init_state_file
+      write(*,*) "Initialization state file:",trim(init_state_file)
     endif
     
     pressure_levels(1) = 20000
