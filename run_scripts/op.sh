@@ -64,7 +64,7 @@ cloud_coefficients_file_lw = "$game_home_dir/../rte-rrtmgp/extensions/cloud_opti
 
 &surface
 lprog_soil_temp=.true.
-lsfc_sensible_heat_flux=.true.
+lsfc_phase_trans=.true.
 lsfc_sensible_heat_flux=.true.
 pbl_scheme=1
 /
