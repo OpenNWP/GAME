@@ -148,8 +148,7 @@ program control
     ! By setting the from_cell_dual and to_cell_dual arrrays,the discrete positions of the dual scalar points are determined.
     call set_from_to_cell_dual(from_cell_dual,to_cell_dual,face_edges,face_edges_reverse)
   else
-    call read_horizontal_explicit(lat_c,lon_c,from_cell,to_cell,from_cell_dual, &
-                                  to_cell_dual,scalar_h_file,n_lloyd_read_from_file)
+    call read_horizontal_explicit(lat_c,lon_c,from_cell,to_cell,from_cell_dual,to_cell_dual,scalar_h_file,n_lloyd_read_from_file)
   endif
   
   ! 2.) finding the neighbouring vector points of the cells
@@ -169,8 +168,7 @@ program control
   ! 4.) determining implicit quantities of the horizontal grid
   !     ------------------------------------------------------
   ! calculation of the horizontal coordinates of the dual scalar points
-  call set_scalar_h_dual_coords(lat_c_dual,lon_c_dual,lat_c, &
-                                lon_c,face_edges,face_edges_reverse,face_vertices)
+  call set_scalar_h_dual_coords(lat_c_dual,lon_c_dual,lat_c,lon_c,face_edges,face_edges_reverse,face_vertices)
   
   ! calculation of the horizontal coordinates of the vector points
   call set_vector_h_attributes(from_cell,to_cell,lat_c,lon_c,lat_e,lon_e,direction)
@@ -187,16 +185,14 @@ program control
   call set_f_vec(lat_e,direction_dual,f_vec_h,f_vec_v)
   
   ! calculating the dual cells on the unity sphere
-  call calc_triangle_area_unity(triangle_face_unit_sphere,lat_c,lon_c,face_edges, &
-                                face_edges_reverse,face_vertices)
+  call calc_triangle_area_unity(triangle_face_unit_sphere,lat_c,lon_c,face_edges,face_edges_reverse,face_vertices)
   
   ! finding the vorticity indices
   call calc_vorticity_indices_triangles(from_cell_dual,to_cell_dual,direction,direction_dual, &
                                         vorticity_indices_triangles,vorticity_signs_triangles)
   
   ! calculating the cell faces on the unity sphere
-  call calc_cell_area_unity(pent_hex_face_unity_sphere,lat_c_dual, &
-                            lon_c_dual,adjacent_edges,vorticity_indices_triangles)
+  call calc_cell_area_unity(pent_hex_face_unity_sphere,lat_c_dual,lon_c_dual,adjacent_edges,vorticity_indices_triangles)
   write(*,*) "Horizontal grid structure determined."
   
   ! 5.) setting the physical surface properties
@@ -240,8 +236,7 @@ program control
   write(*,*) "Finished."
   
   write(*,*) "Calculating dual areas ..."
-  call set_area_dual(area_dual_h,area_dual_v,z_vector_dual_v,dx,z_vector_h,z_vector_v, &
-                     from_cell,to_cell,triangle_face_unit_sphere)
+  call set_area_dual(area_dual_h,area_dual_v,z_vector_dual_v,dx,z_vector_h,z_vector_v,from_cell,to_cell,triangle_face_unit_sphere)
   write(*,*) "Finished."
   
   write(*,*) "Calculating grid box volumes ..."
@@ -269,9 +264,8 @@ program control
   write(*,*) "Finished."
   
   write(*,*) "Calculating Coriolis indices and weights ..."
-  call coriolis(from_cell_dual,to_cell_dual,trsk_modified_curl_indices,dx,dy, &
-                to_cell,area_v,z_scalar,lat_c,lon_c,lat_e,lon_e,lat_c_dual, &
-                lon_c_dual,trsk_weights,trsk_indices,from_cell,adjacent_edges,z_vector_h)
+  call coriolis(from_cell_dual,to_cell_dual,trsk_modified_curl_indices,dx,dy,to_cell,area_v,z_scalar,lat_c,lon_c,lat_e,lon_e, &
+                lat_c_dual,lon_c_dual,trsk_weights,trsk_indices,from_cell,adjacent_edges,z_vector_h)
   write(*,*) "Finished."
   
   write(*,*) "Calculating interpolation to the lat-lon grid ..."
@@ -527,7 +521,7 @@ program control
   
   ! temperature conductivity of the surface
   call nc_check(nf90_def_var(ncid_g_prop,"t_conductivity",NF90_REAL,cell_dimid,t_conductivity_id))
-  call nc_check(nf90_put_att(ncid_g_prop,t_conductivity_id,"units","m^2/2"))
+  call nc_check(nf90_put_att(ncid_g_prop,t_conductivity_id,"units","m**2/2"))
   
   ! roughness length of the surface
   call nc_check(nf90_def_var(ncid_g_prop,"roughness_length",NF90_REAL,cell_dimid,roughness_length_id))

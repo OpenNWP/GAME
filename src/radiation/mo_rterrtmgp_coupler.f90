@@ -242,7 +242,7 @@ module mo_rrtmgp_coupler
           *(z_vector(ji,1)-z_scalar(ji,1))
           ! pressure at TOA
           ! here, the barometric height formula is used
-          pressure_interface_rad   (ji,jl) = pressure_rad(ji,jl) &
+          pressure_interface_rad(ji,jl) = pressure_rad(ji,jl) &
           *exp(-(z_vector(ji,1)-z_scalar(ji,1))/scale_height)
         ! values at the surface
         elseif (jl==n_levels) then
@@ -368,8 +368,7 @@ module mo_rrtmgp_coupler
     
     ! saving the surface shortwave inward radiative flux density
     do ji=1,n_day_points
-      sfc_sw_in(day_indices(ji)) = fluxes_day%flux_dn(ji,n_levels) &
-      - fluxes_day%flux_up(ji,n_levels)
+      sfc_sw_in(day_indices(ji)) = fluxes_day%flux_dn(ji,n_levels) - fluxes_day%flux_up(ji,n_levels)
     enddo
     
     ! freeing the short wave fluxes
@@ -427,16 +426,16 @@ module mo_rrtmgp_coupler
   
     ! This subroutine is essentially the negative vertical divergence operator.
     
-    logical,                  intent(in)    :: day_only                                 ! true for short wave calculations (for efficiency)
-    integer,                  intent(in)    :: n_day_points                             ! as usual
-    integer,                  intent(in)    :: day_indices(n_cells_rad)                 ! the indices of the columns where it is day
-    type(ty_fluxes_broadband),intent(in)    :: fluxes                                   ! the fluxes object based on which to compute the power density
-    real(wp),                 intent(in)    :: z_vector(n_cells_rad,n_levels)           ! as usual
-    real(wp),                 intent(inout) :: radiation_tendency(n_cells_rad,n_layers) ! the result (in W/m**3)
+    logical,                   intent(in)    :: day_only                                 ! true for short wave calculations (for efficiency)
+    integer,                   intent(in)    :: n_day_points                             ! as usual
+    integer,                   intent(in)    :: day_indices(n_cells_rad)                 ! the indices of the columns where it is day
+    type(ty_fluxes_broadband), intent(in)    :: fluxes                                   ! the fluxes object based on which to compute the power density
+    real(wp),                  intent(in)    :: z_vector(n_cells_rad,n_levels)           ! as usual
+    real(wp),                  intent(inout) :: radiation_tendency(n_cells_rad,n_layers) ! the result (in W/m**3)
   
     ! local variables
     integer :: j_column           ! the index of the relevant column
-    integer :: jk                 ! the horizontal index
+    integer :: ji                 ! the horizontal index
     integer :: n_relevant_columns ! the number of columns taken into account
     integer :: jl                 ! layer index
     
@@ -452,16 +451,15 @@ module mo_rrtmgp_coupler
       do jl=1,n_layers
         ! finding the relevant horizontal index
         if (day_only) then
-          jk = day_indices(j_column)
+          ji = day_indices(j_column)
         else
-          jk = j_column
+          ji = j_column
         endif
-        radiation_tendency(jk,jl) = &
+        radiation_tendency(ji,jl) = &
         ! this function is called four times, therefore we need to
         ! add up the tendencies
-        radiation_tendency(jk,jl) + &
+        radiation_tendency(ji,jl) + (&
         ! this is a sum of four fluxes
-        ( &
         ! upward flux (going in)
         fluxes%flux_up(j_column,jl+1) &
         ! upward flux (going out)
@@ -472,7 +470,7 @@ module mo_rrtmgp_coupler
         - fluxes%flux_dn(j_column,jl+1)) &
         ! dividing by the column thickness (the shallow atmosphere
         ! approximation is made at this point)
-        /(z_vector(jk,jl) - z_vector(jk,jl+1))
+        /(z_vector(ji,jl) - z_vector(ji,jl+1))
       enddo
     enddo
   
@@ -563,12 +561,12 @@ module mo_rrtmgp_coupler
     
     ! This subroutine computes volume mixing ratios based on the model variables.
     
-    real(wp),           intent(in)    :: rho(:,:,:)          ! mass densities of the constituents
-    logical,            intent(in)    :: sw_bool                        ! short wave switch
-    integer,            intent(in)    :: n_day_points                   ! number of points where it is day
-    integer,            intent(in)    :: day_indices(n_cells_rad)       ! the indices of the points where it is day
-    real(wp),           intent(in)    :: z_scalar(n_cells_rad,n_layers) ! z coordinates of scalar data points
-    type(ty_gas_concs), intent(inout) :: gas_concentrations             ! object holding gas concentrations
+    real(wp),           intent(in)    :: rho(n_cells_rad,n_layers,n_constituents) ! mass densities of the constituents
+    logical,            intent(in)    :: sw_bool                                  ! short wave switch
+    integer,            intent(in)    :: n_day_points                             ! number of points where it is day
+    integer,            intent(in)    :: day_indices(n_cells_rad)                 ! the indices of the points where it is day
+    real(wp),           intent(in)    :: z_scalar(n_cells_rad,n_layers)           ! z coordinates of scalar data points
+    type(ty_gas_concs), intent(inout) :: gas_concentrations                       ! object holding gas concentrations
     
     ! local variables
     real(wp) :: vol_mix_ratio(n_cells_rad,n_layers) ! the volume mixing ratio of one gas
@@ -585,7 +583,7 @@ module mo_rrtmgp_coupler
         case("o2")
           vol_mix_ratio(:,:) = molar_fraction_in_dry_air(3)
         case("ch4")
-          vol_mix_ratio(:,:) = molar_fraction_in_dry_air(wp)
+          vol_mix_ratio(:,:) = molar_fraction_in_dry_air(8)
         case("o3")
           if (sw_bool) then
             do ji=1,n_day_points
@@ -612,8 +610,9 @@ module mo_rrtmgp_coupler
           if (sw_bool .and. n_condensed_constituents==4) then
             do ji=1,n_day_points
               do jl=1,n_layers
-                vol_mix_ratio(ji,jl) = rho(day_indices(ji),jl,n_condensed_constituents+2)*r_v/ &
-                                      (rho(day_indices(ji),jl,n_condensed_constituents+1)*r_d)
+                vol_mix_ratio(ji,jl) = &
+                rho(day_indices(ji),jl,n_condensed_constituents+2)*r_v/ &
+                ((rho(day_indices(ji),jl,n_condensed_constituents+1)-rho(day_indices(ji),jl,n_condensed_constituents+2))*r_d)
               enddo
             enddo
           ! in the long wave case,all points matter
@@ -622,7 +621,7 @@ module mo_rrtmgp_coupler
               do jl=1,n_layers
                 vol_mix_ratio(ji,jl) = & 
                 rho(ji,jl,n_condensed_constituents+2)*r_v/ &
-                (rho(ji,jl,n_condensed_constituents+1)*r_d)
+                ((rho(ji,jl,n_condensed_constituents+1)-rho(ji,jl,n_condensed_constituents+2))*r_d)
               enddo
             enddo
           endif

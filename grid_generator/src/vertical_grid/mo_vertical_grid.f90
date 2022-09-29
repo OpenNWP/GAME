@@ -323,8 +323,6 @@ module mo_vertical_grid
     real(wp)              :: min_thick,max_thick,thick_rel
     real(wp), allocatable :: lowest_thicknesses(:)
     
-    allocate(lowest_thicknesses(n_cells))
-    
     ! horizontal vector points
     !$omp parallel do private(ji,jl)
     do ji=1,n_edges
@@ -360,6 +358,7 @@ module mo_vertical_grid
     enddo
     !$omp end parallel do
     
+    allocate(lowest_thicknesses(n_cells))
     !$omp parallel workshare
     lowest_thicknesses = z_vector_v(:,n_layers) - z_vector_v(:,n_levels)
     min_thick = minval(lowest_thicknesses)
@@ -415,15 +414,12 @@ module mo_vertical_grid
         if (jl==1) then
           z_vector_dual_h(ji,jl) = toa
         elseif (jl==n_levels) then
-          z_vector_dual_h(ji,n_levels) = 0.5_wp*(z_vector_v(from_cell(ji),n_levels) &
-                                                 + z_vector_v(to_cell(ji),n_levels))
+          z_vector_dual_h(ji,n_levels) = 0.5_wp*(z_vector_v(from_cell(ji),n_levels) + z_vector_v(to_cell(ji),n_levels))
         else
           z_vector_dual_h(ji,jl) = 0.5_wp*(z_vector_h(ji,jl-1) + z_vector_h(ji,jl))
         endif
-        dy(ji,jl) = calculate_distance_h(lat_c_dual(from_cell_dual(ji)), &
-                                         lon_c_dual(from_cell_dual(ji)), &
-                                         lat_c_dual(to_cell_dual(ji)), & 
-                                         lon_c_dual(to_cell_dual(ji)), &
+        dy(ji,jl) = calculate_distance_h(lat_c_dual(from_cell_dual(ji)),lon_c_dual(from_cell_dual(ji)), &
+                                         lat_c_dual(to_cell_dual(ji)),lon_c_dual(to_cell_dual(ji)), &
                                          radius+z_vector_dual_h(ji,jl))
       enddo
     enddo
