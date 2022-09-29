@@ -151,9 +151,9 @@ module mo_scalar_tend_expl
             ! phase transitions
             + diag%phase_trans_heating_rate(ji,jl) &
             ! heating rate due to falling condensates
-            + diag%condensates_sediment_heat(ji,jl) &
+            + diag%condensates_sediment_heat(ji,jl)) &
             ! this has to be divided by c_p*exner
-            )/(c_d_p*(grid%exner_bg(ji,jl) + state_scalar%exner_pert(ji,jl))) &
+            /(c_d_p*(grid%exner_bg(ji,jl) + state_scalar%exner_pert(ji,jl))) &
             ! tendency of due to phase transitions and mass diffusion
             + (diag%phase_trans_rates(ji,jl,jc) + diag%mass_diff_tendency(ji,jl,jc)) &
             *diag%scalar_placeholder(ji,jl))
