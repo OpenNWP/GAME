@@ -125,8 +125,8 @@ module mo_definitions
     real(wp), allocatable :: temp_diffusion_coeff_numerical_h(:,:)
     real(wp), allocatable :: temp_diffusion_coeff_numerical_v(:,:)
     real(wp), allocatable :: pressure_gradient_decel_factor(:,:)
-    real(wp), allocatable :: condensates_sediment_heat(:,:)
-    real(wp), allocatable :: mass_diff_tendency(:,:,:)
+    real(wp), allocatable :: condensates_sediment_heat(:,:)        ! heating rate due to falling condensates
+    real(wp), allocatable :: mass_diff_tendency(:,:,:)             ! mass source rate due to mass diffusion
     real(wp), allocatable :: phase_trans_rates(:,:,:)
     real(wp), allocatable :: phase_trans_heating_rate(:,:)
     real(wp), allocatable :: viscosity(:,:)
