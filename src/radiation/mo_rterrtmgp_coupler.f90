@@ -48,11 +48,11 @@ module mo_rrtmgp_coupler
     
     ! local variables
     ! loop index
-    integer :: ji
+    integer :: jc
     
     ! formatting the gas names
-    do ji=1,size(active_gases)
-      gases_lowercase(ji) = trim(lower_case(active_gases(ji)))
+    do jc=1,size(active_gases)
+      gases_lowercase(jc) = trim(lower_case(active_gases(jc)))
     end do
     
   end subroutine radiation_init
@@ -150,7 +150,7 @@ module mo_rrtmgp_coupler
     !$omp end critical
     
     ! set the surface emissivity (a longwave property) to a standard value
-    surface_emissivity(:,:) = 0.98_wp
+    surface_emissivity = 0.98_wp
     
     do ji=1,n_cells_rad
       albedo_dir(:,ji) = sfc_albedo(ji)
@@ -413,8 +413,7 @@ module mo_rrtmgp_coupler
     
     ! saving the surface longwave outward radiative flux density
     do ji=1,n_cells_rad
-      sfc_lw_out(ji) = fluxes%flux_up(ji,n_levels) &
-      - fluxes%flux_dn(ji,n_levels)
+      sfc_lw_out(ji) = fluxes%flux_up(ji,n_levels) - fluxes%flux_dn(ji,n_levels)
     enddo
     
     ! freeing the long wave fluxes
