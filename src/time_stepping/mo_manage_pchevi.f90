@@ -76,14 +76,13 @@ module mo_manage_pchevi
         call manage_pressure_gradient(state_old,diag,grid,ltotally_first_step)
       endif
       
+      ! Only the horizontal momentum is a forward tendency.
       if (rk_step==1) then
-       call calc_pressure_grad_condensates_v(state_old,diag,grid)
-        ! Only the horizontal momentum is a forward tendency.
-       call  vector_tend_expl(state_old,state_tend,diag,grid,ltotally_first_step,rk_step)
+        call calc_pressure_grad_condensates_v(state_old,diag,grid)
+        call  vector_tend_expl(state_old,state_tend,diag,grid,ltotally_first_step,rk_step)
       endif
       if (rk_step==2) then
         call calc_pressure_grad_condensates_v(state_new,diag,grid)
-        ! Only the horizontal momentum is a forward tendency.
         call vector_tend_expl(state_new,state_tend,diag,grid,ltotally_first_step,rk_step)
       endif
       
