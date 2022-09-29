@@ -153,12 +153,12 @@ module mo_eff_diff_coeffs
 
   subroutine vert_vert_mom_viscosity(rho,tke,n_squared,layer_thickness,scalar_placeholder,molecular_diffusion_coeff)
   
+    ! This subroutine multiplies scalar_placeholder (containing dw/dz) by the diffusion coefficient acting on w because of w.
+    
     real(wp), intent(in)    :: rho(n_cells,n_layers,n_constituents),tke(n_cells,n_layers), &
                                n_squared(n_cells,n_layers),layer_thickness(n_cells,n_layers), &
                                molecular_diffusion_coeff(n_cells,n_layers)
     real(wp), intent(inout) :: scalar_placeholder(n_cells,n_layers)
-  
-    ! This subroutine multiplies scalar_placeholder (containing dw/dz) by the diffusion coefficient acting on w because of w.
     
     integer  :: ji,jl
     real(wp) :: mom_diff_coeff
@@ -198,32 +198,31 @@ module mo_eff_diff_coeffs
       do jl=2,n_layers
         ! the turbulent component
         mom_diff_coeff = 0.25_wp*(tke2vert_diff_coeff(diag%tke(grid%from_cell(ji),jl-1), &
-        diag%n_squared(grid%from_cell(ji),jl-1), &
-        grid%layer_thickness(grid%from_cell(ji),jl-1)) &
+                                                      diag%n_squared(grid%from_cell(ji),jl-1), &
+                                                      grid%layer_thickness(grid%from_cell(ji),jl-1)) &
         + tke2vert_diff_coeff(diag%tke(grid%to_cell(ji),jl-1), &
-        diag%n_squared(grid%to_cell(ji),jl-1), &
-        grid%layer_thickness(grid%to_cell(ji),jl-1)) &
+                              diag%n_squared(grid%to_cell(ji),jl-1), &
+                              grid%layer_thickness(grid%to_cell(ji),jl-1)) &
         + tke2vert_diff_coeff(diag%tke(grid%from_cell(ji),jl), &
-        diag%n_squared(grid%from_cell(ji),jl), &
-        grid%layer_thickness(grid%from_cell(ji),jl)) &
+                              diag%n_squared(grid%from_cell(ji),jl), &
+                              grid%layer_thickness(grid%from_cell(ji),jl)) &
         + tke2vert_diff_coeff(diag%tke(grid%to_cell(ji),jl), &
-        diag%n_squared(grid%to_cell(ji),jl), &
-        grid%layer_thickness(grid%to_cell(ji),jl)))
+                              diag%n_squared(grid%to_cell(ji),jl), &
+                              grid%layer_thickness(grid%to_cell(ji),jl)))
         ! computing and adding the molecular viscosity
         ! the scalar variables need to be averaged to the vector points at half levels
         molecular_viscosity = 0.25_wp*(diag%molecular_diffusion_coeff(grid%from_cell(ji),jl-1) &
-        + diag%molecular_diffusion_coeff(grid%to_cell(ji),jl-1) &
-        + diag%molecular_diffusion_coeff(grid%from_cell(ji),jl) &
-        + diag%molecular_diffusion_coeff(grid%to_cell(ji),jl))
+                                     + diag%molecular_diffusion_coeff(grid%to_cell(ji),jl-1) &
+                                     + diag%molecular_diffusion_coeff(grid%from_cell(ji),jl) &
+                                     + diag%molecular_diffusion_coeff(grid%to_cell(ji),jl))
         mom_diff_coeff = mom_diff_coeff+molecular_viscosity
         
         ! multiplying by the density (averaged to the half level edge)
-        diag%vert_hor_viscosity(ji,jl) = &
-        0.25_wp*(state%rho(grid%from_cell(ji),jl-1,n_condensed_constituents+1) &
-        + state%rho(grid%to_cell(ji),jl-1,n_condensed_constituents+1) &
-        + state%rho(grid%from_cell(ji),jl,n_condensed_constituents+1) &
-        + state%rho(grid%to_cell(ji),jl,n_condensed_constituents+1)) &
-        *mom_diff_coeff
+        diag%vert_hor_viscosity(ji,jl) = 0.25_wp*(state%rho(grid%from_cell(ji),jl-1,n_condensed_constituents+1) &
+                                                + state%rho(grid%to_cell(ji),jl-1,n_condensed_constituents+1) &
+                                                + state%rho(grid%from_cell(ji),jl,n_condensed_constituents+1) &
+                                                + state%rho(grid%to_cell(ji),jl,n_condensed_constituents+1)) &
+                                                *mom_diff_coeff
       enddo
     enddo
     !$omp end parallel do
@@ -259,7 +258,7 @@ module mo_eff_diff_coeffs
     call grad_vert(diag%scalar_placeholder,diag%vector_placeholder_v,grid)
     ! calculating the inverse full virtual potential temperature
     !$omp parallel workshare
-    diag%scalar_placeholder = 1.0/diag%scalar_placeholder
+    diag%scalar_placeholder = 1._wp/diag%scalar_placeholder
     !$omp end parallel workshare
     call scalar_times_vector_v(diag%scalar_placeholder,diag%vector_placeholder_v,diag%vector_placeholder_v)
     
