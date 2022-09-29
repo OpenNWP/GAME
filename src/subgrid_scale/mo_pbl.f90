@@ -42,12 +42,12 @@ module mo_pbl
         wind_speed_lowest_layer = 0.5_wp*((diag%v_squared(grid%from_cell(ji),n_layers))**0.5_wp &
         + (diag%v_squared(grid%to_cell(ji),n_layers))**0.5_wp)
         z_agl = grid%z_vector_h(ji,n_layers) - 0.5_wp*(grid%z_vector_v(grid%from_cell(ji),n_levels) &
-        + grid%z_vector_v(grid%to_cell(ji),n_levels))
+                                                     + grid%z_vector_v(grid%to_cell(ji),n_levels))
         layer_thickness = 0.5_wp*(grid%layer_thickness(grid%from_cell(ji),n_layers) &
-                                  + grid%layer_thickness(grid%to_cell(ji),n_layers))
+                                + grid%layer_thickness(grid%to_cell(ji),n_layers))
         roughness_length_value = 0.5_wp*(grid%roughness_length(grid%from_cell(ji)) + grid%roughness_length(grid%to_cell(ji)))
         monin_obukhov_length_value = 0.5_wp*(diag%monin_obukhov_length(grid%from_cell(ji)) &
-                                             + diag%monin_obukhov_length(grid%to_cell(ji)))
+                                           + diag%monin_obukhov_length(grid%to_cell(ji)))
       
         ! calculating the flux resistance at the vector point
         flux_resistance = momentum_flux_resistance(wind_speed_lowest_layer, &
@@ -188,8 +188,8 @@ module mo_pbl
       !$omp parallel do private(ji)
       do ji=1,n_cells
         diag%scalar_flux_resistance(ji) = calc_scalar_flux_resistance(diag%roughness_velocity(ji), &
-                                           grid%z_scalar(ji,n_layers)-grid%z_vector_v(ji,n_levels), &
-                                           grid%roughness_length(ji),diag%monin_obukhov_length(ji))
+                                          grid%z_scalar(ji,n_layers)-grid%z_vector_v(ji,n_levels), &
+                                          grid%roughness_length(ji),diag%monin_obukhov_length(ji))
       enddo
       !$omp end parallel do
     endif
