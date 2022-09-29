@@ -19,7 +19,7 @@ module mo_manage_radiation_calls
   
   subroutine update_rad_fluxes(state,diag,grid,time_coordinate)
     
-    ! This subroutine updates the radiative heating rate.
+    ! This subroutine manages the calls to RTE+RRTMGP.
   
     type(t_state), intent(in)    :: state
     type(t_diag),  intent(inout) :: diag
@@ -64,7 +64,7 @@ module mo_manage_radiation_calls
       ! remapping all the arrays
       call create_rad_array_scalar_h(grid%lat_c,radiation%lat_scal,rad_block_index)
       call create_rad_array_scalar_h(grid%lon_c,radiation%lon_scal,rad_block_index)
-      call create_rad_array_scalar_h(state%temperature_soil,radiation%temp_sfc,rad_block_index)
+      call create_rad_array_scalar_h(state%temperature_soil(:,1),radiation%temp_sfc,rad_block_index)
       call create_rad_array_scalar_h(grid%sfc_albedo,radiation%sfc_albedo,rad_block_index)
       call create_rad_array_scalar(grid%z_scalar,radiation%z_scal,rad_block_index)
       call create_rad_array_vector(grid%z_vector_v,radiation%z_vect,rad_block_index)
@@ -174,7 +174,7 @@ module mo_manage_radiation_calls
     ! local variables
     integer :: ji
     
-   ! loop over all cells of the resulting array
+    ! loop over all cells of the resulting array
     do ji=1,n_cells_rad
       out_array(ji,:,:) = in_array((rad_block_index-1)*n_cells_rad+ji,:,:)
     enddo

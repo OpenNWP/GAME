@@ -57,7 +57,7 @@ module mo_rrtmgp_coupler
     
   end subroutine radiation_init
   
-  subroutine calc_radiative_flux_convergence(latitude_scalar,longitude_scalar,z_scalar,z_vector,mass_densities, &
+  subroutine calc_radiative_flux_convergence(latitude_scalar,longitude_scalar,z_scalar,z_vector,rho, &
                                              temperature_gas,radiation_tendency,temp_sfc,sfc_sw_in,sfc_lw_out, &
                                              sfc_albedo,time_coord)
   
@@ -65,18 +65,18 @@ module mo_rrtmgp_coupler
     ! the thermodynamic state as well as meta data (time stamp, coordinates) and gets
     ! back radiative flux convergences in W/m^3.
     
-    real(wp), intent(in)    :: time_coord                                          ! the time coordinate (UTC time stamp)
-    real(wp), intent(in)    :: latitude_scalar(n_cells_rad)                        ! the latitude coordinates of the scalar data points
-    real(wp), intent(in)    :: longitude_scalar(n_cells_rad)                       ! the longitude coordinates of the scalar data points
-    real(wp), intent(in)    :: z_scalar(n_cells_rad,n_layers)                      ! the vertical positions of the scalar data points
-    real(wp), intent(in)    :: z_vector(n_cells_rad,n_levels)                      ! the vertical positions of the vector data points
-    real(wp), intent(in)    :: mass_densities(n_cells_rad,n_layers,n_constituents) ! the mass densities of the model atmosphere
-    real(wp), intent(in)    :: temperature_gas(n_cells_rad,n_layers)               ! the temperature of the model atmosphere
-    real(wp), intent(inout) :: radiation_tendency(n_cells_rad,n_layers)            ! the result (in W/m**3)
-    real(wp), intent(in)    :: temp_sfc(n_cells_rad)                               ! surface temperature
-    real(wp), intent(inout) :: sfc_sw_in(n_cells_rad)                              ! surface shortwave in
-    real(wp), intent(inout) :: sfc_lw_out(n_cells_rad)                             ! surface longwave out
-    real(wp), intent(in)    :: sfc_albedo(n_cells_rad)                             ! surface albedo for all bands
+    real(wp), intent(in)    :: time_coord                               ! the time coordinate (UTC time stamp)
+    real(wp), intent(in)    :: latitude_scalar(n_cells_rad)             ! the latitude coordinates of the scalar data points
+    real(wp), intent(in)    :: longitude_scalar(n_cells_rad)            ! the longitude coordinates of the scalar data points
+    real(wp), intent(in)    :: z_scalar(n_cells_rad,n_layers)           ! the vertical positions of the scalar data points
+    real(wp), intent(in)    :: z_vector(n_cells_rad,n_levels)           ! the vertical positions of the vector data points
+    real(wp), intent(in)    :: rho(n_cells_rad,n_layers,n_constituents) ! the mass densities of the model atmosphere
+    real(wp), intent(in)    :: temperature_gas(n_cells_rad,n_layers)    ! the temperature of the model atmosphere
+    real(wp), intent(inout) :: radiation_tendency(n_cells_rad,n_layers) ! the result (in W/m**3)
+    real(wp), intent(in)    :: temp_sfc(n_cells_rad)                    ! surface temperature
+    real(wp), intent(inout) :: sfc_sw_in(n_cells_rad)                   ! surface shortwave in
+    real(wp), intent(inout) :: sfc_lw_out(n_cells_rad)                  ! surface longwave out
+    real(wp), intent(in)    :: sfc_albedo(n_cells_rad)                  ! surface albedo for all bands
     
     ! local variables
     type(ty_gas_concs)                  :: gas_concentrations_sw                            ! the gas concentrations (object holding all information on the composition of the gas phase
@@ -162,8 +162,9 @@ module mo_rrtmgp_coupler
       do jl=1,n_layers
         temperature_rad(ji,jl) = temperature_gas(ji,jl)
         ! the pressure is diagnozed here, using the equation of state for ideal gases
-        pressure_rad(ji,jl) = r_d*mass_densities(ji,jl,n_condensed_constituents+1)*temperature_rad(ji,jl) &
-                            + r_v*mass_densities(ji,jl,n_condensed_constituents+2)*temperature_rad(ji,jl)
+        pressure_rad(ji,jl) &
+        = r_d*(rho(ji,jl,n_condensed_constituents+1)-rho(ji,jl,n_condensed_constituents+2))*temperature_rad(ji,jl) &
+        + r_v*rho(ji,jl,n_condensed_constituents+2)*temperature_rad(ji,jl)
       enddo
     enddo
     
@@ -177,21 +178,21 @@ module mo_rrtmgp_coupler
       do ji=1,n_cells_rad
         do jl=1,n_layers
           ! the solid condensates' effective radius
-          ice_precip_weight = mass_densities(ji,jl,1)+EPSILON_SECURITY
-          ice_cloud_weight = mass_densities(ji,jl,3)+EPSILON_SECURITY
+          ice_precip_weight = rho(ji,jl,1)+EPSILON_SECURITY
+          ice_cloud_weight = rho(ji,jl,3)+EPSILON_SECURITY
           ice_eff_radius_value = (ice_precip_weight*ice_precip_radius+ice_cloud_weight*ice_cloud_radius) &
           /(ice_precip_weight+ice_cloud_weight)
           ! the liquid condensates' effective radius
-          liquid_precip_weight = mass_densities(ji,jl,2)+EPSILON_SECURITY
-          liquid_cloud_weight = mass_densities(ji,jl,4)+EPSILON_SECURITY
+          liquid_precip_weight = rho(ji,jl,2)+EPSILON_SECURITY
+          liquid_cloud_weight = rho(ji,jl,4)+EPSILON_SECURITY
           liquid_eff_radius_value = (liquid_precip_weight*liquid_precip_radius+liquid_cloud_weight*liquid_cloud_radius) &
           /(liquid_precip_weight+liquid_cloud_weight)
           ! thickness of the gridbox
           thickness = z_vector(ji,jl)-z_vector(ji,jl+1)
           ! solid water "content"
-          ice_water_path(ji,jl) = thickness*1000._wp*(mass_densities(ji,jl,1) + mass_densities(ji,jl,3))
+          ice_water_path(ji,jl) = thickness*1000._wp*(rho(ji,jl,1) + rho(ji,jl,3))
           ! liquid water "content"
-          liquid_water_path(ji,jl) = thickness*1000._wp*(mass_densities(ji,jl,2) + mass_densities(ji,jl,4))
+          liquid_water_path(ji,jl) = thickness*1000._wp*(rho(ji,jl,2) + rho(ji,jl,4))
           ! if there is no solid water in the grid box, the solid effective radius is set to zero
           ice_eff_radius(ji,jl) = merge(ice_eff_radius_value,0._wp,ice_water_path(ji,jl)>0._wp)
           ! if there is no liquid water in the grid box, the liquid effective radius is set to zero
@@ -249,7 +250,7 @@ module mo_rrtmgp_coupler
           ! the value in the lowest layer
           temperature_interface_rad(ji,jl) = temp_sfc(ji)
           ! surface pressure
-          pressure_interface_rad(ji,jl) = pressure_rad(ji,jl-1)*exp(-(z_vector(ji,n_levels) - z_scalar(ji,jl-1))/scale_height)
+          pressure_interface_rad(ji,jl) = pressure_rad(ji,jl-1)*exp(-(z_vector(ji,n_levels) - z_scalar(ji,n_layers))/scale_height)
         else
           ! just the arithmetic mean
           temperature_interface_rad(ji,jl) = 0.5_wp*(temperature_rad(ji,jl-1)+temperature_rad(ji,jl))
@@ -324,7 +325,7 @@ module mo_rrtmgp_coupler
     
     ! setting the volume mixing ratios of the gases for the short wave calculation
     gas_concentrations_sw%ncol = n_day_points
-    call set_vol_mix_ratios(mass_densities,.true.,n_day_points,day_indices,z_scalar,gas_concentrations_sw)
+    call set_vol_mix_ratios(rho,.true.,n_day_points,day_indices,z_scalar,gas_concentrations_sw)
     
     ! initializing the short wave fluxes
     call init_fluxes(fluxes_day,n_day_points,n_levels)
@@ -377,7 +378,7 @@ module mo_rrtmgp_coupler
     ! now long wave
 1   continue
     ! setting the volume mixing ratios of the gases for the long wave calculation
-    call set_vol_mix_ratios(mass_densities,.false.,n_day_points,day_indices,z_scalar,gas_concentrations_lw)
+    call set_vol_mix_ratios(rho,.false.,n_day_points,day_indices,z_scalar,gas_concentrations_lw)
     
     ! initializing the long wave fluxes
     call init_fluxes(fluxes,n_cells_rad,n_levels)
@@ -558,11 +559,11 @@ module mo_rrtmgp_coupler
   
   end function coszenith
   
-  subroutine set_vol_mix_ratios(mass_densities,sw_bool,n_day_points,day_indices,z_scalar,gas_concentrations)
+  subroutine set_vol_mix_ratios(rho,sw_bool,n_day_points,day_indices,z_scalar,gas_concentrations)
     
     ! This subroutine computes volume mixing ratios based on the model variables.
     
-    real(wp),           intent(in)    :: mass_densities(:,:,:)          ! mass densities of the constituents
+    real(wp),           intent(in)    :: rho(:,:,:)          ! mass densities of the constituents
     logical,            intent(in)    :: sw_bool                        ! short wave switch
     integer,            intent(in)    :: n_day_points                   ! number of points where it is day
     integer,            intent(in)    :: day_indices(n_cells_rad)       ! the indices of the points where it is day
@@ -611,8 +612,8 @@ module mo_rrtmgp_coupler
           if (sw_bool .and. n_condensed_constituents==4) then
             do ji=1,n_day_points
               do jl=1,n_layers
-                vol_mix_ratio(ji,jl) = mass_densities(day_indices(ji),jl,n_condensed_constituents+2)*r_v/ &
-                                      (mass_densities(day_indices(ji),jl,n_condensed_constituents+1)*r_d)
+                vol_mix_ratio(ji,jl) = rho(day_indices(ji),jl,n_condensed_constituents+2)*r_v/ &
+                                      (rho(day_indices(ji),jl,n_condensed_constituents+1)*r_d)
               enddo
             enddo
           ! in the long wave case,all points matter
@@ -620,8 +621,8 @@ module mo_rrtmgp_coupler
             do ji=1,n_cells_rad
               do jl=1,n_layers
                 vol_mix_ratio(ji,jl) = & 
-                mass_densities(ji,jl,n_condensed_constituents+2)*r_v/ &
-                (mass_densities(ji,jl,n_condensed_constituents+1)*r_d)
+                rho(ji,jl,n_condensed_constituents+2)*r_v/ &
+                (rho(ji,jl,n_condensed_constituents+1)*r_d)
               enddo
             enddo
           endif
