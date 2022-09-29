@@ -8,7 +8,7 @@ module mo_momentum_diff_diss
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_constants,          only: EPSILON_SECURITY
   use mo_grid_nml,           only: n_cells,n_levels,n_edges,n_layers
-  use mo_constituents_nml,   only: n_constituents,n_condensed_constituents
+  use mo_constituents_nml,   only: n_condensed_constituents
   use mo_inner_product,      only: inner_product
   use mo_divergences,        only: div_h,add_vertical_div
   use mo_vorticities,        only: calc_rel_vort
@@ -159,7 +159,7 @@ module mo_momentum_diff_diss
     call grad_vert(diag%scalar_placeholder,diag%vector_placeholder_v,grid)
     call grad_hor(diag%scalar_placeholder,diag%vector_placeholder_h,diag%vector_placeholder_v,grid)
     ! multiplying by the already computed diffusion coefficient
-    !$omp parallel do private(jl)
+    !$omp parallel do private(ji)
     do ji=1,n_edges
       diag%vector_placeholder_h(ji,:) = 0.5_wp &
       *(diag%viscosity(grid%from_cell(ji),:) + diag%viscosity(grid%to_cell(ji),:)) &
@@ -177,7 +177,7 @@ module mo_momentum_diff_diss
       diag%scalar_placeholder(:,jl-1) + diag%scalar_placeholder(:,jl))
       ! dividing by the density
       diag%friction_acc_v(:,jl) = diag%friction_acc_v(:,jl) &
-      /(0.5_wp*(sum(state%rho(:,jl-1,1:n_condensed_constituents+1)) + sum(state%rho(:,jl,1:n_condensed_constituents+1))))
+      /(0.5_wp*(sum(state%rho(:,jl-1,1:n_condensed_constituents+1),2) + sum(state%rho(:,jl,1:n_condensed_constituents+1),2)))
     enddo
     !$omp end parallel do
   
@@ -194,7 +194,7 @@ module mo_momentum_diff_diss
     integer  :: ji,jl,jm,upper_index_zeta,lower_index_zeta
     real(wp) :: delta_z,delta_y,tangential_slope,delta_zeta,checkerboard_damping_weight
     !$omp parallel do private(ji,jl,jm,delta_z,delta_y,tangential_slope, &
-    !$omp upper_index_zeta,lower_index_zeta,checkerboard_damping_weight)
+    !$omp upper_index_zeta,lower_index_zeta,delta_zeta,checkerboard_damping_weight)
     do ji=1,n_edges
       do jl=1,n_layers
         ! Remember: (curl(zeta))*e_x = dzeta_z/dy - dzeta_y/dz = (dz*dzeta_z - dy*dzeta_y)/(dy*dz) = (dz*dzeta_z - dy*dzeta_y)/area (Stokes' Theorem, which is used here)
