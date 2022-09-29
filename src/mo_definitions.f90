@@ -31,9 +31,8 @@ module mo_definitions
     real(wp), allocatable :: z_scalar(:,:)
     real(wp), allocatable :: z_vector_h(:,:)
     real(wp), allocatable :: z_vector_v(:,:)
-    real(wp), allocatable :: gravity_potential(:,:)
-    real(wp), allocatable :: gravity_m_h(:,:)
-    real(wp), allocatable :: gravity_m_v(:,:)
+    real(wp), allocatable :: gravity_potential(:,:) ! gravity potential
+    real(wp), allocatable :: gravity_m_v(:,:)       ! vertical acceleration due to gravity
     real(wp), allocatable :: slope(:,:)
     real(wp), allocatable :: theta_v_bg(:,:)
     real(wp), allocatable :: exner_bg(:,:)
@@ -124,7 +123,7 @@ module mo_definitions
     real(wp), allocatable :: mass_diffusion_coeff_numerical_v(:,:)
     real(wp), allocatable :: temp_diffusion_coeff_numerical_h(:,:)
     real(wp), allocatable :: temp_diffusion_coeff_numerical_v(:,:)
-    real(wp), allocatable :: pressure_gradient_decel_factor(:,:)
+    real(wp), allocatable :: pressure_gradient_decel_factor(:,:)   ! pressure gradient deceleration factor due to condensates
     real(wp), allocatable :: condensates_sediment_heat(:,:)        ! heating rate due to falling condensates
     real(wp), allocatable :: mass_diff_tendency(:,:,:)             ! mass source rate due to mass diffusion
     real(wp), allocatable :: phase_trans_rates(:,:,:)

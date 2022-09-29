@@ -79,9 +79,9 @@ module mo_pgrad
     
     ! This subroutine computes the correction to the vertical pressure gradient acceleration due to condensates.
     
-    type(t_state), intent(in)    :: state
-    type(t_diag),  intent(inout) :: diag
-    type(t_grid),  intent(inout) :: grid
+    type(t_state), intent(in)    :: state ! state variables
+    type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
+    type(t_grid),  intent(inout) :: grid  ! grid quantities
     
     !$omp parallel workshare
     diag%pressure_gradient_decel_factor = state%rho(:,:,n_condensed_constituents+1) &

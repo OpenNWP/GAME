@@ -75,7 +75,6 @@ program control
   allocate(grid%z_vector_h(n_edges,n_layers))
   allocate(grid%z_vector_v(n_cells,n_levels))
   allocate(grid%gravity_potential(n_cells,n_layers))
-  allocate(grid%gravity_m_h(n_edges,n_layers))
   allocate(grid%gravity_m_v(n_cells,n_levels))
   allocate(grid%slope(n_edges,n_layers))
   allocate(grid%theta_v_bg(n_cells,n_layers))
@@ -212,7 +211,6 @@ program control
   
   call grad_hor_cov(grid%z_scalar,grid%slope,grid)
   call grad_vert(grid%gravity_potential,grid%gravity_m_v,grid)
-  call grad_hor(grid%gravity_potential,grid%gravity_m_h,grid%gravity_m_v,grid)
   call grad_vert(grid%exner_bg,grid%exner_bg_grad_v,grid)
   call grad_hor(grid%exner_bg,grid%exner_bg_grad_h,grid%exner_bg_grad_v,grid)
   write(*,*) "Grid loaded successfully."
@@ -427,7 +425,6 @@ program control
   deallocate(grid%z_vector_h)
   deallocate(grid%z_vector_v)
   deallocate(grid%gravity_potential)
-  deallocate(grid%gravity_m_h)
   deallocate(grid%gravity_m_v)
   deallocate(grid%slope)
   deallocate(grid%theta_v_bg)
