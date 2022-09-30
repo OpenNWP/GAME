@@ -6,11 +6,10 @@ module mo_manage_pchevi
   ! This module manages the predictor-corrector HEVI time stepping.
   
   use mo_definitions,            only: wp,t_grid,t_state,t_diag
-  use mo_constituents_nml,       only: n_constituents,lmoist,n_condensed_constituents
-  use mo_grid_nml,               only: n_layers,n_cells,n_edges
+  use mo_constituents_nml,       only: n_constituents,lmoist
   use mo_grid_setup,             only: dtime
   use mo_column_solvers,         only: three_band_solver_ver_waves,three_band_solver_gen_densities
-  use mo_surface_nml,            only: nsoillays,lsfc_sensible_heat_flux,lsfc_phase_trans,pbl_scheme
+  use mo_surface_nml,            only: lsfc_sensible_heat_flux,lsfc_phase_trans,pbl_scheme
   use mo_rad_nml,                only: rad_config
   use mo_pgrad,                  only: manage_pressure_gradient,calc_pressure_grad_condensates_v
   use mo_derived,                only: temperature_diagnostics
