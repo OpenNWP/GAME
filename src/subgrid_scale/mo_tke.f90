@@ -27,8 +27,9 @@ module mo_tke
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer  :: ji,jl
-    real(wp) :: decay_constant
+    integer  :: ji             ! cell loop index
+    integer  :: jl             ! layer loop index
+    real(wp) :: decay_constant ! decay constant of the TKE
     
     ! computing the advection
     call grad_vert(diag%tke,diag%vector_placeholder_v,grid)

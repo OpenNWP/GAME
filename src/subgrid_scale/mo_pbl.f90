@@ -27,7 +27,8 @@ module mo_pbl
     type(t_grid),  intent(in)    :: grid  ! grid properties
   
     ! local variables
-    integer  :: ji,jl
+    integer  :: ji ! horizontal loop index
+    integer  :: jl ! layer loop index
     real(wp) :: flux_resistance,wind_speed_lowest_layer,z_agl,layer_thickness,roughness_length_value, &
                 monin_obukhov_length_value,wind_rescale_factor,bndr_lr_visc_max,sigma_b,standard_vert_lapse_rate, &
                 exner_from,exner_to,pressure_from,pressure_to,pressure,temp_lowest_layer, pressure_value_lowest_layer, &
@@ -129,17 +130,20 @@ module mo_pbl
     type(t_grid),  intent(inout) :: grid  ! grid properties
     
     ! local variables
-    integer  :: ji ! horizontal index
+    integer  :: ji ! cell loop index
     real(wp) :: u_lowest_layer,u10,z_agl,theta_v_lowest_layer,theta_v_second_layer, &
                 dz,dtheta_v_dz,w_pert,theta_v_pert_value,w_pert_theta_v_pert_avg,w_theta_v_corr
     
     ! semi-empirical coefficient
     w_theta_v_corr = 0.2_wp
     
+    ! loop over all cells in the lowest layer
     !$omp parallel do private(ji,u_lowest_layer,u10,z_agl,theta_v_lowest_layer,theta_v_second_layer, &
     !$omp dz,dtheta_v_dz,w_pert,theta_v_pert_value,w_pert_theta_v_pert_avg)
     do ji=1,n_cells
-      z_agl = grid%z_scalar(ji,n_layers)-grid%z_vector_v(ji,n_levels)
+    
+      ! computing the height of the grid point above the surface
+      z_agl = grid%z_scalar(ji,n_layers) - grid%z_vector_v(ji,n_levels)
       
       ! wind speed in the lowest layer
       u_lowest_layer = diag%v_squared(ji,n_layers)**0.5_wp
@@ -245,7 +249,7 @@ module mo_pbl
     ! neutral conditions
     *(log(used_vertical_height/roughness_length_value) &
     ! non-neutral conditions
-   -psi_h(used_vertical_height,monin_obukhov_length_value) &
+    - psi_h(used_vertical_height,monin_obukhov_length_value) &
     ! interfacial sublayer
     + log(7._wp))
 
@@ -275,7 +279,7 @@ module mo_pbl
     ! neutral conditions
     *(log(used_vertical_height/roughness_length_value) &
     ! non-neutral conditions
-   -psi_m(used_vertical_height,monin_obukhov_length_value))
+    - psi_m(used_vertical_height,monin_obukhov_length_value))
 
     ! limitting the result for security
     if (momentum_flux_resistance<dtime/z_agl) then
