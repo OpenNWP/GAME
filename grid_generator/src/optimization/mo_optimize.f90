@@ -15,9 +15,8 @@ module mo_optimize
   
   contains
   
-  subroutine optimize_to_scvt(lat_c,lon_c,lat_c_dual,lon_c_dual,n_iterations, &
-                              face_edges,face_edges_reverse,face_vertices,adjacent_edges, &
-                              from_cell_dual,to_cell_dual)
+  subroutine optimize_to_scvt(lat_c,lon_c,lat_c_dual,lon_c_dual,n_iterations,face_edges,face_edges_reverse,face_vertices, &
+                              adjacent_edges,from_cell_dual,to_cell_dual)
 
     ! This subroutine manages the grid optimization with Lloyd's algorithm.
     ! The result is (almost) a SCVT.
@@ -38,8 +37,7 @@ module mo_optimize
 	
   end subroutine optimize_to_scvt
 
-  subroutine find_cell_cgs(lat_c,lon_c,lat_c_dual,lon_c_dual, &
-                           adjacent_edges,from_cell_dual,to_cell_dual)
+  subroutine find_cell_cgs(lat_c,lon_c,lat_c_dual,lon_c_dual,adjacent_edges,from_cell_dual,to_cell_dual)
     
     ! This subroutine calculates the barycenters (centers of gravity) of the cells.
     
