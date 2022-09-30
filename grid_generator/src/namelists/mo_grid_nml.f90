@@ -52,7 +52,7 @@ module mo_grid_nml
     ! local variables
     integer :: fileunit
   
-    res_id = 5
+    res_id = 6
     n_layers = 26
     toa = 41152._wp
     n_oro_layers = 23
