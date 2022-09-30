@@ -32,7 +32,7 @@ module mo_grid_setup
     
     ! This subroutine reads the grid properties from the grid netCDF file.
     
-    type(t_grid), intent(inout) :: grid
+    type(t_grid), intent(inout) :: grid ! the grid properties to fill
     
     ! local variables
     integer            :: ncid,dx_id,volume_id,area_h_id,area_v_id,z_scalar_id,z_vector_h_id,z_vector_v_id, &
@@ -41,7 +41,7 @@ module mo_grid_setup
                           trsk_modified_curl_indices_id,adjacent_signs_id,direction_id,gravity_potential_id, &
                           inner_product_weights_id,density_to_rhombi_weights_id,density_to_rhombi_indices_id, &
                           dy_id,vorticity_indices_triangles_id,vorticity_signs_triangles_id,dz_dual_id, &
-                          latitude_scalar_id,longitude_scalar_id,toa_id,radius_id,interpol_indices_id,dz_id, &
+                          lat_c_id,lon_c_id,toa_id,radius_id,interpol_indices_id,dz_id, &
                           interpol_weights_id,theta_v_bg_id,exner_bg_id,sfc_rho_c_id,sfc_albedo_id,roughness_length_id, &
                           is_land_id,t_conductivity_id,n_oro_layers_id,stretching_parameter_id,ji,jl,z_vector_dual_v_id
     real(wp)           :: sigma_soil,rescale_factor
@@ -91,8 +91,8 @@ module mo_grid_setup
     call nc_check(nf90_inq_varid(ncid,"inner_product_weights",inner_product_weights_id))
     call nc_check(nf90_inq_varid(ncid,"density_to_rhombi_weights",density_to_rhombi_weights_id))
     call nc_check(nf90_inq_varid(ncid,"density_to_rhombi_indices",density_to_rhombi_indices_id))
-    call nc_check(nf90_inq_varid(ncid,"lat_c",latitude_scalar_id))
-    call nc_check(nf90_inq_varid(ncid,"lon_c",longitude_scalar_id))
+    call nc_check(nf90_inq_varid(ncid,"lat_c",lat_c_id))
+    call nc_check(nf90_inq_varid(ncid,"lon_c",lon_c_id))
     call nc_check(nf90_inq_varid(ncid,"interpol_indices",interpol_indices_id))
     call nc_check(nf90_inq_varid(ncid,"interpol_weights",interpol_weights_id))
     call nc_check(nf90_inq_varid(ncid,"sfc_rho_c",sfc_rho_c_id))
@@ -127,8 +127,8 @@ module mo_grid_setup
     call nc_check(nf90_get_var(ncid,density_to_rhombi_weights_id,grid%density_to_rhombi_weights))
     call nc_check(nf90_get_var(ncid,dy_id,grid%dy))
     call nc_check(nf90_get_var(ncid,dz_dual_id,grid%dz_dual))
-    call nc_check(nf90_get_var(ncid,latitude_scalar_id,grid%lat_c))
-    call nc_check(nf90_get_var(ncid,longitude_scalar_id,grid%lon_c))
+    call nc_check(nf90_get_var(ncid,lat_c_id,grid%lat_c))
+    call nc_check(nf90_get_var(ncid,lon_c_id,grid%lon_c))
     call nc_check(nf90_get_var(ncid,interpol_weights_id,grid%latlon_interpol_weights))
     call nc_check(nf90_get_var(ncid,from_cell_id,grid%from_cell))
     call nc_check(nf90_get_var(ncid,to_cell_id,grid%to_cell))
