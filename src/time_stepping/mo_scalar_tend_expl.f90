@@ -8,7 +8,7 @@ module mo_scalar_tend_expl
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_constants,          only: c_d_v,c_d_p
   use mo_grid_nml,           only: n_cells,n_layers
-  use mo_constituents_nml,   only: n_constituents,n_condensed_constituents,lmoist
+  use mo_constituents_nml,   only: n_constituents,n_condensed_constituents
   use mo_derived,            only: c_v_mass_weighted_air
   use mo_diff_nml,           only: lmass_diff_h,lmass_diff_v,ltemp_diff_h,ltemp_diff_v
   use mo_multiplications,    only: scalar_times_vector_h,scalar_times_vector_v,scalar_times_vector_h_upstream

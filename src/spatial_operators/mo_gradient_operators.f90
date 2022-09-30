@@ -23,7 +23,7 @@ module mo_gradient_operators
     type(t_grid), intent(in)  :: grid                        ! grid quantities
     
     ! local variables
-    integer :: ji
+    integer :: ji ! edge index
     
     !$omp parallel do private(ji)
     do ji=1,n_edges
@@ -62,8 +62,10 @@ module mo_gradient_operators
     type(t_grid), intent(in)  :: grid                          ! grid quantities
     
     ! local variables
-    integer :: ji,jl
+    integer :: ji ! horizontal loop index
+    integer :: jl ! vertical loop index
     
+    ! computing the horizontal covariant gradient
     call grad_hor_cov(in_field,out_field_h,grid)
     
     ! transforms the covariant horizontal measure numbers of a horizontal vector field to
