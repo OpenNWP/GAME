@@ -101,7 +101,8 @@ module mo_derived
       ! It is correct to use c_p here because the compression of the condensates has almost no effect on the air pressure.
       c_v_mass_weighted_air = c_v_mass_weighted_air + rho(ji,jl,jc)*c_p_cond(jc,temperature(ji,jl))
     enddo
-    c_v_mass_weighted_air = c_v_mass_weighted_air + rho(ji,jl,n_condensed_constituents+1)*c_d_v
+    c_v_mass_weighted_air = c_v_mass_weighted_air &
+                            + (rho(ji,jl,n_condensed_constituents+1) - rho(ji,jl,n_condensed_constituents+2))*c_d_v
     if (lmoist) then
       c_v_mass_weighted_air = c_v_mass_weighted_air + rho(ji,jl,n_condensed_constituents+2)*c_v_v
     endif
