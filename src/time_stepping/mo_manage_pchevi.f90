@@ -37,7 +37,7 @@ module mo_manage_pchevi
     real(wp),      intent(in)    :: time_coordinate     ! epoch timestamp of the old time step
     
     ! local variabels
-    integer :: rk_step
+    integer :: rk_step ! Runge-Kutta substep index
     
     ! Preparations
     ! ------------
