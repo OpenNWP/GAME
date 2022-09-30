@@ -8,8 +8,8 @@ res_id = int(sys.argv[1])
 # reading the model grid
 input_filename = "../grid_generator/grids/RES" + str(res_id) + "_L26_ORO0.nc"
 ds = nc.Dataset(input_filename, "r", format="NETCDF4")
-lat_vector = ds["latitude_scalar"][:]
-lon_vector = ds["longitude_scalar"][:]
+lat_vector = ds["lat_c"][:]
+lon_vector = ds["lon_c"][:]
 ds.close()
 
 is_land = np.zeros(len(lat_vector), dtype=np.int8)

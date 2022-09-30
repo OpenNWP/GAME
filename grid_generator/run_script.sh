@@ -8,7 +8,7 @@
 # 1			real data interpolated to the model grid
 # See handbook for more information.
 
-res_id=5
+res_id=6
 oro_id=1
 n_lloyd_iterations=2000
 luse_scalar_h_file=".false."
