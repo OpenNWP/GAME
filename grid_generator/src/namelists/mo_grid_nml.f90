@@ -54,30 +54,13 @@ module mo_grid_nml
   
     res_id = 5
     n_layers = 26
-    n_pentagons = 12
-    n_hexagons = 10*(2**(2*res_id)-1)
-    n_cells = n_pentagons+n_hexagons
-    n_edges = (5*n_pentagons/2 + 6/2*n_hexagons)
-    n_levels = n_layers+1
-    n_basic_triangles = 20
-    n_basic_edges = 3*n_basic_triangles/2
-    n_points_per_edge = 2**res_id-1
-    n_triangles = n_basic_triangles*4**res_id
-    n_triangles_per_face = n_triangles/n_basic_triangles
-    n_vectors_per_inner_face = 3*(2**RES_ID-1)*2**res_id/2
     toa = 41152._wp
     n_oro_layers = 23
-    n_flat_layers = n_layers - n_oro_layers
     stretching_parameter = 1.3_wp
     radius_rescale = 1._wp
-    radius = radius_rescale*r_e
-    n_lat_io_points = 2*2**res_id
-    n_lon_io_points = 2*n_lat_io_points
     n_avg_points = 7
     oro_id = 1
     n_lloyd_iterations = 2000
-    mean_velocity_area = 2._wp/3._wp*4._wp*M_PI*radius**2/n_cells
-    eff_hor_res = sqrt(4._wp*M_PI*radius**2/n_cells)
     luse_scalar_h_file = .false.
     scalar_h_file = "grids/RES" // trim(int2string(res_id)) // "_L" // trim(int2string(n_layers)) &
                     // "_ORO" // trim(int2string(oro_id)) // ".nc"
@@ -88,17 +71,36 @@ module mo_grid_nml
         
     close(fileunit)
     
+    ! derived quantities
+    n_pentagons = 12
+    n_hexagons = 10*(2**(2*res_id)-1)
+    n_cells = n_pentagons+n_hexagons
+    n_edges = (5*n_pentagons/2 + 6/2*n_hexagons)
+    n_levels = n_layers+1
+    n_basic_triangles = 20
+    n_basic_edges = 3*n_basic_triangles/2
+    n_points_per_edge = 2**res_id-1
+    n_triangles = n_basic_triangles*4**res_id
+    n_vectors_per_inner_face = 3*(2**res_id-1)*2**res_id/2
+    n_triangles_per_face = n_triangles/n_basic_triangles
+    n_lat_io_points = 2*2**res_id
+    n_lon_io_points = 2*n_lat_io_points
+    n_flat_layers = n_layers - n_oro_layers
+    radius = radius_rescale*r_e
+    mean_velocity_area = 2._wp/3._wp*4._wp*M_PI*radius**2/n_cells
+    eff_hor_res = sqrt(4._wp*M_PI*radius**2/n_cells)
+    
     ! sanity checks
     ! -------------
     ! checking if n_oro_layers is valid
     if (n_oro_layers<0 .or. n_oro_layers>=n_layers) then
-      write(*,*) "It must be 0 <= orography_layers<n_layers."
+      write(*,*) "It must be 0<=orography_layers<n_layers."
       write(*,*) "Aborting."
       call exit(1)
     endif
     
     ! cechking wether the stretching parameter is in a valid range
-    if (stretching_parameter<1) then
+    if (stretching_parameter<1._wp) then
       write(*,*) "stretching_parameter must be>=1."
       write(*,*) "Aborting."
       call exit(1)
