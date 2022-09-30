@@ -29,7 +29,7 @@ module mo_manage_pchevi
     ! This subroutine manages the predictor-corrector HEVI time stepping.
     
     type(t_grid),  intent(inout) :: grid                ! grid properties
-    type(t_state), intent(inout) :: state_old           ! state of the old time step
+    type(t_state), intent(in)    :: state_old           ! state of the old time step
     type(t_state), intent(inout) :: state_new           ! state of the new time step (result)
     type(t_state), intent(inout) :: state_tend          ! state containing tendencies
     type(t_diag),  intent(inout) :: diag                ! diagnostic quantities

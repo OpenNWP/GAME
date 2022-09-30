@@ -28,7 +28,7 @@ module mo_vector_tend_expl
 
   subroutine vector_tend_expl(state,state_tend,diag,grid,ltotally_first_step,rk_step)
   
-    type(t_state), intent(inout) :: state               ! state to use for calculating the tendencies
+    type(t_state), intent(in)    :: state               ! state to use for calculating the tendencies
     type(t_state), intent(inout) :: state_tend          ! state containing the tendencies
     type(t_diag),  intent(inout) :: diag                ! diagnostic quantities
     type(t_grid),  intent(in)    :: grid                ! grid quantities
