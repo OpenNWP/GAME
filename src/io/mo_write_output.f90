@@ -583,8 +583,8 @@ module mo_write_output
     call edges_to_cells(diag%rel_vort_v,rel_vort_scalar_field,grid)
     
     ! Diagnozing the u and v wind components at the vector points.
-    allocate(u_at_edge(n_edges,n_cells))
-    allocate(v_at_edge(n_edges,n_cells))
+    allocate(u_at_edge(n_edges,n_layers))
+    allocate(v_at_edge(n_edges,n_layers))
     call calc_uv_at_edge(state%wind_h,u_at_edge,v_at_edge,grid)
     ! Averaging to cell centers for output.
     allocate(u_at_cell(n_cells,n_layers))

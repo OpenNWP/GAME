@@ -31,7 +31,7 @@ module mo_rad_nml
     integer :: fileunit
   
     rad_config = 1
-    n_rad_blocks = 18
+    n_rad_blocks = 6
     n_cells_rad = n_cells/n_rad_blocks
     radiation_dtime = 60._wp*1e-3_wp*eff_hor_res
     ! the radiation time step is never longer then three hours
