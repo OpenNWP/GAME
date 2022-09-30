@@ -94,7 +94,7 @@ module mo_derived
     real(wp)             :: c_v_mass_weighted_air
     
     ! local variables
-    integer :: jc
+    integer :: jc ! constituent index
     
     c_v_mass_weighted_air = 0._wp
     do jc=1,n_condensed_constituents

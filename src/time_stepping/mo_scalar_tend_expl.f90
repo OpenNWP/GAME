@@ -29,7 +29,7 @@ module mo_scalar_tend_expl
     type(t_state), intent(inout) :: state_tend   ! state containing the tendencies
     type(t_diag),  intent(inout) :: diag         ! diagnostic quantities
     type(t_grid),  intent(in)    :: grid         ! grid quantities
-    integer,       intent(in)    :: rk_step      ! Runge-Kutta step
+    integer,       intent(in)    :: rk_step      ! Runge-Kutta substep
     
     ! local variables
     integer  :: ji,jl,jc
@@ -165,6 +165,18 @@ module mo_scalar_tend_expl
   end subroutine scalar_tend_expl
 
 end module mo_scalar_tend_expl
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
