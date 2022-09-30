@@ -33,6 +33,7 @@ module mo_manage_radiation_calls
     if (rad_config==1) then
       write(*,*) "Starting update of radiative fluxes ..."
     endif
+    
     ! loop over all radiation blocks
     !$omp parallel do private(rad_block_index,radiation)
     do rad_block_index=1,n_rad_blocks

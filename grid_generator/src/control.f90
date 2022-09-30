@@ -3,7 +3,7 @@
 
 program control
 
-  ! The grid generation procedure is manged from this file. Memory allocation and IO is done here,for the rest,functions are called residing in individual files.
+  ! The grid generation procedure is manged from this file. Memory allocation and IO is done here. For the rest, functions are called residing in individual files.
   
   use netcdf
   use mo_definitions,            only: wp
@@ -30,8 +30,7 @@ program control
   
   implicit none
  
-  integer               :: n_lloyd_read_from_file, &
-                           lat_c_id,lon_c_id,direction_id,lat_e_id,lon_e_id, &
+  integer               :: n_lloyd_read_from_file,lat_c_id,lon_c_id,direction_id,lat_e_id,lon_e_id, &
                            lat_c_dual_id,lon_c_dual_id,dimid_6,dimids_vector_2(2),dimids_vector_3(3), &
                            z_scalar_id,z_vector_h_id,dx_id,dz_id,volume_id,area_h_id,trsk_weights_id,z_vector_dual_h_id, &
                            dy_id,dz_dual_id,area_dual_v_id,f_vec_h_id,to_cell_id,layer_dimid,dimid_8,z_vector_dual_v_id, &
@@ -49,8 +48,7 @@ program control
                            vorticity_indices_triangles(:,:),vorticity_indices_rhombi(:,:),to_cell_dual(:),from_cell_dual(:), &
                            adjacent_signs(:,:),vorticity_signs_triangles(:,:),density_to_rhombi_indices(:,:), &
                            interpol_indices(:,:,:),is_land(:)
-  real(wp), allocatable :: x_unity(:),y_unity(:),z_unity(:),lat_c(:),lon_c(:),z_scalar(:,:), &
-                           gravity_potential(:,:), &
+  real(wp), allocatable :: x_unity(:),y_unity(:),z_unity(:),lat_c(:),lon_c(:),z_scalar(:,:),gravity_potential(:,:), &
                            z_vector_h(:,:),z_vector_v(:,:),dx(:,:),dz(:,:),lat_e(:),lon_e(:),direction(:),volume(:,:), &
                            area_h(:,:),area_v(:,:),trsk_weights(:,:),lat_c_dual(:),lon_c_dual(:),z_scalar_dual(:,:), &
                            z_vector_dual_h(:,:),z_vector_dual_v(:,:), &
@@ -141,8 +139,8 @@ program control
   n_lloyd_read_from_file = 0
   if (.not. luse_scalar_h_file) then
     ! Here,the positions of the horizontal generators,i.e. the horizontal scalar points are determined.
-    call generate_horizontal_generators(lat_ico,lon_ico,lat_c,lon_c, &
-                                        x_unity,y_unity,z_unity,face_edges_reverse,face_edges,face_vertices)
+    call generate_horizontal_generators(lat_ico,lon_ico,lat_c,lon_c,x_unity,y_unity,z_unity,face_edges_reverse,face_edges, &
+                                        face_vertices)
     ! By setting the from_cell and to_cell arrrays,the discrete positions of the vector points are determined.
     call set_from_to_cell(from_cell,to_cell,face_edges,face_edges_reverse,face_vertices,edge_vertices)
     ! By setting the from_cell_dual and to_cell_dual arrrays,the discrete positions of the dual scalar points are determined.
@@ -158,8 +156,8 @@ program control
   ! 3.) grid optimization
   ! -----------------
   if (n_lloyd_iterations>0) then
-    call optimize_to_scvt(lat_c,lon_c,lat_c_dual,lon_c_dual,n_lloyd_iterations, &
-                          face_edges,face_edges_reverse,face_vertices,adjacent_edges,from_cell_dual,to_cell_dual)
+    call optimize_to_scvt(lat_c,lon_c,lat_c_dual,lon_c_dual,n_lloyd_iterations,face_edges,face_edges_reverse,face_vertices, &
+                          adjacent_edges,from_cell_dual,to_cell_dual)
   endif
   if (luse_scalar_h_file) then
     n_lloyd_iterations = n_lloyd_read_from_file + n_lloyd_iterations
@@ -174,12 +172,10 @@ program control
   call set_vector_h_attributes(from_cell,to_cell,lat_c,lon_c,lat_e,lon_e,direction)
   
   ! Same as before,but for dual vectors. They have the same positions as the primal vectors.
-  call set_dual_vector_h_atttributes(lat_c_dual,lat_e,direction_dual,lon_e, &
-                                     to_cell_dual,from_cell_dual,lon_c_dual,rel_on_line_dual)
+  call set_dual_vector_h_atttributes(lat_c_dual,lat_e,direction_dual,lon_e,to_cell_dual,from_cell_dual,lon_c_dual,rel_on_line_dual)
   
   ! determining the directions of the dual vectors
-  call direct_tangential_unity(lat_c_dual,lon_c_dual,direction,direction_dual, &
-                               to_cell_dual,from_cell_dual,rel_on_line_dual)
+  call direct_tangential_unity(lat_c_dual,lon_c_dual,direction,direction_dual,to_cell_dual,from_cell_dual,rel_on_line_dual)
   
   ! setting the Coriolis vector
   call set_f_vec(lat_e,direction_dual,f_vec_h,f_vec_v)
@@ -188,8 +184,8 @@ program control
   call calc_triangle_area_unity(triangle_face_unit_sphere,lat_c,lon_c,face_edges,face_edges_reverse,face_vertices)
   
   ! finding the vorticity indices
-  call calc_vorticity_indices_triangles(from_cell_dual,to_cell_dual,direction,direction_dual, &
-                                        vorticity_indices_triangles,vorticity_signs_triangles)
+  call calc_vorticity_indices_triangles(from_cell_dual,to_cell_dual,direction,direction_dual,vorticity_indices_triangles, &
+                                        vorticity_signs_triangles)
   
   ! calculating the cell faces on the unity sphere
   call calc_cell_area_unity(pent_hex_face_unity_sphere,lat_c_dual,lon_c_dual,adjacent_edges,vorticity_indices_triangles)
@@ -501,8 +497,7 @@ program control
   dimids_vector_2(2) = dimid_3
   call nc_check(nf90_def_var(ncid_g_prop,"vorticity_signs_triangles",NF90_INT,dimids_vector_2,vorticity_signs_triangles_id))
   ! the indices for calculating the vorticities on triangles
-  call nc_check(nf90_def_var(ncid_g_prop,"vorticity_indices_triangles", &
-                             NF90_INT,dimids_vector_2,vorticity_indices_triangles_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"vorticity_indices_triangles",NF90_INT,dimids_vector_2,vorticity_indices_triangles_id))
   
   ! indices for averaging the density to rhombi
   dimids_vector_2(1) = edge_dimid

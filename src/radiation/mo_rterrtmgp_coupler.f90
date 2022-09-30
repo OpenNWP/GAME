@@ -39,7 +39,7 @@ module mo_rrtmgp_coupler
    /)
   
   ! the gases in lowercase
-  character(len=32),dimension(size(active_gases)) :: gases_lowercase
+  character(len=32), dimension(size(active_gases)) :: gases_lowercase
   
   contains
   
@@ -232,25 +232,25 @@ module mo_rrtmgp_coupler
         if (jl==1) then
           ! temperature at TOA (linear extrapolation)
           ! the value in the highest layer
-          temperature_interface_rad(ji,jl) = temperature_rad(ji,jl) &
+          temperature_interface_rad(ji,1) = temperature_rad(ji,1) &
           ! the gradient
           ! delta T
-          + (temperature_rad(ji,jl) - temperature_rad(ji,jl+1))/ &
+          + (temperature_rad(ji,1) - temperature_rad(ji,2))/ &
           ! delta z
-          (z_scalar(ji,jl)-z_scalar(ji,jl+1)) &
+          (z_scalar(ji,1)-z_scalar(ji,2)) &
           ! times delta_z
           *(z_vector(ji,1)-z_scalar(ji,1))
           ! pressure at TOA
           ! here, the barometric height formula is used
-          pressure_interface_rad(ji,jl) = pressure_rad(ji,jl) &
-          *exp(-(z_vector(ji,1)-z_scalar(ji,1))/scale_height)
+          pressure_interface_rad(ji,1) = pressure_rad(ji,1)*exp(-(z_vector(ji,1)-z_scalar(ji,1))/scale_height)
         ! values at the surface
         elseif (jl==n_levels) then
           ! temperature at the surface
           ! the value in the lowest layer
-          temperature_interface_rad(ji,jl) = temp_sfc(ji)
+          temperature_interface_rad(ji,n_levels) = temp_sfc(ji)
           ! surface pressure
-          pressure_interface_rad(ji,jl) = pressure_rad(ji,jl-1)*exp(-(z_vector(ji,n_levels) - z_scalar(ji,n_layers))/scale_height)
+          pressure_interface_rad(ji,n_levels) &
+          = pressure_rad(ji,n_layers)*exp(-(z_vector(ji,n_levels) - z_scalar(ji,n_layers))/scale_height)
         else
           ! just the arithmetic mean
           temperature_interface_rad(ji,jl) = 0.5_wp*(temperature_rad(ji,jl-1)+temperature_rad(ji,jl))
@@ -344,8 +344,7 @@ module mo_rrtmgp_coupler
     
     ! setting the short wave optical properties of the gas phase
     call handle_error(k_dist_sw%gas_optics(pressure_rad_day(1:n_day_points,:),pressure_interface_rad_day(1:n_day_points,:), &
-                                           temperature_rad_day(1:n_day_points,:),gas_concentrations_sw, &
-                                           atmos_props_sw,toa_flux))
+                                           temperature_rad_day(1:n_day_points,:),gas_concentrations_sw,atmos_props_sw,toa_flux))
     
     ! calculating the SW properties of the clouds
     call handle_error(cloud_optics_sw%cloud_optics(liquid_water_path_day(1:n_day_points,:),ice_water_path_day(1:n_day_points,:), &
@@ -574,15 +573,15 @@ module mo_rrtmgp_coupler
     ! setting the volume mixing ratios of the gases
     do jc=1,size(active_gases)
       ! the default
-      vol_mix_ratio(:,:) = 0.0_wp
+      vol_mix_ratio = 0.0_wp
       select case (gases_lowercase(jc))
         ! reading the VMRs from the atmostracers library
         case("n2")
-          vol_mix_ratio(:,:) = molar_fraction_in_dry_air(2)
+          vol_mix_ratio = molar_fraction_in_dry_air(2)
         case("o2")
-          vol_mix_ratio(:,:) = molar_fraction_in_dry_air(3)
+          vol_mix_ratio = molar_fraction_in_dry_air(3)
         case("ch4")
-          vol_mix_ratio(:,:) = molar_fraction_in_dry_air(8)
+          vol_mix_ratio = molar_fraction_in_dry_air(8)
         case("o3")
           if (sw_bool) then
             do ji=1,n_day_points
@@ -598,11 +597,11 @@ module mo_rrtmgp_coupler
             enddo
           endif
         case("co2")
-          vol_mix_ratio(:,:) = molar_fraction_in_dry_air(5)
+          vol_mix_ratio = molar_fraction_in_dry_air(5)
         case("co")
-          vol_mix_ratio(:,:) = molar_fraction_in_dry_air(9)
+          vol_mix_ratio = molar_fraction_in_dry_air(9)
         case("n2o")
-          vol_mix_ratio(:,:) = molar_fraction_in_dry_air(11)
+          vol_mix_ratio = molar_fraction_in_dry_air(11)
         case("h2o")
           ! n_condensed_constituents==4 is equivalent to the presence of water in the model atmosphere
           ! in the short wave case,only the day points matter
@@ -629,7 +628,7 @@ module mo_rrtmgp_coupler
       if (sw_bool) then
         call handle_error(gas_concentrations%set_vmr(gases_lowercase(jc),vol_mix_ratio(1:n_day_points,:)))
       else
-        call handle_error(gas_concentrations%set_vmr(gases_lowercase(jc),vol_mix_ratio(:,:)))
+        call handle_error(gas_concentrations%set_vmr(gases_lowercase(jc),vol_mix_ratio))
       endif
     enddo ! jc
   
