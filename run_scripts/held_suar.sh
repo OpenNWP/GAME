@@ -22,7 +22,8 @@ export OMP_NUM_THREADS=4
 cat > namelist.nml << EOF
 
 &grid
-res_id=6
+res_id=5
+n_layers=26
 oro_id=0
 /
 
@@ -43,6 +44,7 @@ lmoist=.false.
 /
 
 &diff
+lmom_diff_h=.true.
 lmom_diff_v=.false.
 ltemp_diff_h=.false.
 ltemp_diff_v=.false.
@@ -55,6 +57,10 @@ rad_config=2
 /
 
 &surface
+lprog_soil_temp=.false.
+lsfc_phase_trans=.false.
+lsfc_sensible_heat_flux=.false.
+pbl_scheme=2
 /
 
 EOF
