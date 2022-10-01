@@ -399,8 +399,6 @@ program control
     
     endif
     
-    
-    
     ! This switch can be set to false now and remains there.
     ltotally_first_step = .false.
 
