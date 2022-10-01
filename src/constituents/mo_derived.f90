@@ -128,11 +128,11 @@ module mo_derived
     particle_mass = m_d/n_a
     
     ! actual calculation
-    thermal_velocity = sqrt(8.0_wp*k_b*temperature/(M_PI*particle_mass))
+    thermal_velocity = sqrt(8._wp*k_b*temperature/(M_PI*particle_mass))
     particle_density = density/particle_mass
-    cross_section = 4.0_wp*M_PI*particle_radius**2
-    mean_free_path = 1.0_wp/(sqrt(2.0_wp)*particle_density*cross_section)
-    calc_diffusion_coeff = 1.0_wp/3.0_wp*thermal_velocity*mean_free_path
+    cross_section = 4._wp*M_PI*particle_radius**2
+    mean_free_path = 1._wp/(sqrt(2._wp)*particle_density*cross_section)
+    calc_diffusion_coeff = 1._wp/3._wp*thermal_velocity*mean_free_path
     
   end function calc_diffusion_coeff
 
