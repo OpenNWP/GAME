@@ -5,14 +5,14 @@
 
 # This is a run script for operational runs (NWP runs).
 
-# test_id	description
-# 0			standard atmosphere
-# 1			dry Ullrich test
-# 2			moist Ullrich test
-# -1 	  	NWP run
-# oro_id	description
-# 0			no orography
-# 1			real data interpolated to the model grid
+# test_id   description
+# 0         ICAO standard atmosphere
+# 1         dry Ullrich test
+# 2         moist Ullrich test
+# -1        NWP run
+# oro_id    description
+# 0         no orography
+# 1         real data interpolated to the model grid
 # See handbook for more information.
 
 game_home_dir=${BASH_ARGV[4]}
