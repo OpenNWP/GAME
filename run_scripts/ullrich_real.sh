@@ -16,7 +16,7 @@
 # See handbook for more information.
 
 game_home_dir=/home/max/code/GAME
-run_id="ideal"
+run_id="ullrich_real"
 export OMP_NUM_THREADS=4
 
 cat > namelist.nml << EOF
