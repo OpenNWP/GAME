@@ -3,7 +3,7 @@
 # This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 # Github repository: https://github.com/OpenNWP/GAME
 
-# This is a run script for creating a standard atmosphere as a background state for data assimilation (GAME-DA).
+# This is a run script for creating a standard atmosphere as a background state for the model initialization (real2GAME).
 
 # test_id   description
 # 0         standard atmosphere

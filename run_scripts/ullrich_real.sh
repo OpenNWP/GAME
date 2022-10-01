@@ -3,7 +3,7 @@
 # This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 # Github repository: https://github.com/OpenNWP/GAME
 
-# This is a run script for idealized simulations.
+# This is a run script for the moist Ullrich test case including radiation and surface-interactions.
 
 # test_id   description
 # 0         ICAO standard atmosphere
