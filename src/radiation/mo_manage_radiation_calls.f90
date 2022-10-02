@@ -8,7 +8,7 @@ module mo_manage_radiation_calls
   use mo_definitions,      only: wp,t_grid,t_state,t_diag,t_radiation
   use mo_grid_nml,         only: n_cells,n_layers,n_levels
   use mo_rad_nml,          only: n_cells_rad,n_rad_blocks,rad_config
-  use mo_constituents_nml, only: n_constituents,n_condensed_constituents
+  use mo_constituents_nml, only: n_constituents
   use mo_surface_nml,      only: nsoillays
   use mo_held_suarez,      only: held_suar
   use mo_rrtmgp_coupler,   only: calc_radiative_flux_convergence
@@ -21,10 +21,10 @@ module mo_manage_radiation_calls
     
     ! This subroutine manages the calls to RTE+RRTMGP.
   
-    type(t_state), intent(in)    :: state
-    type(t_diag),  intent(inout) :: diag
-    type(t_grid),  intent(in)    :: grid
-    real(wp),      intent(in)    :: time_coordinate
+    type(t_state), intent(in)    :: state           ! state variables to use for updating the radiative fluxes
+    type(t_diag),  intent(inout) :: diag            ! diagnostic quantities to use for updating the radiative fluxes
+    type(t_grid),  intent(in)    :: grid            ! grid quantities
+    real(wp),      intent(in)    :: time_coordinate ! epoch timestamp (needed for computing the zenith angle)
   
     ! local variables
     integer           :: rad_block_index
@@ -83,6 +83,7 @@ module mo_manage_radiation_calls
       if (rad_config==2) then
         call held_suar(radiation%lat_scal,radiation%rho,radiation%temp,radiation%rad_tend)
       endif
+      
       ! filling the actual radiation tendency
       call remap_to_original(radiation%rad_tend,diag%radiation_tendency,rad_block_index)
       call remap_to_original_scalar_h(radiation%sfc_sw_in,diag%sfc_sw_in,rad_block_index)
