@@ -25,7 +25,7 @@ module mo_rrtmgp_coupler
                                         rrtmgp_coefficients_file_lw,cloud_coefficients_file_sw, &
                                         cloud_coefficients_file_lw
   use mo_grid_nml,                only: n_layers,n_levels
-  use mo_constituents_nml,        only: n_constituents,n_condensed_constituents
+  use mo_constituents_nml,        only: n_constituents,n_condensed_constituents,lmoist
   
   implicit none
   
@@ -162,9 +162,13 @@ module mo_rrtmgp_coupler
       do jl=1,n_layers
         temperature_rad(ji,jl) = temperature_gas(ji,jl)
         ! the pressure is diagnozed here, using the equation of state for ideal gases
-        pressure_rad(ji,jl) &
-        = r_d*(rho(ji,jl,n_condensed_constituents+1)-rho(ji,jl,n_condensed_constituents+2))*temperature_rad(ji,jl) &
-        + r_v*rho(ji,jl,n_condensed_constituents+2)*temperature_rad(ji,jl)
+        if (lmoist) then
+          pressure_rad(ji,jl) &
+          = r_d*(rho(ji,jl,n_condensed_constituents+1)-rho(ji,jl,n_condensed_constituents+2))*temperature_rad(ji,jl) &
+          + r_v*rho(ji,jl,n_condensed_constituents+2)*temperature_rad(ji,jl)
+        else
+          pressure_rad(ji,jl) = r_d*rho(ji,jl,n_condensed_constituents+1)*temperature_rad(ji,jl)
+        endif
       enddo
     enddo
     
@@ -608,18 +612,24 @@ module mo_rrtmgp_coupler
           if (sw_bool .and. n_condensed_constituents==4) then
             do ji=1,n_day_points
               do jl=1,n_layers
-                vol_mix_ratio(ji,jl) = &
-                rho(day_indices(ji),jl,n_condensed_constituents+2)*r_v/ &
-                ((rho(day_indices(ji),jl,n_condensed_constituents+1)-rho(day_indices(ji),jl,n_condensed_constituents+2))*r_d)
+                vol_mix_ratio(ji,jl) = 0._wp
+                if (lmoist) then
+                  vol_mix_ratio(ji,jl) = &
+                  rho(day_indices(ji),jl,n_condensed_constituents+2)*r_v/ &
+                  ((rho(day_indices(ji),jl,n_condensed_constituents+1)-rho(day_indices(ji),jl,n_condensed_constituents+2))*r_d)
+                endif
               enddo
             enddo
           ! in the long wave case,all points matter
           elseif (n_condensed_constituents==4) then
             do ji=1,n_cells_rad
               do jl=1,n_layers
-                vol_mix_ratio(ji,jl) = & 
-                rho(ji,jl,n_condensed_constituents+2)*r_v/ &
-                ((rho(ji,jl,n_condensed_constituents+1)-rho(ji,jl,n_condensed_constituents+2))*r_d)
+                vol_mix_ratio(ji,jl) = 0._wp
+                if (lmoist) then
+                  vol_mix_ratio(ji,jl) = & 
+                  rho(ji,jl,n_condensed_constituents+2)*r_v/ &
+                  ((rho(ji,jl,n_condensed_constituents+1)-rho(ji,jl,n_condensed_constituents+2))*r_d)
+                endif
               enddo
             enddo
           endif
