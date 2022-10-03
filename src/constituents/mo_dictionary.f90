@@ -313,14 +313,13 @@ module mo_dictionary
     
     ! these are the limits of this approximation
     if (temp_c>100._wp) then
-      temp_c = 100._wp
+      dsaturation_pressure_over_water_dT = 0._wp
+    elseif (temp_c<0._wp) then
+      dsaturation_pressure_over_water_dT = 0._wp
+    else
+      dsaturation_pressure_over_water_dT = saturation_pressure_over_water(temperature) &
+      *(4924.99_wp/(temp_c + 237.1_wp)**2 - 1.57_wp/(temp_c + 105._wp))
     endif
-    if (temp_c<0._wp) then
-      temp_c = 0._wp
-    endif
-    
-    dsaturation_pressure_over_water_dT = saturation_pressure_over_water(temperature) &
-    *(4924.99_wp/(temp_c + 237.1_wp)**2 - 1.57_wp/(temp_c + 105._wp))
   
   end function dsaturation_pressure_over_water_dT
 
@@ -380,20 +379,14 @@ module mo_dictionary
     
     if (temp_c>=-80._wp) then
       ! at temperatures > 0 degrees Celsius ice cannot exist in equilibrium which is why this is clipped
-      if (t_local>t_0) then
-        t_local = t_0
-      endif
-      dsaturation_pressure_over_ice_dT = dsaturation_pressure_ice_huang_dT(t_local)
+      dsaturation_pressure_over_ice_dT = 0._wp
     elseif (temp_c>=-100._wp) then
       huang_weight = (temp_c+100._wp)/20._wp
       dsaturation_pressure_over_ice_dT = huang_weight*dsaturation_pressure_ice_huang_dT(t_local) &
                                      + (1._wp-huang_weight)+dsaturation_pressure_ice_murphy_dT(t_local)
     else
       ! clipping too extreme values for this approximation
-      if (t_local<110._wp) then
-        t_local = 110._wp
-      endif
-      dsaturation_pressure_over_ice_dT = dsaturation_pressure_ice_murphy_dT(t_local)
+      dsaturation_pressure_over_ice_dT = 0._wp
     endif
 
   end function dsaturation_pressure_over_ice_dT
