@@ -339,8 +339,8 @@ module mo_dictionary
     temp_c = temperature - t_0
 
     ! clipping too extreme values for this approximation
-    if (temp_c<-80._wp) then
-      temp_c = -80._wp
+    if (temp_c<-100._wp) then
+      temp_c = -100._wp
     endif
     if (temp_c>0._wp) then
       temp_c = 0._wp
@@ -364,9 +364,9 @@ module mo_dictionary
     ! calculating the temperature in degrees Celsius
     temp_c = temperature - t_0
     
-    ! this is the stability limit
-    if (temp_c<-80._wp) then
-      temp_c = -80._wp
+    ! clipping too extreme values for this approximation
+    if (temp_c<-100._wp) then
+      temp_c = -100._wp
     endif
     ! at temperatures > 0 degrees Celsius ice cannot exist in equilibrium which is why this is clipped
     if (temp_c>0._wp) then
