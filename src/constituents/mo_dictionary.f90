@@ -442,7 +442,7 @@ module mo_dictionary
   function saturation_pressure_ice_murphy(temperature)
   
     ! This function computes the saturation pressure over ice.
-    ! This follows Eq. (7) in Murphy DM, Koop T. Review of the vapour pressures of ice and supercooled water for atmospheric applications.
+    ! It follows Eq. (7) in Murphy DM, Koop T. Review of the vapour pressures of ice and supercooled water for atmospheric applications.
     ! QUARTERLY JOURNAL OF THE ROYAL METEOROLOGICAL SOCIETY. 2005;131(608):1539-1565.
 
     real(wp), intent(in) :: temperature                    ! temperature in Kelvin
