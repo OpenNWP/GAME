@@ -344,7 +344,7 @@ module mo_dictionary
     if (temp_c>=-80._wp) then
       ! at temperatures > 0 degrees Celsius ice cannot exist in equilibrium which is why this is clipped
       if (t_local>t_0) then
-        temp_c = t_0
+        t_local = t_0
       endif
       saturation_pressure_over_ice = saturation_pressure_ice_huang(t_local)
     elseif (temp_c>=-100._wp) then
@@ -381,7 +381,7 @@ module mo_dictionary
     if (temp_c>=-80._wp) then
       ! at temperatures > 0 degrees Celsius ice cannot exist in equilibrium which is why this is clipped
       if (t_local>t_0) then
-        temp_c = t_0
+        t_local = t_0
       endif
       dsaturation_pressure_over_ice_dT = dsaturation_pressure_ice_huang_dT(t_local)
     elseif (temp_c>=-100._wp) then
