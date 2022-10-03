@@ -377,15 +377,19 @@ module mo_dictionary
     ! calculating the temperature in degrees Celsius
     temp_c = t_local - t_0
     
-    if (temp_c>=-80._wp) then
-      ! at temperatures > 0 degrees Celsius ice cannot exist in equilibrium which is why this is clipped
-      dsaturation_pressure_over_ice_dT = 0._wp
+    ! at temperatures > 0 degrees Celsius ice cannot exist in equilibrium which is why this is clipped
+    if (temp_c>0._wp) then
+       dsaturation_pressure_over_ice_dT = 0._wp
+    elseif (temp_c>=-80._wp) then
+      dsaturation_pressure_over_ice_dT = dsaturation_pressure_ice_huang_dT(t_local)
     elseif (temp_c>=-100._wp) then
       huang_weight = (temp_c+100._wp)/20._wp
       dsaturation_pressure_over_ice_dT = huang_weight*dsaturation_pressure_ice_huang_dT(t_local) &
                                      + (1._wp-huang_weight)+dsaturation_pressure_ice_murphy_dT(t_local)
+    elseif (t_local>=110._wp) then
+      dsaturation_pressure_over_ice_dT = dsaturation_pressure_ice_murphy_dT(t_local)
+    ! clipping too extreme values for this approximation
     else
-      ! clipping too extreme values for this approximation
       dsaturation_pressure_over_ice_dT = 0._wp
     endif
 
