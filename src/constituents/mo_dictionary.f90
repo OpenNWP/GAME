@@ -385,7 +385,7 @@ module mo_dictionary
     elseif (temp_c>=-100._wp) then
       huang_weight = (temp_c+100._wp)/20._wp
       dsaturation_pressure_over_ice_dT = huang_weight*dsaturation_pressure_ice_huang_dT(t_local) &
-                                     + (1._wp-huang_weight)+dsaturation_pressure_ice_murphy_dT(t_local)
+                                         + (1._wp-huang_weight)+dsaturation_pressure_ice_murphy_dT(t_local)
     elseif (t_local>=110._wp) then
       dsaturation_pressure_over_ice_dT = dsaturation_pressure_ice_murphy_dT(t_local)
     ! clipping too extreme values for this approximation
