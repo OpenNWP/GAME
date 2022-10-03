@@ -10,7 +10,7 @@ import toolbox.conversions as conv
 import math as mat
 
 game_output_dir = "/home/max/code/GAME/output"
-run_id = "held_suar"
+run_id = "held_suarez"
 save_directory = "/home/max/code/GAME/figs"
 short_name = "u10"
 no_of_layers = 26
