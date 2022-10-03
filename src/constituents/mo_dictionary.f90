@@ -266,8 +266,8 @@ module mo_dictionary
     ! This function returns the saturation pressure in Pa over liquid water as a function of the temperature in K.
     ! It uses the formula by Huang: A Simple Accurate Formula for Calculating Saturation Vapor Pressure of Water and Ice, 2018, DOI: 10.1175/JAMC-D-17-0334.1.
     
-    real(wp), intent(in) :: temperature
-    real(wp)             :: saturation_pressure_over_water
+    real(wp), intent(in) :: temperature                    ! temperature in Kelvin
+    real(wp)             :: saturation_pressure_over_water ! result
     
     ! local variables
     real(wp)  :: temp_c ! temperature in degrees Celsius
@@ -300,14 +300,13 @@ module mo_dictionary
   
   function dsaturation_pressure_over_water_dT(temperature)
   
-    ! This function returns the derivative of the saturation pressure in Pa of pure water vapour over plane liquid water
-    ! as a function of the temperature in K.
+    ! This function computes the derivative of the function saturation_pressure_over_water.
     
-    real(wp), intent(in) :: temperature
-    real(wp)             :: dsaturation_pressure_over_water_dT
+    real(wp), intent(in) :: temperature                        ! temperature in Kelvin
+    real(wp)             :: dsaturation_pressure_over_water_dT ! result
     
     ! local variables
-    real(wp) :: temp_c
+    real(wp) :: temp_c ! temperature in degrees Celsius
     
     ! calculating the temperature in degrees Celsius
     temp_c = temperature - t_0
@@ -328,53 +327,74 @@ module mo_dictionary
   function saturation_pressure_over_ice(temperature)
     
     ! This function returns the saturation pressure in Pa over ice as a function of the temperature in K.
-    ! It uses the formula by Huang: A Simple Accurate Formula for Calculating Saturation Vapor Pressure of Water and Ice, 2018, DOI: 10.1175/JAMC-D-17-0334.1.
+    ! It blends the two formulas of Huang and Murphy.
     
-    real(wp), intent(in) :: temperature
-    real(wp)             :: saturation_pressure_over_ice
+    real(wp), intent(in) :: temperature                  ! temperature in Kelvin
+    real(wp)             :: saturation_pressure_over_ice ! result
     
     ! local variables
-    real(wp)             :: temp_c
+    real(wp) :: t_local      ! local copy of temperature
+    real(wp) :: temp_c       ! temperature in degrees Celsius
+    real(wp) :: huang_weight ! weight of the Huang formula
 
-    temp_c = temperature - t_0
+    t_local = temperature
 
-    ! clipping too extreme values for this approximation
-    if (temp_c<-100._wp) then
-      temp_c = -100._wp
-    endif
-    if (temp_c>0._wp) then
-      temp_c = 0._wp
-    endif
+    temp_c = t_local - t_0
     
-    saturation_pressure_over_ice = exp(43.494_wp-6545.8_wp/(temp_c+278._wp))/(temp_c+868._wp)**2
+    if (temp_c>=-80._wp) then
+      ! at temperatures > 0 degrees Celsius ice cannot exist in equilibrium which is why this is clipped
+      if (t_local>t_0) then
+        temp_c = t_0
+      endif
+      saturation_pressure_over_ice = saturation_pressure_ice_huang(t_local)
+    elseif (temp_c>=-100._wp) then
+      huang_weight = (temp_c-100._wp)/20._wp
+      saturation_pressure_over_ice = huang_weight*saturation_pressure_ice_huang(t_local) &
+                                     + (1._wp-huang_weight)+saturation_pressure_ice_murphy(t_local)
+    else
+      ! clipping too extreme values for this approximation
+      if (t_local<110._wp) then
+        t_local = 110._wp
+      endif
+      saturation_pressure_over_ice = saturation_pressure_ice_murphy(t_local)
+    endif
     
   end function saturation_pressure_over_ice
   
   function dsaturation_pressure_over_ice_dT(temperature)
 
-    ! This function returns derivative of the the saturation pressure in Pa of pure water vapour over plane ice
-    ! as a function of the temperature in K.
+    ! This function computes the derivative of the function saturation_pressure_over_ice.
     
-    real(wp), intent(in) :: temperature
-    real(wp)             :: dsaturation_pressure_over_ice_dT
+    real(wp), intent(in) :: temperature                      ! temperature in Kelvin
+    real(wp)             :: dsaturation_pressure_over_ice_dT ! result
     
     ! local variables
-    real(wp) :: temp_c
+    real(wp) :: t_local      ! local copy of temperature
+    real(wp) :: temp_c       ! temperature in degrees Celsius
+    real(wp) :: huang_weight ! weight of the Huang formula
+    
+    t_local = temperature
     
     ! calculating the temperature in degrees Celsius
-    temp_c = temperature - t_0
+    temp_c = t_local - t_0
     
-    ! clipping too extreme values for this approximation
-    if (temp_c<-100._wp) then
-      temp_c = -100._wp
+    if (temp_c>=-80._wp) then
+      ! at temperatures > 0 degrees Celsius ice cannot exist in equilibrium which is why this is clipped
+      if (t_local>t_0) then
+        temp_c = t_0
+      endif
+      dsaturation_pressure_over_ice_dT = dsaturation_pressure_ice_huang_dT(t_local)
+    elseif (temp_c>=-100._wp) then
+      huang_weight = (temp_c-100._wp)/20._wp
+      dsaturation_pressure_over_ice_dT = huang_weight*dsaturation_pressure_ice_huang_dT(t_local) &
+                                     + (1._wp-huang_weight)+dsaturation_pressure_ice_murphy_dT(t_local)
+    else
+      ! clipping too extreme values for this approximation
+      if (t_local<110._wp) then
+        t_local = 110._wp
+      endif
+      dsaturation_pressure_over_ice_dT = dsaturation_pressure_ice_murphy_dT(t_local)
     endif
-    ! at temperatures > 0 degrees Celsius ice cannot exist in equilibrium which is why this is clipped
-    if (temp_c>0._wp) then
-      temp_c = 0._wp
-    endif
-    
-    dsaturation_pressure_over_ice_dT = saturation_pressure_over_ice(temperature) &
-    *(6545.8_wp/(temp_c + 278._wp)**2 - 2._wp/(temp_c + 868._wp))
 
   end function dsaturation_pressure_over_ice_dT
   
@@ -401,6 +421,67 @@ module mo_dictionary
     enhancement_factor_over_ice = 0.99882_wp*exp(0.00000008_wp*air_pressure)
 
   end function enhancement_factor_over_ice
+  
+  function saturation_pressure_ice_huang(temperature)
+  
+    ! This function computes the saturation pressure over ice.
+    ! It follows the formula by Huang: A Simple Accurate Formula for Calculating Saturation Vapor Pressure of Water and Ice, 2018, DOI: 10.1175/JAMC-D-17-0334.1.
+    
+    real(wp), intent(in) :: temperature                   ! temperature in Kelvin
+    real(wp)             :: saturation_pressure_ice_huang ! result
+    
+    ! local variables
+    real(wp) :: temp_c  ! temperature in degrees Celsius
+    
+    temp_c = temperature - t_0
+    
+    saturation_pressure_ice_huang = exp(43.494_wp-6545.8_wp/(temp_c+278._wp))/(temp_c+868._wp)**2
+  
+  end function saturation_pressure_ice_huang
+  
+  function saturation_pressure_ice_murphy(temperature)
+  
+    ! This function computes the saturation pressure over ice.
+    ! This follows Eq. (7) in Murphy DM, Koop T. Review of the vapour pressures of ice and supercooled water for atmospheric applications.
+    ! QUARTERLY JOURNAL OF THE ROYAL METEOROLOGICAL SOCIETY. 2005;131(608):1539-1565.
+
+    real(wp), intent(in) :: temperature                    ! temperature in Kelvin
+    real(wp)             :: saturation_pressure_ice_murphy ! result
+    
+    ! computing the result
+    saturation_pressure_ice_murphy = exp(9.550426_wp-5723.265_wp/temperature+3.53068_wp*log(temperature)-0.00728332_wp*temperature)
+  
+  end function saturation_pressure_ice_murphy
+  
+  function dsaturation_pressure_ice_huang_dT(temperature)
+  
+    ! This function computes the derivative of the function saturation_pressure_ice_murphy.
+  
+    real(wp), intent(in) :: temperature                       ! temperature in Kelvin
+    real(wp)             :: dsaturation_pressure_ice_huang_dT ! result
+    
+    ! local variables
+    real(wp) :: temp_c  ! temperature in degrees Celsius
+    
+    temp_c = temperature - t_0
+    
+    dsaturation_pressure_ice_huang_dT = saturation_pressure_ice_huang(temperature) &
+    *(6545.8_wp/(temp_c + 278._wp)**2 - 2._wp/(temp_c + 868._wp))
+  
+  end function dsaturation_pressure_ice_huang_dT
+  
+  function dsaturation_pressure_ice_murphy_dT(temperature)
+  
+    ! This function computes the derivative of the function saturation_pressure_ice_murphy.
+  
+    real(wp), intent(in) :: temperature                        ! temperature in Kelvin
+    real(wp)             :: dsaturation_pressure_ice_murphy_dT ! result
+  
+    ! computing the result
+    dsaturation_pressure_ice_murphy_dT = saturation_pressure_ice_murphy(temperature) &
+    *(5723.265_wp/temperature**2+3.53068_wp/temperature-0.00728332_wp)
+      
+  end function dsaturation_pressure_ice_murphy_dT
 
 end module mo_dictionary
 
