@@ -16,14 +16,15 @@ module mo_multiplications
   
     ! This subroutine multiplies a vector field by a scalar field at the horizontal gridpoints.
     
-    real(wp),     intent(in)  :: scalar_field(n_cells,n_layers)
-    real(wp)                  :: vector_field(n_edges,n_layers)
-    real(wp),     intent(out) :: out_field(n_edges,n_layers) ! result
-    type(t_grid), intent(in)  :: grid                        ! grid quantities
+    real(wp),     intent(in)  :: scalar_field(n_cells,n_layers) ! scalar field to use for the multiplication
+    real(wp)                  :: vector_field(n_edges,n_layers) ! horizontal vector field to use for the multiplication
+    real(wp),     intent(out) :: out_field(n_edges,n_layers)    ! resulting horizontal vector field
+    type(t_grid), intent(in)  :: grid                           ! grid quantities
     
     ! local variables
-    integer  :: ji,jl
-    real(wp) :: scalar_value
+    integer  :: ji           ! edge index
+    integer  :: jl           ! layer index
+    real(wp) :: scalar_value ! value of the scalar field to use for the multiplication
     
     !$omp parallel do private(ji,jl,scalar_value)
     do ji=1,n_edges
@@ -47,8 +48,9 @@ module mo_multiplications
     type(t_grid), intent(in)  :: grid                           ! grid quantities
     
     ! local variables
-    integer  :: ji,jl
-    real(wp) :: scalar_value
+    integer  :: ji           ! edge index
+    integer  :: jl           ! layer index
+    real(wp) :: scalar_value ! value of the scalar field to use for the multiplication
     
     !$omp parallel do private(ji,jl,scalar_value)
     do ji=1,n_edges

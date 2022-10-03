@@ -67,18 +67,18 @@ module mo_divergences
     type(t_grid), intent(in)  :: grid                            ! grid quantities
     
     ! local variables
-    integer  :: ji,jl,jm,n_edges
+    integer  :: ji,jl,jm,n_edges_of_cell
     real(wp) :: contra_upper,contra_lower,comp_h,comp_v,density_lower,density_upper
 
-    !$omp parallel do private(ji,jl,jm,n_edges,contra_upper,contra_lower,comp_h,comp_v,density_lower,density_upper)
+    !$omp parallel do private(ji,jl,jm,n_edges_of_cell,contra_upper,contra_lower,comp_h,comp_v,density_lower,density_upper)
     do ji=1,n_cells
-      n_edges = 6
+      n_edges_of_cell = 6
       if (ji<=n_pentagons) then
-        n_edges = 5
+        n_edges_of_cell = 5
       endif
       do jl=1,n_layers
         comp_h = 0._wp
-        do jm=1,n_edges
+        do jm=1,n_edges_of_cell
           comp_h = comp_h &
           + in_field(grid%adjacent_edges(ji,jm),jl)*grid%adjacent_signs(ji,jm)*grid%area_h(grid%adjacent_edges(ji,jm),jl)
         enddo
