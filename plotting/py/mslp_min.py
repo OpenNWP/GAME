@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.rcParams["savefig.pad_inches"] = 0.05
 
-run_id = "ideal"
+run_id = "ullrich"
 output_base_dir = "/home/max/code/GAME/output"
 number_of_days = 15
 save_directory = "/home/max/code/GAME/figs"
