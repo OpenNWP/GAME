@@ -6,7 +6,7 @@ module mo_dictionary
   ! This module contains look-up functions for properties of the atmosphere.
 
   use mo_definitions, only: wp
-  use mo_constants,   only: t_0,n_a,r_v,m_v
+  use mo_constants,   only: t_0,m_v
   
   implicit none
   
