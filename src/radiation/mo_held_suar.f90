@@ -42,8 +42,11 @@ module mo_held_suarez
 
   function t_eq(latitude,pressure)
   
-    real(wp), intent(in) :: latitude,pressure
-    real(wp)             :: t_eq
+    ! This function returns the equilibrium temperature at a certain point in the atmosphere.
+  
+    real(wp), intent(in) :: latitude ! geographical latitude of the point
+    real(wp), intent(in) :: pressure ! pressure at the point (vertical coordinate)
+    real(wp)             :: t_eq     ! equilibrium temperature in Kelvin (result)
   
     ! local variables
     real(wp) :: delta_t_y,delta_theta_v_z,kappa
@@ -61,8 +64,11 @@ module mo_held_suarez
 
   function k_t(latitude,pressure)
   
-    real(wp), intent(in) :: latitude,pressure
-    real(wp)             :: k_t
+    ! This function returns the relaxation coefficient according to which the equilibtirum temperature is approached.
+  
+    real(wp), intent(in) :: latitude ! geographical latitude of the point
+    real(wp), intent(in) :: pressure ! pressure at the point (vertical coordinate)
+    real(wp)             :: k_t      ! relaxation coefficient in 1/s (result)
   
     ! local variables
     real(wp) :: k_a,k_s,sigma_b,sigma

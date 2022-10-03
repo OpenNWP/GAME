@@ -19,7 +19,7 @@ module mo_manage_radiation_calls
   
   subroutine update_rad_fluxes(state,diag,grid,time_coordinate)
     
-    ! This subroutine manages the calls to RTE+RRTMGP.
+    ! This subroutine manages the calls to RTE+RRTMGP and the Held-Suarez interface.
   
     type(t_state), intent(in)    :: state           ! state variables to use for updating the radiative fluxes
     type(t_diag),  intent(inout) :: diag            ! diagnostic quantities to use for updating the radiative fluxes
