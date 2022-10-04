@@ -131,6 +131,66 @@ program control
   allocate(density_to_rhombi_indices(n_edges,4))
   allocate(interpol_indices(n_lat_io_points,n_lon_io_points,5))
   allocate(is_land(n_cells))
+  ! initializing arrays to zero
+  !$omp parallel workshare
+  x_unity = 0._wp
+  y_unity = 0._wp
+  z_unity = 0._wp
+  lat_c = 0._wp
+  lon_c = 0._wp
+  z_scalar = 0._wp
+  gravity_potential = 0._wp
+  z_vector_h = 0._wp
+  z_vector_v = 0._wp
+  dx = 0._wp
+  dz = 0._wp
+  lat_e = 0._wp
+  lon_e = 0._wp
+  direction = 0._wp
+  volume = 0._wp
+  area_h = 0._wp
+  area_v = 0._wp
+  trsk_weights = 0._wp
+  lat_c_dual = 0._wp
+  lon_c_dual = 0._wp
+  z_scalar_dual = 0._wp
+  z_vector_dual_h = 0._wp
+  z_vector_dual_v = 0._wp
+  dy = 0._wp
+  dz_dual = 0._wp
+  direction_dual = 0._wp
+  area_dual_h = 0._wp
+  area_dual_v = 0._wp
+  f_vec_h = 0._wp
+  f_vec_v = 0._wp
+  triangle_face_unit_sphere = 0._wp
+  pent_hex_face_unity_sphere = 0._wp
+  rel_on_line_dual = 0._wp
+  inner_product_weights = 0._wp
+  density_to_rhombi_weights = 0._wp
+  interpol_weights = 0._wp
+  exner_bg = 0._wp
+  theta_v_bg = 0._wp
+  oro = 0._wp
+  roughness_length = 0._wp
+  sfc_albedo = 0._wp
+  sfc_rho_c = 0._wp
+  t_conductivity = 0._wp
+  to_cell = 0
+  from_cell = 0
+  trsk_indices = 0
+  trsk_modified_curl_indices = 0
+  adjacent_edges = 0
+  vorticity_indices_triangles = 0
+  vorticity_indices_rhombi = 0
+  to_cell_dual = 0
+  from_cell_dual = 0
+  adjacent_signs = 0
+  vorticity_signs_triangles = 0
+  density_to_rhombi_indices = 0
+  interpol_indices = 0
+  is_land = 0
+  !$omp end parallel workshare
   write(*,*) "Finished."
   
   ! 1.) creating or reading the properties that determine the horizontal grid
