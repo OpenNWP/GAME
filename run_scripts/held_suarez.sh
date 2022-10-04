@@ -36,6 +36,7 @@ run_span_min=$((1200*24*60))
 ideal_input_id=1
 lwrite_integrals=.true.
 lpressure_level_output=.false.
+lmodel_level_output=.true.
 time_to_next_analysis_min=-1
 /
 
