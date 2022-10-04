@@ -14,9 +14,9 @@ run_id = "held_suarez"
 save_directory = "/home/max/code/GAME/figs"
 var_name = "wind_u"
 no_of_layers = 26
-run_span_min = 15*1440 # run length in minutes
+run_span_min = 1200*1440 # run length in minutes
 dt_data_min = 1440 # output time step in minutes
-begin_since_init_min = 0*1440 #  when to begin computing the zonal average in minutes
+begin_since_init_min = 200*1440 #  when to begin computing the zonal average in minutes
 grid_filename = "/home/max/code/GAME/grid_generator/grids/RES5_L26_ORO0.nc" # grid filename
 toa = 41152.0 # top of atmosphere
 
