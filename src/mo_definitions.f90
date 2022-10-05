@@ -19,7 +19,7 @@ module mo_definitions
   integer, parameter :: sp = selected_real_kind(ps,rs) ! single precission
   integer, parameter :: dp = selected_real_kind(pd,rd) ! real(wp) :: precission
   
-  integer, parameter :: wp = dp                        ! working precission
+  integer, parameter :: wp = dp                        ! working precision
   
   type t_grid
     
