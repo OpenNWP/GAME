@@ -9,7 +9,7 @@
 # See handbook for more information.
 
 res_id=5
-oro_id=1
+oro_id=0
 n_lloyd_iterations=2000
 luse_scalar_h_file=".false."
 stretching_parameter=1.3
