@@ -38,7 +38,7 @@ then
   ./phys_quantities/download_etopo.sh
 fi
 
-if [ $oro_id -eq 1 ] && [ ! -f phys_quantities/B${res_id}_is_land.nc ]
+if [ $oro_id -eq 1 ] && [ ! -f phys_quantities/RES${res_id}_is_land.nc ]
 then
   echo "Creating land-sea mask ..."
   python3 .py/is_land.py $res_id

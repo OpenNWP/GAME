@@ -58,7 +58,7 @@ module mo_phys_sfc_properties
     
       allocate(oro_unfiltered(n_cells))
     
-      is_land_file = "phys_quantities/B" // trim(int2string(res_id)) // "_is_land.nc"
+      is_land_file = "phys_quantities/RES" // trim(int2string(res_id)) // "_is_land.nc"
       call nc_check(nf90_open(trim(is_land_file),NF90_CLOBBER,ncid))
       call nc_check(nf90_inq_varid(ncid,"is_land",is_land_id))
       call nc_check(nf90_get_var(ncid,is_land_id,is_land))
