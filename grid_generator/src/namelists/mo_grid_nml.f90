@@ -62,8 +62,6 @@ module mo_grid_nml
     oro_id = 1
     n_lloyd_iterations = 2000
     luse_scalar_h_file = .false.
-    scalar_h_file = "grids/RES" // trim(int2string(res_id)) // "_L" // trim(int2string(n_layers)) &
-                    // "_ORO" // trim(int2string(oro_id)) // ".nc"
     
     ! open and read namelist file
     open(action="read",file="build/namelist.nml",newunit=fileunit)
@@ -89,7 +87,10 @@ module mo_grid_nml
     radius = radius_rescale*r_e
     mean_velocity_area = 2._wp/3._wp*4._wp*M_PI*radius**2/n_cells
     eff_hor_res = sqrt(4._wp*M_PI*radius**2/n_cells)
-    
+    ! the file to potentially read the horizontal quantities from
+    scalar_h_file = "grids/RES" // trim(int2string(res_id)) // "_L" // trim(int2string(n_layers)) &
+                    // "_ORO0.nc"
+                    
     ! sanity checks
     ! -------------
     ! checking if n_oro_layers is valid

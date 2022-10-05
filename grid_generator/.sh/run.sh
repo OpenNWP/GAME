@@ -69,7 +69,7 @@ EOF
 # moving the namelist to the directory where the executable resides
 mv namelist.nml build
 # executing the grid generator
-./build/grid_generator $oro_id $n_iterations $use_scalar_h_coords_file $scalar_h_coords_file $stretching_parameter $orography_layers $toa $radius_rescale $no_of_avg_points
+./build/grid_generator
 
 if [ $? -ne 0 ]
 then

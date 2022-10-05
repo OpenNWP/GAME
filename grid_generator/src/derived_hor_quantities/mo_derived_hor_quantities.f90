@@ -292,6 +292,7 @@ module mo_derived_hor_quantities
       endif
       if (trouble_detected==1) then
         write(*,*) "Trouble detected in subroutine find_adjacent_edges, position 1."
+        write(*,*) counter, ji
         call exit(1)
       endif
       if (ji<=n_pentagons) then
