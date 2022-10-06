@@ -267,32 +267,31 @@ module mo_derived_hor_quantities
     
     !$omp parallel do private(ji,jk,trouble_detected,counter)
     do ji=1,n_cells
-      counter = 1
+      counter = 0
       do jk=1,n_edges
         if (from_cell(jk)==ji .or. to_cell(jk)==ji) then
           if (from_cell(jk)==to_cell(jk)) then
             write(*,*) "It is from_cell == to_cell at the following grid point:", jk
             call exit(1)
           endif
-          adjacent_edges(ji,counter) = jk
+          adjacent_edges(ji,counter+1) = jk
           if (from_cell(jk)==ji) then
-            adjacent_signs(ji,counter) = 1
+            adjacent_signs(ji,counter+1) = 1
           endif
           if (to_cell(jk)==ji) then
-            adjacent_signs(ji,counter) = -1
+            adjacent_signs(ji,counter+1) = -1
           endif
           counter = counter+1
         endif
       enddo
-      if (counter/=7) then
+      if (counter/=6) then
         trouble_detected = 1
-        if (counter==6 .and. ji<=n_pentagons) then
+        if (counter==5 .and. ji<=n_pentagons) then
           trouble_detected = 0
         endif
       endif
       if (trouble_detected==1) then
         write(*,*) "Trouble detected in subroutine find_adjacent_edges, position 1."
-        write(*,*) counter, ji
         call exit(1)
       endif
       if (ji<=n_pentagons) then
