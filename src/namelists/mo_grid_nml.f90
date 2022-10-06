@@ -18,14 +18,9 @@ module mo_grid_nml
   integer  :: n_edges            ! number of horizontal vectors per layer
   integer  :: n_levels           ! number of levels
   integer  :: n_basic_triangles  ! number of basic triangles of the icosaheron
-  integer  :: n_basic_edges      ! number of basic edges of the icosaheron
-  integer  :: n_points_per_edge  ! number of points per edge
   integer  :: n_triangles        ! the number of triangles of the grid
   integer  :: n_lat_io_points    ! number of points of the post-processing lat-lon grid in lat direction
   integer  :: n_lon_io_points    ! number of points of the post-processing lat-lon grid in lon direction
-  integer  :: n_latlon_io_points ! number of points of the post-processing lat-lon grid
-  
-  real(wp), parameter :: orth_criterion_deg = 89.99_wp ! used for checking grid orthogonality
   
   namelist /grid/res_id,n_layers,oro_id
 
@@ -57,12 +52,9 @@ module mo_grid_nml
     n_edges = (5*n_pentagons/2 + 6/2*n_hexagons)
     n_levels = n_layers+1
     n_basic_triangles = 20
-    n_basic_edges = 3*n_basic_triangles/2
-    n_points_per_edge = 2**res_id-1
     n_triangles = n_basic_triangles*4**res_id
     n_lat_io_points = 2*2**res_id
     n_lon_io_points = 2*n_lat_io_points
-    n_latlon_io_points = n_lat_io_points*n_lon_io_points
   
   end subroutine grid_nml_setup
   
