@@ -8,7 +8,7 @@ echo "***** GRID FILE CREATION *****"
 echo ""
 echo "Setup:"
 echo "oro_id = $oro_id"
-echo "number of Lloyd iterations: $n_iterations"
+echo "number of Lloyd iterations: $n_lloyd_iterations"
 
 if [ ! -f ./build/grid_generator ]
 then
