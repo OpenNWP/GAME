@@ -98,10 +98,6 @@ module mo_vector_tend_expl
     
     !$omp parallel workshare
     
-    ! upper and lower boundary
-    state_tend%wind_v(:,1) = 0._wp
-    state_tend%wind_v(:,n_levels) = 0._wp
-      
     ! horizontal case
     state_tend%wind_h = old_weight*state_tend%wind_h + new_weight*( &
     ! explicit component of pressure gradient acceleration
