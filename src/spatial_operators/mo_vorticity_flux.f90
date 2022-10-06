@@ -75,7 +75,7 @@ module mo_vorticity_flux
         
         ! Horizontal "non-standard" component (horizontal potential vorticity times vertical mass flux density).
         ! ------------------------------------------------------------------------------------------------------
-         
+        
         ! effect of layer above
         diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
         - 0.5_wp*grid%inner_product_weights(grid%from_cell(ji),jl,7) &
@@ -90,11 +90,11 @@ module mo_vorticity_flux
         diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
         - 0.5_wp*grid%inner_product_weights(grid%to_cell(ji),jl,8) &
         *diag%flux_density_v(grid%to_cell(ji),jl+1)*diag%pot_vort_h(ji,jl+1)
-          
+        
       enddo
     enddo
     !$omp end parallel do
-      
+    
     ! Calculating the vertical component of the vorticity flux term.
     ! --------------------------------------------------------------
     !$omp parallel do private(ji,jl,jm,n_edges_of_cell)
