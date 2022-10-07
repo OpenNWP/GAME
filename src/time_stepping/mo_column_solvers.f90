@@ -6,7 +6,7 @@ module mo_column_solvers
   ! This module contains the implicit vertical routines (implicit part of the HEVI scheme).
 
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
-  use mo_constants,        only: r_d,c_d_v,c_d_p,M_PI,m_d,m_v
+  use mo_constants,        only: r_d,c_d_v,c_d_p,M_PI,m_d,m_v,impl_thermo_weight
   use mo_grid_nml,         only: n_layers,n_cells,n_levels
   use mo_grid_setup,       only: z_t_const
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents,cloud_droplets_velocity,rain_velocity,&
@@ -37,7 +37,7 @@ module mo_column_solvers
     integer  :: ji,jl,soil_switch
     real(wp) :: damping_coeff,damping_start_height,z_above_damping,temperature_gas_lowest_layer_old, &
                 temperature_gas_lowest_layer_new,radiation_flux_density,resulting_temperature_change, &
-                max_rad_temp_change,impl_weight,partial_deriv_new_time_step_weight, &
+                max_rad_temp_change,partial_deriv_new_time_step_weight, &
                 c_vector(n_layers-2+nsoillays),d_vector(n_layers-1+nsoillays), &
                 e_vector(n_layers-2+nsoillays),r_vector(n_layers-1+nsoillays), &
                 rho_expl(n_layers),rhotheta_v_expl(n_layers),theta_v_pert_expl(n_layers),exner_pert_expl(n_layers), &
@@ -45,8 +45,6 @@ module mo_column_solvers
                 rho_int_expl(n_layers-1),alpha_old(n_layers),beta_old(n_layers),gamma_old(n_layers), &
                 alpha_new(n_layers),beta_new(n_layers),gamma_new(n_layers),alpha(n_layers),beta(n_layers), &
                 gamma_(n_layers),density_interface_new,heat_flux_density_expl(nsoillays)
-                    
-    impl_weight = c_d_v/c_d_p
     
     ! the maximum temperature change induced by radiation between two radiation time steps in the uppermost soil layer
     max_rad_temp_change = 25._wp
@@ -159,15 +157,15 @@ module mo_column_solvers
         d_vector(jl) = -theta_v_int_new(jl)**2*(gamma_(jl) + gamma_(jl+1)) &
         + 0.5_wp*(grid%exner_bg(ji,jl) - grid%exner_bg(ji,jl+1)) &
         *(alpha(jl+1) - alpha(jl) + theta_v_int_new(jl)*(beta(jl+1) - beta(jl))) &
-        - (grid%z_scalar(ji,jl) - grid%z_scalar(ji,jl+1))/(impl_weight*dtime**2*c_d_p*rho_int_old(jl)) &
+        - (grid%z_scalar(ji,jl) - grid%z_scalar(ji,jl+1))/(impl_thermo_weight*dtime**2*c_d_p*rho_int_old(jl)) &
         *(2._wp/grid%area_v(ji,jl+1) + dtime*state_old%wind_v(ji,jl+1)*0.5_wp &
         *(-1._wp/grid%volume(ji,jl) + 1._wp/grid%volume(ji,jl+1)))
         ! right hand side
         r_vector(jl) = -(state_old%wind_v(ji,jl+1) + dtime*state_tend%wind_v(ji,jl+1)) &
-        *(grid%z_scalar(ji,jl) - grid%z_scalar(ji,jl+1))/(impl_weight*dtime**2*c_d_p) &
+        *(grid%z_scalar(ji,jl) - grid%z_scalar(ji,jl+1))/(impl_thermo_weight*dtime**2*c_d_p) &
         + theta_v_int_new(jl)*(exner_pert_expl(jl) - exner_pert_expl(jl+1))/dtime &
         + 0.5_wp/dtime*(theta_v_pert_expl(jl) + theta_v_pert_expl(jl+1))*(grid%exner_bg(ji,jl) - grid%exner_bg(ji,jl+1)) &
-        - (grid%z_scalar(ji,jl) - grid%z_scalar(ji,jl+1))/(impl_weight*dtime**2*c_d_p) &
+        - (grid%z_scalar(ji,jl) - grid%z_scalar(ji,jl+1))/(impl_thermo_weight*dtime**2*c_d_p) &
         *state_old%wind_v(ji,jl+1)*rho_int_expl(jl)/rho_int_old(jl)
       enddo
       do jl=1,n_layers-2
@@ -175,13 +173,13 @@ module mo_column_solvers
         c_vector(jl) = theta_v_int_new(jl+1)*gamma_(jl+1)*theta_v_int_new(jl) &
         + 0.5_wp*(grid%exner_bg(ji,jl+1) - grid%exner_bg(ji,jl+2)) &
         *(alpha(jl+1) + beta(jl+1)*theta_v_int_new(jl)) &
-        - (grid%z_scalar(ji,jl+1) - grid%z_scalar(ji,jl+2))/(impl_weight*dtime*c_d_p)*0.5_wp &
+        - (grid%z_scalar(ji,jl+1) - grid%z_scalar(ji,jl+2))/(impl_thermo_weight*dtime*c_d_p)*0.5_wp &
         *state_old%wind_v(ji,jl+2)/(grid%volume(ji,jl+1)*rho_int_old(jl+1))
         ! upper diagonal
         e_vector(jl) = theta_v_int_new(jl)*gamma_(jl+1)*theta_v_int_new(jl+1) &
         - 0.5_wp*(grid%exner_bg(ji,jl) - grid%exner_bg(ji,jl+1)) &
         *(alpha(jl+1) + beta(jl+1)*theta_v_int_new(jl+1)) &
-        + (grid%z_scalar(ji,jl) - grid%z_scalar(ji,jl+1))/(impl_weight*dtime*c_d_p)*0.5_wp &
+        + (grid%z_scalar(ji,jl) - grid%z_scalar(ji,jl+1))/(impl_thermo_weight*dtime*c_d_p)*0.5_wp &
         *state_old%wind_v(ji,jl+1)/(grid%volume(ji,jl+1)*rho_int_old(jl))
       enddo
       
@@ -345,14 +343,14 @@ module mo_column_solvers
     
     ! local variables
     integer  :: ji,jl,jc,base_index
-    real(wp) :: impl_weight,expl_weight,density_old_at_interface,temperature_old_at_interface,&
+    real(wp) :: impl_thermo_weight,expl_weight,density_old_at_interface,temperature_old_at_interface,&
                 ! for meanings of these vectors look into the definition of the function thomas_algorithm
                 c_vector(n_layers-1),d_vector(n_layers),e_vector(n_layers-1),r_vector(n_layers),&
                 vertical_flux_vector_impl(n_layers-1),vertical_flux_vector_rhs(n_layers-1),&
                 vertical_enthalpy_flux_vector(n_layers-1),solution_vector(n_layers)
           
-    impl_weight = 0.5_wp
-    expl_weight = 1._wp - impl_weight
+    impl_thermo_weight = 0.5_wp
+    expl_weight = 1._wp - impl_thermo_weight
     
     ! loop over all relevant constituents
     do jc=1,n_constituents
@@ -414,9 +412,9 @@ module mo_column_solvers
           do jl=1,n_layers-1
             if (vertical_flux_vector_impl(jl)>=0._wp) then
               c_vector(jl) = 0._wp
-              e_vector(jl) = -impl_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(jl)
+              e_vector(jl) = -impl_thermo_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(jl)
             else
-              c_vector(jl) = impl_weight*dtime/grid%volume(ji,jl+1)*vertical_flux_vector_impl(jl)
+              c_vector(jl) = impl_thermo_weight*dtime/grid%volume(ji,jl+1)*vertical_flux_vector_impl(jl)
               e_vector(jl) = 0._wp
             endif
           enddo
@@ -425,32 +423,33 @@ module mo_column_solvers
               if (vertical_flux_vector_impl(1)>=0._wp) then
                 d_vector(jl) = 1._wp
               else
-                d_vector(jl) = 1._wp - impl_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(1)
+                d_vector(jl) = 1._wp - impl_thermo_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(1)
               endif
             elseif (jl==n_layers) then
               if (vertical_flux_vector_impl(jl-1)>=0._wp) then
-                d_vector(jl) = 1._wp + impl_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(jl-1)
+                d_vector(jl) = 1._wp + impl_thermo_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(jl-1)
               else
                 d_vector(jl) = 1._wp
               endif
               ! precipitation
               ! snow
               if (jc<=n_condensed_constituents/4) then
-                d_vector(jl) = d_vector(jl) + impl_weight*snow_velocity*dtime*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
+                d_vector(jl) = d_vector(jl) + impl_thermo_weight*snow_velocity*dtime*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
               ! rain
               elseif (jc<=n_condensed_constituents/2) then
-                d_vector(jl) = d_vector(jl) + impl_weight*rain_velocity*dtime*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
+                d_vector(jl) = d_vector(jl) + impl_thermo_weight*rain_velocity*dtime*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
               ! clouds
               elseif (jc<=n_condensed_constituents) then
-                d_vector(jl) = d_vector(jl) + impl_weight*cloud_droplets_velocity*dtime*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
+                d_vector(jl) = d_vector(jl) + impl_thermo_weight*cloud_droplets_velocity*dtime*grid%area_v(ji,n_levels) &
+                               /grid%volume(ji,jl)
               endif
             else
               d_vector(jl) = 1._wp
               if (vertical_flux_vector_impl(jl-1)>=0._wp) then
-                d_vector(jl) = d_vector(jl) + impl_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(jl-1)
+                d_vector(jl) = d_vector(jl) + impl_thermo_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(jl-1)
               endif
               if (vertical_flux_vector_impl(jl)<0._wp) then
-                d_vector(jl) = d_vector(jl) - impl_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(jl)
+                d_vector(jl) = d_vector(jl) - impl_thermo_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(jl)
               endif
             endif
             ! the explicit component

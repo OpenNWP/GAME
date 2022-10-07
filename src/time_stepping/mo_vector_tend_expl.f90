@@ -6,7 +6,7 @@ module mo_vector_tend_expl
   ! In this module, the calculation of the explicit part of the momentum equation is managed.
   
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
-  use mo_constants,          only: c_d_v,c_d_p
+  use mo_constants,          only: impl_thermo_weight
   use mo_gradient_operators, only: grad_hor,grad_vert
   use mo_constituents_nml,   only: n_condensed_constituents
   use mo_inner_product,      only: inner_product
@@ -21,8 +21,6 @@ module mo_vector_tend_expl
   use mo_vorticities,        only: calc_pot_vort
   
   implicit none
-  
-  real(wp), parameter :: impl_thermo_weight = c_d_v/c_d_p
   
   contains
 

@@ -30,8 +30,9 @@ module mo_constants
   
   ! non-physical constants
   ! ----------------------
-  real(wp), parameter :: M_PI = 4._wp*atan(1._wp)    ! pi
-  real(wp), parameter :: EPSILON_SECURITY = 1e-10_wp ! security constant
+  real(wp), parameter :: M_PI = 4._wp*atan(1._wp)         ! pi
+  real(wp), parameter :: EPSILON_SECURITY = 1e-10_wp      ! security constant
+  real(wp), parameter :: impl_thermo_weight = c_d_v/c_d_p ! time stepping parameter
   
   ! some properties of the standard atmosphere
   ! ------------------------------------------
