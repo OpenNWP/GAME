@@ -387,10 +387,10 @@ module mo_column_solvers
               vertical_flux_vector_impl(jl) = vertical_flux_vector_impl(jl) - cloud_droplets_velocity
               vertical_flux_vector_rhs(jl) = vertical_flux_vector_rhs(jl) - cloud_droplets_velocity
             endif
-            ! multiplying the vertical velocity by the
+            ! multiplying the vertical velocity by the vertical areas
             vertical_flux_vector_impl(jl) = grid%area_v(ji,jl+1)*vertical_flux_vector_impl(jl)
             vertical_flux_vector_rhs(jl) = grid%area_v(ji,jl+1)*vertical_flux_vector_rhs(jl)
-            ! old density at the interface
+            ! old density and temperature at the interface
             if (vertical_flux_vector_rhs(jl)>=0._wp) then
               density_old_at_interface = state_old%rho(ji,jl+1,jc)
               temperature_old_at_interface = diag%temperature(ji,jl+1)
@@ -400,13 +400,13 @@ module mo_column_solvers
             endif
             vertical_flux_vector_rhs(jl) = density_old_at_interface*vertical_flux_vector_rhs(jl)
             vertical_enthalpy_flux_vector(jl) = c_p_cond(jc,temperature_old_at_interface) &
-            *temperature_old_at_interface*vertical_flux_vector_rhs(jl)
+                                                *temperature_old_at_interface*vertical_flux_vector_rhs(jl)
           enddo
           if (rk_step==1 .and. jc==1) then
             diag%condensates_sediment_heat(ji,n_layers) = 0._wp
           endif
           
-          ! Now we proceed to solving the vertical tridiagonal problems.
+          ! Now we proceed to solving the vertical tridiagonal problem.
           
           ! filling up the original vectors
           do jl=1,n_layers-1
@@ -471,7 +471,7 @@ module mo_column_solvers
               ! precipitation
               ! snow
               if (jc<=n_condensed_constituents/4) then
-                r_vector(jl) = r_vector(jl)-expl_weight*snow_velocity*dtime &
+                r_vector(jl) = r_vector(jl) - expl_weight*snow_velocity*dtime &
                 *state_old%rho(ji,n_layers,jc)*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
                 if (rk_step==1) then
                   diag%condensates_sediment_heat(ji,jl) = diag%condensates_sediment_heat(ji,jl) &
@@ -485,7 +485,7 @@ module mo_column_solvers
                 *state_old%rho(ji,n_layers,jc)*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
                 if (rk_step==1) then
                   diag%condensates_sediment_heat(ji,jl) = diag%condensates_sediment_heat(ji,jl) &
-                  -rain_velocity &
+                  - rain_velocity &
                   *diag%temperature(ji,n_layers)*c_p_cond(jc,diag%temperature(ji,n_layers)) &
                   *state_old%rho(ji,n_layers,jc)*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
                 endif
@@ -495,7 +495,7 @@ module mo_column_solvers
                 *state_old%rho(ji,n_layers,jc)*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
                 if (rk_step==1) then
                   diag%condensates_sediment_heat(ji,jl) = diag%condensates_sediment_heat(ji,jl) &
-                  -cloud_droplets_velocity &
+                  - cloud_droplets_velocity &
                   *diag%temperature(ji,n_layers)*c_p_cond(jc,diag%temperature(ji,n_layers)) &
                   *state_old%rho(ji,n_layers,jc)*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
                 endif
