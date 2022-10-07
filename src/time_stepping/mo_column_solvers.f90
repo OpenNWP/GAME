@@ -6,11 +6,11 @@ module mo_column_solvers
   ! This module contains the implicit vertical routines (implicit part of the HEVI scheme).
 
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
-  use mo_constants,        only: r_d,c_d_v,c_d_p,M_PI
+  use mo_constants,        only: r_d,c_d_v,c_d_p,M_PI,m_d,m_v
   use mo_grid_nml,         only: n_layers,n_cells,n_levels
   use mo_grid_setup,       only: z_t_const
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents,cloud_droplets_velocity,rain_velocity,&
-                                 snow_velocity
+                                 snow_velocity,lmoist
   use mo_grid_setup,       only: dtime,toa
   use mo_dictionary,       only: c_p_cond
   use mo_surface_nml,      only: nsoillays,lprog_soil_temp,lsfc_sensible_heat_flux
@@ -25,13 +25,13 @@ module mo_column_solvers
     
     ! This subroutine is the implicit vertical solver for the main fluid constituent.
     
-    type(t_state), intent(in)    :: state_old
-    type(t_state), intent(in)    :: state_new
-    type(t_state), intent(inout) :: state_target
-    type(t_state), intent(inout) :: state_tend
-    type(t_diag),  intent(inout) :: diag
-    type(t_grid),  intent(in)    :: grid
-    integer,       intent(in)    :: rk_step
+    type(t_state), intent(in)    :: state_old    ! state variables at the old time step
+    type(t_state), intent(in)    :: state_new    ! state variables at the new time step
+    type(t_state), intent(inout) :: state_target ! state to which to write the result
+    type(t_state), intent(inout) :: state_tend   ! state containing the partial temporal derivatives of the state variables
+    type(t_diag),  intent(inout) :: diag         ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid         ! grid quantities
+    integer,       intent(in)    :: rk_step      ! predictor-corrector step index
     
     ! local variables
     integer  :: ji,jl,soil_switch
@@ -66,6 +66,16 @@ module mo_column_solvers
         *(grid%theta_v_bg(ji,n_layers) + state_old%theta_v_pert(ji,n_layers))
         temperature_gas_lowest_layer_new = (grid%exner_bg(ji,n_layers) + state_new%exner_pert(ji,n_layers)) &
         *(grid%theta_v_bg(ji,n_layers) + state_new%theta_v_pert(ji,n_layers))
+        
+        ! converting the virtual temperature to the real temperature
+        if (lmoist) then
+          temperature_gas_lowest_layer_old = temperature_gas_lowest_layer_old &
+                                             /(1._wp+state_old%rho(ji,n_layers,n_condensed_constituents+2) &
+                                             /state_old%rho(ji,n_layers,n_condensed_constituents+1)*(m_d/m_v-1._wp))
+          temperature_gas_lowest_layer_new = temperature_gas_lowest_layer_new &
+                                             /(1._wp+state_new%rho(ji,n_layers,n_condensed_constituents+2) &
+                                             /state_new%rho(ji,n_layers,n_condensed_constituents+1)*(m_d/m_v-1._wp))
+        endif
         
         ! the sensible power flux density
         diag%power_flux_density_sensible(ji) = 0.5_wp*c_d_v*(state_new%rho(ji,n_layers,n_condensed_constituents+1) &
