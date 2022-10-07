@@ -403,7 +403,7 @@ module mo_dictionary
     real(wp), intent(in) :: air_pressure
     real(wp)             :: enhancement_factor_over_water
     
-    enhancement_factor_over_water = 0.99882_wp*exp(0.00000008_wp*air_pressure)
+    enhancement_factor_over_water = 1.00071_wp*exp(0.000000045_wp*air_pressure)
 
     end function enhancement_factor_over_water
   
@@ -452,7 +452,7 @@ module mo_dictionary
   
   function dsaturation_pressure_ice_huang_dT(temperature)
   
-    ! This function computes the derivative of the function saturation_pressure_ice_murphy.
+    ! This function computes the derivative of the function saturation_pressure_ice_huang.
   
     real(wp), intent(in) :: temperature                       ! temperature in Kelvin
     real(wp)             :: dsaturation_pressure_ice_huang_dT ! result
