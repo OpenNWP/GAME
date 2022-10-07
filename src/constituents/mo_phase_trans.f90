@@ -274,10 +274,10 @@ module mo_phase_trans
             ! calculating the latent heat flux density affecting the surface
             if (state%temperature_soil(ji,1)>=t_0) then
               diag%power_flux_density_latent(ji) = -phase_trans_heat(0,state%temperature_soil(ji,1)) &
-              *max(0._wp, diff_density_sfc/diag%scalar_flux_resistance(ji))
+              *max(0._wp,diff_density_sfc/diag%scalar_flux_resistance(ji))
             else
               diag%power_flux_density_latent(ji) = -phase_trans_heat(1,state%temperature_soil(ji,1)) &
-              *max(0._wp, diff_density_sfc/diag%scalar_flux_resistance(ji))
+              *max(0._wp,diff_density_sfc/diag%scalar_flux_resistance(ji))
             endif
           endif
         endif
