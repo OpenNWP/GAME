@@ -46,7 +46,7 @@ module mo_column_solvers
                 alpha_new(n_layers),beta_new(n_layers),gamma_new(n_layers),alpha(n_layers),beta(n_layers), &
                 gamma_(n_layers),density_interface_new,heat_flux_density_expl(nsoillays)
                     
-    impl_weight = 0.75_wp
+    impl_weight = c_d_v/c_d_p
     
     ! the maximum temperature change induced by radiation between two radiation time steps in the uppermost soil layer
     max_rad_temp_change = 25._wp

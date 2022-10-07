@@ -29,7 +29,6 @@ module mo_pgrad
     if (.not. ltotally_first_step) then
       !$omp parallel workshare
       diag%pgrad_acc_old_h = -diag%pressure_gradient_acc_neg_nl_h - diag%pressure_gradient_acc_neg_l_h
-      diag%pgrad_acc_old_v = -diag%pressure_gradient_acc_neg_nl_v - diag%pressure_gradient_acc_neg_l_v
       !$omp end parallel workshare
     endif
     
@@ -69,7 +68,6 @@ module mo_pgrad
     if (ltotally_first_step) then
       !$omp parallel workshare
       diag%pgrad_acc_old_h = -diag%pressure_gradient_acc_neg_nl_h - diag%pressure_gradient_acc_neg_l_h
-      diag%pgrad_acc_old_v = -diag%pressure_gradient_acc_neg_nl_v - diag%pressure_gradient_acc_neg_l_v
       !$omp end parallel workshare
     endif
     

@@ -23,14 +23,14 @@ module mo_definitions
   
   type t_grid
     
-    real(wp), allocatable :: dx(:,:)
-    real(wp), allocatable :: dz(:,:)
-    real(wp), allocatable :: volume(:,:)
-    real(wp), allocatable :: area_h(:,:)
-    real(wp), allocatable :: area_v(:,:)
-    real(wp), allocatable :: z_scalar(:,:)
-    real(wp), allocatable :: z_vector_h(:,:)
-    real(wp), allocatable :: z_vector_v(:,:)
+    real(wp), allocatable :: dx(:,:)                ! horizontal normal distance
+    real(wp), allocatable :: dz(:,:)                ! vertical normal distance
+    real(wp), allocatable :: volume(:,:)            ! volumes of the grid boxes
+    real(wp), allocatable :: area_h(:,:)            ! horizontal areas (areas with horizontal normal)
+    real(wp), allocatable :: area_v(:,:)            ! vertical areas (areas with vertical normal)
+    real(wp), allocatable :: z_scalar(:,:)          ! z-coordinates of the scalar gridpoints
+    real(wp), allocatable :: z_vector_h(:,:)        ! z-coordinates of the horizontal vector points
+    real(wp), allocatable :: z_vector_v(:,:)        ! z-coordinates of the vertical vector points
     real(wp), allocatable :: gravity_potential(:,:) ! gravity potential
     real(wp), allocatable :: gravity_m_v(:,:)       ! vertical acceleration due to gravity
     real(wp), allocatable :: slope(:,:)
@@ -132,8 +132,7 @@ module mo_definitions
     real(wp), allocatable :: viscosity_rhombi(:,:)
     real(wp), allocatable :: viscosity_triangles(:,:)
     real(wp), allocatable :: vert_hor_viscosity(:,:)
-    real(wp), allocatable :: tke(:,:)
-    real(wp), allocatable :: pgrad_acc_old_v(:,:)
+    real(wp), allocatable :: tke(:,:)                              ! specific turbulent kinetic energy (J/kg)
     real(wp), allocatable :: pgrad_acc_old_h(:,:)
     real(wp), allocatable :: pressure_gradient_acc_neg_nl_h(:,:)
     real(wp), allocatable :: pressure_gradient_acc_neg_nl_v(:,:)
