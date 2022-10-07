@@ -33,7 +33,7 @@ module mo_momentum_diff_diss
     
     ! Preparation of kinematic properties of the wind field
     ! -----------------------------------------------------
-    ! calculating the divergence of the wind field
+    ! calculating the divergence of the horizontal wind field
     call div_h(state%wind_h,diag%wind_div,grid)
     ! calculating the relative vorticity of the wind field
     call calc_rel_vort(state,diag,grid)
@@ -125,7 +125,7 @@ module mo_momentum_diff_diss
         diag%friction_acc_h(ji,jl) = diag%friction_acc_h(ji,jl) &
         + (diag%vert_hor_viscosity(ji,jl)*diag%dv_hdz(ji,jl)-diag%vert_hor_viscosity(ji,jl+1)*diag%dv_hdz(ji,jl+1))/delta_z &
         /(0.5_wp*(sum(state%rho(grid%from_cell(ji),jl,1:n_condensed_constituents+1)) &
-        + sum(state%rho(grid%to_cell(jl),jl,1:n_condensed_constituents+1))))
+        + sum(state%rho(grid%to_cell(ji),jl,1:n_condensed_constituents+1))))
       enddo
     enddo
     

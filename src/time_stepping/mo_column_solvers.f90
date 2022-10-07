@@ -349,7 +349,7 @@ module mo_column_solvers
                 vertical_flux_vector_impl(n_layers-1),vertical_flux_vector_rhs(n_layers-1),&
                 vertical_enthalpy_flux_vector(n_layers-1),solution_vector(n_layers)
           
-    impl_weight = 0.5_wp
+    impl_weight = 0.75_wp
     expl_weight = 1._wp - impl_weight
     
     ! loop over all relevant constituents

@@ -55,7 +55,7 @@ module mo_eff_diff_coeffs
                                              + diag%viscosity(grid%to_cell(ji),jl))
         
         ! multiplying by the mass density of the gas phase
-       diag%viscosity_rhombi(ji,jl) = 0.5_wp*(state%rho(grid%from_cell(ji),jl,n_condensed_constituents+1) &
+        diag%viscosity_rhombi(ji,jl) = 0.5_wp*(state%rho(grid%from_cell(ji),jl,n_condensed_constituents+1) &
                        + state%rho(grid%to_cell(ji),jl,n_condensed_constituents+1))*diag%viscosity_rhombi(ji,jl)
         
       enddo
@@ -100,8 +100,7 @@ module mo_eff_diff_coeffs
     do ji=1,n_cells
       do jl=1,n_layers
         ! multiplying by the density
-        diag%viscosity(ji,jl) = state%rho(ji,jl,n_condensed_constituents+1) &
-                                *tke2hor_diff_coeff(diag%tke(ji,jl),eff_hor_res)
+        diag%viscosity(ji,jl) = state%rho(ji,jl,n_condensed_constituents+1)*diag%viscosity(ji,jl)
       enddo
     enddo
     !$omp end parallel do

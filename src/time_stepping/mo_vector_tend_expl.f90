@@ -48,7 +48,7 @@ module mo_vector_tend_expl
       call vorticity_flux(diag,grid)
       ! Kinetic energy is prepared for the gradient term of the Lamb transformation.
       call inner_product(state%wind_h,state%wind_v,state%wind_h,state%wind_v,diag%v_squared,grid)
-      ! Taking the gradient of the kinetic energy
+      ! computing the gradient of the kinetic energy
       call grad_vert(diag%v_squared,diag%v_squared_grad_v,grid)
       call grad_hor(diag%v_squared,diag%v_squared_grad_h,diag%v_squared_grad_v,grid)
     endif
