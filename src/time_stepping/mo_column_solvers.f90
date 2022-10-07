@@ -334,23 +334,23 @@ module mo_column_solvers
   
     ! This subroutine contains the vertical advection of mass densities (of tracers) with 3-band matrices.
     
-    type(t_state), intent(in)    :: state_old
-    type(t_state), intent(inout) :: state_new
-    type(t_state), intent(inout) :: state_tend
-    type(t_diag),  intent(inout) :: diag
-    type(t_grid),  intent(in)    :: grid
-    integer,       intent(in)    :: rk_step
+    type(t_state), intent(in)    :: state_old  ! state variables at the old time step
+    type(t_state), intent(inout) :: state_new  ! state variables at the new time step
+    type(t_state), intent(inout) :: state_tend ! state containing the tendencies of the state variables
+    type(t_diag),  intent(inout) :: diag       ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid       ! grid quantities
+    integer,       intent(in)    :: rk_step    ! predictor-corrector substep
     
     ! local variables
     integer  :: ji,jl,jc,base_index
-    real(wp) :: impl_thermo_weight,expl_weight,density_old_at_interface,temperature_old_at_interface,&
+    real(wp) :: impl_weight,expl_weight,density_old_at_interface,temperature_old_at_interface,&
                 ! for meanings of these vectors look into the definition of the function thomas_algorithm
                 c_vector(n_layers-1),d_vector(n_layers),e_vector(n_layers-1),r_vector(n_layers),&
                 vertical_flux_vector_impl(n_layers-1),vertical_flux_vector_rhs(n_layers-1),&
                 vertical_enthalpy_flux_vector(n_layers-1),solution_vector(n_layers)
           
-    impl_thermo_weight = 0.5_wp
-    expl_weight = 1._wp - impl_thermo_weight
+    impl_weight = 0.5_wp
+    expl_weight = 1._wp - impl_weight
     
     ! loop over all relevant constituents
     do jc=1,n_constituents
@@ -412,9 +412,9 @@ module mo_column_solvers
           do jl=1,n_layers-1
             if (vertical_flux_vector_impl(jl)>=0._wp) then
               c_vector(jl) = 0._wp
-              e_vector(jl) = -impl_thermo_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(jl)
+              e_vector(jl) = -impl_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(jl)
             else
-              c_vector(jl) = impl_thermo_weight*dtime/grid%volume(ji,jl+1)*vertical_flux_vector_impl(jl)
+              c_vector(jl) = impl_weight*dtime/grid%volume(ji,jl+1)*vertical_flux_vector_impl(jl)
               e_vector(jl) = 0._wp
             endif
           enddo
@@ -423,33 +423,33 @@ module mo_column_solvers
               if (vertical_flux_vector_impl(1)>=0._wp) then
                 d_vector(jl) = 1._wp
               else
-                d_vector(jl) = 1._wp - impl_thermo_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(1)
+                d_vector(jl) = 1._wp - impl_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(1)
               endif
             elseif (jl==n_layers) then
               if (vertical_flux_vector_impl(jl-1)>=0._wp) then
-                d_vector(jl) = 1._wp + impl_thermo_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(jl-1)
+                d_vector(jl) = 1._wp + impl_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(jl-1)
               else
                 d_vector(jl) = 1._wp
               endif
               ! precipitation
               ! snow
               if (jc<=n_condensed_constituents/4) then
-                d_vector(jl) = d_vector(jl) + impl_thermo_weight*snow_velocity*dtime*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
+                d_vector(jl) = d_vector(jl) + impl_weight*snow_velocity*dtime*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
               ! rain
               elseif (jc<=n_condensed_constituents/2) then
-                d_vector(jl) = d_vector(jl) + impl_thermo_weight*rain_velocity*dtime*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
+                d_vector(jl) = d_vector(jl) + impl_weight*rain_velocity*dtime*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
               ! clouds
               elseif (jc<=n_condensed_constituents) then
-                d_vector(jl) = d_vector(jl) + impl_thermo_weight*cloud_droplets_velocity*dtime*grid%area_v(ji,n_levels) &
+                d_vector(jl) = d_vector(jl) + impl_weight*cloud_droplets_velocity*dtime*grid%area_v(ji,n_levels) &
                                /grid%volume(ji,jl)
               endif
             else
               d_vector(jl) = 1._wp
               if (vertical_flux_vector_impl(jl-1)>=0._wp) then
-                d_vector(jl) = d_vector(jl) + impl_thermo_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(jl-1)
+                d_vector(jl) = d_vector(jl) + impl_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(jl-1)
               endif
               if (vertical_flux_vector_impl(jl)<0._wp) then
-                d_vector(jl) = d_vector(jl) - impl_thermo_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(jl)
+                d_vector(jl) = d_vector(jl) - impl_weight*dtime/grid%volume(ji,jl)*vertical_flux_vector_impl(jl)
               endif
             endif
             ! the explicit component
