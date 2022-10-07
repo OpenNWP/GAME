@@ -32,7 +32,7 @@ module mo_pgrad
       !$omp end parallel workshare
     endif
     
-    ! multiplying c_p by the full potential tempertature
+    ! multiplying c_d_p by the full virtual potential tempertature
     !$omp parallel workshare
     diag%scalar_placeholder = c_d_p*(grid%theta_v_bg+state%theta_v_pert)
     !$omp end parallel workshare
