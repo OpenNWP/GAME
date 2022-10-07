@@ -76,7 +76,7 @@ module mo_column_solvers
         ! contribution of sensible heat to rhotheta_v
         state_tend%rhotheta_v(ji,n_layers) = state_tend%rhotheta_v(ji,n_layers) &
         - grid%area_v(ji,n_levels)*diag%power_flux_density_sensible(ji) &
-        /((grid%exner_bg(ji,n_layers) + state_new%exner_pert(ji,n_layers))*c_d_p)/grid%volume(ji,n_layers-1)
+        /((grid%exner_bg(ji,n_layers) + state_new%exner_pert(ji,n_layers))*c_d_p)/grid%volume(ji,n_layers)
       enddo
       !$omp end parallel do
     endif
@@ -131,7 +131,7 @@ module mo_column_solvers
         (alpha(jl)*state_tend%rho(ji,jl,n_condensed_constituents+1) + beta(jl)*state_tend%rhotheta_v(ji,jl))
         ! explicit Exner pressure perturbation
         exner_pert_expl(jl) = state_old%exner_pert(ji,jl) &
-                             + dtime*grid%volume(ji,jl)*gamma_(jl)*state_tend%rhotheta_v(ji,jl)
+                              + dtime*grid%volume(ji,jl)*gamma_(jl)*state_tend%rhotheta_v(ji,jl)
       enddo
       
       ! determining the interface values
