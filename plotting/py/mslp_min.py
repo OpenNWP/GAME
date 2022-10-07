@@ -34,7 +34,7 @@ for day_index in range(len(minima)):
 fig_size = 6
 fig = plt.figure(figsize = (fig_size, fig_size))
 plt.title("MSLP minimum")
-plt.xlabel("time since init / days")
+plt.xlabel("time since initialization / days")
 plt.ylabel("Global MSLP minimum / hPa")
 plt.plot(0.01*minima)
 plt.xlim([0, len(minima) - 1])

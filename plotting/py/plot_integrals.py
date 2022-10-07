@@ -20,7 +20,7 @@ fig_size = 6
 if write_out_dry_mass_integral == 1:
 	fig = plt.figure(figsize = (fig_size, fig_size))
 	plt.title("Masses")
-	plt.ylabel("change relative to init value / %")
+	plt.ylabel("change relative to initial value / %")
 	data = np.genfromtxt(output_dir + "/masses")
 	time_rescale = 1/3600
 	time_unit = "hr"
@@ -28,7 +28,7 @@ if write_out_dry_mass_integral == 1:
 		time_rescale = 1/86400
 		time_unit = "days"
 	time_vector = time_rescale*(data[:, 0] - data[0, 0])
-	plt.xlabel("time since init / " + time_unit)
+	plt.xlabel("time since initialization / " + time_unit)
 	plt.xlim([min(time_vector), max(time_vector)])
 	data = np.genfromtxt(output_dir + "/masses")
 	no_of_constituents = len(data[0, :]) - 1
@@ -57,7 +57,7 @@ if write_out_rhotheta_integral == 1:
 	ax = plt.axes()
 	ax.grid()
 	plt.title("Rho x theta")
-	plt.ylabel("change relative to init value / %")
+	plt.ylabel("change relative to initial value / %")
 	data = np.genfromtxt(output_dir + "/potential_temperature_density")
 	time_rescale = 1/3600
 	time_unit = "hr"
@@ -65,7 +65,7 @@ if write_out_rhotheta_integral == 1:
 		time_rescale = 1/86400
 		time_unit = "days"
 	time_vector = time_rescale*(data[:, 0] - data[0, 0])
-	plt.xlabel("time since init / " + time_unit)
+	plt.xlabel("time since initialization / " + time_unit)
 	plt.xlim([min(time_vector), max(time_vector)])
 	entropy_vector = data[:, 1]
 	plt.plot(time_vector, 100.0*(entropy_vector/entropy_vector[0] - 1.0))
@@ -75,7 +75,7 @@ if write_out_rhotheta_integral == 1:
 if write_out_energy_integral == 1:
 	fig = plt.figure(figsize = (fig_size, fig_size))
 	plt.title("Energy")
-	plt.ylabel("change relative to init value of total energy / %")
+	plt.ylabel("change relative to initial value of total energy / %")
 	data = np.genfromtxt(output_dir + "/energy")
 	time_rescale = 1/3600
 	time_unit = "hr"
@@ -83,7 +83,7 @@ if write_out_energy_integral == 1:
 		time_rescale = 1/86400
 		time_unit = "days"
 	time_vector = time_rescale*(data[:, 0] - data[0, 0])
-	plt.xlabel("time since init / " + time_unit)
+	plt.xlabel("time since initialization / " + time_unit)
 	plt.xlim([min(time_vector), max(time_vector)])
 	kinetic_vector = data[:, 1]
 	potential_vector = data[:, 2]
