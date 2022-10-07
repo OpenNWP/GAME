@@ -71,11 +71,9 @@ module mo_write_output
     real(wp),      intent(in) :: time_since_init ! the time since model initialization
     
     ! local variables
-    integer               :: ji,jl,const_id
+    integer               :: const_id
     real(wp)              :: global_integral,kinetic_integral,potential_integral,internal_integral
     real(wp), allocatable :: int_energy_density(:,:),pot_energy_density(:,:),e_kin_density(:,:)
-    
-    global_integral = 0._wp
     
     ! masses
     if (time_since_init==0._wp) then
@@ -85,12 +83,9 @@ module mo_write_output
     endif
     write(1,fmt="(F20.3)",advance="no") time_since_init
     do const_id=1,n_constituents
-      global_integral = 0._wp
-      do ji=1,n_cells
-        do jl=1,n_layers
-          global_integral = global_integral + state%rho(ji,jl,const_id)*grid%volume(ji,jl)
-        enddo
-      enddo
+      !$omp parallel workshare
+      global_integral = sum(state%rho(:,:,const_id)*grid%volume)
+      !$omp end parallel workshare
       if (const_id==n_constituents) then
         write(1,fmt="(F30.3)") global_integral
       else
@@ -105,12 +100,9 @@ module mo_write_output
     else
       open(1,file="potential_temperature_density",status="old",position="append",action="write")
     endif
-    global_integral = 0._wp
-    do ji=1,n_cells
-      do jl=1,n_layers
-        global_integral = global_integral + state%rhotheta_v(ji,jl)*grid%volume(ji,jl)
-      enddo
-    enddo
+    !$omp parallel workshare
+    global_integral = sum(state%rhotheta_v*grid%volume)
+    !$omp end parallel workshare
     write(1,fmt="(F20.3,F30.3)") time_since_init,global_integral
     close(1)
         
@@ -122,56 +114,28 @@ module mo_write_output
     endif
     allocate(e_kin_density(n_cells,n_layers))
     call inner_product(state%wind_h,state%wind_v,state%wind_h,state%wind_v,e_kin_density,grid)
-    !$omp parallel do private(ji,jl)
-    do ji=1,n_cells
-      do jl=1,n_layers
-        e_kin_density(ji,jl) = state%rho(ji,jl,n_condensed_constituents+1)*e_kin_density(ji,jl)
-      enddo
-    enddo
-    !$omp end parallel do
-    kinetic_integral = 0._wp
-    do ji=1,n_cells
-      do jl=1,n_layers
-        kinetic_integral = kinetic_integral + e_kin_density(ji,jl)*grid%volume(ji,jl)
-      enddo
-    enddo
+    !$omp parallel workshare
+    e_kin_density = state%rho(:,:,n_condensed_constituents+1)*e_kin_density
+    kinetic_integral = sum(e_kin_density*grid%volume)
+    !$omp end parallel workshare
     deallocate(e_kin_density)
     allocate(pot_energy_density(n_cells,n_layers))
-    !$omp parallel do private(ji,jl)
-    do ji=1,n_cells
-      do jl=1,n_layers
-        pot_energy_density(ji,jl) = state%rho(ji,jl,n_condensed_constituents+1)*grid%gravity_potential(ji,jl)
-      enddo
-    enddo
-    !$omp end parallel do
-    potential_integral = 0._wp
-    do ji=1,n_cells
-      do jl=1,n_layers
-        potential_integral = potential_integral + pot_energy_density(ji,jl)*grid%volume(ji,jl)
-      enddo
-     enddo
+    !$omp parallel workshare
+    pot_energy_density = state%rho(:,:,n_condensed_constituents+1)*grid%gravity_potential
+    potential_integral = sum(pot_energy_density*grid%volume)
+    !$omp end parallel workshare
     deallocate(pot_energy_density)
     allocate(int_energy_density(n_cells,n_layers))
-    !$omp parallel do private(ji,jl)
-    do ji=1,n_cells
-      do jl=1,n_layers
-        int_energy_density(ji,jl) = state%rho(ji,jl,n_condensed_constituents+1)*diag%temperature(ji,jl)
-      enddo
-    enddo
-    !$omp end parallel do
-    internal_integral = 0._wp
-    do ji=1,n_cells
-      do jl=1,n_layers
-        internal_integral = internal_integral+int_energy_density(ji,jl)*grid%volume(ji,jl)
-      enddo
-    enddo
-    write(1,fmt="(F20.3,F30.3,F30.3,F30.3)") time_since_init,0.5_wp*kinetic_integral,potential_integral, &
-                                             c_d_v*internal_integral
+    !$omp parallel workshare
+    int_energy_density = c_d_v*state%rho(:,:,n_condensed_constituents+1)*diag%temperature
+    internal_integral = sum(int_energy_density*grid%volume)
+    !$omp end parallel workshare
+    write(1,fmt="(F20.3,F30.3,F30.3,F30.3)") time_since_init,0.5_wp*kinetic_integral,potential_integral,internal_integral
     deallocate(int_energy_density)
     close(1)
     
   end subroutine write_out_integrals
-
+  
   subroutine write_out(state,diag,grid,wind_h_lowest_layer_array,t_init,t_write,ltotally_first_step)
   
     ! This subroutine is the central subroutine for writing the output.
