@@ -25,7 +25,8 @@ module mo_vertical_grid
     real(wp), intent(in)  :: max_oro                    ! maximum of the orography
     
     ! local variables
-    integer  :: ji,jl
+    integer  :: ji ! cell index
+    integer  :: jl ! vertical index
     real(wp) :: A,B,sigma_z,z_rel,z_vertical_vector_pre(n_levels)
     
     ! the heights are defined according to z_k = A_k + B_k*oro with A_0 = toa, A_{N_LEVELS} = 0, B_0 = 0, B_{N_LEVELS} = 1
@@ -83,13 +84,15 @@ module mo_vertical_grid
 
     ! This subroutine computes the volumes of the grid boxes.
   
-    real(wp), intent(out) :: volume(n_cells,n_layers)     ! the volumes of teh grid boxes
+    real(wp), intent(out) :: volume(n_cells,n_layers)     ! the volumes of the grid boxes
     real(wp), intent(in)  :: z_vector_v(n_cells,n_levels) ! z-coordinates of vertical vector points
     real(wp), intent(in)  :: area_v(n_cells,n_levels)     ! vertical areas
   
     ! local variables
-    integer  :: ji,jl
-    real(wp) :: radius_1,radius_2
+    integer  :: ji       ! cell index
+    integer  :: jl       ! layer index
+    real(wp) :: radius_1 ! radius of the lower boundary of the grid box
+    real(wp) :: radius_2 ! radius of the upper boundary of the grid box
     
     !$omp parallel do private(ji,jl,radius_1,radius_2)
     do ji=1,n_cells
@@ -107,8 +110,8 @@ module mo_vertical_grid
   
     ! This function returns the temperature in the standard atmosphere.
     
-    real(wp), intent(in) :: z_height
-    real(wp)             :: standard_temp
+    real(wp), intent(in) :: z_height      ! height above MSL (m)
+    real(wp)             :: standard_temp ! result
     
     ! local variables
     real(wp) :: tropo_temp_standard
