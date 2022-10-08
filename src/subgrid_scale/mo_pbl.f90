@@ -27,8 +27,8 @@ module mo_pbl
     type(t_grid),  intent(in)    :: grid  ! grid properties
   
     ! local variables
-    integer  :: ji ! horizontal loop index
-    integer  :: jl ! layer loop index
+    integer  :: ji ! edge index
+    integer  :: jl ! layer index
     real(wp) :: flux_resistance,wind_speed_lowest_layer,z_agl,layer_thickness,roughness_length_value, &
                 monin_obukhov_length_value,wind_rescale_factor,bndr_lr_visc_max,sigma_b,standard_vert_lapse_rate, &
                 exner_from,exner_to,pressure_from,pressure_to,pressure,temp_lowest_layer, pressure_value_lowest_layer, &
@@ -42,7 +42,7 @@ module mo_pbl
       
         ! averaging some quantities to the vector point
         wind_speed_lowest_layer = 0.5_wp*((diag%v_squared(grid%from_cell(ji),n_layers))**0.5_wp &
-        + (diag%v_squared(grid%to_cell(ji),n_layers))**0.5_wp)
+                                        + (diag%v_squared(grid%to_cell(ji),n_layers))**0.5_wp)
         z_agl = grid%z_vector_h(ji,n_layers) - 0.5_wp*(grid%z_vector_v(grid%from_cell(ji),n_levels) &
                                                      + grid%z_vector_v(grid%to_cell(ji),n_levels))
         layer_thickness = 0.5_wp*(grid%layer_thickness(grid%from_cell(ji),n_layers) &
@@ -63,7 +63,7 @@ module mo_pbl
       
         ! adding the momentum flux into the surface as an acceleration
         diag%friction_acc_h(ji,n_layers) = diag%friction_acc_h(ji,n_layers) &
-        - wind_rescale_factor*state%wind_h(ji,n_layers)/flux_resistance/layer_thickness
+                                           - wind_rescale_factor*state%wind_h(ji,n_layers)/flux_resistance/layer_thickness
       enddo
       !$omp end parallel do
     endif
@@ -114,7 +114,7 @@ module mo_pbl
           sigma = pressure/pressure_sfc
           ! finally calculating the friction acceleration
           diag%friction_acc_h(ji,jl) = diag%friction_acc_h(ji,jl) &
-          - bndr_lr_visc_max*max(0._wp,(sigma-sigma_b)/(1._wp-sigma_b))*state%wind_h(ji,jl)
+                                       - bndr_lr_visc_max*max(0._wp,(sigma-sigma_b)/(1._wp-sigma_b))*state%wind_h(ji,jl)
         enddo
       enddo
       !$omp end parallel do
@@ -131,7 +131,7 @@ module mo_pbl
     type(t_grid),  intent(inout) :: grid  ! grid properties
     
     ! local variables
-    integer  :: ji ! cell loop index
+    integer  :: ji ! cell index
     real(wp) :: u_lowest_layer,u10,z_agl,theta_v_lowest_layer,theta_v_second_layer, &
                 dz,dtheta_v_dz,w_pert,theta_v_pert_value,w_pert_theta_v_pert_avg,w_theta_v_corr
     

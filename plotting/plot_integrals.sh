@@ -4,7 +4,7 @@
 # Github repository: https://github.com/OpenNWP/GAME
 
 game_home_dir=~/code/GAME # the home directory of GAME
-run_id=ullrich # the run id which you want to plot
+run_id=ullrich # the run ID which you want to plot
 output_dir=$game_home_dir/output/$run_id # the directory where the grib files are stored
 fig_save_path=$game_home_dir/figs # the directory in which the figures will be saved
 plot_mass_dry_integral=1 # set this to one if you want to plot the dry mass of the atmospheric domain
