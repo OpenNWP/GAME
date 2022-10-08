@@ -47,7 +47,7 @@ module mo_various_helpers
     integer              :: find_min_index_exclude
     
     ! local variables
-    integer        :: ji
+    integer  :: ji
     real(wp) :: current_min
     
     current_min = maxval(vector) + 1._wp

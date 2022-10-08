@@ -84,9 +84,6 @@ module mo_phys_sfc_properties
       ! setting the unfiltered orography
       !$omp parallel do private(ji,jk,lat_index,lon_index,lat_distance_vector,lon_distance_vector)
       do ji=1,n_cells
-        ! default
-        oro(ji) = 0._wp
-        oro_unfiltered(ji) = 0._wp
     
         allocate(lat_distance_vector(n_lat_points))
         allocate(lon_distance_vector(n_lon_points))
@@ -121,15 +118,11 @@ module mo_phys_sfc_properties
       do ji=1,n_cells
         ! finding the distance to the other grid points
         do jk=1,n_cells
-          distance_vector(jk) = calculate_distance_h(lat_c(ji),lon_c(ji), &
-                                                     lat_c(jk),lon_c(jk),1._wp)
+          distance_vector(jk) = calculate_distance_h(lat_c(ji),lon_c(ji),lat_c(jk),lon_c(jk),1._wp)
         enddo
+        min_indices_vector = 0
         do jk=1,n_avg_points
-          min_indices_vector(jk) = 0
-        enddo
-        do jk=1,n_avg_points
-          min_indices_vector(jk) = find_min_index_exclude(distance_vector,n_cells, &
-                                                          min_indices_vector,n_avg_points)
+          min_indices_vector(jk) = find_min_index_exclude(distance_vector,n_cells,min_indices_vector,n_avg_points)
         enddo
         oro(ji) = 0._wp
         do jk=1,n_avg_points
