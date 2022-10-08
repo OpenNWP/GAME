@@ -64,7 +64,7 @@ rad_config=0
 lprog_soil_temp=.false.
 lsfc_phase_trans=.false.
 lsfc_sensible_heat_flux=.false.
-pbl_scheme=0
+pbl_scheme=1
 /
 
 EOF

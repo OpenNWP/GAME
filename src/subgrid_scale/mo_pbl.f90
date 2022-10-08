@@ -33,7 +33,8 @@ module mo_pbl
                 monin_obukhov_length_value,wind_rescale_factor,bndr_lr_visc_max,sigma_b,standard_vert_lapse_rate, &
                 exner_from,exner_to,pressure_from,pressure_to,pressure,temp_lowest_layer, pressure_value_lowest_layer, &
                 temp_surface,surface_p_factor,pressure_sfc_from,pressure_sfc_to,pressure_sfc,sigma
-  
+    
+    ! NWP case
     if (pbl_scheme==1) then
       !$omp parallel do private(ji,flux_resistance,wind_speed_lowest_layer,z_agl, &
       !$omp layer_thickness,monin_obukhov_length_value,wind_rescale_factor,roughness_length_value)
