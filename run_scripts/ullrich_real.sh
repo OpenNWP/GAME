@@ -37,7 +37,7 @@ start_hour=0
 /
 
 &io
-ideal_input_id=2
+ideal_input_id=1
 lwrite_integrals=.true.
 time_to_next_analysis_min=-1
 write_out_interval_min=1440
@@ -52,8 +52,8 @@ lmom_diff_h=.true.
 lmom_diff_v=.true.
 ltemp_diff_h=.true.
 ltemp_diff_v=.true.
-lmass_diff_h=.false.
-lmass_diff_v=.false.
+lmass_diff_h=.true.
+lmass_diff_v=.true.
 /
 
 &rad
