@@ -18,15 +18,17 @@ module mo_averaging
     ! This function calculates (the vertical contravariant component - the vertical covariant component)
     ! of a vector field out of the horizontal contravariant components.
     
-    ! Attention: adjacent_signs appears twice, thus does not need to be taken into account.
-    
     real(wp),     intent(in) :: vector_field_h(n_edges,n_layers) ! the vector field to operate with
-    integer,      intent(in) :: ji,jl                            ! spatial indices
+    integer,      intent(in) :: ji                               ! cell index
+    integer,      intent(in) :: jl                               ! level index
     type(t_grid), intent(in) :: grid                             ! grid quantities
     real(wp)                 :: vertical_contravariant_corr      ! the result
     
     ! local variables
-    integer :: jm,n_edges_of_cell
+    integer :: jm              ! edge of cell index
+    integer :: n_edges_of_cell ! number of edges of the given cell
+    
+    ! Attention: adjacent_signs appears twice, thus does not need to be taken into account.
     
     vertical_contravariant_corr = 0._wp
     
@@ -62,7 +64,8 @@ module mo_averaging
     ! This function reconstructs the vertical vector component at edge ji in layer jl.
     
     real(wp),     intent(in) :: vector_field_v(n_cells,n_levels) ! vector field which to reconstruct
-    integer,      intent(in) :: ji,jl                            ! spatial indices
+    integer,      intent(in) :: ji                               ! edge index
+    integer,      intent(in) :: jl                               ! layer index
     type(t_grid), intent(in) :: grid                             ! grid quantities
     real(wp)                 :: remap_ver2hor                    ! the result
     
@@ -87,7 +90,8 @@ module mo_averaging
     
     real(wp),     intent(in) :: vector_field_h(n_edges,n_layers) ! the horizontal vector field to operate with
     real(wp),     intent(in) :: vector_field_v(n_cells,n_levels) ! the vertical vector field to operate with
-    integer,      intent(in) :: ji,jl                            ! spatial indices
+    integer,      intent(in) :: ji                               ! edge index
+    integer,      intent(in) :: jl                               ! layer index
     type(t_grid), intent(in) :: grid                             ! grid quantities
     real(wp)                 :: horizontal_covariant             ! the result
     

@@ -2,9 +2,9 @@
 ! Github repository: https:!github.com/OpenNWP/GAME
 
 module mo_vorticities
-
+  
   ! Here, vorticities are calculated. The word "vorticity" hereby refers to both vertical and tangential components.
-
+  
   use mo_definitions, only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,    only: n_layers,n_edges,n_triangles,n_cells,n_edges,n_levels
   use mo_grid_setup,  only: n_flat_layers,radius,toa
@@ -13,7 +13,7 @@ module mo_vorticities
   implicit none
   
   contains
-
+  
   subroutine calc_pot_vort(state,density_field,diag,grid)
   
     ! This subroutine calculates the potential vorticity.
@@ -25,8 +25,10 @@ module mo_vorticities
     type(t_grid),  intent(in)    :: grid                            ! grid quantities
     
     ! local variables
-    integer  :: ji,jl,jm
-    real(wp) :: density_value
+    integer  :: ji            ! edge index
+    integer  :: jl            ! layer or level index
+    integer  :: jm            ! interpolation cell index
+    real(wp) :: density_value ! mass density value
     
     call calc_rel_vort(state,diag,grid)
     ! pot_vort is a misuse of name here
@@ -138,7 +140,7 @@ module mo_vorticities
         
         ! dividing by the area (Stokes' Theorem)
         diag%rel_vort_on_triangles(ji,jl) = diag%rel_vort_on_triangles(ji,jl)/grid%area_dual_v(ji,jl)
-      
+        
       enddo
     enddo
     !$omp end parallel do
@@ -154,8 +156,8 @@ module mo_vorticities
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer  :: ji ! horizontal loop index
-    integer  :: jl ! vertical loop index
+    integer  :: ji ! edge index
+    integer  :: jl ! level index
     
     ! calling the subroutine which computes the relative vorticity on triangles
     call calc_rel_vort_on_triangles(state,diag,grid)
@@ -218,7 +220,7 @@ module mo_vorticities
       diag%pot_vort_v(:,jl) = diag%rel_vort_v(:,jl) + grid%f_vec_v
     enddo
     !$omp end parallel do
-  
+    
   end subroutine add_f_to_rel_vort
   
 end module mo_vorticities

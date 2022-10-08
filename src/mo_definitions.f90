@@ -33,9 +33,9 @@ module mo_definitions
     real(wp), allocatable :: z_vector_v(:,:)        ! z-coordinates of the vertical vector points
     real(wp), allocatable :: gravity_potential(:,:) ! gravity potential
     real(wp), allocatable :: gravity_m_v(:,:)       ! vertical acceleration due to gravity
-    real(wp), allocatable :: slope(:,:)
-    real(wp), allocatable :: theta_v_bg(:,:)
-    real(wp), allocatable :: exner_bg(:,:)
+    real(wp), allocatable :: slope(:,:)             ! slope of zeta coordinate surfaces
+    real(wp), allocatable :: theta_v_bg(:,:)        ! background virtual potential temperature
+    real(wp), allocatable :: exner_bg(:,:)          ! background Exner pressure
     real(wp), allocatable :: exner_bg_grad_h(:,:)
     real(wp), allocatable :: exner_bg_grad_v(:,:)
     real(wp), allocatable :: layer_thickness(:,:)
@@ -101,8 +101,8 @@ module mo_definitions
     real(wp), allocatable :: pot_vort_v(:,:)
     real(wp), allocatable :: temperature(:,:)
     real(wp), allocatable :: c_g_p_field(:,:)
-    real(wp), allocatable :: v_squared(:,:)
-    real(wp), allocatable :: wind_div(:,:)
+    real(wp), allocatable :: v_squared(:,:)                        ! squared velocity
+    real(wp), allocatable :: wind_div(:,:)                         ! divergence of the wind field
     real(wp), allocatable :: curl_of_vorticity_h(:,:)
     real(wp), allocatable :: scalar_placeholder(:,:)
     real(wp), allocatable :: vector_placeholder_h(:,:)
@@ -115,9 +115,9 @@ module mo_definitions
     real(wp), allocatable :: roughness_velocity(:)
     real(wp), allocatable :: monin_obukhov_length(:)
     real(wp), allocatable :: temperature_diffusion_heating(:,:)
-    real(wp), allocatable :: friction_acc_h(:,:)
-    real(wp), allocatable :: friction_acc_v(:,:)
-    real(wp), allocatable :: heating_diss(:,:)
+    real(wp), allocatable :: friction_acc_h(:,:)                   ! horizontal friction acceleration
+    real(wp), allocatable :: friction_acc_v(:,:)                   ! vertical friction acceleration
+    real(wp), allocatable :: heating_diss(:,:)                     ! dissipative heating rate (W/m**3)
     real(wp), allocatable :: molecular_diffusion_coeff(:,:)
     real(wp), allocatable :: mass_diffusion_coeff_numerical_h(:,:)
     real(wp), allocatable :: mass_diffusion_coeff_numerical_v(:,:)
@@ -133,19 +133,19 @@ module mo_definitions
     real(wp), allocatable :: viscosity_triangles(:,:)
     real(wp), allocatable :: vert_hor_viscosity(:,:)
     real(wp), allocatable :: tke(:,:)                              ! specific turbulent kinetic energy (J/kg)
-    real(wp), allocatable :: pgrad_acc_old_h(:,:)
+    real(wp), allocatable :: pgrad_acc_old_h(:,:)                  ! old time step horizontal pressure gradient
     real(wp), allocatable :: pressure_gradient_acc_neg_nl_h(:,:)
     real(wp), allocatable :: pressure_gradient_acc_neg_nl_v(:,:)
     real(wp), allocatable :: pressure_gradient_acc_neg_l_h(:,:)
     real(wp), allocatable :: pressure_gradient_acc_neg_l_v(:,:)
     real(wp), allocatable :: pressure_grad_condensates_v(:,:)
-    real(wp), allocatable :: v_squared_grad_h(:,:)
-    real(wp), allocatable :: v_squared_grad_v(:,:)
+    real(wp), allocatable :: v_squared_grad_h(:,:)                 ! horizontal gradient of squared velocity
+    real(wp), allocatable :: v_squared_grad_v(:,:)                 ! vertical gradient of squared velocity
     real(wp), allocatable :: pot_vort_tend_h(:,:)
     real(wp), allocatable :: pot_vort_tend_v(:,:)
-    real(wp), allocatable :: sfc_sw_in(:)
-    real(wp), allocatable :: sfc_lw_out(:)
-    real(wp), allocatable :: radiation_tendency(:,:)
+    real(wp), allocatable :: sfc_sw_in(:)                          ! surface inbound short-wave radiation flux density (W/m**2)
+    real(wp), allocatable :: sfc_lw_out(:)                         ! surface outbound long-wave radiation flux density (W/m**2)
+    real(wp), allocatable :: radiation_tendency(:,:)               ! radiative flux convergence power density (W/m**3)
   
   end type t_diag
   

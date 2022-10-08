@@ -18,7 +18,7 @@ module mo_linear_combination
     type(t_state), intent(out)   :: state_res       ! the resulting state
     real(wp),      intent(in)    :: coeff_1,coeff_2 ! the coefficients for the linear combination
     type(t_grid),  intent(in)    :: grid            ! grid quantities (needed for the background state)
-  
+    
     !$omp parallel workshare
     state_res%rho = coeff_1*state_1%rho+coeff_2*state_2%rho
     state_res%rhotheta_v = coeff_1*state_1%rhotheta_v+coeff_2*state_2%rhotheta_v

@@ -34,11 +34,16 @@ module mo_vector_tend_expl
     logical,       intent(in)    :: ltotally_first_step ! switch for the very first step of the whole model run
                                
     ! local variables
-    real(wp) :: old_weight,new_weight,old_hor_pgrad_weight,current_hor_pgrad_weight,current_ver_pgrad_weight
+    real(wp) :: old_weight               ! old time step weight
+    real(wp) :: new_weight               ! new time step weight
+    real(wp) :: old_hor_pgrad_weight     ! old time step horizontal pressure gradient weight
+    real(wp) :: current_hor_pgrad_weight ! current time step horizontal pressure gradient weight
+    real(wp) :: current_ver_pgrad_weight ! current time step vertical pressure gradient weight
   
     ! Managing momentum advection
     ! ---------------------------
     
+    ! Momentum advection is only computed at the second predictor-corrector substep.
     if (rk_step==2 .or. ltotally_first_step) then
       call scalar_times_vector_h(state%rho(:,:,n_condensed_constituents+1),state%wind_h,diag%flux_density_h,grid)
       call scalar_times_vector_v(state%rho(:,:,n_condensed_constituents+1),state%wind_v,diag%flux_density_v)
@@ -84,6 +89,7 @@ module mo_vector_tend_expl
     endif
     
     ! Now the explicit forces are added up.
+    ! the weights for momentum advection
     new_weight = 1._wp
     if (rk_step==2) then
       new_weight = 0.5_wp

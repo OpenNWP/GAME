@@ -32,8 +32,11 @@ module mo_scalar_tend_expl
     integer,       intent(in)    :: rk_step      ! Runge-Kutta substep
     
     ! local variables
-    integer  :: ji,jl,jc
-    real(wp) :: old_weight(n_constituents),new_weight(n_constituents)
+    integer  :: ji                         ! cell index
+    integer  :: jl                         ! layer index
+    integer  :: jc                         ! constituent index
+    real(wp) :: old_weight(n_constituents) ! time stepping weight of the old time step
+    real(wp) :: new_weight(n_constituents) ! time stepping weight of the new time step
     
     ! Firstly,some things need to prepared.
     ! -------------------------------------

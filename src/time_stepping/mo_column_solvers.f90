@@ -342,14 +342,16 @@ module mo_column_solvers
     integer,       intent(in)    :: rk_step    ! predictor-corrector substep
     
     ! local variables
-    integer  :: ji,jl,jc,base_index
+    integer  :: ji ! cell index
+    integer  :: jl ! layer index
+    integer  :: jc ! constituent index
     real(wp) :: impl_weight,expl_weight,density_old_at_interface,temperature_old_at_interface,&
                 ! for meanings of these vectors look into the definition of the function thomas_algorithm
                 c_vector(n_layers-1),d_vector(n_layers),e_vector(n_layers-1),r_vector(n_layers),&
                 vertical_flux_vector_impl(n_layers-1),vertical_flux_vector_rhs(n_layers-1),&
                 vertical_enthalpy_flux_vector(n_layers-1),solution_vector(n_layers)
           
-    impl_weight = 0.75_wp
+    impl_weight = 0.5_wp
     expl_weight = 1._wp - impl_weight
     
     ! loop over all relevant constituents
@@ -358,7 +360,7 @@ module mo_column_solvers
       ! This is done for all tracers apart from the main gaseous constituent.
       if (jc/=n_condensed_constituents+1) then
         ! loop over all columns
-        !$omp parallel do private(ji,jl,base_index,density_old_at_interface,&
+        !$omp parallel do private(ji,jl,density_old_at_interface,&
         !$omp temperature_old_at_interface,c_vector,d_vector,e_vector,r_vector,vertical_flux_vector_impl,&
         !$omp vertical_flux_vector_rhs,vertical_enthalpy_flux_vector,solution_vector)
         do ji=1,n_cells

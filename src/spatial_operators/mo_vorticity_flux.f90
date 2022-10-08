@@ -20,7 +20,10 @@ module mo_vorticity_flux
     type(t_grid), intent(in)    :: grid ! grid quantities
     
     ! local variables
-    integer  :: ji,jl,jm,n_edges_of_cell
+    integer  :: ji              ! edge or cell index
+    integer  :: jl              ! layer or level index
+    integer  :: jm              ! edge of cell index
+    integer  :: n_edges_of_cell ! number of edges one cell has
     
     ! Calculating the horizontal component of the vorticity flux term.
     ! ----------------------------------------------------------------

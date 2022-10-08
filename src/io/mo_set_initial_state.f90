@@ -30,9 +30,9 @@ module mo_set_initial_state
   
     ! This subroutine sets the initial state of the model atmosphere for idealized test cases.
     
-    type(t_state), intent(inout) :: state
-    type(t_diag),  intent(inout) :: diag
-    type(t_grid),  intent(in)    :: grid
+    type(t_state), intent(inout) :: state ! state to write the initial state to
+    type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
     integer               :: ji,jl,ncid_grid,latitude_vector_id,longitude_vector_id
@@ -125,30 +125,30 @@ module mo_set_initial_state
     call nc_check(nf90_close(ncid_grid))
     !$omp parallel do private(ji,jl,lat,lon,z_height,u,v,dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
     do ji=1,n_edges
-      do jl=0,n_layers-1
+      do jl=1,n_layers
         lat = latitude_vector(ji)
         lon = longitude_vector(ji)
-        z_height = grid%z_vector_h(ji,jl+1)
+        z_height = grid%z_vector_h(ji,jl)
         ! standard atmosphere: no wind
         if (ideal_input_id==0) then
-          state%wind_h(ji,jl+1) = 0._wp          
+          state%wind_h(ji,jl) = 0._wp          
                 
           ! adding a "random" perturbation to the horizontal wind in the case of the Held-Suarez test case
           if (rad_config==2) then
-            state%wind_h(ji,jl+1) = state%wind_h(ji,jl+1) + 0.1_wp*mod(ji,17)/16._wp
+            state%wind_h(ji,jl) = state%wind_h(ji,jl) + 0.1_wp*mod(ji,17)/16._wp
           endif
         endif
         ! dry Ullrich test
         if (ideal_input_id==1) then
           call baroclinic_wave_test(1,0,1,small_atmos_rescale,lon,lat,dummy_1,z_height,1, &
                                     u,v,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
-          state%wind_h(ji,jl+1) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
+          state%wind_h(ji,jl) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
         endif
         ! moist Ullrich test
         if (ideal_input_id==2) then
           call baroclinic_wave_test(1,1,1,small_atmos_rescale,lon,lat,dummy_1,z_height,1, &
                                     u,v,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
-          state%wind_h(ji,jl+1) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
+          state%wind_h(ji,jl) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
         endif
       enddo
     enddo
