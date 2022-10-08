@@ -116,8 +116,8 @@ module mo_eff_diff_coeffs
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer :: ji ! horizontal loop index
-    integer :: jl ! vertical loop index
+    integer :: ji ! cell index
+    integer :: jl ! layer index
     
     ! The diffusion coefficient only has to be calculated if it has not yet been done.
     if (.not. lmom_diff_h) then
@@ -159,8 +159,10 @@ module mo_eff_diff_coeffs
                                molecular_diffusion_coeff(n_cells,n_layers)
     real(wp), intent(inout) :: scalar_placeholder(n_cells,n_layers)
     
-    integer  :: ji,jl
-    real(wp) :: mom_diff_coeff
+    ! local variables
+    integer  :: ji             ! cell index
+    integer  :: jl             ! layer index
+    real(wp) :: mom_diff_coeff ! effective kinematic momentum diffusion coefficient
     
     !$omp parallel do private(ji,jl,mom_diff_coeff)
     do ji=1,n_cells
