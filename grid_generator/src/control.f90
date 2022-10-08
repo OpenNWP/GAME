@@ -20,7 +20,7 @@ program control
                                        calc_cell_area_unity,write_statistics_file
   use mo_phys_sfc_properties,    only: set_sfc_properties
   use mo_vertical_grid,          only: set_z_scalar,set_z_vector_and_normal_distance,set_z_scalar_dual,set_volume, &
-                                       calc_z_vector_dual_and_normal_distance_dual,set_area,set_area_dual, &
+                                       set_z_vector_dual_and_normal_distance_dual,set_area,set_area_dual, &
                                        set_gravity_potential,set_background_state
   use mo_inner_product,          only: calc_inner_product
   use mo_rhombus_averaging,      only: rhombus_averaging
@@ -282,7 +282,7 @@ program control
   write(*,*) "Finished."
   
   write(*,*) "Determining vector z coordinates of the dual grid and distances of the dual grid ..."
-  call calc_z_vector_dual_and_normal_distance_dual(z_vector_dual_h,z_vector_dual_v,dy,dz_dual,z_scalar_dual,from_cell,to_cell, &
+  call set_z_vector_dual_and_normal_distance_dual(z_vector_dual_h,z_vector_dual_v,dy,dz_dual,z_scalar_dual,from_cell,to_cell, &
                                                    z_vector_h,z_vector_v,from_cell_dual,to_cell_dual,lat_c_dual,lon_c_dual, &
                                                    vorticity_indices_triangles)
   write(*,*) "Finished."

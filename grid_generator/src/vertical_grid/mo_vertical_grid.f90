@@ -374,7 +374,7 @@ module mo_vertical_grid
   
   end subroutine set_z_vector_and_normal_distance
   
-  subroutine calc_z_vector_dual_and_normal_distance_dual(z_vector_dual_h,z_vector_dual_v,dy,dz_dual,z_scalar_dual, &
+  subroutine set_z_vector_dual_and_normal_distance_dual(z_vector_dual_h,z_vector_dual_v,dy,dz_dual,z_scalar_dual, &
                                                          from_cell,to_cell,z_vector_h,z_vector_v,from_cell_dual, &
                                                          to_cell_dual,lat_c_dual,lon_c_dual,vorticity_indices_triangles)
   
@@ -428,7 +428,7 @@ module mo_vertical_grid
     enddo
     !$omp end parallel do
   
-  end subroutine calc_z_vector_dual_and_normal_distance_dual
+  end subroutine set_z_vector_dual_and_normal_distance_dual
 
 end module mo_vertical_grid
 

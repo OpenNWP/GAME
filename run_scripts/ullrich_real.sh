@@ -44,7 +44,7 @@ write_out_interval_min=1440
 /
 
 &constituents
-lmoist=.true.
+lmoist=.false.
 /
 
 &diff
@@ -52,19 +52,19 @@ lmom_diff_h=.true.
 lmom_diff_v=.true.
 ltemp_diff_h=.true.
 ltemp_diff_v=.true.
-lmass_diff_h=.true.
-lmass_diff_v=.true.
+lmass_diff_h=.false.
+lmass_diff_v=.false.
 /
 
 &rad
-rad_config=1
+rad_config=0
 /
 
 &surface
-lprog_soil_temp=.true.
-lsfc_phase_trans=.true.
-lsfc_sensible_heat_flux=.true.
-pbl_scheme=1
+lprog_soil_temp=.false.
+lsfc_phase_trans=.false.
+lsfc_sensible_heat_flux=.false.
+pbl_scheme=0
 /
 
 EOF
