@@ -129,7 +129,7 @@ module mo_scalar_tend_expl
         diag%scalar_placeholder = state_scalar%rhotheta_v/state_scalar%rho(:,:,jc)
         !$omp end parallel workshare
         
-        ! calculating the divergence of the horizontal virtual potential temperature density
+        ! calculating the divergence of the horizontal virtual potential temperature flux density
         call scalar_times_vector_h(diag%scalar_placeholder,diag%flux_density_h,diag%flux_density_h,grid)
         call div_h(diag%flux_density_h,diag%flux_density_div,grid)
         

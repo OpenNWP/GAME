@@ -50,7 +50,7 @@ module mo_divergences
           contra_lower = vertical_contravariant_corr(in_field,ji,jl+1,grid)
           comp_v = contra_upper*grid%area_v(ji,jl) - contra_lower*grid%area_v(ji,jl+1)
         endif
-        out_field(ji,jl) = 1._wp/grid%volume(ji,jl)*(comp_h + comp_v)
+        out_field(ji,jl) = (comp_h+comp_v)/grid%volume(ji,jl)
        enddo
     enddo
     
@@ -114,7 +114,7 @@ module mo_divergences
           endif
           comp_v = density_upper*contra_upper*grid%area_v(ji,jl) - density_lower*contra_lower*grid%area_v(ji,jl+1)
         endif
-        out_field(ji,jl) = 1._wp/grid%volume(ji,jl)*(comp_h + comp_v)
+        out_field(ji,jl) = (comp_h+comp_v)/grid%volume(ji,jl)
       enddo
     enddo
     !$omp end parallel do
@@ -125,12 +125,13 @@ module mo_divergences
     
     ! This adds the divergence of the vertical component of a vector field to the input scalar field.  
     
-    real(wp),     intent(in)  :: in_field(n_cells,n_edges)   ! the vertical vector field to compute the divergence of
-    real(wp),     intent(out) :: out_field(n_cells,n_layers) ! result
-    type(t_grid), intent(in)  :: grid                        ! grid quantities
+    real(wp),     intent(in)    :: in_field(n_cells,n_edges)   ! the vertical vector field to compute the divergence of
+    real(wp),     intent(inout) :: out_field(n_cells,n_layers) ! result
+    type(t_grid), intent(in)    :: grid                        ! grid quantities
     
     ! local variables
-    integer  :: ji,jl
+    integer  :: ji ! cell index
+    integer  :: jl ! layer index
     real(wp) :: contra_upper,contra_lower,comp_v
     
     !$omp parallel do private(ji,jl,contra_upper,contra_lower,comp_v)
@@ -147,7 +148,7 @@ module mo_divergences
           contra_lower = in_field(ji,jl+1)
         endif
         comp_v = contra_upper*grid%area_v(ji,jl) - contra_lower*grid%area_v(ji,jl+1)
-        out_field(ji,jl) = out_field(ji,jl) + 1._wp/grid%volume(ji,jl)*comp_v
+        out_field(ji,jl) = out_field(ji,jl) + comp_v/grid%volume(ji,jl)
       enddo
     enddo
     !$omp end parallel do
