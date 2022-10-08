@@ -120,7 +120,7 @@ module mo_eff_diff_coeffs
     integer :: jl ! vertical loop index
     
     ! The diffusion coefficient only has to be calculated if it has not yet been done.
-    if (lmom_diff_h) then
+    if (.not. lmom_diff_h) then
       call hor_viscosity(state,diag,grid)
     endif
     !$omp parallel do private(ji,jl)
