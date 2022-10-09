@@ -84,7 +84,7 @@ module mo_various_helpers
     in_bool_checker = 0
 
     do ji=1,vector_length
-      if(vector(ji)==value) then
+      if (vector(ji)==value) then
         in_bool_checker = 1
         exit
       endif

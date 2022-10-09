@@ -8,7 +8,7 @@ module mo_phys_sfc_properties
   use netcdf
   use mo_constants,       only: M_PI,rho_h2o
   use mo_definitions,     only: wp
-  use mo_grid_nml,        only: res_id,n_cells,n_avg_points
+  use mo_grid_nml,        only: res_id,n_cells,n_avg_points,n_pentagons
   use mo_geodesy,         only: deg2rad,calculate_distance_h
   use mo_various_helpers, only: nc_check,int2string,find_min_index,find_min_index_exclude
 
@@ -53,6 +53,7 @@ module mo_phys_sfc_properties
     character(len=64)     :: oro_file     ! file to read the orography from
     
     ! Orography
+    ! ---------
     
     if (oro_id==1) then
     
@@ -125,9 +126,15 @@ module mo_phys_sfc_properties
           min_indices_vector(jk) = find_min_index_exclude(distance_vector,n_cells,min_indices_vector,n_avg_points)
         enddo
         oro(ji) = 0._wp
-        do jk=1,n_avg_points
-          oro(ji) = oro(ji) + oro_unfiltered(min_indices_vector(jk))/n_avg_points
-        enddo
+        if (ji<=n_pentagons) then
+          do jk=1,max(n_avg_points-1,1)
+            oro(ji) = oro(ji) + oro_unfiltered(min_indices_vector(jk))/max(n_avg_points-1,1)
+          enddo
+        else
+          do jk=1,n_avg_points
+            oro(ji) = oro(ji) + oro_unfiltered(min_indices_vector(jk))/n_avg_points
+          enddo
+        endif
       enddo
       !$omp end parallel do
     
@@ -136,6 +143,7 @@ module mo_phys_sfc_properties
     endif
   
     ! Other physical properties of the surface
+    ! ----------------------------------------
   
     c_p_water = 4184._wp
     c_p_soil = 830._wp

@@ -8,7 +8,7 @@ module mo_grid_setup
   use netcdf
   use mo_constants,       only: t_0,r_e,M_PI
   use mo_definitions,     only: wp,t_grid
-  use mo_grid_nml,        only: n_layers,n_cells,oro_id,res_id
+  use mo_grid_nml,        only: n_layers,n_cells,oro_id,res_id,n_levels
   use mo_surface_nml,     only: nsoillays
   use mo_various_helpers, only: int2string,nc_check
 
@@ -153,8 +153,10 @@ module mo_grid_setup
     
     radius_rescale = radius/r_e
     mean_velocity_area = 2._wp/3._wp*4._wp*M_PI*radius**2/n_cells
-    eff_hor_res = sqrt(4._wp*M_PI*radius**2/n_cells)
-    dtime = 1.614_wp*1e-3*eff_hor_res
+    !$omp parallel workshare
+    eff_hor_res = sqrt(sum(grid%area_v)/(n_cells*n_levels))
+    !$omp end parallel workshare
+    dtime = 1.61_wp*1e-3*eff_hor_res
     
     write(*,*) "Time step:",dtime,"s."
     

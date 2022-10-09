@@ -32,8 +32,8 @@ module mo_write_output
   
     ! This subroutine interpolates a single-layer scalar field to a lat-lon grid.
     
-    real(wp),     intent(in)  :: in_field(n_cells)                      ! the horizontal scalar field to interpolate
-    real(wp),     intent(out) :: out_field(n_lat_io_points,n_lon_io_points) ! the resulting 2D scalar field on a latlon grid
+    real(wp),     intent(in)  :: in_field(n_cells)                          ! the horizontal scalar field to interpolate
+    real(wp),     intent(out) :: out_field(n_lat_io_points,n_lon_io_points) ! the resulting 2D scalar field on a lat-lon grid
     type(t_grid), intent(in)  :: grid                                       ! grid quantities
     
     ! local variables
@@ -140,12 +140,13 @@ module mo_write_output
   
     ! This subroutine is the central subroutine for writing the output.
   
-    type(t_state), intent(in)    :: state ! state variables
-    type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
-    type(t_grid),  intent(in)    :: grid  ! grid quantities
-    real(wp), intent(in)  :: t_init,t_write, &
-                             wind_h_lowest_layer_array(n_edges,n_output_steps_10m_wind)
-    logical,       intent(in)    :: ltotally_first_step
+    type(t_state), intent(in)    :: state                                                      ! state variables
+    type(t_diag),  intent(inout) :: diag                                                       ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid                                                       ! grid quantities
+    real(wp),      intent(in)    :: t_init                                                     ! epoch timestamp of model initialization
+    real(wp),      intent(in)    :: t_write                                                    ! epoch timestamp of model output
+    real(wp),      intent(in)    :: wind_h_lowest_layer_array(n_edges,n_output_steps_10m_wind) ! horizontal wind in the lowest layer (needed for computing 10 m wind average)
+    logical,       intent(in)    :: ltotally_first_step                                        ! switch indicating the very first step of the model run
   
     ! local variables
     logical               :: lcontains_nan
@@ -211,6 +212,7 @@ module mo_write_output
     call temperature_diagnostics(state,diag,grid)
     time_since_init_min = int(t_write - t_init)
     time_since_init_min = time_since_init_min/60
+    
     ! Surface output including diagnostics.
     ! -------------------------------------
     if (lsurface_output) then
