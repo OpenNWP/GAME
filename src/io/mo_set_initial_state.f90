@@ -3,7 +3,7 @@
 
 module mo_set_initial_state
 
-  ! In this modulethe initial state of the simulation is set.
+  ! In this module the initial state of the simulation is set.
 
   use netcdf
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
@@ -35,11 +35,11 @@ module mo_set_initial_state
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer               :: ji,jl,ncid_grid,latitude_vector_id,longitude_vector_id
+    integer               :: ji,jl,ncid_grid,lat_e_id,lon_e_id
     real(wp)              :: dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7,lat,lon,z_height,u,v, &
                              pressure_value,specific_humidity,dry_density,b,c,small_atmos_rescale
-    real(wp), allocatable :: pressure(:,:),temperature(:,:),temperature_v(:,:),water_vapour_density(:,:),latitude_vector(:), &
-                             longitude_vector(:)
+    real(wp), allocatable :: pressure(:,:),temperature(:,:),temperature_v(:,:),water_vapour_density(:,:),lat_e(:), &
+                             lon_e(:)
     character(len=128)    :: grid_file_name
     
     ! determining the grid file
@@ -69,8 +69,8 @@ module mo_set_initial_state
     water_vapour_density = 0._wp
     !$omp end parallel workshare
     
-    ! 3D scalar fields determined hereapart from density
-    !$omp parallel do private(ji,lat,lon,z_height,dry_density,specific_humidity)
+    ! 3D scalar fields are determined here apart from the density
+    !$omp parallel do private(ji,jl,lat,lon,z_height,dry_density,specific_humidity)
     do ji=1,n_cells
       do jl=1,n_layers
         lat = grid%lat_c(ji)
@@ -115,19 +115,19 @@ module mo_set_initial_state
 
     ! horizontal wind fields are determind here
     ! reading the grid properties which are not part of the struct grid
-    allocate(latitude_vector(n_edges))
-    allocate(longitude_vector(n_edges))
+    allocate(lat_e(n_edges))
+    allocate(lon_e(n_edges))
     call nc_check(nf90_open(grid_file_name,NF90_CLOBBER,ncid_grid))
-    call nc_check(nf90_inq_varid(ncid_grid,"lat_e",latitude_vector_id))
-    call nc_check(nf90_inq_varid(ncid_grid,"lon_e",longitude_vector_id))
-    call nc_check(nf90_get_var(ncid_grid,latitude_vector_id,latitude_vector))
-    call nc_check(nf90_get_var(ncid_grid,longitude_vector_id,longitude_vector))
+    call nc_check(nf90_inq_varid(ncid_grid,"lat_e",lat_e_id))
+    call nc_check(nf90_inq_varid(ncid_grid,"lon_e",lon_e_id))
+    call nc_check(nf90_get_var(ncid_grid,lat_e_id,lat_e))
+    call nc_check(nf90_get_var(ncid_grid,lon_e_id,lon_e))
     call nc_check(nf90_close(ncid_grid))
     !$omp parallel do private(ji,jl,lat,lon,z_height,u,v,dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
     do ji=1,n_edges
       do jl=1,n_layers
-        lat = latitude_vector(ji)
-        lon = longitude_vector(ji)
+        lat = lat_e(ji)
+        lon = lon_e(ji)
         z_height = grid%z_vector_h(ji,jl)
         ! standard atmosphere: no wind
         if (ideal_input_id==0) then
@@ -154,8 +154,8 @@ module mo_set_initial_state
     enddo
     !$omp end parallel do
     
-    deallocate(latitude_vector)
-    deallocate(longitude_vector)
+    deallocate(lat_e)
+    deallocate(lon_e)
     
     ! setting the vertical wind field equal to zero
     !$omp parallel workshare
