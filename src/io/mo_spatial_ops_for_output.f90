@@ -9,7 +9,6 @@ module mo_spatial_ops_for_output
   use mo_grid_nml,           only: n_cells,n_edges,n_layers,n_pentagons,n_levels
   use mo_gradient_operators, only: grad_hor,grad_vert
   use mo_geodesy,            only: passive_turn
-  use mo_inner_product,      only: inner_product
   
   implicit none
   
@@ -41,12 +40,12 @@ module mo_spatial_ops_for_output
     ! This subroutine computes the inner product of the two vector fields in_field_1 and in_field_2.
     ! The difference to the normal inner product is, that in_field_1_h is given in tangential components.
     
-    real(wp),      intent(in)  :: in_field_1_h(n_edges,n_layers) ! first field of which to take the inner product (horizontal component)
-    real(wp),      intent(in)  :: in_field_1_v(n_cells,n_levels) ! first field of which to take the inner product (vertical component)
-    real(wp),      intent(in)  :: in_field_2_h(n_edges,n_layers) ! second field of which to take the inner product (horizontal component)
-    real(wp),      intent(in)  :: in_field_2_v(n_cells,n_levels) ! second field of which to take the inner product (vertical component)
-    real(wp),      intent(out) :: out_field(n_cells,n_layers)    ! the result
-    type(t_grid),  intent(in)  :: grid                           ! grid quantities
+    real(wp),     intent(in)  :: in_field_1_h(n_edges,n_layers) ! first field of which to take the inner product (horizontal component)
+    real(wp),     intent(in)  :: in_field_1_v(n_cells,n_levels) ! first field of which to take the inner product (vertical component)
+    real(wp),     intent(in)  :: in_field_2_h(n_edges,n_layers) ! second field of which to take the inner product (horizontal component)
+    real(wp),     intent(in)  :: in_field_2_v(n_cells,n_levels) ! second field of which to take the inner product (vertical component)
+    real(wp),     intent(out) :: out_field(n_cells,n_layers)    ! the result
+    type(t_grid), intent(in)  :: grid                           ! grid quantities
     
     ! local variables
     integer  :: ji,jl,jm,n_edges_of_cell
@@ -84,7 +83,7 @@ module mo_spatial_ops_for_output
     real(wp),      intent(out) :: epv(n_cells,n_layers) ! the result
     type(t_grid),  intent(in)  :: grid                  ! grid quantities
     
-    ! allocating memory for quantities we need in order to determine the EPV
+    ! local variables
     integer               :: ji,jl,jm,n_edges_of_cell
     real(wp)              :: upper_weight,lower_weight,layer_thickness
     real(wp), allocatable :: grad_pot_temp_h(:,:),grad_pot_temp_v(:,:), &
@@ -95,6 +94,13 @@ module mo_spatial_ops_for_output
     allocate(grad_pot_temp_v(n_cells,n_levels))
     allocate(pot_vort_as_tangential_vector_field_h(n_edges,n_layers))
     allocate(pot_vort_as_tangential_vector_field_v(n_cells,n_levels))
+    
+    !$omp parallel workshare
+    grad_pot_temp_h = 0._wp
+    grad_pot_temp_v = 0._wp
+    pot_vort_as_tangential_vector_field_h = 0._wp
+    pot_vort_as_tangential_vector_field_v = 0._wp
+    !$omp end parallel workshare
     
     ! diagnozing the horizontal vorticity at the primal horizontal vector points (they are TANGENTIAL! so it is not a real vector field, but a modified one)
     !$omp parallel do private(ji,jl,upper_weight,lower_weight,layer_thickness)
@@ -170,24 +176,24 @@ module mo_spatial_ops_for_output
     
     ! This subroutine averages a horizontal vector field (defined in the lowest layer) from edges to centers.
     
-    real(wp),     intent(in)  :: in_field(n_edges) ! the field to average from edges to cells
-    real(wp),     intent(out) :: out_field(n_cells)    ! the result field
-    type(t_grid), intent(in)  :: grid                  ! grid quantities
+    real(wp),     intent(in)  :: in_field(n_edges)  ! the field to average from edges to cells
+    real(wp),     intent(out) :: out_field(n_cells) ! the result field
+    type(t_grid), intent(in)  :: grid               ! grid quantities
     
     ! local variables    
-    integer :: ji,jm,n_edges
+    integer :: ji,jm,n_edges_of_cell
 
-    !$omp parallel do private(ji,jm,n_edges)
+    !$omp parallel do private(ji,jm,n_edges_of_cell)
     do ji=1,n_cells
       ! initializing the result with zero
       out_field(ji) = 0._wp
       ! determining the number of edges of the cell at hand
-      n_edges = 6
+      n_edges_of_cell = 6
       if (ji<=n_pentagons) then
-        n_edges = 5
+        n_edges_of_cell = 5
       endif
       ! loop over all edges of the respective cell
-      do jm=1,n_edges
+      do jm=1,n_edges_of_cell
         out_field(ji) = out_field(ji) + 0.5_wp*grid%inner_product_weights(ji,n_layers,jm)*in_field(grid%adjacent_edges(ji,jm))
       enddo
     enddo
@@ -199,14 +205,14 @@ module mo_spatial_ops_for_output
   
     ! This subroutine diagnozes eastward and northward components of a vector field at edges.
     
-    real(wp),      intent(in)  :: in_field(n_edges,n_layers)    ! vector field of which to compute the u- and v-components
-    real(wp),      intent(out) :: out_field_u(n_edges,n_layers) ! result (u-component)
-    real(wp),      intent(out) :: out_field_v(n_edges,n_layers) ! result (v-component)
-    type(t_grid),  intent(in)  :: grid                          ! grid quantities
+    real(wp),     intent(in)  :: in_field(n_edges,n_layers)    ! vector field of which to compute the u- and v-components
+    real(wp),     intent(out) :: out_field_u(n_edges,n_layers) ! result (u-component)
+    real(wp),     intent(out) :: out_field_v(n_edges,n_layers) ! result (v-component)
+    type(t_grid), intent(in)  :: grid                          ! grid quantities
     
     ! local variables
-    integer  :: ji
-    integer  :: jl
+    integer  :: ji            ! edge index
+    integer  :: jl            ! layer index
     real(wp) :: wind_1,wind_2 ! orthogonal and tangential component at edge, respectively
     
     !$omp parallel do private(ji,jl,wind_1,wind_2)
@@ -227,12 +233,14 @@ module mo_spatial_ops_for_output
     
     ! This subroutine averages a horizontal vector field from edges to cell centers.
     
-    real(wp),     intent(in)  :: in_field(n_edges,n_layers)
-    real(wp),     intent(out) :: out_field(n_cells,n_layers)
-    type(t_grid), intent(in)  :: grid                 ! grid quantities
+    real(wp),     intent(in)  :: in_field(n_edges,n_layers)  ! field to average from edges to cells
+    real(wp),     intent(out) :: out_field(n_cells,n_layers) ! result
+    type(t_grid), intent(in)  :: grid                        ! grid quantities
     
     ! local variables
-    integer :: ji,jl,jm,n_edges_of_cell
+    integer :: ji ! cell index
+    integer :: jl ! layer index
+    integer :: jm,n_edges_of_cell
     
     !$omp parallel do private (ji,jl,jm,n_edges_of_cell)
     do ji=1,n_cells

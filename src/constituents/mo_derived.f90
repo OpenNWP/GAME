@@ -3,7 +3,7 @@
 
 module mo_derived
 
-  ! This module contains look-up functions for properties of the atmosphere.
+  ! This file contains functions calculating derived thermodynamic quantities of the atmosphere.
 
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_run_nml,          only: lmoist
@@ -43,8 +43,9 @@ module mo_derived
     
     ! This function returns the relative humidity as a function of the absolute humidity in kg/m^3 and the temperature in K.
     
-    real(wp), intent(in) :: abs_humidity,temperature
-    real(wp)             :: rel_humidity
+    real(wp), intent(in) :: abs_humidity ! absolute humidity (water vapour mass density (kg/m**3))
+    real(wp), intent(in) :: temperature  ! temperature (K)
+    real(wp)             :: rel_humidity ! result
     
     ! local variables
     real(wp)             :: vapour_pressure     ! actual water vapour pressure
@@ -73,6 +74,7 @@ module mo_derived
     real(wp)             :: gas_constant_diagnostics
     
     gas_constant_diagnostics = 0._wp
+    ! in the dry case this is just the individual gas constant of dry air
     if (.not. lmoist) then
       gas_constant_diagnostics = r_d
     endif
@@ -117,8 +119,9 @@ module mo_derived
   
     ! This function calculates the molecular diffusion coefficient.
   
-    real(wp), intent(in) :: temperature,density
-    real(wp)             :: calc_diffusion_coeff
+    real(wp), intent(in) :: temperature          ! temperature
+    real(wp), intent(in) :: density              ! mass density
+    real(wp)             :: calc_diffusion_coeff ! result
     
     ! local variables
     real(wp) :: particle_radius,particle_mass,thermal_velocity,particle_density,cross_section,mean_free_path
