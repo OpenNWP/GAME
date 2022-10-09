@@ -72,8 +72,8 @@ module mo_dictionary
     ! This function calculates the ozone VMR as a function of height.
     ! assumes a Gaussian distribution
     
-    real(wp), intent(in) :: height ! height above MSL
-    real(wp)             :: calc_o3_vmr
+    real(wp), intent(in) :: height      ! height above MSL
+    real(wp)             :: calc_o3_vmr ! result
     
     ! local variables
     real(wp) :: fwhm = 20e3_wp       ! full width at half maximum
