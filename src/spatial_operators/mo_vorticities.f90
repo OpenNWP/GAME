@@ -30,6 +30,7 @@ module mo_vorticities
     integer  :: jm            ! interpolation cell index
     real(wp) :: density_value ! mass density value
     
+    ! calculating the relative vorticity
     call calc_rel_vort(state,diag,grid)
     ! pot_vort is a misuse of name here
     call add_f_to_rel_vort(diag,grid)

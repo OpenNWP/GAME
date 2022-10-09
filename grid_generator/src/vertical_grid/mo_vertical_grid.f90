@@ -375,8 +375,8 @@ module mo_vertical_grid
   end subroutine set_z_vector_and_normal_distance
   
   subroutine set_z_vector_dual_and_normal_distance_dual(z_vector_dual_h,z_vector_dual_v,dy,dz_dual,z_scalar_dual, &
-                                                         from_cell,to_cell,z_vector_h,z_vector_v,from_cell_dual, &
-                                                         to_cell_dual,lat_c_dual,lon_c_dual,vorticity_indices_triangles)
+                                                        from_cell,to_cell,z_vector_h,z_vector_v,from_cell_dual, &
+                                                        to_cell_dual,lat_c_dual,lon_c_dual,vorticity_indices_triangles)
   
     ! This subroutine sets the z coordinates of the dual vector points as well as the normal distances of the dual grid.
     
@@ -396,8 +396,8 @@ module mo_vertical_grid
     integer,  intent(in)  :: vorticity_indices_triangles(n_triangles,3)
   
     ! local variables
-    integer :: ji ! horizontal loop index
-    integer :: jl ! vertical loop index
+    integer :: ji ! horizontal index
+    integer :: jl ! vertical index
     
     !$omp parallel do private(ji,jl)
     do ji=1,n_triangles
