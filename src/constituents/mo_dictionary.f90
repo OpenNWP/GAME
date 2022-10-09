@@ -184,7 +184,7 @@ module mo_dictionary
   
     ! This function resturns c_p of a specific condensed constituent.
     
-    integer, intent(in)  :: const_id
+    integer,  intent(in) :: const_id
     real(wp), intent(in) :: temperature
     real(wp)             :: c_p_cond
   
