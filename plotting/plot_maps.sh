@@ -4,7 +4,7 @@
 # Github repository: https://github.com/OpenNWP/GAME
 
 game_home_dir=~/code/GAME # the home directory of GAME
-run_id=ideal # the run id which you want to plot
+run_id=ullrich # the run ID which you want to plot
 run_span_min=$((100*24*60)) # the length of the run
 output_dir=$game_home_dir/output/$run_id # the directory where the netcdf files are stored
 fig_save_path=$game_home_dir/figs # the directory in which the figures will be saved
