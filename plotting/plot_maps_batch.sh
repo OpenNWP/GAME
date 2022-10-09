@@ -4,7 +4,7 @@
 # Github repository: https://github.com/OpenNWP/GAME
 
 game_home_dir=${BASH_ARGV[2]} # the home directory of GAME
-run_id=${BASH_ARGV[1]} # the run id which you want to plot
+run_id=${BASH_ARGV[1]} # the run ID which you want to plot
 run_span_min=${BASH_ARGV[0]} # the length of the run
 output_dir=$game_home_dir/output/$run_id # the directory where the grib files are stored
 fig_save_path=${BASH_ARGV[3]} # the path to which the figures will be saved
