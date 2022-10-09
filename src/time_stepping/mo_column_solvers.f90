@@ -345,10 +345,10 @@ module mo_column_solvers
     integer  :: ji ! cell index
     integer  :: jl ! layer index
     integer  :: jc ! constituent index
-    real(wp) :: impl_weight,expl_weight,density_old_at_interface,temperature_old_at_interface,&
+    real(wp) :: impl_weight,expl_weight,density_old_at_interface,temperature_old_at_interface, &
                 ! for meanings of these vectors look into the definition of the function thomas_algorithm
-                c_vector(n_layers-1),d_vector(n_layers),e_vector(n_layers-1),r_vector(n_layers),&
-                vertical_flux_vector_impl(n_layers-1),vertical_flux_vector_rhs(n_layers-1),&
+                c_vector(n_layers-1),d_vector(n_layers),e_vector(n_layers-1),r_vector(n_layers), &
+                vertical_flux_vector_impl(n_layers-1),vertical_flux_vector_rhs(n_layers-1), &
                 vertical_enthalpy_flux_vector(n_layers-1),solution_vector(n_layers)
           
     impl_weight = 0.5_wp
@@ -537,12 +537,12 @@ module mo_column_solvers
 
     ! This subroutine solves a system of linear equations with a three-band matrix.
     
-    integer, intent(in)  :: solution_length                  ! length of the solution vector
-    real(wp),intent(in)  :: c_vector(solution_length)        ! lower diagonal vector
-    real(wp),intent(in)  :: d_vector(solution_length)        ! main diagonal vector
-    real(wp),intent(in)  :: e_vector(solution_length)        ! upper diagonal vector
-    real(wp),intent(in)  :: r_vector(solution_length)        ! right hand side vector
-    real(wp),intent(out) :: solution_vector(solution_length) ! vector containing the solution
+    integer,  intent(in)  :: solution_length                  ! length of the solution vector
+    real(wp), intent(in)  :: c_vector(solution_length)        ! lower diagonal vector
+    real(wp), intent(in)  :: d_vector(solution_length)        ! main diagonal vector
+    real(wp), intent(in)  :: e_vector(solution_length)        ! upper diagonal vector
+    real(wp), intent(in)  :: r_vector(solution_length)        ! right hand side vector
+    real(wp), intent(out) :: solution_vector(solution_length) ! vector containing the solution
     
     ! local variables
     real(wp) :: e_prime_vector(solution_length-1) ! help vector for solving the matrix equation
