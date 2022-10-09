@@ -41,6 +41,7 @@ module mo_gradient_operators
     real(wp),     intent(out) :: out_field(n_cells,n_levels) ! result (the vertical gradient)
     type(t_grid), intent(in)  :: grid                        ! grid quantities
     
+    ! local variables
     integer :: jl ! layer index
     
     ! loop over the inner grid points
@@ -62,8 +63,8 @@ module mo_gradient_operators
     type(t_grid), intent(in)  :: grid                          ! grid quantities
     
     ! local variables
-    integer :: ji ! horizontal loop index
-    integer :: jl ! vertical loop index
+    integer :: ji ! edge index
+    integer :: jl ! layer index
     
     ! computing the horizontal covariant gradient
     call grad_hor_cov(in_field,out_field_h,grid)
