@@ -18,7 +18,7 @@ module mo_vertical_grid
   
   subroutine set_z_scalar(z_scalar,oro,max_oro)
 
-    ! This function sets the z coordinates of the scalar data points.
+    ! This function sets the z-coordinates of the scalar data points.
     
     real(wp), intent(out) :: z_scalar(n_cells,n_layers) ! z-coordinates of scalar points
     real(wp), intent(in)  :: oro(n_cells)               ! orography
@@ -29,7 +29,7 @@ module mo_vertical_grid
     integer  :: jl ! vertical index
     real(wp) :: A,B,sigma_z,z_rel,z_vertical_vector_pre(n_levels)
     
-    ! the heights are defined according to z_k = A_k + B_k*oro with A_0 = toa, A_{N_LEVELS} = 0, B_0 = 0, B_{N_LEVELS} = 1
+    ! the heights are defined according to z_k = A_k + B_k*oro with A_0 = toa, A_{n_levels} = 0, B_0 = 0, B_{n_levels} = 1
     
     ! loop over all columns
     !$omp parallel do private(ji,jl,A,B,sigma_z,z_rel,z_vertical_vector_pre)

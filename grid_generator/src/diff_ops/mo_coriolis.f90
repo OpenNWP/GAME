@@ -30,18 +30,18 @@ module mo_coriolis
     integer,  intent(out) :: trsk_modified_curl_indices(n_edges,10),trsk_indices(n_edges,10)
     
     ! local variables
-    integer  :: ji,jk,jl,jm,offset,sign_1,sign_2,n_edges_of_cell,index_offset,vertex_index_candidate_1, &
-                vertex_index_candidate_2,counter,check_result,first_index,last_index,second_index_1,second_index_2, &
-                vertex_indices(6),edge_indices(6),indices_resorted(6),vertex_indices_resorted(6), &
-                value_written,trsk_indices_pre(10),next_vertex_index,next_vertex_index_candidate, &
-                indices_used_counter,indices_used(5)
+    integer              :: ji,jk,jl,jm,offset,sign_1,sign_2,n_edges_of_cell,index_offset,vertex_index_candidate_1, &
+                            vertex_index_candidate_2,counter,check_result,first_index,last_index,second_index_1,second_index_2, &
+                            vertex_indices(6),edge_indices(6),indices_resorted(6),vertex_indices_resorted(6), &
+                            value_written,trsk_indices_pre(10),next_vertex_index,next_vertex_index_candidate, &
+                            indices_used_counter,indices_used(5)
     integer, allocatable :: from_or_to_cell(:)
-    real(wp) :: check_sum,triangle_1,triangle_2,sum_of_weights,latitude_vertices(6), &
-                longitude_vertices(6),latitude_edges(6),longitude_edges(6),vector_of_areas(6), &
-                trsk_weights_pre(10),value_1,value_2,rescale_for_z_offset_1d,rescale_for_z_offset_2d
+    real(wp)             :: check_sum,triangle_1,triangle_2,sum_of_weights,latitude_vertices(6), &
+                            longitude_vertices(6),latitude_edges(6),longitude_edges(6),vector_of_areas(6), &
+                            trsk_weights_pre(10),value_1,value_2,rescale_for_z_offset_1d,rescale_for_z_offset_2d
     
     rescale_for_z_offset_1d = (radius+z_scalar(1,1))/(radius+toa)
-    rescale_for_z_offset_2d =rescale_for_z_offset_1d**2
+    rescale_for_z_offset_2d = rescale_for_z_offset_1d**2
     ! loop over all edges
     !$omp parallel do private(ji,jk,jl,jm,offset,sign_1,sign_2,n_edges_of_cell,index_offset,vertex_index_candidate_1, &
     !$omp vertex_index_candidate_2,counter,check_result,first_index,last_index,check_sum,triangle_1, &

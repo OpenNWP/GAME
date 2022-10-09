@@ -34,8 +34,8 @@ module mo_constants
   real(wp), parameter :: EPSILON_SECURITY = 1e-10_wp  ! security constant
   real(wp), parameter :: impl_thermo_weight = 0.75_wp ! time stepping parameter
   
-  ! some properties of the standard atmosphere
-  ! ------------------------------------------
+  ! some properties of the ICAO standard atmosphere
+  ! -----------------------------------------------
   real(wp), parameter :: lapse_rate = 0.0065_wp    ! lapse_rate within the troposphere
   real(wp), parameter :: surface_temp = 288.15_wp  ! the temperature at the surface
   real(wp), parameter :: tropo_height = 11000._wp  ! the tropopause height
