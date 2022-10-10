@@ -28,8 +28,9 @@ module mo_run_nml
   subroutine run_nml_setup()
   
     ! local variables
-    integer :: fileunit
+    integer :: fileunit ! identifies the namelist file
   
+    ! default values
     run_id = "ideal"
     run_span_min = 100._wp*24._wp*60._wp
     lmoist = .true.

@@ -121,11 +121,11 @@ module mo_dictionary
 
     ! This function returns c_p of water.
   
-    real(wp), intent(in) :: temperature
-    real(wp)             :: c_p_water
+    real(wp), intent(in) :: temperature ! temperature ()K
+    real(wp)             :: c_p_water   ! result
   
     ! local variables
-    real(wp) :: temp_c
+    real(wp) :: temp_c ! temperature in degrees Celsius
   
     ! calculating the temperature in degrees Celsius
     temp_c = temperature - t_0

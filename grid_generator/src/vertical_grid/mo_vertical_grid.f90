@@ -315,14 +315,15 @@ module mo_vertical_grid
     real(wp), intent(out) :: dx(n_edges,n_layers)
     real(wp), intent(out) :: dz(n_cells,n_levels)
     real(wp), intent(in)  :: z_scalar(n_cells,n_layers)
-    real(wp), intent(in)  :: lat_c(n_cells)
-    real(wp), intent(in)  :: lon_c(n_cells)
+    real(wp), intent(in)  :: lat_c(n_cells)               ! latitudes of cell centers
+    real(wp), intent(in)  :: lon_c(n_cells)               ! longitudes of cell centers
     real(wp), intent(in)  :: oro(n_cells)
     integer,  intent(in)  :: from_cell(n_edges)
     integer,  intent(in)  :: to_cell(n_edges)
   
     ! local variables
-    integer               :: ji,jl
+    integer               :: ji ! horizontal index
+    integer               :: jl ! vertical index
     real(wp)              :: min_thick,max_thick,thick_rel
     real(wp), allocatable :: lowest_thicknesses(:)
     

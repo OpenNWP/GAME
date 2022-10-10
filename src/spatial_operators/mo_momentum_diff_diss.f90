@@ -29,7 +29,7 @@ module mo_momentum_diff_diss
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer :: ji
+    integer :: ji ! edge index
     
     ! Preparation of kinematic properties of the wind field
     ! -----------------------------------------------------
@@ -69,6 +69,7 @@ module mo_momentum_diff_diss
     !$omp parallel do private(ji)
     do ji=1,n_edges
       diag%friction_acc_h(ji,:) = (diag%vector_placeholder_h(ji,:) - diag%curl_of_vorticity_h(ji,:)) &
+                                  ! dividing by the density at the edge
                                   /(0.5_wp*(sum(state%rho(grid%from_cell(ji),:,1:n_condensed_constituents+1),2) &
                                   + sum(state%rho(grid%to_cell(ji),:,1:n_condensed_constituents+1),2)))
     enddo
@@ -85,9 +86,11 @@ module mo_momentum_diff_diss
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer  :: ji ! horizontal index
-    integer  :: jl ! layer index
-    real(wp) :: z_upper,z_lower,delta_z
+    integer  :: ji      ! horizontal index
+    integer  :: jl      ! layer index
+    real(wp) :: z_upper ! upper half-edge z-coordinate
+    real(wp) :: z_lower ! lower half-edge z-coordinate
+    real(wp) :: delta_z ! z_upper - z_lower
     
     ! 1.) vertical diffusion of horizontal velocity
     ! ---------------------------------------------
@@ -124,6 +127,7 @@ module mo_momentum_diff_diss
         delta_z = z_upper - z_lower
         diag%friction_acc_h(ji,jl) = diag%friction_acc_h(ji,jl) &
         + (diag%vert_hor_viscosity(ji,jl)*diag%dv_hdz(ji,jl)-diag%vert_hor_viscosity(ji,jl+1)*diag%dv_hdz(ji,jl+1))/delta_z &
+        ! dividing by the total air density at the edge
         /(0.5_wp*(sum(state%rho(grid%from_cell(ji),jl,1:n_condensed_constituents+1)) &
         + sum(state%rho(grid%to_cell(ji),jl,1:n_condensed_constituents+1))))
       enddo
@@ -191,7 +195,9 @@ module mo_momentum_diff_diss
     type(t_grid), intent(in)    :: grid ! grid quantities
     
     ! local variables
-    integer  :: ji,jl,jm,upper_index_zeta,lower_index_zeta
+    integer  :: ji ! edge index
+    integer  :: jl ! layer index
+    integer  :: jm,upper_index_zeta,lower_index_zeta
     real(wp) :: delta_z,delta_y,tangential_slope,delta_zeta,checkerboard_damping_weight
     !$omp parallel do private(ji,jl,jm,delta_z,delta_y,tangential_slope, &
     !$omp upper_index_zeta,lower_index_zeta,delta_zeta,checkerboard_damping_weight)

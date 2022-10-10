@@ -70,7 +70,8 @@ module mo_set_initial_state
     !$omp end parallel workshare
     
     ! 3D scalar fields are determined here apart from the density
-    !$omp parallel do private(ji,jl,lat,lon,z_height,dry_density,specific_humidity)
+    !$omp parallel do private(ji,jl,lat,lon,z_height,dry_density,specific_humidity,dummy_1,dummy_2,dummy_3,dummy_4, &
+    !$omp dummy_5,dummy_6,dummy_7)
     do ji=1,n_cells
       do jl=1,n_layers
         lat = grid%lat_c(ji)
@@ -227,7 +228,7 @@ module mo_set_initial_state
     !$omp end parallel workshare
     
     ! water vapour density
-    if (n_condensed_constituents==4) then
+    if (lmoist) then
       !$omp parallel workshare
       state%rho(:,:,n_condensed_constituents+2) = water_vapour_density
       !$omp end parallel workshare
