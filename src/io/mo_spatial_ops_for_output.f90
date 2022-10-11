@@ -24,7 +24,7 @@ module mo_spatial_ops_for_output
     real(wp)                 :: tangential_wind              ! result
     
     ! local variables
-    integer :: jm
+    integer :: jm ! index for the stencil used for calculatung the tangential wind
     
     ! initializing the result with zero
     tangential_wind = 0._wp
@@ -130,7 +130,7 @@ module mo_spatial_ops_for_output
     !$omp end parallel do
     
     ! diagnozing the vertical component of the potential vorticity at the vertical vector points
-    !$omp parallel do private(ji,jl,n_edges_of_cell)
+    !$omp parallel do private(ji,jl,jm,n_edges_of_cell)
     do ji=1,n_cells
       do jl=2,n_layers
         ! initializing the value with zero
@@ -181,7 +181,9 @@ module mo_spatial_ops_for_output
     type(t_grid), intent(in)  :: grid               ! grid quantities
     
     ! local variables    
-    integer :: ji,jm,n_edges_of_cell
+    integer :: ji              ! cell index
+    integer :: jm              ! loop over all edges of a given cell
+    integer :: n_edges_of_cell ! number of edges the given cell has
 
     !$omp parallel do private(ji,jm,n_edges_of_cell)
     do ji=1,n_cells
