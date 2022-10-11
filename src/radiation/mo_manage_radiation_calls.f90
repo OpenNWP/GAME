@@ -27,8 +27,8 @@ module mo_manage_radiation_calls
     real(wp),      intent(in)    :: time_coordinate ! epoch timestamp (needed for computing the zenith angle)
   
     ! local variables
-    integer           :: rad_block_index
-    type(t_radiation) :: radiation
+    integer           :: rad_block_index ! radiation block index (for OMP parallelization)
+    type(t_radiation) :: radiation       ! radiation state
     
     if (rad_config==1) then
       write(*,*) "Starting update of radiative fluxes ..."

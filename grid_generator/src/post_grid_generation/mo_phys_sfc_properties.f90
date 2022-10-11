@@ -8,7 +8,7 @@ module mo_phys_sfc_properties
   use netcdf
   use mo_constants,       only: M_PI,rho_h2o
   use mo_definitions,     only: wp
-  use mo_grid_nml,        only: res_id,n_cells,n_avg_points,n_pentagons
+  use mo_grid_nml,        only: res_id,n_cells,n_avg_points,n_pentagons,oro_id
   use mo_geodesy,         only: deg2rad,calculate_distance_h
   use mo_various_helpers, only: nc_check,int2string,find_min_index,find_min_index_exclude
 
@@ -20,11 +20,12 @@ module mo_phys_sfc_properties
     
     ! This function calculates a latitude- and height-dependant idealized vegetation height.
     
-    real(wp), intent(in) :: latitude,oro
-    real(wp)             :: vegetation_height_ideal
+    real(wp), intent(in) :: latitude                ! latitude of the point (rad)
+    real(wp), intent(in) :: oro                     ! height above MSL of the point (m)
+    real(wp)             :: vegetation_height_ideal ! result (m)
     
     ! local variables
-    real(wp) :: vegetation_height_equator
+    real(wp) :: vegetation_height_equator ! height of the vegetation at the equator
     
     vegetation_height_equator = 20._wp
   
@@ -32,11 +33,10 @@ module mo_phys_sfc_properties
 
   end function vegetation_height_ideal
   
-  subroutine set_sfc_properties(lat_c,lon_c,roughness_length,sfc_albedo,sfc_rho_c,t_conductivity,oro,is_land,oro_id)
+  subroutine set_sfc_properties(lat_c,lon_c,roughness_length,sfc_albedo,sfc_rho_c,t_conductivity,oro,is_land)
   
     ! This subroutine sets the physical surface properties.
-  
-    integer,  intent(in)  :: oro_id
+    
     integer,  intent(out) :: is_land(n_cells)
     real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
     real(wp), intent(out) :: roughness_length(n_cells),sfc_albedo(n_cells), &

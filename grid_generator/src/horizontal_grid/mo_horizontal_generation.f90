@@ -475,7 +475,7 @@ module mo_horizontal_generation
   subroutine set_scalar_h_dual_coords(lat_c_dual,lon_c_dual,lat_c,lon_c, &
                                       face_edges,face_edges_reverse,face_vertices)
     
-    ! This function calculates the geographical coordinates of the dual scalar points.
+    ! This subroutine calculates the geographical coordinates of the dual scalar points.
     
     real(wp), intent(out) :: lat_c_dual(n_triangles),lon_c_dual(n_triangles)
     real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
@@ -529,7 +529,7 @@ module mo_horizontal_generation
 
   subroutine set_from_to_cell_dual(from_cell_dual,to_cell_dual,face_edges,face_edges_reverse)
     
-    ! This function computes the neighbourship relationships of the horizontal dual vectors.
+    ! This subroutine computes the neighbourship relationships of the horizontal dual vectors.
     
     integer, intent(out) :: from_cell_dual(n_edges),to_cell_dual(n_edges)
     integer, intent(in)  :: face_edges(n_basic_triangles,3),face_edges_reverse(n_basic_triangles,3)
@@ -652,10 +652,10 @@ module mo_horizontal_generation
   subroutine set_scalar_coordinates(edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3,lpoints_upwards, &
                                     x_unity,y_unity,z_unity,lat_c,lon_c)
     
-    ! This subroutine computes the geographical coordinates of a scalar data point.
+    ! This subroutine computes the geographical and Cartesian coordinates of the three vertices of a triangle of the grid.
     
     integer,  intent(in)  :: edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3
-    logical,  intent(in)  :: lpoints_upwards
+    logical,  intent(in)  :: lpoints_upwards  ! switch indicating wether the triangle points upwards
     real(wp), intent(out) :: x_unity(n_cells),y_unity(n_cells),z_unity(n_cells), &
                              lat_c(n_cells),lon_c(n_cells)
     
@@ -734,7 +734,7 @@ module mo_horizontal_generation
   subroutine read_horizontal_explicit(lat_c,lon_c,from_cell,to_cell, &
                                       from_cell_dual,to_cell_dual,filename,n_lloyd_read_file)
     
-    ! This function reads the arrays that fully define the horizontal grid from a previously created grid file.
+    ! This subroutine reads the arrays that fully define the horizontal grid from a previously created grid file.
     ! This is an optional feature.
     
     real(wp), intent(out)          :: lat_c(n_cells),lon_c(n_cells)

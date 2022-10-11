@@ -32,14 +32,14 @@ module mo_vector_tend_expl
     type(t_grid),  intent(in)    :: grid                ! grid quantities
     integer,       intent(in)    :: rk_step             ! Runge-Kutta substep
     logical,       intent(in)    :: ltotally_first_step ! switch for the very first step of the whole model run
-                               
+       
     ! local variables
     real(wp) :: old_weight               ! old time step weight
     real(wp) :: new_weight               ! new time step weight
     real(wp) :: old_hor_pgrad_weight     ! old time step horizontal pressure gradient weight
     real(wp) :: current_hor_pgrad_weight ! current time step horizontal pressure gradient weight
     real(wp) :: current_ver_pgrad_weight ! current time step vertical pressure gradient weight
-  
+    
     ! Managing momentum advection
     ! ---------------------------
     

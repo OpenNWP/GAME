@@ -21,13 +21,16 @@ module mo_optimize
     ! This subroutine manages the grid optimization with Lloyd's algorithm.
     ! The result is (almost) a SCVT.
 	
-    real(wp), intent(inout) :: lat_c(n_cells),lon_c(n_cells),lat_c_dual(n_triangles),lon_c_dual(n_triangles)
+    real(wp), intent(inout) :: lat_c(n_cells)          ! latitudes of cell centers (rad)
+    real(wp), intent(inout) :: lon_c(n_cells)          ! longitudes of cell centers (rad)
+    real(wp), intent(inout) :: lat_c_dual(n_triangles) ! latitudes of triangle centers (rad)
+    real(wp), intent(inout) :: lon_c_dual(n_triangles) ! longitudes of triangle centers (rad)
     integer,  intent(in)    :: n_iterations,face_edges(n_basic_triangles,3),face_edges_reverse(n_basic_triangles,3), &
                                face_vertices(n_basic_triangles,3),adjacent_edges(n_cells,6),from_cell_dual(n_edges), &
                                to_cell_dual(n_edges)
 	
     ! local variables
-    integer :: ji
+    integer :: ji ! iteration index
 	
     do ji=1,n_iterations
       call set_scalar_h_dual_coords(lat_c_dual,lon_c_dual,lat_c,lon_c,face_edges,face_edges_reverse,face_vertices)
@@ -41,8 +44,10 @@ module mo_optimize
     
     ! This subroutine calculates the barycenters (centers of gravity) of the cells.
     
-    real(wp), intent(inout) :: lat_c(n_cells),lon_c(n_cells)
-    real(wp), intent(in)    :: lat_c_dual(n_triangles),lon_c_dual(n_triangles)
+    real(wp), intent(inout) :: lat_c(n_cells)          ! latitudes of cell centers (rad)
+    real(wp), intent(inout) :: lon_c(n_cells)          ! longitudes of cell centers (rad)
+    real(wp), intent(in)    :: lat_c_dual(n_triangles) ! latitudes of triangle centers (rad)
+    real(wp), intent(in)    :: lon_c_dual(n_triangles) ! longitudes of triangle centers (rad)
     integer,  intent(in)    :: adjacent_edges(n_cells,6),from_cell_dual(n_edges),to_cell_dual(n_edges)
     
     ! local variables
@@ -60,9 +65,7 @@ module mo_optimize
       if (ji<=n_pentagons) then
         n_edges_of_cell = 5
       endif
-      do jk=1,6
-        vertex_indices(jk) = 0
-      enddo
+      vertex_indices = 0
       counter = 1
       do jk=1,n_edges_of_cell
         vertex_index_candidate_1 = from_cell_dual(adjacent_edges(ji,jk))

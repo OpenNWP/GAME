@@ -207,9 +207,9 @@ module mo_pbl
     ! refer to Stensrud,Parameterization schemes (2007), p.130
 
     ! input variable
-    real(wp), intent(in) :: u10
+    real(wp), intent(in) :: u10                           ! wind speed 10 m above the surface (m/s)
     ! output variable
-    real(wp)             :: roughness_length_from_u10_sea
+    real(wp)             :: roughness_length_from_u10_sea ! result
 
     ! local variables
     real(wp) :: swh,period,wavelength ! properties of the wave field
@@ -238,7 +238,7 @@ module mo_pbl
     ! input variables
     real(wp), intent(in) :: roughness_velocity_value,z_agl,roughness_length_value,monin_obukhov_length_value
     ! output variable
-    real(wp)             :: calc_scalar_flux_resistance
+    real(wp)             :: calc_scalar_flux_resistance ! result (m)
 
     ! local variables
     real(wp) :: used_vertical_height
@@ -352,8 +352,8 @@ module mo_pbl
     ! This is a helper function for the correction to the surface momentum flux resistance for non-neutral conditions.
 
     ! input variables
-    real(wp), intent(in) :: z_eff ! effective height above the surface
-    real(wp), intent(in) :: l     ! Monin-Obukhov length
+    real(wp), intent(in) :: z_eff ! effective height above the surface (m)
+    real(wp), intent(in) :: l     ! Monin-Obukhov length (m)
     ! output variable
     real(wp)             :: psi_m ! the value of the helper function
 
