@@ -48,8 +48,11 @@ module mo_spatial_ops_for_output
     type(t_grid), intent(in)  :: grid                           ! grid quantities
     
     ! local variables
-    integer  :: ji,jl,jm,n_edges_of_cell
-    real(wp) :: tangential_wind_value
+    integer  :: ji                    ! cell index
+    integer  :: jl                    ! layer index
+    integer  :: jm                    ! loop over all edges of a given cell
+    integer  :: n_edges_of_cell       ! number of edges of a given cell
+    real(wp) :: tangential_wind_value ! tangential wind value at an ede
     
     !$omp parallel do private(ji,jl,jm,n_edges_of_cell,tangential_wind_value)
     do ji=1,n_cells
@@ -84,22 +87,28 @@ module mo_spatial_ops_for_output
     type(t_grid),  intent(in)  :: grid                  ! grid quantities
     
     ! local variables
-    integer               :: ji,jl,jm,n_edges_of_cell
-    real(wp)              :: upper_weight,lower_weight,layer_thickness
-    real(wp), allocatable :: grad_pot_temp_h(:,:),grad_pot_temp_v(:,:), &
-                             pot_vort_as_tangential_vector_field_h(:,:), &
-                             pot_vort_as_tangential_vector_field_v(:,:)
+    integer               :: ji                                         ! horizontal index
+    integer               :: jl                                         ! vertical index
+    integer               :: jm                                         ! loop over all edges of a given cell
+    integer               :: n_edges_of_cell                            ! number of edges of a given cell
+    real(wp)              :: upper_weight                               ! upper interpolation weight
+    real(wp)              :: lower_weight                               ! lower interpolation weight
+    real(wp)              :: layer_thickness                            ! layer thickness at an edge
+    real(wp), allocatable :: grad_pot_temp_h(:,:)                       ! horizontal gradient of the potential temperature
+    real(wp), allocatable :: grad_pot_temp_v(:,:)                       ! vertical gradient of the potential temperature
+    real(wp), allocatable :: pot_vort_as_tangential_vector_field_h(:,:) ! horizontal potential vorticity as tangential components at edges
+    real(wp), allocatable :: pot_vort_v_at_levels(:,:)                  ! vertical potential vorticity at the cell center level interfaces
     
     allocate(grad_pot_temp_h(n_edges,n_layers))
     allocate(grad_pot_temp_v(n_cells,n_levels))
     allocate(pot_vort_as_tangential_vector_field_h(n_edges,n_layers))
-    allocate(pot_vort_as_tangential_vector_field_v(n_cells,n_levels))
+    allocate(pot_vort_v_at_levels(n_cells,n_levels))
     
     !$omp parallel workshare
     grad_pot_temp_h = 0._wp
     grad_pot_temp_v = 0._wp
     pot_vort_as_tangential_vector_field_h = 0._wp
-    pot_vort_as_tangential_vector_field_v = 0._wp
+    pot_vort_v_at_levels = 0._wp
     !$omp end parallel workshare
     
     ! diagnozing the horizontal vorticity at the primal horizontal vector points (they are TANGENTIAL! so it is not a real vector field, but a modified one)
@@ -134,7 +143,7 @@ module mo_spatial_ops_for_output
     do ji=1,n_cells
       do jl=2,n_layers
         ! initializing the value with zero
-        pot_vort_as_tangential_vector_field_v(ji,jl) = 0._wp
+        pot_vort_v_at_levels(ji,jl) = 0._wp
         
         n_edges_of_cell = 6
         if (ji<=n_pentagons) then
@@ -142,15 +151,15 @@ module mo_spatial_ops_for_output
         endif
         ! contribution of upper cell
         do jm=1,n_edges_of_cell
-          pot_vort_as_tangential_vector_field_v(ji,jl) &
-          = pot_vort_as_tangential_vector_field_v(ji,jl-1) &
+          pot_vort_v_at_levels(ji,jl) &
+          = pot_vort_v_at_levels(ji,jl-1) &
           + 0.25_wp*grid%inner_product_weights(ji,jl-1,jm) &
           *diag%pot_vort_v(grid%adjacent_edges(ji,jm),jl-1)
         enddo
         ! contribution of lower cell
         do jm=1,n_edges_of_cell
-          pot_vort_as_tangential_vector_field_v(ji,jl) &
-          = pot_vort_as_tangential_vector_field_v(ji,jl) &
+          pot_vort_v_at_levels(ji,jl) &
+          = pot_vort_v_at_levels(ji,jl) &
           + 0.25_wp*grid%inner_product_weights(ji,jl,jm) &
           *diag%pot_vort_v(grid%adjacent_edges(ji,jm),jl)
         enddo
@@ -161,14 +170,14 @@ module mo_spatial_ops_for_output
     ! taking the gradient of the virtual potential temperature
     call grad_vert(grid%theta_v_bg+state%theta_v_pert,grad_pot_temp_v,grid)
     call grad_hor(grid%theta_v_bg+state%theta_v_pert,grad_pot_temp_h,grad_pot_temp_v,grid)
-    call inner_product_tangential(pot_vort_as_tangential_vector_field_h,pot_vort_as_tangential_vector_field_v, &
+    call inner_product_tangential(pot_vort_as_tangential_vector_field_h,pot_vort_v_at_levels, &
                                   grad_pot_temp_h,grad_pot_temp_v,epv,grid)
     
     ! freeing the memory
     deallocate(grad_pot_temp_h)
     deallocate(grad_pot_temp_v)
     deallocate(pot_vort_as_tangential_vector_field_h)
-    deallocate(pot_vort_as_tangential_vector_field_v)
+    deallocate(pot_vort_v_at_levels)
   
   end subroutine epv_diagnostics
 
