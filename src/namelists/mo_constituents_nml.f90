@@ -6,10 +6,10 @@ module mo_constituents_nml
   ! This namelist defines the constituents of the model atmosphere.
 
   use mo_definitions, only: wp
-  use mo_run_nml,     only: lmoist
 
   implicit none
   
+  logical  :: lmoist                   ! moisture switch
   integer  :: n_gaseous_constituents   ! number of constituents of the gas phase
   integer  :: n_condensed_constituents ! number of condensed constituents
   integer  :: n_constituents           ! the total number of constituents

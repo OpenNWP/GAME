@@ -12,7 +12,6 @@ module mo_run_nml
   character(len=64) :: run_id         ! ID of this run
   real(wp)          :: run_span_min   ! run span in minutes
   real(wp)          :: t_init         ! epoch time stamp of the initialization
-  logical           :: lmoist         ! moisture switch
   integer           :: start_year     ! year of the model run beginning
   integer           :: start_month    ! month of the model run beginning
   integer           :: start_day      ! day of the model run beginning
@@ -20,8 +19,7 @@ module mo_run_nml
   integer           :: start_hour     ! hour of the model run beginning
   integer           :: start_minute   ! minute of the model run beginning
   
-  namelist /run/run_id,run_span_min,lmoist, &
-                start_year,start_month,start_day,start_hour,start_minute
+  namelist /run/run_id,run_span_min,start_year,start_month,start_day,start_hour,start_minute
 
   contains
 
@@ -33,7 +31,6 @@ module mo_run_nml
     ! default values
     run_id = "ideal"
     run_span_min = 100._wp*24._wp*60._wp
-    lmoist = .true.
     start_year = 2000
     start_month = 1
     start_day = 1
