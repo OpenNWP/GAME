@@ -9,18 +9,18 @@ module mo_grid_nml
   
   implicit none
   
-  integer  :: res_id            ! resolution_id
-  integer  :: n_layers          ! number of layers
-  integer  :: oro_id            ! orography ID
-  integer  :: n_pentagons       ! number of pentagons
-  integer  :: n_hexagons        ! number of hexagons
-  integer  :: n_cells           ! number of columns
-  integer  :: n_edges           ! number of horizontal vectors per layer
-  integer  :: n_levels          ! number of levels
-  integer  :: n_basic_triangles ! number of basic triangles of the icosaheron
-  integer  :: n_triangles       ! the number of triangles of the grid
-  integer  :: n_lat_io_points   ! number of points of the post-processing lat-lon grid in lat direction
-  integer  :: n_lon_io_points   ! number of points of the post-processing lat-lon grid in lon direction
+  integer :: res_id            ! resolution_id
+  integer :: n_layers          ! number of layers
+  integer :: oro_id            ! orography ID
+  integer :: n_pentagons       ! number of pentagons
+  integer :: n_hexagons        ! number of hexagons
+  integer :: n_cells           ! number of columns
+  integer :: n_edges           ! number of horizontal vectors per layer
+  integer :: n_levels          ! number of levels
+  integer :: n_basic_triangles ! number of basic triangles of the icosaheron
+  integer :: n_triangles       ! the number of triangles of the grid
+  integer :: n_lat_io_points   ! number of points of the post-processing lat-lon grid in lat direction
+  integer :: n_lon_io_points   ! number of points of the post-processing lat-lon grid in lon direction
   
   namelist /grid/res_id,n_layers,oro_id
 
