@@ -108,7 +108,7 @@ module mo_spatial_ops_for_output
       do jl=1,n_layers
         ! determining the upper and lower weights
         layer_thickness = &
-        grid%layer_thickness(grid%from_cell(ji),jl) - grid%layer_thickness(grid%to_cell(ji),jl)
+        0.5_wp*(grid%layer_thickness(grid%from_cell(ji),jl) + grid%layer_thickness(grid%to_cell(ji),jl))
         if (jl==1) then
           upper_weight = &
           (0.5_wp*(grid%z_vector_v(grid%from_cell(ji),1) &

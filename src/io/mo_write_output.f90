@@ -493,7 +493,6 @@ module mo_write_output
       
       call interpolate_to_ll(mslp,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,mslp_id,lat_lon_output_field))
-      
       call interpolate_to_ll(sp,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,sp_id,lat_lon_output_field))
       
