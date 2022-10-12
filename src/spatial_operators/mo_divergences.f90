@@ -23,8 +23,14 @@ module mo_divergences
     type(t_grid), intent(in)  :: grid                        ! grid quantities
     
     ! local variables
-    integer  :: ji,jl,jm,n_edges_of_cell
-    real(wp) :: contra_upper,contra_lower,comp_h,comp_v
+    integer  :: ji              ! cell index
+    integer  :: jl              ! layer index
+    integer  :: jm              ! edge index of a given cell
+    integer  :: n_edges_of_cell ! number of edges of a given cell
+    real(wp) :: contra_upper    ! vertical upward contravariant mass flux density at upper area of a given grid box
+    real(wp) :: contra_lower    ! vertical upward contravariant mass flux density at lower area of a given grid box
+    real(wp) :: comp_h          ! sum of all horizontal fluxes
+    real(wp) :: comp_v          ! difference between upper und lower flux
     
     !$omp parallel do private(ji,jl,jm,n_edges_of_cell,contra_upper,contra_lower,comp_h,comp_v)
     do ji=1,n_cells
@@ -50,6 +56,7 @@ module mo_divergences
           contra_lower = vertical_contravariant_corr(in_field,ji,jl+1,grid)
           comp_v = contra_upper*grid%area_v(ji,jl) - contra_lower*grid%area_v(ji,jl+1)
         endif
+        ! adding horizontal and vertical component and dividing by the volume
         out_field(ji,jl) = (comp_h+comp_v)/grid%volume(ji,jl)
        enddo
     enddo
@@ -67,8 +74,16 @@ module mo_divergences
     type(t_grid), intent(in)  :: grid                            ! grid quantities
     
     ! local variables
-    integer  :: ji,jl,jm,n_edges_of_cell
-    real(wp) :: contra_upper,contra_lower,comp_h,comp_v,density_lower,density_upper
+    integer  :: ji              ! cell index
+    integer  :: jl              ! layer index
+    integer  :: jm              ! edge index of a given cell
+    integer  :: n_edges_of_cell ! number of edges of a given cell
+    real(wp) :: contra_upper    ! vertical upward contravariant mass flux density at upper area of a given grid box
+    real(wp) :: contra_lower    ! vertical upward contravariant mass flux density at lower area of a given grid box
+    real(wp) :: comp_h          ! sum of all horizontal fluxes
+    real(wp) :: comp_v          ! difference between upper und lower flux
+    real(wp) :: density_lower   ! density at lower area of a given grid box
+    real(wp) :: density_upper   ! density at upper area of a given grid box
 
     !$omp parallel do private(ji,jl,jm,n_edges_of_cell,contra_upper,contra_lower,comp_h,comp_v,density_lower,density_upper)
     do ji=1,n_cells
@@ -114,6 +129,7 @@ module mo_divergences
           endif
           comp_v = density_upper*contra_upper*grid%area_v(ji,jl) - density_lower*contra_lower*grid%area_v(ji,jl+1)
         endif
+        ! adding horizontal and vertical component and dividing by the volume
         out_field(ji,jl) = (comp_h+comp_v)/grid%volume(ji,jl)
       enddo
     enddo
@@ -130,9 +146,11 @@ module mo_divergences
     type(t_grid), intent(in)    :: grid                        ! grid quantities
     
     ! local variables
-    integer  :: ji ! cell index
-    integer  :: jl ! layer index
-    real(wp) :: contra_upper,contra_lower,comp_v
+    integer  :: ji           ! cell index
+    integer  :: jl           ! layer index
+    real(wp) :: contra_upper ! vertical upward contravariant mass flux density at upper area of a given grid box
+    real(wp) :: contra_lower ! vertical upward contravariant mass flux density at lower area of a given grid box
+    real(wp) :: comp_v       ! difference between upper und lower flux
     
     !$omp parallel do private(ji,jl,contra_upper,contra_lower,comp_v)
     do ji=1,n_cells

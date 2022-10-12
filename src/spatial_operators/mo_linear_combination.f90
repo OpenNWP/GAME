@@ -3,7 +3,7 @@
 
 module mo_linear_combination
 
-  ! This module  contains a function for linearly combining two states.
+  ! This module contains a function for linearly combining two states.
 
   use mo_definitions,      only: wp,t_state,t_grid
   use mo_constituents_nml, only: n_condensed_constituents

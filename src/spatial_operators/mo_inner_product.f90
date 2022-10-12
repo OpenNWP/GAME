@@ -44,7 +44,7 @@ module mo_inner_product
         enddo
         ! effect of level above
         out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(ji,jl,7)*in_field_1_v(ji,jl)*in_field_2_v(ji,jl)
-        ! effect of leel below
+        ! effect of level below
         out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(ji,jl,8)*in_field_1_v(ji,jl+1)*in_field_2_v(ji,jl+1)
       enddo
     enddo

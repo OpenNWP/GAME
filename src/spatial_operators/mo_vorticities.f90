@@ -97,12 +97,18 @@ module mo_vorticities
     ! This subroutine calculates the vertical relative vorticity on triangles.
     
     type(t_state), intent(in)    :: state ! state variables
-    type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
+    type(t_diag),  intent(inout) :: diag  ! diagnostic quantities (the relative vorticity is included here)
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer  :: ji,jl,jm,jl_for_vertical_gradient
-    real(wp) :: velocity_value,length_rescale_factor,vertical_gradient,delta_z
+    integer  :: ji                       ! triangle index
+    integer  :: jl                       ! layer index
+    integer  :: jm                       ! triangle edge index (1 - 3)
+    integer  :: jl_for_vertical_gradient ! layer index for computing the vertical gradient of horizontal velocity
+    real(wp) :: velocity_value           ! velocity value at one edge
+    real(wp) :: length_rescale_factor    ! rescaling factor for the dual edge length (needed for vertical interpolation in terrain-following coordinates)
+    real(wp) :: vertical_gradient        ! vertical gradient of horizontal velocity (needed for vertical interpolation in terrain-following coordinates, unit: 1/s)
+    real(wp) :: delta_z                  ! vertical distance used for computing the vertical gradient of horizontal velocity
     
     ! loop over all triangles
     !$omp parallel do private(ji,jl,jm,velocity_value,length_rescale_factor, &

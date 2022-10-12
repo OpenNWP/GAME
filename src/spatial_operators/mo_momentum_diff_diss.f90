@@ -191,14 +191,20 @@ module mo_momentum_diff_diss
   
     ! This subroutine calculates the curl of the vertical vorticity.
     
-    type(t_diag), intent(inout) :: diag ! diagnostic quantities
+    type(t_diag), intent(inout) :: diag ! diagnostic quantities (the curl of the vertical vorticity is included here)
     type(t_grid), intent(in)    :: grid ! grid quantities
     
     ! local variables
-    integer  :: ji ! edge index
-    integer  :: jl ! layer index
-    integer  :: jm,upper_index_zeta,lower_index_zeta
-    real(wp) :: delta_z,delta_y,tangential_slope,delta_zeta,checkerboard_damping_weight
+    integer  :: ji                          ! edge index
+    integer  :: jl                          ! layer index
+    integer  :: jm                          ! triangle edge index (1 - 3)
+    integer  :: upper_index_zeta            ! upper index used for computing the vertical gradient of vertical vorticity
+    integer  :: lower_index_zeta            ! lower index used for computing the vertical gradient of vertical vorticity
+    real(wp) :: delta_z                     ! used for computing the tangential slope of the grid and the vertical gradient of vertical vorticity (m)
+    real(wp) :: delta_y                     ! used for computing the tangential slope of the grid (m)
+    real(wp) :: tangential_slope            ! tangential slope (dimensionless)
+    real(wp) :: delta_zeta                  ! vertical vorticity difference
+    real(wp) :: checkerboard_damping_weight ! weight (0 <= checkerboard_damping_weight <= 1) used for damping the checkerboard pattern
     !$omp parallel do private(ji,jl,jm,delta_z,delta_y,tangential_slope, &
     !$omp upper_index_zeta,lower_index_zeta,delta_zeta,checkerboard_damping_weight)
     do ji=1,n_edges
