@@ -36,7 +36,7 @@ module mo_phase_trans
                 diff_density_sfc,saturation_pressure_sfc,dry_pressure,air_pressure, &
                 a,b,c,p,q,enhancement_factor,maximum_cloud_water_content
     
-    ! maximum cloud water content in (kg cloud)/(kg dry air).
+    ! maximum cloud water content in (kg cloud)/(kg dry air)
     maximum_cloud_water_content = 0.2e-3_wp
     
     ! loop over all grid boxes
