@@ -12,7 +12,8 @@ cd build
 
 d_value=False
 f_value=False
-while getopts "df" opt; do
+c_value=False
+while getopts "dfc" opt; do
   case $opt in
     d)
       d_value=True
@@ -20,13 +21,16 @@ while getopts "df" opt; do
     f)
       f_value=True
       ;;
+    c)
+      c_value=True
+      ;;
     \?)
       echo "Invalid option: -$OPTARG. Compiling anyway."
       ;;
   esac
 done
 
-cmake -DBOUNDS_CHECKS=$d_value -DFAST=$f_value ..
+cmake -DBOUNDS_CHECKS=$d_value -DFAST=$f_value -DCOMPILE_TIME_CONFIG=$c_value ..
 make
 
 cd ..

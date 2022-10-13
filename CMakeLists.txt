@@ -15,11 +15,11 @@ src/mo_constants.f90
 src/mo_definitions.f90
 src/namelists/mo_run_nml.f90
 src/namelists/mo_rad_nml.f90
-src/namelists/mo_constituents_nml.f90
+src/namelists/mo_constituents_nml.F90
 src/namelists/mo_diff_nml.f90
 src/namelists/mo_surface_nml.f90
 src/namelists/mo_io_nml.f90
-src/namelists/mo_grid_nml.f90
+src/namelists/mo_grid_nml.F90
 src/time_stepping/mo_manage_pchevi.f90
 src/time_stepping/mo_pgrad.f90
 src/time_stepping/mo_vector_tend_expl.f90
@@ -87,7 +87,15 @@ endif()
 if(BOUNDS_CHECKS)
   SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fbounds-check")
 endif()
+# compile-time configuration for more performance
+if(COMPILE_TIME_CONFIG)
+  SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DCOMPILE_TIME_CONFIG")
+endif()
 target_link_libraries(game m netcdf netcdff)
+
+
+
+
 
 
 
