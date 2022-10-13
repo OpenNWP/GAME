@@ -28,13 +28,7 @@ src/vertical_grid/mo_vertical_grid.f90
 src/namelists/mo_grid_nml.f90
 )
 find_package(OpenMP)
-# aggressive optimization
-if (FAST)
-  SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -Ofast -ftree-vectorize -funroll-loops -Wall -Wpedantic -I/usr/include -L/usr/lib/x86_64-linux-gnu")
-# default optimization
-else()
-  SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -O2 -ftree-vectorize -funroll-loops -Wall -Wpedantic -I/usr/include -L/usr/lib/x86_64-linux-gnu")
-endif()
+SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -O2 -ftree-vectorize -funroll-loops -Wall -Wpedantic -I/usr/include -L/usr/lib/x86_64-linux-gnu")
 # switching on boundary checking of arrays
 if(BOUNDS_CHECKS)
   SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fbounds-check")
