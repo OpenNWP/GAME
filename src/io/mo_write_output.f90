@@ -555,8 +555,13 @@ module mo_write_output
     allocate(u_at_cell(n_cells,n_layers))
     allocate(v_at_cell(n_cells,n_layers))
     call edges_to_cells(u_at_edge,u_at_cell,grid)
+    deallocate(u_at_edge)
     call edges_to_cells(v_at_edge,v_at_cell,grid)
+    deallocate(v_at_edge)
     allocate(rh(n_cells,n_layers))
+    !$omp parallel workshare
+    rh = 0._wp
+    !$omp end parallel workshare
     allocate(epv(n_cells,n_layers))
     allocate(pressure(n_cells,n_layers))
     !$omp parallel do private(ji,jl)
@@ -736,6 +741,7 @@ module mo_write_output
       deallocate(rh_on_p_levels)
       deallocate(u_on_p_levels)
       deallocate(v_on_p_levels)
+      deallocate(zeta_on_p_levels)
       deallocate(epv_on_p_levels)
     endif
 
