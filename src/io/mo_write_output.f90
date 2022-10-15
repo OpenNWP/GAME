@@ -225,6 +225,14 @@ module mo_write_output
       allocate(sprate(n_cells))
       allocate(cape(n_cells))
       allocate(sfc_sw_down(n_cells))
+      
+      ! initializing moisture variables with zero
+      !$omp parallel workshare
+      tcc = 0._wp
+      rprate = 0._wp
+      sprate = 0._wp
+      !$omp end parallel workshare
+      
       z_tropopause = 12e3_wp
       standard_vert_lapse_rate = 0.0065_wp
       !$omp parallel do private(ji,jl,temp_lowest_layer,pressure_value,mslp_factor,sp_factor,temp_mslp,temp_surface, &
@@ -733,7 +741,7 @@ module mo_write_output
       
       enddo
       
-      ! closing the netcdf file
+      ! closing the netCDF file
       call nc_check(nf90_close(ncid))
       
       deallocate(geopotential_height)
@@ -772,11 +780,11 @@ module mo_write_output
         
         varname = "pressure_layer_" // trim(int2string(jl))
         call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,pressure_ids(jl)))
-        call nc_check(nf90_put_att(ncid,temperature_ids(jl),"units","Pa"))
+        call nc_check(nf90_put_att(ncid,pressure_ids(jl),"units","Pa"))
         
         varname = "rel_hum_layer_" // trim(int2string(jl))
         call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,rel_hum_ids(jl)))
-        call nc_check(nf90_put_att(ncid,temperature_ids(jl),"units","%"))
+        call nc_check(nf90_put_att(ncid,rel_hum_ids(jl),"units","%"))
         
         varname = "wind_u_layer_" // trim(int2string(jl))
         call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,wind_u_ids(jl)))
@@ -810,48 +818,48 @@ module mo_write_output
       call nc_check(nf90_put_var(ncid,lat_id,lat_vector))
       call nc_check(nf90_put_var(ncid,lon_id,lon_vector))
       do jl=1,n_layers
-      
         ! temperature
         call interpolate_to_ll(diag%temperature(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,temperature_ids(jl),lat_lon_output_field))
-        
         ! pressure
         call interpolate_to_ll(pressure(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,pressure_ids(jl),lat_lon_output_field))
-        
         ! relative humidity
         call interpolate_to_ll(rh(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,rel_hum_ids(jl),lat_lon_output_field))
-        
         ! zonal wind
         call interpolate_to_ll(u_at_cell(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,wind_u_ids(jl),lat_lon_output_field))
-        
         ! meridional wind
         call interpolate_to_ll(v_at_cell(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,wind_v_ids(jl),lat_lon_output_field))
-        
         ! relative vorticity
         call interpolate_to_ll(rel_vort_scalar_field(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,rel_vort_ids(jl),lat_lon_output_field))
-        
         ! horizontal divergence
         call interpolate_to_ll(div_h_all_layers(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,div_h_ids(jl),lat_lon_output_field))
-        
       enddo
       
+      ! vertical wind
       do jl=1,n_levels
-        call interpolate_to_ll(state%wind_h(:,jl),lat_lon_output_field,grid)
+        call interpolate_to_ll(state%wind_v(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,wind_w_ids(jl),lat_lon_output_field))
       enddo
       
-      ! closing the netcdf file
+      ! closing the netCDF file
       call nc_check(nf90_close(ncid))
     endif
     
     deallocate(u_at_cell)
     deallocate(v_at_cell)
+    deallocate(lat_lon_output_field)
+    deallocate(div_h_all_layers)
+    deallocate(rel_vort_scalar_field)
+    deallocate(rh)
+    deallocate(epv)
+    deallocate(pressure)
+    
     ! output of the whole model state for data assimilation
     if ((ideal_input_id==-1 .or. ltotally_first_step) .and. time_since_init_min==time_to_next_analysis_min) then
     
@@ -922,12 +930,6 @@ module mo_write_output
       call nc_check(nf90_close(ncid))
     endif
     
-    deallocate(lat_lon_output_field)
-    deallocate(div_h_all_layers)
-    deallocate(rel_vort_scalar_field)
-    deallocate(rh)
-    deallocate(epv)
-    deallocate(pressure)
     write(*,*) "Output written."
     
   end subroutine write_out

@@ -27,6 +27,7 @@ program control
   use mo_linear_combination,     only: linear_combine_two_states
   use mo_gradient_operators,     only: grad_hor_cov,grad_hor,grad_vert
   use mo_inner_product,          only: inner_product
+  use omp_lib,                   only: omp_get_num_threads
 
   implicit none
   
@@ -34,6 +35,7 @@ program control
   type(t_diag)          :: diag
   type(t_grid)          :: grid
   logical               :: ltotally_first_step,lrad_update
+  integer               :: omp_num_threads ! number of OMP threads
   integer               :: ji,time_step_counter,wind_lowest_layer_step_counter,time_step_10_m_wind
   real(wp)              :: t_0,t_write,t_rad_update,new_weight,old_weight,max_speed_hor,max_speed_ver, &
                            normal_dist_min_hor,normal_dist_min_ver,init_timestamp,begin_timestamp,end_timestamp
@@ -410,9 +412,13 @@ program control
     !$omp end parallel workshare
   enddo
   
+  ! getting the number of OMP threads
+  !$omp parallel
+  omp_num_threads = omp_get_num_threads()
+  !$omp end parallel
+  
   ! time coordinate of the old RK step
   t_0 = t_init
-  
   ! for radiation and writing output it is necessary that the temperature is set correctly
   call temperature_diagnostics(state_1,diag,grid)
   ! configuring radiation and calculating radiative fluxes for the first time
@@ -522,7 +528,7 @@ program control
       ! Calculating the speed of the model.
       call cpu_time(end_timestamp)
       !speed = CLOCKS_PER_SEC*60*write_out_interval_min/((double) second_time - first_time)
-      write(*,fmt="(A,F8.3)") " Current speed:",60._wp*write_out_interval_min/(end_timestamp - begin_timestamp)
+      write(*,fmt="(A,F9.3)") " Current speed:",60._wp*write_out_interval_min/((end_timestamp-begin_timestamp)/omp_num_threads)
       call cpu_time(begin_timestamp)
       write(*,fmt="(A,F10.3,A2)") " Run progress:",(t_0+dtime-t_init)/3600._wp,"h"
       
@@ -685,7 +691,7 @@ program control
   deallocate(state_write%temperature_soil)
   write(*,*) stars
   call cpu_time(end_timestamp)
-  write(*,*) "Average speed:",(60._wp*run_span_min+300._wp)/(end_timestamp - init_timestamp)
+  write(*,fmt="(A,F9.3)") "Average speed:",(60._wp*run_span_min+300._wp)/((end_timestamp-init_timestamp)/omp_num_threads)
   write(*,*) "GAME over."
 
 end program control
