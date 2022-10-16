@@ -37,8 +37,8 @@ module mo_vorticities
     
     ! vertical potential vorticities (located at full level eddges)
     !$omp parallel do private(ji,jl,jm,density_value)
-    do ji=1,n_edges
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_edges
         ! interpolation of the density to the center of the rhombus
         density_value = 0._wp
         do jm=1,4
@@ -54,8 +54,8 @@ module mo_vorticities
     
     ! horizontal potential vorticities (located at half level edges)
     !$omp parallel do private(ji,jl,density_value)
-    do ji=1,n_edges
-      do jl=1,n_levels
+    do jl=1,n_levels
+      do ji=1,n_edges
         ! interpolation of the density to the half level edges
         ! linear extrapolation to the TOA
         if (jl==1) then
@@ -113,8 +113,8 @@ module mo_vorticities
     ! loop over all triangles
     !$omp parallel do private(ji,jl,jm,velocity_value,length_rescale_factor, &
     !$omp jl_for_vertical_gradient,vertical_gradient,delta_z)
-    do ji=1,n_triangles
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_triangles
         ! clearing what has previously been here
         diag%rel_vort_on_triangles(ji,jl) = 0._wp
         ! loop over the three edges of the triangle at hand
@@ -170,19 +170,21 @@ module mo_vorticities
     call calc_rel_vort_on_triangles(state,diag,grid)
                         
     ! vertical vorticities       
-    !$omp parallel do private(ji)
-    do ji=1,n_edges
-      diag%rel_vort_v(ji,:) = ( &
-      grid%area_dual_v(grid%from_cell_dual(ji),:)*diag%rel_vort_on_triangles(grid%from_cell_dual(ji),:) &
-      + grid%area_dual_v(grid%to_cell_dual(ji),:)*diag%rel_vort_on_triangles(grid%to_cell_dual(ji),:))/ &
-      (grid%area_dual_v(grid%from_cell_dual(ji),:) + grid%area_dual_v(grid%to_cell_dual(ji),:))
+    !$omp parallel do private(ji,jl)
+    do jl=1,n_layers
+      do ji=1,n_edges
+        diag%rel_vort_v(ji,jl) = ( &
+        grid%area_dual_v(grid%from_cell_dual(ji),jl)*diag%rel_vort_on_triangles(grid%from_cell_dual(ji),jl) &
+        + grid%area_dual_v(grid%to_cell_dual(ji),jl)*diag%rel_vort_on_triangles(grid%to_cell_dual(ji),jl))/ &
+        (grid%area_dual_v(grid%from_cell_dual(ji),jl) + grid%area_dual_v(grid%to_cell_dual(ji),jl))
+      enddo
     enddo
     !$omp end parallel do
           
     ! tangential (horizontal) vorticities
     !$omp parallel do private(ji,jl)
-    do ji=1,n_edges
-      do jl=2,n_levels
+    do jl=2,n_levels
+      do ji=1,n_edges
         ! At the lower boundary, w vanishes. Furthermore, the covariant velocity below the surface is also zero.
         if (jl==n_levels) then
           diag%rel_vort_h(ji,n_levels) = 1._wp/grid%area_dual_h(ji,n_levels) &

@@ -32,8 +32,8 @@ module mo_eff_diff_coeffs
     real(wp) :: density_value ! mass density value
     
     !$omp parallel do private(ji,jl)
-    do ji=1,n_cells
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells
         ! molecular component
         diag%molecular_diffusion_coeff(ji,jl) = calc_diffusion_coeff(diag%temperature(ji,jl), &
                                                                      state%rho(ji,jl,n_condensed_constituents+1))
@@ -47,8 +47,8 @@ module mo_eff_diff_coeffs
     ! Averaging the viscosity to rhombi
     ! ---------------------------------
     !$omp parallel do private(ji,jl)
-    do ji=1,n_edges
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_edges
       
         ! preliminary result
         diag%viscosity_rhombi(ji,jl) = 0.5_wp*(diag%viscosity(grid%from_cell(ji),jl) &
@@ -65,8 +65,8 @@ module mo_eff_diff_coeffs
     ! Averaging the viscosity to triangles
     ! ------------------------------------
     !$omp parallel do private(ji,jl,density_value)
-    do ji=1,n_triangles
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_triangles
       
         ! preliminary result
         diag%viscosity_triangles(ji,jl) = 1._wp/6._wp*( &
@@ -96,14 +96,9 @@ module mo_eff_diff_coeffs
     
     ! Multiplying the viscosity in the cell centers by the gas density
     ! ----------------------------------------------------------------
-    !$omp parallel do private(ji,jl)
-    do ji=1,n_cells
-      do jl=1,n_layers
-        ! multiplying by the density
-        diag%viscosity(ji,jl) = state%rho(ji,jl,n_condensed_constituents+1)*diag%viscosity(ji,jl)
-      enddo
-    enddo
-    !$omp end parallel do
+    !$omp parallel workshare
+    diag%viscosity = state%rho(:,:,n_condensed_constituents+1)*diag%viscosity
+    !$omp end parallel workshare
     
   end subroutine hor_viscosity
 
@@ -124,8 +119,8 @@ module mo_eff_diff_coeffs
       call hor_viscosity(state,diag,grid)
     endif
     !$omp parallel do private(ji,jl)
-    do ji=1,n_cells
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells
     
         ! Computing the mass diffusion coefficient
         ! ----------------------------------------
@@ -165,8 +160,8 @@ module mo_eff_diff_coeffs
     real(wp) :: mom_diff_coeff ! effective kinematic momentum diffusion coefficient
     
     !$omp parallel do private(ji,jl,mom_diff_coeff)
-    do ji=1,n_cells
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells
         mom_diff_coeff &
         ! molecular viscosity
         = molecular_diffusion_coeff(ji,jl) &
@@ -195,8 +190,8 @@ module mo_eff_diff_coeffs
     
     ! loop over horizontal vector points at half levels
     !$omp parallel do private(ji,jl,mom_diff_coeff,molecular_viscosity)
-    do ji=1,n_edges
-      do jl=2,n_layers
+    do jl=2,n_layers
+      do ji=1,n_edges
         ! the turbulent component
         mom_diff_coeff = 0.25_wp*(tke2vert_diff_coeff(diag%tke(grid%from_cell(ji),jl-1), &
                                                       diag%n_squared(grid%from_cell(ji),jl-1), &

@@ -163,11 +163,13 @@ module mo_momentum_diff_diss
     call grad_vert(diag%scalar_placeholder,diag%vector_placeholder_v,grid)
     call grad_hor(diag%scalar_placeholder,diag%vector_placeholder_h,diag%vector_placeholder_v,grid)
     ! multiplying by the already computed diffusion coefficient
-    !$omp parallel do private(ji)
-    do ji=1,n_edges
-      diag%vector_placeholder_h(ji,:) = 0.5_wp &
-      *(diag%viscosity(grid%from_cell(ji),:) + diag%viscosity(grid%to_cell(ji),:)) &
-      *diag%vector_placeholder_h(ji,:)
+    !$omp parallel do private(ji,jl)
+    do jl=1,n_layers
+      do ji=1,n_edges
+        diag%vector_placeholder_h(ji,jl) = 0.5_wp &
+        *(diag%viscosity(grid%from_cell(ji),jl) + diag%viscosity(grid%to_cell(ji),jl)) &
+        *diag%vector_placeholder_h(ji,jl)
+      enddo
     enddo
     !$omp end parallel do
     

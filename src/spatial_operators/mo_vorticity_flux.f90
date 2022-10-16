@@ -28,8 +28,8 @@ module mo_vorticity_flux
     ! Calculating the horizontal component of the vorticity flux term.
     ! ----------------------------------------------------------------
     !$omp parallel do private(ji,jl,jm)
-    do ji=1,n_edges
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_edges
         diag%pot_vort_tend_h(ji,jl) = 0._wp
         
         ! "Standard" component (vertical potential vorticity times horizontal mass flux density).
@@ -101,8 +101,8 @@ module mo_vorticity_flux
     ! Calculating the vertical component of the vorticity flux term.
     ! --------------------------------------------------------------
     !$omp parallel do private(ji,jl,jm,n_edges_of_cell)
-    do ji=1,n_cells
-      do jl=2,n_layers
+    do jl=2,n_layers
+      do ji=1,n_cells
         diag%pot_vort_tend_v(ji,jl) = 0._wp
         
         ! Determining the vertical acceleration due to the vorticity flux term.
