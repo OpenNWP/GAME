@@ -16,7 +16,7 @@ module mo_inner_product
 
     ! This subroutine computes the geometrical weights for computing the inner product.
 
-    real(wp), intent(out) :: inner_product_weights(n_cells,n_layers,8) ! the result
+    real(wp), intent(out) :: inner_product_weights(8,n_cells,n_layers) ! the result
     real(wp), intent(in)  :: dx(n_edges,n_layers)                      ! horizontal grid point distances
     real(wp), intent(in)  :: volume(n_cells,n_layers)                  ! volumes of the grid boxes
     real(wp), intent(in)  :: area_h(n_edges,n_layers)                  ! horizontal areas
@@ -34,11 +34,11 @@ module mo_inner_product
       do jl=1,n_layers
         do jm=1,6
           if (jm<6 .or. ji>n_pentagons) then
-            inner_product_weights(ji,jl,jm) = area_h(adjacent_edges(jm,ji),jl)
-            inner_product_weights(ji,jl,jm) = inner_product_weights(ji,jl,jm)*dx(adjacent_edges(jm,ji),jl)
-            inner_product_weights(ji,jl,jm) = inner_product_weights(ji,jl,jm)/(2._wp*volume(ji,jl))
+            inner_product_weights(jm,ji,jl) = area_h(adjacent_edges(jm,ji),jl)
+            inner_product_weights(jm,ji,jl) = inner_product_weights(jm,ji,jl)*dx(adjacent_edges(jm,ji),jl)
+            inner_product_weights(jm,ji,jl) = inner_product_weights(jm,ji,jl)/(2._wp*volume(ji,jl))
           else
-            inner_product_weights(ji,jl,jm) = 0._wp
+            inner_product_weights(jm,ji,jl) = 0._wp
           endif
         enddo
         ! upper w
@@ -47,7 +47,7 @@ module mo_inner_product
         else
           delta_z = z_scalar(ji,jl-1)-z_scalar(ji,jl)
         endif
-        inner_product_weights(ji,jl,7) = area_v(ji,jl)*delta_z/(2._wp*volume(ji,jl))
+        inner_product_weights(7,ji,jl) = area_v(ji,jl)*delta_z/(2._wp*volume(ji,jl))
         ! lower w
         if (jl==n_layers) then
           delta_z = 2._wp*(z_scalar(ji,jl)-z_vector_v(ji,n_levels))
@@ -55,7 +55,7 @@ module mo_inner_product
           delta_z = z_scalar(ji,jl)-z_scalar(ji,jl+1)
         endif
         
-        inner_product_weights(ji,jl,8) = area_v(ji,jl+1)*delta_z/(2._wp*volume(ji,jl))
+        inner_product_weights(8,ji,jl) = area_v(ji,jl+1)*delta_z/(2._wp*volume(ji,jl))
         
       enddo
     enddo

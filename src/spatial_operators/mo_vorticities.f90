@@ -119,13 +119,13 @@ module mo_vorticities
         diag%rel_vort_on_triangles(ji,jl) = 0._wp
         ! loop over the three edges of the triangle at hand
         do jm=1,3
-          velocity_value = state%wind_h(grid%vorticity_indices_triangles(ji,jm),jl)
+          velocity_value = state%wind_h(grid%vorticity_indices_triangles(jm,ji),jl)
           ! this corrects for terrain following coordinates
           length_rescale_factor = 1._wp
           if (jl>n_flat_layers) then
             length_rescale_factor = (radius + grid%z_vector_dual_v(ji,jl)) &
-            /(radius+grid%z_vector_h(grid%vorticity_indices_triangles(ji,jm),jl))
-            delta_z = grid%z_vector_dual_v(ji,jl) - grid%z_vector_h(grid%vorticity_indices_triangles(ji,jm),jl)
+            /(radius+grid%z_vector_h(grid%vorticity_indices_triangles(jm,ji),jl))
+            delta_z = grid%z_vector_dual_v(ji,jl) - grid%z_vector_h(grid%vorticity_indices_triangles(jm,ji),jl)
             if (delta_z>0._wp) then
               jl_for_vertical_gradient = jl-1
             else
@@ -141,8 +141,8 @@ module mo_vorticities
             velocity_value = velocity_value+delta_z*vertical_gradient
           endif
           diag%rel_vort_on_triangles(ji,jl) = diag%rel_vort_on_triangles(ji,jl) &
-                                              + length_rescale_factor*grid%dx(grid%vorticity_indices_triangles(ji,jm),jl) &
-                                              *grid%vorticity_signs_triangles(ji,jm)*velocity_value
+                                              + length_rescale_factor*grid%dx(grid%vorticity_indices_triangles(jm,ji),jl) &
+                                              *grid%vorticity_signs_triangles(jm,ji)*velocity_value
         enddo
         
         ! dividing by the area (Stokes' Theorem)

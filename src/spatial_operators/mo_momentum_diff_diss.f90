@@ -154,8 +154,8 @@ module mo_momentum_diff_diss
     !$omp parallel do private(jl)
     do jl=1,n_layers
       diag%scalar_placeholder(:,jl) = &
-      grid%inner_product_weights(:,jl,7)*state%wind_v(:,jl) &
-      + grid%inner_product_weights(:,jl,8)*state%wind_v(:,jl+1)
+      grid%inner_product_weights(8,:,jl)*state%wind_v(:,jl) &
+      + grid%inner_product_weights(7,:,jl)*state%wind_v(:,jl+1)
     enddo
     !$omp end parallel do
     

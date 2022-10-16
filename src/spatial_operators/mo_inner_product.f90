@@ -39,13 +39,13 @@ module mo_inner_product
         out_field(ji,jl) = 0._wp
         ! loop over the edges of this cell
         do jm=1,n_edges_of_cell
-          out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(ji,jl,jm) &
+          out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(jm,ji,jl) &
           *in_field_1_h(grid%adjacent_edges(jm,ji),jl)*in_field_2_h(grid%adjacent_edges(jm,ji),jl)
         enddo
         ! effect of level above
-        out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(ji,jl,7)*in_field_1_v(ji,jl)*in_field_2_v(ji,jl)
+        out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(7,ji,jl)*in_field_1_v(ji,jl)*in_field_2_v(ji,jl)
         ! effect of level below
-        out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(ji,jl,8)*in_field_1_v(ji,jl+1)*in_field_2_v(ji,jl+1)
+        out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(8,ji,jl)*in_field_1_v(ji,jl+1)*in_field_2_v(ji,jl+1)
       enddo
     enddo
     !$omp end parallel do

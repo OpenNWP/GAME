@@ -157,7 +157,7 @@ module mo_derived_hor_quantities
     
     integer,  intent(in)  :: from_cell_dual(n_edges),to_cell_dual(n_edges)
     real(wp), intent(in)  :: direction(n_edges),direction_dual(n_edges)
-    integer,  intent(out) :: vorticity_indices_triangles(n_triangles,3),vorticity_signs_triangles(n_triangles,3)
+    integer,  intent(out) :: vorticity_indices_triangles(3,n_triangles),vorticity_signs_triangles(3,n_triangles)
     
     ! local variables
     integer             :: ji,jk,counter,vorticity_sign
@@ -168,7 +168,7 @@ module mo_derived_hor_quantities
       counter = 1
       do jk=1,n_edges
         if (from_cell_dual(jk)==ji .or. to_cell_dual(jk)==ji) then
-          vorticity_indices_triangles(ji,counter) = jk
+          vorticity_indices_triangles(counter,ji) = jk
           vorticity_sign = 1
           if (from_cell_dual(jk)==ji) then
             direction_change = find_turn_angle(direction_dual(jk),direction(jk))
@@ -182,7 +182,7 @@ module mo_derived_hor_quantities
               vorticity_sign = -1
             endif
           endif
-          vorticity_signs_triangles(ji,counter) = vorticity_sign
+          vorticity_signs_triangles(counter,ji) = vorticity_sign
           counter = counter+1
         endif
       enddo
@@ -344,7 +344,7 @@ module mo_derived_hor_quantities
     
     real(wp), intent(out) :: pent_hex_face_unity_sphere(n_cells)
     real(wp), intent(in)  :: lat_c_dual(n_triangles),lon_c_dual(n_triangles)
-    integer,  intent(in)  :: adjacent_edges(6,n_cells),vorticity_indices_triangles(n_triangles,3)
+    integer,  intent(in)  :: adjacent_edges(6,n_cells),vorticity_indices_triangles(3,n_triangles)
     
     integer  :: ji,jk,check_1,check_2,check_3,counter,n_edges_of_cell,cell_vector_indices(6)
     real(wp) :: pent_hex_sum_unity_sphere,pent_hex_avg_unity_sphere_ideal,lat_points(6),lon_points(6)
@@ -360,9 +360,9 @@ module mo_derived_hor_quantities
       enddo
       counter = 1
       do jk=1,n_triangles
-        check_1 = in_bool_checker(vorticity_indices_triangles(jk,1),cell_vector_indices,n_edges_of_cell)
-        check_2 = in_bool_checker(vorticity_indices_triangles(jk,2),cell_vector_indices,n_edges_of_cell)
-        check_3 = in_bool_checker(vorticity_indices_triangles(jk,3),cell_vector_indices,n_edges_of_cell)
+        check_1 = in_bool_checker(vorticity_indices_triangles(1,jk),cell_vector_indices,n_edges_of_cell)
+        check_2 = in_bool_checker(vorticity_indices_triangles(2,jk),cell_vector_indices,n_edges_of_cell)
+        check_3 = in_bool_checker(vorticity_indices_triangles(3,jk),cell_vector_indices,n_edges_of_cell)
         if (check_1==1 .or. check_2==1 .or. check_3==1) then
           lat_points(counter) = lat_c_dual(jk)
           lon_points(counter) = lon_c_dual(jk)

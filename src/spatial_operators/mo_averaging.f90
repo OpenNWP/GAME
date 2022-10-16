@@ -40,18 +40,18 @@ module mo_averaging
       if (jl==n_flat_layers+1) then
         do jm=1,n_edges_of_cell
           vertical_contravariant_corr = vertical_contravariant_corr &
-          - 0.5_wp*grid%inner_product_weights(ji,jl,jm)*grid%slope(grid%adjacent_edges(jm,ji),jl) &
+          - 0.5_wp*grid%inner_product_weights(jm,ji,jl)*grid%slope(grid%adjacent_edges(jm,ji),jl) &
           *vector_field_h(grid%adjacent_edges(jm,ji),jl)
         enddo
       else
         do jm=1,n_edges_of_cell
           vertical_contravariant_corr = vertical_contravariant_corr &
-          - 0.5_wp*grid%inner_product_weights(ji,jl-1,jm)*grid%slope(grid%adjacent_edges(jm,ji),jl-1) &
+          - 0.5_wp*grid%inner_product_weights(jm,ji,jl-1)*grid%slope(grid%adjacent_edges(jm,ji),jl-1) &
           *vector_field_h(grid%adjacent_edges(jm,ji),jl-1)
         enddo
         do jm=1,n_edges_of_cell
           vertical_contravariant_corr = vertical_contravariant_corr &
-          - 0.5_wp*grid%inner_product_weights(ji,jl,jm)*grid%slope(grid%adjacent_edges(jm,ji),jl) &
+          - 0.5_wp*grid%inner_product_weights(jm,ji,jl)*grid%slope(grid%adjacent_edges(jm,ji),jl) &
           *vector_field_h(grid%adjacent_edges(jm,ji),jl)
         enddo
       endif
@@ -71,12 +71,12 @@ module mo_averaging
     
     remap_ver2hor &
     ! layer above
-    = grid%inner_product_weights(grid%from_cell(ji),jl,7)*vector_field_v(grid%from_cell(ji),jl)
-    remap_ver2hor = remap_ver2hor + grid%inner_product_weights(grid%to_cell(ji),jl,7)*vector_field_v(grid%to_cell(ji),jl)
+    = grid%inner_product_weights(7,grid%from_cell(ji),jl)*vector_field_v(grid%from_cell(ji),jl)
+    remap_ver2hor = remap_ver2hor + grid%inner_product_weights(7,grid%to_cell(ji),jl)*vector_field_v(grid%to_cell(ji),jl)
     ! layer below
     if (jl<n_layers) then
-      remap_ver2hor = remap_ver2hor + grid%inner_product_weights(grid%from_cell(ji),jl,8)*vector_field_v(grid%from_cell(ji),jl+1)
-      remap_ver2hor = remap_ver2hor + grid%inner_product_weights(grid%to_cell(ji),jl,8)*vector_field_v(grid%to_cell(ji),jl+1)
+      remap_ver2hor = remap_ver2hor + grid%inner_product_weights(8,grid%from_cell(ji),jl)*vector_field_v(grid%from_cell(ji),jl+1)
+      remap_ver2hor = remap_ver2hor + grid%inner_product_weights(8,grid%to_cell(ji),jl)*vector_field_v(grid%to_cell(ji),jl+1)
     endif
     ! horizontal average
     remap_ver2hor = 0.5_wp*remap_ver2hor

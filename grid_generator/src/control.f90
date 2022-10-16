@@ -107,7 +107,7 @@ program control
   allocate(triangle_face_unit_sphere(n_triangles))
   allocate(pent_hex_face_unity_sphere(n_cells))
   allocate(rel_on_line_dual(n_edges))
-  allocate(inner_product_weights(n_cells,n_layers,8))
+  allocate(inner_product_weights(8,n_cells,n_layers))
   allocate(density_to_rhombi_weights(4,n_edges))
   allocate(interpol_weights(5,n_lat_io_points,n_lon_io_points))
   allocate(exner_bg(n_cells,n_layers))
@@ -122,12 +122,12 @@ program control
   allocate(trsk_indices(10,n_edges))
   allocate(trsk_modified_curl_indices(10,n_edges))
   allocate(adjacent_edges(6,n_cells))
-  allocate(vorticity_indices_triangles(n_triangles,3))
-  allocate(vorticity_indices_rhombi(n_edges,4))
+  allocate(vorticity_indices_triangles(3,n_triangles))
+  allocate(vorticity_indices_rhombi(4,n_edges))
   allocate(to_cell_dual(n_edges))
   allocate(from_cell_dual(n_edges))
   allocate(adjacent_signs(6,n_cells))
-  allocate(vorticity_signs_triangles(n_triangles,3))
+  allocate(vorticity_signs_triangles(3,n_triangles))
   allocate(density_to_rhombi_indices(4,n_edges))
   allocate(interpol_indices(5,n_lat_io_points,n_lon_io_points))
   allocate(is_land(n_cells))
@@ -317,6 +317,7 @@ program control
   call rhombus_averaging(vorticity_indices_triangles,from_cell_dual,to_cell_dual,vorticity_indices_rhombi, &
                          density_to_rhombi_indices,from_cell,to_cell,area_dual_v,z_vector_h,lat_c_dual, &
                          lon_c_dual,density_to_rhombi_weights,lat_e,lon_e,lat_c,lon_c)
+  deallocate(vorticity_indices_rhombi)
   write(*,*) "Finished."
   
   write(*,*) "Calculating Coriolis indices and weights ..."
@@ -503,9 +504,9 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"lon_e",NF90_REAL,edge_dimid,lon_e_id))
   
   ! inner product weights
-  dimids_vector_3(1) = cell_dimid
-  dimids_vector_3(2) = layer_dimid
-  dimids_vector_3(3) = dimid_8
+  dimids_vector_3(1) = dimid_8
+  dimids_vector_3(2) = cell_dimid
+  dimids_vector_3(3) = layer_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"inner_product_weights",NF90_REAL,dimids_vector_3,inner_product_weights_id))
   
   ! weights for interpolating to rhombi
@@ -556,8 +557,8 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"adjacent_signs",NF90_INT,dimids_vector_2,adjacent_signs_id))
   
   ! signs for calculating the vorticities on triangles (indicating the directions of the grid vectors)
-  dimids_vector_2(1) = triangle_dimid
-  dimids_vector_2(2) = dimid_3
+  dimids_vector_2(1) = dimid_3
+  dimids_vector_2(2) = triangle_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"vorticity_signs_triangles",NF90_INT,dimids_vector_2,vorticity_signs_triangles_id))
   ! the indices for calculating the vorticities on triangles
   call nc_check(nf90_def_var(ncid_g_prop,"vorticity_indices_triangles",NF90_INT,dimids_vector_2,vorticity_indices_triangles_id))
@@ -691,7 +692,6 @@ program control
   deallocate(from_cell_dual)
   deallocate(adjacent_edges)
   deallocate(vorticity_indices_triangles)
-  deallocate(vorticity_indices_rhombi)
   deallocate(trsk_indices)
   deallocate(trsk_modified_curl_indices)
   deallocate(adjacent_signs)

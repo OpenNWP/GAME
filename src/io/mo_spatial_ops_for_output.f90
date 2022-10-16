@@ -45,11 +45,11 @@ module mo_spatial_ops_for_output
         out_field(ji,jl) = 0._wp
         do jm=1,n_edges_of_cell
           tangential_wind_value = tangential_wind(in_field_2_h,grid%adjacent_edges(jm,ji),jl,grid)
-          out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(ji,jl,jm) &
+          out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(jm,ji,jl) &
                              *in_field_1_h(grid%adjacent_edges(jm,ji),jl)*tangential_wind_value
         enddo
-        out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(ji,jl,7)*in_field_1_v(ji,jl)*in_field_2_v(ji,jl)
-        out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(ji,jl,8)*in_field_1_v(ji,jl+1)*in_field_2_v(ji,jl+1)
+        out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(7,ji,jl)*in_field_1_v(ji,jl)*in_field_2_v(ji,jl)
+        out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(8,ji,jl)*in_field_1_v(ji,jl+1)*in_field_2_v(ji,jl+1)
       enddo
     enddo
     !$omp end parallel do
@@ -132,14 +132,14 @@ module mo_spatial_ops_for_output
         do jm=1,n_edges_of_cell
           pot_vort_v_at_levels(ji,jl) &
           = pot_vort_v_at_levels(ji,jl-1) &
-          + 0.25_wp*grid%inner_product_weights(ji,jl-1,jm) &
+          + 0.25_wp*grid%inner_product_weights(jm,ji,jl-1) &
           *diag%pot_vort_v(grid%adjacent_edges(jm,ji),jl-1)
         enddo
         ! contribution of lower cell
         do jm=1,n_edges_of_cell
           pot_vort_v_at_levels(ji,jl) &
           = pot_vort_v_at_levels(ji,jl) &
-          + 0.25_wp*grid%inner_product_weights(ji,jl,jm) &
+          + 0.25_wp*grid%inner_product_weights(jm,ji,jl) &
           *diag%pot_vort_v(grid%adjacent_edges(jm,ji),jl)
         enddo
       enddo
@@ -184,7 +184,7 @@ module mo_spatial_ops_for_output
       endif
       ! loop over all edges of the respective cell
       do jm=1,n_edges_of_cell
-        out_field(ji) = out_field(ji) + 0.5_wp*grid%inner_product_weights(ji,n_layers,jm)*in_field(grid%adjacent_edges(jm,ji))
+        out_field(ji) = out_field(ji) + 0.5_wp*grid%inner_product_weights(jm,ji,n_layers)*in_field(grid%adjacent_edges(jm,ji))
       enddo
     enddo
     !$omp end parallel do
@@ -244,7 +244,7 @@ module mo_spatial_ops_for_output
         endif
         ! loop over all cell edges
         do jm=1,n_edges_of_cell
-          out_field(ji,jl) = out_field(ji,jl) + 0.5_wp*grid%inner_product_weights(ji,jl,jm)*in_field(grid%adjacent_edges(jm,ji),jl)
+          out_field(ji,jl) = out_field(ji,jl) + 0.5_wp*grid%inner_product_weights(jm,ji,jl)*in_field(grid%adjacent_edges(jm,ji),jl)
         enddo
       enddo
     enddo

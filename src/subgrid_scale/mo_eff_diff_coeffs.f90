@@ -277,8 +277,8 @@ module mo_eff_diff_coeffs
         diag%n_squared(:,jl) = diag%vector_placeholder_v(:,jl)
       else
         diag%n_squared(:,jl) &
-        = grid%inner_product_weights(:,jl,7)*diag%vector_placeholder_v(:,jl) &
-        + grid%inner_product_weights(:,jl,8)*diag%vector_placeholder_v(:,jl+1)
+        = grid%inner_product_weights(7,:,jl)*diag%vector_placeholder_v(:,jl) &
+        + grid%inner_product_weights(8,:,jl)*diag%vector_placeholder_v(:,jl+1)
       endif
     enddo
     !$omp end parallel do
