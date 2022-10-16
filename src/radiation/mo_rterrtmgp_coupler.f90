@@ -563,12 +563,12 @@ module mo_rrtmgp_coupler
     
     ! This subroutine computes volume mixing ratios based on the model variables.
     
-    real(wp),           intent(in)  :: rho(n_cells_rad,n_layers,n_constituents) ! mass densities of the constituents
-    logical,            intent(in)  :: sw_bool                                  ! short wave switch
-    integer,            intent(in)  :: n_day_points                             ! number of points where it is day
-    integer,            intent(in)  :: day_indices(n_cells_rad)                 ! the indices of the points where it is day
-    real(wp),           intent(in)  :: z_scalar(n_cells_rad,n_layers)           ! z coordinates of scalar data points
-    type(ty_gas_concs), intent(out) :: gas_concentrations                       ! object holding gas concentrations
+    real(wp),           intent(in)    :: rho(n_cells_rad,n_layers,n_constituents) ! mass densities of the constituents
+    logical,            intent(in)    :: sw_bool                                  ! short wave switch
+    integer,            intent(in)    :: n_day_points                             ! number of points where it is day
+    integer,            intent(in)    :: day_indices(n_cells_rad)                 ! the indices of the points where it is day
+    real(wp),           intent(in)    :: z_scalar(n_cells_rad,n_layers)           ! z coordinates of scalar data points
+    type(ty_gas_concs), intent(inout) :: gas_concentrations                       ! object holding gas concentrations
     
     ! local variables
     real(wp) :: vol_mix_ratio(n_cells_rad,n_layers) ! the volume mixing ratio of one gas
@@ -648,9 +648,9 @@ module mo_rrtmgp_coupler
   
     ! This subroutine initializes a flux object.
     
-    type(ty_fluxes_broadband), intent(out) :: fluxes ! the fluxes to initialize
-    integer,                   intent(in)  :: n_hor  ! the number of columns
-    integer,                   intent(in)  :: n_vert ! the number of levels
+    type(ty_fluxes_broadband), intent(inout) :: fluxes ! the fluxes to initialize
+    integer,                   intent(in)    :: n_hor  ! the number of columns
+    integer,                   intent(in)    :: n_vert ! the number of levels
  	
  	! broad band fluxes
     allocate(fluxes%flux_up(n_hor,n_vert))
@@ -665,7 +665,7 @@ module mo_rrtmgp_coupler
 
     ! resets all fluxes to zero
 
-    type(ty_fluxes_broadband), intent(out) :: fluxes
+    type(ty_fluxes_broadband), intent(inout) :: fluxes
 
     ! reset broadband fluxes
     fluxes%flux_up = 0._wp
