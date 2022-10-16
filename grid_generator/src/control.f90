@@ -108,7 +108,7 @@ program control
   allocate(pent_hex_face_unity_sphere(n_cells))
   allocate(rel_on_line_dual(n_edges))
   allocate(inner_product_weights(n_cells,n_layers,8))
-  allocate(density_to_rhombi_weights(n_edges,4))
+  allocate(density_to_rhombi_weights(4,n_edges))
   allocate(interpol_weights(n_lat_io_points,n_lon_io_points,5))
   allocate(exner_bg(n_cells,n_layers))
   allocate(theta_v_bg(n_cells,n_layers))
@@ -128,7 +128,7 @@ program control
   allocate(from_cell_dual(n_edges))
   allocate(adjacent_signs(6,n_cells))
   allocate(vorticity_signs_triangles(n_triangles,3))
-  allocate(density_to_rhombi_indices(n_edges,4))
+  allocate(density_to_rhombi_indices(4,n_edges))
   allocate(interpol_indices(n_lat_io_points,n_lon_io_points,5))
   allocate(is_land(n_cells))
   ! initializing arrays to zero
@@ -508,8 +508,8 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"inner_product_weights",NF90_REAL,dimids_vector_3,inner_product_weights_id))
   
   ! weights for interpolating to rhombi
-  dimids_vector_2(1) = edge_dimid
-  dimids_vector_2(2) = dimid_4
+  dimids_vector_2(1) = dimid_4
+  dimids_vector_2(2) = edge_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"density_to_rhombi_weights",NF90_REAL,dimids_vector_2,density_to_rhombi_weights_id))
   
   ! weights for interpolating to the lat-lon grid
@@ -562,8 +562,8 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"vorticity_indices_triangles",NF90_INT,dimids_vector_2,vorticity_indices_triangles_id))
   
   ! indices for averaging the density to rhombi
-  dimids_vector_2(1) = edge_dimid
-  dimids_vector_2(2) = dimid_4
+  dimids_vector_2(1) = dimid_4
+  dimids_vector_2(2) = edge_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"density_to_rhombi_indices",NF90_INT,dimids_vector_2,density_to_rhombi_indices_id))
   
   ! surface albedo

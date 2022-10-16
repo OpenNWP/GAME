@@ -43,7 +43,7 @@ module mo_vorticities
         density_value = 0._wp
         do jm=1,4
           density_value = density_value &
-          + grid%density_to_rhombi_weights(ji,jm)*density_field(grid%density_to_rhombi_indices(ji,jm),jl)
+          + grid%density_to_rhombi_weights(jm,ji)*density_field(grid%density_to_rhombi_indices(jm,ji),jl)
         enddo
         
         ! division by the density to obtain the "potential vorticity"
