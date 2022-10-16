@@ -29,9 +29,9 @@ src/namelists/mo_grid_nml.f90
 )
 find_package(OpenMP)
 SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -O2 -ftree-vectorize -funroll-loops -Wall -Wpedantic -I/usr/include -L/usr/lib/x86_64-linux-gnu")
-# switching on boundary checking of arrays
+# switching on debugging options
 if(BOUNDS_CHECKS)
-  SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fbounds-check")
+  SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fbounds-check -ftraceback")
 endif()
 target_link_libraries(grid_generator m netcdf netcdff)
 

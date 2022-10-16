@@ -83,7 +83,7 @@ if (FAST)
 else()
   SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -O2 -ftree-vectorize -funroll-loops -Wall -Wpedantic -Wno-c-binding-type -I/usr/include -L/usr/lib/x86_64-linux-gnu")
 endif()
-# switching on boundary checking of arrays
+# switching on debugging options
 if(BOUNDS_CHECKS)
   SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fbounds-check")
 endif()
