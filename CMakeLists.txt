@@ -84,8 +84,8 @@ else()
   SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -O2 -ftree-vectorize -funroll-loops -Wall -Wpedantic -Wno-c-binding-type -I/usr/include -L/usr/lib/x86_64-linux-gnu")
 endif()
 # switching on debugging options
-if(BOUNDS_CHECKS)
-  SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fbounds-check")
+if(DEBUGGING)
+  SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow,denormal -fbacktrace -fdump-core")
 endif()
 # compile-time configuration for more performance
 if(COMPILE_TIME_CONFIG)

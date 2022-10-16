@@ -30,7 +30,7 @@ while getopts "dfc" opt; do
   esac
 done
 
-cmake -DBOUNDS_CHECKS=$d_value -DFAST=$f_value -DCOMPILE_TIME_CONFIG=$c_value ..
+cmake -DDEBUGGING=$d_value -DFAST=$f_value -DCOMPILE_TIME_CONFIG=$c_value ..
 make
 
 cd ..
