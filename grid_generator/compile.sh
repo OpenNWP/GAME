@@ -13,7 +13,7 @@ cd build
 d_value=False
 while getopts "d" opt; do
   case $opt in
-    d)
+    d) # debugging flag
       d_value=True
       ;;
     \?)

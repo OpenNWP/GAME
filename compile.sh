@@ -15,13 +15,13 @@ f_value=False
 c_value=False
 while getopts "dfc" opt; do
   case $opt in
-    d)
+    d) # debugging flag
       d_value=True
       ;;
-    f)
+    f) # aggressive optimization flag
       f_value=True
       ;;
-    c)
+    c) # compile-time configuration flag
       c_value=True
       ;;
     \?)
