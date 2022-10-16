@@ -135,8 +135,8 @@ module mo_scalar_tend_expl
         
         ! adding the tendencies in all grid boxes
         !$omp parallel do private(ji,jl)
-        do ji=1,n_cells
-          do jl=1,n_layers
+        do jl=1,n_layers
+          do ji=1,n_cells
             state_tend%rhotheta_v(ji,jl) = old_weight(jc)*state_tend%rhotheta_v(ji,jl) &
             + new_weight(jc)*( &
             ! the advection (resolved transport)

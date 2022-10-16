@@ -28,14 +28,12 @@ module mo_inner_product
     integer :: n_edges_of_cell ! number of edges a cell has (five or six)
     
     !$omp parallel do private(ji,jl,jm,n_edges_of_cell)
-    ! loop over all cells
-    do ji=1,n_cells
-      n_edges_of_cell = 6
-      if (ji<=n_pentagons) then
-        n_edges_of_cell = 5
-      endif
-      ! loop over all layers
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells
+        n_edges_of_cell = 6
+        if (ji<=n_pentagons) then
+          n_edges_of_cell = 5
+        endif
         out_field(ji,jl) = 0._wp
         ! loop over the edges of this cell
         do jm=1,n_edges_of_cell

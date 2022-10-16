@@ -24,10 +24,13 @@ module mo_gradient_operators
     
     ! local variables
     integer :: ji ! edge index
+    integer :: jl ! layer index
     
-    !$omp parallel do private(ji)
-    do ji=1,n_edges
-      out_field(ji,:) = (in_field(grid%to_cell(ji),:) - in_field(grid%from_cell(ji),:))/grid%dx(ji,:)
+    !$omp parallel do private(ji,jl)
+    do jl=1,n_layers
+      do ji=1,n_edges
+        out_field(ji,jl) = (in_field(grid%to_cell(ji),jl) - in_field(grid%from_cell(ji),jl))/grid%dx(ji,jl)
+      enddo
     enddo
     !$omp end parallel do
     

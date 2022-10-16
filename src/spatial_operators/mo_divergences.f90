@@ -33,12 +33,12 @@ module mo_divergences
     real(wp) :: comp_v          ! difference between upper und lower flux
     
     !$omp parallel do private(ji,jl,jm,n_edges_of_cell,contra_upper,contra_lower,comp_h,comp_v)
-    do ji=1,n_cells
-      n_edges_of_cell = 6
-      if (ji<=n_pentagons) then
-        n_edges_of_cell = 5
-      endif
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells
+        n_edges_of_cell = 6
+        if (ji<=n_pentagons) then
+          n_edges_of_cell = 5
+        endif
         comp_h = 0._wp
         do jm=1,n_edges_of_cell
           comp_h = comp_h + in_field(grid%adjacent_edges(jm,ji),jl) &
@@ -86,12 +86,12 @@ module mo_divergences
     real(wp) :: density_upper   ! density at upper area of a given grid box
 
     !$omp parallel do private(ji,jl,jm,n_edges_of_cell,contra_upper,contra_lower,comp_h,comp_v,density_lower,density_upper)
-    do ji=1,n_cells
-      n_edges_of_cell = 6
-      if (ji<=n_pentagons) then
-        n_edges_of_cell = 5
-      endif
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells
+        n_edges_of_cell = 6
+        if (ji<=n_pentagons) then
+          n_edges_of_cell = 5
+        endif
         comp_h = 0._wp
         do jm=1,n_edges_of_cell
           comp_h = comp_h &
@@ -153,8 +153,8 @@ module mo_divergences
     real(wp) :: comp_v       ! difference between upper und lower flux
     
     !$omp parallel do private(ji,jl,contra_upper,contra_lower,comp_v)
-    do ji=1,n_cells
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells
         if (jl==1) then
           contra_upper = 0._wp
           contra_lower = in_field(ji,jl+1)

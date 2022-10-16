@@ -96,8 +96,8 @@ module mo_momentum_diff_diss
     ! ---------------------------------------------
     ! calculating the vertical gradient of the horizontal velocity at half levels
     !$omp parallel do private(ji,jl)
-    do ji=1,n_edges
-      do jl=2,n_levels
+    do jl=2,n_levels
+      do ji=1,n_edges
         ! at the surface
         if (jl==n_levels) then
           diag%dv_hdz(ji,jl) = state%wind_h(ji,n_layers)/(grid%z_vector_h(ji,n_layers) &
@@ -120,8 +120,8 @@ module mo_momentum_diff_diss
                            
     ! now, the second derivative needs to be taken
     !$omp parallel do private(ji,jl,z_upper,z_lower,delta_z)
-    do ji=1,n_edges
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_edges
         z_upper = 0.5_wp*(grid%z_vector_v(grid%from_cell(ji),jl) + grid%z_vector_v(grid%to_cell(ji),jl))
         z_lower = 0.5_wp*(grid%z_vector_v(grid%from_cell(ji),jl+1) + grid%z_vector_v(grid%to_cell(ji),jl+1))
         delta_z = z_upper - z_lower
@@ -207,8 +207,8 @@ module mo_momentum_diff_diss
     real(wp) :: checkerboard_damping_weight ! weight (0 <= checkerboard_damping_weight <= 1) used for damping the checkerboard pattern
     !$omp parallel do private(ji,jl,jm,delta_z,delta_y,tangential_slope, &
     !$omp upper_index_zeta,lower_index_zeta,delta_zeta,checkerboard_damping_weight)
-    do ji=1,n_edges
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_edges
         ! Remember: (curl(zeta))*e_x = dzeta_z/dy - dzeta_y/dz = (dz*dzeta_z - dy*dzeta_y)/(dy*dz) = (dz*dzeta_z - dy*dzeta_y)/area (Stokes' Theorem, which is used here)
         diag%curl_of_vorticity_h(ji,jl) = 0._wp
         delta_z = 0._wp

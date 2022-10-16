@@ -22,16 +22,12 @@ module mo_multiplications
     type(t_grid), intent(in)  :: grid                           ! grid quantities
     
     ! local variables
-    integer  :: ji           ! edge index
-    integer  :: jl           ! layer index
-    real(wp) :: scalar_value ! value of the scalar field to use for the multiplication
+    integer  :: jl ! layer index
     
-    !$omp parallel do private(ji,jl,scalar_value)
-    do ji=1,n_edges
-      do jl=1,n_layers
-        scalar_value  = 0.5_wp*(scalar_field(grid%from_cell(ji),jl) + scalar_field(grid%to_cell(ji),jl))
-        out_field(ji,jl) = scalar_value*vector_field(ji,jl)
-      enddo
+    !$omp parallel do private(jl)
+    do jl=1,n_layers
+      out_field(:,jl) = 0.5_wp*(scalar_field(grid%from_cell(:),jl) + scalar_field(grid%to_cell(:),jl)) &
+                        *vector_field(:,jl)
     enddo
     !$omp end parallel do
   
@@ -53,8 +49,8 @@ module mo_multiplications
     real(wp) :: scalar_value ! value of the scalar field to use for the multiplication
     
     !$omp parallel do private(ji,jl,scalar_value)
-    do ji=1,n_edges
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_edges
         if (vector_field(ji,jl)>=0._wp) then
           scalar_value = scalar_field(grid%from_cell(ji),jl)
         else
@@ -81,8 +77,8 @@ module mo_multiplications
     real(wp) :: scalar_value ! value of the scalar field to use for the multiplication
     
     !$omp parallel do private(ji,jl,scalar_value)
-    do ji=1,n_cells
-      do jl=2,n_layers
+    do jl=2,n_layers
+      do ji=1,n_cells
         scalar_value = 0.5_wp*(scalar_field(ji,jl-1) + scalar_field(ji,jl))
         out_field(ji,jl) = scalar_value*vector_field(ji,jl)
       enddo
