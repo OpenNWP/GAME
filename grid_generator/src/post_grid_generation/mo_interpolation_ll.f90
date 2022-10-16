@@ -54,7 +54,7 @@ module mo_interpolation_ll
         min_indices_vector = 0
         weights_sum = 0._wp
         do jm=1,5
-          min_indices_vector(jm) = find_min_index_exclude(distance_vector,n_cells,min_indices_vector,5)
+          min_indices_vector(jm) = find_min_index_exclude(distance_vector,min_indices_vector)
           weights_vector(jm) = 1._wp/((distance_vector(min_indices_vector(jm)))**(2._wp + EPSILON_SECURITY) + EPSILON_SECURITY)
           weights_sum = weights_sum+weights_vector(jm)
         enddo

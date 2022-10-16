@@ -84,12 +84,12 @@ module mo_rhombus_averaging
       check_counter = 1
       do jk=1,4
         density_to_rhombus_index_candidate = from_cell(vorticity_indices_rhombi(jk,ji))
-        if (in_bool_checker(density_to_rhombus_index_candidate,density_to_rhombus_indices_pre,4)==0) then
+        if (in_bool_checker(density_to_rhombus_index_candidate,density_to_rhombus_indices_pre)==0) then
           density_to_rhombus_indices_pre(check_counter) = density_to_rhombus_index_candidate
           check_counter = check_counter+1
         endif
         density_to_rhombus_index_candidate = to_cell(vorticity_indices_rhombi(jk,ji))
-        if (in_bool_checker(density_to_rhombus_index_candidate,density_to_rhombus_indices_pre,4)==0) then
+        if (in_bool_checker(density_to_rhombus_index_candidate,density_to_rhombus_indices_pre)==0) then
           density_to_rhombus_indices_pre(check_counter) = density_to_rhombus_index_candidate
           check_counter = check_counter+1
         endif

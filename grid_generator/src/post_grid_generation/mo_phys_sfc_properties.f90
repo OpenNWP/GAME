@@ -94,8 +94,8 @@ module mo_phys_sfc_properties
         do jk=1,n_lon_points
           lon_distance_vector(jk) = abs(deg2rad(longitude_input(jk))-lon_c(ji))
         enddo
-        lat_index = find_min_index(lat_distance_vector,n_lat_points)
-        lon_index = find_min_index(lon_distance_vector,n_lon_points)
+        lat_index = find_min_index(lat_distance_vector)
+        lon_index = find_min_index(lon_distance_vector)
         
         oro_unfiltered(ji) = z_input(lon_index,lat_index)
       
@@ -129,7 +129,7 @@ module mo_phys_sfc_properties
         
         min_indices_vector = 0
         do jk=1,n_avg_points
-          min_indices_vector(jk) = find_min_index_exclude(distance_vector,n_cells,min_indices_vector,n_avg_points)
+          min_indices_vector(jk) = find_min_index_exclude(distance_vector,min_indices_vector)
         enddo
         oro(ji) = 0._wp
         if (ji<=n_pentagons) then

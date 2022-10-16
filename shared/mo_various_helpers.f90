@@ -12,12 +12,11 @@ module mo_various_helpers
   
   contains
 
-  function find_min_index(vector,vector_length)
+  function find_min_index(vector)
   
     ! This function returns the index where a vector has its minimum.
     
-    integer,  intent(in) :: vector_length
-    real(wp), intent(in) :: vector(vector_length)
+    real(wp), intent(in) :: vector(:)
     integer              :: find_min_index
     
     ! local variables
@@ -27,7 +26,7 @@ module mo_various_helpers
     find_min_index = 1
     current_min = vector(1)
     
-    do ji=2,vector_length
+    do ji=2,size(vector)
       if (vector(ji)<current_min) then
         current_min = vector(ji) 
         find_min_index = ji
@@ -36,14 +35,12 @@ module mo_various_helpers
     
   end function find_min_index
   
-  function find_min_index_exclude(vector,vector_length,exclude_indices_vector,exclude_indices_vector_length)
+  function find_min_index_exclude(vector,exclude_indices_vector)
   
     ! This function finds the index where a vector has its minimum, excluding the elements of another vector.
     
-    integer,  intent(in) :: vector_length
-    real(wp), intent(in) :: vector(vector_length)
-    integer,  intent(in) :: exclude_indices_vector_length
-    integer,  intent(in) :: exclude_indices_vector(exclude_indices_vector_length)
+    real(wp), intent(in) :: vector(:)
+    integer,  intent(in) :: exclude_indices_vector(:)
     integer              :: find_min_index_exclude
     
     ! local variables
@@ -53,9 +50,9 @@ module mo_various_helpers
     current_min = maxval(vector) + 1._wp
     find_min_index_exclude = 0
     
-    do ji=1,vector_length
+    do ji=1,size(vector)
       if (vector(ji)<current_min) then
-        if (in_bool_checker(ji,exclude_indices_vector,exclude_indices_vector_length)==0) then
+        if (in_bool_checker(ji,exclude_indices_vector)==0) then
           current_min = vector(ji)
           find_min_index_exclude = ji
         endif
@@ -69,13 +66,12 @@ module mo_various_helpers
     
   end function find_min_index_exclude
 
-  function in_bool_checker(value,vector,vector_length)
+  function in_bool_checker(value,vector)
   
     ! This function checks if a vector of integers contains a certain value.
     
     integer, intent(in) :: value
-    integer, intent(in) :: vector_length
-    integer, intent(in) :: vector(vector_length)
+    integer, intent(in) :: vector(:)
     integer             :: in_bool_checker
     
     ! local variables
@@ -83,7 +79,7 @@ module mo_various_helpers
     
     in_bool_checker = 0
 
-    do ji=1,vector_length
+    do ji=1,size(vector)
       if (vector(ji)==value) then
         in_bool_checker = 1
         exit

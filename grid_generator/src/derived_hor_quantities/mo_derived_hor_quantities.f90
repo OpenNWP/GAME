@@ -360,9 +360,9 @@ module mo_derived_hor_quantities
       enddo
       counter = 1
       do jk=1,n_triangles
-        check_1 = in_bool_checker(vorticity_indices_triangles(1,jk),cell_vector_indices,n_edges_of_cell)
-        check_2 = in_bool_checker(vorticity_indices_triangles(2,jk),cell_vector_indices,n_edges_of_cell)
-        check_3 = in_bool_checker(vorticity_indices_triangles(3,jk),cell_vector_indices,n_edges_of_cell)
+        check_1 = in_bool_checker(vorticity_indices_triangles(1,jk),cell_vector_indices)
+        check_2 = in_bool_checker(vorticity_indices_triangles(2,jk),cell_vector_indices)
+        check_3 = in_bool_checker(vorticity_indices_triangles(3,jk),cell_vector_indices)
         if (check_1==1 .or. check_2==1 .or. check_3==1) then
           lat_points(counter) = lat_c_dual(jk)
           lon_points(counter) = lon_c_dual(jk)

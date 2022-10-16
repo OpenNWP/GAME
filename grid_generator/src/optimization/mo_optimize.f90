@@ -70,14 +70,14 @@ module mo_optimize
       do jk=1,n_edges_of_cell
         vertex_index_candidate_1 = from_cell_dual(adjacent_edges(jk,ji))
         vertex_index_candidate_2 = to_cell_dual(adjacent_edges(jk,ji))
-        check_result = in_bool_checker(vertex_index_candidate_1,vertex_indices,n_edges_of_cell)
+        check_result = in_bool_checker(vertex_index_candidate_1,vertex_indices)
         if (check_result==0) then
           vertex_indices(counter) = vertex_index_candidate_1
           latitude_vertices(counter) = lat_c_dual(vertex_indices(counter))
           longitude_vertices(counter) = lon_c_dual(vertex_indices(counter))
           counter = counter+1
         endif
-        check_result = in_bool_checker(vertex_index_candidate_2,vertex_indices,n_edges_of_cell)            
+        check_result = in_bool_checker(vertex_index_candidate_2,vertex_indices)            
         if (check_result==0) then
           vertex_indices(counter) = vertex_index_candidate_2
           latitude_vertices(counter) = lat_c_dual(vertex_indices(counter))

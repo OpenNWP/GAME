@@ -103,14 +103,14 @@ module mo_coriolis
           do jl=1,n_edges_of_cell
             vertex_index_candidate_1 = from_cell_dual(adjacent_edges(jl,from_or_to_cell(ji)))
             vertex_index_candidate_2 = to_cell_dual(adjacent_edges(jl,from_or_to_cell(ji)))
-            check_result = in_bool_checker(vertex_index_candidate_1,vertex_indices,n_edges_of_cell)            
+            check_result = in_bool_checker(vertex_index_candidate_1,vertex_indices)            
             if (check_result==0) then
               vertex_indices(counter) = vertex_index_candidate_1
               latitude_vertices(counter) = lat_c_dual(vertex_indices(counter))
               longitude_vertices(counter) = lon_c_dual(vertex_indices(counter))
               counter = counter+1
             endif
-            check_result = in_bool_checker(vertex_index_candidate_2,vertex_indices,n_edges_of_cell)            
+            check_result = in_bool_checker(vertex_index_candidate_2,vertex_indices)            
             if (check_result==0) then
               vertex_indices(counter) = vertex_index_candidate_2
               latitude_vertices(counter) = lat_c_dual(vertex_indices(counter))
@@ -232,7 +232,7 @@ module mo_coriolis
         do jl=1,n_edges_of_cell-1
           if ((from_cell_dual(trsk_indices_pre(jl))==next_vertex_index &
               .or. to_cell_dual(trsk_indices_pre(jl))==next_vertex_index) &
-          .and. 0==in_bool_checker(jl,indices_used,n_edges_of_cell-1) &
+          .and. 0==in_bool_checker(jl,indices_used) &
           .and. value_written==0) then
             trsk_indices(jk,ji) = trsk_indices_pre(jl)
             trsk_weights(jk,ji) = trsk_weights_pre(jl)
@@ -267,7 +267,7 @@ module mo_coriolis
         do jl=1,n_edges_of_cell-1
           if ((from_cell_dual(trsk_indices_pre(5+jl))==next_vertex_index &
                .or. to_cell_dual(trsk_indices_pre(5+jl))==next_vertex_index) &
-              .and. 0==in_bool_checker(jl,indices_used,n_edges_of_cell-1) &
+              .and. 0==in_bool_checker(jl,indices_used) &
               .and. value_written==0) then
             trsk_indices(jk+5,ji) = trsk_indices_pre(5+jl)
             trsk_weights(jk+5,ji) = trsk_weights_pre(5+jl)

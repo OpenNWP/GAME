@@ -151,7 +151,7 @@ module mo_write_output
         do jl=1,n_layers
           vector_to_minimize(jl) = abs(grid%z_vector_v(ji,n_levels)+2._wp - grid%z_scalar(ji,jl))
         enddo
-        closest_index = find_min_index(vector_to_minimize,n_layers)
+        closest_index = find_min_index(vector_to_minimize)
         temp_closest = diag%temperature(ji,closest_index)
         delta_z_temp = grid%z_vector_v(ji,n_levels)+2._wp - grid%z_scalar(ji,closest_index)
         ! real radiation
@@ -311,7 +311,7 @@ module mo_write_output
           do jl=1,n_layers
             vector_to_minimize(jl) = abs(grid%z_scalar(ji,jl) - (grid%z_vector_v(ji,n_levels) + u_850_proxy_height))
           enddo
-          closest_index = find_min_index(vector_to_minimize,n_layers)
+          closest_index = find_min_index(vector_to_minimize)
           second_closest_index = closest_index-1
           if (closest_index<n_layers-1 &
               .and. grid%z_scalar(ji,closest_index)-grid%z_vector_v(ji,n_levels)>u_850_proxy_height) then
@@ -325,7 +325,7 @@ module mo_write_output
           do jl=1,n_layers
             vector_to_minimize(jl) = abs(grid%z_scalar(ji,jl) - (grid%z_vector_v(ji,n_levels) + u_950_proxy_height))
           enddo
-          closest_index = find_min_index(vector_to_minimize,n_layers)
+          closest_index = find_min_index(vector_to_minimize)
           second_closest_index = closest_index-1
           if (closest_index<n_layers .and. grid%z_scalar(ji,closest_index)-grid%z_vector_v(ji,n_levels)>u_950_proxy_height) then
             second_closest_index = closest_index+1
@@ -508,7 +508,7 @@ module mo_write_output
             vector_to_minimize(jm) = abs(log(pressure_levels(jl)/(pressure(ji,jm))))
           enddo
           ! finding the model layer that is the closest to the desired pressure level
-          closest_index = find_min_index(vector_to_minimize,n_layers)
+          closest_index = find_min_index(vector_to_minimize)
           ! first guess for the other layer that will be used for the interpolation
           second_closest_index = closest_index + 1
           ! in this case,the layer above the closest layer will be used for the interpolation
