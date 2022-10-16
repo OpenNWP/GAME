@@ -228,15 +228,15 @@ module mo_momentum_diff_diss
           ! vertical length at the to_cell_dual point
           grid%dz_dual(grid%to_cell_dual(ji),jl) &
           ! vorticity at the to_cell_dual point
-          *diag%rel_vort_h(grid%vorticity_indices_triangles(grid%to_cell_dual(ji),jm),jl) &
+          *diag%rel_vort_h(grid%vorticity_indices_triangles(jm,grid%to_cell_dual(ji)),jl) &
           ! vertical length at the from_cell_dual point
           - grid%dz_dual(grid%from_cell_dual(ji),jl) &
           ! vorticity at the from_cell_dual point
-          *diag%rel_vort_h(grid%vorticity_indices_triangles(grid%from_cell_dual(ji),jm),jl))
+          *diag%rel_vort_h(grid%vorticity_indices_triangles(jm,grid%from_cell_dual(ji)),jl))
           ! preparation of the tangential slope
           delta_z = delta_z + 1._wp/3._wp*( &
-          grid%z_vector_h(grid%vorticity_indices_triangles(grid%to_cell_dual(ji),jm),jl) &
-          - grid%z_vector_h(grid%vorticity_indices_triangles(grid%from_cell_dual(ji),jm),jl))
+          grid%z_vector_h(grid%vorticity_indices_triangles(jm,grid%to_cell_dual(ji)),jl) &
+          - grid%z_vector_h(grid%vorticity_indices_triangles(jm,grid%from_cell_dual(ji)),jl))
         enddo
         ! adding the term damping the checkerboard pattern
         diag%curl_of_vorticity_h(ji,jl) = diag%curl_of_vorticity_h(ji,jl) &
