@@ -95,8 +95,8 @@ module mo_vertical_grid
     real(wp) :: radius_2 ! radius of the upper boundary of the grid box
     
     !$omp parallel do private(ji,jl,radius_1,radius_2)
-    do ji=1,n_cells
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells
         radius_1 = radius+z_vector_v(ji,jl+1)
         radius_2 = radius+z_vector_v(ji,jl)
         volume(ji,jl) = area_v(ji,jl+1)/(3._wp*radius_1**2)*(radius_2**3-radius_1**3)
@@ -164,18 +164,21 @@ module mo_vertical_grid
                              vorticity_indices_triangles(3,n_triangles)
 
     ! local variables
-    integer :: ji ! horizontal loop index
+    integer :: ji ! triangle index
+    integer :: jl ! level index
   
-    !$omp parallel do private(ji)
-    do ji=1,n_triangles
-      z_scalar_dual(ji,:) &
-      = 1._wp/6._wp*( &
-      z_vector_v(from_cell(vorticity_indices_triangles(1,ji)),:) &
-      + z_vector_v(from_cell(vorticity_indices_triangles(2,ji)),:) &
-      + z_vector_v(from_cell(vorticity_indices_triangles(3,ji)),:) &
-      + z_vector_v(to_cell(vorticity_indices_triangles(1,ji)),:) &
-      + z_vector_v(to_cell(vorticity_indices_triangles(2,ji)),:) &
-      + z_vector_v(to_cell(vorticity_indices_triangles(3,ji)),:))
+    !$omp parallel do private(ji,jl)
+    do jl=1,n_levels
+      do ji=1,n_triangles
+        z_scalar_dual(ji,jl) &
+        = 1._wp/6._wp*( &
+        z_vector_v(from_cell(vorticity_indices_triangles(1,ji)),jl) &
+        + z_vector_v(from_cell(vorticity_indices_triangles(2,ji)),jl) &
+        + z_vector_v(from_cell(vorticity_indices_triangles(3,ji)),jl) &
+        + z_vector_v(to_cell(vorticity_indices_triangles(1,ji)),jl) &
+        + z_vector_v(to_cell(vorticity_indices_triangles(2,ji)),jl) &
+        + z_vector_v(to_cell(vorticity_indices_triangles(3,ji)),jl))
+      enddo
     enddo
     !$omp end parallel do
     
@@ -208,8 +211,8 @@ module mo_vertical_grid
     
     ! dual areas with horizontal normal
     !$omp parallel do private(ji,jl,radius_1,radius_2,base_distance)
-    do ji=1,n_edges
-      do jl=1,n_levels
+    do jl=1,n_levels
+      do ji=1,n_edges
         if (jl==1) then
           radius_1 = radius + z_vector_h(ji,jl)
           radius_2 = radius + toa
@@ -287,8 +290,8 @@ module mo_vertical_grid
     
     ! areas with horizontal normal
     !$omp parallel do private(ji,jl,base_distance,radius_1,radius_2)
-    do ji=1,n_edges
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_edges
         radius_1 = radius+z_vector_dual_h(ji,jl+1)
         radius_2 = radius+z_vector_dual_h(ji,jl)
         base_distance = dy(ji,jl+1)
@@ -329,8 +332,8 @@ module mo_vertical_grid
     
     ! horizontal vector points
     !$omp parallel do private(ji,jl)
-    do ji=1,n_edges
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_edges
         ! placing the vector vertically in the middle between the two adjacent scalar points
         z_vector_h(ji,jl) = 0.5_wp*(z_scalar(from_cell(ji),jl) + z_scalar(to_cell(ji),jl))
         ! calculating the horizontal distance
@@ -342,8 +345,8 @@ module mo_vertical_grid
     
     ! vertical vector points
     !$omp parallel do private(ji,jl)
-    do ji=1,n_cells
-      do jl=1,n_levels
+    do jl=1,n_levels
+      do ji=1,n_cells
         ! highest level
         if (jl==1) then
           z_vector_v(ji,1) = toa
@@ -401,8 +404,8 @@ module mo_vertical_grid
     integer :: jl ! vertical index
     
     !$omp parallel do private(ji,jl)
-    do ji=1,n_triangles
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_triangles
         dz_dual(ji,jl) = z_scalar_dual(ji,jl) - z_scalar_dual(ji,jl+1)
         z_vector_dual_v(ji,jl) = 1._wp/3._wp*( &
         z_vector_h(vorticity_indices_triangles(1,ji),jl) &
@@ -413,8 +416,8 @@ module mo_vertical_grid
     !$omp end parallel do
       
     !$omp parallel do private(ji,jl)
-    do ji=1,n_edges
-      do jl=1,n_levels
+    do jl=1,n_levels
+      do ji=1,n_edges
         if (jl==1) then
           z_vector_dual_h(ji,jl) = toa
         elseif (jl==n_levels) then
