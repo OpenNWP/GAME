@@ -25,7 +25,7 @@ module mo_coriolis
                              lat_e(n_edges),lon_e(n_edges), &
                              lat_c_dual(n_triangles),lon_c_dual(n_triangles),z_vector_h(n_edges,n_layers)
     integer,  intent(in)  :: from_cell_dual(n_edges),to_cell_dual(n_edges), &
-                             to_cell(n_edges),from_cell(n_edges),adjacent_edges(n_cells,6)
+                             to_cell(n_edges),from_cell(n_edges),adjacent_edges(6,n_cells)
     real(wp), intent(out) :: trsk_weights(n_edges,10)
     integer,  intent(out) :: trsk_modified_curl_indices(n_edges,10),trsk_indices(n_edges,10)
     
@@ -75,14 +75,14 @@ module mo_coriolis
           sign_1 = 1
           from_or_to_cell = to_cell
         endif
-        if (adjacent_edges(from_or_to_cell(ji),jk-index_offset)==ji) then
+        if (adjacent_edges(jk-index_offset,from_or_to_cell(ji))==ji) then
           offset = offset+1
         endif
         if (offset>1) then
           write(*,*) "Problem 1 in TRSK implementation detected."
           call exit(1)
         endif
-        trsk_indices(ji,jk) = adjacent_edges(from_or_to_cell(ji),jk-index_offset+offset)
+        trsk_indices(ji,jk) = adjacent_edges(jk-index_offset+offset,from_or_to_cell(ji))
         if (trsk_indices(ji,jk)==0) then
           trsk_weights(ji,jk) = 0._wp
         else
@@ -101,8 +101,8 @@ module mo_coriolis
           vertex_indices = 0
           counter = 1
           do jl=1,n_edges_of_cell
-            vertex_index_candidate_1 = from_cell_dual(adjacent_edges(from_or_to_cell(ji),jl))
-            vertex_index_candidate_2 = to_cell_dual(adjacent_edges(from_or_to_cell(ji),jl))
+            vertex_index_candidate_1 = from_cell_dual(adjacent_edges(jl,from_or_to_cell(ji)))
+            vertex_index_candidate_2 = to_cell_dual(adjacent_edges(jl,from_or_to_cell(ji)))
             check_result = in_bool_checker(vertex_index_candidate_1,vertex_indices,n_edges_of_cell)            
             if (check_result==0) then
               vertex_indices(counter) = vertex_index_candidate_1
@@ -134,13 +134,13 @@ module mo_coriolis
           ! sorting the edges in counter-clockwise direction
           do jl=1,n_edges_of_cell
             do jm=1,n_edges_of_cell
-              if ((from_cell_dual(adjacent_edges(from_or_to_cell(ji),jm))==vertex_indices_resorted(jl) &
-              .and. to_cell_dual(adjacent_edges(from_or_to_cell(ji),jm)) &
+              if ((from_cell_dual(adjacent_edges(jm,from_or_to_cell(ji)))==vertex_indices_resorted(jl) &
+              .and. to_cell_dual(adjacent_edges(jm,from_or_to_cell(ji))) &
                     ==vertex_indices_resorted(mod(jl,n_edges_of_cell)+1)) &
-              .or. (to_cell_dual(adjacent_edges(from_or_to_cell(ji),jm))==vertex_indices_resorted(jl) &
-              .and. from_cell_dual(adjacent_edges(from_or_to_cell(ji),jm)) &
+              .or. (to_cell_dual(adjacent_edges(jm,from_or_to_cell(ji)))==vertex_indices_resorted(jl) &
+              .and. from_cell_dual(adjacent_edges(jm,from_or_to_cell(ji))) &
                     ==vertex_indices_resorted(mod(jl,n_edges_of_cell)+1))) then
-                edge_indices(jl) = adjacent_edges(from_or_to_cell(ji),jm)
+                edge_indices(jl) = adjacent_edges(jm,from_or_to_cell(ji))
               endif
             enddo
           enddo

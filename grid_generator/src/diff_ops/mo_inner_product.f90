@@ -23,7 +23,7 @@ module mo_inner_product
     real(wp), intent(in)  :: area_v(n_cells,n_levels)                  ! vertical areas
     real(wp), intent(in)  :: z_scalar(n_cells,n_layers)                ! vertical coordinates of the scalar grid points
     real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)              ! vertical coordinates of the vertical vector grid points
-    integer,  intent(in)  :: adjacent_edges(n_cells,6)                 ! adjacent edges of each cell
+    integer,  intent(in)  :: adjacent_edges(6,n_cells)                 ! adjacent edges of each cell
 
     ! local variables
     integer  :: ji,jl,jm
@@ -34,8 +34,8 @@ module mo_inner_product
       do jl=1,n_layers
         do jm=1,6
           if (jm<6 .or. ji>n_pentagons) then
-            inner_product_weights(ji,jl,jm) = area_h(adjacent_edges(ji,jm),jl)
-            inner_product_weights(ji,jl,jm) = inner_product_weights(ji,jl,jm)*dx(adjacent_edges(ji,jm),jl)
+            inner_product_weights(ji,jl,jm) = area_h(adjacent_edges(jm,ji),jl)
+            inner_product_weights(ji,jl,jm) = inner_product_weights(ji,jl,jm)*dx(adjacent_edges(jm,ji),jl)
             inner_product_weights(ji,jl,jm) = inner_product_weights(ji,jl,jm)/(2._wp*volume(ji,jl))
           else
             inner_product_weights(ji,jl,jm) = 0._wp

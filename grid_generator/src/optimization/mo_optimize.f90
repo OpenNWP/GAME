@@ -26,7 +26,7 @@ module mo_optimize
     real(wp), intent(inout) :: lat_c_dual(n_triangles) ! latitudes of triangle centers (rad)
     real(wp), intent(inout) :: lon_c_dual(n_triangles) ! longitudes of triangle centers (rad)
     integer,  intent(in)    :: n_iterations,face_edges(n_basic_triangles,3),face_edges_reverse(n_basic_triangles,3), &
-                               face_vertices(n_basic_triangles,3),adjacent_edges(n_cells,6),from_cell_dual(n_edges), &
+                               face_vertices(n_basic_triangles,3),adjacent_edges(6,n_cells),from_cell_dual(n_edges), &
                                to_cell_dual(n_edges)
 	
     ! local variables
@@ -48,7 +48,7 @@ module mo_optimize
     real(wp), intent(inout) :: lon_c(n_cells)          ! longitudes of cell centers (rad)
     real(wp), intent(in)    :: lat_c_dual(n_triangles) ! latitudes of triangle centers (rad)
     real(wp), intent(in)    :: lon_c_dual(n_triangles) ! longitudes of triangle centers (rad)
-    integer,  intent(in)    :: adjacent_edges(n_cells,6),from_cell_dual(n_edges),to_cell_dual(n_edges)
+    integer,  intent(in)    :: adjacent_edges(6,n_cells),from_cell_dual(n_edges),to_cell_dual(n_edges)
     
     ! local variables
     integer  :: ji,jk,n_edges_of_cell,counter,vertex_index_candidate_1,vertex_index_candidate_2,check_result, &
@@ -68,8 +68,8 @@ module mo_optimize
       vertex_indices = 0
       counter = 1
       do jk=1,n_edges_of_cell
-        vertex_index_candidate_1 = from_cell_dual(adjacent_edges(ji,jk))
-        vertex_index_candidate_2 = to_cell_dual(adjacent_edges(ji,jk))
+        vertex_index_candidate_1 = from_cell_dual(adjacent_edges(jk,ji))
+        vertex_index_candidate_2 = to_cell_dual(adjacent_edges(jk,ji))
         check_result = in_bool_checker(vertex_index_candidate_1,vertex_indices,n_edges_of_cell)
         if (check_result==0) then
           vertex_indices(counter) = vertex_index_candidate_1

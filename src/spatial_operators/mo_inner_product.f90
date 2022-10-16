@@ -40,7 +40,7 @@ module mo_inner_product
         ! loop over the edges of this cell
         do jm=1,n_edges_of_cell
           out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(ji,jl,jm) &
-          *in_field_1_h(grid%adjacent_edges(ji,jm),jl)*in_field_2_h(grid%adjacent_edges(ji,jm),jl)
+          *in_field_1_h(grid%adjacent_edges(jm,ji),jl)*in_field_2_h(grid%adjacent_edges(jm,ji),jl)
         enddo
         ! effect of level above
         out_field(ji,jl) = out_field(ji,jl) + grid%inner_product_weights(ji,jl,7)*in_field_1_v(ji,jl)*in_field_2_v(ji,jl)

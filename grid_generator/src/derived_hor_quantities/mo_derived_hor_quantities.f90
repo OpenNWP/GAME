@@ -258,7 +258,7 @@ module mo_derived_hor_quantities
     ! This subroutine finds the horizontal vectors that are adjacent to a grid cell.
     
     integer, intent(in)  :: from_cell(n_edges),to_cell(n_edges)
-    integer, intent(out) :: adjacent_signs(n_cells,6),adjacent_edges(n_cells,6)
+    integer, intent(out) :: adjacent_signs(6,n_cells),adjacent_edges(6,n_cells)
     
     ! local variables
     integer :: ji,jk,jl,trouble_detected,counter,n_edges_of_cell,double_check,sign_sum_check
@@ -274,12 +274,12 @@ module mo_derived_hor_quantities
             write(*,*) "It is from_cell == to_cell at the following grid point:", jk
             call exit(1)
           endif
-          adjacent_edges(ji,counter+1) = jk
+          adjacent_edges(counter+1,ji) = jk
           if (from_cell(jk)==ji) then
-            adjacent_signs(ji,counter+1) = 1
+            adjacent_signs(counter+1,ji) = 1
           endif
           if (to_cell(jk)==ji) then
-            adjacent_signs(ji,counter+1) = -1
+            adjacent_signs(counter+1,ji) = -1
           endif
           counter = counter+1
         endif
@@ -295,8 +295,8 @@ module mo_derived_hor_quantities
         call exit(1)
       endif
       if (ji<=n_pentagons) then
-        adjacent_edges(ji,6) = 0
-        adjacent_signs(ji,6) = 0
+        adjacent_edges(6,ji) = 0
+        adjacent_signs(6,ji) = 0
       endif
     enddo
     !$omp end parallel do
@@ -313,10 +313,10 @@ module mo_derived_hor_quantities
         endif
         double_check = 0
         do jl=1,n_edges_of_cell
-          if (adjacent_edges(jk,jl)==ji) then
+          if (adjacent_edges(jl,jk)==ji) then
             counter = counter+1
             double_check = double_check+1
-            sign_sum_check = sign_sum_check+adjacent_signs(jk,jl)
+            sign_sum_check = sign_sum_check+adjacent_signs(jl,jk)
           endif
         enddo
         if (double_check>1) then
@@ -344,7 +344,7 @@ module mo_derived_hor_quantities
     
     real(wp), intent(out) :: pent_hex_face_unity_sphere(n_cells)
     real(wp), intent(in)  :: lat_c_dual(n_triangles),lon_c_dual(n_triangles)
-    integer,  intent(in)  :: adjacent_edges(n_cells,6),vorticity_indices_triangles(n_triangles,3)
+    integer,  intent(in)  :: adjacent_edges(6,n_cells),vorticity_indices_triangles(n_triangles,3)
     
     integer  :: ji,jk,check_1,check_2,check_3,counter,n_edges_of_cell,cell_vector_indices(6)
     real(wp) :: pent_hex_sum_unity_sphere,pent_hex_avg_unity_sphere_ideal,lat_points(6),lon_points(6)
@@ -356,7 +356,7 @@ module mo_derived_hor_quantities
         n_edges_of_cell = 5
       endif
       do jk=1,n_edges_of_cell
-        cell_vector_indices(jk) = adjacent_edges(ji,jk)
+        cell_vector_indices(jk) = adjacent_edges(jk,ji)
       enddo
       counter = 1
       do jk=1,n_triangles

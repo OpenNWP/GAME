@@ -121,12 +121,12 @@ program control
   allocate(from_cell(n_edges))
   allocate(trsk_indices(n_edges,10))
   allocate(trsk_modified_curl_indices(n_edges,10))
-  allocate(adjacent_edges(n_cells,6))
+  allocate(adjacent_edges(6,n_cells))
   allocate(vorticity_indices_triangles(n_triangles,3))
   allocate(vorticity_indices_rhombi(n_edges,4))
   allocate(to_cell_dual(n_edges))
   allocate(from_cell_dual(n_edges))
-  allocate(adjacent_signs(n_cells,6))
+  allocate(adjacent_signs(6,n_cells))
   allocate(vorticity_signs_triangles(n_triangles,3))
   allocate(density_to_rhombi_indices(n_edges,4))
   allocate(interpol_indices(n_lat_io_points,n_lon_io_points,5))
@@ -531,8 +531,8 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"to_cell_dual",NF90_INT,edge_dimid,to_cell_dual_id))
   
   ! neighbouring egdes of each cell
-  dimids_vector_2(1) = cell_dimid
-  dimids_vector_2(2) = dimid_6
+  dimids_vector_2(1) = dimid_6
+  dimids_vector_2(2) = cell_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"adjacent_edges",NF90_INT,dimids_vector_2,adjacent_edges_id))
   
   ! interpolation indices for the lat-lon interpolation
@@ -550,6 +550,8 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"trsk_modified_curl_indices",NF90_INT,dimids_vector_2,trsk_modified_curl_indices_id))
   
   ! adjacent signs of each cell (indicating the vector directions)
+  dimids_vector_2(1) = dimid_6
+  dimids_vector_2(2) = cell_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"adjacent_signs",NF90_INT,dimids_vector_2,adjacent_signs_id))
   
   ! signs for calculating the vorticities on triangles (indicating the directions of the grid vectors)
