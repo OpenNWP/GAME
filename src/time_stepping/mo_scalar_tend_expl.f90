@@ -79,9 +79,9 @@ module mo_scalar_tend_expl
         call grad_vert(state_scalar%rho(:,:,jc),diag%vector_placeholder_v,grid)
         call grad_hor(state_scalar%rho(:,:,jc),diag%vector_placeholder_h,diag%vector_placeholder_v,grid)
         ! Now the diffusive mass flux density can be obtained.
-        call scalar_times_vector_h(diag%mass_diffusion_coeff_numerical_h,diag%vector_placeholder_h,diag%vector_placeholder_h,grid)
+        call scalar_times_vector_h(diag%mass_diffusion_coeff_numerical_h,diag%vector_placeholder_h,diag%flux_density_h,grid)
         ! The divergence of the diffusive mass flux density is the diffusive mass source rate.
-        call div_h(diag%vector_placeholder_h,diag%mass_diff_tendency(:,:,jc),grid)
+        call div_h(diag%flux_density_h,diag%mass_diff_tendency(:,:,jc),grid)
         ! vertical mass diffusion
         if (lmass_diff_v) then
           call scalar_times_vector_v(diag%mass_diffusion_coeff_numerical_v,diag%vector_placeholder_v,diag%vector_placeholder_v)
@@ -130,8 +130,8 @@ module mo_scalar_tend_expl
         !$omp end parallel workshare
         
         ! calculating the divergence of the horizontal virtual potential temperature flux density
-        call scalar_times_vector_h(diag%scalar_placeholder,diag%flux_density_h,diag%flux_density_h,grid)
-        call div_h(diag%flux_density_h,diag%flux_density_div,grid)
+        call scalar_times_vector_h(diag%scalar_placeholder,diag%flux_density_h,diag%vector_placeholder_h,grid)
+        call div_h(diag%vector_placeholder_h,diag%flux_density_div,grid)
         
         ! adding the tendencies in all grid boxes
         !$omp parallel do private(ji,jl)

@@ -65,18 +65,18 @@ module mo_rrtmgp_coupler
     ! the thermodynamic state as well as meta data (time stamp, coordinates) and gets
     ! back radiative flux convergences in W/m^3.
     
-    real(wp), intent(in)    :: time_coord                               ! the time coordinate (UTC time stamp)
-    real(wp), intent(in)    :: latitude_scalar(n_cells_rad)             ! the latitude coordinates of the scalar data points
-    real(wp), intent(in)    :: longitude_scalar(n_cells_rad)            ! the longitude coordinates of the scalar data points
-    real(wp), intent(in)    :: z_scalar(n_cells_rad,n_layers)           ! the vertical positions of the scalar data points
-    real(wp), intent(in)    :: z_vector(n_cells_rad,n_levels)           ! the vertical positions of the vector data points
-    real(wp), intent(in)    :: rho(n_cells_rad,n_layers,n_constituents) ! the mass densities of the model atmosphere
-    real(wp), intent(in)    :: temperature_gas(n_cells_rad,n_layers)    ! the temperature of the model atmosphere
-    real(wp), intent(inout) :: radiation_tendency(n_cells_rad,n_layers) ! the result (in W/m**3)
-    real(wp), intent(in)    :: temp_sfc(n_cells_rad)                    ! surface temperature
-    real(wp), intent(inout) :: sfc_sw_in(n_cells_rad)                   ! surface shortwave in
-    real(wp), intent(inout) :: sfc_lw_out(n_cells_rad)                  ! surface longwave out
-    real(wp), intent(in)    :: sfc_albedo(n_cells_rad)                  ! surface albedo for all bands
+    real(wp), intent(in)  :: time_coord                               ! the time coordinate (UTC time stamp)
+    real(wp), intent(in)  :: latitude_scalar(n_cells_rad)             ! the latitude coordinates of the scalar data points
+    real(wp), intent(in)  :: longitude_scalar(n_cells_rad)            ! the longitude coordinates of the scalar data points
+    real(wp), intent(in)  :: z_scalar(n_cells_rad,n_layers)           ! the vertical positions of the scalar data points
+    real(wp), intent(in)  :: z_vector(n_cells_rad,n_levels)           ! the vertical positions of the vector data points
+    real(wp), intent(in)  :: rho(n_cells_rad,n_layers,n_constituents) ! the mass densities of the model atmosphere
+    real(wp), intent(in)  :: temperature_gas(n_cells_rad,n_layers)    ! the temperature of the model atmosphere
+    real(wp), intent(out) :: radiation_tendency(n_cells_rad,n_layers) ! the result (in W/m**3)
+    real(wp), intent(in)  :: temp_sfc(n_cells_rad)                    ! surface temperature
+    real(wp), intent(out) :: sfc_sw_in(n_cells_rad)                   ! surface shortwave in
+    real(wp), intent(out) :: sfc_lw_out(n_cells_rad)                  ! surface longwave out
+    real(wp), intent(in)  :: sfc_albedo(n_cells_rad)                  ! surface albedo for all bands
     
     ! local variables
     type(ty_gas_concs)                  :: gas_concentrations_sw                            ! the gas concentrations (object holding all information on the composition of the gas phase
@@ -563,12 +563,12 @@ module mo_rrtmgp_coupler
     
     ! This subroutine computes volume mixing ratios based on the model variables.
     
-    real(wp),           intent(in)    :: rho(n_cells_rad,n_layers,n_constituents) ! mass densities of the constituents
-    logical,            intent(in)    :: sw_bool                                  ! short wave switch
-    integer,            intent(in)    :: n_day_points                             ! number of points where it is day
-    integer,            intent(in)    :: day_indices(n_cells_rad)                 ! the indices of the points where it is day
-    real(wp),           intent(in)    :: z_scalar(n_cells_rad,n_layers)           ! z coordinates of scalar data points
-    type(ty_gas_concs), intent(inout) :: gas_concentrations                       ! object holding gas concentrations
+    real(wp),           intent(in)  :: rho(n_cells_rad,n_layers,n_constituents) ! mass densities of the constituents
+    logical,            intent(in)  :: sw_bool                                  ! short wave switch
+    integer,            intent(in)  :: n_day_points                             ! number of points where it is day
+    integer,            intent(in)  :: day_indices(n_cells_rad)                 ! the indices of the points where it is day
+    real(wp),           intent(in)  :: z_scalar(n_cells_rad,n_layers)           ! z coordinates of scalar data points
+    type(ty_gas_concs), intent(out) :: gas_concentrations                       ! object holding gas concentrations
     
     ! local variables
     real(wp) :: vol_mix_ratio(n_cells_rad,n_layers) ! the volume mixing ratio of one gas
@@ -648,9 +648,9 @@ module mo_rrtmgp_coupler
   
     ! This subroutine initializes a flux object.
     
-    type(ty_fluxes_broadband), intent(inout) :: fluxes ! the fluxes to initialize
-    integer,                   intent(in)    :: n_hor  ! the number of columns
-    integer,                   intent(in)    :: n_vert ! the number of levels
+    type(ty_fluxes_broadband), intent(out) :: fluxes ! the fluxes to initialize
+    integer,                   intent(in)  :: n_hor  ! the number of columns
+    integer,                   intent(in)  :: n_vert ! the number of levels
  	
  	! broad band fluxes
     allocate(fluxes%flux_up(n_hor,n_vert))
@@ -665,7 +665,7 @@ module mo_rrtmgp_coupler
 
     ! resets all fluxes to zero
 
-    type(ty_fluxes_broadband), intent(inout) :: fluxes
+    type(ty_fluxes_broadband), intent(out) :: fluxes
 
     ! reset broadband fluxes
     fluxes%flux_up = 0._wp
@@ -679,7 +679,7 @@ module mo_rrtmgp_coupler
   
     ! freeing a flux object
     ! the fluxes to free
-    type(ty_fluxes_broadband), intent(inout) :: fluxes
+    type(ty_fluxes_broadband), intent(out) :: fluxes
     
     if (associated(fluxes%flux_up)) deallocate(fluxes%flux_up)
     if (associated(fluxes%flux_dn)) deallocate(fluxes%flux_dn)
