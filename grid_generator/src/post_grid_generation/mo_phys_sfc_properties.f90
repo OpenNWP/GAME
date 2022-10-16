@@ -81,7 +81,7 @@ module mo_phys_sfc_properties
       call nc_check(nf90_get_var(ncid,lon_in_id,longitude_input))
       call nc_check(nf90_get_var(ncid,z_in_id,z_input))
       call nc_check(nf90_close(ncid))
-    
+      
       ! setting the unfiltered orography
       !$omp parallel do private(ji,jk,lat_index,lon_index,lat_distance_vector,lon_distance_vector)
       do ji=1,n_cells
@@ -96,6 +96,7 @@ module mo_phys_sfc_properties
         enddo
         lat_index = find_min_index(lat_distance_vector,n_lat_points)
         lon_index = find_min_index(lon_distance_vector,n_lon_points)
+        
         oro_unfiltered(ji) = z_input(lon_index,lat_index)
       
         ! over the sea there is no orography
@@ -119,8 +120,13 @@ module mo_phys_sfc_properties
       do ji=1,n_cells
         ! finding the distance to the other grid points
         do jk=1,n_cells
-          distance_vector(jk) = calculate_distance_h(lat_c(ji),lon_c(ji),lat_c(jk),lon_c(jk),1._wp)
+          if (jk==ji) then
+            distance_vector(jk) = 0._wp
+          else
+            distance_vector(jk) = calculate_distance_h(lat_c(ji),lon_c(ji),lat_c(jk),lon_c(jk),1._wp)
+          endif
         enddo
+        
         min_indices_vector = 0
         do jk=1,n_avg_points
           min_indices_vector(jk) = find_min_index_exclude(distance_vector,n_cells,min_indices_vector,n_avg_points)
