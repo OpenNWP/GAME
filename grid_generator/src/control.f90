@@ -109,7 +109,7 @@ program control
   allocate(rel_on_line_dual(n_edges))
   allocate(inner_product_weights(n_cells,n_layers,8))
   allocate(density_to_rhombi_weights(4,n_edges))
-  allocate(interpol_weights(n_lat_io_points,n_lon_io_points,5))
+  allocate(interpol_weights(5,n_lat_io_points,n_lon_io_points))
   allocate(exner_bg(n_cells,n_layers))
   allocate(theta_v_bg(n_cells,n_layers))
   allocate(oro(n_cells))
@@ -129,7 +129,7 @@ program control
   allocate(adjacent_signs(6,n_cells))
   allocate(vorticity_signs_triangles(n_triangles,3))
   allocate(density_to_rhombi_indices(4,n_edges))
-  allocate(interpol_indices(n_lat_io_points,n_lon_io_points,5))
+  allocate(interpol_indices(5,n_lat_io_points,n_lon_io_points))
   allocate(is_land(n_cells))
   ! initializing arrays to zero
   !$omp parallel workshare
@@ -514,9 +514,9 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"density_to_rhombi_weights",NF90_REAL,dimids_vector_2,density_to_rhombi_weights_id))
   
   ! weights for interpolating to the lat-lon grid
-  dimids_vector_3(1) = lat_dimid
-  dimids_vector_3(2) = lon_dimid
-  dimids_vector_3(3) = dimid_5
+  dimids_vector_3(1) = dimid_5
+  dimids_vector_3(2) = lat_dimid
+  dimids_vector_3(3) = lon_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"interpol_weights",NF90_REAL,dimids_vector_3,interpol_weights_id))
   
   ! from cells
@@ -537,9 +537,9 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"adjacent_edges",NF90_INT,dimids_vector_2,adjacent_edges_id))
   
   ! interpolation indices for the lat-lon interpolation
-  dimids_vector_3(1) = lat_dimid
-  dimids_vector_3(2) = lon_dimid
-  dimids_vector_3(3) = dimid_5
+  dimids_vector_3(1) = dimid_5
+  dimids_vector_3(2) = lat_dimid
+  dimids_vector_3(3) = lon_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"interpol_indices",NF90_INT,dimids_vector_3,interpol_indices_id))
   
   ! TRSK indices

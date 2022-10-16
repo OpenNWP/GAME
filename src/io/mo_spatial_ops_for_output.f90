@@ -6,34 +6,13 @@ module mo_spatial_ops_for_output
   ! In this module, those spatial operators are collected which are only needed for the output.
   
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
-  use mo_grid_nml,           only: n_cells,n_edges,n_layers,n_pentagons,n_levels
+  use mo_grid_nml,           only: n_cells,n_edges,n_layers,n_pentagons,n_levels,n_lat_io_points,n_lon_io_points
   use mo_gradient_operators, only: grad_hor,grad_vert
   use mo_geodesy,            only: passive_turn
   
   implicit none
   
   contains
-
-  function tangential_wind(in_field_h,ji,jl,grid)
-  
-    ! This function computes the tangential component of the vector field in_field at edge ji in layer jl using the TRSK weights.
-    
-    real(wp),     intent(in) :: in_field_h(n_edges,n_layers) ! vector field of which to compute the tangential component
-    integer,      intent(in) :: ji,jl                        ! spatial indices
-    type(t_grid), intent(in) :: grid                         ! grid quantities
-    real(wp)                 :: tangential_wind              ! result
-    
-    ! local variables
-    integer :: jm ! index for the stencil used for calculatung the tangential wind
-    
-    ! initializing the result with zero
-    tangential_wind = 0._wp
-    ! loop over the maximum of ten edges 
-    do jm=1,10
-      tangential_wind = tangential_wind + grid%trsk_weights(ji,jm)*in_field_h(grid%trsk_indices(ji,jm),jl)
-    enddo
-    
-  end function tangential_wind
 
   subroutine inner_product_tangential(in_field_1_h,in_field_1_v,in_field_2_h,in_field_2_v,out_field,grid)
   
@@ -272,6 +251,60 @@ module mo_spatial_ops_for_output
     !$omp end parallel do
     
   end subroutine edges_to_cells
+
+  function tangential_wind(in_field_h,ji,jl,grid)
+  
+    ! This function computes the tangential component of the vector field in_field at edge ji in layer jl using the TRSK weights.
+    
+    real(wp),     intent(in) :: in_field_h(n_edges,n_layers) ! vector field of which to compute the tangential component
+    integer,      intent(in) :: ji,jl                        ! spatial indices
+    type(t_grid), intent(in) :: grid                         ! grid quantities
+    real(wp)                 :: tangential_wind              ! result
+    
+    ! local variables
+    integer :: jm ! index for the stencil used for calculatung the tangential wind
+    
+    ! initializing the result with zero
+    tangential_wind = 0._wp
+    ! loop over the maximum of ten edges 
+    do jm=1,10
+      tangential_wind = tangential_wind + grid%trsk_weights(jm,ji)*in_field_h(grid%trsk_indices(jm,ji),jl)
+    enddo
+    
+  end function tangential_wind
+  
+  subroutine interpolate_to_ll(in_field,out_field,grid)
+  
+    ! This subroutine interpolates a single-layer scalar field to a lat-lon grid.
+    
+    real(wp),     intent(in)  :: in_field(n_cells)                          ! the horizontal scalar field to interpolate
+    real(wp),     intent(out) :: out_field(n_lat_io_points,n_lon_io_points) ! the resulting 2D scalar field on a lat-lon grid
+    type(t_grid), intent(in)  :: grid                                       ! grid quantities
+    
+    ! local variables
+    integer :: ji,jk,jm
+    
+    ! loop over all output points
+    !$omp parallel do private(ji,jk,jm)
+    do jk=1,n_lon_io_points
+      do ji=1,n_lat_io_points
+        ! initializing the result with zero
+        out_field(ji,jk) = 0._wp
+        ! 1/r-average
+        do jm=1,5
+          if (in_field(grid%latlon_interpol_indices(jm,ji,jk))/=9999) then
+            out_field(ji,jk) = out_field(ji,jk) + grid%latlon_interpol_weights(jm,ji,jk) &
+                               *in_field(grid%latlon_interpol_indices(jm,ji,jk))
+          else
+            out_field(ji,jk) = 9999
+            exit
+          endif
+        enddo
+      enddo
+    enddo
+    !$omp end parallel do
+  
+  end subroutine interpolate_to_ll
 
 end module mo_spatial_ops_for_output
 

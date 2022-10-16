@@ -20,121 +20,14 @@ module mo_write_output
   use mo_derived,                only: rel_humidity,gas_constant_diagnostics,temperature_diagnostics
   use mo_run_nml,                only: run_id,start_date,start_hour
   use mo_vorticities,            only: calc_rel_vort,calc_pot_vort
-  use mo_spatial_ops_for_output, only: epv_diagnostics,edges_to_cells_lowest_layer,calc_uv_at_edge,edges_to_cells
+  use mo_spatial_ops_for_output, only: epv_diagnostics,edges_to_cells_lowest_layer,calc_uv_at_edge,edges_to_cells, &
+                                       interpolate_to_ll
   use mo_divergences,            only: div_h
   use mo_inner_product,          only: inner_product
   
   implicit none
   
   contains
-
-  subroutine interpolate_to_ll(in_field,out_field,grid)
-  
-    ! This subroutine interpolates a single-layer scalar field to a lat-lon grid.
-    
-    real(wp),     intent(in)  :: in_field(n_cells)                          ! the horizontal scalar field to interpolate
-    real(wp),     intent(out) :: out_field(n_lat_io_points,n_lon_io_points) ! the resulting 2D scalar field on a lat-lon grid
-    type(t_grid), intent(in)  :: grid                                       ! grid quantities
-    
-    ! local variables
-    integer :: ji,jk,jm
-    
-    ! loop over all output points
-    !$omp parallel do private(ji,jk,jm)
-    do ji=1,n_lat_io_points
-      do jk=1,n_lon_io_points
-        ! initializing the result with zero
-        out_field(ji,jk) = 0._wp
-        ! 1/r-average
-        do jm=1,5
-          if (in_field(grid%latlon_interpol_indices(ji,jk,jm))/=9999) then
-            out_field(ji,jk) = out_field(ji,jk) + grid%latlon_interpol_weights(ji,jk,jm) &
-                               *in_field(grid%latlon_interpol_indices(ji,jk,jm))
-          else
-            out_field(ji,jk) = 9999
-            exit
-          endif
-        enddo
-      enddo
-    enddo
-    !$omp end parallel do
-  
-  end subroutine interpolate_to_ll
-
-  subroutine write_out_integrals(state,diag,grid,time_since_init)
-    
-    ! This subroutine writes out fundamental integral properties of the atmosphere to a text file.
-   
-    type(t_grid),  intent(in) :: grid            ! grid properties
-    type(t_diag),  intent(in) :: diag            ! diagnostic quantities
-    type(t_state), intent(in) :: state           ! the state to use for writing the integrals
-    real(wp),      intent(in) :: time_since_init ! the time since model initialization
-    
-    ! local variables
-    integer               :: const_id
-    real(wp)              :: global_integral,kinetic_integral,potential_integral,internal_integral
-    real(wp), allocatable :: int_energy_density(:,:),pot_energy_density(:,:),e_kin_density(:,:)
-    
-    ! masses
-    if (time_since_init==0._wp) then
-      open(1,file="masses",action="write")
-    else
-      open(1,file="masses",status="old",position="append",action="write")
-    endif
-    write(1,fmt="(F20.3)",advance="no") time_since_init
-    do const_id=1,n_constituents
-      !$omp parallel workshare
-      global_integral = sum(state%rho(:,:,const_id)*grid%volume)
-      !$omp end parallel workshare
-      if (const_id==n_constituents) then
-        write(1,fmt="(F30.3)") global_integral
-      else
-        write(1,fmt="(F30.3)",advance="no") global_integral
-      endif
-    enddo
-    close(1)
-        
-    ! density times virtual potential temperature
-    if (time_since_init==0._wp) then
-      open(1,file="potential_temperature_density",action="write")
-    else
-      open(1,file="potential_temperature_density",status="old",position="append",action="write")
-    endif
-    !$omp parallel workshare
-    global_integral = sum(state%rhotheta_v*grid%volume)
-    !$omp end parallel workshare
-    write(1,fmt="(F20.3,F30.3)") time_since_init,global_integral
-    close(1)
-        
-    ! energies
-    if (time_since_init==0._wp) then
-      open(1,file="energy",action="write")
-    else
-      open(1,file="energy",status="old",position="append",action="write")
-    endif
-    allocate(e_kin_density(n_cells,n_layers))
-    call inner_product(state%wind_h,state%wind_v,state%wind_h,state%wind_v,e_kin_density,grid)
-    !$omp parallel workshare
-    e_kin_density = state%rho(:,:,n_condensed_constituents+1)*e_kin_density
-    kinetic_integral = sum(e_kin_density*grid%volume)
-    !$omp end parallel workshare
-    deallocate(e_kin_density)
-    allocate(pot_energy_density(n_cells,n_layers))
-    !$omp parallel workshare
-    pot_energy_density = state%rho(:,:,n_condensed_constituents+1)*grid%gravity_potential
-    potential_integral = sum(pot_energy_density*grid%volume)
-    !$omp end parallel workshare
-    deallocate(pot_energy_density)
-    allocate(int_energy_density(n_cells,n_layers))
-    !$omp parallel workshare
-    int_energy_density = c_d_v*state%rho(:,:,n_condensed_constituents+1)*diag%temperature
-    internal_integral = sum(int_energy_density*grid%volume)
-    !$omp end parallel workshare
-    write(1,fmt="(F20.3,F30.3,F30.3,F30.3)") time_since_init,0.5_wp*kinetic_integral,potential_integral,internal_integral
-    deallocate(int_energy_density)
-    close(1)
-    
-  end subroutine write_out_integrals
   
   subroutine write_out(state,diag,grid,wind_h_lowest_layer_array,t_init,t_write,ltotally_first_step)
   
@@ -358,8 +251,8 @@ module mo_write_output
         do time_step_10_m_wind=1,n_output_steps_10m_wind
           wind_tangential = 0._wp
           do jm=1,10
-            wind_tangential = wind_tangential + grid%trsk_weights(ji,jm) &
-                              *wind_h_lowest_layer_array(grid%trsk_indices(ji,jm),time_step_10_m_wind)
+            wind_tangential = wind_tangential + grid%trsk_weights(jm,ji) &
+                              *wind_h_lowest_layer_array(grid%trsk_indices(jm,ji),time_step_10_m_wind)
           enddo
           wind_10_m_mean_u(ji) = wind_10_m_mean_u(ji) &
           + 1._wp/n_output_steps_10m_wind*wind_h_lowest_layer_array(ji,time_step_10_m_wind)
@@ -933,6 +826,81 @@ module mo_write_output
     write(*,*) "Output written."
     
   end subroutine write_out
+
+  subroutine write_out_integrals(state,diag,grid,time_since_init)
+    
+    ! This subroutine writes out fundamental integral properties of the atmosphere to a text file.
+   
+    type(t_grid),  intent(in) :: grid            ! grid properties
+    type(t_diag),  intent(in) :: diag            ! diagnostic quantities
+    type(t_state), intent(in) :: state           ! the state to use for writing the integrals
+    real(wp),      intent(in) :: time_since_init ! the time since model initialization
+    
+    ! local variables
+    integer               :: const_id
+    real(wp)              :: global_integral,kinetic_integral,potential_integral,internal_integral
+    real(wp), allocatable :: int_energy_density(:,:),pot_energy_density(:,:),e_kin_density(:,:)
+    
+    ! masses
+    if (time_since_init==0._wp) then
+      open(1,file="masses",action="write")
+    else
+      open(1,file="masses",status="old",position="append",action="write")
+    endif
+    write(1,fmt="(F20.3)",advance="no") time_since_init
+    do const_id=1,n_constituents
+      !$omp parallel workshare
+      global_integral = sum(state%rho(:,:,const_id)*grid%volume)
+      !$omp end parallel workshare
+      if (const_id==n_constituents) then
+        write(1,fmt="(F30.3)") global_integral
+      else
+        write(1,fmt="(F30.3)",advance="no") global_integral
+      endif
+    enddo
+    close(1)
+        
+    ! density times virtual potential temperature
+    if (time_since_init==0._wp) then
+      open(1,file="potential_temperature_density",action="write")
+    else
+      open(1,file="potential_temperature_density",status="old",position="append",action="write")
+    endif
+    !$omp parallel workshare
+    global_integral = sum(state%rhotheta_v*grid%volume)
+    !$omp end parallel workshare
+    write(1,fmt="(F20.3,F30.3)") time_since_init,global_integral
+    close(1)
+        
+    ! energies
+    if (time_since_init==0._wp) then
+      open(1,file="energy",action="write")
+    else
+      open(1,file="energy",status="old",position="append",action="write")
+    endif
+    allocate(e_kin_density(n_cells,n_layers))
+    call inner_product(state%wind_h,state%wind_v,state%wind_h,state%wind_v,e_kin_density,grid)
+    !$omp parallel workshare
+    e_kin_density = state%rho(:,:,n_condensed_constituents+1)*e_kin_density
+    kinetic_integral = sum(e_kin_density*grid%volume)
+    !$omp end parallel workshare
+    deallocate(e_kin_density)
+    allocate(pot_energy_density(n_cells,n_layers))
+    !$omp parallel workshare
+    pot_energy_density = state%rho(:,:,n_condensed_constituents+1)*grid%gravity_potential
+    potential_integral = sum(pot_energy_density*grid%volume)
+    !$omp end parallel workshare
+    deallocate(pot_energy_density)
+    allocate(int_energy_density(n_cells,n_layers))
+    !$omp parallel workshare
+    int_energy_density = c_d_v*state%rho(:,:,n_condensed_constituents+1)*diag%temperature
+    internal_integral = sum(int_energy_density*grid%volume)
+    !$omp end parallel workshare
+    write(1,fmt="(F20.3,F30.3,F30.3,F30.3)") time_since_init,0.5_wp*kinetic_integral,potential_integral,internal_integral
+    deallocate(int_energy_density)
+    close(1)
+    
+  end subroutine write_out_integrals
 
   function pseudopotential_temperature(state,diag,ji,jl,grid)
     

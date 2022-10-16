@@ -19,8 +19,8 @@ module mo_interpolation_ll
   
     ! This function interpolates to the lat-lon grid.
   
-    integer,  intent(out) :: interpol_indices(n_lat_io_points,n_lon_io_points,5)
-    real(wp), intent(out) :: interpol_weights(n_lat_io_points,n_lon_io_points,5)
+    integer,  intent(out) :: interpol_indices(5,n_lat_io_points,n_lon_io_points)
+    real(wp), intent(out) :: interpol_weights(5,n_lat_io_points,n_lon_io_points)
     real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
   
     ! local variables
@@ -60,8 +60,8 @@ module mo_interpolation_ll
         enddo
         ! writing the result to the arrays
         do jm=1,5
-          interpol_indices(ji,jk,jm) = min_indices_vector(jm)
-          interpol_weights(ji,jk,jm) = weights_vector(jm)/weights_sum
+          interpol_indices(jm,ji,jk) = min_indices_vector(jm)
+          interpol_weights(jm,ji,jk) = weights_vector(jm)/weights_sum
         enddo
       enddo
     enddo
