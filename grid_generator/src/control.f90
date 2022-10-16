@@ -91,7 +91,7 @@ program control
   allocate(volume(n_cells,n_layers))
   allocate(area_h(n_edges,n_layers))
   allocate(area_v(n_cells,n_levels))
-  allocate(trsk_weights(n_edges,10))
+  allocate(trsk_weights(10,n_edges))
   allocate(lat_c_dual(n_triangles))
   allocate(lon_c_dual(n_triangles))
   allocate(z_scalar_dual(n_triangles,n_levels))
@@ -119,8 +119,8 @@ program control
   allocate(t_conductivity(n_cells))
   allocate(to_cell(n_edges))
   allocate(from_cell(n_edges))
-  allocate(trsk_indices(n_edges,10))
-  allocate(trsk_modified_curl_indices(n_edges,10))
+  allocate(trsk_indices(10,n_edges))
+  allocate(trsk_modified_curl_indices(10,n_edges))
   allocate(adjacent_edges(6,n_cells))
   allocate(vorticity_indices_triangles(n_triangles,3))
   allocate(vorticity_indices_rhombi(n_edges,4))
@@ -444,8 +444,9 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"area_v",NF90_REAL,dimids_vector_2,area_v_id))
   call nc_check(nf90_put_att(ncid_g_prop,area_v_id,"units","m^2"))
   
-  dimids_vector_2(1) = edge_dimid
-  dimids_vector_2(2) = dimid_10
+  ! TRSK weights
+  dimids_vector_2(1) = dimid_10
+  dimids_vector_2(2) = edge_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"trsk_weights",NF90_REAL,dimids_vector_2,trsk_weights_id))
   
   ! z-coordinates of dual horizontal vectors
@@ -542,8 +543,8 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"interpol_indices",NF90_INT,dimids_vector_3,interpol_indices_id))
   
   ! TRSK indices
-  dimids_vector_2(1) = edge_dimid
-  dimids_vector_2(2) = dimid_10
+  dimids_vector_2(1) = dimid_10
+  dimids_vector_2(2) = edge_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"trsk_indices",NF90_INT,dimids_vector_2,trsk_indices_id))
   
   ! modified TRSK indices

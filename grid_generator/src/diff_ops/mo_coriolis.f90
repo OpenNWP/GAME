@@ -26,8 +26,8 @@ module mo_coriolis
                              lat_c_dual(n_triangles),lon_c_dual(n_triangles),z_vector_h(n_edges,n_layers)
     integer,  intent(in)  :: from_cell_dual(n_edges),to_cell_dual(n_edges), &
                              to_cell(n_edges),from_cell(n_edges),adjacent_edges(6,n_cells)
-    real(wp), intent(out) :: trsk_weights(n_edges,10)
-    integer,  intent(out) :: trsk_modified_curl_indices(n_edges,10),trsk_indices(n_edges,10)
+    real(wp), intent(out) :: trsk_weights(10,n_edges)
+    integer,  intent(out) :: trsk_modified_curl_indices(10,n_edges),trsk_indices(10,n_edges)
     
     ! local variables
     integer              :: ji,jk,jl,jm,offset,sign_1,sign_2,n_edges_of_cell,index_offset,vertex_index_candidate_1, &
@@ -82,13 +82,13 @@ module mo_coriolis
           write(*,*) "Problem 1 in TRSK implementation detected."
           call exit(1)
         endif
-        trsk_indices(ji,jk) = adjacent_edges(jk-index_offset+offset,from_or_to_cell(ji))
-        if (trsk_indices(ji,jk)==0) then
-          trsk_weights(ji,jk) = 0._wp
+        trsk_indices(jk,ji) = adjacent_edges(jk-index_offset+offset,from_or_to_cell(ji))
+        if (trsk_indices(jk,ji)==0) then
+          trsk_weights(jk,ji) = 0._wp
         else
           ! setting sign 1
           sign_2 = -1
-          if (from_cell(trsk_indices(ji,jk))==from_or_to_cell(ji)) then
+          if (from_cell(trsk_indices(jk,ji))==from_or_to_cell(ji)) then
             sign_2 = 1
           endif
           ! determining wether the cell is pentagonal or hexagonal
@@ -181,7 +181,7 @@ module mo_coriolis
             if (edge_indices(jl)==ji) then
               last_index = jl
             endif
-            if (edge_indices(jl)==trsk_indices(ji,jk)) then
+            if (edge_indices(jl)==trsk_indices(jk,ji)) then
               first_index = mod(jl,n_edges_of_cell)+1
             endif
           enddo
@@ -207,10 +207,10 @@ module mo_coriolis
             call exit(1)
           endif
           ! Eq. (33) of the TRSK paper
-          trsk_weights(ji,jk) = sign_1*(sum_of_weights-0.5_wp)*sign_2
+          trsk_weights(jk,ji) = sign_1*(sum_of_weights-0.5_wp)*sign_2
           ! weighting by geometrical grid prefactors, the minus sign accounts for the fact that our tangential direction is reversed compared to TRSK
-          trsk_weights(ji,jk) = -rescale_for_z_offset_1d*dy(trsk_indices(ji,jk),1)/ &
-                                 dx(ji,1)*trsk_weights(ji,jk)
+          trsk_weights(jk,ji) = -rescale_for_z_offset_1d*dy(trsk_indices(jk,ji),1)/ &
+                                 dx(ji,1)*trsk_weights(jk,ji)
         endif
       enddo
       
@@ -222,8 +222,8 @@ module mo_coriolis
       if (from_cell(ji)<=n_pentagons) then
         n_edges_of_cell = 5
       endif
-      trsk_indices_pre = trsk_indices(ji,:)
-      trsk_weights_pre = trsk_weights(ji,:)
+      trsk_indices_pre = trsk_indices(:,ji)
+      trsk_weights_pre = trsk_weights(:,ji)
       next_vertex_index = to_cell_dual(ji)
       indices_used_counter = 1
       indices_used = 0
@@ -234,16 +234,16 @@ module mo_coriolis
               .or. to_cell_dual(trsk_indices_pre(jl))==next_vertex_index) &
           .and. 0==in_bool_checker(jl,indices_used,n_edges_of_cell-1) &
           .and. value_written==0) then
-            trsk_indices(ji,jk) = trsk_indices_pre(jl)
-            trsk_weights(ji,jk) = trsk_weights_pre(jl)
+            trsk_indices(jk,ji) = trsk_indices_pre(jl)
+            trsk_weights(jk,ji) = trsk_weights_pre(jl)
             indices_used(indices_used_counter) = jl
             indices_used_counter = indices_used_counter+1
             value_written = 1
           endif
         enddo
-        next_vertex_index_candidate = to_cell_dual(trsk_indices(ji,jk))
+        next_vertex_index_candidate = to_cell_dual(trsk_indices(jk,ji))
         if (next_vertex_index_candidate==next_vertex_index) then
-          next_vertex_index = from_cell_dual(trsk_indices(ji,jk))
+          next_vertex_index = from_cell_dual(trsk_indices(jk,ji))
         else
           next_vertex_index = next_vertex_index_candidate
         endif
@@ -269,16 +269,16 @@ module mo_coriolis
                .or. to_cell_dual(trsk_indices_pre(5+jl))==next_vertex_index) &
               .and. 0==in_bool_checker(jl,indices_used,n_edges_of_cell-1) &
               .and. value_written==0) then
-            trsk_indices(ji,jk+5) = trsk_indices_pre(5+jl)
-            trsk_weights(ji,jk+5) = trsk_weights_pre(5+jl)
+            trsk_indices(jk+5,ji) = trsk_indices_pre(5+jl)
+            trsk_weights(jk+5,ji) = trsk_weights_pre(5+jl)
             indices_used(indices_used_counter) = jl
             indices_used_counter = indices_used_counter+1
             value_written = 1
           endif
         enddo
-        next_vertex_index_candidate = to_cell_dual(trsk_indices(ji,jk+5))
+        next_vertex_index_candidate = to_cell_dual(trsk_indices(jk+5,ji))
         if (next_vertex_index_candidate==next_vertex_index) then
-          next_vertex_index = from_cell_dual(trsk_indices(ji,jk+5))
+          next_vertex_index = from_cell_dual(trsk_indices(jk+5,ji))
         else
           next_vertex_index = next_vertex_index_candidate
         endif
@@ -291,48 +291,48 @@ module mo_coriolis
       
       ! Now the resorting itself can be executed.
       if (to_cell(ji)<=n_pentagons) then
-        trsk_modified_curl_indices(ji,1) = trsk_indices(ji,9)
+        trsk_modified_curl_indices(1,ji) = trsk_indices(9,ji)
       else
-        trsk_modified_curl_indices(ji,1) = trsk_indices(ji,10)
+        trsk_modified_curl_indices(1,ji) = trsk_indices(10,ji)
       endif
-      trsk_modified_curl_indices(ji,2) = trsk_indices(ji,1)
+      trsk_modified_curl_indices(2,ji) = trsk_indices(1,ji)
       if (from_cell(ji)<=n_pentagons) then
-        trsk_modified_curl_indices(ji,3) = trsk_indices(ji,4)
-        trsk_modified_curl_indices(ji,4) = trsk_indices(ji,6)
-        trsk_modified_curl_indices(ji,5) = 0
-        if (trsk_weights(ji,5)/=0._wp) then
+        trsk_modified_curl_indices(3,ji) = trsk_indices(4,ji)
+        trsk_modified_curl_indices(4,ji) = trsk_indices(6,ji)
+        trsk_modified_curl_indices(5,ji) = 0
+        if (trsk_weights(5,ji)/=0._wp) then
           write(*,*) "Problem 7 in TRSK implementation detected."
           call exit(1)
         endif
       else
-        trsk_modified_curl_indices(ji,3) = trsk_indices(ji,3)
-        trsk_modified_curl_indices(ji,4) = trsk_indices(ji,5)
-        trsk_modified_curl_indices(ji,5) = trsk_indices(ji,6)
+        trsk_modified_curl_indices(3,ji) = trsk_indices(3,ji)
+        trsk_modified_curl_indices(4,ji) = trsk_indices(5,ji)
+        trsk_modified_curl_indices(5,ji) = trsk_indices(6,ji)
       endif
       if (from_cell(ji)<=n_pentagons) then
-        trsk_modified_curl_indices(ji,6) = trsk_indices(ji,4)
+        trsk_modified_curl_indices(6,ji) = trsk_indices(4,ji)
       else
-        trsk_modified_curl_indices(ji,6) = trsk_indices(ji,5)
+        trsk_modified_curl_indices(6,ji) = trsk_indices(5,ji)
       endif
-      trsk_modified_curl_indices(ji,7) = trsk_indices(ji,6)
+      trsk_modified_curl_indices(7,ji) = trsk_indices(6,ji)
       if (to_cell(ji)<=n_pentagons) then
-        trsk_modified_curl_indices(ji,8) = trsk_indices(ji,9)
-        trsk_modified_curl_indices(ji,9) = trsk_indices(ji,1)
-        trsk_modified_curl_indices(ji,10) = 0
-        if (trsk_weights(ji,10)/=0._wp) then
+        trsk_modified_curl_indices(8,ji) = trsk_indices(9,ji)
+        trsk_modified_curl_indices(9,ji) = trsk_indices(1,ji)
+        trsk_modified_curl_indices(10,ji) = 0
+        if (trsk_weights(10,ji)/=0._wp) then
           write(*,*) "Problem 8 in TRSK implementation detected."
           call exit(1)
         endif
       else
-        trsk_modified_curl_indices(ji,8) = trsk_indices(ji,8)
-        trsk_modified_curl_indices(ji,9) = trsk_indices(ji,10)
-        trsk_modified_curl_indices(ji,10) = trsk_indices(ji,1)
+        trsk_modified_curl_indices(8,ji) = trsk_indices(8,ji)
+        trsk_modified_curl_indices(9,ji) = trsk_indices(10,ji)
+        trsk_modified_curl_indices(10,ji) = trsk_indices(1,ji)
       endif
       do jk=1,10
         do jl=jk+1,10
-          if (trsk_indices(ji,jk)==trsk_indices(ji,jl) &
-              .and. (trsk_weights(ji,jk)/=0._wp &
-              .and. trsk_weights(ji,jl)/=0._wp)) then
+          if (trsk_indices(jk,ji)==trsk_indices(jl,ji) &
+              .and. (trsk_weights(jk,ji)/=0._wp &
+              .and. trsk_weights(jl,ji)/=0._wp)) then
             write(*,*) "Problem 9 in TRSK implementation detected."
             call exit(1)
           endif
@@ -346,13 +346,13 @@ module mo_coriolis
     !$omp parallel do private(ji,jk,jl,first_index,value_1,second_index_1,second_index_2,value_2,check_sum)
     do ji=1,n_edges
       do jk=1,10
-        first_index = trsk_indices(ji,jk)
+        first_index = trsk_indices(jk,ji)
         if (first_index/=0) then
-          value_1 = dx(ji,1)/(rescale_for_z_offset_1d*dy(first_index,1))*trsk_weights(ji,jk)
+          value_1 = dx(ji,1)/(rescale_for_z_offset_1d*dy(first_index,1))*trsk_weights(jk,ji)
           second_index_1 = 0
           second_index_2 = 0
           do jl=1,10
-            if (trsk_indices(first_index,jl)==ji) then
+            if (trsk_indices(jl,first_index)==ji) then
               second_index_1 = first_index
               second_index_2 = jl
             endif
@@ -361,7 +361,7 @@ module mo_coriolis
             write(*,*) "Problem 10 in TRSK implementation detected."
             call exit(1)
           endif
-          value_2 = dx(first_index,1)/(rescale_for_z_offset_1d*dy(ji,1))*trsk_weights(second_index_1,second_index_2)
+          value_2 = dx(first_index,1)/(rescale_for_z_offset_1d*dy(ji,1))*trsk_weights(second_index_2,second_index_1)
           check_sum = value_1+value_2
           if (abs(check_sum)>EPSILON_SECURITY) then
             write(*,*) "Problem 11 in TRSK implementation detected."
@@ -376,9 +376,9 @@ module mo_coriolis
     !$omp parallel do private(ji,jk)
     do ji=1,n_edges
       do jk=1,10
-        if (trsk_indices(ji,jk)==0) then
-          trsk_indices(ji,jk) = 1
-          trsk_modified_curl_indices(ji,jk) = 1
+        if (trsk_indices(jk,ji)==0) then
+          trsk_indices(jk,ji) = 1
+          trsk_modified_curl_indices(jk,ji) = 1
         endif
       enddo
     enddo

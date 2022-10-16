@@ -38,40 +38,40 @@ module mo_vorticity_flux
         if (grid%from_cell(ji)<=n_pentagons) then
           do jm=1,5
             diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
-            + grid%trsk_weights(ji,jm)*diag%flux_density_h(grid%trsk_indices(ji,jm),jl) &
-            *diag%pot_vort_v(grid%trsk_modified_curl_indices(ji,jm),jl)
+            + grid%trsk_weights(jm,ji)*diag%flux_density_h(grid%trsk_indices(jm,ji),jl) &
+            *diag%pot_vort_v(grid%trsk_modified_curl_indices(jm,ji),jl)
           enddo
         else
           do jm=1,5
             if (jm==3) then
               diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
-              + grid%trsk_weights(ji,jm)*diag%flux_density_h(grid%trsk_indices(ji,jm),jl) &
+              + grid%trsk_weights(jm,ji)*diag%flux_density_h(grid%trsk_indices(jm,ji),jl) &
               ! averaged vorticities of the target edge and the other edge
-              *0.5_wp*(diag%pot_vort_v(grid%trsk_modified_curl_indices(ji,jm),jl) + diag%pot_vort_v(ji,jl))
+              *0.5_wp*(diag%pot_vort_v(grid%trsk_modified_curl_indices(jm,ji),jl) + diag%pot_vort_v(ji,jl))
             else
               diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
-              + grid%trsk_weights(ji,jm)*diag%flux_density_h(grid%trsk_indices(ji,jm),jl) &
-              *diag%pot_vort_v(grid%trsk_modified_curl_indices(ji,jm),jl)
+              + grid%trsk_weights(jm,ji)*diag%flux_density_h(grid%trsk_indices(jm,ji),jl) &
+              *diag%pot_vort_v(grid%trsk_modified_curl_indices(jm,ji),jl)
             endif
           enddo
         endif
         if (grid%to_cell(ji)<=n_pentagons) then
           do jm=6,10
             diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
-            + grid%trsk_weights(ji,jm)*diag%flux_density_h(grid%trsk_indices(ji,jm),jl) &
-            *diag%pot_vort_v(grid%trsk_modified_curl_indices(ji,jm),jl)
+            + grid%trsk_weights(jm,ji)*diag%flux_density_h(grid%trsk_indices(jm,ji),jl) &
+            *diag%pot_vort_v(grid%trsk_modified_curl_indices(jm,ji),jl)
           enddo
         else
           do jm=6,10
             if (jm==8) then
               diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
-              + grid%trsk_weights(ji,jm)*diag%flux_density_h(grid%trsk_indices(ji,jm),jl) &
+              + grid%trsk_weights(jm,ji)*diag%flux_density_h(grid%trsk_indices(jm,ji),jl) &
               ! averaged vorticities of the target edge and the other edge
-              *0.5_wp*(diag%pot_vort_v(grid%trsk_modified_curl_indices(ji,jm),jl) + diag%pot_vort_v(ji,jl))
+              *0.5_wp*(diag%pot_vort_v(grid%trsk_modified_curl_indices(jm,ji),jl) + diag%pot_vort_v(ji,jl))
             else
               diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
-              + grid%trsk_weights(ji,jm)*diag%flux_density_h(grid%trsk_indices(ji,jm),jl) &
-              *diag%pot_vort_v(grid%trsk_modified_curl_indices(ji,jm),jl)
+              + grid%trsk_weights(jm,ji)*diag%flux_density_h(grid%trsk_indices(jm,ji),jl) &
+              *diag%pot_vort_v(grid%trsk_modified_curl_indices(jm,ji),jl)
             endif
           enddo
         endif
