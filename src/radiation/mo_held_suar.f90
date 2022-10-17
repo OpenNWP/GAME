@@ -28,8 +28,8 @@ module mo_held_suarez
     real(wp) :: pressure ! air pressure
   
     !$omp parallel do private(ji,jl,pressure)
-    do ji=1,n_cells_rad
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells_rad
         pressure = mass_densities(ji,jl,n_condensed_constituents+1)*r_d*temperature_gas(ji,jl)
         radiation_tendency(ji,jl) = -k_t(latitude_scalar(ji),pressure) &
                                     *(temperature_gas(ji,jl) - t_eq(latitude_scalar(ji),pressure))

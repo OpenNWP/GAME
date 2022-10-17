@@ -179,8 +179,8 @@ module mo_rrtmgp_coupler
     ice_cloud_radius = 0.5_wp*(cloud_optics_sw%get_min_radius_ice()+cloud_optics_sw%get_max_radius_ice())
     liquid_cloud_radius = 0.5_wp*(cloud_optics_sw%get_min_radius_liq()+cloud_optics_sw%get_max_radius_liq())
     if (n_condensed_constituents==4) then
-      do ji=1,n_cells_rad
-        do jl=1,n_layers
+      do jl=1,n_layers
+        do ji=1,n_cells_rad
           ! the solid condensates' effective radius
           ice_precip_weight = rho(ji,jl,1)+EPSILON_SECURITY
           ice_cloud_weight = rho(ji,jl,3)+EPSILON_SECURITY
@@ -230,8 +230,8 @@ module mo_rrtmgp_coupler
     enddo
     
     ! the properties at cell interfaces
-    do ji=1,n_cells_rad
-      do jl=1,n_levels
+    do jl=1,n_levels
+      do ji=1,n_cells_rad
         ! values at TOA
         if (jl==1) then
           ! temperature at TOA (linear extrapolation)
