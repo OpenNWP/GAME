@@ -30,8 +30,8 @@ module mo_inner_product
     real(wp) :: delta_z
     
     !$omp parallel do private(ji,jl,jm,delta_z)
-    do ji=1,n_cells
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells
         do jm=1,6
           if (jm<6 .or. ji>n_pentagons) then
             inner_product_weights(jm,ji,jl) = area_h(adjacent_edges(jm,ji),jl)
