@@ -158,8 +158,8 @@ module mo_rrtmgp_coupler
     enddo
     
     ! reformatting the thermodynamical state of the gas phase for RTE+RRTMGP
-    do ji=1,n_cells_rad
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells_rad
         temperature_rad(ji,jl) = temperature_gas(ji,jl)
         ! the pressure is diagnozed here, using the equation of state for ideal gases
         if (lmoist) then
@@ -212,8 +212,8 @@ module mo_rrtmgp_coupler
     endif
     
     ! moving the temperature into the allowed area
-    do ji=1,n_cells_rad
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells_rad
         if (temperature_rad(ji,jl)>k_dist_sw%get_temp_max()) then
           temperature_rad(ji,jl) = k_dist_sw%get_temp_max()
         endif
@@ -588,14 +588,14 @@ module mo_rrtmgp_coupler
           vol_mix_ratio = molar_fraction_in_dry_air(8)
         case("o3")
           if (sw_bool) then
-            do ji=1,n_day_points
-              do jl=1,n_layers
+            do jl=1,n_layers
+              do ji=1,n_day_points
                 vol_mix_ratio(ji,jl) = calc_o3_vmr(z_scalar(day_indices(ji),jl))
               enddo
             enddo
           else
-            do ji=1,n_cells_rad
-              do jl=1,n_layers
+            do jl=1,n_layers
+              do ji=1,n_cells_rad
                 vol_mix_ratio(ji,jl) = calc_o3_vmr(z_scalar(ji,jl))
               enddo
             enddo
@@ -610,8 +610,8 @@ module mo_rrtmgp_coupler
           ! n_condensed_constituents==4 is equivalent to the presence of water in the model atmosphere
           ! in the short wave case,only the day points matter
           if (sw_bool .and. n_condensed_constituents==4) then
-            do ji=1,n_day_points
-              do jl=1,n_layers
+            do jl=1,n_layers
+              do ji=1,n_day_points
                 vol_mix_ratio(ji,jl) = 0._wp
                 if (lmoist) then
                   vol_mix_ratio(ji,jl) = &
@@ -622,8 +622,8 @@ module mo_rrtmgp_coupler
             enddo
           ! in the long wave case,all points matter
           elseif (n_condensed_constituents==4) then
-            do ji=1,n_cells_rad
-              do jl=1,n_layers
+            do jl=1,n_layers
+              do ji=1,n_cells_rad
                 vol_mix_ratio(ji,jl) = 0._wp
                 if (lmoist) then
                   vol_mix_ratio(ji,jl) = & 
