@@ -525,9 +525,8 @@ program control
       ! setting the next output time
       t_write = t_write + 60._wp*write_out_interval_min
       
-      ! Calculating the speed of the model.
+      ! calculating the speed of the model
       call cpu_time(end_timestamp)
-      !speed = CLOCKS_PER_SEC*60*write_out_interval_min/((double) second_time - first_time)
       write(*,fmt="(A,F9.3)") " Current speed:",60._wp*write_out_interval_min/((end_timestamp-begin_timestamp)/omp_num_threads)
       call cpu_time(begin_timestamp)
       write(*,fmt="(A,F10.3,A2)") " Run progress:",(t_0+dtime-t_init)/3600._wp,"h"
