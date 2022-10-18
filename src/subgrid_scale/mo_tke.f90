@@ -38,8 +38,8 @@ module mo_tke
     
     ! loop over all scalar gridpoints
     !$omp parallel do private(ji,jl,decay_constant)
-    do ji=1,n_cells
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells
         ! decay constant, as derived from diffusion
         decay_constant = 8._wp*M_PI**2/mean_velocity_area &
         ! the vertical diffusion coefficient is neglected here because it is much smaller than the horizontal one

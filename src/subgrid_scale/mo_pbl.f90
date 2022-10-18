@@ -77,8 +77,8 @@ module mo_pbl
       !$omp parallel do private(ji,jl,exner_from,exner_to,pressure_from,pressure_to,pressure, &
       !$omp temp_lowest_layer,pressure_value_lowest_layer,temp_surface,surface_p_factor, &
       !$omp pressure_sfc_from,pressure_sfc_to,pressure_sfc,sigma)
-      do ji=1,n_edges
-        do jl=1,n_layers
+      do jl=1,n_layers
+        do ji=1,n_edges
           ! calculating the pressure at the horizontal vector point
           exner_from = grid%exner_bg(grid%from_cell(ji),jl) + state%exner_pert(grid%from_cell(ji),jl)
           exner_to = grid%exner_bg(grid%to_cell(ji),jl) + state%exner_pert(grid%to_cell(ji),jl)
