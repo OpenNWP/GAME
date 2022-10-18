@@ -459,7 +459,7 @@ program control
   do while (t_0<t_init+60._wp*run_span_min+radius_rescale*300._wp)
     
     ! Checking if the radiative fluxes need to be updated:
-    ! ----------------------------------------------------
+    ! ---------------------------------------------------
     
     if (t_0<=t_rad_update .and. t_0+dtime>=t_rad_update .and. .not.ltotally_first_step) then
       lrad_update = .true.
