@@ -34,8 +34,8 @@ module mo_spatial_ops_for_output
     real(wp) :: tangential_wind_value ! tangential wind value at an ede
     
     !$omp parallel do private(ji,jl,jm,n_edges_of_cell,tangential_wind_value)
-    do ji=1,n_cells
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells
       
         n_edges_of_cell = 6
         if (ji<=n_pentagons) then
@@ -92,8 +92,8 @@ module mo_spatial_ops_for_output
     
     ! diagnozing the horizontal vorticity at the primal horizontal vector points (they are TANGENTIAL! so it is not a real vector field, but a modified one)
     !$omp parallel do private(ji,jl,upper_weight,lower_weight,layer_thickness)
-    do ji=1,n_edges
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_edges
         ! determining the upper and lower weights
         layer_thickness = &
         0.5_wp*(grid%layer_thickness(grid%from_cell(ji),jl) + grid%layer_thickness(grid%to_cell(ji),jl))
@@ -119,8 +119,8 @@ module mo_spatial_ops_for_output
     
     ! diagnozing the vertical component of the potential vorticity at the vertical vector points
     !$omp parallel do private(ji,jl,jm,n_edges_of_cell)
-    do ji=1,n_cells
-      do jl=2,n_layers
+    do jl=2,n_layers
+      do ji=1,n_cells
         ! initializing the value with zero
         pot_vort_v_at_levels(ji,jl) = 0._wp
         
@@ -206,8 +206,8 @@ module mo_spatial_ops_for_output
     real(wp) :: wind_1,wind_2 ! orthogonal and tangential component at edge, respectively
     
     !$omp parallel do private(ji,jl,wind_1,wind_2)
-    do ji=1,n_edges
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_edges
         wind_1 = in_field(ji,jl)
         ! finding the tangential component
         wind_2 = tangential_wind(in_field,ji,jl,grid)
@@ -233,8 +233,8 @@ module mo_spatial_ops_for_output
     integer :: jm,n_edges_of_cell
     
     !$omp parallel do private (ji,jl,jm,n_edges_of_cell)
-    do ji=1,n_cells
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells
         ! initializing the result with zero
         out_field(ji,jl) = 0._wp
         ! determining the number of edges of the cell at hand
