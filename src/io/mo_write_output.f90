@@ -466,8 +466,8 @@ module mo_write_output
     allocate(epv(n_cells,n_layers))
     allocate(pressure(n_cells,n_layers))
     !$omp parallel do private(ji,jl)
-    do ji=1,n_cells
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells
         if (n_constituents>=4) then
           rh(ji,jl) = 100._wp*rel_humidity(state%rho(ji,jl,n_condensed_constituents+2),diag%temperature(ji,jl))
         endif
@@ -497,8 +497,8 @@ module mo_write_output
       
       ! vertical interpolation to the pressure levels
       !$omp parallel do private(ji,jl,jm,vector_to_minimize,closest_index,second_closest_index,closest_weight)
-      do ji=1,n_cells
-        do jl=1,n_pressure_levels
+      do jl=1,n_pressure_levels
+        do ji=1,n_cells
           do jm=1,n_layers
             
             ! It is approx. p = p_0exp(-z/H) => log(p) = log(p_0) - z/H => z/H = log(p_0) - log(p) = log(p_0/p) => z = H*log(p_0/p).
