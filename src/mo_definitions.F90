@@ -23,7 +23,7 @@ module mo_definitions
   integer, parameter :: wp = sp                        ! working precision
 #endif
 #ifndef SINGLE_PRECISION
-  integer, parameter :: wp = dp                        ! working precision
+  integer, parameter :: wp = dp
 #endif
 
   type t_grid
