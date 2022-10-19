@@ -447,10 +447,10 @@ module mo_rrtmgp_coupler
       n_relevant_columns = n_cells_rad
     endif
   
-    ! loop over all columns
-    do j_column=1,n_relevant_columns
-      ! loop over all layers
-      do jl=1,n_layers
+    ! loop over all layers
+    do jl=1,n_layers
+      ! loop over all columns
+      do j_column=1,n_relevant_columns
         ! finding the relevant horizontal index
         if (day_only) then
           ji = day_indices(j_column)
