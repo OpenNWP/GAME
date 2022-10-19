@@ -118,7 +118,7 @@ if(COMPILE_TIME_CONFIG)
 endif()
 # single precision for more performance
 if(COMPILE_TIME_CONFIG)
-  SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DCOMPILE_TIME_CONFIG -DSINGLE_PRECISION")
+  SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DSINGLE_PRECISION")
 endif()
 target_link_libraries(game netcdff)
 
