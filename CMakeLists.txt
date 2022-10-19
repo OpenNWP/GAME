@@ -116,7 +116,7 @@ endif()
 if(COMPILE_TIME_CONFIG)
   SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DCOMPILE_TIME_CONFIG")
 endif()
-# singlre precision for more performance
+# single precision for more performance
 if(COMPILE_TIME_CONFIG)
   SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DCOMPILE_TIME_CONFIG -DSINGLE_PRECISION")
 endif()
