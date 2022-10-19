@@ -16,10 +16,11 @@ module mo_constituents_nml
   integer :: n_constituents           ! the total number of constituents
 #endif
 #ifdef COMPILE_TIME_CONFIG
-  logical :: lmoist = .true.
-  integer :: n_gaseous_constituents = 2
-  integer :: n_condensed_constituents = 4
-  integer :: n_constituents = 6
+  ! the dry case is set here as the default because this is where this option produces the most considerable perfomance increase
+  logical :: lmoist = .false.
+  integer :: n_gaseous_constituents = 1
+  integer :: n_condensed_constituents = 0
+  integer :: n_constituents = 1
   logical :: dummy                        ! dummy variable with no effect
 #endif
   real(wp) :: snow_velocity            ! sedimentation velocity of snow
