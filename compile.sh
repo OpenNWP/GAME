@@ -3,13 +3,6 @@
 # This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 # Github repository: https://github.com/OpenNWP/GAME
 
-if [ ! -d build ]
-then
-  mkdir build
-fi
-
-cd build
-
 d_value=False
 f_value=False
 c_value=False
@@ -29,6 +22,13 @@ while getopts "dfc" opt; do
       ;;
   esac
 done
+
+if [ ! -d build ]
+then
+  mkdir build
+fi
+
+cd build
 
 cmake -DDEBUGGING=$d_value -DFAST=$f_value -DCOMPILE_TIME_CONFIG=$c_value ..
 make
