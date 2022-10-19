@@ -663,7 +663,7 @@ module mo_rrtmgp_coupler
   
   subroutine reset_fluxes(fluxes)
 
-    ! resets all fluxes to zero
+    ! This subroutine resets all fluxes to zero.
 
     type(ty_fluxes_broadband), intent(inout) :: fluxes
 
@@ -677,9 +677,9 @@ module mo_rrtmgp_coupler
   
   subroutine free_fluxes(fluxes)
   
-    ! freeing a flux object
-    ! the fluxes to free
-    type(ty_fluxes_broadband), intent(out) :: fluxes
+    ! This subroutine frees a flux object.
+    
+    type(ty_fluxes_broadband), intent(out) :: fluxes ! the fluxes to free
     
     if (associated(fluxes%flux_up)) deallocate(fluxes%flux_up)
     if (associated(fluxes%flux_dn)) deallocate(fluxes%flux_dn)
