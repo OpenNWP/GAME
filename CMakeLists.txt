@@ -12,7 +12,7 @@ add_executable(
 game
 src/control.f90
 src/mo_constants.f90
-src/mo_definitions.f90
+src/mo_definitions.F90
 src/namelists/mo_run_nml.f90
 src/namelists/mo_rad_nml.f90
 src/namelists/mo_constituents_nml.F90
@@ -115,6 +115,10 @@ endif()
 # compile-time configuration for more performance
 if(COMPILE_TIME_CONFIG)
   SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DCOMPILE_TIME_CONFIG")
+endif()
+# singlre precision for more performance
+if(COMPILE_TIME_CONFIG)
+  SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DCOMPILE_TIME_CONFIG -DSINGLE_PRECISION")
 endif()
 target_link_libraries(game netcdff)
 

@@ -6,6 +6,7 @@
 d_value=False
 f_value=False
 c_value=False
+s_value=False
 while getopts "dfc" opt; do
   case $opt in
     d) # debugging flag
@@ -16,6 +17,9 @@ while getopts "dfc" opt; do
       ;;
     c) # compile-time configuration flag
       c_value=True
+      ;;
+    s) # singlre precision flag
+      s_value=True
       ;;
     \?)
       echo "Invalid option: -$OPTARG. Compiling anyway."
@@ -30,7 +34,7 @@ fi
 
 cd build
 
-cmake -DDEBUGGING=$d_value -DFAST=$f_value -DCOMPILE_TIME_CONFIG=$c_value ..
+cmake -DDEBUGGING=$d_value -DFAST=$f_value -DCOMPILE_TIME_CONFIG=$c_value -SINGLE_PRECISION=$s_value ..
 make
 
 cd ..

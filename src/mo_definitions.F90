@@ -18,9 +18,14 @@ module mo_definitions
   
   integer, parameter :: sp = selected_real_kind(ps,rs) ! single precission
   integer, parameter :: dp = selected_real_kind(pd,rd) ! real(wp) :: precission
-  
+
+#ifdef SINGLE_PRECISION
+  integer, parameter :: wp = sp                        ! working precision
+#endif
+#ifndef SINGLE_PRECISION
   integer, parameter :: wp = dp                        ! working precision
-  
+#endif
+
   type t_grid
     
     real(wp), allocatable :: dx(:,:)                ! horizontal normal distance
@@ -113,7 +118,7 @@ module mo_definitions
     real(wp), allocatable :: power_flux_density_sensible(:)
     real(wp), allocatable :: power_flux_density_latent(:)
     real(wp), allocatable :: roughness_velocity(:)
-    real(wp), allocatable :: monin_obukhov_length(:)
+    real(wp), allocatable :: monin_obukhov_length(:)               ! Monin-Obukhov length (m)
     real(wp), allocatable :: temperature_diffusion_heating(:,:)
     real(wp), allocatable :: friction_acc_h(:,:)                   ! horizontal friction acceleration
     real(wp), allocatable :: friction_acc_v(:,:)                   ! vertical friction acceleration
