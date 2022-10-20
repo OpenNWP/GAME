@@ -7,7 +7,7 @@ d_value=False
 f_value=False
 c_value=False
 s_value=False
-while getopts "dfc" opt; do
+while getopts "dfcs" opt; do
   case $opt in
     d) # debugging flag
       d_value=True
