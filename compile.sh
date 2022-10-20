@@ -34,7 +34,7 @@ fi
 
 cd build
 
-cmake -DDEBUGGING=$d_value -DFAST=$f_value -DCOMPILE_TIME_CONFIG=$c_value -SINGLE_PRECISION=$s_value ..
+cmake -DDEBUGGING=$d_value -DFAST=$f_value -DCOMPILE_TIME_CONFIG=$c_value -DSINGLE_PRECISION=$s_value ..
 make
 
 cd ..
