@@ -12,7 +12,7 @@ add_executable(
 grid_generator
 src/control.f90
 ../src/mo_constants.f90
-../src/mo_definitions.f90
+../src/mo_definitions.F90
 src/diff_ops/mo_rhombus_averaging.f90
 src/diff_ops/mo_inner_product.f90
 src/optimization/mo_optimize.f90
