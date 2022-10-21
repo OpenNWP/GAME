@@ -33,7 +33,7 @@ module mo_write_output
   
     ! This subroutine is the central subroutine for writing the output.
   
-    type(t_state), intent(in)    :: state                                                      ! state variables
+    type(t_state), intent(inout)    :: state                                                      ! state variables
     type(t_diag),  intent(inout) :: diag                                                       ! diagnostic quantities
     type(t_grid),  intent(in)    :: grid                                                       ! grid quantities
     real(wp),      intent(in)    :: t_init                                                     ! epoch timestamp of model initialization
