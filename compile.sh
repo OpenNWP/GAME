@@ -18,7 +18,7 @@ while getopts "dfcs" opt; do
     c) # compile-time configuration flag
       c_value=True
       ;;
-    s) # singlre precision flag
+    s) # single-precision flag
       s_value=True
       ;;
     \?)
