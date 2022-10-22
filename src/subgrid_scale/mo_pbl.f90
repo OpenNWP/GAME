@@ -371,7 +371,7 @@ module mo_pbl
     if (l_local<0._wp) then
       x = (1._wp-15._wp*z_eff/l_local)**0.25_wp
 
-      psi_m = 2.0_wp*log((1._wp + x)/2._wp) + log((1._wp + x**2)/2._wp)-2._wp*atan(x) + M_PI/2._wp
+      psi_m = 2.0_wp*log((1._wp + x)/2._wp) + log((1._wp + x**2)/2._wp) - 2._wp*atan(x) + M_PI/2._wp
     ! neutral and stable conditions
     else
       psi_m = -4.7_wp*z_eff/l_local
