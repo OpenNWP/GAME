@@ -37,7 +37,7 @@ start_hour=0
 /
 
 &io
-ideal_input_id=1
+ideal_input_id=2
 lwrite_integrals=.true.
 time_to_next_analysis_min=-1
 write_out_interval_min=1440
