@@ -123,11 +123,7 @@ module mo_phys_sfc_properties
           if (jk==ji) then
             distance_vector(jk) = 0._wp
           else
-            if (ji==jk) then
-              distance_vector(jk) = 0._wp
-            else
-              distance_vector(jk) = calculate_distance_h(lat_c(ji),lon_c(ji),lat_c(jk),lon_c(jk),1._wp)
-            endif
+            distance_vector(jk) = calculate_distance_h(lat_c(ji),lon_c(ji),lat_c(jk),lon_c(jk),1._wp)
           endif
         enddo
         
