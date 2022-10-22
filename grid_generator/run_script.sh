@@ -9,9 +9,9 @@
 # See handbook for more information.
 
 res_id=5
-oro_id=1
-n_lloyd_iterations=0
-luse_scalar_h_file=".true."
+oro_id=0
+n_lloyd_iterations=2000
+luse_scalar_h_file=".false."
 stretching_parameter=1.3
 toa=41152
 n_oro_layers=23
