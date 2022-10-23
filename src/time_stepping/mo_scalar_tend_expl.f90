@@ -91,13 +91,13 @@ module mo_scalar_tend_expl
     endif
     
     ! Now,the actual scalar tendencies can be computed.
-    ! --------------------------------------------------
+    ! -------------------------------------------------
     
     ! loop over all constituents
     do jc=1,n_constituents
       
         ! This is the mass advection,which needs to be carried out for all constituents.
-        ! -------------------------------------------------------------------------------
+        ! ------------------------------------------------------------------------------
         ! moist air
       if (jc==n_condensed_constituents+1) then
         call scalar_times_vector_h(state_scalar%rho(:,:,jc),state_wind%wind_h,diag%flux_density_h,grid)

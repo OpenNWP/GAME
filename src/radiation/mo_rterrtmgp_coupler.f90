@@ -205,10 +205,10 @@ module mo_rrtmgp_coupler
       enddo
     ! the dry case
     else
-      liquid_water_path = 0._wp
       ice_water_path = 0._wp
-      liquid_eff_radius = 0._wp
+      liquid_water_path = 0._wp
       ice_eff_radius = 0._wp
+      liquid_eff_radius = 0._wp
     endif
     
     ! moving the temperature into the allowed area
