@@ -51,19 +51,19 @@ module mo_definitions
     integer,  allocatable :: adjacent_edges(:,:)             ! neigbouring edges of a cell
     integer,  allocatable :: adjacent_signs(:,:)
     integer,  allocatable :: density_to_rhombi_indices(:,:)
-    real(wp), allocatable :: lat_c(:)
-    real(wp), allocatable :: lon_c(:)
-    real(wp), allocatable :: inner_product_weights(:,:,:)
-    real(wp), allocatable :: direction(:)
-    real(wp), allocatable :: density_to_rhombi_weights(:,:)
-    real(wp), allocatable :: trsk_weights(:,:)
-    real(wp), allocatable :: sfc_albedo(:)
-    real(wp), allocatable :: sfc_rho_c(:)
-    real(wp), allocatable :: t_conduc_soil(:)
-    real(wp), allocatable :: roughness_length(:)
-    integer,  allocatable :: is_land(:)
-    integer,  allocatable :: latlon_interpol_indices(:,:,:)
-    real(wp), allocatable :: latlon_interpol_weights(:,:,:)
+    real(wp), allocatable :: lat_c(:)                        ! latitudes of the cell centers
+    real(wp), allocatable :: lon_c(:)                        ! longitudes of the cell centers
+    real(wp), allocatable :: inner_product_weights(:,:,:)    ! weights needed for computing the inner product
+    real(wp), allocatable :: direction(:)                    ! directions of the horizontal vectors
+    real(wp), allocatable :: density_to_rhombi_weights(:,:)  ! weights needed for interpolating the densities to the rhombi
+    real(wp), allocatable :: trsk_weights(:,:)               ! weights needed for computing the TRSK reconstruction
+    real(wp), allocatable :: sfc_albedo(:)                   ! surface albedo
+    real(wp), allocatable :: sfc_rho_c(:)                    ! 
+    real(wp), allocatable :: t_conduc_soil(:)                ! temperature conductivity of the soil
+    real(wp), allocatable :: roughness_length(:)             ! roughness length at the surface
+    integer,  allocatable :: is_land(:)                      ! land-sea mask
+    integer,  allocatable :: latlon_interpol_indices(:,:,:)  ! indices for computing the interpolation to the lat-lon grid
+    real(wp), allocatable :: latlon_interpol_weights(:,:,:)  ! weights for computing the interpolation to the lat-lon grid
     real(wp), allocatable :: z_soil_interface(:)
     real(wp), allocatable :: z_soil_center(:)
     real(wp), allocatable :: t_const_soil(:)
@@ -131,23 +131,23 @@ module mo_definitions
     real(wp), allocatable :: pressure_gradient_decel_factor(:,:)   ! pressure gradient deceleration factor due to condensates
     real(wp), allocatable :: condensates_sediment_heat(:,:)        ! heating rate due to falling condensates
     real(wp), allocatable :: mass_diff_tendency(:,:,:)             ! mass source rate due to mass diffusion
-    real(wp), allocatable :: phase_trans_rates(:,:,:)
+    real(wp), allocatable :: phase_trans_rates(:,:,:)              ! phase transition rates
     real(wp), allocatable :: phase_trans_heating_rate(:,:)
-    real(wp), allocatable :: viscosity(:,:)
-    real(wp), allocatable :: viscosity_rhombi(:,:)
-    real(wp), allocatable :: viscosity_triangles(:,:)
-    real(wp), allocatable :: vert_hor_viscosity(:,:)
+    real(wp), allocatable :: viscosity(:,:)                        ! effective viscosity in cell centers
+    real(wp), allocatable :: viscosity_rhombi(:,:)                 ! effective viscosity at the edges
+    real(wp), allocatable :: viscosity_triangles(:,:)              ! effective viscosity at the triangles
+    real(wp), allocatable :: vert_hor_viscosity(:,:)               ! effective visosity for vertical diffusion of horizontal velocity
     real(wp), allocatable :: tke(:,:)                              ! specific turbulent kinetic energy (J/kg)
     real(wp), allocatable :: pgrad_acc_old_h(:,:)                  ! old time step horizontal pressure gradient
-    real(wp), allocatable :: pressure_gradient_acc_neg_nl_h(:,:)
-    real(wp), allocatable :: pressure_gradient_acc_neg_nl_v(:,:)
-    real(wp), allocatable :: pressure_gradient_acc_neg_l_h(:,:)
-    real(wp), allocatable :: pressure_gradient_acc_neg_l_v(:,:)
-    real(wp), allocatable :: pressure_grad_condensates_v(:,:)
+    real(wp), allocatable :: pressure_gradient_acc_neg_nl_h(:,:)   ! negative non-linear component of the horizontal pressure gradient
+    real(wp), allocatable :: pressure_gradient_acc_neg_nl_v(:,:)   ! vertical non-linear component of the horizontal pressure gradient
+    real(wp), allocatable :: pressure_gradient_acc_neg_l_h(:,:)    ! negative linear component of the horizontal pressure gradient
+    real(wp), allocatable :: pressure_gradient_acc_neg_l_v(:,:)    ! vertical linear component of the horizontal pressure gradient
+    real(wp), allocatable :: pressure_grad_condensates_v(:,:)      ! vertical pressure gradient component created by the condensates
     real(wp), allocatable :: v_squared_grad_h(:,:)                 ! horizontal gradient of squared velocity
     real(wp), allocatable :: v_squared_grad_v(:,:)                 ! vertical gradient of squared velocity
-    real(wp), allocatable :: pot_vort_tend_h(:,:)
-    real(wp), allocatable :: pot_vort_tend_v(:,:)
+    real(wp), allocatable :: pot_vort_tend_h(:,:)                  ! horizontal component of the vorticity flux term
+    real(wp), allocatable :: pot_vort_tend_v(:,:)                  ! vertical component of the vorticity flux term
     real(wp), allocatable :: sfc_sw_in(:)                          ! surface inbound short-wave radiation flux density (W/m**2)
     real(wp), allocatable :: sfc_lw_out(:)                         ! surface outbound long-wave radiation flux density (W/m**2)
     real(wp), allocatable :: radiation_tendency(:,:)               ! radiative flux convergence power density (W/m**3)
