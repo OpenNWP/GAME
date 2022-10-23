@@ -84,8 +84,8 @@ module mo_scalar_tend_expl
         call div_h(diag%flux_density_h,diag%mass_diff_tendency(:,:,jc),grid)
         ! vertical mass diffusion
         if (lmass_diff_v) then
-          call scalar_times_vector_v(diag%mass_diffusion_coeff_numerical_v,diag%vector_placeholder_v,diag%vector_placeholder_v)
-          call add_vertical_div(diag%vector_placeholder_v,diag%mass_diff_tendency(:,:,jc),grid)
+          call scalar_times_vector_v(diag%mass_diffusion_coeff_numerical_v,diag%vector_placeholder_v,diag%flux_density_v)
+          call add_vertical_div(diag%flux_density_v,diag%mass_diff_tendency(:,:,jc),grid)
         endif
       enddo
     endif
