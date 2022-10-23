@@ -336,7 +336,7 @@ module mo_column_solvers
     
     type(t_state), intent(in)    :: state_old  ! state variables at the old time step
     type(t_state), intent(inout) :: state_new  ! state variables at the new time step
-    type(t_state), intent(inout) :: state_tend ! state containing the tendencies of the state variables
+    type(t_state), intent(in)    :: state_tend ! state containing the tendencies of the state variables
     type(t_diag),  intent(inout) :: diag       ! diagnostic quantities
     type(t_grid),  intent(in)    :: grid       ! grid quantities
     integer,       intent(in)    :: rk_step    ! predictor-corrector substep
