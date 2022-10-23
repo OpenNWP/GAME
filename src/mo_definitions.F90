@@ -49,7 +49,7 @@ module mo_definitions
     integer,  allocatable :: from_cell(:)                    ! neighbouring cell of an edge in opposite direction of the vector
     integer,  allocatable :: to_cell(:)                      ! neighbouring cell of an edge in opposite direction of the vector
     integer,  allocatable :: adjacent_edges(:,:)             ! neigbouring edges of a cell
-    integer,  allocatable :: adjacent_signs(:,:)
+    integer,  allocatable :: adjacent_signs(:,:)             ! 1 if neighbouring cell is in the direction of the vecor, -1 otherwise
     integer,  allocatable :: density_to_rhombi_indices(:,:)  ! indices needed for interpolating the densities to the rhombi
     real(wp), allocatable :: lat_c(:)                        ! latitudes of the cell centers
     real(wp), allocatable :: lon_c(:)                        ! longitudes of the cell centers
@@ -96,9 +96,9 @@ module mo_definitions
   
   type t_diag
     
-    real(wp), allocatable :: flux_density_h(:,:)
-    real(wp), allocatable :: flux_density_v(:,:)
-    real(wp), allocatable :: flux_density_div(:,:)
+    real(wp), allocatable :: flux_density_h(:,:)                   ! arbitrary horizontal flux density
+    real(wp), allocatable :: flux_density_v(:,:)                   ! arbitrary vertical flux density
+    real(wp), allocatable :: flux_density_div(:,:)                 ! divergence of the flux density
     real(wp), allocatable :: rel_vort_on_triangles(:,:)            ! relative vorticity on triangles
     real(wp), allocatable :: rel_vort_h(:,:)                       ! horizontal relative vorticity (at edges)
     real(wp), allocatable :: rel_vort_v(:,:)                       ! vertical relative vorticity (at edges)
