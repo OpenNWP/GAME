@@ -26,53 +26,54 @@ module mo_definitions
   integer, parameter :: wp = dp
 #endif
 
+  ! grid quantities
   type t_grid
     
-    real(wp), allocatable :: dx(:,:)                         ! horizontal normal distance
-    real(wp), allocatable :: dz(:,:)                         ! vertical normal distance
-    real(wp), allocatable :: volume(:,:)                     ! volumes of the grid boxes
-    real(wp), allocatable :: area_h(:,:)                     ! horizontal areas (areas with horizontal normal)
-    real(wp), allocatable :: area_v(:,:)                     ! vertical areas (areas with vertical normal)
-    real(wp), allocatable :: z_scalar(:,:)                   ! z-coordinates of the scalar gridpoints
-    real(wp), allocatable :: z_vector_h(:,:)                 ! z-coordinates of the horizontal vector points
-    real(wp), allocatable :: z_vector_v(:,:)                 ! z-coordinates of the vertical vector points
-    real(wp), allocatable :: gravity_potential(:,:)          ! gravity potential
-    real(wp), allocatable :: gravity_m_v(:,:)                ! vertical acceleration due to gravity
-    real(wp), allocatable :: slope(:,:)                      ! slope of zeta coordinate surfaces
-    real(wp), allocatable :: theta_v_bg(:,:)                 ! background virtual potential temperature
-    real(wp), allocatable :: exner_bg(:,:)                   ! background Exner pressure
-    real(wp), allocatable :: exner_bg_grad_h(:,:)            ! horizontal gradient of the background Exner pressure
-    real(wp), allocatable :: exner_bg_grad_v(:,:)            ! vertical gradient of the background Exner pressure
-    real(wp), allocatable :: layer_thickness(:,:)            ! layer thicknesses
-    integer,  allocatable :: trsk_indices(:,:)               ! edge indices for computing the TRSK reconstruction
-    integer,  allocatable :: trsk_modified_curl_indices(:,:) ! edge indices for computing the vorticity used in the TRSK reconstruction
-    integer,  allocatable :: from_cell(:)                    ! neighbouring cell of an edge in opposite direction of the vector
-    integer,  allocatable :: to_cell(:)                      ! neighbouring cell of an edge in opposite direction of the vector
-    integer,  allocatable :: adjacent_edges(:,:)             ! neigbouring edges of a cell
-    integer,  allocatable :: adjacent_signs(:,:)             ! 1 if neighbouring cell is in the direction of the vecor, -1 otherwise
-    integer,  allocatable :: density_to_rhombi_indices(:,:)  ! indices needed for interpolating the densities to the rhombi
-    real(wp), allocatable :: lat_c(:)                        ! latitudes of the cell centers
-    real(wp), allocatable :: lon_c(:)                        ! longitudes of the cell centers
-    real(wp), allocatable :: inner_product_weights(:,:,:)    ! weights needed for computing the inner product
-    real(wp), allocatable :: direction(:)                    ! directions of the horizontal vectors
-    real(wp), allocatable :: density_to_rhombi_weights(:,:)  ! weights needed for interpolating the densities to the rhombi
-    real(wp), allocatable :: trsk_weights(:,:)               ! weights needed for computing the TRSK reconstruction
-    real(wp), allocatable :: sfc_albedo(:)                   ! surface albedo
-    real(wp), allocatable :: sfc_rho_c(:)                    ! indices needed for interpolating the densities to the rhombi
-    real(wp), allocatable :: t_conduc_soil(:)                ! temperature conductivity of the soil
-    real(wp), allocatable :: roughness_length(:)             ! roughness length at the surface
-    integer,  allocatable :: is_land(:)                      ! land-sea mask
-    integer,  allocatable :: latlon_interpol_indices(:,:,:)  ! indices for computing the interpolation to the lat-lon grid
-    real(wp), allocatable :: latlon_interpol_weights(:,:,:)  ! weights for computing the interpolation to the lat-lon grid
-    real(wp), allocatable :: z_soil_interface(:)
-    real(wp), allocatable :: z_soil_center(:)
-    real(wp), allocatable :: t_const_soil(:)
-    real(wp), allocatable :: area_dual_h(:,:)                ! horizontal dual areas
-    real(wp), allocatable :: area_dual_v(:,:)                ! vertical dual areas
-    real(wp), allocatable :: z_vector_dual_h(:,:)
-    real(wp), allocatable :: z_vector_dual_v(:,:)
-    real(wp), allocatable :: dy(:,:)
-    real(wp), allocatable :: dz_dual(:,:)
+    real(wp), allocatable :: dx(:,:)                          ! horizontal normal distance
+    real(wp), allocatable :: dz(:,:)                          ! vertical normal distance
+    real(wp), allocatable :: volume(:,:)                      ! volumes of the grid boxes
+    real(wp), allocatable :: area_h(:,:)                      ! horizontal areas (areas with horizontal normal)
+    real(wp), allocatable :: area_v(:,:)                      ! vertical areas (areas with vertical normal)
+    real(wp), allocatable :: z_scalar(:,:)                    ! z-coordinates of the scalar gridpoints
+    real(wp), allocatable :: z_vector_h(:,:)                  ! z-coordinates of the horizontal vector points
+    real(wp), allocatable :: z_vector_v(:,:)                  ! z-coordinates of the vertical vector points
+    real(wp), allocatable :: gravity_potential(:,:)           ! gravity potential
+    real(wp), allocatable :: gravity_m_v(:,:)                 ! vertical acceleration due to gravity
+    real(wp), allocatable :: slope(:,:)                       ! slope of zeta coordinate surfaces
+    real(wp), allocatable :: theta_v_bg(:,:)                  ! background virtual potential temperature
+    real(wp), allocatable :: exner_bg(:,:)                    ! background Exner pressure
+    real(wp), allocatable :: exner_bg_grad_h(:,:)             ! horizontal gradient of the background Exner pressure
+    real(wp), allocatable :: exner_bg_grad_v(:,:)             ! vertical gradient of the background Exner pressure
+    real(wp), allocatable :: layer_thickness(:,:)             ! layer thicknesses
+    integer,  allocatable :: trsk_indices(:,:)                ! edge indices for computing the TRSK reconstruction
+    integer,  allocatable :: trsk_modified_curl_indices(:,:)  ! edge indices for computing the vorticity used in the TRSK reconstruction
+    integer,  allocatable :: from_cell(:)                     ! neighbouring cell of an edge in opposite direction of the vector
+    integer,  allocatable :: to_cell(:)                       ! neighbouring cell of an edge in opposite direction of the vector
+    integer,  allocatable :: adjacent_edges(:,:)              ! neigbouring edges of a cell
+    integer,  allocatable :: adjacent_signs(:,:)              ! 1 if neighbouring cell is in the direction of the vecor, -1 otherwise
+    integer,  allocatable :: density_to_rhombi_indices(:,:)   ! indices needed for interpolating the densities to the rhombi
+    real(wp), allocatable :: lat_c(:)                         ! latitudes of the cell centers
+    real(wp), allocatable :: lon_c(:)                         ! longitudes of the cell centers
+    real(wp), allocatable :: inner_product_weights(:,:,:)     ! weights needed for computing the inner product
+    real(wp), allocatable :: direction(:)                     ! directions of the horizontal vectors
+    real(wp), allocatable :: density_to_rhombi_weights(:,:)   ! weights needed for interpolating the densities to the rhombi
+    real(wp), allocatable :: trsk_weights(:,:)                ! weights needed for computing the TRSK reconstruction
+    real(wp), allocatable :: sfc_albedo(:)                    ! surface albedo
+    real(wp), allocatable :: sfc_rho_c(:)                     ! indices needed for interpolating the densities to the rhombi
+    real(wp), allocatable :: t_conduc_soil(:)                 ! temperature conductivity of the soil
+    real(wp), allocatable :: roughness_length(:)              ! roughness length at the surface
+    integer,  allocatable :: is_land(:)                       ! land-sea mask
+    integer,  allocatable :: latlon_interpol_indices(:,:,:)   ! indices for computing the interpolation to the lat-lon grid
+    real(wp), allocatable :: latlon_interpol_weights(:,:,:)   ! weights for computing the interpolation to the lat-lon grid
+    real(wp), allocatable :: z_soil_interface(:)              ! z-coordinates of the interfaces of the soil layers
+    real(wp), allocatable :: z_soil_center(:)                 ! z-coordinates of the centers of the soil layers
+    real(wp), allocatable :: t_const_soil(:)                  ! temperature below the lowest soil layer
+    real(wp), allocatable :: area_dual_h(:,:)                 ! horizontal dual areas
+    real(wp), allocatable :: area_dual_v(:,:)                 ! vertical dual areas
+    real(wp), allocatable :: z_vector_dual_h(:,:)             ! z-coordinates of the horizontal dual vectors
+    real(wp), allocatable :: z_vector_dual_v(:,:)             ! z-coordinates of the vertical dual vectors
+    real(wp), allocatable :: dy(:,:)                          ! tangential grid distances
+    real(wp), allocatable :: dz_dual(:,:)                     ! vertical grid point distances of the dual grid
     integer,  allocatable :: from_cell_dual(:)                ! neighbouring cell of a dual edge in opposite direction of the vector
     integer,  allocatable :: to_cell_dual(:)                  ! neighbouring cell of a dual edge in opposite direction of the vector
     integer,  allocatable :: vorticity_indices_triangles(:,:) ! indices for computing the triangles at the edges
@@ -82,6 +83,7 @@ module mo_definitions
   
   end type t_grid
   
+  ! state variables (prognostic quantities)
   type t_state
     
     real(wp), allocatable :: rho(:,:,:)            ! mass densities
@@ -94,6 +96,7 @@ module mo_definitions
   
   end type t_state
   
+  ! diagnostic quantities
   type t_diag
     
     real(wp), allocatable :: flux_density_h(:,:)                   ! arbitrary horizontal flux density
