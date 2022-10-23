@@ -79,7 +79,7 @@ module mo_pgrad
     
     type(t_state), intent(in)    :: state ! state variables
     type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
-    type(t_grid),  intent(inout) :: grid  ! grid quantities
+    type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     !$omp parallel workshare
     diag%pressure_gradient_decel_factor = state%rho(:,:,n_condensed_constituents+1) &
