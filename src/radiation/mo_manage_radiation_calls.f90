@@ -5,7 +5,7 @@ module mo_manage_radiation_calls
 
   ! This module manages the calls to the radiation routines.
 
-  use mo_definitions,      only: wp,t_grid,t_state,t_diag,t_radiation
+  use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,         only: n_cells,n_layers,n_levels
   use mo_rad_nml,          only: n_cells_rad,n_rad_blocks,rad_config
   use mo_constituents_nml, only: n_constituents
@@ -27,79 +27,90 @@ module mo_manage_radiation_calls
     real(wp),      intent(in)    :: time_coordinate ! epoch timestamp (needed for computing the zenith angle)
   
     ! local variables
-    integer           :: rad_block_index ! radiation block index (for OMP parallelization)
-    type(t_radiation) :: radiation       ! radiation state
+    integer               :: rad_block_index ! radiation block index (for OMP parallelization)
+    real(wp), allocatable :: lat_scal(:)
+    real(wp), allocatable :: lon_scal(:)
+    real(wp), allocatable :: sfc_sw_in(:)
+    real(wp), allocatable :: sfc_lw_out(:)
+    real(wp), allocatable :: sfc_albedo(:)
+    real(wp), allocatable :: temp_sfc(:)
+    real(wp), allocatable :: z_scal(:,:)
+    real(wp), allocatable :: z_vect(:,:)
+    real(wp), allocatable :: rho(:,:,:)
+    real(wp), allocatable :: temp(:,:)
+    real(wp), allocatable :: rad_tend(:,:)
     
     if (rad_config==1) then
       write(*,*) "Starting update of radiative fluxes ..."
     endif
     
     ! loop over all radiation blocks
-    !$omp parallel do private(rad_block_index,radiation)
+    !$omp parallel do private(rad_block_index,lat_scal,lon_scal,sfc_sw_in,sfc_lw_out,sfc_albedo, &
+    !$omp temp_sfc,z_scal,z_vect,rho,temp,rad_tend)
     do rad_block_index=1,n_rad_blocks
     
-      allocate(radiation%lat_scal(n_cells_rad))
-      allocate(radiation%lon_scal(n_cells_rad))
-      allocate(radiation%sfc_sw_in(n_cells_rad))
-      allocate(radiation%sfc_lw_out(n_cells_rad))
-      allocate(radiation%sfc_albedo(n_cells_rad))
-      allocate(radiation%temp_sfc(n_cells_rad))
-      allocate(radiation%z_scal(n_cells_rad,n_layers))
-      allocate(radiation%z_vect(n_cells_rad,n_levels))
-      allocate(radiation%rho(n_cells_rad,n_layers,n_constituents))
-      allocate(radiation%temp(n_cells_rad,n_layers))
-      allocate(radiation%rad_tend(n_cells_rad,n_layers))
+      allocate(lat_scal(n_cells_rad))
+      allocate(lon_scal(n_cells_rad))
+      allocate(sfc_sw_in(n_cells_rad))
+      allocate(sfc_lw_out(n_cells_rad))
+      allocate(sfc_albedo(n_cells_rad))
+      allocate(temp_sfc(n_cells_rad))
+      allocate(z_scal(n_cells_rad,n_layers))
+      allocate(z_vect(n_cells_rad,n_levels))
+      allocate(rho(n_cells_rad,n_layers,n_constituents))
+      allocate(temp(n_cells_rad,n_layers))
+      allocate(rad_tend(n_cells_rad,n_layers))
       
-      radiation%lat_scal = 0._wp
-      radiation%lon_scal = 0._wp
-      radiation%sfc_sw_in = 0._wp
-      radiation%sfc_lw_out = 0._wp
-      radiation%sfc_albedo = 0._wp
-      radiation%temp_sfc = 0._wp
-      radiation%z_scal = 0._wp
-      radiation%z_vect = 0._wp
-      radiation%rho = 0._wp
-      radiation%temp = 0._wp
-      radiation%rad_tend = 0._wp
+      lat_scal = 0._wp
+      lon_scal = 0._wp
+      sfc_sw_in = 0._wp
+      sfc_lw_out = 0._wp
+      sfc_albedo = 0._wp
+      temp_sfc = 0._wp
+      z_scal = 0._wp
+      z_vect = 0._wp
+      rho = 0._wp
+      temp = 0._wp
+      rad_tend = 0._wp
     
       ! remapping all the arrays
-      call create_rad_array_scalar_h(grid%lat_c,radiation%lat_scal,rad_block_index)
-      call create_rad_array_scalar_h(grid%lon_c,radiation%lon_scal,rad_block_index)
-      call create_rad_array_scalar_h(state%temperature_soil(:,1),radiation%temp_sfc,rad_block_index)
-      call create_rad_array_scalar_h(grid%sfc_albedo,radiation%sfc_albedo,rad_block_index)
-      call create_rad_array_scalar(grid%z_scalar,radiation%z_scal,rad_block_index)
-      call create_rad_array_vector(grid%z_vector_v,radiation%z_vect,rad_block_index)
-      call create_rad_array_mass_den(state%rho,radiation%rho,rad_block_index)
-      call create_rad_array_scalar(diag%temperature,radiation%temp,rad_block_index)
+      call create_rad_array_scalar_h(grid%lat_c,lat_scal,rad_block_index)
+      call create_rad_array_scalar_h(grid%lon_c,lon_scal,rad_block_index)
+      call create_rad_array_scalar_h(state%temperature_soil(:,1),temp_sfc,rad_block_index)
+      call create_rad_array_scalar_h(grid%sfc_albedo,sfc_albedo,rad_block_index)
+      call create_rad_array_scalar(grid%z_scalar,z_scal,rad_block_index)
+      call create_rad_array_vector(grid%z_vector_v,z_vect,rad_block_index)
+      call create_rad_array_mass_den(state%rho,rho,rad_block_index)
+      call create_rad_array_scalar(diag%temperature,temp,rad_block_index)
       ! calling the radiation routine
       ! RTE+RRTMGP
       if (rad_config==1) then
         
-        call calc_radiative_flux_convergence(radiation%lat_scal,radiation%lon_scal,radiation%z_scal,radiation%z_vect, &
-                                             radiation%rho,radiation%temp,radiation%rad_tend,radiation%temp_sfc, &
-                                             radiation%sfc_sw_in,radiation%sfc_lw_out,radiation%sfc_albedo,time_coordinate)
+        call calc_radiative_flux_convergence(lat_scal,lon_scal,z_scal,z_vect, &
+                                             rho,temp,rad_tend,temp_sfc, &
+                                             sfc_sw_in,sfc_lw_out,sfc_albedo,time_coordinate)
       endif
       ! Held-Suarez
       if (rad_config==2) then
-        call held_suar(radiation%lat_scal,radiation%rho,radiation%temp,radiation%rad_tend)
+        call held_suar(lat_scal,rho,temp,rad_tend)
       endif
       
       ! filling the actual radiation tendency
-      call remap_to_original(radiation%rad_tend,diag%radiation_tendency,rad_block_index)
-      call remap_to_original_scalar_h(radiation%sfc_sw_in,diag%sfc_sw_in,rad_block_index)
-      call remap_to_original_scalar_h(radiation%sfc_lw_out,diag%sfc_lw_out,rad_block_index)
+      call remap_to_original(rad_tend,diag%radiation_tendency,rad_block_index)
+      call remap_to_original_scalar_h(sfc_sw_in,diag%sfc_sw_in,rad_block_index)
+      call remap_to_original_scalar_h(sfc_lw_out,diag%sfc_lw_out,rad_block_index)
       
-      deallocate(radiation%lat_scal)
-      deallocate(radiation%lon_scal)
-      deallocate(radiation%sfc_sw_in)
-      deallocate(radiation%sfc_lw_out)
-      deallocate(radiation%sfc_albedo)
-      deallocate(radiation%temp_sfc)
-      deallocate(radiation%z_scal)
-      deallocate(radiation%z_vect)
-      deallocate(radiation%rho)
-      deallocate(radiation%temp)
-      deallocate(radiation%rad_tend)
+      deallocate(lat_scal)
+      deallocate(lon_scal)
+      deallocate(sfc_sw_in)
+      deallocate(sfc_lw_out)
+      deallocate(sfc_albedo)
+      deallocate(temp_sfc)
+      deallocate(z_scal)
+      deallocate(z_vect)
+      deallocate(rho)
+      deallocate(temp)
+      deallocate(rad_tend)
       
     enddo
     !$omp end parallel do
