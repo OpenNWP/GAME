@@ -28,27 +28,27 @@ module mo_definitions
 
   type t_grid
     
-    real(wp), allocatable :: dx(:,:)                ! horizontal normal distance
-    real(wp), allocatable :: dz(:,:)                ! vertical normal distance
-    real(wp), allocatable :: volume(:,:)            ! volumes of the grid boxes
-    real(wp), allocatable :: area_h(:,:)            ! horizontal areas (areas with horizontal normal)
-    real(wp), allocatable :: area_v(:,:)            ! vertical areas (areas with vertical normal)
-    real(wp), allocatable :: z_scalar(:,:)          ! z-coordinates of the scalar gridpoints
-    real(wp), allocatable :: z_vector_h(:,:)        ! z-coordinates of the horizontal vector points
-    real(wp), allocatable :: z_vector_v(:,:)        ! z-coordinates of the vertical vector points
-    real(wp), allocatable :: gravity_potential(:,:) ! gravity potential
-    real(wp), allocatable :: gravity_m_v(:,:)       ! vertical acceleration due to gravity
-    real(wp), allocatable :: slope(:,:)             ! slope of zeta coordinate surfaces
-    real(wp), allocatable :: theta_v_bg(:,:)        ! background virtual potential temperature
-    real(wp), allocatable :: exner_bg(:,:)          ! background Exner pressure
-    real(wp), allocatable :: exner_bg_grad_h(:,:)
-    real(wp), allocatable :: exner_bg_grad_v(:,:)
-    real(wp), allocatable :: layer_thickness(:,:)
-    integer,  allocatable :: trsk_indices(:,:)
-    integer,  allocatable :: trsk_modified_curl_indices(:,:)
-    integer,  allocatable :: from_cell(:)
-    integer,  allocatable :: to_cell(:)
-    integer,  allocatable :: adjacent_edges(:,:)
+    real(wp), allocatable :: dx(:,:)                         ! horizontal normal distance
+    real(wp), allocatable :: dz(:,:)                         ! vertical normal distance
+    real(wp), allocatable :: volume(:,:)                     ! volumes of the grid boxes
+    real(wp), allocatable :: area_h(:,:)                     ! horizontal areas (areas with horizontal normal)
+    real(wp), allocatable :: area_v(:,:)                     ! vertical areas (areas with vertical normal)
+    real(wp), allocatable :: z_scalar(:,:)                   ! z-coordinates of the scalar gridpoints
+    real(wp), allocatable :: z_vector_h(:,:)                 ! z-coordinates of the horizontal vector points
+    real(wp), allocatable :: z_vector_v(:,:)                 ! z-coordinates of the vertical vector points
+    real(wp), allocatable :: gravity_potential(:,:)          ! gravity potential
+    real(wp), allocatable :: gravity_m_v(:,:)                ! vertical acceleration due to gravity
+    real(wp), allocatable :: slope(:,:)                      ! slope of zeta coordinate surfaces
+    real(wp), allocatable :: theta_v_bg(:,:)                 ! background virtual potential temperature
+    real(wp), allocatable :: exner_bg(:,:)                   ! background Exner pressure
+    real(wp), allocatable :: exner_bg_grad_h(:,:)            ! horizontal gradient of the background Exner pressure
+    real(wp), allocatable :: exner_bg_grad_v(:,:)            ! vertical gradient of the background Exner pressure
+    real(wp), allocatable :: layer_thickness(:,:)            ! layer thicknesses
+    integer,  allocatable :: trsk_indices(:,:)               ! edge indices for computing the TRSK reconstruction
+    integer,  allocatable :: trsk_modified_curl_indices(:,:) ! edge indices for computing the vorticity used in the TRSK reconstruction
+    integer,  allocatable :: from_cell(:)                    ! neighbouring cell of en edge in opposite direction of the vector
+    integer,  allocatable :: to_cell(:)                      ! neighbouring cell of en edge in opposite direction of the vector
+    integer,  allocatable :: adjacent_edges(:,:)             ! neigbouring edges of a cell
     integer,  allocatable :: adjacent_signs(:,:)
     integer,  allocatable :: density_to_rhombi_indices(:,:)
     real(wp), allocatable :: lat_c(:)
@@ -84,13 +84,13 @@ module mo_definitions
   
   type t_state
     
-    real(wp), allocatable :: rho(:,:,:)
-    real(wp), allocatable :: rhotheta_v(:,:)
-    real(wp), allocatable :: theta_v_pert(:,:)
-    real(wp), allocatable :: exner_pert(:,:)
-    real(wp), allocatable :: wind_h(:,:)
-    real(wp), allocatable :: wind_v(:,:)
-    real(wp), allocatable :: temperature_soil(:,:)
+    real(wp), allocatable :: rho(:,:,:)            ! mass densities
+    real(wp), allocatable :: rhotheta_v(:,:)       ! virtual potential temperature density
+    real(wp), allocatable :: theta_v_pert(:,:)     ! virtual potential temperature perturbation
+    real(wp), allocatable :: exner_pert(:,:)       ! Exner pressure perturbation
+    real(wp), allocatable :: wind_h(:,:)           ! horizontal wind
+    real(wp), allocatable :: wind_v(:,:)           ! vertical wind
+    real(wp), allocatable :: temperature_soil(:,:) ! temperature in the soil
   
   end type t_state
   
@@ -99,22 +99,22 @@ module mo_definitions
     real(wp), allocatable :: flux_density_h(:,:)
     real(wp), allocatable :: flux_density_v(:,:)
     real(wp), allocatable :: flux_density_div(:,:)
-    real(wp), allocatable :: rel_vort_on_triangles(:,:)
-    real(wp), allocatable :: rel_vort_h(:,:)
-    real(wp), allocatable :: rel_vort_v(:,:)
-    real(wp), allocatable :: pot_vort_h(:,:)
-    real(wp), allocatable :: pot_vort_v(:,:)
-    real(wp), allocatable :: temperature(:,:)
+    real(wp), allocatable :: rel_vort_on_triangles(:,:)            ! relative vorticity on triangles
+    real(wp), allocatable :: rel_vort_h(:,:)                       ! horizontal relative vorticity (at edges)
+    real(wp), allocatable :: rel_vort_v(:,:)                       ! vertical relative vorticity (at edges)
+    real(wp), allocatable :: pot_vort_h(:,:)                       ! horizontal potential vorticity (at edges)
+    real(wp), allocatable :: pot_vort_v(:,:)                       ! vertical potential vorticity (at edges)
+    real(wp), allocatable :: temperature(:,:)                      ! air temperature
     real(wp), allocatable :: c_g_p_field(:,:)
     real(wp), allocatable :: v_squared(:,:)                        ! squared velocity
     real(wp), allocatable :: wind_div(:,:)                         ! divergence of the wind field
     real(wp), allocatable :: curl_of_vorticity_h(:,:)
-    real(wp), allocatable :: scalar_placeholder(:,:)
-    real(wp), allocatable :: vector_placeholder_h(:,:)
-    real(wp), allocatable :: vector_placeholder_v(:,:)
-    real(wp), allocatable :: n_squared(:,:)
+    real(wp), allocatable :: scalar_placeholder(:,:)               ! placeholder for scalar fields
+    real(wp), allocatable :: vector_placeholder_h(:,:)             ! placeholder for horizontal vector fields
+    real(wp), allocatable :: vector_placeholder_v(:,:)             ! placeholder for vertical vector fields
+    real(wp), allocatable :: n_squared(:,:)                        ! squared Brunt-Väisälä frequency
     real(wp), allocatable :: dv_hdz(:,:)
-    real(wp), allocatable :: scalar_flux_resistance(:)
+    real(wp), allocatable :: scalar_flux_resistance(:)             ! flux resistance at the surface for scalar quantities
     real(wp), allocatable :: power_flux_density_sensible(:)
     real(wp), allocatable :: power_flux_density_latent(:)
     real(wp), allocatable :: roughness_velocity(:)
@@ -123,11 +123,11 @@ module mo_definitions
     real(wp), allocatable :: friction_acc_h(:,:)                   ! horizontal friction acceleration
     real(wp), allocatable :: friction_acc_v(:,:)                   ! vertical friction acceleration
     real(wp), allocatable :: heating_diss(:,:)                     ! dissipative heating rate (W/m**3)
-    real(wp), allocatable :: molecular_diffusion_coeff(:,:)
-    real(wp), allocatable :: mass_diffusion_coeff_numerical_h(:,:)
-    real(wp), allocatable :: mass_diffusion_coeff_numerical_v(:,:)
-    real(wp), allocatable :: temp_diffusion_coeff_numerical_h(:,:)
-    real(wp), allocatable :: temp_diffusion_coeff_numerical_v(:,:)
+    real(wp), allocatable :: molecular_diffusion_coeff(:,:)        ! molecular diffusion coefficient
+    real(wp), allocatable :: mass_diffusion_coeff_numerical_h(:,:) ! horizontal effective mass diffusion coefficient
+    real(wp), allocatable :: mass_diffusion_coeff_numerical_v(:,:) ! vertical effective mass diffusion coefficient
+    real(wp), allocatable :: temp_diffusion_coeff_numerical_h(:,:) ! horizontal effective temperature diffusion coefficient
+    real(wp), allocatable :: temp_diffusion_coeff_numerical_v(:,:) ! vertical effective temperature diffusion coefficient
     real(wp), allocatable :: pressure_gradient_decel_factor(:,:)   ! pressure gradient deceleration factor due to condensates
     real(wp), allocatable :: condensates_sediment_heat(:,:)        ! heating rate due to falling condensates
     real(wp), allocatable :: mass_diff_tendency(:,:,:)             ! mass source rate due to mass diffusion

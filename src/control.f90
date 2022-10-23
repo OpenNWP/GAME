@@ -31,9 +31,10 @@ program control
 
   implicit none
   
-  type(t_state)         :: state_1,state_2,state_tend,state_write
-  type(t_diag)          :: diag
-  type(t_grid)          :: grid
+  type(t_state)         :: state_1,state_2,state_write ! states (prognostic variables) at different time steps
+  type(t_state)         :: state_tend                  ! state containing the explicit tendencies of the prognostic variables
+  type(t_diag)          :: diag                        ! diagnostic quantities
+  type(t_grid)          :: grid                        ! grid quantities
   logical               :: ltotally_first_step,lrad_update
   integer               :: omp_num_threads ! number of OMP threads
   integer               :: ji,time_step_counter,wind_lowest_layer_step_counter,time_step_10_m_wind
@@ -66,7 +67,7 @@ program control
   call surface_nml_setup()
   
   ! Allocating memory
-  ! ------------------
+  ! -----------------
   
   allocate(grid%dx(n_edges,n_layers))
   allocate(grid%dz(n_cells,n_levels))
@@ -202,6 +203,8 @@ program control
   allocate(state_write%wind_h(n_edges,n_layers))
   allocate(state_write%wind_v(n_cells,n_levels))
   allocate(state_write%temperature_soil(n_cells,nsoillays))
+  
+  ! setting all arrays to zero
   !$omp parallel workshare
   grid%dx = 0._wp
   grid%dz = 0._wp
@@ -342,7 +345,7 @@ program control
   ! reading the grid
   write(*,*) "Reading grid data ..."
   call set_grid_properties(grid)
-
+  
   call io_nml_setup()
   call rad_nml_setup()
   
@@ -554,6 +557,7 @@ program control
   
   ! Clean-up.
   ! ---------
+  ! freeing the memory
   deallocate(grid%dx)
   deallocate(grid%dz)
   deallocate(grid%volume)

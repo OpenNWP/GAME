@@ -64,7 +64,7 @@ module mo_held_suarez
 
   function k_t(latitude,pressure)
   
-    ! This function returns the relaxation coefficient according to which the equilibtirum temperature is approached.
+    ! This function returns the relaxation coefficient according to which the equilibrium temperature is approached.
   
     real(wp), intent(in) :: latitude ! geographical latitude of the point
     real(wp), intent(in) :: pressure ! pressure at the point (vertical coordinate)
