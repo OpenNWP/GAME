@@ -49,6 +49,7 @@ module mo_manage_radiation_calls
     !$omp temp_sfc,z_scal,z_vect,rho,temp,rad_tend)
     do rad_block_index=1,n_rad_blocks
     
+      ! allocating memory for the arrays that will be handed over to the radiation subroutine
       allocate(lat_scal(n_cells_rad))
       allocate(lon_scal(n_cells_rad))
       allocate(sfc_sw_in(n_cells_rad))
@@ -61,6 +62,7 @@ module mo_manage_radiation_calls
       allocate(temp(n_cells_rad,n_layers))
       allocate(rad_tend(n_cells_rad,n_layers))
       
+      ! initializing all radiation-specific arrays with zeros
       lat_scal = 0._wp
       lon_scal = 0._wp
       sfc_sw_in = 0._wp
@@ -82,12 +84,12 @@ module mo_manage_radiation_calls
       call create_rad_array_vector(grid%z_vector_v,z_vect,rad_block_index)
       call create_rad_array_mass_den(state%rho,rho,rad_block_index)
       call create_rad_array_scalar(diag%temperature,temp,rad_block_index)
+      
       ! calling the radiation routine
       ! RTE+RRTMGP
       if (rad_config==1) then
         
-        call calc_radiative_flux_convergence(lat_scal,lon_scal,z_scal,z_vect, &
-                                             rho,temp,rad_tend,temp_sfc, &
+        call calc_radiative_flux_convergence(lat_scal,lon_scal,z_scal,z_vect,rho,temp,rad_tend,temp_sfc, &
                                              sfc_sw_in,sfc_lw_out,sfc_albedo,time_coordinate)
       endif
       ! Held-Suarez
