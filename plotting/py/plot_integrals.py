@@ -39,7 +39,7 @@ if write_out_dry_mass_integral == 1:
 	if no_of_constituents == 6:
 		# dry mass
 		dry_mass_vector = data[:, 5] - data[:, 6]
-		plt.plot(time_vector, 100.0*(dry_mass_vector/dry_mass_vector - 1.0))
+		plt.plot(time_vector, 100.0*(dry_mass_vector/dry_mass_vector[0] - 1.0))
 		# the total amount of water in the atmosphere at the beginning
 		water_masses_init_sum = data[0, 1] + data[0, 2] + data[0, 3] + data[0, 4] + data[0, 6] + 1.0
 		# water vapour
