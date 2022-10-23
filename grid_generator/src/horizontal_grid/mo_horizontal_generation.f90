@@ -737,10 +737,11 @@ module mo_horizontal_generation
     ! This subroutine reads the arrays that fully define the horizontal grid from a previously created grid file.
     ! This is an optional feature.
     
-    real(wp), intent(out)          :: lat_c(n_cells),lon_c(n_cells)
-    integer,  intent(out)          :: from_cell(n_edges),to_cell(n_edges), &
-                                      from_cell_dual(n_edges),to_cell_dual(n_edges),n_lloyd_read_file
-    character(len=256), intent(in) :: filename
+    real(wp),           intent(out) :: lat_c(n_cells) ! latitudes of the cell centers
+    real(wp),           intent(out) :: lon_c(n_cells) ! longitudes of the cell centers
+    integer,            intent(out) :: from_cell(n_edges),to_cell(n_edges), &
+                                       from_cell_dual(n_edges),to_cell_dual(n_edges),n_lloyd_read_file
+    character(len=256), intent(in)  :: filename       ! filename to read the horizontal grid properties from
     
     ! local variables
     integer           :: ncid,lat_c_id,lon_c_id,from_cell_id,to_cell_id, &

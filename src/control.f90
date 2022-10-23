@@ -150,7 +150,6 @@ program control
   allocate(diag%pot_vort_h(n_edges,n_levels))
   allocate(diag%pot_vort_v(n_edges,n_layers))
   allocate(diag%temperature(n_cells,n_layers))
-  allocate(diag%c_g_p_field(n_cells,n_layers))
   allocate(diag%v_squared(n_cells,n_layers))
   allocate(diag%wind_div(n_cells,n_layers))
   allocate(diag%curl_of_vorticity_h(n_edges,n_layers))
@@ -287,7 +286,6 @@ program control
   diag%pot_vort_h = 0._wp
   diag%pot_vort_v = 0._wp
   diag%temperature = 0._wp
-  diag%c_g_p_field = 0._wp
   diag%v_squared = 0._wp
   diag%wind_div = 0._wp
   diag%curl_of_vorticity_h = 0._wp
@@ -639,7 +637,6 @@ program control
   deallocate(diag%pot_vort_h)
   deallocate(diag%pot_vort_v)
   deallocate(diag%temperature)
-  deallocate(diag%c_g_p_field)
   deallocate(diag%v_squared)
   deallocate(diag%wind_div)
   deallocate(diag%curl_of_vorticity_h)

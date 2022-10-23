@@ -46,11 +46,11 @@ module mo_definitions
     real(wp), allocatable :: layer_thickness(:,:)            ! layer thicknesses
     integer,  allocatable :: trsk_indices(:,:)               ! edge indices for computing the TRSK reconstruction
     integer,  allocatable :: trsk_modified_curl_indices(:,:) ! edge indices for computing the vorticity used in the TRSK reconstruction
-    integer,  allocatable :: from_cell(:)                    ! neighbouring cell of en edge in opposite direction of the vector
-    integer,  allocatable :: to_cell(:)                      ! neighbouring cell of en edge in opposite direction of the vector
+    integer,  allocatable :: from_cell(:)                    ! neighbouring cell of an edge in opposite direction of the vector
+    integer,  allocatable :: to_cell(:)                      ! neighbouring cell of an edge in opposite direction of the vector
     integer,  allocatable :: adjacent_edges(:,:)             ! neigbouring edges of a cell
     integer,  allocatable :: adjacent_signs(:,:)
-    integer,  allocatable :: density_to_rhombi_indices(:,:)
+    integer,  allocatable :: density_to_rhombi_indices(:,:)  ! indices needed for interpolating the densities to the rhombi
     real(wp), allocatable :: lat_c(:)                        ! latitudes of the cell centers
     real(wp), allocatable :: lon_c(:)                        ! longitudes of the cell centers
     real(wp), allocatable :: inner_product_weights(:,:,:)    ! weights needed for computing the inner product
@@ -58,7 +58,7 @@ module mo_definitions
     real(wp), allocatable :: density_to_rhombi_weights(:,:)  ! weights needed for interpolating the densities to the rhombi
     real(wp), allocatable :: trsk_weights(:,:)               ! weights needed for computing the TRSK reconstruction
     real(wp), allocatable :: sfc_albedo(:)                   ! surface albedo
-    real(wp), allocatable :: sfc_rho_c(:)                    ! 
+    real(wp), allocatable :: sfc_rho_c(:)                    ! indices needed for interpolating the densities to the rhombi
     real(wp), allocatable :: t_conduc_soil(:)                ! temperature conductivity of the soil
     real(wp), allocatable :: roughness_length(:)             ! roughness length at the surface
     integer,  allocatable :: is_land(:)                      ! land-sea mask
@@ -67,18 +67,18 @@ module mo_definitions
     real(wp), allocatable :: z_soil_interface(:)
     real(wp), allocatable :: z_soil_center(:)
     real(wp), allocatable :: t_const_soil(:)
-    real(wp), allocatable :: area_dual_h(:,:)
-    real(wp), allocatable :: area_dual_v(:,:)
+    real(wp), allocatable :: area_dual_h(:,:)                ! horizontal dual areas
+    real(wp), allocatable :: area_dual_v(:,:)                ! vertical dual areas
     real(wp), allocatable :: z_vector_dual_h(:,:)
     real(wp), allocatable :: z_vector_dual_v(:,:)
     real(wp), allocatable :: dy(:,:)
     real(wp), allocatable :: dz_dual(:,:)
-    integer,  allocatable :: from_cell_dual(:)
-    integer,  allocatable :: to_cell_dual(:)
-    integer,  allocatable :: vorticity_indices_triangles(:,:)
-    integer,  allocatable :: vorticity_signs_triangles(:,:)
-    real(wp), allocatable :: f_vec_h(:)
-    real(wp), allocatable :: f_vec_v(:)
+    integer,  allocatable :: from_cell_dual(:)                ! neighbouring cell of a dual edge in opposite direction of the vector
+    integer,  allocatable :: to_cell_dual(:)                  ! neighbouring cell of a dual edge in opposite direction of the vector
+    integer,  allocatable :: vorticity_indices_triangles(:,:) ! indices for computing the triangles at the edges
+    integer,  allocatable :: vorticity_signs_triangles(:,:)   ! signs for computing the triangles at the edges
+    real(wp), allocatable :: f_vec_h(:)                       ! horizontal Coriolis vector component at the edges
+    real(wp), allocatable :: f_vec_v(:)                       ! vertical Coriolis vector component at the edges
   
   end type t_grid
   
@@ -105,21 +105,20 @@ module mo_definitions
     real(wp), allocatable :: pot_vort_h(:,:)                       ! horizontal potential vorticity (at edges)
     real(wp), allocatable :: pot_vort_v(:,:)                       ! vertical potential vorticity (at edges)
     real(wp), allocatable :: temperature(:,:)                      ! air temperature
-    real(wp), allocatable :: c_g_p_field(:,:)
     real(wp), allocatable :: v_squared(:,:)                        ! squared velocity
     real(wp), allocatable :: wind_div(:,:)                         ! divergence of the wind field
-    real(wp), allocatable :: curl_of_vorticity_h(:,:)
+    real(wp), allocatable :: curl_of_vorticity_h(:,:)              ! curl of the horizontal vorticity
     real(wp), allocatable :: scalar_placeholder(:,:)               ! placeholder for scalar fields
     real(wp), allocatable :: vector_placeholder_h(:,:)             ! placeholder for horizontal vector fields
     real(wp), allocatable :: vector_placeholder_v(:,:)             ! placeholder for vertical vector fields
     real(wp), allocatable :: n_squared(:,:)                        ! squared Brunt-Väisälä frequency
-    real(wp), allocatable :: dv_hdz(:,:)
+    real(wp), allocatable :: dv_hdz(:,:)                           ! vertical gradient of horizontal vorticity
     real(wp), allocatable :: scalar_flux_resistance(:)             ! flux resistance at the surface for scalar quantities
-    real(wp), allocatable :: power_flux_density_sensible(:)
-    real(wp), allocatable :: power_flux_density_latent(:)
-    real(wp), allocatable :: roughness_velocity(:)
+    real(wp), allocatable :: power_flux_density_sensible(:)        ! sensible power flux density at the surface
+    real(wp), allocatable :: power_flux_density_latent(:)          ! latent power flux density at the surface
+    real(wp), allocatable :: roughness_velocity(:)                 ! roughness velocity at the surface
     real(wp), allocatable :: monin_obukhov_length(:)               ! Monin-Obukhov length (m)
-    real(wp), allocatable :: temperature_diffusion_heating(:,:)
+    real(wp), allocatable :: temperature_diffusion_heating(:,:)    ! power density resulting from temperature diffusion (W/m**3)
     real(wp), allocatable :: friction_acc_h(:,:)                   ! horizontal friction acceleration
     real(wp), allocatable :: friction_acc_v(:,:)                   ! vertical friction acceleration
     real(wp), allocatable :: heating_diss(:,:)                     ! dissipative heating rate (W/m**3)
@@ -132,7 +131,7 @@ module mo_definitions
     real(wp), allocatable :: condensates_sediment_heat(:,:)        ! heating rate due to falling condensates
     real(wp), allocatable :: mass_diff_tendency(:,:,:)             ! mass source rate due to mass diffusion
     real(wp), allocatable :: phase_trans_rates(:,:,:)              ! phase transition rates
-    real(wp), allocatable :: phase_trans_heating_rate(:,:)
+    real(wp), allocatable :: phase_trans_heating_rate(:,:)         ! phase transition heating rate
     real(wp), allocatable :: viscosity(:,:)                        ! effective viscosity in cell centers
     real(wp), allocatable :: viscosity_rhombi(:,:)                 ! effective viscosity at the edges
     real(wp), allocatable :: viscosity_triangles(:,:)              ! effective viscosity at the triangles
