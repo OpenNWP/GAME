@@ -101,7 +101,7 @@ module mo_set_initial_state
     !$omp end parallel do
     
     ! resricting the maximum relative humidity to 100 %
-    if (n_condensed_constituents==4) then
+    if (lmoist) then
       !$omp parallel do private(ji,jl)
       do ji=1,n_cells
         do jl=1,n_layers

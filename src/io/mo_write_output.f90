@@ -198,7 +198,7 @@ module mo_write_output
         
         ! Now come the hydrometeors.
         ! Calculation of the total cloud cover
-        if (n_condensed_constituents==4) then
+        if (lmoist) then
           ! calculating the cloud water content in this column
           cloud_water_content = 0._wp
           do jl=1,n_layers
@@ -216,12 +216,12 @@ module mo_write_output
           endif
           ! solid precipitation rate
           sprate(ji) = 0._wp
-          if (n_condensed_constituents==4) then
+          if (lmoist) then
             sprate(ji) = snow_velocity*state%rho(ji,n_layers,1)
           endif
           ! liquid precipitation rate
           rprate(ji) = 0._wp
-          if (n_condensed_constituents==4) then
+          if (lmoist) then
             rprate(ji) = rain_velocity*state%rho(ji,n_layers,2)
           endif
           ! setting very small values to zero
