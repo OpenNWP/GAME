@@ -78,7 +78,7 @@ shared/mo_various_helpers.f90
 find_package(OpenMP)
 # aggressive optimization
 if (FAST)
-  SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -Ofast -ftree-vectorize -funroll-loops -Wall -Wpedantic -Wno-c-binding-type -I/usr/include -L/usr/lib/x86_64-linux-gnu")
+  SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -Ofast -ftree-vectorize -funroll-loops -Wall -Wno-c-binding-type -I/usr/include -L/usr/lib/x86_64-linux-gnu")
   set_source_files_properties(src/io/mo_write_output.f90 PROPERTIES COMPILE_OPTIONS "-O2")
   set_source_files_properties(../rte-rrtmgp/rrtmgp/mo_gas_optics.F90 PROPERTIES COMPILE_OPTIONS "-O3")
   set_source_files_properties(../rte-rrtmgp/rrtmgp/mo_gas_optics.F90 PROPERTIES COMPILE_OPTIONS "-O3")
