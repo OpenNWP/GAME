@@ -345,7 +345,7 @@ program control
   call set_grid_properties(grid)
   
   call io_nml_setup()
-  call rad_nml_setup()
+  call rad_nml_setup(grid)
   
   call grad_hor_cov(grid%z_scalar,grid%slope,grid)
   call grad_vert(grid%gravity_potential,grid%gravity_m_v,grid)

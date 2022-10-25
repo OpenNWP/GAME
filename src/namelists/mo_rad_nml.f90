@@ -5,8 +5,8 @@ module mo_rad_nml
 
   ! This is the namelists the configures the basic run properties of a model integration.
   
-  use mo_definitions, only: wp
-  use mo_grid_nml,    only: n_cells
+  use mo_definitions, only: wp,t_grid
+  use mo_grid_nml,    only: n_cells,n_layers
   use mo_grid_setup,  only: eff_hor_res
   
   implicit none
@@ -19,16 +19,20 @@ module mo_rad_nml
   character(len=128) :: rrtmgp_coefficients_file_lw ! the name of the long wave data file
   character(len=128) :: cloud_coefficients_file_sw  ! the name of the short wave cloud optics file
   character(len=128) :: cloud_coefficients_file_lw  ! the name of the long wave cloud optics file
+  integer            :: n_no_cond_rad_layers        ! number of layers in which the interaction between condensates and radiaton is switched off
   
   namelist /rad/rad_config,n_rad_blocks,rrtmgp_coefficients_file_sw,rrtmgp_coefficients_file_lw, &
                 cloud_coefficients_file_sw,cloud_coefficients_file_lw
 
   contains
 
-  subroutine rad_nml_setup()
+  subroutine rad_nml_setup(grid)
+  
+    type(t_grid), intent(in) :: grid
   
     ! local variables
     integer :: fileunit
+    integer :: jl       ! layer index
   
     rad_config = 1
     n_rad_blocks = 18
@@ -58,6 +62,14 @@ module mo_rad_nml
       write(*,*) "Number of scalars per layer must be divisibe by n_rad_blocks."
       call exit(1)
     endif
+    
+    ! setting n_no_cond_rad_layers
+    n_no_cond_rad_layers = 1
+    do jl=1,n_layers-1
+      if (grid%z_scalar(1,jl)>=27e3_wp .and. grid%z_scalar(1,jl+1)<27e3_wp) then
+        n_no_cond_rad_layers = jl
+      endif
+    enddo
   
   end subroutine rad_nml_setup
   

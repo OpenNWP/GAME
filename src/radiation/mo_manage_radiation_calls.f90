@@ -7,7 +7,7 @@ module mo_manage_radiation_calls
 
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,         only: n_cells,n_layers,n_levels
-  use mo_rad_nml,          only: n_cells_rad,n_rad_blocks,rad_config
+  use mo_rad_nml,          only: n_cells_rad,n_rad_blocks,rad_config,n_no_cond_rad_layers
   use mo_constituents_nml, only: lmoist,n_condensed_constituents,n_constituents
   use mo_surface_nml,      only: nsoillays
   use mo_held_suarez,      only: held_suar
@@ -91,7 +91,7 @@ module mo_manage_radiation_calls
         
         ! this is necessary for stability for now
         if (lmoist) then
-          rho(:,1:7,1:n_condensed_constituents) = 0._wp
+          rho(:,1:n_no_cond_rad_layers,1:n_condensed_constituents) = 0._wp
         endif
         call calc_radiative_flux_convergence(lat_scal,lon_scal,z_scal,z_vect,rho,temp,rad_tend,temp_sfc, &
                                              sfc_sw_in,sfc_lw_out,sfc_albedo,time_coordinate)
