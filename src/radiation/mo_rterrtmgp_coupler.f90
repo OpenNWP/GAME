@@ -365,6 +365,7 @@ module mo_rrtmgp_coupler
     ! for efficiency)
     call handle_error(rte_sw(atmos_props_sw,.true.,mu_0_day(1:n_day_points),toa_flux, &
                              albedo_dir_day(:,1:n_day_points),albedo_dif_day(:,1:n_day_points),fluxes_day))
+    deallocate(toa_flux)
     
     ! short wave result (in Wm^-3)
     call calc_power_density(.true.,n_day_points,day_indices,fluxes_day,z_vector,radiation_tendency)
