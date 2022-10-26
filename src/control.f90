@@ -556,6 +556,7 @@ program control
   ! Clean-up.
   ! ---------
   ! freeing the memory
+  deallocate(wind_h_lowest_layer)
   deallocate(grid%dx)
   deallocate(grid%dz)
   deallocate(grid%volume)

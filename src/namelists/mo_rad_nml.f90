@@ -66,7 +66,7 @@ module mo_rad_nml
     ! setting n_no_cond_rad_layers
     n_no_cond_rad_layers = 1
     do jl=1,n_layers-1
-      if (grid%z_scalar(1,jl)>=27e3_wp .and. grid%z_scalar(1,jl+1)<27e3_wp) then
+      if (grid%z_scalar(1,jl)>=24e3_wp .and. grid%z_scalar(1,jl+1)<24e3_wp) then
         n_no_cond_rad_layers = jl
       endif
     enddo

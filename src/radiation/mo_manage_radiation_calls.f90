@@ -88,7 +88,6 @@ module mo_manage_radiation_calls
       ! calling the radiation routine
       ! RTE+RRTMGP
       if (rad_config==1) then
-        
         ! this is necessary for stability for now
         if (lmoist) then
           rho(:,1:n_no_cond_rad_layers,1:n_condensed_constituents) = 0._wp
