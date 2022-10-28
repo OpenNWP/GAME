@@ -60,10 +60,10 @@ module mo_spatial_ops_for_output
     
     ! This subroutine diagnozes Ertel's potential vorticity (EPV).
     
-    type(t_state), intent(in)  :: state                 ! state variables
-    type(t_diag),  intent(in)  :: diag                  ! diagnostic quantities
-    real(wp),      intent(out) :: epv(n_cells,n_layers) ! the result
-    type(t_grid),  intent(in)  :: grid                  ! grid quantities
+    type(t_state), intent(in)    :: state                 ! state variables
+    type(t_diag),  intent(inout) :: diag                  ! diagnostic quantities
+    real(wp),      intent(out)   :: epv(n_cells,n_layers) ! the result
+    type(t_grid),  intent(in)    :: grid                  ! grid quantities
     
     ! local variables
     integer               :: ji                                         ! horizontal index
@@ -147,8 +147,11 @@ module mo_spatial_ops_for_output
     !$omp end parallel do
     
     ! taking the gradient of the virtual potential temperature
-    call grad_vert(grid%theta_v_bg+state%theta_v_pert,grad_pot_temp_v,grid)
-    call grad_hor(grid%theta_v_bg+state%theta_v_pert,grad_pot_temp_h,grad_pot_temp_v,grid)
+    !$omp parallel workshare
+    diag%scalar_placeholder = grid%theta_v_bg+state%theta_v_pert
+    !$omp end parallel workshare
+    call grad_vert(diag%scalar_placeholder,grad_pot_temp_v,grid)
+    call grad_hor(diag%scalar_placeholder,grad_pot_temp_h,grad_pot_temp_v,grid)
     call inner_product_tangential(pot_vort_as_tangential_vector_field_h,pot_vort_v_at_levels, &
                                   grad_pot_temp_h,grad_pot_temp_v,epv,grid)
     
