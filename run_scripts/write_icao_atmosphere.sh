@@ -67,7 +67,7 @@ export OMP_NUM_THREADS=4 # relevant for OMP
 source $game_home_dir/run_scripts/.sh/root_script.sh
 
 # moving the output to the nwp_init directory
-mv output/$run_id/${run_id}+0min_hex.nc nwp_init/${run_id}.nc 
+mv output/$run_id/${run_id}+0min_hex.nc nwp_init/${run_id}.nc
 
 # clean-up
 # rm -r output/$run_id
