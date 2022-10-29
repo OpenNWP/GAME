@@ -20,7 +20,7 @@ module mo_optimize
 
     ! This subroutine manages the grid optimization with Lloyd's algorithm.
     ! The result is (almost) a SCVT.
-	
+    
     real(wp), intent(inout) :: lat_c(n_cells)          ! latitudes of cell centers (rad)
     real(wp), intent(inout) :: lon_c(n_cells)          ! longitudes of cell centers (rad)
     real(wp), intent(inout) :: lat_c_dual(n_triangles) ! latitudes of triangle centers (rad)
@@ -28,16 +28,16 @@ module mo_optimize
     integer,  intent(in)    :: n_iterations,face_edges(n_basic_triangles,3),face_edges_reverse(n_basic_triangles,3), &
                                face_vertices(n_basic_triangles,3),adjacent_edges(6,n_cells),from_cell_dual(n_edges), &
                                to_cell_dual(n_edges)
-	
+    
     ! local variables
     integer :: ji ! iteration index
-	
+    
     do ji=1,n_iterations
       call set_scalar_h_dual_coords(lat_c_dual,lon_c_dual,lat_c,lon_c,face_edges,face_edges_reverse,face_vertices)
       call find_cell_cgs(lat_c,lon_c,lat_c_dual,lon_c_dual,adjacent_edges,from_cell_dual,to_cell_dual)
       write(*,*) "Optimizing grid - iteration",ji,"completed."
     enddo
-	
+    
   end subroutine optimize_to_scvt
 
   subroutine find_cell_cgs(lat_c,lon_c,lat_c_dual,lon_c_dual,adjacent_edges,from_cell_dual,to_cell_dual)

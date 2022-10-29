@@ -652,8 +652,8 @@ module mo_rrtmgp_coupler
     type(ty_fluxes_broadband), intent(inout) :: fluxes ! the fluxes to initialize
     integer,                   intent(in)    :: n_hor  ! the number of columns
     integer,                   intent(in)    :: n_vert ! the number of levels
- 	
- 	! broad band fluxes
+    
+    ! broad band fluxes
     allocate(fluxes%flux_up(n_hor,n_vert))
     allocate(fluxes%flux_dn(n_hor,n_vert))
     allocate(fluxes%flux_net(n_hor,n_vert))
