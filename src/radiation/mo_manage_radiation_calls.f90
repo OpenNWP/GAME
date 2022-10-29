@@ -90,7 +90,7 @@ module mo_manage_radiation_calls
       if (rad_config==1) then
         ! this is necessary for stability for now
         if (lmoist) then
-          rho(:,1:11,1:n_condensed_constituents) = 0._wp
+          rho(:,1:n_no_cond_rad_layers,1:n_condensed_constituents) = 0._wp
         endif
         call calc_radiative_flux_convergence(lat_scal,lon_scal,z_scal,z_vect,rho,temp,rad_tend,temp_sfc, &
                                              sfc_sw_in,sfc_lw_out,sfc_albedo,time_coordinate)
