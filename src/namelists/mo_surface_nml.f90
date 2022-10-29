@@ -32,7 +32,7 @@ module mo_surface_nml
     ! open and read namelist file
     open(action="read",file="namelist.nml",newunit=fileunit)
     read(nml=surface,unit=fileunit)
-        
+    
     close(fileunit)
     
   end subroutine surface_nml_setup

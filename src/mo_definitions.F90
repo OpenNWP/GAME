@@ -80,7 +80,7 @@ module mo_definitions
     integer,  allocatable :: vorticity_signs_triangles(:,:)   ! signs for computing the triangles at the edges
     real(wp), allocatable :: f_vec_h(:)                       ! horizontal Coriolis vector component at the edges
     real(wp), allocatable :: f_vec_v(:)                       ! vertical Coriolis vector component at the edges
-  
+    
   end type t_grid
   
   ! state variables (prognostic quantities)
@@ -153,7 +153,7 @@ module mo_definitions
     real(wp), allocatable :: sfc_sw_in(:)                          ! surface inbound short-wave radiation flux density (W/m**2)
     real(wp), allocatable :: sfc_lw_out(:)                         ! surface outbound long-wave radiation flux density (W/m**2)
     real(wp), allocatable :: radiation_tendency(:,:)               ! radiative flux convergence power density (W/m**3)
-  
+    
   end type t_diag
 
 end module mo_definitions

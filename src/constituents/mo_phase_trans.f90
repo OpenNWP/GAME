@@ -76,7 +76,7 @@ module mo_phase_trans
         endif
         
         saturation_pressure = enhancement_factor*saturation_pressure
-          
+        
         ! Clouds
         ! ------
         ! the case where the air is not over-saturated
@@ -98,16 +98,16 @@ module mo_phase_trans
             q = c/a
             diff_density = -0.5_wp*p - (0.25_wp*p**2 - q)**0.5_wp
             phase_trans_density = min(state%rho(ji,jl,4),diff_density)
-                  
+            
             ! the tendency for the water vapour
             diag%phase_trans_rates(ji,jl,5) = phase_trans_density/dtime
-                  
+            
             ! The source rate for the liquid water consists of two terms:
             ! 1.) the melting
             ! 2.) the evaporation
-                  
+            
             diag%phase_trans_rates(ji,jl,4) = state%rho(ji,jl,3)/dtime - phase_trans_density/dtime
-                  
+            
             ! the heat source rates
             diag%phase_trans_heating_rate(ji,jl) &
             ! melting
@@ -118,10 +118,10 @@ module mo_phase_trans
           else
             ! It is assumed that the still present liquid water vanishes within one time step.
             diag%phase_trans_rates(ji,jl,4) = -state%rho(ji,jl,4)/dtime
-                  
+            
             ! The amount of ice per volume that will sublimate.
             ! In case the air cannot take all the water, not everything will sublimate.
-                  
+            
             a = -r_v*phase_trans_heat(1,diag%temperature(ji,jl))/c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl)
             b = r_v*diag%temperature(ji,jl) - r_v*state%rho(ji,jl,n_condensed_constituents+2) &
             *phase_trans_heat(1,diag%temperature(ji,jl))/c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl) &
@@ -132,7 +132,7 @@ module mo_phase_trans
             q = c/a
             diff_density = -0.5_wp*p - (0.25_wp*p**2 - q)**0.5_wp
             phase_trans_density = min(state%rho(ji,jl,3), diff_density)
-                  
+            
             ! the tendency for the water vapour
             diag%phase_trans_rates(ji,jl,5) = phase_trans_density/dtime
             
@@ -140,7 +140,7 @@ module mo_phase_trans
             ! 1.) the freezing
             ! 2.) the phase transition through sublimation
             diag%phase_trans_rates(ji,jl,3) = state%rho(ji,jl,4)/dtime - phase_trans_density/dtime
-                  
+            
             ! the heat source rates
             diag%phase_trans_heating_rate(ji,jl) &
             ! the freezing
@@ -154,7 +154,7 @@ module mo_phase_trans
           if (diag%temperature(ji,jl)>=t_0) then
             ! It is assumed that the still present ice vanishes within one time step.
             diag%phase_trans_rates(ji,jl,3) = -state%rho(ji,jl,3)/dtime
-                  
+            
             ! the vanishing of water vapour through the phase transition
             a = -r_v*phase_trans_heat(0,diag%temperature(ji,jl))/c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl)
             b = r_v*diag%temperature(ji,jl) - r_v*state%rho(ji,jl,n_condensed_constituents+2) &
@@ -165,15 +165,15 @@ module mo_phase_trans
             p = b/a
             q = c/a
             diff_density = -0.5_wp*p - (0.25_wp*p**2 - q)**0.5_wp
-                  
+            
             ! the tendency for the water vapour
             diag%phase_trans_rates(ji,jl,5) = diff_density/dtime
-                  
+            
             ! The source rate for the liquid water consists of two terms:
             ! 1.) the melting
             ! 2.) the condensation
             diag%phase_trans_rates(ji,jl,4) = state%rho(ji,jl,3)/dtime - diff_density/dtime
-                  
+            
             ! the heat source rates
             diag%phase_trans_heating_rate(ji,jl) &
             ! melting
@@ -181,10 +181,10 @@ module mo_phase_trans
             ! condensation
             - diff_density*phase_trans_heat(0,diag%temperature(ji,jl))/dtime
           ! temperature<0° C
-          else   
+          else
             ! It is assumed that the liquid water disappears within one time step.
             diag%phase_trans_rates(ji,jl,4) = -state%rho(ji,jl,4)/dtime
-                  
+            
             ! the vanishing of water vapour through the phase transition
             a = -r_v*phase_trans_heat(1,diag%temperature(ji,jl))/c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl)
             b = r_v*diag%temperature(ji,jl) - r_v*state%rho(ji,jl,n_condensed_constituents+2) &
@@ -195,16 +195,16 @@ module mo_phase_trans
             p = b/a
             q = c/a
             diff_density = -0.5_wp*p - (0.25_wp*p**2 - q)**0.5_wp
-                 
+            
             ! the tendency for the water vapour
             diag%phase_trans_rates(ji,jl,5) = diff_density/dtime
-              
+            
             ! The source rate for the cloud ice consists of two terms:
             ! 1.) the freezing
             ! 2.) the resublimation
-                  
+            
             diag%phase_trans_rates(ji,jl,3) = state%rho(ji,jl,4)/dtime - diff_density/dtime
-                  
+            
             ! the heat source rates
             diag%phase_trans_heating_rate(ji,jl) &
             ! freezing
@@ -231,7 +231,7 @@ module mo_phase_trans
           ! the rain creation comes at the cost of cloud water particles
           diag%phase_trans_rates(ji,jl,4) = diag%phase_trans_rates(ji,jl,4) - diag%phase_trans_rates(ji,jl,2)
         endif
-          
+        
         ! turning of snow to rain
         if (diag%temperature(ji,jl)>=t_0 .and. state%rho(ji,jl,1)>0._wp) then
           diag%phase_trans_rates(ji,jl,1) = -state%rho(ji,jl,1)/dtime
@@ -246,7 +246,7 @@ module mo_phase_trans
           diag%phase_trans_heating_rate(ji,jl) = diag%phase_trans_heating_rate(ji,jl) - &
                                          diag%phase_trans_rates(ji,jl,2)*phase_trans_heat(2,diag%temperature(ji,jl))
         endif
-          
+        
         ! Surface effects
         ! ---------------
         if (jl==n_layers .and. lsfc_phase_trans) then
@@ -261,11 +261,11 @@ module mo_phase_trans
               saturation_pressure_sfc = saturation_pressure_over_ice(state%temperature_soil(ji,1))
               saturation_pressure_sfc = enhancement_factor_over_ice(air_pressure)*saturation_pressure_sfc
             endif
-              
+            
             ! difference water vapour density between saturation at ground temperature and actual absolute humidity in the lowest model layer
             diff_density_sfc = saturation_pressure_sfc/(r_v*state%temperature_soil(ji,1)) &
             - state%rho(ji,jl,n_condensed_constituents+2)
-              
+            
             ! evporation, sublimation
             diag%phase_trans_rates(ji,jl,n_condensed_constituents+1) = &
             diag%phase_trans_rates(ji,jl,n_condensed_constituents+1) + &
@@ -283,7 +283,7 @@ module mo_phase_trans
         endif
       enddo
     enddo
-  
+    
   end subroutine calc_h2otracers_source_rates
 
 end module mo_phase_trans

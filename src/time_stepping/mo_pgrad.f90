@@ -87,7 +87,7 @@ module mo_pgrad
     !$omp end parallel workshare
     
     call scalar_times_vector_v(diag%pressure_gradient_decel_factor,grid%gravity_m_v,diag%pressure_grad_condensates_v)
-  
+    
   end subroutine calc_pressure_grad_condensates_v
 
 end module mo_pgrad

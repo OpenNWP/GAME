@@ -25,11 +25,11 @@ module mo_horizontal_generation
   contains
   
   subroutine build_icosahedron(lat_ico,lon_ico,edge_vertices,face_vertices,face_edges,face_edges_reverse)
-  
+    
     real(wp), intent(out) :: lat_ico(12),lon_ico(12)
     integer,  intent(out) :: edge_vertices(n_basic_edges,2),face_vertices(n_basic_triangles,3),face_edges(n_basic_triangles,3), &
                              face_edges_reverse(n_basic_triangles,3)
-  
+    
     ! This subroutine sets the properties of the icosahedron the global grid is based on (angles and indices of faces,edges and vertices).
     
     ! local variables
@@ -58,7 +58,7 @@ module mo_horizontal_generation
     lon_ico(8) = 2._wp*M_PI/10._wp + 1._wp*2._wp*M_PI/5._wp
     lon_ico(9) = 2._wp*M_PI/10._wp + 2._wp*2._wp*M_PI/5._wp
     lon_ico(10) = 2._wp*M_PI/10._wp + 3._wp*2._wp*M_PI/5._wp
-    lon_ico(11) = 2._wp*M_PI/10._wp + 4._wp*2._wp*M_PI/5._wp    
+    lon_ico(11) = 2._wp*M_PI/10._wp + 4._wp*2._wp*M_PI/5._wp
     lon_ico(12) = 0._wp
     edge_vertices(1,1) = 1
     edge_vertices(1,2) = 2
@@ -72,7 +72,7 @@ module mo_horizontal_generation
     edge_vertices(5,2) = 6
     edge_vertices(6,1) = 2
     edge_vertices(6,2) = 3
-    edge_vertices(7,1) = 3 
+    edge_vertices(7,1) = 3
     edge_vertices(7,2) = 4
     edge_vertices(8,1) = 4
     edge_vertices(8,2) = 5
@@ -133,11 +133,11 @@ module mo_horizontal_generation
     do ji=1,n_pentagons
       if (vertices_check_counter(ji)/=5) then
         write(*,*) "Error with vertices, position 1."
-        call exit(1) 
+        call exit(1)
       endif
-      vertices_check_counter(ji) = 0 
+      vertices_check_counter(ji) = 0
     enddo
-    face_vertices(1,1) = 1   
+    face_vertices(1,1) = 1
     face_vertices(1,2) = 2
     face_vertices(1,3) = 3
     face_vertices(2,1) = 1
@@ -253,7 +253,7 @@ module mo_horizontal_generation
       endif
     enddo
     
-  end subroutine 
+  end subroutine build_icosahedron
 
   subroutine generate_horizontal_generators(lat_ico,lon_ico,lat_c,lon_c,x_unity,y_unity,z_unity, &
                                             face_edges_reverse,face_edges,face_vertices)

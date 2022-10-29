@@ -14,7 +14,7 @@ module mo_averaging
   contains
 
   function vertical_contravariant_corr(vector_field_h,ji,jl,grid)
-  
+    
     ! This function calculates (the vertical contravariant component - the vertical covariant component)
     ! of a vector field out of the horizontal contravariant components.
     
@@ -56,7 +56,7 @@ module mo_averaging
         enddo
       endif
     endif
-  
+    
   end function vertical_contravariant_corr
 
   function remap_ver2hor(vector_field_v,ji,jl,grid)
@@ -80,7 +80,7 @@ module mo_averaging
     endif
     ! horizontal average
     remap_ver2hor = 0.5_wp*remap_ver2hor
-  
+    
   end function remap_ver2hor
   
   function horizontal_covariant(vector_field_h,vector_field_v,ji,jl,grid)

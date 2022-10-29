@@ -25,14 +25,14 @@ module mo_vector_tend_expl
   contains
 
   subroutine vector_tend_expl(state,state_tend,diag,grid,ltotally_first_step,rk_step)
-  
+    
     type(t_state), intent(in)    :: state               ! state to use for calculating the tendencies
     type(t_state), intent(inout) :: state_tend          ! state containing the tendencies
     type(t_diag),  intent(inout) :: diag                ! diagnostic quantities
     type(t_grid),  intent(in)    :: grid                ! grid quantities
     integer,       intent(in)    :: rk_step             ! Runge-Kutta substep
     logical,       intent(in)    :: ltotally_first_step ! switch for the very first step of the whole model run
-       
+    
     ! local variables
     real(wp) :: old_weight               ! old time step weight
     real(wp) :: new_weight               ! new time step weight
@@ -115,7 +115,7 @@ module mo_vector_tend_expl
     - 0.5_wp*diag%v_squared_grad_h &
     ! momentum diffusion
     + diag%friction_acc_h)
-        
+    
     ! vertical case
     state_tend%wind_v = old_weight*state_tend%wind_v + new_weight*( &
     ! explicit component of pressure gradient acceleration
@@ -134,13 +134,17 @@ module mo_vector_tend_expl
   end subroutine vector_tend_expl
 
 end module mo_vector_tend_expl
-    
-    
-    
-      
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+

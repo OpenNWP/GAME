@@ -13,7 +13,7 @@ module mo_linear_combination
   contains
 
   subroutine linear_combine_two_states(state_1,state_2,state_res,coeff_1,coeff_2,grid)
-  
+    
     type(t_state), intent(inout) :: state_1,state_2 ! the states to linearly combine
     type(t_state), intent(inout) :: state_res       ! the resulting state
     real(wp),      intent(in)    :: coeff_1,coeff_2 ! the coefficients for the linear combination

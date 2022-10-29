@@ -103,14 +103,14 @@ module mo_coriolis
           do jl=1,n_edges_of_cell
             vertex_index_candidate_1 = from_cell_dual(adjacent_edges(jl,from_or_to_cell(ji)))
             vertex_index_candidate_2 = to_cell_dual(adjacent_edges(jl,from_or_to_cell(ji)))
-            check_result = in_bool_checker(vertex_index_candidate_1,vertex_indices)            
+            check_result = in_bool_checker(vertex_index_candidate_1,vertex_indices)
             if (check_result==0) then
               vertex_indices(counter) = vertex_index_candidate_1
               latitude_vertices(counter) = lat_c_dual(vertex_indices(counter))
               longitude_vertices(counter) = lon_c_dual(vertex_indices(counter))
               counter = counter+1
             endif
-            check_result = in_bool_checker(vertex_index_candidate_2,vertex_indices)            
+            check_result = in_bool_checker(vertex_index_candidate_2,vertex_indices)
             if (check_result==0) then
               vertex_indices(counter) = vertex_index_candidate_2
               latitude_vertices(counter) = lat_c_dual(vertex_indices(counter))
@@ -383,7 +383,7 @@ module mo_coriolis
       enddo
     enddo
     !$omp end parallel do
-  
+    
   end subroutine coriolis
 
 end module mo_coriolis

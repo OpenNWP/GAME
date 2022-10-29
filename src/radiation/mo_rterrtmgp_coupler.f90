@@ -111,8 +111,8 @@ module mo_rrtmgp_coupler
     real(wp)                            :: pressure_interface_rad_day(n_cells_rad,n_levels) ! pressure at cell interfaces restricted to day points
     real(wp)                            :: liquid_water_path(n_cells_rad,n_layers)          ! liquid water path in g/m**2
     real(wp)                            :: ice_water_path(n_cells_rad,n_layers)             ! ice water path g/m**2
-    real(wp)                            :: liquid_eff_radius(n_cells_rad,n_layers)          ! liquid particles effective radius in micro meters 
-    real(wp)                            :: ice_eff_radius(n_cells_rad,n_layers)             ! ice particles effective radius in micro meters 
+    real(wp)                            :: liquid_eff_radius(n_cells_rad,n_layers)          ! liquid particles effective radius in micro meters
+    real(wp)                            :: ice_eff_radius(n_cells_rad,n_layers)             ! ice particles effective radius in micro meters
     real(wp)                            :: liquid_water_path_day(n_cells_rad,n_layers)      ! liquid water path in g/m^2 restricted to the day points
     real(wp)                            :: ice_water_path_day(n_cells_rad,n_layers)         ! ice water path in g/m^2 restricted to the day points
     real(wp)                            :: liquid_eff_radius_day(n_cells_rad,n_layers)      ! liquid particles effective radius in micro meters restricted to the day points

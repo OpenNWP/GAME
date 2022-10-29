@@ -32,13 +32,13 @@ module mo_discrete_coordinate_trafos
     ! local variables
     integer :: face_index,on_face_index,triangle_on_face_index
     
-    face_index = (ji - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face 
-    on_face_index = ji - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face) 
-    triangle_on_face_index = on_face_index/3 
+    face_index = (ji - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
+    on_face_index = ji - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
+    triangle_on_face_index = on_face_index/3
     small_triangle_edge_index = on_face_index - 3*triangle_on_face_index
     call find_triangle_edge_points(triangle_on_face_index,face_index,res_id,point_1,point_2,point_3,point_4,point_5,point_6, &
                                    dual_scalar_on_face_index,face_vertices,face_edges,face_edges_reverse)
-  
+    
   end subroutine find_triangle_indices_from_h_vector_index
 
   subroutine find_triangle_edge_points(triangle_on_face_index,face_index,res_id_local,point_1,point_2,point_3,point_4,point_5, &
@@ -52,7 +52,7 @@ module mo_discrete_coordinate_trafos
     integer, intent(out) :: point_1,point_2,point_3,point_4,point_5,point_6,dual_scalar_on_face_index
     
     ! local variables
-    integer :: coord_1,coord_2,coord_1_points_amount,points_per_edge,scalar_points_per_inner_face 
+    integer :: coord_1,coord_2,coord_1_points_amount,points_per_edge,scalar_points_per_inner_face
     
     call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local,coord_1,coord_2,coord_1_points_amount)
     dual_scalar_on_face_index = 1 + 2*triangle_on_face_index + coord_2
@@ -80,13 +80,13 @@ module mo_discrete_coordinate_trafos
     endif
     if (coord_1==0) then
       if (face_edges_reverse(face_index+1,3)==0) then
-        point_3 = n_pentagons + face_edges(face_index+1,3)*points_per_edge - coord_2 
+        point_3 = n_pentagons + face_edges(face_index+1,3)*points_per_edge - coord_2
       else
         point_3 = n_pentagons + (face_edges(face_index+1,3)-1)*points_per_edge + coord_2 + 1
       endif
     else
       point_3 = n_pentagons + points_per_edge*n_basic_edges + face_index*scalar_points_per_inner_face + &
-                triangle_on_face_index - coord_2 
+                triangle_on_face_index - coord_2
     endif
     if (coord_2==0) then
       if (coord_1==0) then
@@ -95,14 +95,14 @@ module mo_discrete_coordinate_trafos
         if (face_edges_reverse(face_index+1,1)==0) then
           point_4 = point_1 - 1
         else
-          point_4 = point_1 + 1 
+          point_4 = point_1 + 1
         endif
       endif
     elseif (coord_1==0) then
       if (face_edges_reverse(face_index+1,3)==0) then
-        point_4 = point_3 + 1 
+        point_4 = point_3 + 1
       else
-        point_4 = point_3 - 1 
+        point_4 = point_3 - 1
       endif
     else
       point_4 = point_1 - 1
@@ -123,13 +123,13 @@ module mo_discrete_coordinate_trafos
         point_6 = face_vertices(face_index+1,3)
       endif
     endif
-  
+    
   end subroutine find_triangle_edge_points
 
   subroutine find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,face_index,res_id_local, &
                                                                       point_1,point_2,point_3,face_vertices, &
                                                                       face_edges,face_edges_reverse)
-  
+    
     ! This subroutine computes the edge points of a triangle from its dual scalar on face index.
     
     integer, intent(in)  :: dual_scalar_on_face_index,face_index,res_id_local,face_vertices(n_basic_triangles,3), &
@@ -139,7 +139,7 @@ module mo_discrete_coordinate_trafos
     ! local variables
     logical :: lspecial_case,lpoints_downwards,llast_triangle
     integer :: triangle_on_face_index,rhombuspoint_1,rhombuspoint_2,rhombuspoint_3,rhombuspoint_4,coord_1,coord_2, &
-               coord_1_points_amount,points_per_edge,dump,addpoint_1,addpoint_2 
+               coord_1_points_amount,points_per_edge,dump,addpoint_1,addpoint_2
     
     call find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id_local,triangle_on_face_index, &
                                                                     lpoints_downwards,lspecial_case,llast_triangle)
@@ -184,7 +184,7 @@ module mo_discrete_coordinate_trafos
         point_3 = rhombuspoint_3
       endif
     endif
-  
+    
   end subroutine find_triangle_edge_points_from_dual_scalar_on_face_index
   
   subroutine find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local,coord_1,coord_2,coord_1_points_amount)
@@ -247,7 +247,7 @@ module mo_discrete_coordinate_trafos
     integer             :: find_points_per_edge
     
     find_points_per_edge = 2**res_id_local-1
-  
+    
   end function find_points_per_edge
 
   function find_scalar_points_per_inner_face(res_id_local)
@@ -263,7 +263,7 @@ module mo_discrete_coordinate_trafos
   end function find_scalar_points_per_inner_face
   
   function upscale_scalar_point(res_id_local,old_index)
-  
+    
     ! This function converts an index of a scalar data point to a higher resolution ID.
     
     integer, intent(in) :: res_id_local,old_index
@@ -294,7 +294,7 @@ module mo_discrete_coordinate_trafos
       upscale_scalar_point = n_pentagons + n_basic_edges*n_points_per_edge + &
                              face_index*scalar_points_per_inner_face_full_grid + on_face_index - n_points_per_edge + 1
     endif
-  
+    
   end function upscale_scalar_point
 
   subroutine find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id_local, &
@@ -359,7 +359,7 @@ module mo_discrete_coordinate_trafos
       endif
     enddo
     triangle_on_face_index = triangle_on_face_index_pre
-  
+    
   end subroutine find_triangle_on_face_index_from_dual_scalar_on_face_index
 
 end module mo_discrete_coordinate_trafos

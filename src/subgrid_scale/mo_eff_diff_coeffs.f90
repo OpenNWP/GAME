@@ -103,7 +103,7 @@ module mo_eff_diff_coeffs
   end subroutine hor_viscosity
 
   subroutine scalar_diffusion_coeffs(state,diag,grid)
-  
+    
     ! This subroutine computes the scalar diffusion coefficients (including eddies).
     
     type(t_state), intent(in)    :: state ! state variables
@@ -142,7 +142,7 @@ module mo_eff_diff_coeffs
       enddo
     enddo
     !$omp end parallel do
-  
+    
   end subroutine
 
   subroutine vert_vert_mom_viscosity(rho,tke,n_squared,layer_thickness,scalar_placeholder,molecular_diffusion_coeff)
@@ -172,7 +172,7 @@ module mo_eff_diff_coeffs
       enddo
     enddo
     !$omp end parallel do
-  
+    
   end subroutine vert_vert_mom_viscosity
   
   subroutine vert_hor_mom_viscosity(state,diag,grid)
@@ -232,7 +232,7 @@ module mo_eff_diff_coeffs
     diag%vert_hor_viscosity(:,n_levels) = diag%vert_hor_viscosity(:,n_layers)
     !$omp end parallel workshare
     
-  
+    
   end subroutine vert_hor_mom_viscosity
   
   subroutine update_n_squared(state,diag,grid)
@@ -305,10 +305,10 @@ module mo_eff_diff_coeffs
     
     ! local variables
     real(wp) :: tke_vert,mean_velocity,n_used,mean_free_path
-  
+    
     ! vertical component of the turbulent kinetic energy
     tke_vert = 3._wp*1e-3_wp*tke
-  
+    
     mean_velocity = (2._wp*tke_vert)**0.5_wp
     ! used Brunt-Väisälä frequency
     n_used = (max(n_squared,1e-4_wp))**0.5_wp

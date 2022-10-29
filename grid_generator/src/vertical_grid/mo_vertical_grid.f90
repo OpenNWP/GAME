@@ -17,7 +17,7 @@ module mo_vertical_grid
   contains
   
   subroutine set_z_scalar(z_scalar,oro,max_oro)
-
+    
     ! This function sets the z-coordinates of the scalar data points.
     
     real(wp), intent(out) :: z_scalar(n_cells,n_layers) ! z-coordinates of scalar points
@@ -79,15 +79,14 @@ module mo_vertical_grid
     
   end subroutine set_gravity_potential
   
-  
   subroutine set_volume(volume,z_vector_v,area_v)
-
+    
     ! This subroutine computes the volumes of the grid boxes.
-  
+    
     real(wp), intent(out) :: volume(n_cells,n_layers)     ! the volumes of the grid boxes
     real(wp), intent(in)  :: z_vector_v(n_cells,n_levels) ! z-coordinates of vertical vector points
     real(wp), intent(in)  :: area_v(n_cells,n_levels)     ! vertical areas
-  
+    
     ! local variables
     integer  :: ji       ! cell index
     integer  :: jl       ! layer index
@@ -129,11 +128,11 @@ module mo_vertical_grid
   end function standard_temp
 
   function standard_pres(z_height)
-  
+    
     ! This function returns the pressure in the standard atmosphere.
     real(wp), intent(in) :: z_height
     real(wp)             :: standard_pres
- 
+    
     ! local variables
     real(wp) :: tropo_temp_standard,pressure_at_inv_standard
     
@@ -381,7 +380,7 @@ module mo_vertical_grid
   subroutine set_z_vector_dual_and_normal_distance_dual(z_vector_dual_h,z_vector_dual_v,dy,dz_dual,z_scalar_dual, &
                                                         from_cell,to_cell,z_vector_h,z_vector_v,from_cell_dual, &
                                                         to_cell_dual,lat_c_dual,lon_c_dual,vorticity_indices_triangles)
-  
+    
     ! This subroutine sets the z coordinates of the dual vector points as well as the normal distances of the dual grid.
     
     real(wp), intent(out) :: z_vector_dual_h(n_edges,n_levels)
@@ -398,7 +397,7 @@ module mo_vertical_grid
     integer,  intent(in)  :: from_cell_dual(n_edges)
     integer,  intent(in)  :: to_cell_dual(n_edges)
     integer,  intent(in)  :: vorticity_indices_triangles(3,n_triangles)
-  
+    
     ! local variables
     integer :: ji ! horizontal index
     integer :: jl ! vertical index
@@ -414,7 +413,7 @@ module mo_vertical_grid
       enddo
     enddo
     !$omp end parallel do
-      
+    
     !$omp parallel do private(ji,jl)
     do jl=1,n_levels
       do ji=1,n_edges
@@ -431,7 +430,7 @@ module mo_vertical_grid
       enddo
     enddo
     !$omp end parallel do
-  
+    
   end subroutine set_z_vector_dual_and_normal_distance_dual
 
 end module mo_vertical_grid

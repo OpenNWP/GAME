@@ -28,20 +28,20 @@ module mo_phys_sfc_properties
     real(wp) :: vegetation_height_equator ! height of the vegetation at the equator
     
     vegetation_height_equator = 20._wp
-  
+    
     vegetation_height_ideal = vegetation_height_equator*cos(latitude)*exp(-oro/1500._wp)
 
   end function vegetation_height_ideal
   
   subroutine set_sfc_properties(lat_c,lon_c,roughness_length,sfc_albedo,sfc_rho_c,t_conductivity,oro,is_land)
-  
+    
     ! This subroutine sets the physical surface properties.
     
     integer,  intent(out) :: is_land(n_cells)
     real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
     real(wp), intent(out) :: roughness_length(n_cells),sfc_albedo(n_cells), &
                              sfc_rho_c(n_cells),t_conductivity(n_cells),oro(n_cells)
-  
+    
     ! local variables
     integer               :: ji,jk,ncid,is_land_id,lat_in_id,lon_in_id,z_in_id,n_lat_points, &
                              n_lon_points,lat_index,lon_index,min_indices_vector(n_avg_points)
@@ -64,14 +64,14 @@ module mo_phys_sfc_properties
       call nc_check(nf90_inq_varid(ncid,"is_land",is_land_id))
       call nc_check(nf90_get_var(ncid,is_land_id,is_land))
       call nc_check(nf90_close(ncid))
-  
+      
       ! reading the ETOPO orography
       n_lat_points = 10801
       n_lon_points = 21601
       allocate(latitude_input(n_lat_points))
       allocate(longitude_input(n_lon_points))
       allocate(z_input(n_lon_points,n_lat_points))
-    
+      
       oro_file = "phys_quantities/etopo.nc"
       call nc_check(nf90_open(trim(oro_file),NF90_CLOBBER,ncid))
       call nc_check(nf90_inq_varid(ncid,"y",lat_in_id))
@@ -85,7 +85,7 @@ module mo_phys_sfc_properties
       ! setting the unfiltered orography
       !$omp parallel do private(ji,jk,lat_index,lon_index,lat_distance_vector,lon_distance_vector)
       do ji=1,n_cells
-    
+        
         allocate(lat_distance_vector(n_lat_points))
         allocate(lon_distance_vector(n_lon_points))
         do jk=1,n_lat_points
@@ -98,19 +98,19 @@ module mo_phys_sfc_properties
         lon_index = find_min_index(lon_distance_vector)
         
         oro_unfiltered(ji) = z_input(lon_index,lat_index)
-      
+        
         ! over the sea there is no orography
         if (is_land(ji)==0) then
           oro_unfiltered(ji) = 0._wp
         endif
-      
+        
         ! freeing the memory
         deallocate(lat_distance_vector)
         deallocate(lon_distance_vector)
-      
+        
       enddo
       !$omp end parallel do
-    
+      
       deallocate(z_input)
       deallocate(latitude_input)
       deallocate(longitude_input)
@@ -143,14 +143,14 @@ module mo_phys_sfc_properties
         endif
       enddo
       !$omp end parallel do
-    
+      
       deallocate(oro_unfiltered)
       
     endif
-  
+    
     ! Other physical properties of the surface
     ! ----------------------------------------
-  
+    
     c_p_water = 4184._wp
     c_p_soil = 830._wp
     albedo_water = 0.06_wp
@@ -163,41 +163,41 @@ module mo_phys_sfc_properties
     t_conductivity_soil = 7.5e-7_wp
     !$omp parallel do private(ji,lat_deg)
     do ji=1,n_cells
-    
+      
       ! ocean
       sfc_albedo(ji) = albedo_water
       sfc_rho_c(ji) = rho_h2o*c_p_water
-    
+      
       ! for water roughness_length is set to some sea-typical value, will not be used anyway
       roughness_length(ji) = 0.08_wp
-    
+      
       t_conductivity(ji) = t_conductivity_water
-    
+      
       ! land
       if (is_land(ji)==1) then
-    
+        
         lat_deg = 360._wp/(2._wp*M_PI)*lat_c(ji)
-      
+        
         t_conductivity(ji) = t_conductivity_soil
-      
+        
         ! setting the surface albedo of land depending on the latitude
         if (abs(lat_deg)>70._wp) then
           sfc_albedo(ji) = albedo_ice
         else
           sfc_albedo(ji) = albedo_soil
         endif
-      
+        
         sfc_rho_c(ji) = density_soil*c_p_soil
-      
+        
         roughness_length(ji) = vegetation_height_ideal(lat_c(ji),oro(ji))/8._wp
       endif
-    
+      
       ! restricting the roughness length to a minimum
       roughness_length(ji) = max(0.0001_wp,roughness_length(ji))
-    
+      
     enddo
     !$omp end parallel do
-  
+    
   end subroutine
   
 end module mo_phys_sfc_properties

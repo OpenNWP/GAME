@@ -10,7 +10,7 @@ module mo_inner_product
   
   implicit none
   
-  contains             
+  contains
   
   subroutine calc_inner_product(inner_product_weights,dx,volume,area_h,area_v,z_scalar,z_vector_v,adjacent_edges)
 
@@ -60,7 +60,7 @@ module mo_inner_product
       enddo
     enddo
     !$omp end parallel do
-  
+    
   end subroutine calc_inner_product
 
 end module mo_inner_product

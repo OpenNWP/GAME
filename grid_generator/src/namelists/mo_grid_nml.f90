@@ -48,10 +48,10 @@ module mo_grid_nml
   contains
 
   subroutine grid_nml_setup()
-  
+    
     ! local variables
     integer :: fileunit
-  
+    
     res_id = 5
     n_layers = 26
     toa = 41152._wp
@@ -66,7 +66,7 @@ module mo_grid_nml
     ! open and read namelist file
     open(action="read",file="build/namelist.nml",newunit=fileunit)
     read(nml=grid,unit=fileunit)
-        
+    
     close(fileunit)
     
     ! derived quantities
@@ -90,7 +90,7 @@ module mo_grid_nml
     ! the file to potentially read the horizontal quantities from
     scalar_h_file = "grids/RES" // trim(int2string(res_id)) // "_L" // trim(int2string(n_layers)) &
                     // "_ORO0.nc"
-                    
+    
     ! sanity checks
     ! -------------
     ! checking if n_oro_layers is valid
@@ -118,7 +118,7 @@ module mo_grid_nml
       write(*,*) "Aborting."
       call exit(1)
     endif
-  
+    
   end subroutine grid_nml_setup
   
 end module mo_grid_nml

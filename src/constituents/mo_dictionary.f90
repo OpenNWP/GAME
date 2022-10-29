@@ -32,7 +32,7 @@ module mo_dictionary
     
     integer, intent(in) :: gas_number
     real(wp)            :: molar_fraction_in_dry_air
-  
+    
     if (gas_number==2) then
       molar_fraction_in_dry_air = 0.7809_wp
     endif
@@ -64,11 +64,11 @@ module mo_dictionary
     ! https://www.epa.gov/climate-indicators/climate-change-indicators-atmospheric-concentrations-greenhouse-gases
       molar_fraction_in_dry_air = 0.3e-6_wp
     endif
-  
+    
   end function molar_fraction_in_dry_air
   
   function calc_o3_vmr(height)
-
+    
     ! This function calculates the ozone VMR as a function of height.
     ! assumes a Gaussian distribution
     
@@ -118,7 +118,7 @@ module mo_dictionary
   end function phase_trans_heat
   
   function c_p_water(temperature)
-
+    
     ! This function returns c_p of water.
   
     real(wp), intent(in) :: temperature ! temperature ()K
@@ -153,7 +153,7 @@ module mo_dictionary
   end function c_p_water
   
   function c_p_ice(temperature)
-  
+    
     ! This function returns c_p of ice.
     ! It follows Eq. (4) in Murphy DM, Koop T. Review of the vapour pressures of ice and supercooled water for atmospheric applications.
     ! QUARTERLY JOURNAL OF THE ROYAL METEOROLOGICAL SOCIETY. 2005;131(608):1539-1565.
@@ -231,10 +231,10 @@ module mo_dictionary
   end function enthalpy_evaporation
   
   function enthalpy_sublimation(temperature)
-    
-  ! This function returns the enthalpy of sublimation depending on the temperature.
-  ! It follows Eq. (5) in Murphy DM, Koop T. Review of the vapour pressures of ice and supercooled water for atmospheric applications.
-  ! QUARTERLY JOURNAL OF THE ROYAL METEOROLOGICAL SOCIETY. 2005;131(608):1539-1565.
+  
+    ! This function returns the enthalpy of sublimation depending on the temperature.
+    ! It follows Eq. (5) in Murphy DM, Koop T. Review of the vapour pressures of ice and supercooled water for atmospheric applications.
+    ! QUARTERLY JOURNAL OF THE ROYAL METEOROLOGICAL SOCIETY. 2005;131(608):1539-1565.
     
     real(wp), intent(in) :: temperature
     real(wp)             :: enthalpy_sublimation
@@ -258,7 +258,7 @@ module mo_dictionary
 
     ! unit conversion from J/mol to J/kg
     enthalpy_sublimation = enthalpy_sublimation/m_v
-  
+    
   end function enthalpy_sublimation
   
   function saturation_pressure_over_water(temperature)
@@ -299,7 +299,7 @@ module mo_dictionary
   end function saturation_pressure_over_water
   
   function dsaturation_pressure_over_water_dT(temperature)
-  
+    
     ! This function computes the derivative of the function saturation_pressure_over_water.
     
     real(wp), intent(in) :: temperature                        ! temperature in Kelvin

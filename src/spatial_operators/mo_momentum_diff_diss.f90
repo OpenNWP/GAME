@@ -74,11 +74,11 @@ module mo_momentum_diff_diss
                                   + sum(state%rho(grid%to_cell(ji),:,1:n_condensed_constituents+1),2)))
     enddo
     !$omp end parallel do
-  
+    
   end subroutine mom_diff_h
   
   subroutine mom_diff_v(state,diag,grid)
-  
+    
     ! This subroutine is the vertical momentum diffusion. The horizontal diffusion has already been called at this points, so we can add the new tendencies.
     
     type(t_state), intent(in)    :: state ! state variables
@@ -109,15 +109,15 @@ module mo_momentum_diff_diss
         endif
       enddo
     enddo
-   
+    
     ! the second derivative is assumed to vanish at the TOA
     !$omp parallel workshare
     diag%dv_hdz(:,1) = diag%dv_hdz(:,2)
     !$omp end parallel workshare
-   
+    
     ! calculating the respective diffusion coefficient
     call vert_hor_mom_viscosity(state,diag,grid)
-                           
+    
     ! now, the second derivative needs to be taken
     !$omp parallel do private(ji,jl,z_upper,z_lower,delta_z)
     do jl=1,n_layers
@@ -270,7 +270,7 @@ module mo_momentum_diff_diss
         endif
       enddo
     enddo
-  
+    
   end subroutine hor_calc_curl_of_vorticity
 
   subroutine simple_dissipation_rate(state,diag,grid)
@@ -285,7 +285,7 @@ module mo_momentum_diff_diss
     !$omp parallel workshare
     diag%heating_diss = -sum(state%rho(:,:,1:n_condensed_constituents+1),3)*diag%heating_diss
     !$omp end parallel workshare
-  
+    
   end subroutine simple_dissipation_rate
 
 end module mo_momentum_diff_diss

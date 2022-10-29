@@ -15,7 +15,7 @@ module mo_spatial_ops_for_output
   contains
 
   subroutine inner_product_tangential(in_field_1_h,in_field_1_v,in_field_2_h,in_field_2_v,out_field,grid)
-  
+    
     ! This subroutine computes the inner product of the two vector fields in_field_1 and in_field_2.
     ! The difference to the normal inner product is, that in_field_1_h is given in tangential components.
     
@@ -36,12 +36,12 @@ module mo_spatial_ops_for_output
     !$omp parallel do private(ji,jl,jm,n_edges_of_cell,tangential_wind_value)
     do jl=1,n_layers
       do ji=1,n_cells
-      
+        
         n_edges_of_cell = 6
         if (ji<=n_pentagons) then
           n_edges_of_cell = 5
         endif
-      
+        
         out_field(ji,jl) = 0._wp
         do jm=1,n_edges_of_cell
           tangential_wind_value = tangential_wind(in_field_2_h,grid%adjacent_edges(jm,ji),jl,grid)

@@ -132,8 +132,8 @@ module mo_set_initial_state
         z_height = grid%z_vector_h(ji,jl)
         ! standard atmosphere: no wind
         if (ideal_input_id==0) then
-          state%wind_h(ji,jl) = 0._wp          
-                
+          state%wind_h(ji,jl) = 0._wp
+          
           ! adding a "random" perturbation to the horizontal wind in the case of the Held-Suarez test case
           if (rad_config==2) then
             state%wind_h(ji,jl) = state%wind_h(ji,jl) + 0.1_wp*mod(ji,17)/16._wp
@@ -406,7 +406,7 @@ module mo_set_initial_state
       
       ! if the soil temperature over land or the SST over water is not available in the initialization
       ! state filewe obtain it by linearly interpolating between the surface
-      ! and the depth of constant temperature    
+      ! and the depth of constant temperature
       if ((grid%is_land(ji)==1 .and. t_soil_avail==0) .or. (grid%is_land(ji)==0 .and. sst_avail==0)) then
         ! setting the surface temperature identical to the air temperature in the lowest layer
         t_sfc = temperature(ji,n_layers)

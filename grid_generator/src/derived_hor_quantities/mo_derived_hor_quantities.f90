@@ -396,7 +396,7 @@ module mo_derived_hor_quantities
       write(*,*) "Sum of faces of pentagons and hexagons on unity sphere does not match face of unit sphere."
       call exit(1)
     endif
-  
+    
   end subroutine calc_cell_area_unity
 
 end module mo_derived_hor_quantities

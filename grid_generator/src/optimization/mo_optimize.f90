@@ -77,7 +77,7 @@ module mo_optimize
           longitude_vertices(counter) = lon_c_dual(vertex_indices(counter))
           counter = counter+1
         endif
-        check_result = in_bool_checker(vertex_index_candidate_2,vertex_indices)            
+        check_result = in_bool_checker(vertex_index_candidate_2,vertex_indices)
         if (check_result==0) then
           vertex_indices(counter) = vertex_index_candidate_2
           latitude_vertices(counter) = lat_c_dual(vertex_indices(counter))

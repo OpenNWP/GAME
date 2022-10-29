@@ -13,7 +13,7 @@ module mo_multiplications
   contains
 
   subroutine scalar_times_vector_h(scalar_field,vector_field,out_field,grid)
-  
+    
     ! This subroutine multiplies a vector field by a scalar field at the horizontal gridpoints.
     
     real(wp),     intent(in)    :: scalar_field(n_cells,n_layers) ! scalar field to use for the multiplication
@@ -30,11 +30,11 @@ module mo_multiplications
                         *vector_field(:,jl)
     enddo
     !$omp end parallel do
-  
+    
   end subroutine scalar_times_vector_h
 
   subroutine scalar_times_vector_h_upstream(scalar_field,vector_field,out_field,grid)
-  
+    
     ! This subroutine multiplies a vector field by a scalar field.
     ! The scalar field value from the upstream gridpoint is used.
     
@@ -60,17 +60,17 @@ module mo_multiplications
       enddo
     enddo
     !$omp end parallel do
-  
+    
   end subroutine scalar_times_vector_h_upstream
 
   subroutine scalar_times_vector_v(scalar_field,vector_field,out_field)
-  
+    
     ! This subroutine multiplies a vector field by a scalar field at the vertical gridpoints.
     
     real(wp), intent(in)    :: scalar_field(n_cells,n_layers) ! scalar field to use for the multiplication
     real(wp), intent(in)    :: vector_field(n_cells,n_levels) ! vertical vector field to use for the multiplication
     real(wp), intent(inout) :: out_field(n_cells,n_levels)    ! result
-  
+    
     ! local variables
     integer  :: ji           ! cell index
     integer  :: jl           ! layer index
@@ -84,7 +84,7 @@ module mo_multiplications
       enddo
     enddo
     !$omp end parallel do
-  
+    
   end subroutine scalar_times_vector_v
 
 end module mo_multiplications

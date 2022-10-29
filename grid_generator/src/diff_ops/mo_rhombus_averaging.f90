@@ -240,7 +240,7 @@ module mo_rhombus_averaging
       endif
     enddo
     !$omp end parallel do
-  
+    
   end subroutine rhombus_averaging
 
 end module mo_rhombus_averaging

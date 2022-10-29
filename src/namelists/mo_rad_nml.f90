@@ -27,13 +27,13 @@ module mo_rad_nml
   contains
 
   subroutine rad_nml_setup(grid)
-  
+    
     type(t_grid), intent(in) :: grid
-  
+    
     ! local variables
     integer :: fileunit
     integer :: jl       ! layer index
-  
+    
     rad_config = 1
     n_rad_blocks = 18
     n_cells_rad = n_cells/n_rad_blocks
@@ -54,7 +54,7 @@ module mo_rad_nml
     ! open and read namelist file
     open(action="read",file="namelist.nml",newunit=fileunit)
     read(nml=rad,unit=fileunit)
-        
+    
     close(fileunit)
     
     ! sanity check
@@ -70,7 +70,7 @@ module mo_rad_nml
         n_no_cond_rad_layers = jl
       endif
     enddo
-  
+    
   end subroutine rad_nml_setup
   
 end module mo_rad_nml

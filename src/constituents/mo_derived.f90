@@ -111,13 +111,13 @@ module mo_derived
     else
       c_v_mass_weighted_air = c_v_mass_weighted_air + rho(ji,jl,n_condensed_constituents+1)*c_d_v
     endif
-  
+    
   end function c_v_mass_weighted_air
   
   function calc_diffusion_coeff(temperature,density)
-  
+    
     ! This function calculates the molecular diffusion coefficient.
-  
+    
     real(wp), intent(in) :: temperature          ! temperature
     real(wp), intent(in) :: density              ! mass density
     real(wp)             :: calc_diffusion_coeff ! result

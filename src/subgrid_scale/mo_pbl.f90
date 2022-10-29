@@ -119,11 +119,11 @@ module mo_pbl
       enddo
       !$omp end parallel do
     endif
-  
-  end subroutine 
+    
+  end subroutine
   
   subroutine update_sfc_turb_quantities(state,diag,grid)
-  
+    
     ! This subroutine updates surface-related turbulence quantities.
     
     type(t_state), intent(in)    :: state ! state
@@ -148,7 +148,7 @@ module mo_pbl
       
       ! wind speed in the lowest layer
       u_lowest_layer = diag%v_squared(ji,n_layers)**0.5_wp
-        
+      
       ! calculating the 10 m wind velocity from the logarithmic wind profile
       u10 = u_lowest_layer*log(10._wp/grid%roughness_length(ji))/log(z_agl/grid%roughness_length(ji))
       
@@ -202,7 +202,7 @@ module mo_pbl
   end subroutine update_sfc_turb_quantities
 
   function roughness_length_from_u10_sea(u10)
-  
+    
     ! This function returns the roughness length as a function of the mean wind speed at 10 m above a fully developed sea.
     ! refer to Stensrud,Parameterization schemes (2007), p.130
 
@@ -257,7 +257,7 @@ module mo_pbl
     ! limitting the result for security
     if (calc_scalar_flux_resistance<dtime/z_agl) then
       calc_scalar_flux_resistance = dtime/z_agl
-    endif 
+    endif
     
   end function calc_scalar_flux_resistance
 
@@ -377,14 +377,14 @@ module mo_pbl
       psi_m = -4.7_wp*z_eff/l_local
     endif
     
- end function psi_m
-    
+  end function psi_m
+
 end module mo_pbl
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+

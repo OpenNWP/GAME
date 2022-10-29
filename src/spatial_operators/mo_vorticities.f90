@@ -168,8 +168,8 @@ module mo_vorticities
     
     ! calling the subroutine which computes the relative vorticity on triangles
     call calc_rel_vort_on_triangles(state,diag,grid)
-                        
-    ! vertical vorticities       
+    
+    ! vertical vorticities
     !$omp parallel do private(ji,jl)
     do jl=1,n_layers
       do ji=1,n_edges
@@ -180,7 +180,7 @@ module mo_vorticities
       enddo
     enddo
     !$omp end parallel do
-          
+    
     ! tangential (horizontal) vorticities
     !$omp parallel do private(ji,jl)
     do jl=2,n_levels
@@ -204,11 +204,11 @@ module mo_vorticities
     !$omp parallel workshare
     diag%rel_vort_h(:,1) = diag%rel_vort_h(:,2)
     !$omp end parallel workshare
-  
+    
   end subroutine calc_rel_vort
 
   subroutine add_f_to_rel_vort(diag,grid)
-  
+    
     ! This subroutine adds the Coriolis parameter to the relative vorticity.
     
     type(t_diag), intent(inout) :: diag ! diagnostic quantities

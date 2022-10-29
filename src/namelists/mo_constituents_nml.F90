@@ -37,7 +37,7 @@ module mo_constituents_nml
   contains
 
   subroutine constituents_nml_setup()
-  
+    
     ! local variables
     integer :: fileunit
     
@@ -53,7 +53,7 @@ module mo_constituents_nml
     ! open and read namelist file
     open(action="read",file="namelist.nml",newunit=fileunit)
     read(nml=constituents,unit=fileunit)
-        
+    
     close(fileunit)
     
 #ifndef COMPILE_TIME_CONFIG

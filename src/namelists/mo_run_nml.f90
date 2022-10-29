@@ -24,10 +24,10 @@ module mo_run_nml
   contains
 
   subroutine run_nml_setup()
-  
+    
     ! local variables
     integer :: fileunit ! identifies the namelist file
-  
+    
     ! default values
     run_id = "ideal"
     run_span_min = 100._wp*24._wp*60._wp
@@ -40,7 +40,7 @@ module mo_run_nml
     ! open and read namelist file
     open(action="read",file="namelist.nml",newunit=fileunit)
     read(nml=run,unit=fileunit)
-        
+    
     close(fileunit)
     
     start_date = 10000*start_year + 100*start_month + start_day
@@ -72,10 +72,10 @@ module mo_run_nml
   end function leap_year_correction
   
   function month_day_vector(month,year)
-  
+    
     ! This is a helper function for calculating the Unix time.
     ! It returns the amount of days in the wanted year in the previous months.
-  
+    
     ! input
     integer, intent(in) :: month
     integer, intent(in) :: year

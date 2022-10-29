@@ -16,13 +16,13 @@ module mo_interpolation_ll
   contains
   
   subroutine interpolate_ll(lat_c,lon_c,interpol_indices,interpol_weights)
-  
+    
     ! This function interpolates to the lat-lon grid.
-  
+    
     integer,  intent(out) :: interpol_indices(5,n_lat_io_points,n_lon_io_points)
     real(wp), intent(out) :: interpol_weights(5,n_lat_io_points,n_lon_io_points)
     real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
-  
+    
     ! local variables
     real(wp) :: delta_latitude,delta_longitude,lat_value,lon_value,weights_sum, &
                 ! the vector containing distances to the horizontal points of the native model grid

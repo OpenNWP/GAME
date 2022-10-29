@@ -47,10 +47,10 @@ module mo_grid_nml
   contains
 
   subroutine grid_nml_setup()
-  
+    
     ! local variables
     integer :: fileunit
-  
+    
 #ifndef COMPILE_TIME_CONFIG
     res_id = 5
     n_layers = 26
@@ -60,7 +60,7 @@ module mo_grid_nml
     ! open and read namelist file
     open(action="read",file="namelist.nml",newunit=fileunit)
     read(nml=grid,unit=fileunit)
-        
+    
     close(fileunit)
     
     write(*,fmt="(A,I3)") " resolution ID:", res_id
@@ -79,7 +79,7 @@ module mo_grid_nml
     n_lat_io_points = 2*2**res_id
     n_lon_io_points = 2*n_lat_io_points
 #endif
-  
+    
   end subroutine grid_nml_setup
   
 end module mo_grid_nml
