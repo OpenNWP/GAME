@@ -36,7 +36,6 @@ module mo_rad_nml
     
     rad_config = 1
     n_rad_blocks = 18
-    n_cells_rad = n_cells/n_rad_blocks
     radiation_dtime = 60._wp*1e-3_wp*eff_hor_res
     ! the radiation time step is never longer then three hours
     if (radiation_dtime>10800._wp) then
@@ -57,6 +56,7 @@ module mo_rad_nml
     
     close(fileunit)
     
+    n_cells_rad = n_cells/n_rad_blocks
     ! sanity check
     if (mod(n_cells,n_rad_blocks)/=0) then
       write(*,*) "Number of scalars per layer must be divisibe by n_rad_blocks."
