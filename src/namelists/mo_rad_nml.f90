@@ -14,7 +14,8 @@ module mo_rad_nml
   
   integer            :: rad_config                  ! ID that configures the radiation
   integer            :: n_rad_blocks                ! number of radiation domains
-  integer            :: n_cells_rad                 ! numbers of horizontal scalars per layer of the radiaiton domain
+  integer            :: n_cells_rad                 ! numbers of columns of the radiaiton domain
+  integer            :: n_cells_rad_last            ! numbers of columns of the radiation domain in the last bock
   real(wp)           :: radiation_dtime             ! radiation_dtime
   character(len=128) :: rrtmgp_coefficients_file_sw ! the name of the short wave data file
   character(len=128) :: rrtmgp_coefficients_file_lw ! the name of the long wave data file
@@ -60,6 +61,12 @@ module mo_rad_nml
     close(fileunit)
     
     n_cells_rad = n_cells/n_rad_blocks
+    n_cells_rad_last = mod(n_cells,n_cells_rad)
+    ! sanity check
+    if (n_cells/=n_rad_blocks*n_cells_rad+n_cells_rad_last) then
+      write(*,*) "Problem with radiation parallelization, look into mo_rad_nml.f90."
+      call exit(1)
+    endif
     
     ! setting n_no_cond_rad_layers
     n_no_cond_rad_layers = 1

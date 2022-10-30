@@ -21,7 +21,7 @@ module mo_rrtmgp_coupler
                                         ty_optical_props_arry
   use mo_cloud_optics,            only: ty_cloud_optics
   use mo_load_cloud_coefficients, only: load_cld_lutcoeff, load_cld_padecoeff
-  use mo_rad_nml,                 only: n_cells_rad,rrtmgp_coefficients_file_sw, &
+  use mo_rad_nml,                 only: rrtmgp_coefficients_file_sw, &
                                         rrtmgp_coefficients_file_lw,cloud_coefficients_file_sw, &
                                         cloud_coefficients_file_lw
   use mo_grid_nml,                only: n_layers,n_levels
@@ -59,12 +59,13 @@ module mo_rrtmgp_coupler
   
   subroutine calc_radiative_flux_convergence(latitude_scalar,longitude_scalar,z_scalar,z_vector,rho, &
                                              temperature_gas,radiation_tendency,temp_sfc,sfc_sw_in,sfc_lw_out, &
-                                             sfc_albedo,time_coord)
+                                             sfc_albedo,n_cells_rad,time_coord)
   
     ! This is the subroutine that is called by the dynamical core. The dycore hands over
     ! the thermodynamic state as well as meta data (time stamp, coordinates) and gets
     ! back radiative flux convergences in W/m^3.
     
+    integer,  intent(in)  :: n_cells_rad                              ! number of columns of the radiation domain
     real(wp), intent(in)  :: time_coord                               ! the time coordinate (UTC time stamp)
     real(wp), intent(in)  :: latitude_scalar(n_cells_rad)             ! the latitude coordinates of the scalar data points
     real(wp), intent(in)  :: longitude_scalar(n_cells_rad)            ! the longitude coordinates of the scalar data points
@@ -353,7 +354,7 @@ module mo_rrtmgp_coupler
     
     ! setting the volume mixing ratios of the gases for the short wave calculation
     gas_concentrations_sw%ncol = n_day_points
-    call set_vol_mix_ratios(rho,.true.,n_day_points,day_indices,z_scalar,gas_concentrations_sw)
+    call set_vol_mix_ratios(rho,.true.,n_day_points,day_indices,z_scalar,n_cells_rad,gas_concentrations_sw)
     
     ! initializing the short wave fluxes
     call init_fluxes(fluxes_day,n_day_points,n_levels)
@@ -402,7 +403,7 @@ module mo_rrtmgp_coupler
     deallocate(mu_0_day)
     
     ! short wave result (in Wm^-3)
-    call calc_power_density(.true.,n_day_points,day_indices,fluxes_day,z_vector,radiation_tendency)
+    call calc_power_density(.true.,n_day_points,day_indices,fluxes_day,z_vector,n_cells_rad,radiation_tendency)
     
     ! saving the surface shortwave inward radiative flux density
     do ji=1,n_day_points
@@ -416,7 +417,7 @@ module mo_rrtmgp_coupler
     ! now long wave
 1   continue
     ! setting the volume mixing ratios of the gases for the long wave calculation
-    call set_vol_mix_ratios(rho,.false.,n_day_points,day_indices,z_scalar,gas_concentrations_lw)
+    call set_vol_mix_ratios(rho,.false.,n_day_points,day_indices,z_scalar,n_cells_rad,gas_concentrations_lw)
     
     ! initializing the long wave fluxes
     call init_fluxes(fluxes,n_cells_rad,n_levels)
@@ -457,7 +458,7 @@ module mo_rrtmgp_coupler
     deallocate(surface_emissivity)
    
     ! add long wave result (in Wm^-3)
-    call calc_power_density(.false.,n_day_points,day_indices,fluxes,z_vector,radiation_tendency)
+    call calc_power_density(.false.,n_day_points,day_indices,fluxes,z_vector,n_cells_rad,radiation_tendency)
     
     ! saving the surface longwave outward radiative flux density
     do ji=1,n_cells_rad
@@ -469,7 +470,7 @@ module mo_rrtmgp_coupler
     
   end subroutine calc_radiative_flux_convergence
     
-  subroutine calc_power_density(day_only,n_day_points,day_indices,fluxes,z_vector,radiation_tendency)
+  subroutine calc_power_density(day_only,n_day_points,day_indices,fluxes,z_vector,n_cells_rad,radiation_tendency)
   
     ! This subroutine is essentially the negative vertical divergence operator.
     
@@ -478,6 +479,7 @@ module mo_rrtmgp_coupler
     integer,                   intent(in)    :: day_indices(n_cells_rad)                 ! the indices of the columns where it is day
     type(ty_fluxes_broadband), intent(in)    :: fluxes                                   ! the fluxes object based on which to compute the power density
     real(wp),                  intent(in)    :: z_vector(n_cells_rad,n_levels)           ! as usual
+    integer,                   intent(in)    :: n_cells_rad                              ! number of columns of the radiation domain
     real(wp),                  intent(inout) :: radiation_tendency(n_cells_rad,n_layers) ! the result (in W/m**3)
   
     ! local variables
@@ -604,7 +606,7 @@ module mo_rrtmgp_coupler
   
   end function coszenith
   
-  subroutine set_vol_mix_ratios(rho,sw_bool,n_day_points,day_indices,z_scalar,gas_concentrations)
+  subroutine set_vol_mix_ratios(rho,sw_bool,n_day_points,day_indices,z_scalar,n_cells_rad,gas_concentrations)
     
     ! This subroutine computes volume mixing ratios based on the model variables.
     
@@ -613,6 +615,7 @@ module mo_rrtmgp_coupler
     integer,            intent(in)    :: n_day_points                             ! number of points where it is day
     integer,            intent(in)    :: day_indices(n_cells_rad)                 ! the indices of the points where it is day
     real(wp),           intent(in)    :: z_scalar(n_cells_rad,n_layers)           ! z coordinates of scalar data points
+    integer,            intent(in)    :: n_cells_rad                              ! number of columns of the radiation domain
     type(ty_gas_concs), intent(inout) :: gas_concentrations                       ! object holding gas concentrations
     
     ! local variables
