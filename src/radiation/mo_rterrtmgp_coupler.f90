@@ -101,7 +101,6 @@ module mo_rrtmgp_coupler
     real(wp)                              :: albedo_dir_day(n_sw_bands,n_cells_rad)           ! surface albedo for direct radiation (day points only)
     real(wp)                              :: albedo_dif_day(n_sw_bands,n_cells_rad)           ! surface albedo for diffusive radiation(day points only)
     real(wp)                              :: mu_0_day(n_cells_rad)                            ! solar zenith angle(day points only)
-    real(wp)                              :: temp_sfc_day(n_cells_rad)                        ! temperature at the surface (day points only)
     real(wp)                              :: temperature_rad(n_cells_rad,n_layers)            ! reformatted temperature field
     real(wp)                              :: pressure_rad(n_cells_rad,n_layers)               ! reformatted pressure field
     real(wp)                              :: pressure_interface_rad(n_cells_rad,n_levels)     ! pressure at cell interfaces
@@ -321,7 +320,6 @@ module mo_rrtmgp_coupler
       pressure_rad_day(ji_day,:) = pressure_rad(day_indices(ji_day),:)
       pressure_interface_rad_day(ji_day,:)= pressure_interface_rad(day_indices(ji_day),:)
       mu_0_day(ji_day) = mu_0(day_indices(ji_day))
-      temp_sfc_day(ji_day) = temp_sfc(day_indices(ji_day))
       albedo_dir_day(:,ji_day) = albedo_dir(:,day_indices(ji_day))  
       albedo_dif_day(:,ji_day) = albedo_dif(:,day_indices(ji_day))
       liquid_water_path_day(ji_day,:) = liquid_water_path(day_indices(ji_day),:)
