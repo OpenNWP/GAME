@@ -109,7 +109,7 @@ module mo_manage_radiation_calls
       endif
       ! Held-Suarez
       if (rad_config==2) then
-        call held_suar(lat_scal,rho,temp,rad_tend)
+        call held_suar(lat_scal,rho,temp,n_cells_rad_used,rad_tend)
       endif
       
       ! filling the actual radiation tendency

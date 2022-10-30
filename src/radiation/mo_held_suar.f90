@@ -9,18 +9,18 @@ module mo_held_suarez
   use mo_constants,        only: c_d_v,r_d,p_0
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents
   use mo_grid_nml,         only: n_layers
-  use mo_rad_nml,          only: n_cells_rad
   
   implicit none
   
   contains
 
-  subroutine held_suar(latitude_scalar,mass_densities,temperature_gas,radiation_tendency)
+  subroutine held_suar(latitude_scalar,mass_densities,temperature_gas,n_cells_rad,radiation_tendency)
   
     real(wp), intent(in)  :: latitude_scalar(n_cells_rad)                        ! latitudes of the scalar grid points in this radiation block
     real(wp), intent(in)  :: mass_densities(n_cells_rad,n_layers,n_constituents) ! mass densities in this radiation block
     real(wp), intent(in)  :: temperature_gas(n_cells_rad,n_layers)               ! temperature of the gas phase in this radiation block
     real(wp), intent(out) :: radiation_tendency(n_cells_rad,n_layers)            ! resulting heating rate in W/m**3
+    integer,  intent(in)  :: n_cells_rad                                         ! number of columns of the given radiation slice
     
     ! local variables
     integer  :: ji       ! horizontal index
