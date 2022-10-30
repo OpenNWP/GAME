@@ -37,7 +37,7 @@ module mo_column_solvers
     integer  :: ji,jl,soil_switch
     real(wp) :: damping_coeff,damping_start_height,z_above_damping,temperature_gas_lowest_layer_old, &
                 temperature_gas_lowest_layer_new,radiation_flux_density,resulting_temperature_change, &
-                max_rad_temp_change,partial_deriv_new_time_step_weight, &
+                max_rad_temp_change,partial_deriv_new_time_step_weight,damping_prefactor(n_layers-1), &
                 c_vector(n_layers-2+nsoillays),d_vector(n_layers-1+nsoillays), &
                 e_vector(n_layers-2+nsoillays),r_vector(n_layers-1+nsoillays), &
                 rho_expl(n_layers),rhotheta_v_expl(n_layers),theta_v_pert_expl(n_layers),exner_pert_expl(n_layers), &
@@ -90,7 +90,7 @@ module mo_column_solvers
     endif
     
     ! loop over all columns
-    !$omp parallel do private(ji,jl,damping_coeff,z_above_damping,soil_switch, &
+    !$omp parallel do private(ji,jl,damping_coeff,damping_prefactor,z_above_damping,soil_switch, &
     !$omp radiation_flux_density,resulting_temperature_change,c_vector,d_vector, &
     !$omp e_vector,r_vector,rho_expl,rhotheta_v_expl,theta_v_pert_expl,exner_pert_expl,theta_v_int_new, &
     !$omp solution_vector,rho_int_old,rho_int_expl,alpha_old,beta_old,gamma_old,alpha_new,beta_new, &
@@ -154,12 +154,20 @@ module mo_column_solvers
       ! filling up the coefficient vectors
       do jl=1,n_layers-1
         ! main diagonal
+        ! Klemp (2008) upper boundary layer
+        z_above_damping = grid%z_vector_v(ji,jl+1) - damping_start_height
+        if (z_above_damping<0._wp) then
+          damping_coeff = 0._wp
+        else
+          damping_coeff = klemp_damp_max*(sin(0.5_wp*M_PI*z_above_damping/(toa - damping_start_height)))**2
+        endif
+        damping_prefactor(jl) = 1._wp + dtime*damping_coeff
         d_vector(jl) = -theta_v_int_new(jl)**2*(gamma_(jl) + gamma_(jl+1)) &
         + 0.5_wp*(grid%exner_bg(ji,jl) - grid%exner_bg(ji,jl+1)) &
         *(alpha(jl+1) - alpha(jl) + theta_v_int_new(jl)*(beta(jl+1) - beta(jl))) &
         - (grid%z_scalar(ji,jl) - grid%z_scalar(ji,jl+1))/(impl_thermo_weight*dtime**2*c_d_p*rho_int_old(jl)) &
         *(2._wp/grid%area_v(ji,jl+1) + dtime*state_old%wind_v(ji,jl+1)*0.5_wp &
-        *(-1._wp/grid%volume(ji,jl) + 1._wp/grid%volume(ji,jl+1)))
+        *(-1._wp/grid%volume(ji,jl) + 1._wp/grid%volume(ji,jl+1)))*damping_prefactor(jl)
         ! right hand side
         r_vector(jl) = -(state_old%wind_v(ji,jl+1) + dtime*state_tend%wind_v(ji,jl+1)) &
         *(grid%z_scalar(ji,jl) - grid%z_scalar(ji,jl+1))/(impl_thermo_weight*dtime**2*c_d_p) &
@@ -174,13 +182,13 @@ module mo_column_solvers
         + 0.5_wp*(grid%exner_bg(ji,jl+1) - grid%exner_bg(ji,jl+2)) &
         *(alpha(jl+1) + beta(jl+1)*theta_v_int_new(jl)) &
         - (grid%z_scalar(ji,jl+1) - grid%z_scalar(ji,jl+2))/(impl_thermo_weight*dtime*c_d_p)*0.5_wp &
-        *state_old%wind_v(ji,jl+2)/(grid%volume(ji,jl+1)*rho_int_old(jl+1))
+        *state_old%wind_v(ji,jl+2)/(grid%volume(ji,jl+1)*rho_int_old(jl+1))*damping_prefactor(jl+1)
         ! upper diagonal
         e_vector(jl) = theta_v_int_new(jl)*gamma_(jl+1)*theta_v_int_new(jl+1) &
         - 0.5_wp*(grid%exner_bg(ji,jl) - grid%exner_bg(ji,jl+1)) &
         *(alpha(jl+1) + beta(jl+1)*theta_v_int_new(jl+1)) &
         + (grid%z_scalar(ji,jl) - grid%z_scalar(ji,jl+1))/(impl_thermo_weight*dtime*c_d_p)*0.5_wp &
-        *state_old%wind_v(ji,jl+1)/(grid%volume(ji,jl+1)*rho_int_old(jl))
+        *state_old%wind_v(ji,jl+1)/(grid%volume(ji,jl+1)*rho_int_old(jl))*damping_prefactor(jl)
       enddo
       
       ! soil components of the matrix
@@ -260,17 +268,6 @@ module mo_column_solvers
       
       ! calling the algorithm to solve the system of linear equations
       call thomas_algorithm(c_vector,d_vector,e_vector,r_vector,solution_vector,n_layers-1+soil_switch*nsoillays)
-      
-      ! Klemp (2008) upper boundary layer
-      do jl=1,n_layers-1
-        z_above_damping = grid%z_vector_v(ji,jl+1) - damping_start_height
-        if (z_above_damping<0._wp) then
-          damping_coeff = 0._wp
-        else
-          damping_coeff = klemp_damp_max*(sin(0.5_wp*M_PI*z_above_damping/(toa - damping_start_height)))**2
-        endif
-        solution_vector(jl) = solution_vector(jl)/(1._wp+dtime*damping_coeff)
-      enddo
       
       ! Writing the result into the new state.
       ! --------------------------------------
