@@ -8,6 +8,7 @@ module mo_rad_nml
   use mo_definitions, only: wp,t_grid
   use mo_grid_nml,    only: n_cells,n_layers
   use mo_grid_setup,  only: eff_hor_res
+  use omp_lib,        only: omp_get_num_threads
   
   implicit none
   
@@ -35,7 +36,9 @@ module mo_rad_nml
     integer :: jl       ! layer index
     
     rad_config = 1
-    n_rad_blocks = 18
+    !$omp parallel
+    n_rad_blocks = omp_get_num_threads()
+    !$omp end parallel
     radiation_dtime = 60._wp*1e-3_wp*eff_hor_res
     ! the radiation time step is never longer then three hours
     if (radiation_dtime>10800._wp) then
@@ -57,11 +60,6 @@ module mo_rad_nml
     close(fileunit)
     
     n_cells_rad = n_cells/n_rad_blocks
-    ! sanity check
-    if (mod(n_cells,n_rad_blocks)/=0) then
-      write(*,*) "Number of scalars per layer must be divisibe by n_rad_blocks."
-      call exit(1)
-    endif
     
     ! setting n_no_cond_rad_layers
     n_no_cond_rad_layers = 1

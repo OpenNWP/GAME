@@ -79,55 +79,55 @@ module mo_rrtmgp_coupler
     real(wp), intent(in)  :: sfc_albedo(n_cells_rad)                  ! surface albedo for all bands
     
     ! local variables
-    type(ty_gas_concs)                    :: gas_concentrations_sw                            ! the gas concentrations (object holding all information on the composition of the gas phase
-                                                                                              ! for the SW calculation)
-    type(ty_gas_concs)                    :: gas_concentrations_lw                            ! the gas concentrations (object holding all information on the composition of the gas phase
-                                                                                              ! for the LW calculation)
-    type(ty_gas_optics_rrtmgp)            :: k_dist_sw,k_dist_lw                              ! the spectral properties of the gas phase
-    type(ty_cloud_optics)                 :: cloud_optics_sw                                  ! the spectral properties of the clouds for the SW calculation
-    type(ty_cloud_optics)                 :: cloud_optics_lw                                  ! the spectral properties of the clouds for the LW calculation
-    real(wp), allocatable                 :: mu_0(:)                                          ! solar zenith angle
-    integer                               :: n_day_points                                     ! number of points where it is day
-    integer                               :: ji,jl,ji_day                                     ! loop indices
-    integer, allocatable                  :: day_indices(:)                                   ! the indices of columns where it is day
-    type(ty_fluxes_broadband)             :: fluxes,fluxes_day                                ! the resulting fluxes
-    type(ty_optical_props_2str)           :: atmos_props_sw,cloud_props_sw                    ! short wave optical properties
-    type(ty_optical_props_1scl)           :: atmos_props_lw,cloud_props_lw                    ! long wave optical properties
-    real(wp), dimension(:,:), allocatable :: toa_flux                                         ! top of atmosphere short wave flux(n_day_points,no_of_sw_g_points)
-    type(ty_source_func_lw)               :: sources_lw                                       ! long wave source function
-    real(wp), allocatable                 :: surface_emissivity(:,:)                          ! the surface emissivity
-    real(wp)                              :: albedo_dir(n_sw_bands,n_cells_rad)               ! surface albedo for direct radiation
-    real(wp)                              :: albedo_dif(n_sw_bands,n_cells_rad)               ! surface albedo for diffusive radiation
-    real(wp)                              :: albedo_dir_day(n_sw_bands,n_cells_rad)           ! surface albedo for direct radiation (day points only)
-    real(wp)                              :: albedo_dif_day(n_sw_bands,n_cells_rad)           ! surface albedo for diffusive radiation(day points only)
-    real(wp)                              :: mu_0_day(n_cells_rad)                            ! solar zenith angle(day points only)
-    real(wp)                              :: temperature_rad(n_cells_rad,n_layers)            ! reformatted temperature field
-    real(wp)                              :: pressure_rad(n_cells_rad,n_layers)               ! reformatted pressure field
-    real(wp)                              :: pressure_interface_rad(n_cells_rad,n_levels)     ! pressure at cell interfaces
-    real(wp)                              :: temperature_interface_rad (n_cells_rad,n_levels) ! temperature at cell interfaces
-    real(wp)                              :: temperature_rad_day(n_cells_rad,n_layers)        ! temperature at cells restricted to day points
-    real(wp)                              :: pressure_rad_day(n_cells_rad,n_layers)           ! pressure at cells restricted to day points
-    real(wp)                              :: pressure_interface_rad_day(n_cells_rad,n_levels) ! pressure at cell interfaces restricted to day points
-    real(wp)                              :: liquid_water_path(n_cells_rad,n_layers)          ! liquid water path in g/m**2
-    real(wp)                              :: ice_water_path(n_cells_rad,n_layers)             ! ice water path g/m**2
-    real(wp)                              :: liquid_eff_radius(n_cells_rad,n_layers)          ! liquid particles effective radius in micro meters
-    real(wp)                              :: ice_eff_radius(n_cells_rad,n_layers)             ! ice particles effective radius in micro meters
-    real(wp)                              :: liquid_water_path_day(n_cells_rad,n_layers)      ! liquid water path in g/m^2 restricted to the day points
-    real(wp)                              :: ice_water_path_day(n_cells_rad,n_layers)         ! ice water path in g/m^2 restricted to the day points
-    real(wp)                              :: liquid_eff_radius_day(n_cells_rad,n_layers)      ! liquid particles effective radius in micro meters restricted to the day points
-    real(wp)                              :: ice_eff_radius_day(n_cells_rad,n_layers)         ! ice particles effective radius in micro meters restricted to the day points
-    real(wp)                              :: scale_height = 8.e3_wp                           ! scale height of the atmosphere
-    real(wp)                              :: liquid_eff_radius_value                          ! representative value of liquid particle radius
-    real(wp)                              :: ice_eff_radius_value                             ! representative value of ice particle radius
-    real(wp)                              :: thickness                                        ! layer thickness
-    real(wp)                              :: ice_precip_radius                                ! ice precipitation particles radius
-    real(wp)                              :: liquid_precip_radius                             ! liquid precipitation particles radius
-    real(wp)                              :: ice_cloud_radius                                 ! ice cloud particles radius
-    real(wp)                              :: liquid_cloud_radius                              ! liquid cloud particles radius
-    real(wp)                              :: ice_precip_weight                                ! ice precipitation particles weight
-    real(wp)                              :: liquid_precip_weight                             ! liquid precipitation particles weight
-    real(wp)                              :: ice_cloud_weight                                 ! ice cloud particles weight
-    real(wp)                              :: liquid_cloud_weight                              ! liquid cloud particles weight
+    type(ty_gas_concs)                    :: gas_concentrations_sw           ! the gas concentrations (object holding all information on the composition of the gas phase
+                                                                             ! for the SW calculation)
+    type(ty_gas_concs)                    :: gas_concentrations_lw           ! the gas concentrations (object holding all information on the composition of the gas phase
+                                                                             ! for the LW calculation)
+    type(ty_gas_optics_rrtmgp)            :: k_dist_sw,k_dist_lw             ! the spectral properties of the gas phase
+    type(ty_cloud_optics)                 :: cloud_optics_sw                 ! the spectral properties of the clouds for the SW calculation
+    type(ty_cloud_optics)                 :: cloud_optics_lw                 ! the spectral properties of the clouds for the LW calculation
+    real(wp), allocatable                 :: mu_0(:)                         ! solar zenith angle
+    integer                               :: n_day_points                    ! number of points where it is day
+    integer                               :: ji,jl,ji_day                    ! loop indices
+    integer, allocatable                  :: day_indices(:)                  ! the indices of columns where it is day
+    type(ty_fluxes_broadband)             :: fluxes,fluxes_day               ! the resulting fluxes
+    type(ty_optical_props_2str)           :: atmos_props_sw,cloud_props_sw   ! short wave optical properties
+    type(ty_optical_props_1scl)           :: atmos_props_lw,cloud_props_lw   ! long wave optical properties
+    real(wp), dimension(:,:), allocatable :: toa_flux                        ! top of atmosphere short wave flux(n_day_points,no_of_sw_g_points)
+    type(ty_source_func_lw)               :: sources_lw                      ! long wave source function
+    real(wp), allocatable                 :: surface_emissivity(:,:)         ! the surface emissivity
+    real(wp), allocatable                 :: albedo_dir(:,:)                 ! surface albedo for direct radiation
+    real(wp), allocatable                 :: albedo_dif(:,:)                 ! surface albedo for diffusive radiation
+    real(wp), allocatable                 :: albedo_dir_day(:,:)             ! surface albedo for direct radiation (day points only)
+    real(wp), allocatable                 :: albedo_dif_day(:,:)             ! surface albedo for diffusive radiation(day points only)
+    real(wp), allocatable                 :: mu_0_day(:)                     ! solar zenith angle(day points only)
+    real(wp), allocatable                 :: temperature_rad(:,:)            ! reformatted temperature field
+    real(wp), allocatable                 :: pressure_rad(:,:)               ! reformatted pressure field
+    real(wp), allocatable                 :: pressure_interface_rad(:,:)     ! pressure at cell interfaces
+    real(wp), allocatable                 :: temperature_interface_rad(:,:)  ! temperature at cell interfaces
+    real(wp), allocatable                 :: temperature_rad_day(:,:)        ! temperature at cells restricted to day points
+    real(wp), allocatable                 :: pressure_rad_day(:,:)           ! pressure at cells restricted to day points
+    real(wp), allocatable                 :: pressure_interface_rad_day(:,:) ! pressure at cell interfaces restricted to day points
+    real(wp), allocatable                 :: liquid_water_path(:,:)          ! liquid water path in g/m**2
+    real(wp), allocatable                 :: ice_water_path(:,:)             ! ice water path g/m**2
+    real(wp), allocatable                 :: liquid_eff_radius(:,:)          ! liquid particles effective radius in micro meters
+    real(wp), allocatable                 :: ice_eff_radius(:,:)             ! ice particles effective radius in micro meters
+    real(wp), allocatable                 :: liquid_water_path_day(:,:)      ! liquid water path in g/m^2 restricted to the day points
+    real(wp), allocatable                 :: ice_water_path_day(:,:)         ! ice water path in g/m^2 restricted to the day points
+    real(wp), allocatable                 :: liquid_eff_radius_day(:,:)      ! liquid particles effective radius in micro meters restricted to the day points
+    real(wp), allocatable                 :: ice_eff_radius_day(:,:)         ! ice particles effective radius in micro meters restricted to the day points
+    real(wp)                              :: scale_height = 8.e3_wp          ! scale height of the atmosphere
+    real(wp)                              :: liquid_eff_radius_value         ! representative value of liquid particle radius
+    real(wp)                              :: ice_eff_radius_value            ! representative value of ice particle radius
+    real(wp)                              :: thickness                       ! layer thickness
+    real(wp)                              :: ice_precip_radius               ! ice precipitation particles radius
+    real(wp)                              :: liquid_precip_radius            ! liquid precipitation particles radius
+    real(wp)                              :: ice_cloud_radius                ! ice cloud particles radius
+    real(wp)                              :: liquid_cloud_radius             ! liquid cloud particles radius
+    real(wp)                              :: ice_precip_weight               ! ice precipitation particles weight
+    real(wp)                              :: liquid_precip_weight            ! liquid precipitation particles weight
+    real(wp)                              :: ice_cloud_weight                ! ice cloud particles weight
+    real(wp)                              :: liquid_cloud_weight             ! liquid cloud particles weight
     
     ! some general preparations
     
@@ -152,12 +152,16 @@ module mo_rrtmgp_coupler
     allocate(surface_emissivity(n_lw_bands,n_cells_rad))
     surface_emissivity = 0.98_wp
     
+    allocate(albedo_dir(n_sw_bands,n_cells_rad))
+    allocate(albedo_dif(n_sw_bands,n_cells_rad))
     do ji=1,n_cells_rad
       albedo_dir(:,ji) = sfc_albedo(ji)
       albedo_dif(:,ji) = sfc_albedo(ji)
     enddo
     
     ! reformatting the thermodynamical state of the gas phase for RTE+RRTMGP
+    allocate(temperature_rad(n_cells_rad,n_layers))
+    allocate(pressure_rad(n_cells_rad,n_layers))
     do jl=1,n_layers
       do ji=1,n_cells_rad
         temperature_rad(ji,jl) = temperature_gas(ji,jl)
@@ -178,6 +182,10 @@ module mo_rrtmgp_coupler
     liquid_precip_radius = cloud_optics_sw%get_max_radius_liq()
     ice_cloud_radius = 0.5_wp*(cloud_optics_sw%get_min_radius_ice()+cloud_optics_sw%get_max_radius_ice())
     liquid_cloud_radius = 0.5_wp*(cloud_optics_sw%get_min_radius_liq()+cloud_optics_sw%get_max_radius_liq())
+    allocate(liquid_water_path(n_cells_rad,n_layers))
+    allocate(ice_water_path(n_cells_rad,n_layers))
+    allocate(liquid_eff_radius(n_cells_rad,n_layers))
+    allocate(ice_eff_radius(n_cells_rad,n_layers))
     if (lmoist) then
       do jl=1,n_layers
         do ji=1,n_cells_rad
@@ -230,6 +238,8 @@ module mo_rrtmgp_coupler
     enddo
     
     ! the properties at cell interfaces
+    allocate(pressure_interface_rad(n_cells_rad,n_levels))
+    allocate(temperature_interface_rad(n_cells_rad,n_levels))
     do jl=1,n_levels
       do ji=1,n_cells_rad
         ! values at TOA
@@ -315,6 +325,16 @@ module mo_rrtmgp_coupler
     
     ! short wave first
     ! filling up the arrays restricted to day points
+    allocate(albedo_dir_day(n_sw_bands,n_cells_rad))
+    allocate(albedo_dif_day(n_sw_bands,n_cells_rad))
+    allocate(pressure_interface_rad_day(n_cells_rad,n_levels))
+    allocate(mu_0_day(n_cells_rad))
+    allocate(temperature_rad_day(n_cells_rad,n_layers))
+    allocate(pressure_rad_day(n_cells_rad,n_layers))
+    allocate(liquid_water_path_day(n_cells_rad,n_layers))
+    allocate(ice_water_path_day(n_cells_rad,n_layers))
+    allocate(liquid_eff_radius_day(n_cells_rad,n_layers))
+    allocate(ice_eff_radius_day(n_cells_rad,n_layers))
     do ji_day=1,n_day_points
       temperature_rad_day(ji_day,:) = temperature_rad(day_indices(ji_day),:)
       pressure_rad_day(ji_day,:) = pressure_rad(day_indices(ji_day),:)
@@ -328,6 +348,8 @@ module mo_rrtmgp_coupler
       ice_eff_radius_day(ji_day,:) = ice_eff_radius(day_indices(ji_day),:)
     end do
     deallocate(mu_0)
+    deallocate(albedo_dir)
+    deallocate(albedo_dif)
     
     ! setting the volume mixing ratios of the gases for the short wave calculation
     gas_concentrations_sw%ncol = n_day_points
@@ -351,11 +373,18 @@ module mo_rrtmgp_coupler
     ! setting the short wave optical properties of the gas phase
     call handle_error(k_dist_sw%gas_optics(pressure_rad_day(1:n_day_points,:),pressure_interface_rad_day(1:n_day_points,:), &
                                            temperature_rad_day(1:n_day_points,:),gas_concentrations_sw,atmos_props_sw,toa_flux))
+    deallocate(pressure_interface_rad_day)
+    deallocate(temperature_rad_day)
+    deallocate(pressure_rad_day)
     
     ! calculating the SW properties of the clouds
     call handle_error(cloud_optics_sw%cloud_optics(liquid_water_path_day(1:n_day_points,:),ice_water_path_day(1:n_day_points,:), &
                                                    liquid_eff_radius_day(1:n_day_points,:),ice_eff_radius_day(1:n_day_points,:), &
                                                    cloud_props_sw))
+    deallocate(liquid_water_path_day)
+    deallocate(ice_water_path_day)
+    deallocate(liquid_eff_radius_day)
+    deallocate(ice_eff_radius_day)
     
     ! this seems to have to do with scattering
     call handle_error(cloud_props_sw%delta_scale())
@@ -367,7 +396,10 @@ module mo_rrtmgp_coupler
     ! for efficiency)
     call handle_error(rte_sw(atmos_props_sw,.true.,mu_0_day(1:n_day_points),toa_flux, &
                              albedo_dir_day(:,1:n_day_points),albedo_dif_day(:,1:n_day_points),fluxes_day))
+    deallocate(albedo_dir_day)
+    deallocate(albedo_dif_day)
     deallocate(toa_flux)
+    deallocate(mu_0_day)
     
     ! short wave result (in Wm^-3)
     call calc_power_density(.true.,n_day_points,day_indices,fluxes_day,z_vector,radiation_tendency)
@@ -404,10 +436,18 @@ module mo_rrtmgp_coupler
     ! setting the long wave optical properties of the gas phase
     call handle_error(k_dist_lw%gas_optics(pressure_rad,pressure_interface_rad,temperature_rad,temp_sfc,gas_concentrations_lw, &
                                            atmos_props_lw,sources_lw,tlev=temperature_interface_rad))
+    deallocate(pressure_rad)
+    deallocate(pressure_interface_rad)
+    deallocate(temperature_rad)
+    deallocate(temperature_interface_rad)
     
     ! calculating the LW properties of the clouds
     call handle_error(cloud_optics_lw%cloud_optics(liquid_water_path,ice_water_path,liquid_eff_radius,ice_eff_radius, &
                                                    cloud_props_lw))
+    deallocate(liquid_water_path)
+    deallocate(ice_water_path)
+    deallocate(liquid_eff_radius)
+    deallocate(ice_eff_radius)
     
     ! adding the LW cloud properties to the gas properties to obtain the atmosphere's properties
     call handle_error(cloud_props_lw%increment(atmos_props_lw))
@@ -676,7 +716,6 @@ module mo_rrtmgp_coupler
     fluxes%flux_up = 0._wp
     fluxes%flux_dn = 0._wp
     fluxes%flux_net = 0._wp
-    if (associated(fluxes%flux_dn_dir)) fluxes%flux_dn_dir = 0._wp
 
   end subroutine reset_fluxes
   
@@ -689,7 +728,6 @@ module mo_rrtmgp_coupler
     if (associated(fluxes%flux_up)) deallocate(fluxes%flux_up)
     if (associated(fluxes%flux_dn)) deallocate(fluxes%flux_dn)
     if (associated(fluxes%flux_net)) deallocate(fluxes%flux_net)
-    if (associated(fluxes%flux_dn_dir)) deallocate(fluxes%flux_dn_dir)
   
   end subroutine free_fluxes
   
