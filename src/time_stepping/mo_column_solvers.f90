@@ -159,7 +159,7 @@ module mo_column_solvers
         if (z_above_damping<0._wp) then
           damping_coeff = 0._wp
         else
-          damping_coeff = klemp_damp_max*(sin(0.5_wp*M_PI*z_above_damping/(toa - damping_start_height)))**2
+          damping_coeff = klemp_damp_max*sin(0.5_wp*M_PI*z_above_damping/(toa - damping_start_height))**2
         endif
         damping_prefactor(jl) = 1._wp + dtime*damping_coeff
         d_vector(jl) = -theta_v_int_new(jl)**2*(gamma_(jl) + gamma_(jl+1)) &
