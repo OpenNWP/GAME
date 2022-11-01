@@ -6,15 +6,16 @@ module mo_momentum_diff_diss
   ! The momentum diffusion acceleration is computed here (apart from the diffusion coefficients).
 
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
-  use mo_constants,          only: EPSILON_SECURITY
+  use mo_constants,          only: EPSILON_SECURITY,M_PI
   use mo_grid_nml,           only: n_cells,n_levels,n_edges,n_layers
+  use mo_diff_nml,           only: lklemp,klemp_begin_rel,klemp_damp_max
   use mo_constituents_nml,   only: n_condensed_constituents
   use mo_inner_product,      only: inner_product
   use mo_divergences,        only: div_h,add_vertical_div
   use mo_vorticities,        only: calc_rel_vort
   use mo_gradient_operators, only: grad_hor,grad_vert
   use mo_eff_diff_coeffs,    only: hor_viscosity,vert_vert_mom_viscosity,vert_hor_mom_viscosity
-  use mo_grid_setup,         only: n_flat_layers,radius
+  use mo_grid_setup,         only: n_flat_layers,radius,toa,dtime
 
   implicit none
   
@@ -281,7 +282,43 @@ module mo_momentum_diff_diss
     type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
     type(t_grid),  intent(in)    :: grid  ! grid properties
     
-    call inner_product(state%wind_h,state%wind_v,diag%friction_acc_h,diag%friction_acc_v,diag%heating_diss,grid)
+    ! local variables
+    integer  :: ji,jl                           ! spatial indices
+    real(wp) :: damping_start_height            ! the height in which the Klemp layer begins
+    real(wp) :: z_above_damping                 ! height of a given grid point above damping_start_height
+    real(wp) :: damping_coeff,damping_prefactor ! coefficients needed for the Klemp damping layer
+    
+    ! copying the vertical diffusion acceleration into vector_placeholder_v
+    !$omp parallel workshare
+    diag%vector_placeholder_v = diag%friction_acc_v
+    !$omp end parallel workshare
+    
+    ! heating rate in the swamp layer
+    if (lklemp) then
+    
+      damping_start_height = klemp_begin_rel*toa
+    
+      !$omp parallel do private(ji,jl,z_above_damping,damping_coeff,damping_prefactor)
+      do jl=2,n_layers
+        do ji=1,n_cells
+          z_above_damping = grid%z_vector_v(ji,jl) - damping_start_height
+          if (z_above_damping<0._wp) then
+            damping_coeff = 0._wp
+          else
+            damping_coeff = klemp_damp_max*sin(0.5_wp*M_PI*z_above_damping/(toa - damping_start_height))**2
+          endif
+          damping_prefactor = 1._wp + dtime*damping_coeff
+          
+          ! adding the acceleration due to the swamp layer
+          diag%vector_placeholder_v(ji,jl) = diag%vector_placeholder_v(ji,jl) &
+                                             + (state%wind_v(ji,jl)/damping_prefactor - state%wind_v(ji,jl))/dtime
+        enddo
+      enddo
+      !$omp end parallel do
+    endif
+    
+    ! heating rate due to momentum diffusion
+    call inner_product(state%wind_h,state%wind_v,diag%friction_acc_h,diag%vector_placeholder_v,diag%heating_diss,grid)
     !$omp parallel workshare
     diag%heating_diss = -sum(state%rho(:,:,1:n_condensed_constituents+1),3)*diag%heating_diss
     !$omp end parallel workshare
@@ -289,6 +326,8 @@ module mo_momentum_diff_diss
   end subroutine simple_dissipation_rate
 
 end module mo_momentum_diff_diss
+
+
 
 
 
