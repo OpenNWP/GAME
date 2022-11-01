@@ -16,10 +16,10 @@ module mo_multiplications
     
     ! This subroutine multiplies a vector field by a scalar field at the horizontal gridpoints.
     
-    real(wp),     intent(in)    :: scalar_field(n_cells,n_layers) ! scalar field to use for the multiplication
-    real(wp),     intent(in)    :: vector_field(n_edges,n_layers) ! horizontal vector field to use for the multiplication
-    real(wp),     intent(inout) :: out_field(n_edges,n_layers)    ! resulting horizontal vector field
-    type(t_grid), intent(in)    :: grid                           ! grid quantities
+    real(wp),     intent(in)  :: scalar_field(n_cells,n_layers) ! scalar field to use for the multiplication
+    real(wp),     intent(in)  :: vector_field(n_edges,n_layers) ! horizontal vector field to use for the multiplication
+    real(wp),     intent(out) :: out_field(n_edges,n_layers)    ! resulting horizontal vector field
+    type(t_grid), intent(in)  :: grid                           ! grid quantities
     
     ! local variables
     integer  :: jl ! layer index
