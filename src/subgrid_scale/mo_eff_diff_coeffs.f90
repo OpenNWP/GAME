@@ -7,7 +7,7 @@ module mo_eff_diff_coeffs
   
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_gradient_operators, only: grad_vert
-  use mo_multiplications,    only: scalar_times_vector_v
+  use mo_multiplications,    only: scalar_times_vector_v2
   use mo_grid_nml,           only: n_cells,n_layers,n_edges,n_triangles,n_levels
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
   use mo_derived,            only: c_v_mass_weighted_air,calc_diffusion_coeff
@@ -256,7 +256,7 @@ module mo_eff_diff_coeffs
     !$omp parallel workshare
     diag%scalar_placeholder = 1._wp/diag%scalar_placeholder
     !$omp end parallel workshare
-    call scalar_times_vector_v(diag%scalar_placeholder,diag%vector_placeholder_v,diag%vector_placeholder_v)
+    call scalar_times_vector_v2(diag%scalar_placeholder,diag%vector_placeholder_v)
     
     ! multiplying by the gravity acceleration
     !$omp parallel workshare
