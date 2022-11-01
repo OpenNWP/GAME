@@ -102,12 +102,7 @@ module mo_manage_pchevi
 
       ! 3.) vertical sound wave solver
       ! ------------------------------
-      if (rk_step==1) then
-        call three_band_solver_ver_waves(state_old,state_old,state_new,state_tend,diag,grid,rk_step)
-      endif
-      if (rk_step==2) then
-        call three_band_solver_ver_waves(state_old,state_new,state_new,state_tend,diag,grid,rk_step)
-      endif
+      call three_band_solver_ver_waves(state_old,state_new,state_tend,diag,grid,rk_step)
       
       ! 4.) vertical tracer advection
       ! -----------------------------

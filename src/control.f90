@@ -451,7 +451,7 @@ program control
   ! Preparation of the actual integration.
   ! --------------------------------------
   wind_lowest_layer_step_counter = 1
-  call linear_combine_two_states(state_1,state_1,state_2,1._wp,0._wp,grid)
+  state_2 = state_1
   
   ! This is the loop over the time steps.
   ! -------------------------------------
