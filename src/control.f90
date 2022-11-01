@@ -451,7 +451,9 @@ program control
   ! Preparation of the actual integration.
   ! --------------------------------------
   wind_lowest_layer_step_counter = 1
+  !$omp parallel workshare
   state_2 = state_1
+  !$omp end parallel workshare
   
   ! This is the loop over the time steps.
   ! -------------------------------------
