@@ -474,12 +474,12 @@ module mo_rrtmgp_coupler
   
     ! This subroutine is essentially the negative vertical divergence operator.
     
+    integer,                   intent(in)    :: n_cells_rad                              ! number of columns of the radiation domain
     logical,                   intent(in)    :: day_only                                 ! true for short wave calculations (for efficiency)
     integer,                   intent(in)    :: n_day_points                             ! as usual
     integer,                   intent(in)    :: day_indices(n_cells_rad)                 ! the indices of the columns where it is day
     type(ty_fluxes_broadband), intent(in)    :: fluxes                                   ! the fluxes object based on which to compute the power density
     real(wp),                  intent(in)    :: z_vector(n_cells_rad,n_levels)           ! as usual
-    integer,                   intent(in)    :: n_cells_rad                              ! number of columns of the radiation domain
     real(wp),                  intent(inout) :: radiation_tendency(n_cells_rad,n_layers) ! the result (in W/m**3)
   
     ! local variables
@@ -610,12 +610,12 @@ module mo_rrtmgp_coupler
     
     ! This subroutine computes volume mixing ratios based on the model variables.
     
+    integer,            intent(in)    :: n_cells_rad                              ! number of columns of the radiation domain
     real(wp),           intent(in)    :: rho(n_cells_rad,n_layers,n_constituents) ! mass densities of the constituents
     logical,            intent(in)    :: sw_bool                                  ! short wave switch
     integer,            intent(in)    :: n_day_points                             ! number of points where it is day
     integer,            intent(in)    :: day_indices(n_cells_rad)                 ! the indices of the points where it is day
     real(wp),           intent(in)    :: z_scalar(n_cells_rad,n_layers)           ! z coordinates of scalar data points
-    integer,            intent(in)    :: n_cells_rad                              ! number of columns of the radiation domain
     type(ty_gas_concs), intent(inout) :: gas_concentrations                       ! object holding gas concentrations
     
     ! local variables

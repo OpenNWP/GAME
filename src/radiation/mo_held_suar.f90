@@ -16,11 +16,11 @@ module mo_held_suarez
 
   subroutine held_suar(latitude_scalar,mass_densities,temperature_gas,n_cells_rad,radiation_tendency)
   
+    integer,  intent(in)  :: n_cells_rad                                         ! number of columns of the given radiation slice
     real(wp), intent(in)  :: latitude_scalar(n_cells_rad)                        ! latitudes of the scalar grid points in this radiation block
     real(wp), intent(in)  :: mass_densities(n_cells_rad,n_layers,n_constituents) ! mass densities in this radiation block
     real(wp), intent(in)  :: temperature_gas(n_cells_rad,n_layers)               ! temperature of the gas phase in this radiation block
     real(wp), intent(out) :: radiation_tendency(n_cells_rad,n_layers)            ! resulting heating rate in W/m**3
-    integer,  intent(in)  :: n_cells_rad                                         ! number of columns of the given radiation slice
     
     ! local variables
     integer  :: ji       ! horizontal index
