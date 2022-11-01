@@ -107,7 +107,7 @@ if (FAST)
   set_source_files_properties(../rte-rrtmgp/examples/all-sky/mo_load_cloud_coefficients.F90 PROPERTIES COMPILE_OPTIONS "-O3")
 # default optimization
 else()
-  SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -O2 -ftree-vectorize -funroll-loops -Wall -Wpedantic -Wno-c-binding-type -I/usr/include -L/usr/lib/x86_64-linux-gnu")
+  SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -O2 -ftree-vectorize -funroll-loops -Wall -Wno-c-binding-type -I/usr/include -L/usr/lib/x86_64-linux-gnu")
 endif()
 # switching on debugging options
 if(DEBUGGING)
