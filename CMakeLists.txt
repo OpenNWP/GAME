@@ -123,7 +123,6 @@ if(SINGLE_PRECISION)
 endif()
 
 # OpenMP is disabled for RTE+RRTMGP
-set_source_files_properties(src/io/mo_write_out.f90 PROPERTIES COMPILE_OPTIONS "-fno-openmp -fno-openacc")
 set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_gas_optics.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
 set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_gas_optics.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
 set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_gas_optics_rrtmgp.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
