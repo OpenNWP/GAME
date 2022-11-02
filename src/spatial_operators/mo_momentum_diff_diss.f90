@@ -15,7 +15,7 @@ module mo_momentum_diff_diss
   use mo_vorticities,        only: calc_rel_vort
   use mo_gradient_operators, only: grad_hor,grad_vert
   use mo_eff_diff_coeffs,    only: hor_viscosity,vert_vert_mom_viscosity,vert_hor_mom_viscosity
-  use mo_grid_setup,         only: n_flat_layers,radius,toa,dtime
+  use mo_grid_setup,         only: n_flat_layers,radius,toa,dtime,n_damping_levels
 
   implicit none
   
@@ -299,7 +299,7 @@ module mo_momentum_diff_diss
       damping_start_height = klemp_begin_rel*toa
     
       !$omp parallel do private(ji,jl,z_above_damping,damping_coeff,damping_prefactor)
-      do jl=2,n_layers
+      do jl=2,n_damping_levels
         do ji=1,n_cells
           z_above_damping = grid%z_vector_v(ji,jl) - damping_start_height
           if (z_above_damping<0._wp) then

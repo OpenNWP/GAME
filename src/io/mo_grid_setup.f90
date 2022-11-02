@@ -9,6 +9,7 @@ module mo_grid_setup
   use mo_constants,       only: t_0,r_e,M_PI
   use mo_definitions,     only: wp,t_grid
   use mo_grid_nml,        only: n_layers,n_cells,oro_id,res_id,n_levels
+  use mo_diff_nml,        only: klemp_begin_rel
   use mo_surface_nml,     only: nsoillays
   use mo_various_helpers, only: int2string,nc_check
 
@@ -25,6 +26,7 @@ module mo_grid_setup
   real(wp) :: mean_velocity_area   ! the area that can be attributed to one horizontal vector grid point
   real(wp) :: eff_hor_res          ! effective horizontal resolution
   real(wp) :: z_t_const            ! soil depth of constant temperature
+  integer  :: n_damping_levels     ! number of levels in which the swamp layer is active
   
   contains
   
@@ -164,6 +166,16 @@ module mo_grid_setup
     !$omp parallel do private(jl)
     do jl=1,n_layers
       grid%layer_thickness(:,jl) = grid%z_vector_v(:,jl) - grid%z_vector_v(:,jl+1)
+    enddo
+    !$omp end parallel do
+    
+    ! calculating n_damping_layers
+    n_damping_levels = 0
+    !$omp parallel do private(jl)
+    do jl=1,n_levels
+      if (maxval(grid%z_vector_v(:,jl))>klemp_begin_rel*toa) then
+        n_damping_levels = n_damping_levels + 1
+      endif
     enddo
     !$omp end parallel do
     
