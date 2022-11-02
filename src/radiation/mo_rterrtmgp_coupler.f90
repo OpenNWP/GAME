@@ -353,7 +353,6 @@ module mo_rrtmgp_coupler
     deallocate(albedo_dif)
     
     ! setting the volume mixing ratios of the gases for the short wave calculation
-    gas_concentrations_sw%ncol = n_day_points
     call set_vol_mix_ratios(rho,.true.,n_day_points,day_indices,z_scalar,n_cells_rad,gas_concentrations_sw)
     
     ! initializing the short wave fluxes

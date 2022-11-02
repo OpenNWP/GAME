@@ -6,6 +6,10 @@ set(version_major 0)
 set(version_minor 1)
 set(version_patch 1)
 set(version ${version_major}.${version_minor}.${version_patch})
+
+# root directory of RTE+RRTMGP
+set(rrtmgp_home "../rte-rrtmgp")
+
 project(game VERSION ${version})
 enable_language(Fortran)
 add_executable(
@@ -54,10 +58,8 @@ shared/mo_various_helpers.f90
 ../rte-rrtmgp/rrtmgp/mo_gas_optics_rrtmgp.F90
 ../rte-rrtmgp/rrtmgp/mo_rrtmgp_constants.F90
 ../rte-rrtmgp/rrtmgp/mo_rrtmgp_util_string.F90
-../rte-rrtmgp/rrtmgp/mo_rrtmgp_util_reorder.F90
 ../rte-rrtmgp/rrtmgp/mo_gas_concentrations.F90
 ../rte-rrtmgp/rrtmgp/kernels/mo_gas_optics_kernels.F90
-../rte-rrtmgp/rrtmgp/kernels/mo_rrtmgp_util_reorder_kernels.F90
 ../rte-rrtmgp/rte/mo_rte_lw.F90
 ../rte-rrtmgp/rte/mo_rte_sw.F90
 ../rte-rrtmgp/rte/mo_fluxes.F90
@@ -79,32 +81,30 @@ find_package(OpenMP)
 # aggressive optimization
 if (FAST)
   SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -Ofast -ftree-vectorize -funroll-loops -Wall -Wno-c-binding-type -I/usr/include -L/usr/lib/x86_64-linux-gnu")
-  set_source_files_properties(src/io/mo_write_output.f90 PROPERTIES COMPILE_OPTIONS "-O2")
-  set_source_files_properties(../rte-rrtmgp/rrtmgp/mo_gas_optics.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rrtmgp/mo_gas_optics.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rrtmgp/mo_gas_optics_rrtmgp.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rrtmgp/mo_rrtmgp_constants.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rrtmgp/mo_rrtmgp_util_string.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rrtmgp/mo_rrtmgp_util_reorder.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rrtmgp/mo_gas_concentrations.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rrtmgp/kernels/mo_gas_optics_kernels.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rrtmgp/kernels/mo_rrtmgp_util_reorder_kernels.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rte/mo_rte_lw.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rte/mo_rte_sw.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rte/mo_fluxes.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rte/mo_optical_props.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rte/mo_rte_config.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rte/mo_rte_kind.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rte/mo_source_functions.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rte/mo_rte_util_array.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rte/kernels/mo_fluxes_broadband_kernels.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rte/kernels/mo_optical_props_kernels.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/rte/kernels/mo_rte_solver_kernels.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/extensions/mo_fluxes_byband.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/extensions/cloud_optics/mo_cloud_optics.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/examples/mo_load_coefficients.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/examples/mo_simple_netcdf.F90 PROPERTIES COMPILE_OPTIONS "-O3")
-  set_source_files_properties(../rte-rrtmgp/examples/all-sky/mo_load_cloud_coefficients.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(src/io/mo_write_out.f90 PROPERTIES COMPILE_OPTIONS "-O2")
+  set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_gas_optics.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_gas_optics.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_gas_optics_rrtmgp.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_rrtmgp_constants.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_rrtmgp_util_string.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_gas_concentrations.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rrtmgp/kernels/mo_gas_optics_kernels.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rte/mo_rte_lw.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rte/mo_rte_sw.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rte/mo_fluxes.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rte/mo_optical_props.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rte/mo_rte_config.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rte/mo_rte_kind.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rte/mo_source_functions.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rte/mo_rte_util_array.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rte/kernels/mo_fluxes_broadband_kernels.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rte/kernels/mo_optical_props_kernels.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/rte/kernels/mo_rte_solver_kernels.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/extensions/mo_fluxes_byband.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/extensions/cloud_optics/mo_cloud_optics.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/examples/mo_load_coefficients.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/examples/mo_simple_netcdf.F90 PROPERTIES COMPILE_OPTIONS "-O3")
+  set_source_files_properties(${rrtmgp_home}/examples/all-sky/mo_load_cloud_coefficients.F90 PROPERTIES COMPILE_OPTIONS "-O3")
 # default optimization
 else()
   SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -O2 -ftree-vectorize -funroll-loops -Wall -Wno-c-binding-type -I/usr/include -L/usr/lib/x86_64-linux-gnu")
@@ -121,6 +121,33 @@ endif()
 if(SINGLE_PRECISION)
   SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DSINGLE_PRECISION")
 endif()
+
+# OpenMP is disabled for RTE+RRTMGP
+set_source_files_properties(src/io/mo_write_out.f90 PROPERTIES COMPILE_OPTIONS "-fno-openmp -fno-openacc")
+set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_gas_optics.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_gas_optics.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_gas_optics_rrtmgp.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_rrtmgp_constants.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_rrtmgp_util_string.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_gas_concentrations.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rrtmgp/kernels/mo_gas_optics_kernels.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rte/mo_rte_lw.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rte/mo_rte_sw.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rte/mo_fluxes.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rte/mo_optical_props.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rte/mo_rte_config.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rte/mo_rte_kind.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rte/mo_source_functions.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rte/mo_rte_util_array.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rte/kernels/mo_fluxes_broadband_kernels.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rte/kernels/mo_optical_props_kernels.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/rte/kernels/mo_rte_solver_kernels.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/extensions/mo_fluxes_byband.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/extensions/cloud_optics/mo_cloud_optics.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/examples/mo_load_coefficients.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/examples/mo_simple_netcdf.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+set_source_files_properties(${rrtmgp_home}/examples/all-sky/mo_load_cloud_coefficients.F90 PROPERTIES COMPILE_OPTIONS "-fno-openmp")
+
 target_link_libraries(game netcdff)
 
 
