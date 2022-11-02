@@ -46,6 +46,7 @@ module mo_grid_setup
                           lat_c_id,lon_c_id,toa_id,radius_id,interpol_indices_id,dz_id, &
                           interpol_weights_id,theta_v_bg_id,exner_bg_id,sfc_rho_c_id,sfc_albedo_id,roughness_length_id, &
                           is_land_id,t_conductivity_id,n_oro_layers_id,stretching_parameter_id,ji,jl,z_vector_dual_v_id
+    real(wp)           :: max_z ! helper variable
     real(wp)           :: sigma_soil,rescale_factor
     character(len=128) :: grid_file_name
     
@@ -171,13 +172,14 @@ module mo_grid_setup
     
     ! calculating n_damping_layers
     n_damping_levels = 0
-    !$omp parallel do private(jl)
     do jl=1,n_levels
-      if (maxval(grid%z_vector_v(:,jl))>klemp_begin_rel*toa) then
+      !$omp parallel workshare
+      max_z = maxval(grid%z_vector_v(:,jl))
+      !$omp end parallel workshare
+      if (max_z>klemp_begin_rel*toa) then
         n_damping_levels = n_damping_levels + 1
       endif
     enddo
-    !$omp end parallel do
     
     ! fundamental SFC properties
     z_t_const = -10._wp
