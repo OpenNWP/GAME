@@ -219,8 +219,9 @@ module mo_discrete_coordinate_trafos
   
     ! This subroutine computes the index on face of a triangle from its discrete coordinates.
     
-    integer, intent(in) :: coord_1,coord_2
-    integer             :: find_triangle_on_face_index_from_coords
+    integer, intent(in) :: coord_1                                 ! coordinate along left edge of the basic icosahedron
+    integer, intent(in) :: coord_2                                 ! coordinate along lower edge of the basic icosahedron
+    integer             :: find_triangle_on_face_index_from_coords ! the result
     
     ! local variables
     integer :: i,coord_1_points_amount,points_per_edge
@@ -243,8 +244,8 @@ module mo_discrete_coordinate_trafos
     
     ! This function returns the points per edge (centers of hexagons) given a certain resolution ID.
     
-    integer, intent(in) :: res_id_local
-    integer             :: find_points_per_edge
+    integer, intent(in) :: res_id_local         ! the resolution ID to work with
+    integer             :: find_points_per_edge ! the result
     
     find_points_per_edge = 2**res_id_local-1
     
@@ -255,8 +256,8 @@ module mo_discrete_coordinate_trafos
     ! This function returns the number of scalar data points (centers of hexagons) in the inner of a face
     ! of the icosahedron given a certain resolution ID.
     
-    integer, intent(in) :: res_id_local
-    integer             :: find_scalar_points_per_inner_face
+    integer, intent(in) :: res_id_local                      ! the resolution ID to work with
+    integer             :: find_scalar_points_per_inner_face ! the result
     
     find_scalar_points_per_inner_face = ((2**res_id_local-2)*(2**res_id_local-1))/2
     
@@ -266,8 +267,9 @@ module mo_discrete_coordinate_trafos
     
     ! This function converts an index of a scalar data point to a higher resolution ID.
     
-    integer, intent(in) :: res_id_local,old_index
-    integer             :: upscale_scalar_point
+    integer, intent(in) :: res_id_local         ! the lower resolution ID
+    integer, intent(in) :: old_index            ! the index of the scalar data point in the coarse resolution
+    integer             :: upscale_scalar_point ! the result
     
     ! local variables
     integer ::  edge_index,face_index,points_per_edge,on_edge_index,scalar_points_per_inner_face, &
