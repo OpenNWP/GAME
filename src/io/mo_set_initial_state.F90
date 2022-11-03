@@ -72,8 +72,8 @@ module mo_set_initial_state
     ! 3D scalar fields are determined here apart from the density
     !$omp parallel do private(ji,jl,lat,lon,z_height,dry_density,specific_humidity,dummy_1,dummy_2,dummy_3,dummy_4, &
     !$omp dummy_5,dummy_6,dummy_7)
-    do ji=1,n_cells
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_cells
         lat = grid%lat_c(ji)
         lon = grid%lon_c(ji)
         z_height = grid%z_scalar(ji,jl)
@@ -103,8 +103,8 @@ module mo_set_initial_state
     ! resricting the maximum relative humidity to 100 %
     if (lmoist) then
       !$omp parallel do private(ji,jl)
-      do ji=1,n_cells
-        do jl=1,n_layers
+      do jl=1,n_layers
+        do ji=1,n_cells
           if (rel_humidity(water_vapour_density(ji,jl),temperature(ji,jl))>1._wp) then
             water_vapour_density(ji,jl) = water_vapour_density(ji,jl) &
                                           /rel_humidity(water_vapour_density(ji,jl),temperature(ji,jl))
@@ -125,8 +125,8 @@ module mo_set_initial_state
     call nc_check(nf90_get_var(ncid_grid,lon_e_id,lon_e))
     call nc_check(nf90_close(ncid_grid))
     !$omp parallel do private(ji,jl,lat,lon,z_height,u,v,dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
-    do ji=1,n_edges
-      do jl=1,n_layers
+    do jl=1,n_layers
+      do ji=1,n_edges
         lat = lat_e(ji)
         lon = lon_e(ji)
         z_height = grid%z_vector_h(ji,jl)
