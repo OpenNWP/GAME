@@ -14,46 +14,46 @@ project(game VERSION ${version})
 enable_language(Fortran)
 add_executable(
 game
-src/control.f90
-src/mo_constants.f90
+src/control.F90
+src/mo_constants.F90
 src/mo_definitions.F90
-src/namelists/mo_run_nml.f90
-src/namelists/mo_rad_nml.f90
+src/namelists/mo_run_nml.F90
+src/namelists/mo_rad_nml.F90
 src/namelists/mo_constituents_nml.F90
-src/namelists/mo_diff_nml.f90
-src/namelists/mo_surface_nml.f90
-src/namelists/mo_io_nml.f90
+src/namelists/mo_diff_nml.F90
+src/namelists/mo_surface_nml.F90
+src/namelists/mo_io_nml.F90
 src/namelists/mo_grid_nml.F90
-src/time_stepping/mo_manage_pchevi.f90
-src/time_stepping/mo_pgrad.f90
-src/time_stepping/mo_vector_tend_expl.f90
-src/time_stepping/mo_scalar_tend_expl.f90
-src/time_stepping/mo_column_solvers.f90
-src/spatial_operators/mo_vorticity_flux.f90
-src/spatial_operators/mo_vorticities.f90
-src/spatial_operators/mo_momentum_diff_diss.f90
-src/spatial_operators/mo_divergences.f90
-src/spatial_operators/mo_multiplications.f90
-src/spatial_operators/mo_gradient_operators.f90
-src/spatial_operators/mo_inner_product.f90
-src/spatial_operators/mo_averaging.f90
-src/spatial_operators/mo_linear_combination.f90
-src/io/mo_set_initial_state.f90
-src/io/mo_write_output.f90
-src/io/mo_grid_setup.f90
-src/io/mo_spatial_ops_for_output.f90
-src/io/baroclinic_wave_test.f90
-src/subgrid_scale/mo_eff_diff_coeffs.f90
-src/subgrid_scale/mo_tke.f90
-src/subgrid_scale/mo_pbl.f90
-src/radiation/mo_manage_radiation_calls.f90
-src/radiation/mo_held_suar.f90
-src/radiation/mo_rterrtmgp_coupler.f90
-src/constituents/mo_phase_trans.f90
-src/constituents/mo_dictionary.f90
-src/constituents/mo_derived.f90
-shared/mo_geodesy.f90
-shared/mo_various_helpers.f90
+src/time_stepping/mo_manage_pchevi.F90
+src/time_stepping/mo_pgrad.F90
+src/time_stepping/mo_vector_tend_expl.F90
+src/time_stepping/mo_scalar_tend_expl.F90
+src/time_stepping/mo_column_solvers.F90
+src/spatial_operators/mo_vorticity_flux.F90
+src/spatial_operators/mo_vorticities.F90
+src/spatial_operators/mo_momentum_diff_diss.F90
+src/spatial_operators/mo_divergences.F90
+src/spatial_operators/mo_multiplications.F90
+src/spatial_operators/mo_gradient_operators.F90
+src/spatial_operators/mo_inner_product.F90
+src/spatial_operators/mo_averaging.F90
+src/spatial_operators/mo_linear_combination.F90
+src/io/mo_set_initial_state.F90
+src/io/mo_write_output.F90
+src/io/mo_grid_setup.F90
+src/io/mo_spatial_ops_for_output.F90
+src/io/baroclinic_wave_test.F90
+src/subgrid_scale/mo_eff_diff_coeffs.F90
+src/subgrid_scale/mo_tke.F90
+src/subgrid_scale/mo_pbl.F90
+src/radiation/mo_manage_radiation_calls.F90
+src/radiation/mo_held_suar.F90
+src/radiation/mo_rterrtmgp_coupler.F90
+src/constituents/mo_phase_trans.F90
+src/constituents/mo_dictionary.F90
+src/constituents/mo_derived.F90
+shared/mo_geodesy.F90
+shared/mo_various_helpers.F90
 ${rrtmgp_home}/rrtmgp/mo_gas_optics.F90
 ${rrtmgp_home}/rrtmgp/mo_gas_optics_rrtmgp.F90
 ${rrtmgp_home}/rrtmgp/mo_rrtmgp_constants.F90
@@ -81,7 +81,7 @@ find_package(OpenMP)
 # aggressive optimization
 if (FAST)
   SET(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS} -Ofast -ftree-vectorize -funroll-loops -Wall -Wno-c-binding-type -I/usr/include -L/usr/lib/x86_64-linux-gnu")
-  set_source_files_properties(src/io/mo_write_out.f90 PROPERTIES COMPILE_OPTIONS "-O2")
+  set_source_files_properties(src/io/mo_write_out.F90 PROPERTIES COMPILE_OPTIONS "-O2")
   set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_gas_optics.F90 PROPERTIES COMPILE_OPTIONS "-O3")
   set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_gas_optics.F90 PROPERTIES COMPILE_OPTIONS "-O3")
   set_source_files_properties(${rrtmgp_home}/rrtmgp/mo_gas_optics_rrtmgp.F90 PROPERTIES COMPILE_OPTIONS "-O3")
