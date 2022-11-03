@@ -44,7 +44,7 @@ Everything is easy and quick to install.
 
 	sudo apt-get install gfortran make cmake wget python3-pip libnetcdff-dev
 
-* Clone our fork of the RTE+RRTMGP repository: `git clone https://github.com/OpenNWP/rte-rrtmgp`
+* Clone the RTE+RRTMGP repository: `git clone https://github.com/earth-system-radiation/rte-rrtmgp`
 * `pip3 install global-land-mask netCDF4`
 
 #### For using the plotting routines
