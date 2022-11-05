@@ -57,8 +57,10 @@ module mo_write_output
                              min_precip_rate_mmh,min_precip_rate,cloud_water2cloudiness,temp_lowest_layer, &
                              pressure_value,mslp_factor,sp_factor,temp_mslp,temp_surface,z_height,theta_v, &
                              cape_integrand,delta_z,temp_closest,temp_second_closest,delta_z_temp,temperature_gradient, &
-                             theta_e,u_850_surrogate,u_950_surrogate,u_850_proxy_height,u_950_proxy_height, &
-                             wind_tangential,wind_u_value,wind_v_value
+                             theta_e,u_850_surrogate,u_950_surrogate,u_850_proxy_height,u_950_proxy_height
+    real(wp)              :: wind_tangential                  ! tangential wind value
+    real(wp)              :: wind_u_value                     ! zonal wind value
+    real(wp)              :: wind_v_value                     ! meridional wind value
     real(wp)              :: roughness_length_extrapolation   ! roughness length used for calculating the wind in 10 m height
     real(wp)              :: actual_roughness_length          ! roughness length at a gridpoint
     real(wp)              :: z_sfc                            ! surface height at a cell center
