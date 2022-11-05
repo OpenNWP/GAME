@@ -47,7 +47,7 @@ module mo_gradient_operators
     ! local variables
     integer :: jl ! layer index
     
-    ! loop over the inner grid points
+    ! loop over the inner gridpoints
     !$omp parallel do private(jl)
     do jl=2,n_layers
       out_field(:,jl) = (in_field(:,jl-1) - in_field(:,jl))/grid%dz(:,jl)

@@ -285,7 +285,7 @@ module mo_momentum_diff_diss
     ! local variables
     integer  :: ji,jl                           ! spatial indices
     real(wp) :: damping_start_height            ! the height in which the Klemp layer begins
-    real(wp) :: z_above_damping                 ! height of a given grid point above damping_start_height
+    real(wp) :: z_above_damping                 ! height of a given gridpoint above damping_start_height
     real(wp) :: damping_coeff,damping_prefactor ! coefficients needed for the Klemp damping layer
     
     ! copying the vertical diffusion acceleration into vector_placeholder_v

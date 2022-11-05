@@ -413,7 +413,7 @@ module mo_set_initial_state
         
         ! loop over all soil layers
         do jl=1,nsoillays
-          ! index of this soil grid point
+          ! index of this soil gridpoint
           z_soil = z_t_const/nsoillays*(0.5_wp+jl-1)
           state%temperature_soil(ji,jl) = t_sfc + (grid%t_const_soil(ji) - t_sfc)*z_soil/z_t_const
         enddo

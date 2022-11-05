@@ -73,7 +73,7 @@ module mo_definitions
     real(wp), allocatable :: z_vector_dual_h(:,:)             ! z-coordinates of the horizontal dual vectors
     real(wp), allocatable :: z_vector_dual_v(:,:)             ! z-coordinates of the vertical dual vectors
     real(wp), allocatable :: dy(:,:)                          ! tangential grid distances
-    real(wp), allocatable :: dz_dual(:,:)                     ! vertical grid point distances of the dual grid
+    real(wp), allocatable :: dz_dual(:,:)                     ! vertical gridpoint distances of the dual grid
     integer,  allocatable :: from_cell_dual(:)                ! neighbouring cell of a dual edge in opposite direction of the vector
     integer,  allocatable :: to_cell_dual(:)                  ! neighbouring cell of a dual edge in opposite direction of the vector
     integer,  allocatable :: vorticity_indices_triangles(:,:) ! indices for computing the triangles at the edges

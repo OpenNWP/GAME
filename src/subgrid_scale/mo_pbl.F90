@@ -143,7 +143,7 @@ module mo_pbl
     !$omp dz,dtheta_v_dz,w_pert,theta_v_pert_value,w_pert_theta_v_pert_avg)
     do ji=1,n_cells
     
-      ! computing the height of the grid point above the surface
+      ! computing the height of the gridpoint above the surface
       z_agl = grid%z_scalar(ji,n_layers) - grid%z_vector_v(ji,n_levels)
       
       ! wind speed in the lowest layer

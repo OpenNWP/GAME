@@ -58,9 +58,16 @@ module mo_write_output
                              pressure_value,mslp_factor,sp_factor,temp_mslp,temp_surface,z_height,theta_v, &
                              cape_integrand,delta_z,temp_closest,temp_second_closest,delta_z_temp,temperature_gradient, &
                              theta_e,u_850_surrogate,u_950_surrogate,u_850_proxy_height,u_950_proxy_height, &
-                             wind_tangential,wind_u_value,wind_v_value, &
-                             roughness_length_extrapolation,actual_roughness_length,z_sfc,z_agl,rescale_factor, &
-                             cloud_water_content,vector_to_minimize(n_layers),closest_weight,z_tropopause
+                             wind_tangential,wind_u_value,wind_v_value
+    real(wp)              :: roughness_length_extrapolation   ! roughness length used for calculating the wind in 10 m height
+    real(wp)              :: actual_roughness_length          ! roughness length at a gridpoint
+    real(wp)              :: z_sfc                            ! surface height at a cell center
+    real(wp)              :: z_agl                            ! height above ground level of a gridpoint
+    real(wp)              :: rescale_factor                   ! factor used for calculating the wind in 10 m height
+    real(wp)              :: cloud_water_content              ! cloud water content in a column (kg/m**2)
+    real(wp)              :: vector_to_minimize(n_layers)     ! vector used for calculating the vertical interpolation
+    real(wp)              :: closest_weight                   ! vertical interpolation weight
+    real(wp)              :: z_tropopause                     ! height of the tropopause
     real(wp), allocatable :: wind_10_m_mean_u(:)              ! 10 m zonal wind to be written out
     real(wp), allocatable :: wind_10_m_mean_v(:)              ! 10 m meridional wind to be written out
     real(wp), allocatable :: mslp(:)                          ! mean sea level pressure to be written out

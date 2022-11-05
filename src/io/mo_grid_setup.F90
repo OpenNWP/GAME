@@ -23,7 +23,7 @@ module mo_grid_setup
   real(wp) :: stretching_parameter ! vertical grid stretching parameter
   real(wp) :: radius_rescale       ! radius rescaling factor
   real(wp) :: radius               ! radius of the planet to construct the grid for
-  real(wp) :: mean_velocity_area   ! the area that can be attributed to one horizontal vector grid point
+  real(wp) :: mean_velocity_area   ! the area that can be attributed to one horizontal vector gridpoint
   real(wp) :: eff_hor_res          ! effective horizontal resolution
   real(wp) :: z_t_const            ! soil depth of constant temperature
   integer  :: n_damping_levels     ! number of levels in which the swamp layer is active
