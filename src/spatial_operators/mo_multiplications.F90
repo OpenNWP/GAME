@@ -92,8 +92,8 @@ module mo_multiplications
     real(wp), intent(out) :: out_field(n_cells,n_levels)    ! result
     
     ! local variables
-    integer  :: ji           ! cell index
-    integer  :: jl           ! layer index
+    integer  :: ji ! cell index
+    integer  :: jl ! layer index
     
     !$omp parallel do private(ji,jl)
     do jl=2,n_layers
@@ -113,8 +113,8 @@ module mo_multiplications
     real(wp), intent(inout) :: vector_field(n_cells,n_levels) ! vertical vector field to use for the multiplication (and to write the result to)
     
     ! local variables
-    integer  :: ji           ! cell index
-    integer  :: jl           ! layer index
+    integer  :: ji ! cell index
+    integer  :: jl ! layer index
     
     !$omp parallel do private(ji,jl)
     do jl=2,n_layers
