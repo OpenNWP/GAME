@@ -42,7 +42,7 @@ module mo_write_output
     logical,       intent(in)    :: ltotally_first_step                                        ! switch indicating the very first step of the model run
   
     ! local variables
-    logical               :: lcontains_nan
+    logical               :: lcontains_nan            ! boolean indicating the presence of NaNs in the output, leading to a model crash
     integer               :: ji,jl,jm,lat_lon_dimids(2),ncid,single_int_dimid,lat_dimid,lon_dimid,start_date_id,start_hour_id, &
                              lat_id,lon_id,closest_index,second_closest_index,temperature_ids(n_layers), &
                              pressure_ids(n_layers),rel_hum_ids(n_layers),wind_u_ids(n_layers),wind_v_ids(n_layers), &
@@ -62,18 +62,24 @@ module mo_write_output
                              roughness_length_extrapolation,actual_roughness_length,z_sfc,z_agl,rescale_factor, &
                              cloud_water_content,vector_to_minimize(n_layers),closest_weight,z_tropopause, &
                              standard_vert_lapse_rate
-    real(wp), allocatable :: wind_10_m_mean_u(:) ! 10 m zonal wind to be written out
-    real(wp), allocatable :: wind_10_m_mean_v(:) ! 10 m meridional wind to be written out
-    real(wp), allocatable :: mslp(:)             ! mean sea level pressure to be written out
-    real(wp), allocatable :: sp(:)               ! surface pressure to be written out
-    real(wp), allocatable :: t2(:)               ! 2 m temperature to be written out
-    real(wp), allocatable :: tcc(:)              ! total cloud cover to be written out
-    real(wp), allocatable :: rprate(:)           ! liquid precipitation rate to be written out
-    real(wp), allocatable :: sprate(:)           ! solid precipitation rate to be written out
-    real(wp), allocatable :: cape(:)             ! CAPE to be written out
-    real(wp), allocatable :: sfc_sw_down(:),geopotential_height(:,:),t_on_p_levels(:,:),rh_on_p_levels(:,:), &
-                             epv_on_p_levels(:,:),u_on_p_levels(:,:),v_on_p_levels(:,:),zeta_on_p_levels(:,:), &
-                             wind_10_m_mean_u_at_cell(:),wind_10_m_mean_v_at_cell(:),wind_10_m_gusts_speed_at_cell(:), &
+    real(wp), allocatable :: wind_10_m_mean_u(:)      ! 10 m zonal wind to be written out
+    real(wp), allocatable :: wind_10_m_mean_v(:)      ! 10 m meridional wind to be written out
+    real(wp), allocatable :: mslp(:)                  ! mean sea level pressure to be written out
+    real(wp), allocatable :: sp(:)                    ! surface pressure to be written out
+    real(wp), allocatable :: t2(:)                    ! 2 m temperature to be written out
+    real(wp), allocatable :: tcc(:)                   ! total cloud cover to be written out
+    real(wp), allocatable :: rprate(:)                ! liquid precipitation rate to be written out
+    real(wp), allocatable :: sprate(:)                ! solid precipitation rate to be written out
+    real(wp), allocatable :: cape(:)                  ! CAPE to be written out
+    real(wp), allocatable :: sfc_sw_down(:)           ! surface downward shortwave radiation power flux density (W/m**2) to be written out
+    real(wp), allocatable :: geopotential_height(:,:) ! gepotential height on pressure levels to be written out
+    real(wp), allocatable :: t_on_p_levels(:,:)       ! temperature on pressure levels to be written out
+    real(wp), allocatable :: rh_on_p_levels(:,:)      ! relative humidity on pressure levels to be written out
+    real(wp), allocatable :: epv_on_p_levels(:,:)     ! Ertel's potential vorticity on pressure levels to be written out
+    real(wp), allocatable :: u_on_p_levels(:,:)       ! zonal wind on pressure levels to be written out
+    real(wp), allocatable :: v_on_p_levels(:,:)       ! meridional wind on pressure levels to be written out
+    real(wp), allocatable :: zeta_on_p_levels(:,:)    ! relative vorticity on pressure levels to be written out
+    real(wp), allocatable :: wind_10_m_mean_u_at_cell(:),wind_10_m_mean_v_at_cell(:),wind_10_m_gusts_speed_at_cell(:), &
                              div_h_all_layers(:,:),rel_vort_scalar_field(:,:),rh(:,:),epv(:,:),pressure(:,:), &
                              lat_lon_output_field(:,:),u_at_cell(:,:),v_at_cell(:,:),u_at_edge(:,:),v_at_edge(:,:)
     character(len=64)     :: output_file,output_file_p_level,varname
