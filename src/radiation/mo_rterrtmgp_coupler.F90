@@ -60,11 +60,11 @@ module mo_rrtmgp_coupler
                                              sfc_albedo,n_cells_rad,time_coord)
   
     ! This is the subroutine that is called by the dynamical core. The dycore hands over
-    ! the thermodynamic state as well as meta data (time stamp, coordinates) and gets
+    ! the thermodynamic state as well as meta data (timestamp, coordinates) and gets
     ! back radiative flux convergences in W/m^3.
     
     integer,  intent(in)  :: n_cells_rad                              ! number of columns of the radiation domain
-    real(wp), intent(in)  :: time_coord                               ! the time coordinate (UTC time stamp)
+    real(wp), intent(in)  :: time_coord                               ! the time coordinate (UTC timestamp)
     real(wp), intent(in)  :: latitude_scalar(n_cells_rad)             ! the latitude coordinates of the scalar data points
     real(wp), intent(in)  :: longitude_scalar(n_cells_rad)            ! the longitude coordinates of the scalar data points
     real(wp), intent(in)  :: z_scalar(n_cells_rad,n_layers)           ! the vertical positions of the scalar data points
@@ -528,7 +528,7 @@ module mo_rrtmgp_coupler
   
     real(wp), intent(in) :: lat ! the latitude of the place we look at
     real(wp), intent(in) :: lon ! the longitude of the place we look at
-    real(wp), intent(in) :: t   ! the Unix time stamp of the time
+    real(wp), intent(in) :: t   ! the Unix timestamp of the time
     
     ! local variables
     real(wp) :: normal_vector_rel2_earth(3)

@@ -11,7 +11,7 @@ module mo_run_nml
   
   character(len=64) :: run_id         ! ID of this run
   real(wp)          :: run_span_min   ! run span in minutes
-  real(wp)          :: t_init         ! epoch time stamp of the initialization
+  real(wp)          :: t_init         ! epoch timestamp of the initialization
   integer           :: start_year     ! year of the model run beginning
   integer           :: start_month    ! month of the model run beginning
   integer           :: start_day      ! day of the model run beginning
