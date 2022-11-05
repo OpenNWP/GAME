@@ -8,7 +8,7 @@ module mo_write_output
   
   use netcdf
   use mo_definitions,            only: wp,t_grid,t_state,t_diag
-  use mo_constants,              only: c_d_p,r_d,t_0,EPSILON_SECURITY,c_d_v,r_v,p_0,M_PI,gravity
+  use mo_constants,              only: c_d_p,r_d,t_0,EPSILON_SECURITY,c_d_v,r_v,p_0,M_PI,gravity,lapse_rate
   use mo_grid_nml,               only: n_cells,n_edges,n_lat_io_points,n_lon_io_points,n_levels,n_layers
   use mo_various_helpers,        only: nc_check,find_min_index,int2string
   use mo_geodesy,                only: passive_turn
@@ -42,7 +42,7 @@ module mo_write_output
     logical,       intent(in)    :: ltotally_first_step                                        ! switch indicating the very first step of the model run
   
     ! local variables
-    logical               :: lcontains_nan            ! boolean indicating the presence of NaNs in the output, leading to a model crash
+    logical               :: lcontains_nan                    ! boolean indicating the presence of NaNs in the output, leading to a model crash
     integer               :: ji,jl,jm,lat_lon_dimids(2),ncid,single_int_dimid,lat_dimid,lon_dimid,start_date_id,start_hour_id, &
                              lat_id,lon_id,closest_index,second_closest_index,temperature_ids(n_layers), &
                              pressure_ids(n_layers),rel_hum_ids(n_layers),wind_u_ids(n_layers),wind_v_ids(n_layers), &
@@ -60,29 +60,40 @@ module mo_write_output
                              theta_e,u_850_surrogate,u_950_surrogate,u_850_proxy_height,u_950_proxy_height, &
                              wind_tangential,wind_u_value,wind_v_value, &
                              roughness_length_extrapolation,actual_roughness_length,z_sfc,z_agl,rescale_factor, &
-                             cloud_water_content,vector_to_minimize(n_layers),closest_weight,z_tropopause, &
-                             standard_vert_lapse_rate
-    real(wp), allocatable :: wind_10_m_mean_u(:)      ! 10 m zonal wind to be written out
-    real(wp), allocatable :: wind_10_m_mean_v(:)      ! 10 m meridional wind to be written out
-    real(wp), allocatable :: mslp(:)                  ! mean sea level pressure to be written out
-    real(wp), allocatable :: sp(:)                    ! surface pressure to be written out
-    real(wp), allocatable :: t2(:)                    ! 2 m temperature to be written out
-    real(wp), allocatable :: tcc(:)                   ! total cloud cover to be written out
-    real(wp), allocatable :: rprate(:)                ! liquid precipitation rate to be written out
-    real(wp), allocatable :: sprate(:)                ! solid precipitation rate to be written out
-    real(wp), allocatable :: cape(:)                  ! CAPE to be written out
-    real(wp), allocatable :: sfc_sw_down(:)           ! surface downward shortwave radiation power flux density (W/m**2) to be written out
-    real(wp), allocatable :: geopotential_height(:,:) ! gepotential height on pressure levels to be written out
-    real(wp), allocatable :: t_on_p_levels(:,:)       ! temperature on pressure levels to be written out
-    real(wp), allocatable :: rh_on_p_levels(:,:)      ! relative humidity on pressure levels to be written out
-    real(wp), allocatable :: epv_on_p_levels(:,:)     ! Ertel's potential vorticity on pressure levels to be written out
-    real(wp), allocatable :: u_on_p_levels(:,:)       ! zonal wind on pressure levels to be written out
-    real(wp), allocatable :: v_on_p_levels(:,:)       ! meridional wind on pressure levels to be written out
-    real(wp), allocatable :: zeta_on_p_levels(:,:)    ! relative vorticity on pressure levels to be written out
-    real(wp), allocatable :: wind_10_m_mean_u_at_cell(:),wind_10_m_mean_v_at_cell(:),wind_10_m_gusts_speed_at_cell(:), &
-                             div_h_all_layers(:,:),rel_vort_scalar_field(:,:),rh(:,:),epv(:,:),pressure(:,:), &
-                             lat_lon_output_field(:,:),u_at_cell(:,:),v_at_cell(:,:),u_at_edge(:,:),v_at_edge(:,:)
-    character(len=64)     :: output_file,output_file_p_level,varname
+                             cloud_water_content,vector_to_minimize(n_layers),closest_weight,z_tropopause
+    real(wp), allocatable :: wind_10_m_mean_u(:)              ! 10 m zonal wind to be written out
+    real(wp), allocatable :: wind_10_m_mean_v(:)              ! 10 m meridional wind to be written out
+    real(wp), allocatable :: mslp(:)                          ! mean sea level pressure to be written out
+    real(wp), allocatable :: sp(:)                            ! surface pressure to be written out
+    real(wp), allocatable :: t2(:)                            ! 2 m temperature to be written out
+    real(wp), allocatable :: tcc(:)                           ! total cloud cover to be written out
+    real(wp), allocatable :: rprate(:)                        ! liquid precipitation rate to be written out
+    real(wp), allocatable :: sprate(:)                        ! solid precipitation rate to be written out
+    real(wp), allocatable :: cape(:)                          ! CAPE to be written out
+    real(wp), allocatable :: sfc_sw_down(:)                   ! surface downward shortwave radiation power flux density (W/m**2) to be written out
+    real(wp), allocatable :: geopotential_height(:,:)         ! gepotential height on pressure levels to be written out
+    real(wp), allocatable :: t_on_p_levels(:,:)               ! temperature on pressure levels to be written out
+    real(wp), allocatable :: rh_on_p_levels(:,:)              ! relative humidity on pressure levels to be written out
+    real(wp), allocatable :: epv_on_p_levels(:,:)             ! Ertel's potential vorticity on pressure levels to be written out
+    real(wp), allocatable :: u_on_p_levels(:,:)               ! zonal wind on pressure levels to be written out
+    real(wp), allocatable :: v_on_p_levels(:,:)               ! meridional wind on pressure levels to be written out
+    real(wp), allocatable :: zeta_on_p_levels(:,:)            ! relative vorticity on pressure levels to be written out
+    real(wp), allocatable :: wind_10_m_mean_u_at_cell(:)      ! zonal wind in 10 m at the cell centers to be written out
+    real(wp), allocatable :: wind_10_m_mean_v_at_cell(:)      ! meridional wind in 10 m at the cell centers to be written out
+    real(wp), allocatable :: wind_10_m_gusts_speed_at_cell(:) ! gust speed in 10 m at the cell centers to be written out
+    real(wp), allocatable :: div_h_all_layers(:,:)            ! divergence of the horizontal wind to be written out
+    real(wp), allocatable :: rel_vort_scalar_field(:,:)       ! relative vorticity as a scalar field to be written out
+    real(wp), allocatable :: rh(:,:)                          ! relative humidity to be written out
+    real(wp), allocatable :: epv(:,:)                         ! Ertel's potential vorticity to be written out
+    real(wp), allocatable :: pressure(:,:)                    ! pressure to be written out
+    real(wp), allocatable :: lat_lon_output_field(:,:)        ! placeholder for output on the latitude-longitude grid
+    real(wp), allocatable :: u_at_cell(:,:)                   ! zonal wind at cell centers to be written out
+    real(wp), allocatable :: v_at_cell(:,:)                   ! meridional wind at cell centers to be written out
+    real(wp), allocatable :: u_at_edge(:,:)                   ! zonal wind at the edges
+    real(wp), allocatable :: v_at_edge(:,:)                   ! merdional wind at the edges
+    character(len=64)     :: output_file                      ! name of the output file
+    character(len=64)     :: output_file_p_level              ! name of the file for output on pressure levels
+    character(len=64)     :: varname                          ! placeholder for variable names
   
     write(*,*) "Writing output ..."
     
@@ -141,7 +152,6 @@ module mo_write_output
       !$omp end parallel workshare
       
       z_tropopause = 12e3_wp
-      standard_vert_lapse_rate = 0.0065_wp
       !$omp parallel do private(ji,jl,temp_lowest_layer,pressure_value,mslp_factor,sp_factor,temp_mslp,temp_surface, &
       !$omp z_height,theta_v,cape_integrand,delta_z,temp_closest,temp_second_closest,delta_z_temp,temperature_gradient, &
       !$omp theta_e,closest_index,second_closest_index,cloud_water_content,vector_to_minimize)
@@ -150,15 +160,15 @@ module mo_write_output
         temp_lowest_layer = diag%temperature(ji,n_layers)
         pressure_value = state%rho(ji,n_layers,n_condensed_constituents+1) &
         *gas_constant_diagnostics(state%rho,ji,n_layers)*temp_lowest_layer
-        temp_mslp = temp_lowest_layer + standard_vert_lapse_rate*grid%z_scalar(ji,n_layers)
+        temp_mslp = temp_lowest_layer + lapse_rate*grid%z_scalar(ji,n_layers)
         mslp_factor = (1._wp - (temp_mslp - temp_lowest_layer)/temp_mslp)**(grid%gravity_m_v(ji,n_layers)/ &
-        (gas_constant_diagnostics(state%rho,ji,n_layers)*standard_vert_lapse_rate))
+        (gas_constant_diagnostics(state%rho,ji,n_layers)*lapse_rate))
         mslp(ji) = pressure_value/mslp_factor
         
         ! Now the aim is to determine the value of the surface pressure.
-        temp_surface = temp_lowest_layer + standard_vert_lapse_rate*(grid%z_scalar(ji,n_layers) - grid%z_vector_v(ji,n_levels))
+        temp_surface = temp_lowest_layer + lapse_rate*(grid%z_scalar(ji,n_layers) - grid%z_vector_v(ji,n_levels))
         sp_factor = (1._wp - (temp_surface - temp_lowest_layer)/temp_surface) &
-                     **(grid%gravity_m_v(ji,n_layers)/(gas_constant_diagnostics(state%rho,ji,n_layers)*standard_vert_lapse_rate))
+                     **(grid%gravity_m_v(ji,n_layers)/(gas_constant_diagnostics(state%rho,ji,n_layers)*lapse_rate))
         sp(ji) = pressure_value/sp_factor
         
         ! Now the aim is to calculate the 2 m temperature.
