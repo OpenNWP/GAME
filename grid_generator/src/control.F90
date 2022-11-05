@@ -30,34 +30,134 @@ program control
   
   implicit none
  
-  integer               :: n_lloyd_read_from_file,lat_c_id,lon_c_id,direction_id,lat_e_id,lon_e_id
-  integer               :: lat_c_dual_id,lon_c_dual_id,dimid_6,dimids_vector_2(2),dimids_vector_3(3)
-  integer               :: z_scalar_id,z_vector_h_id,dx_id,dz_id,volume_id,area_h_id,trsk_weights_id,z_vector_dual_h_id
-  integer               :: dy_id,dz_dual_id,area_dual_v_id,f_vec_h_id,to_cell_id,layer_dimid,dimid_8,z_vector_dual_v_id
-  integer               :: from_cell_id,to_cell_dual_id,from_cell_dual_id,adjacent_edges_id,trsk_indices_id
-  integer               :: trsk_modified_curl_indices_id,adjacent_signs_id,dimid_10,dimid_5,dimid_4
-  integer               :: vorticity_signs_triangles_id,cell_dimid,triangle_dimid
-  integer               :: lat_dimid,lon_dimid,edge_dimid,z_vector_v_id,f_vec_v_id
-  integer               :: gravity_potential_id,area_v_id,dimid_3,level_dimid,area_dual_h_id
-  integer               :: inner_product_weights_id,density_to_rhombi_indices_id,density_to_rhombi_weights_id
-  integer               :: vorticity_indices_triangles_id,ncid_g_prop,single_double_dimid,n_lloyd_iterations_id
-  integer               :: single_int_dimid,interpol_indices_id,interpol_weights_id
-  integer               :: theta_v_bg_id,exner_bg_id,sfc_albedo_id,sfc_rho_c_id,t_conductivity_id,roughness_length_id
-  integer               :: is_land_id,n_oro_layers_id,stretching_parameter_id,toa_id,radius_id
-  integer,  allocatable :: to_cell(:),from_cell(:),trsk_indices(:,:),trsk_modified_curl_indices(:,:),adjacent_edges(:,:)
-  integer,  allocatable :: vorticity_indices_triangles(:,:),vorticity_indices_rhombi(:,:),to_cell_dual(:),from_cell_dual(:)
-  integer,  allocatable :: adjacent_signs(:,:),vorticity_signs_triangles(:,:),density_to_rhombi_indices(:,:)
+  integer               :: n_lloyd_read_from_file
+  integer               :: lat_c_id
+  integer               :: lon_c_id
+  integer               :: direction_id
+  integer               :: lat_e_id
+  integer               :: lon_e_id
+  integer               :: lat_c_dual_id
+  integer               :: lon_c_dual_id
+  integer               :: dimid_6
+  integer               :: dimids_vector_2(2)
+  integer               :: dimids_vector_3(3)
+  integer               :: z_scalar_id
+  integer               :: z_vector_h_id
+  integer               :: dx_id
+  integer               :: dz_id
+  integer               :: volume_id
+  integer               :: area_h_id
+  integer               :: trsk_weights_id
+  integer               :: z_vector_dual_h_id
+  integer               :: dy_id
+  integer               :: dz_dual_id
+  integer               :: area_dual_v_id
+  integer               :: f_vec_h_id
+  integer               :: to_cell_id
+  integer               :: layer_dimid
+  integer               :: dimid_8
+  integer               :: z_vector_dual_v_id
+  integer               :: from_cell_id
+  integer               :: to_cell_dual_id
+  integer               :: from_cell_dual_id
+  integer               :: adjacent_edges_id
+  integer               :: trsk_indices_id
+  integer               :: trsk_modified_curl_indices_id
+  integer               :: adjacent_signs_id
+  integer               :: dimid_10
+  integer               :: dimid_5
+  integer               :: dimid_4
+  integer               :: vorticity_signs_triangles_id
+  integer               :: cell_dimid
+  integer               :: triangle_dimid
+  integer               :: lat_dimid
+  integer               :: lon_dimid
+  integer               :: edge_dimid
+  integer               :: z_vector_v_id
+  integer               :: f_vec_v_id
+  integer               :: gravity_potential_id
+  integer               :: area_v_id
+  integer               :: dimid_3
+  integer               :: level_dimid
+  integer               :: area_dual_h_id
+  integer               :: inner_product_weights_id
+  integer               :: density_to_rhombi_indices_id
+  integer               :: density_to_rhombi_weights_id
+  integer               :: vorticity_indices_triangles_id
+  integer               :: ncid_g_prop
+  integer               :: single_double_dimid
+  integer               :: n_lloyd_iterations_id
+  integer               :: single_int_dimid
+  integer               :: interpol_indices_id
+  integer               :: interpol_weights_id
+  integer               :: theta_v_bg_id
+  integer               :: exner_bg_id
+  integer               :: sfc_albedo_id
+  integer               :: sfc_rho_c_id
+  integer               :: t_conductivity_id
+  integer               :: roughness_length_id
+  integer               :: is_land_id
+  integer               :: n_oro_layers_id
+  integer               :: stretching_parameter_id
+  integer               :: toa_id
+  integer               :: radius_id
+  integer,  allocatable :: to_cell(:)
+  integer,  allocatable :: from_cell(:)
+  integer,  allocatable :: trsk_indices(:,:)
+  integer,  allocatable :: trsk_modified_curl_indices(:,:)
+  integer,  allocatable :: adjacent_edges(:,:)
+  integer,  allocatable :: vorticity_indices_triangles(:,:)
+  integer,  allocatable :: vorticity_indices_rhombi(:,:)
+  integer,  allocatable :: to_cell_dual(:)
+  integer,  allocatable :: from_cell_dual(:)
+  integer,  allocatable :: adjacent_signs(:,:)
+  integer,  allocatable :: vorticity_signs_triangles(:,:)
+  integer,  allocatable :: density_to_rhombi_indices(:,:)
   integer,  allocatable :: interpol_indices(:,:,:) ! interpolation indices to the latitude-longitude grid
   integer,  allocatable :: is_land(:)              ! land-sea mask
-  real(wp), allocatable :: x_unity(:),y_unity(:),z_unity(:),lat_c(:),lon_c(:),z_scalar(:,:),gravity_potential(:,:)
-  real(wp), allocatable :: z_vector_h(:,:),z_vector_v(:,:),dx(:,:),dz(:,:),lat_e(:),lon_e(:),direction(:),volume(:,:)
-  real(wp), allocatable :: area_h(:,:),area_v(:,:),trsk_weights(:,:),lat_c_dual(:),lon_c_dual(:),z_scalar_dual(:,:)
-  real(wp), allocatable :: z_vector_dual_h(:,:),z_vector_dual_v(:,:)
-  real(wp), allocatable :: dy(:,:),dz_dual(:,:),direction_dual(:),area_dual_h(:,:),area_dual_v(:,:),f_vec_h(:),f_vec_v(:)
-  real(wp), allocatable :: pent_hex_face_unity_sphere(:),rel_on_line_dual(:),inner_product_weights(:,:,:)
-  real(wp), allocatable :: density_to_rhombi_weights(:,:),triangle_face_unit_sphere(:)
-  real(wp), allocatable :: interpol_weights(:,:,:),exner_bg(:,:),theta_v_bg(:,:),oro(:),roughness_length(:),sfc_albedo(:)
-  real(wp), allocatable :: sfc_rho_c(:),t_conductivity(:)
+  real(wp), allocatable :: x_unity(:)
+  real(wp), allocatable :: y_unity(:)
+  real(wp), allocatable :: z_unity(:)
+  real(wp), allocatable :: lat_c(:)
+  real(wp), allocatable :: lon_c(:)
+  real(wp), allocatable :: z_scalar(:,:)
+  real(wp), allocatable :: gravity_potential(:,:)
+  real(wp), allocatable :: z_vector_h(:,:)
+  real(wp), allocatable :: z_vector_v(:,:)
+  real(wp), allocatable :: dx(:,:)
+  real(wp), allocatable :: dz(:,:)
+  real(wp), allocatable :: lat_e(:)
+  real(wp), allocatable :: lon_e(:)
+  real(wp), allocatable :: direction(:)
+  real(wp), allocatable :: volume(:,:)
+  real(wp), allocatable :: area_h(:,:)
+  real(wp), allocatable :: area_v(:,:)
+  real(wp), allocatable :: trsk_weights(:,:)
+  real(wp), allocatable :: lat_c_dual(:)
+  real(wp), allocatable :: lon_c_dual(:)
+  real(wp), allocatable :: z_scalar_dual(:,:)
+  real(wp), allocatable :: z_vector_dual_h(:,:)
+  real(wp), allocatable :: z_vector_dual_v(:,:)
+  real(wp), allocatable :: dy(:,:)
+  real(wp), allocatable :: dz_dual(:,:)
+  real(wp), allocatable :: direction_dual(:)
+  real(wp), allocatable :: area_dual_h(:,:)
+  real(wp), allocatable :: area_dual_v(:,:)
+  real(wp), allocatable :: f_vec_h(:)
+  real(wp), allocatable :: f_vec_v(:)
+  real(wp), allocatable :: pent_hex_face_unity_sphere(:)
+  real(wp), allocatable :: rel_on_line_dual(:)
+  real(wp), allocatable :: inner_product_weights(:,:,:)
+  real(wp), allocatable :: density_to_rhombi_weights(:,:)
+  real(wp), allocatable :: triangle_face_unit_sphere(:)
+  real(wp), allocatable :: interpol_weights(:,:,:)
+  real(wp), allocatable :: exner_bg(:,:)
+  real(wp), allocatable :: theta_v_bg(:,:)
+  real(wp), allocatable :: oro(:)
+  real(wp), allocatable :: roughness_length(:)
+  real(wp), allocatable :: sfc_albedo(:)
+  real(wp), allocatable :: sfc_rho_c(:)
+  real(wp), allocatable :: t_conductivity(:)
   real(wp)              :: lat_ico(12)              ! latitudes of the vertices of the basic icosahedron
   real(wp)              :: lon_ico(12)              ! longitudes of the vertices of the basic icosahedron
   real(wp)              :: min_oro                  ! minimum of the orography
@@ -70,6 +170,7 @@ program control
   character(len=256)    :: output_file              ! name of the output file
   character(len=256)    :: statistics_file          ! name of the file to which statistical properties will be written
   
+  ! setting up the grid properties
   call grid_nml_setup()
   
   grid_name = "RES" // trim(int2string(res_id)) // "_L" // trim(int2string(n_layers)) // "_ORO" // trim(int2string(oro_id))
@@ -78,9 +179,13 @@ program control
   statistics_file = "statistics/RES" // trim(int2string(res_id)) // "_L" // trim(int2string(n_layers)) &
                     // "_ORO" // trim(int2string(oro_id)) // ".txt"
   write(*,*) "Output will be written to file: ",trim(output_file)
+  
+  ! setting the basic icosahedron properties
   write(*,*) "Building icosahedron ..."
   call build_icosahedron(lat_ico,lon_ico,edge_vertices,face_vertices,face_edges,face_edges_reverse)
   write(*,*) "finished."
+  
+  ! allocating memory
   write(*,*) "Allocating memory ..."
   allocate(x_unity(n_cells))
   allocate(y_unity(n_cells))
@@ -139,6 +244,7 @@ program control
   allocate(density_to_rhombi_indices(4,n_edges))
   allocate(interpol_indices(5,n_lat_io_points,n_lon_io_points))
   allocate(is_land(n_cells))
+  
   ! initializing arrays to zero
   !$omp parallel workshare
   x_unity = 0._wp
