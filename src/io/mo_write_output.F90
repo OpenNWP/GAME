@@ -62,8 +62,16 @@ module mo_write_output
                              roughness_length_extrapolation,actual_roughness_length,z_sfc,z_agl,rescale_factor, &
                              cloud_water_content,vector_to_minimize(n_layers),closest_weight,z_tropopause, &
                              standard_vert_lapse_rate
-    real(wp), allocatable :: wind_10_m_mean_u(:),wind_10_m_mean_v(:),mslp(:),sp(:),t2(:),tcc(:),rprate(:),sprate(:),cape(:), &
-                             sfc_sw_down(:),geopotential_height(:,:),t_on_p_levels(:,:),rh_on_p_levels(:,:), &
+    real(wp), allocatable :: wind_10_m_mean_u(:) ! 10 m zonal wind to be written out
+    real(wp), allocatable :: wind_10_m_mean_v(:) ! 10 m meridional wind to be written out
+    real(wp), allocatable :: mslp(:)             ! mean sea level pressure to be written out
+    real(wp), allocatable :: sp(:)               ! surface pressure to be written out
+    real(wp), allocatable :: t2(:)               ! 2 m temperature to be written out
+    real(wp), allocatable :: tcc(:)              ! total cloud cover to be written out
+    real(wp), allocatable :: rprate(:)           ! liquid precipitation rate to be written out
+    real(wp), allocatable :: sprate(:)           ! solid precipitation rate to be written out
+    real(wp), allocatable :: cape(:)             ! CAPE to be written out
+    real(wp), allocatable :: sfc_sw_down(:),geopotential_height(:,:),t_on_p_levels(:,:),rh_on_p_levels(:,:), &
                              epv_on_p_levels(:,:),u_on_p_levels(:,:),v_on_p_levels(:,:),zeta_on_p_levels(:,:), &
                              wind_10_m_mean_u_at_cell(:),wind_10_m_mean_v_at_cell(:),wind_10_m_gusts_speed_at_cell(:), &
                              div_h_all_layers(:,:),rel_vort_scalar_field(:,:),rh(:,:),epv(:,:),pressure(:,:), &
