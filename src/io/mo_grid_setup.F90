@@ -37,18 +37,60 @@ module mo_grid_setup
     type(t_grid), intent(inout) :: grid ! the grid properties to fill
     
     ! local variables
-    integer            :: ncid,dx_id,volume_id,area_h_id,area_v_id,z_scalar_id,z_vector_h_id,z_vector_v_id, &
-                          area_dual_h_id,area_dual_v_id,z_vector_dual_h_id,f_vec_h_id,f_vec_v_id,to_cell_id,from_cell_id, &
-                          to_cell_dual_id,from_cell_dual_id,adjacent_edges_id,trsk_indices_id,trsk_weights_id, &
-                          trsk_modified_curl_indices_id,adjacent_signs_id,direction_id,gravity_potential_id, &
-                          inner_product_weights_id,density_to_rhombi_weights_id,density_to_rhombi_indices_id, &
-                          dy_id,vorticity_indices_triangles_id,vorticity_signs_triangles_id,dz_dual_id, &
-                          lat_c_id,lon_c_id,toa_id,radius_id,interpol_indices_id,dz_id, &
-                          interpol_weights_id,theta_v_bg_id,exner_bg_id,sfc_rho_c_id,sfc_albedo_id,roughness_length_id, &
-                          is_land_id,t_conductivity_id,n_oro_layers_id,stretching_parameter_id,ji,jl,z_vector_dual_v_id
-    real(wp)           :: max_z ! helper variable
-    real(wp)           :: sigma_soil,rescale_factor
-    character(len=128) :: grid_file_name
+    integer            :: ncid          ! netCDF ID of the file
+    integer            :: dx_id         ! netCDF ID of the normal grid distances
+    integer            :: volume_id     ! netCDF ID of the volumes of the gridboxes
+    integer            :: area_h_id     ! netCDF ID of the horizontal areas
+    integer            :: area_v_id     ! netCDF ID of the vertical areas
+    integer            :: z_scalar_id   ! netCDF ID of the z-coordinates of the cell centers
+    integer            :: z_vector_h_id ! netCDF ID of the z-coordinates of the horizontal vectors
+    integer            :: z_vector_v_id ! netCDF ID of the z-coordinates of the vertical vectors
+    integer            :: area_dual_h_id
+    integer            :: area_dual_v_id
+    integer            :: z_vector_dual_h_id
+    integer            :: f_vec_v_id    ! netCDF ID of the vertical Coriolis parameter (located at the edges)
+    integer            :: f_vec_h_id    ! netCDF ID of the horizontal Coriolis parameter (located at the edges)
+    integer            :: to_cell_id
+    integer            :: from_cell_id
+    integer            :: to_cell_dual_id
+    integer            :: from_cell_dual_id
+    integer            :: adjacent_edges_id
+    integer            :: trsk_indices_id
+    integer            :: trsk_weights_id
+    integer            :: trsk_modified_curl_indices_id
+    integer            :: adjacent_signs_id
+    integer            :: direction_id
+    integer            :: gravity_potential_id
+    integer            :: inner_product_weights_id
+    integer            :: density_to_rhombi_weights_id
+    integer            :: density_to_rhombi_indices_id
+    integer            :: dy_id
+    integer            :: vorticity_indices_triangles_id
+    integer            :: vorticity_signs_triangles_id
+    integer            :: dz_dual_id
+    integer            :: lat_c_id
+    integer            :: lon_c_id
+    integer            :: toa_id
+    integer            :: radius_id
+    integer            :: interpol_indices_id
+    integer            :: dz_id
+    integer            :: interpol_weights_id
+    integer            :: theta_v_bg_id
+    integer            :: exner_bg_id
+    integer            :: sfc_rho_c_id
+    integer            :: sfc_albedo_id
+    integer            :: roughness_length_id
+    integer            :: is_land_id
+    integer            :: t_conductivity_id
+    integer            :: n_oro_layers_id
+    integer            :: stretching_parameter_id
+    integer            :: ji
+    integer            :: jl
+    integer            :: z_vector_dual_v_id
+    real(wp)           :: max_z          ! helper variable
+    real(wp)           :: sigma_soil     ! stretching parameter of the soil grid
+    real(wp)           :: rescale_factor ! helper variable for computing the soil grid
+    character(len=128) :: grid_file_name ! name of the file to read the grid properties from
     
     ! determining the grid file
     grid_file_name = "../../grid_generator/grids/RES" // trim(int2string(res_id)) // "_L" // &
