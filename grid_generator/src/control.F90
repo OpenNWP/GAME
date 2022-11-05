@@ -84,91 +84,91 @@ program control
   integer               :: density_to_rhombi_indices_id
   integer               :: density_to_rhombi_weights_id
   integer               :: vorticity_indices_triangles_id
-  integer               :: ncid_g_prop
-  integer               :: single_double_dimid
-  integer               :: n_lloyd_iterations_id
-  integer               :: single_int_dimid
-  integer               :: interpol_indices_id
-  integer               :: interpol_weights_id
-  integer               :: theta_v_bg_id
-  integer               :: exner_bg_id
-  integer               :: sfc_albedo_id
-  integer               :: sfc_rho_c_id
-  integer               :: t_conductivity_id
-  integer               :: roughness_length_id
-  integer               :: is_land_id
-  integer               :: n_oro_layers_id
-  integer               :: stretching_parameter_id
-  integer               :: toa_id
-  integer               :: radius_id
-  integer,  allocatable :: to_cell(:)
-  integer,  allocatable :: from_cell(:)
-  integer,  allocatable :: trsk_indices(:,:)
-  integer,  allocatable :: trsk_modified_curl_indices(:,:)
-  integer,  allocatable :: adjacent_edges(:,:)
-  integer,  allocatable :: vorticity_indices_triangles(:,:)
-  integer,  allocatable :: vorticity_indices_rhombi(:,:)
-  integer,  allocatable :: to_cell_dual(:)
-  integer,  allocatable :: from_cell_dual(:)
-  integer,  allocatable :: adjacent_signs(:,:)
-  integer,  allocatable :: vorticity_signs_triangles(:,:)
-  integer,  allocatable :: density_to_rhombi_indices(:,:)
-  integer,  allocatable :: interpol_indices(:,:,:) ! interpolation indices to the latitude-longitude grid
-  integer,  allocatable :: is_land(:)              ! land-sea mask
-  real(wp), allocatable :: x_unity(:)
-  real(wp), allocatable :: y_unity(:)
-  real(wp), allocatable :: z_unity(:)
-  real(wp), allocatable :: lat_c(:)
-  real(wp), allocatable :: lon_c(:)
-  real(wp), allocatable :: z_scalar(:,:)
-  real(wp), allocatable :: gravity_potential(:,:)
-  real(wp), allocatable :: z_vector_h(:,:)
-  real(wp), allocatable :: z_vector_v(:,:)
-  real(wp), allocatable :: dx(:,:)
-  real(wp), allocatable :: dz(:,:)
-  real(wp), allocatable :: lat_e(:)
-  real(wp), allocatable :: lon_e(:)
-  real(wp), allocatable :: direction(:)
-  real(wp), allocatable :: volume(:,:)
-  real(wp), allocatable :: area_h(:,:)
-  real(wp), allocatable :: area_v(:,:)
-  real(wp), allocatable :: trsk_weights(:,:)
-  real(wp), allocatable :: lat_c_dual(:)
-  real(wp), allocatable :: lon_c_dual(:)
-  real(wp), allocatable :: z_scalar_dual(:,:)
-  real(wp), allocatable :: z_vector_dual_h(:,:)
-  real(wp), allocatable :: z_vector_dual_v(:,:)
-  real(wp), allocatable :: dy(:,:)
-  real(wp), allocatable :: dz_dual(:,:)
-  real(wp), allocatable :: direction_dual(:)
-  real(wp), allocatable :: area_dual_h(:,:)
-  real(wp), allocatable :: area_dual_v(:,:)
-  real(wp), allocatable :: f_vec_h(:)
-  real(wp), allocatable :: f_vec_v(:)
-  real(wp), allocatable :: pent_hex_face_unity_sphere(:)
-  real(wp), allocatable :: rel_on_line_dual(:)
-  real(wp), allocatable :: inner_product_weights(:,:,:)
-  real(wp), allocatable :: density_to_rhombi_weights(:,:)
-  real(wp), allocatable :: triangle_face_unit_sphere(:)
-  real(wp), allocatable :: interpol_weights(:,:,:)
-  real(wp), allocatable :: exner_bg(:,:)
-  real(wp), allocatable :: theta_v_bg(:,:)
-  real(wp), allocatable :: oro(:)
-  real(wp), allocatable :: roughness_length(:)
-  real(wp), allocatable :: sfc_albedo(:)
-  real(wp), allocatable :: sfc_rho_c(:)
-  real(wp), allocatable :: t_conductivity(:)
-  real(wp)              :: lat_ico(12)              ! latitudes of the vertices of the basic icosahedron
-  real(wp)              :: lon_ico(12)              ! longitudes of the vertices of the basic icosahedron
-  real(wp)              :: min_oro                  ! minimum of the orography
-  real(wp)              :: max_oro                  ! maximum of the orography
-  integer               :: edge_vertices(30,2)      ! relation between edges and vertices
-  integer               :: face_vertices(20,3)      ! relation between faces and vertices
-  integer               :: face_edges(20,3)         ! relation between faces and edges
-  integer               :: face_edges_reverse(20,3) ! indicating wether an edge of a face is reversed relative to the standard direction
-  character(len=128)    :: grid_name                ! name of the grid to be created
-  character(len=256)    :: output_file              ! name of the output file
-  character(len=256)    :: statistics_file          ! name of the file to which statistical properties will be written
+  integer               :: ncid_g_prop                      ! netCDF ID of the file to be written
+  integer               :: single_double_dimid              ! netCDF ID of a single real
+  integer               :: n_lloyd_iterations_id            ! netCDF ID of the number of Lloyd iterations
+  integer               :: single_int_dimid                 ! netCDF ID of a single integer
+  integer               :: interpol_indices_id              ! netCDF ID of the interpolation indices of the latitude-longitude grid
+  integer               :: interpol_weights_id              ! netCDF ID of the interpolation weights of the latitude-longitude grid
+  integer               :: theta_v_bg_id                    ! netCDF ID of the virtual potential temperature
+  integer               :: exner_bg_id                      ! netCDF ID of the background Exner pressure
+  integer               :: sfc_albedo_id                    ! netCDF ID of the surface albedo
+  integer               :: sfc_rho_c_id                     ! netCDF ID of the surface volumetric heat capacity
+  integer               :: t_conductivity_id                ! netCDF ID of the temperature conductivity of the soil
+  integer               :: roughness_length_id              ! netCDF ID of the roughness length
+  integer               :: is_land_id                       ! netCDF ID of the land-sea mask
+  integer               :: n_oro_layers_id                  ! netCDF ID of the number of orography layers
+  integer               :: stretching_parameter_id          ! netCDF ID of the stretching parameter
+  integer               :: toa_id                           ! netCDF ID of the top of atmosphere
+  integer               :: radius_id                        ! netCDF ID of the radius
+  integer,  allocatable :: to_cell(:)                       ! cell in the to-direction of a vector
+  integer,  allocatable :: from_cell(:)                     ! cell in the from-direction of a vector
+  integer,  allocatable :: trsk_indices(:,:)                ! indices for computing the TRSK reconstruction
+  integer,  allocatable :: trsk_modified_curl_indices(:,:)  ! indices for computing the vorticity of the modified TRSK scheme
+  integer,  allocatable :: adjacent_edges(:,:)              ! edges adjacent to a cell
+  integer,  allocatable :: vorticity_indices_triangles(:,:) ! indices for computing the vorticity on triangles
+  integer,  allocatable :: vorticity_indices_rhombi(:,:)    ! indices for computing the vorticity on rhombi
+  integer,  allocatable :: to_cell_dual(:)                  ! triangle in the to-direction of a dual vector
+  integer,  allocatable :: from_cell_dual(:)                ! triangle in the from-direction of a dual vector
+  integer,  allocatable :: adjacent_signs(:,:)              ! signs indicating the directions of the vectors relative to a cell (1 = outbound, -1 = inbound)
+  integer,  allocatable :: vorticity_signs_triangles(:,:)   ! signs for computing the vorticity on the triangles
+  integer,  allocatable :: density_to_rhombi_indices(:,:)   ! indices for interpolating the density to the rhombi
+  integer,  allocatable :: interpol_indices(:,:,:)          ! interpolation indices to the latitude-longitude grid
+  integer,  allocatable :: is_land(:)                       ! land-sea mask
+  real(wp), allocatable :: x_unity(:)                       ! x-coordinates of the gridpoints on the unity sphere
+  real(wp), allocatable :: y_unity(:)                       ! y-coordinates of the gridpoints on the unity sphere
+  real(wp), allocatable :: z_unity(:)                       ! z-coordinates of the gridpoints on the unity sphere
+  real(wp), allocatable :: lat_c(:)                         ! latitudes of the cell centers
+  real(wp), allocatable :: lon_c(:)                         ! longitudes of the cell centers
+  real(wp), allocatable :: z_scalar(:,:)                    ! z-coordinates of the cell centers
+  real(wp), allocatable :: gravity_potential(:,:)           ! gravity potential
+  real(wp), allocatable :: z_vector_h(:,:)                  ! z-coordinates of the edges
+  real(wp), allocatable :: z_vector_v(:,:)                  ! z-coordinates of the vertical vector points
+  real(wp), allocatable :: dx(:,:)                          ! horizontal gridpoint distances (dual edge lengths)
+  real(wp), allocatable :: dz(:,:)                          ! vertical gridpoint distances
+  real(wp), allocatable :: lat_e(:)                         ! latitudes of the edges
+  real(wp), allocatable :: lon_e(:)                         ! longitudes of the edges
+  real(wp), allocatable :: direction(:)                     ! directions of the vectors of the primal grid
+  real(wp), allocatable :: volume(:,:)                      ! volumes of the gridboxes
+  real(wp), allocatable :: area_h(:,:)                      ! horizontal areas of the primal grid
+  real(wp), allocatable :: area_v(:,:)                      ! vertical areas of the primal grid
+  real(wp), allocatable :: trsk_weights(:,:)                ! TRSK reconstruction weights
+  real(wp), allocatable :: lat_c_dual(:)                    ! latitudes of the dual cell centers (triangles)
+  real(wp), allocatable :: lon_c_dual(:)                    ! longitudes of the dual cell centers (triangles)
+  real(wp), allocatable :: z_scalar_dual(:,:)               ! z-coordinates of the dual grid cell centers
+  real(wp), allocatable :: z_vector_dual_h(:,:)             ! z-coordinates of the dual horizontal vectors
+  real(wp), allocatable :: z_vector_dual_v(:,:)             ! z-coordinates of the dual vertical vectors
+  real(wp), allocatable :: dy(:,:)                          ! tangential distances (edge lengths)
+  real(wp), allocatable :: dz_dual(:,:)                     ! vertical gridpoint distances of the dual grid
+  real(wp), allocatable :: direction_dual(:)                ! directions of the vectors of the dual grid
+  real(wp), allocatable :: area_dual_h(:,:)                 ! horizontal dual areas
+  real(wp), allocatable :: area_dual_v(:,:)                 ! vertical dual areas (triangles)
+  real(wp), allocatable :: f_vec_h(:)                       ! horizontal Coriolis parameter (at the edges)
+  real(wp), allocatable :: f_vec_v(:)                       ! vertical Coriolis parameter (at the edges)
+  real(wp), allocatable :: pent_hex_face_unity_sphere(:)    ! areas of pentagons and hexagons on the unity sphere
+  real(wp), allocatable :: rel_on_line_dual(:)              ! positions of the edegs relative to the adjacent centers
+  real(wp), allocatable :: inner_product_weights(:,:,:)     ! weights for computing the inner product
+  real(wp), allocatable :: density_to_rhombi_weights(:,:)   ! weights for interpolating the density to the rhombi
+  real(wp), allocatable :: triangle_face_unit_sphere(:)     ! faces of the triangles on the unity sphere
+  real(wp), allocatable :: interpol_weights(:,:,:)          ! interpolation weights to the latitude-longitude grid
+  real(wp), allocatable :: exner_bg(:,:)                    ! background Exner pressure
+  real(wp), allocatable :: theta_v_bg(:,:)                  ! background virtual potential temperature
+  real(wp), allocatable :: oro(:)                           ! orography
+  real(wp), allocatable :: roughness_length(:)              ! surface roughness length
+  real(wp), allocatable :: sfc_albedo(:)                    ! surface albedo
+  real(wp), allocatable :: sfc_rho_c(:)                     ! volumetric heat capacity of the soil
+  real(wp), allocatable :: t_conductivity(:)                ! temperature conductivity in the soil (m**2/s)
+  real(wp)              :: lat_ico(12)                      ! latitudes of the vertices of the basic icosahedron
+  real(wp)              :: lon_ico(12)                      ! longitudes of the vertices of the basic icosahedron
+  real(wp)              :: min_oro                          ! minimum of the orography
+  real(wp)              :: max_oro                          ! maximum of the orography
+  integer               :: edge_vertices(30,2)              ! relation between edges and vertices
+  integer               :: face_vertices(20,3)              ! relation between faces and vertices
+  integer               :: face_edges(20,3)                 ! relation between faces and edges
+  integer               :: face_edges_reverse(20,3)         ! indicating wether an edge of a face is reversed relative to the standard direction
+  character(len=128)    :: grid_name                        ! name of the grid to be created
+  character(len=256)    :: output_file                      ! name of the output file
+  character(len=256)    :: statistics_file                  ! name of the file to which statistical properties will be written
   
   ! setting up the grid properties
   call grid_nml_setup()
@@ -409,7 +409,7 @@ program control
   call set_area_dual(area_dual_h,area_dual_v,z_vector_dual_v,dx,z_vector_h,z_vector_v,from_cell,to_cell,triangle_face_unit_sphere)
   write(*,*) "Finished."
   
-  write(*,*) "Calculating grid box volumes ..."
+  write(*,*) "Calculating gridbox volumes ..."
   call set_volume(volume,z_vector_v,area_v)
   write(*,*) "Finished."
   
@@ -758,7 +758,7 @@ program control
   call nc_check(nf90_close(ncid_g_prop))
   write(*,*) "Finished."
   
-  ! deallocateing allocated memory
+  ! deallocating allocated memory
   deallocate(roughness_length)
   deallocate(sfc_albedo)
   deallocate(sfc_rho_c)

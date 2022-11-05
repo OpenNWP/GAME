@@ -59,7 +59,7 @@ module mo_definitions
     real(wp), allocatable :: trsk_weights(:,:)                ! weights needed for computing the TRSK reconstruction
     real(wp), allocatable :: sfc_albedo(:)                    ! surface albedo
     real(wp), allocatable :: sfc_rho_c(:)                     ! indices needed for interpolating the densities to the rhombi
-    real(wp), allocatable :: t_conduc_soil(:)                 ! temperature conductivity of the soil
+    real(wp), allocatable :: t_conduc_soil(:)                 ! temperature conductivity of the soil (m**2/s)
     real(wp), allocatable :: roughness_length(:)              ! roughness length at the surface
     integer,  allocatable :: is_land(:)                       ! land-sea mask
     integer,  allocatable :: latlon_interpol_indices(:,:,:)   ! indices for computing the interpolation to the lat-lon grid

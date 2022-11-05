@@ -37,18 +37,22 @@ module mo_phys_sfc_properties
     
     ! This subroutine sets the physical surface properties.
     
-    integer,  intent(out) :: is_land(n_cells)
-    real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
-    real(wp), intent(out) :: roughness_length(n_cells),sfc_albedo(n_cells), &
-                             sfc_rho_c(n_cells),t_conductivity(n_cells),oro(n_cells)
+    integer,  intent(out) :: is_land(n_cells)          ! land-sea mask (result)
+    real(wp), intent(in)  :: lat_c(n_cells)            ! latitudes at cell centers
+    real(wp), intent(in)  :: lon_c(n_cells)            ! longitudes at cell centers
+    real(wp), intent(out) :: roughness_length(n_cells) ! roughness length of the surface (result)
+    real(wp), intent(out) :: sfc_albedo(n_cells)       ! surface albedo (result)
+    real(wp), intent(out) :: sfc_rho_c(n_cells)        ! surface volumetric heat capacity (result)
+    real(wp), intent(out) :: t_conductivity(n_cells)   ! temperature conductivity in the soil (m**2/s, result)
+    real(wp), intent(out) :: oro(n_cells)              ! orography (result)
     
     ! local variables
-    integer               :: ji,jk,ncid,is_land_id,lat_in_id,lon_in_id,z_in_id,n_lat_points, &
-                             n_lon_points,lat_index,lon_index,min_indices_vector(n_avg_points)
-    real(wp)              :: c_p_water,c_p_soil,albedo_water,albedo_soil,albedo_ice,density_soil, &
-                             t_conductivity_water,t_conductivity_soil,lat_deg,distance_vector(n_cells)
+    integer               :: ji,jk,ncid,is_land_id,lat_in_id,lon_in_id,z_in_id,n_lat_points
+    integer               :: n_lon_points,lat_index,lon_index,min_indices_vector(n_avg_points)
+    real(wp)              :: c_p_water,c_p_soil,albedo_water,albedo_soil,albedo_ice,density_soil
+    real(wp)              :: t_conductivity_water,t_conductivity_soil,lat_deg,distance_vector(n_cells)
     real(wp), allocatable :: latitude_input(:),longitude_input(:),oro_unfiltered(:),lat_distance_vector(:),lon_distance_vector(:)
-    integer,  allocatable :: z_input(:,:)
+    integer,  allocatable :: z_input(:,:) ! ETOPO orography
     character(len=64)     :: is_land_file ! file to read the land-sea-mask from
     character(len=64)     :: oro_file     ! file to read the orography from
     
