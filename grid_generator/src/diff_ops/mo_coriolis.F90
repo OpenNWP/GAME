@@ -20,28 +20,73 @@ module mo_coriolis
     
     ! This subroutine implements the modified TRSK scheme proposed by Gassmann (2018). Indices and weights are computed here for the highest layer but remain unchanged elsewhere.
     
-    real(wp), intent(in)  :: dx(n_edges,n_layers),dy(n_edges,n_levels),area_v(n_cells,n_levels), &
-                             z_scalar(n_cells,n_layers),lat_c(n_cells),lon_c(n_cells), &
-                             lat_e(n_edges),lon_e(n_edges), &
-                             lat_c_dual(n_triangles),lon_c_dual(n_triangles),z_vector_h(n_edges,n_layers)
-    integer,  intent(in)  :: from_cell_dual(n_edges),to_cell_dual(n_edges), &
-                             to_cell(n_edges),from_cell(n_edges),adjacent_edges(6,n_cells)
+    real(wp), intent(in)  :: dx(n_edges,n_layers)
+    real(wp), intent(in)  :: dy(n_edges,n_levels)
+    real(wp), intent(in)  :: area_v(n_cells,n_levels)
+    real(wp), intent(in)  :: z_scalar(n_cells,n_layers)
+    real(wp), intent(in)  :: lat_c(n_cells)
+    real(wp), intent(in)  :: lon_c(n_cells)
+    real(wp), intent(in)  :: lat_e(n_edges)
+    real(wp), intent(in)  :: lon_e(n_edges)
+    real(wp), intent(in)  :: lat_c_dual(n_triangles)
+    real(wp), intent(in)  :: lon_c_dual(n_triangles)
+    real(wp), intent(in)  :: z_vector_h(n_edges,n_layers)
+    integer,  intent(in)  :: from_cell_dual(n_edges)
+    integer,  intent(in)  :: to_cell_dual(n_edges)
+    integer,  intent(in)  :: to_cell(n_edges)
+    integer,  intent(in)  :: from_cell(n_edges)
+    integer,  intent(in)  :: adjacent_edges(6,n_cells)
     real(wp), intent(out) :: trsk_weights(10,n_edges)
-    integer,  intent(out) :: trsk_modified_curl_indices(10,n_edges),trsk_indices(10,n_edges)
+    integer,  intent(out) :: trsk_modified_curl_indices(10,n_edges)
+    integer,  intent(out) :: trsk_indices(10,n_edges)
     
     ! local variables
-    integer              :: ji,jk,jl,jm,offset,sign_1,sign_2,n_edges_of_cell,index_offset,vertex_index_candidate_1, &
-                            vertex_index_candidate_2,counter,check_result,first_index,last_index,second_index_1,second_index_2, &
-                            vertex_indices(6),edge_indices(6),indices_resorted(6),vertex_indices_resorted(6), &
-                            value_written,trsk_indices_pre(10),next_vertex_index,next_vertex_index_candidate, &
-                            indices_used_counter,indices_used(5)
+    integer              :: ji
+    integer              :: jk
+    integer              :: jl
+    integer              :: jm
+    integer              :: offset
+    integer              :: sign_1
+    integer              :: sign_2
+    integer              :: n_edges_of_cell
+    integer              :: index_offset
+    integer              :: vertex_index_candidate_1
+    integer              :: vertex_index_candidate_2
+    integer              :: counter
+    integer              :: check_result
+    integer              :: first_index
+    integer              :: last_index
+    integer              :: second_index_1
+    integer              :: second_index_2
+    integer              :: vertex_indices(6)
+    integer              :: edge_indices(6)
+    integer              :: indices_resorted(6)
+    integer              :: vertex_indices_resorted(6)
+    integer              :: value_written
+    integer              :: trsk_indices_pre(10)
+    integer              :: next_vertex_index
+    integer              :: next_vertex_index_candidate
+    integer              :: indices_used_counter
+    integer              :: indices_used(5)
     integer, allocatable :: from_or_to_cell(:)
-    real(wp)             :: check_sum,triangle_1,triangle_2,sum_of_weights,latitude_vertices(6), &
-                            longitude_vertices(6),latitude_edges(6),longitude_edges(6),vector_of_areas(6), &
-                            trsk_weights_pre(10),value_1,value_2,rescale_for_z_offset_1d,rescale_for_z_offset_2d
+    real(wp)             :: check_sum
+    real(wp)             :: triangle_1
+    real(wp)             :: triangle_2
+    real(wp)             :: sum_of_weights
+    real(wp)             :: latitude_vertices(6)
+    real(wp)             :: longitude_vertices(6)
+    real(wp)             :: latitude_edges(6)
+    real(wp)             :: longitude_edges(6)
+    real(wp)             :: vector_of_areas(6)
+    real(wp)             :: trsk_weights_pre(10)
+    real(wp)             :: value_1
+    real(wp)             :: value_2
+    real(wp)             :: rescale_for_z_offset_1d
+    real(wp)             :: rescale_for_z_offset_2d
     
     rescale_for_z_offset_1d = (radius+z_scalar(1,1))/(radius+toa)
     rescale_for_z_offset_2d = rescale_for_z_offset_1d**2
+    
     ! loop over all edges
     !$omp parallel do private(ji,jk,jl,jm,offset,sign_1,sign_2,n_edges_of_cell,index_offset,vertex_index_candidate_1, &
     !$omp vertex_index_candidate_2,counter,check_result,first_index,last_index,check_sum,triangle_1, &

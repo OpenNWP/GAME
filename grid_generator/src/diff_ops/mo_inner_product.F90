@@ -26,8 +26,10 @@ module mo_inner_product
     integer,  intent(in)  :: adjacent_edges(6,n_cells)                 ! adjacent edges of each cell
 
     ! local variables
-    integer  :: ji,jl,jm
-    real(wp) :: delta_z
+    integer  :: ji      ! cell index
+    integer  :: jl      ! layer index
+    integer  :: jm      ! reconstruction index
+    real(wp) :: delta_z ! vertical gridpoint distance
     
     !$omp parallel do private(ji,jl,jm,delta_z)
     do jl=1,n_layers

@@ -21,20 +21,48 @@ module mo_rhombus_averaging
     
     ! This subroutine implements the averaging of scalar quantities to rhombi. Indices and weights are computed here for the highest layer but remain unchanged elsewhere.
 
-    integer,  intent(in)  :: vorticity_indices_triangles(3,n_triangles),from_cell_dual(n_edges), &
-                             to_cell_dual(n_edges),from_cell(n_edges),to_cell(n_edges)
-    real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells),area_dual_v(n_triangles,n_layers), &
-                             z_vector_h(n_edges,n_layers),lat_c_dual(n_triangles),lon_c_dual(n_triangles), &
-                             lat_e(n_edges),lon_e(n_edges)
-    integer,  intent(out) :: vorticity_indices_rhombi(4,n_edges),density_to_rhombus_indices(4,n_edges)
+    integer,  intent(in)  :: vorticity_indices_triangles(3,n_triangles)
+    integer,  intent(in)  :: from_cell_dual(n_edges)
+    integer,  intent(in)  :: to_cell_dual(n_edges)
+    integer,  intent(in)  :: from_cell(n_edges)
+    integer,  intent(in)  :: to_cell(n_edges)
+    real(wp), intent(in)  :: lat_c(n_cells)                             ! latitudes of the cell centers
+    real(wp), intent(in)  :: lon_c(n_cells)                             ! longitudes of the cell centers
+    real(wp), intent(in)  :: area_dual_v(n_triangles,n_layers)          ! areas of the triangles
+    real(wp), intent(in)  :: z_vector_h(n_edges,n_layers)               ! z-coordinates of the horizontal vectors
+    real(wp), intent(in)  :: lat_c_dual(n_triangles)                    ! latitudes of the triangle centers
+    real(wp), intent(in)  :: lon_c_dual(n_triangles)                    ! longitudes of the triangle centers
+    real(wp), intent(in)  :: lat_e(n_edges)                             ! latitudes of the edges
+    real(wp), intent(in)  :: lon_e(n_edges)                             ! longitudes of the edges
+    integer,  intent(out) :: vorticity_indices_rhombi(4,n_edges)
+    integer,  intent(out) :: density_to_rhombus_indices(4,n_edges)
     real(wp), intent(out) :: density_to_rhombus_weights(4,n_edges)
 
     ! local variables
-    integer  :: ji,jk,jl,jm,counter,indices_list_pre(6),indices_list(4),double_indices(2),density_to_rhombus_indices_pre(4), &
-                density_to_rhombus_index_candidate,check_counter,triangle_index_1,triangle_index_2, &
-                edge_index_1,edge_index_2,edge_index_1_found,edge_index_2_found, &
-                which_vertex_check_result,first_case_counter,second_case_counter
-    real(wp) :: triangle_1,triangle_2,triangle_3,triangle_4,rhombus_area,check_sum
+    integer  :: ji
+    integer  :: jk
+    integer  :: jl
+    integer  :: jm
+    integer  :: counter
+    integer  :: indices_list_pre(6)
+    integer  :: indices_list(4)
+    integer  :: double_indices(2)
+    integer  :: density_to_rhombus_indices_pre(4)
+    integer  :: density_to_rhombus_index_candidate
+    integer  :: check_counter
+    integer  :: triangle_index_1
+    integer  :: triangle_index_2
+    integer  :: edge_index_1
+    integer  :: edge_index_2
+    integer  :: edge_index_1_found
+    integer  :: edge_index_2_found
+    integer  :: which_vertex_check_result
+    integer  :: first_case_counter
+    integer  :: second_case_counter
+    real(wp) :: triangle_1
+    real(wp) :: triangle_2
+    real(wp) :: triangle_3
+    real(wp) :: triangle_4,rhombus_area,check_sum
     
     !$omp parallel do private(ji,jk,jl,jm,counter,indices_list_pre,indices_list,double_indices,density_to_rhombus_indices_pre, &
     !$omp density_to_rhombus_index_candidate,check_counter,triangle_index_1,triangle_index_2, &
