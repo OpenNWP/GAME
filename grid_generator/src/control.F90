@@ -31,11 +31,11 @@ program control
   implicit none
  
   integer               :: n_lloyd_read_from_file
-  integer               :: lat_c_id
-  integer               :: lon_c_id
+  integer               :: lat_c_id                         ! netCDF ID of the latitudes of the cell centers
+  integer               :: lon_c_id                         ! netCDF ID of the longitudes of the cell centers
   integer               :: direction_id
-  integer               :: lat_e_id
-  integer               :: lon_e_id
+  integer               :: lat_e_id                         ! netCDF ID of the latitudes of the edges
+  integer               :: lon_e_id                         ! netCDF ID of the longitudes of the edges
   integer               :: lat_c_dual_id
   integer               :: lon_c_dual_id
   integer               :: dimid_6
@@ -45,45 +45,45 @@ program control
   integer               :: z_vector_h_id
   integer               :: dx_id
   integer               :: dz_id
-  integer               :: volume_id
-  integer               :: area_h_id
+  integer               :: volume_id                        ! netCDF ID of the volumes of the gridboxes
+  integer               :: area_h_id                        ! netCDF ID of the horizontal areas
   integer               :: trsk_weights_id
   integer               :: z_vector_dual_h_id
   integer               :: dy_id
   integer               :: dz_dual_id
   integer               :: area_dual_v_id
   integer               :: f_vec_h_id
-  integer               :: to_cell_id
   integer               :: layer_dimid
-  integer               :: dimid_8
+  integer               :: dimid_8                          ! netCDF ID of a dimension containing eight values
   integer               :: z_vector_dual_v_id
-  integer               :: from_cell_id
-  integer               :: to_cell_dual_id
-  integer               :: from_cell_dual_id
-  integer               :: adjacent_edges_id
-  integer               :: trsk_indices_id
-  integer               :: trsk_modified_curl_indices_id
-  integer               :: adjacent_signs_id
-  integer               :: dimid_10
-  integer               :: dimid_5
-  integer               :: dimid_4
+  integer               :: from_cell_id                     ! netCDF ID of the from cells
+  integer               :: to_cell_id                       ! netCDF ID of the to cells
+  integer               :: to_cell_dual_id                  ! netCDF ID of the dual to cells
+  integer               :: from_cell_dual_id                ! netCDF ID of the dual from cells
+  integer               :: adjacent_edges_id                ! netCDF ID of the adjacent edges
+  integer               :: trsk_indices_id                  ! netCDF ID of the TRSK indices
+  integer               :: trsk_modified_curl_indices_id    ! netCDF ID of the modified TRSK indices
+  integer               :: adjacent_signs_id                ! netCDF ID of the adjacent signs
+  integer               :: dimid_10                         ! netCDF ID of a dimension containing ten values
+  integer               :: dimid_5                          ! netCDF ID of a dimension containing five values
+  integer               :: dimid_4                          ! netCDF ID of a dimension containing four values
   integer               :: vorticity_signs_triangles_id
-  integer               :: cell_dimid
-  integer               :: triangle_dimid
-  integer               :: lat_dimid
-  integer               :: lon_dimid
-  integer               :: edge_dimid
+  integer               :: cell_dimid                       ! netCDF ID of the dimension of the cells
+  integer               :: triangle_dimid                   ! netCDF ID of the dimension of the dual scalars
+  integer               :: lat_dimid                        ! netCDF ID of the latitude dimension of the latitude-longitude grid
+  integer               :: lon_dimid                        ! netCDF ID of the longitude dimension of the latitude-longitude grid
+  integer               :: edge_dimid                       ! netCDF ID of the dimension of the edges
   integer               :: z_vector_v_id
-  integer               :: f_vec_v_id
+  integer               :: f_vec_v_id                       ! netCDF ID of the vertical Coriolis vector (located at the edges)
   integer               :: gravity_potential_id
   integer               :: area_v_id
-  integer               :: dimid_3
-  integer               :: level_dimid
-  integer               :: area_dual_h_id
-  integer               :: inner_product_weights_id
-  integer               :: density_to_rhombi_indices_id
-  integer               :: density_to_rhombi_weights_id
-  integer               :: vorticity_indices_triangles_id
+  integer               :: dimid_3                          ! netCDF ID of a dimension containing three values
+  integer               :: level_dimid                      ! netCDF ID of the level dimension
+  integer               :: area_dual_h_id                   ! netCDF ID of the horizontal areas of the dual grid
+  integer               :: inner_product_weights_id         ! netCDF ID of the weights used for computing the inner product
+  integer               :: density_to_rhombi_indices_id     ! netCDF ID of the indices for interpolating the density to the rhombi
+  integer               :: density_to_rhombi_weights_id     ! netCDF ID of the weights for interpolating the density to the rhombi
+  integer               :: vorticity_indices_triangles_id   ! netCDF ID of the indices used for computing the vorticity on triangles
   integer               :: ncid_g_prop                      ! netCDF ID of the file to be written
   integer               :: single_double_dimid              ! netCDF ID of a single real
   integer               :: n_lloyd_iterations_id            ! netCDF ID of the number of Lloyd iterations
