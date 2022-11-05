@@ -43,21 +43,21 @@ module mo_write_output
   
     ! local variables
     logical               :: lcontains_nan                    ! boolean indicating the presence of NaNs in the output, leading to a model crash
-    integer               :: ji,jl,jm,lat_lon_dimids(2),ncid,single_int_dimid,lat_dimid,lon_dimid,start_date_id,start_hour_id, &
-                             lat_id,lon_id,closest_index,second_closest_index,temperature_ids(n_layers), &
-                             pressure_ids(n_layers),rel_hum_ids(n_layers),wind_u_ids(n_layers),wind_v_ids(n_layers), &
-                             rel_vort_ids(n_layers),div_h_ids(n_layers),wind_w_ids(n_levels),layer_dimid,level_dimid, &
-                             time_since_init_min,mslp_id,sp_id,rprate_id,sprate_id,dimids_vector_2(2),wind_v_id, &
-                             cape_id,tcc_id,t2_id,u10_id,v10_id,gusts_id,sfc_sw_down_id,gh_ids(n_pressure_levels), &
-                             temp_p_ids(n_pressure_levels),rh_p_ids(n_pressure_levels),wind_u_p_ids(n_pressure_levels), &
-                             wind_v_p_ids(n_pressure_levels),epv_p_ids(n_pressure_levels),rel_vort_p_ids(n_pressure_levels), &
-                             soil_layer_dimid,edge_dimid,constituent_dimid,densities_id,temperature_id,wind_h_id, &
-                             tke_id,soil_id,time_step_10_m_wind,pressure_level_hpa,cell_dimid,dimids_vector_3(3)
-    real(wp)              :: delta_latitude,delta_longitude,lat_vector(n_lat_io_points),lon_vector(n_lon_io_points), &
-                             min_precip_rate_mmh,min_precip_rate,cloud_water2cloudiness,temp_lowest_layer, &
-                             pressure_value,mslp_factor,sp_factor,temp_mslp,temp_surface,z_height,theta_v, &
-                             cape_integrand,delta_z,temp_closest,temp_second_closest,delta_z_temp,temperature_gradient, &
-                             theta_e,u_850_surrogate,u_950_surrogate,u_850_proxy_height,u_950_proxy_height
+    integer               :: ji,jl,jm,lat_lon_dimids(2),ncid,single_int_dimid,lat_dimid,lon_dimid,start_date_id,start_hour_id
+    integer               :: lat_id,lon_id,closest_index,second_closest_index,temperature_ids(n_layers)
+    integer               :: pressure_ids(n_layers),rel_hum_ids(n_layers),wind_u_ids(n_layers),wind_v_ids(n_layers)
+    integer               :: rel_vort_ids(n_layers),div_h_ids(n_layers),wind_w_ids(n_levels),layer_dimid,level_dimid
+    integer               :: time_since_init_min,mslp_id,sp_id,rprate_id,sprate_id,dimids_vector_2(2),wind_v_id
+    integer               :: cape_id,tcc_id,t2_id,u10_id,v10_id,gusts_id,sfc_sw_down_id,gh_ids(n_pressure_levels)
+    integer               :: temp_p_ids(n_pressure_levels),rh_p_ids(n_pressure_levels),wind_u_p_ids(n_pressure_levels)
+    integer               :: wind_v_p_ids(n_pressure_levels),epv_p_ids(n_pressure_levels),rel_vort_p_ids(n_pressure_levels)
+    integer               :: soil_layer_dimid,edge_dimid,constituent_dimid,densities_id,temperature_id,wind_h_id
+    integer               :: tke_id,soil_id,time_step_10_m_wind,pressure_level_hpa,cell_dimid,dimids_vector_3(3)
+    real(wp)              :: delta_latitude,delta_longitude,lat_vector(n_lat_io_points),lon_vector(n_lon_io_points)
+    real(wp)              :: min_precip_rate_mmh,min_precip_rate,cloud_water2cloudiness,temp_lowest_layer
+    real(wp)              :: pressure_value,mslp_factor,sp_factor,temp_mslp,temp_surface,z_height,theta_v
+    real(wp)              :: cape_integrand,delta_z,temp_closest,temp_second_closest,delta_z_temp,temperature_gradient
+    real(wp)              :: theta_e,u_850_surrogate,u_950_surrogate,u_850_proxy_height,u_950_proxy_height
     real(wp)              :: wind_tangential                  ! tangential wind value
     real(wp)              :: wind_u_value                     ! zonal wind value
     real(wp)              :: wind_v_value                     ! meridional wind value

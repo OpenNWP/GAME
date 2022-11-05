@@ -31,17 +31,32 @@ program control
 
   implicit none
   
-  type(t_state)         :: state_1,state_2,state_write ! states (prognostic variables) at different time steps
-  type(t_state)         :: state_tend                  ! state containing the explicit tendencies of the prognostic variables
-  type(t_diag)          :: diag                        ! diagnostic quantities
-  type(t_grid)          :: grid                        ! grid quantities
-  logical               :: ltotally_first_step,lrad_update
-  integer               :: omp_num_threads ! number of OMP threads
-  integer               :: ji,time_step_counter,wind_lowest_layer_step_counter,time_step_10_m_wind
-  real(wp)              :: t_0,t_write,t_rad_update,new_weight,old_weight,max_speed_hor,max_speed_ver, &
-                           normal_dist_min_hor,normal_dist_min_ver,init_timestamp,begin_timestamp,end_timestamp
-  real(wp), allocatable :: wind_h_lowest_layer(:,:)
-  character(len=82)     :: stars
+  type(t_state)         :: state_1                        ! states (prognostic variables)
+  type(t_state)         :: state_2                        ! states (prognostic variables)
+  type(t_state)         :: state_write                    ! states (prognostic variables) to be written out
+  type(t_state)         :: state_tend                     ! state containing the explicit tendencies of the prognostic variables
+  type(t_diag)          :: diag                           ! diagnostic quantities
+  type(t_grid)          :: grid                           ! grid quantities
+  logical               :: ltotally_first_step            ! boolean that is only true at the very first step
+  logical               :: lrad_update                    ! boolean indicating that radiative fluxes need to be updated
+  integer               :: omp_num_threads                ! number of OMP threads
+  integer               :: ji                             ! horizontal index
+  integer               :: time_step_counter              ! total time step counter
+  integer               :: time_step_10_m_wind            ! time step of the 10 m wind averaging
+  real(wp)              :: t_0                            ! Unix timestamp of the initialization
+  real(wp)              :: t_write                        ! Unix timestamp of the next output time
+  real(wp)              :: t_rad_update                   ! Unix timestamp of the next radiation update
+  real(wp)              :: new_weight                     ! time interpolation weight for computing the output state
+  real(wp)              :: old_weight                     ! time interpolation weight for computing the output state
+  real(wp)              :: max_speed_hor                  ! maximum horizontal wind speed used for computing the horizontal advective Courant number
+  real(wp)              :: max_speed_ver                  ! maximum vertical wind speed used for computing the vertical advective Courant number
+  real(wp)              :: normal_dist_min_hor            ! minimum horizontal normal distance
+  real(wp)              :: normal_dist_min_ver            ! minimum vertical normal distance
+  real(wp)              :: init_timestamp                 ! CPU time of the model start
+  real(wp)              :: begin_timestamp                ! CPU time of the beginning of a runtime measurement interval
+  real(wp)              :: end_timestamp                  ! CPU time of the end of a runtime measurement interval
+  real(wp), allocatable :: wind_h_lowest_layer(:,:)       ! horizontal wind in the lowest layer (collected for computing the 10-m wind)
+  character(len=82)     :: stars                          ! string containing stars for console output
 
   ! taking the timestamp to measure the performance
   call cpu_time(init_timestamp)
@@ -450,7 +465,7 @@ program control
   
   ! Preparation of the actual integration.
   ! --------------------------------------
-  wind_lowest_layer_step_counter = 1
+  time_step_10_m_wind = 1
   !$omp parallel workshare
   state_2 = state_1
   !$omp end parallel workshare
@@ -507,17 +522,17 @@ program control
   
     ! 5 minutes before the output time,the wind in the lowest layer needs to be collected for 10 m wind diag.
     if (t_0>=t_write-radius_rescale*300._wp) then
-      if (wind_lowest_layer_step_counter<=n_output_steps_10m_wind) then
+      if (time_step_10_m_wind<=n_output_steps_10m_wind) then
         if (mod(time_step_counter,2)==0) then
           !$omp parallel workshare
-          wind_h_lowest_layer(:,wind_lowest_layer_step_counter) = state_1%wind_h(:,n_layers)
+          wind_h_lowest_layer(:,time_step_10_m_wind) = state_1%wind_h(:,n_layers)
           !$omp end parallel workshare
         else
           !$omp parallel workshare
-          wind_h_lowest_layer(:,wind_lowest_layer_step_counter) = state_2%wind_h(:,n_layers)
+          wind_h_lowest_layer(:,time_step_10_m_wind) = state_2%wind_h(:,n_layers)
           !$omp end parallel workshare
         endif
-        wind_lowest_layer_step_counter = wind_lowest_layer_step_counter+1
+        time_step_10_m_wind = time_step_10_m_wind+1
       endif
     endif
     
@@ -538,7 +553,7 @@ program control
       !$omp parallel workshare
       wind_h_lowest_layer = 0._wp
       !$omp end parallel workshare
-      wind_lowest_layer_step_counter = 1
+      time_step_10_m_wind = 1
     
     endif
     

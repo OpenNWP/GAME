@@ -33,18 +33,18 @@ program control
   integer               :: n_lloyd_read_from_file
   integer               :: lat_c_id                         ! netCDF ID of the latitudes of the cell centers
   integer               :: lon_c_id                         ! netCDF ID of the longitudes of the cell centers
-  integer               :: direction_id
+  integer               :: direction_id                     ! netCDF ID of the directions of vectors
   integer               :: lat_e_id                         ! netCDF ID of the latitudes of the edges
   integer               :: lon_e_id                         ! netCDF ID of the longitudes of the edges
-  integer               :: lat_c_dual_id
-  integer               :: lon_c_dual_id
-  integer               :: dimid_6
-  integer               :: dimids_vector_2(2)
-  integer               :: dimids_vector_3(3)
+  integer               :: lat_c_dual_id                    ! netCDF ID of the latitudes of the duall cells
+  integer               :: lon_c_dual_id                    ! netCDF ID of the longitudes of the duall cells
+  integer               :: dimid_6                          ! netCDF ID of a dimension containing six values
+  integer               :: dimids_vector_2(2)               ! vector containing two netCDF dimension IDs
+  integer               :: dimids_vector_3(3)               ! vector containing three netCDF dimension IDs
   integer               :: z_scalar_id
   integer               :: z_vector_h_id
-  integer               :: dx_id
-  integer               :: dz_id
+  integer               :: dx_id                            ! netCDF ID of the normal distances
+  integer               :: dz_id                            ! netCDF ID of the tangential distances
   integer               :: volume_id                        ! netCDF ID of the volumes of the gridboxes
   integer               :: area_h_id                        ! netCDF ID of the horizontal areas
   integer               :: trsk_weights_id

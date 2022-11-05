@@ -130,8 +130,9 @@ module mo_vertical_grid
   function standard_pres(z_height)
     
     ! This function returns the pressure in the standard atmosphere.
-    real(wp), intent(in) :: z_height
-    real(wp)             :: standard_pres
+    
+    real(wp), intent(in) :: z_height      ! vertical height
+    real(wp)             :: standard_pres ! air pressure in the standard atmosphere (result)
     
     ! local variables
     real(wp) :: tropo_temp_standard,pressure_at_inv_standard
@@ -157,10 +158,11 @@ module mo_vertical_grid
   
     ! This subroutine sets the z coordinates of the dual scalar points.
   
-    real(wp), intent(out) :: z_scalar_dual(n_triangles,n_levels)
-    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)
-    integer,  intent(in)  :: from_cell(n_edges),to_cell(n_edges), &
-                             vorticity_indices_triangles(3,n_triangles)
+    real(wp), intent(out) :: z_scalar_dual(n_triangles,n_levels)        ! z-coordinates of the dual grid cell centers
+    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)               ! z-coordinates of the vertical vectors
+    integer,  intent(in)  :: from_cell(n_edges)                         ! cells in the from-directions of the vectors
+    integer,  intent(in)  :: to_cell(n_edges)                           ! cells in the to-directions of the vectors
+    integer,  intent(in)  :: vorticity_indices_triangles(3,n_triangles) ! indices used for computing the vorticity on triangles
 
     ! local variables
     integer :: ji ! triangle index
@@ -188,15 +190,15 @@ module mo_vertical_grid
 
     ! This subroutine computes the areas of the dual grid.
   
-    real(wp), intent(out) :: area_dual_h(n_edges,n_levels)
-    real(wp), intent(out) :: area_dual_v(n_triangles,n_layers)
-    real(wp), intent(in)  :: z_vector_dual_v(n_triangles,n_layers)
-    real(wp), intent(in)  :: dx(n_edges,n_layers)
-    real(wp), intent(in)  :: z_vector_h(n_edges,n_layers)
-    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)
-    real(wp), intent(in)  :: triangle_face_unit_sphere(n_triangles)
-    integer,  intent(in)  :: from_cell(n_edges)
-    integer,  intent(in)  :: to_cell(n_edges)
+    real(wp), intent(out) :: area_dual_h(n_edges,n_levels)          ! horizontal areas of the dual grid
+    real(wp), intent(out) :: area_dual_v(n_triangles,n_layers)      ! areas of the dual grid cells (triangles)
+    real(wp), intent(in)  :: z_vector_dual_v(n_triangles,n_layers)  ! z-coordinates of the dual vertical vectors
+    real(wp), intent(in)  :: dx(n_edges,n_layers)                   ! horizontal normal gridpoint distances
+    real(wp), intent(in)  :: z_vector_h(n_edges,n_layers)           ! z-coordinates of the horizontal vectors
+    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)           ! z-coordinates of the vertical vectors
+    real(wp), intent(in)  :: triangle_face_unit_sphere(n_triangles) ! areas of the dual grid cells (triangles) on the unity sphere
+    integer,  intent(in)  :: from_cell(n_edges)                     ! cells in the from-directions of the vectors
+    integer,  intent(in)  :: to_cell(n_edges)                       ! cells in the to-directions of the vectors
   
     ! local variables
     integer  :: ji,jl
@@ -275,12 +277,12 @@ module mo_vertical_grid
 
     ! This function sets the areas of the gridboxes.
     
-    real(wp), intent(out) :: area_h(n_edges,n_layers)
-    real(wp), intent(out) :: area_v(n_cells,n_levels)
-    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)
-    real(wp), intent(in)  :: z_vector_dual_h(n_edges,n_levels)
-    real(wp), intent(in)  :: dy(n_edges,n_levels)
-    real(wp), intent(in)  :: pent_hex_face_unity_sphere(n_cells)
+    real(wp), intent(out) :: area_h(n_edges,n_layers)            ! horizontal areas
+    real(wp), intent(out) :: area_v(n_cells,n_levels)            ! vertical areas
+    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)        ! z-coordinates of the vertical vectors
+    real(wp), intent(in)  :: z_vector_dual_h(n_edges,n_levels)   ! z-coordinates of the dual horizontal vectors
+    real(wp), intent(in)  :: dy(n_edges,n_levels)                ! tangential gridpoint distances
+    real(wp), intent(in)  :: pent_hex_face_unity_sphere(n_cells) ! areas of the pentagons and hexagons on the unity sphere
   
     ! local variables
     integer  :: ji ! horizontal loop index
@@ -312,16 +314,16 @@ module mo_vertical_grid
 
     ! This subroutine calculates the vertical position of the vector points as well as the normal distances of the primal grid.
   
-    real(wp), intent(out) :: z_vector_h(n_edges,n_layers)
-    real(wp), intent(out) :: z_vector_v(n_cells,n_levels)
-    real(wp), intent(out) :: dx(n_edges,n_layers)
-    real(wp), intent(out) :: dz(n_cells,n_levels)
-    real(wp), intent(in)  :: z_scalar(n_cells,n_layers)
+    real(wp), intent(out) :: z_vector_h(n_edges,n_layers) ! z-coordinates of the horizontal vectors
+    real(wp), intent(out) :: z_vector_v(n_cells,n_levels) ! z-coordinates of the vertical vectors
+    real(wp), intent(out) :: dx(n_edges,n_layers)         ! horizontal normal gridpoint distances
+    real(wp), intent(out) :: dz(n_cells,n_levels)         ! vertical gridpoint distances
+    real(wp), intent(in)  :: z_scalar(n_cells,n_layers)   ! z-coordinates of the cell centers
     real(wp), intent(in)  :: lat_c(n_cells)               ! latitudes of cell centers
     real(wp), intent(in)  :: lon_c(n_cells)               ! longitudes of cell centers
-    real(wp), intent(in)  :: oro(n_cells)
-    integer,  intent(in)  :: from_cell(n_edges)
-    integer,  intent(in)  :: to_cell(n_edges)
+    real(wp), intent(in)  :: oro(n_cells)                 ! orography (located at cell centers)
+    integer,  intent(in)  :: from_cell(n_edges)           ! cells in the from-directions of the vectors
+    integer,  intent(in)  :: to_cell(n_edges)             ! cells in the to-directions of the vectors
   
     ! local variables
     integer               :: ji ! horizontal index
@@ -383,20 +385,20 @@ module mo_vertical_grid
     
     ! This subroutine sets the z coordinates of the dual vector points as well as the normal distances of the dual grid.
     
-    real(wp), intent(out) :: z_vector_dual_h(n_edges,n_levels)
-    real(wp), intent(out) :: z_vector_dual_v(n_triangles,n_layers)
-    real(wp), intent(out) :: dy(n_edges,n_levels)
-    real(wp), intent(out) :: dz_dual(n_triangles,n_layers)
-    real(wp), intent(in)  :: z_scalar_dual(n_triangles,n_levels)
-    real(wp), intent(in)  :: z_vector_h(n_edges,n_layers)
-    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)
-    real(wp), intent(in)  :: lat_c_dual(n_triangles)
-    real(wp), intent(in)  :: lon_c_dual(n_triangles)
-    integer,  intent(in)  :: from_cell(n_edges)
-    integer,  intent(in)  :: to_cell(n_edges)
-    integer,  intent(in)  :: from_cell_dual(n_edges)
-    integer,  intent(in)  :: to_cell_dual(n_edges)
-    integer,  intent(in)  :: vorticity_indices_triangles(3,n_triangles)
+    real(wp), intent(out) :: z_vector_dual_h(n_edges,n_levels)          ! z-coordinates of the dual horizontal vectors
+    real(wp), intent(out) :: z_vector_dual_v(n_triangles,n_layers)      ! z-coordinates of the dual vertical vectors
+    real(wp), intent(out) :: dy(n_edges,n_levels)                       ! tangential gridpoint distances
+    real(wp), intent(out) :: dz_dual(n_triangles,n_layers)              ! normal gridpoint distances
+    real(wp), intent(in)  :: z_scalar_dual(n_triangles,n_levels)        ! z-coordinates of the dual grid cell centers
+    real(wp), intent(in)  :: z_vector_h(n_edges,n_layers)               ! z-coordinates of the horizontal vectors
+    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)               ! z-coordinates of the vertical vectors
+    real(wp), intent(in)  :: lat_c_dual(n_triangles)                    ! latitudes of the dual cell centers (triangles)
+    real(wp), intent(in)  :: lon_c_dual(n_triangles)                    ! longitudes of the dual cell centers (triangles)
+    integer,  intent(in)  :: from_cell(n_edges)                         ! cells in the from-directions of the vectors
+    integer,  intent(in)  :: to_cell(n_edges)                           ! cells in the to-directions of the vectors
+    integer,  intent(in)  :: from_cell_dual(n_edges)                    ! dual cells (triangles) in the from-directions of the dual vectors
+    integer,  intent(in)  :: to_cell_dual(n_edges)                      ! dual cells (triangles) in the to-directions of the dual vectors
+    integer,  intent(in)  :: vorticity_indices_triangles(3,n_triangles) ! indices used for computing the vorticity on triangles
     
     ! local variables
     integer :: ji ! horizontal index
