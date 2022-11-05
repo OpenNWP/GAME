@@ -35,7 +35,7 @@ module mo_grid_nml
   integer            :: n_avg_points             ! number of points used for smoothing the orography
   integer            :: oro_id                   ! orography ID
   integer            :: n_lloyd_iterations       ! number of Lloyd iterations used for the optimization
-  real(wp)           :: mean_velocity_area       ! the area that can be attributed to one horizontal vector grid point
+  real(wp)           :: mean_velocity_area       ! the area that can be attributed to one horizontal vector gridpoint
   real(wp)           :: eff_hor_res              ! effective horizontal resolution
   logical            :: luse_scalar_h_file       ! switch to determine wether to read the horizontal coordinates from a file or not
   character(len=256) :: scalar_h_file            ! file to read the horizontal coordinates from

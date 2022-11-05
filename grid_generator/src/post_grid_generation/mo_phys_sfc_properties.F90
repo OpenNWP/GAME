@@ -118,7 +118,7 @@ module mo_phys_sfc_properties
       ! smoothing the real orography
       !$omp parallel do private(ji,jk,min_indices_vector,distance_vector)
       do ji=1,n_cells
-        ! finding the distance to the other grid points
+        ! finding the distance to the other gridpoints
         do jk=1,n_cells
           if (jk==ji) then
             distance_vector(jk) = 0._wp

@@ -271,7 +271,7 @@ module mo_derived_hor_quantities
       do jk=1,n_edges
         if (from_cell(jk)==ji .or. to_cell(jk)==ji) then
           if (from_cell(jk)==to_cell(jk)) then
-            write(*,*) "It is from_cell == to_cell at the following grid point:", jk
+            write(*,*) "It is from_cell == to_cell at the following gridpoint:", jk
             call exit(1)
           endif
           adjacent_edges(counter+1,ji) = jk

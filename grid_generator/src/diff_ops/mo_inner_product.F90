@@ -17,12 +17,12 @@ module mo_inner_product
     ! This subroutine computes the geometrical weights for computing the inner product.
 
     real(wp), intent(out) :: inner_product_weights(8,n_cells,n_layers) ! the result
-    real(wp), intent(in)  :: dx(n_edges,n_layers)                      ! horizontal grid point distances
+    real(wp), intent(in)  :: dx(n_edges,n_layers)                      ! horizontal gridpoint distances
     real(wp), intent(in)  :: volume(n_cells,n_layers)                  ! volumes of the grid boxes
     real(wp), intent(in)  :: area_h(n_edges,n_layers)                  ! horizontal areas
     real(wp), intent(in)  :: area_v(n_cells,n_levels)                  ! vertical areas
-    real(wp), intent(in)  :: z_scalar(n_cells,n_layers)                ! vertical coordinates of the scalar grid points
-    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)              ! vertical coordinates of the vertical vector grid points
+    real(wp), intent(in)  :: z_scalar(n_cells,n_layers)                ! vertical coordinates of the scalar gridpoints
+    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)              ! vertical coordinates of the vertical vector gridpoints
     integer,  intent(in)  :: adjacent_edges(6,n_cells)                 ! adjacent edges of each cell
 
     ! local variables
