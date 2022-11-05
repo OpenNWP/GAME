@@ -29,12 +29,10 @@ module mo_rrtmgp_coupler
   
   implicit none
   
-  ! the number of bands in the shortwave region
-  integer, parameter :: n_sw_bands = 14
-  ! the number of bands in the longwave region
-  integer, parameter :: n_lw_bands = 16
+  integer, parameter :: n_sw_bands = 14                 ! the number of bands in the shortwave region
+  integer, parameter :: n_lw_bands = 16                 ! the number of bands in the longwave region
 
-  character(len=3), dimension(8) :: active_gases = (/ &
+  character(len=3), dimension(8) :: active_gases = (/ & ! the gases to take into account
    "N2 ","O2 ","CH4","O3 ","CO2","H2O","N2O","CO " &
    /)
   
@@ -530,7 +528,7 @@ module mo_rrtmgp_coupler
   
     real(wp), intent(in) :: lat ! the latitude of the place we look at
     real(wp), intent(in) :: lon ! the longitude of the place we look at
-    real(wp), intent(in) :: t   ! the unix time stamp of the time
+    real(wp), intent(in) :: t   ! the Unix time stamp of the time
     
     ! local variables
     real(wp) :: normal_vector_rel2_earth(3)
@@ -619,7 +617,9 @@ module mo_rrtmgp_coupler
     
     ! local variables
     real(wp) :: vol_mix_ratio(n_cells_rad,n_layers) ! the volume mixing ratio of one gas
-    integer  :: jc,ji,jl                            ! loop indices
+    integer  :: jc                                  ! constituent index
+    integer  :: ji                                  ! horizontal index
+    integer  :: jl                                  ! layer index
     
     ! setting the volume mixing ratios of the gases
     do jc=1,size(active_gases)
@@ -712,7 +712,7 @@ module mo_rrtmgp_coupler
 
     ! This subroutine resets all fluxes to zero.
 
-    type(ty_fluxes_broadband), intent(inout) :: fluxes
+    type(ty_fluxes_broadband), intent(inout) :: fluxes ! the fluxe object to set to zero
 
     ! reset broadband fluxes
     fluxes%flux_up = 0._wp
