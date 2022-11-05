@@ -43,7 +43,7 @@ program control
   integer               :: ji                             ! horizontal index
   integer               :: time_step_counter              ! total time step counter
   integer               :: time_step_10_m_wind            ! time step of the 10 m wind averaging
-  real(wp)              :: t_0                            ! Unix timestamp of the initialization
+  real(wp)              :: t_0                            ! Unix timestamp of the old time step
   real(wp)              :: t_write                        ! Unix timestamp of the next output time
   real(wp)              :: t_rad_update                   ! Unix timestamp of the next radiation update
   real(wp)              :: new_weight                     ! time interpolation weight for computing the output state
