@@ -7,23 +7,22 @@ module mo_definitions
   
   implicit none
   
-  ! setting the floating pointeger :: precision
+  ! setting the floating point precision
   ! single precision
-  integer, parameter :: ps = 6
-  integer, parameter :: rs = 37
+  integer, parameter :: ps = 6                                ! single decimal precision
+  integer, parameter :: rs = 37                               ! single exponent precision
+  ! double precision
+  integer, parameter :: pd = 12                               ! double decimal precision
+  integer, parameter :: rd = 37                               ! double exponent precision
   
-  ! real(wp) :: precision
-  integer, parameter :: pd = 12
-  integer, parameter :: rd = 37
-  
-  integer, parameter :: sp = selected_real_kind(ps,rs) ! single precission
-  integer, parameter :: dp = selected_real_kind(pd,rd) ! real(wp) :: precission
+  integer, parameter :: sp = selected_real_kind(ps,rs)        ! single precision
+  integer, parameter :: dp = selected_real_kind(pd,rd)        ! double precision
 
 #ifdef SINGLE_PRECISION
-  integer, parameter :: wp = sp                        ! working precision
+  integer, parameter :: wp = sp                               ! working precision
 #endif
 #ifndef SINGLE_PRECISION
-  integer, parameter :: wp = dp
+  integer, parameter :: wp = dp                               ! working precision
 #endif
 
   ! grid quantities
