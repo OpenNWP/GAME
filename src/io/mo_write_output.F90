@@ -870,9 +870,14 @@ module mo_write_output
     real(wp),      intent(in) :: time_since_init ! the time since model initialization
     
     ! local variables
-    integer               :: const_id
-    real(wp)              :: global_integral,kinetic_integral,potential_integral,internal_integral
-    real(wp), allocatable :: int_energy_density(:,:),pot_energy_density(:,:),e_kin_density(:,:)
+    integer               :: const_id                ! constituent ID
+    real(wp), allocatable :: e_kin_density(:,:)      ! kinetic energy density field
+    real(wp), allocatable :: pot_energy_density(:,:) ! potential energy density field
+    real(wp), allocatable :: int_energy_density(:,:) ! internal energy density field
+    real(wp)              :: global_integral         ! placeholder for global integrals
+    real(wp)              :: kinetic_integral        ! kinetic energy integral
+    real(wp)              :: potential_integral      ! potential energy integral
+    real(wp)              :: internal_integral       ! internal energy integral
     
     ! masses
     if (time_since_init==0._wp) then

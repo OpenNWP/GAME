@@ -46,8 +46,9 @@ program control
                            is_land_id,n_oro_layers_id,stretching_parameter_id,toa_id,radius_id
   integer,  allocatable :: to_cell(:),from_cell(:),trsk_indices(:,:),trsk_modified_curl_indices(:,:),adjacent_edges(:,:), &
                            vorticity_indices_triangles(:,:),vorticity_indices_rhombi(:,:),to_cell_dual(:),from_cell_dual(:), &
-                           adjacent_signs(:,:),vorticity_signs_triangles(:,:),density_to_rhombi_indices(:,:), &
-                           interpol_indices(:,:,:),is_land(:)
+                           adjacent_signs(:,:),vorticity_signs_triangles(:,:),density_to_rhombi_indices(:,:)
+  integer,  allocatable :: interpol_indices(:,:,:) ! interpolation indices to the latitude-longitude grid
+  integer,  allocatable :: is_land(:)              ! land-sea mask
   real(wp), allocatable :: x_unity(:),y_unity(:),z_unity(:),lat_c(:),lon_c(:),z_scalar(:,:),gravity_potential(:,:), &
                            z_vector_h(:,:),z_vector_v(:,:),dx(:,:),dz(:,:),lat_e(:),lon_e(:),direction(:),volume(:,:), &
                            area_h(:,:),area_v(:,:),trsk_weights(:,:),lat_c_dual(:),lon_c_dual(:),z_scalar_dual(:,:), &
@@ -57,10 +58,17 @@ program control
                            density_to_rhombi_weights(:,:),triangle_face_unit_sphere(:), &
                            interpol_weights(:,:,:),exner_bg(:,:),theta_v_bg(:,:),oro(:),roughness_length(:),sfc_albedo(:), &
                            sfc_rho_c(:),t_conductivity(:)
-  real(wp)              :: lat_ico(12),lon_ico(12),min_oro,max_oro
-  integer               :: edge_vertices(30,2),face_vertices(20,3),face_edges(20,3),face_edges_reverse(20,3)
-  character(len=128)    :: grid_name
-  character(len=256)    :: output_file,statistics_file
+  real(wp)              :: lat_ico(12)              ! latitudes of the vertices of the basic icosahedron
+  real(wp)              :: lon_ico(12)              ! longitudes of the vertices of the basic icosahedron
+  real(wp)              :: min_oro                  ! minimum of the orography
+  real(wp)              :: max_oro                  ! maximum of the orography
+  integer               :: edge_vertices(30,2)      ! relation between edges and vertices
+  integer               :: face_vertices(20,3)      ! relation between faces and vertices
+  integer               :: face_edges(20,3)         ! relation between faces and edges
+  integer               :: face_edges_reverse(20,3) ! indicating wether an edge of a face is reversed relative to the standard direction
+  character(len=128)    :: grid_name                ! name of the grid to be created
+  character(len=256)    :: output_file              ! name of the output file
+  character(len=256)    :: statistics_file          ! name of the file to which statistical properties will be written
   
   call grid_nml_setup()
   
