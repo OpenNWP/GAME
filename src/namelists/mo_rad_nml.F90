@@ -17,10 +17,10 @@ module mo_rad_nml
   integer            :: n_cells_rad                 ! numbers of columns of the radiaiton domain
   integer            :: n_cells_rad_last            ! numbers of columns of the radiation domain in the last bock
   real(wp)           :: radiation_dtime             ! radiation_dtime
-  character(len=128) :: rrtmgp_coefficients_file_sw ! the name of the short wave data file
-  character(len=128) :: rrtmgp_coefficients_file_lw ! the name of the long wave data file
-  character(len=128) :: cloud_coefficients_file_sw  ! the name of the short wave cloud optics file
-  character(len=128) :: cloud_coefficients_file_lw  ! the name of the long wave cloud optics file
+  character(len=128) :: rrtmgp_coefficients_file_sw ! the name of the shortwave data file
+  character(len=128) :: rrtmgp_coefficients_file_lw ! the name of the longwave data file
+  character(len=128) :: cloud_coefficients_file_sw  ! the name of the shortwave cloud optics file
+  character(len=128) :: cloud_coefficients_file_lw  ! the name of the longwave cloud optics file
   integer            :: n_no_cond_rad_layers        ! number of layers in which the interaction between condensates and radiaton is switched off
   
   namelist /rad/rad_config,n_rad_blocks,rrtmgp_coefficients_file_sw,rrtmgp_coefficients_file_lw, &
