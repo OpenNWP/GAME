@@ -283,7 +283,8 @@ module mo_momentum_diff_diss
     type(t_grid),  intent(in)    :: grid  ! grid properties
     
     ! local variables
-    integer  :: ji,jl                           ! spatial indices
+    integer  :: ji                              ! cell index
+    integer  :: jl                              ! level index
     real(wp) :: damping_start_height            ! the height in which the Klemp layer begins
     real(wp) :: z_above_damping                 ! height of a given gridpoint above damping_start_height
     real(wp) :: damping_coeff,damping_prefactor ! coefficients needed for the Klemp damping layer

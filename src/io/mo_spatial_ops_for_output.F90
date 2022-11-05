@@ -260,7 +260,8 @@ module mo_spatial_ops_for_output
     ! This function computes the tangential component of the vector field in_field at edge ji in layer jl using the TRSK weights.
     
     real(wp),     intent(in) :: in_field_h(n_edges,n_layers) ! vector field of which to compute the tangential component
-    integer,      intent(in) :: ji,jl                        ! spatial indices
+    integer,      intent(in) :: ji                           ! cell index
+    integer,      intent(in) :: jl                           ! layer index
     type(t_grid), intent(in) :: grid                         ! grid quantities
     real(wp)                 :: tangential_wind              ! result
     
