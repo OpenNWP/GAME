@@ -281,30 +281,37 @@ module mo_eff_diff_coeffs
   end subroutine update_n_squared
   
   function tke2hor_diff_coeff(tke,effective_resolution)
-  
+    
     ! This function returns the horizontal kinematic eddy viscosity as a function of the specific TKE.
     
-    real(wp), intent(in) :: tke,effective_resolution
-    real(wp)             :: tke2hor_diff_coeff
+    real(wp), intent(in) :: tke                  ! specific turbulent kinetic energy
+    real(wp), intent(in) :: effective_resolution ! effective horizontal resolution
+    real(wp)             :: tke2hor_diff_coeff   ! result
     
     ! local variables
-    real(wp) :: mean_velocity,mean_free_path
+    real(wp) :: mean_velocity  ! mean velocity of a sub-grid scale movement
+    real(wp) :: mean_free_path ! mean free path of a sub-grid scale movement
     
     mean_velocity = (2._wp*tke)**0.5_wp
     mean_free_path = effective_resolution/6._wp
     tke2hor_diff_coeff = 1._wp/6._wp*mean_free_path*mean_velocity
-  
+    
   end function tke2hor_diff_coeff
 
   function tke2vert_diff_coeff(tke,n_squared,layer_thickness)
-
+    
     ! This function returns the vertical kinematic eddy viscosity as a function of the specific TKE and the Brunt-Väisälä frequency.
     
-    real(wp), intent(in)  :: tke,n_squared,layer_thickness
-    real(wp)              :: tke2vert_diff_coeff
+    real(wp),intent(in) :: tke                 ! specifc turbulent kinetic energy
+    real(wp),intent(in) :: n_squared           ! squared Brunt-Väisälä frequency
+    real(wp),intent(in) :: layer_thickness     ! thicknedd of the grid cell
+    real(wp)            :: tke2vert_diff_coeff ! result
     
     ! local variables
-    real(wp) :: tke_vert,mean_velocity,n_used,mean_free_path
+    real(wp) :: tke_vert       ! vertical component of the specific turbulent kinetic energy
+    real(wp) :: mean_velocity  ! mean velocity of a sub-grid scale movement
+    real(wp) :: n_used         ! Brunt-Väisälä frequency actually used for the calculation
+    real(wp) :: mean_free_path ! mean free path of a sub-grid scale movement
     
     ! vertical component of the turbulent kinetic energy
     tke_vert = 3._wp*1e-3_wp*tke
