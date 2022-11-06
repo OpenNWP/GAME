@@ -1019,15 +1019,15 @@ module mo_write_output
     real(wp)                  :: pseudopotential_temperature ! the result
     
     ! local variables
-    real(wp) :: r                    ! mixing ratio
-    real(wp) :: alpha_1              ! parameter for computing the pseudopotential temperature
-    real(wp) :: alpha_2              ! parameter for computing the pseudopotential temperature
-    real(wp) :: alpha_3              ! parameter for computing the pseudopotential temperature
-    real(wp) :: pressure             ! air pressure
-    real(wp) :: t_lcl                ! temperature in the lifted condensation level
-    real(wp) :: vapour_pressure      ! partial pressure of water vapour
-    real(wp) :: saturation_pressure  ! saturation vapour pressure
-    real(wp) :: rel_hum              ! relative humidity
+    real(wp) :: r                   ! mixing ratio
+    real(wp) :: alpha_1             ! parameter for computing the pseudopotential temperature
+    real(wp) :: alpha_2             ! parameter for computing the pseudopotential temperature
+    real(wp) :: alpha_3             ! parameter for computing the pseudopotential temperature
+    real(wp) :: pressure            ! air pressure
+    real(wp) :: t_lcl               ! temperature in the lifted condensation level
+    real(wp) :: vapour_pressure     ! partial pressure of water vapour
+    real(wp) :: saturation_pressure ! saturation vapour pressure
+    real(wp) :: rel_hum             ! relative humidity
     
     pseudopotential_temperature = 0._wp
     ! the dry case

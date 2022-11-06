@@ -38,9 +38,10 @@ module mo_set_initial_state
     integer               :: ji,jl,ncid_grid,lat_e_id,lon_e_id
     real(wp)              :: dummy_1,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7,lat,lon,z_height,u,v, &
                              pressure_value,specific_humidity,dry_density,b,c,small_atmos_rescale
-    real(wp), allocatable :: pressure(:,:),temperature(:,:),temperature_v(:,:),water_vapour_density(:,:),lat_e(:), &
-                             lon_e(:)
-    character(len=128)    :: grid_file_name
+    real(wp), allocatable :: pressure(:,:),temperature(:,:),temperature_v(:,:),water_vapour_density(:,:)
+    real(wp), allocatable :: lat_e(:)       ! latitudes of the edges
+    real(wp), allocatable :: lon_e(:)       ! longitudes of the edges
+    character(len=128)    :: grid_file_name ! name fo the grid file to read the coordinates of the edges from
     
     ! determining the grid file
     grid_file_name = "../../grid_generator/grids/RES" // trim(int2string(res_id)) // "_L" // &
@@ -348,7 +349,7 @@ module mo_set_initial_state
     ! local variables
     integer               :: ji,jl,ncid,sst_id,soil_index,sst_avail,t_soil_avail,soil_id
     real(wp)              :: z_soil,t_sfc
-    real(wp), allocatable :: sst(:)
+    real(wp), allocatable :: sst(:) ! sea surface temperature
     
     ! figuring out if the SST is included in the initialization file and reading it if it exists (important for NWP)
     allocate(sst(n_cells))

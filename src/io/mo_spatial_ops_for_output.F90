@@ -78,11 +78,13 @@ module mo_spatial_ops_for_output
     real(wp), allocatable :: pot_vort_as_tangential_vector_field_h(:,:) ! horizontal potential vorticity as tangential components at edges
     real(wp), allocatable :: pot_vort_v_at_levels(:,:)                  ! vertical potential vorticity at the cell center level interfaces
     
+    ! allocating memory
     allocate(grad_pot_temp_h(n_edges,n_layers))
     allocate(grad_pot_temp_v(n_cells,n_levels))
     allocate(pot_vort_as_tangential_vector_field_h(n_edges,n_layers))
     allocate(pot_vort_v_at_levels(n_cells,n_levels))
     
+    ! initializing the arrays with zeroes
     !$omp parallel workshare
     grad_pot_temp_h = 0._wp
     grad_pot_temp_v = 0._wp
@@ -204,9 +206,10 @@ module mo_spatial_ops_for_output
     type(t_grid), intent(in)  :: grid                          ! grid quantities
     
     ! local variables
-    integer  :: ji            ! edge index
-    integer  :: jl            ! layer index
-    real(wp) :: wind_1,wind_2 ! orthogonal and tangential component at edge, respectively
+    integer  :: ji     ! edge index
+    integer  :: jl     ! layer index
+    real(wp) :: wind_1 ! orthogonal component at edge
+    real(wp) :: wind_2 ! tangential component at edge
     
     !$omp parallel do private(ji,jl,wind_1,wind_2)
     do jl=1,n_layers
@@ -231,9 +234,10 @@ module mo_spatial_ops_for_output
     type(t_grid), intent(in)  :: grid                        ! grid quantities
     
     ! local variables
-    integer :: ji ! cell index
-    integer :: jl ! layer index
-    integer :: jm,n_edges_of_cell
+    integer :: ji              ! cell index
+    integer :: jl              ! layer index
+    integer :: jm              ! edge index
+    integer :: n_edges_of_cell ! number of edges a given cell has (five or six)
     
     !$omp parallel do private (ji,jl,jm,n_edges_of_cell)
     do jl=1,n_layers
@@ -286,7 +290,9 @@ module mo_spatial_ops_for_output
     type(t_grid), intent(in)  :: grid                                       ! grid quantities
     
     ! local variables
-    integer :: ji,jk,jm
+    integer :: jk ! horizontal index
+    integer :: ji ! horizontal index
+    integer :: jm ! averaging index
     
     ! loop over all output points
     !$omp parallel do private(ji,jk,jm)
