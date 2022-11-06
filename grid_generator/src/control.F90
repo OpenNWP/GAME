@@ -41,21 +41,21 @@ program control
   integer               :: dimid_6                          ! netCDF ID of a dimension containing six values
   integer               :: dimids_vector_2(2)               ! vector containing two netCDF dimension IDs
   integer               :: dimids_vector_3(3)               ! vector containing three netCDF dimension IDs
-  integer               :: z_scalar_id
-  integer               :: z_vector_h_id
+  integer               :: z_scalar_id                      ! netCDF ID of the z-coordinates of the cell centers
+  integer               :: z_vector_h_id                    ! netCDF ID of the z-coordinates of the edges
   integer               :: dx_id                            ! netCDF ID of the normal distances
   integer               :: dz_id                            ! netCDF ID of the tangential distances
   integer               :: volume_id                        ! netCDF ID of the volumes of the gridboxes
   integer               :: area_h_id                        ! netCDF ID of the horizontal areas
-  integer               :: trsk_weights_id
-  integer               :: z_vector_dual_h_id
-  integer               :: dy_id
-  integer               :: dz_dual_id
-  integer               :: area_dual_v_id
-  integer               :: f_vec_h_id
-  integer               :: layer_dimid
+  integer               :: trsk_weights_id                  ! netCDF ID of the TRSK weights
+  integer               :: z_vector_dual_h_id               ! netCDF ID of the z-coordinates of the horizontal dual vectors
+  integer               :: dy_id                            ! netCDF ID of tangential distances
+  integer               :: dz_dual_id                       ! netCDF ID of the vertical dual gridpoint distances
+  integer               :: area_dual_v_id                   ! netCDF ID of the vertical dual areas
+  integer               :: f_vec_h_id                       ! netCDF ID of the horizontal Coriolis vector component
+  integer               :: layer_dimid                      ! netCDF ID of the layer dimension
   integer               :: dimid_8                          ! netCDF ID of a dimension containing eight values
-  integer               :: z_vector_dual_v_id
+  integer               :: z_vector_dual_v_id               ! netCDF ID of the z-coordinates of the vertical dual vector
   integer               :: from_cell_id                     ! netCDF ID of the from cells
   integer               :: to_cell_id                       ! netCDF ID of the to cells
   integer               :: to_cell_dual_id                  ! netCDF ID of the dual to cells
@@ -67,16 +67,16 @@ program control
   integer               :: dimid_10                         ! netCDF ID of a dimension containing ten values
   integer               :: dimid_5                          ! netCDF ID of a dimension containing five values
   integer               :: dimid_4                          ! netCDF ID of a dimension containing four values
-  integer               :: vorticity_signs_triangles_id
+  integer               :: vorticity_signs_triangles_id     ! netCDF ID of the signs needed for computing the vorticity on triangles
   integer               :: cell_dimid                       ! netCDF ID of the dimension of the cells
   integer               :: triangle_dimid                   ! netCDF ID of the dimension of the dual scalars
   integer               :: lat_dimid                        ! netCDF ID of the latitude dimension of the latitude-longitude grid
   integer               :: lon_dimid                        ! netCDF ID of the longitude dimension of the latitude-longitude grid
   integer               :: edge_dimid                       ! netCDF ID of the dimension of the edges
-  integer               :: z_vector_v_id
+  integer               :: z_vector_v_id                    ! netCDF ID of the z-coordinates of the vertical vector points
   integer               :: f_vec_v_id                       ! netCDF ID of the vertical Coriolis vector (located at the edges)
-  integer               :: gravity_potential_id
-  integer               :: area_v_id
+  integer               :: gravity_potential_id             ! netCDF ID of the gravity potential
+  integer               :: area_v_id                        ! netCDF ID of the vertical areas
   integer               :: dimid_3                          ! netCDF ID of a dimension containing three values
   integer               :: level_dimid                      ! netCDF ID of the level dimension
   integer               :: area_dual_h_id                   ! netCDF ID of the horizontal areas of the dual grid

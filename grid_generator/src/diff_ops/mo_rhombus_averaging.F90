@@ -21,11 +21,11 @@ module mo_rhombus_averaging
     
     ! This subroutine implements the averaging of scalar quantities to rhombi. Indices and weights are computed here for the highest layer but remain unchanged elsewhere.
 
-    integer,  intent(in)  :: vorticity_indices_triangles(3,n_triangles)
-    integer,  intent(in)  :: from_cell_dual(n_edges)
-    integer,  intent(in)  :: to_cell_dual(n_edges)
-    integer,  intent(in)  :: from_cell(n_edges)
-    integer,  intent(in)  :: to_cell(n_edges)
+    integer,  intent(in)  :: vorticity_indices_triangles(3,n_triangles) ! indices used for computing the vorticity on triangles
+    integer,  intent(in)  :: from_cell_dual(n_edges)                    ! dual cells in the from-directions of the dual vectors
+    integer,  intent(in)  :: to_cell_dual(n_edges)                      ! dual cells in the to-directions of the dual vectors
+    integer,  intent(in)  :: from_cell(n_edges)                         ! cells in the from-directions of the vectors
+    integer,  intent(in)  :: to_cell(n_edges)                           ! cells in the to-directions of the vectors
     real(wp), intent(in)  :: lat_c(n_cells)                             ! latitudes of the cell centers
     real(wp), intent(in)  :: lon_c(n_cells)                             ! longitudes of the cell centers
     real(wp), intent(in)  :: area_dual_v(n_triangles,n_layers)          ! areas of the triangles
@@ -34,15 +34,15 @@ module mo_rhombus_averaging
     real(wp), intent(in)  :: lon_c_dual(n_triangles)                    ! longitudes of the triangle centers
     real(wp), intent(in)  :: lat_e(n_edges)                             ! latitudes of the edges
     real(wp), intent(in)  :: lon_e(n_edges)                             ! longitudes of the edges
-    integer,  intent(out) :: vorticity_indices_rhombi(4,n_edges)
-    integer,  intent(out) :: density_to_rhombus_indices(4,n_edges)
-    real(wp), intent(out) :: density_to_rhombus_weights(4,n_edges)
+    integer,  intent(out) :: vorticity_indices_rhombi(4,n_edges)        ! indices used for computing the vorticity on rhombi
+    integer,  intent(out) :: density_to_rhombus_indices(4,n_edges)      ! indices used for computing the density on rhombi
+    real(wp), intent(out) :: density_to_rhombus_weights(4,n_edges)      ! weights used for computing the density on rhombi
 
     ! local variables
-    integer  :: ji
-    integer  :: jk
-    integer  :: jl
-    integer  :: jm
+    integer  :: ji           ! edge index
+    integer  :: jk           ! further horizontal index
+    integer  :: jl           ! further horizontal index
+    integer  :: jm           ! further horizontal index
     integer  :: counter
     integer  :: indices_list_pre(6)
     integer  :: indices_list(4)
@@ -59,10 +59,12 @@ module mo_rhombus_averaging
     integer  :: which_vertex_check_result
     integer  :: first_case_counter
     integer  :: second_case_counter
-    real(wp) :: triangle_1
-    real(wp) :: triangle_2
-    real(wp) :: triangle_3
-    real(wp) :: triangle_4,rhombus_area,check_sum
+    real(wp) :: triangle_1   ! one of the triangles constituting the rhombus
+    real(wp) :: triangle_2   ! one of the triangles constituting the rhombus
+    real(wp) :: triangle_3   ! one of the triangles constituting the rhombus
+    real(wp) :: triangle_4   ! one of the triangles constituting the rhombus
+    real(wp) :: rhombus_area ! the rhombus area
+    real(wp) :: check_sum    ! sum of all interpolation weights as a check quantity
     
     !$omp parallel do private(ji,jk,jl,jm,counter,indices_list_pre,indices_list,double_indices,density_to_rhombus_indices_pre, &
     !$omp density_to_rhombus_index_candidate,check_counter,triangle_index_1,triangle_index_2, &
