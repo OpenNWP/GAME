@@ -36,13 +36,13 @@ module mo_horizontal_generation
     ! This subroutine sets the properties of the icosahedron the global grid is based on (angles and indices of faces,edges and vertices).
     
     ! local variables
-    integer :: ji
-    integer :: jk
-    integer :: jm
-    integer :: vertices_check_counter(n_basic_edges)
-    integer :: edge_other_vertex_index
-    integer :: check_index
-    integer :: edges_check_counter(n_basic_edges)
+    integer :: ji                                    ! 
+    integer :: jk                                    ! 
+    integer :: jm                                    ! 
+    integer :: vertices_check_counter(n_basic_edges) ! 
+    integer :: edge_other_vertex_index               ! 
+    integer :: check_index                           ! 
+    integer :: edges_check_counter(n_basic_edges)    ! 
     
     lat_ico(1) = M_PI/2._wp
     lat_ico(2) = atan(0.5_wp)
@@ -268,10 +268,15 @@ module mo_horizontal_generation
     
     ! This subroutine computes the geographical coordinates of the generators (centers of the pentagons and hexagons).
     
-    real(wp), intent(in)  :: lat_ico(n_pentagons),lon_ico(n_pentagons)
-    real(wp), intent(out) :: lat_c(n_cells),lon_c(n_cells),x_unity(n_cells)
-    real(wp), intent(out) :: y_unity(n_cells),z_unity(n_cells)
-    integer,  intent(in)  :: face_vertices(n_basic_triangles,3),face_edges(n_basic_triangles,3)
+    real(wp), intent(in)  :: lat_ico(n_pentagons)
+    real(wp), intent(in)  :: lon_ico(n_pentagons)
+    real(wp), intent(out) :: lat_c(n_cells)
+    real(wp), intent(out) :: lon_c(n_cells)
+    real(wp), intent(out) :: x_unity(n_cells)
+    real(wp), intent(out) :: y_unity(n_cells)
+    real(wp), intent(out) :: z_unity(n_cells)
+    integer,  intent(in)  :: face_vertices(n_basic_triangles,3)
+    integer,  intent(in)  :: face_edges(n_basic_triangles,3)
     integer,  intent(in)  :: face_edges_reverse(n_basic_triangles,3)
     
     ! local variables
@@ -281,7 +286,9 @@ module mo_horizontal_generation
     integer  :: base_index_up_triangles,points_per_edge,edgepoint_1,edgepoint_2
     integer  :: edgepoint_3,point_1,point_2,point_3,dual_scalar_on_face_index,coord_1,coord_2
     integer  :: triangle_on_face_index,coord_1_points_amount
-    real(wp) :: x_res,y_res,z_res
+    real(wp) :: x_res
+    real(wp) :: y_res
+    real(wp) :: z_res
     
     do ji=1,n_cells
       test_index = upscale_scalar_point(res_id,ji)
@@ -372,15 +379,30 @@ module mo_horizontal_generation
     ! This subroutine computes the areas of the triangles on the unity sphere.
     
     real(wp), intent(out) :: triangle_face_unit_sphere(n_triangles)
-    real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
-    integer,  intent(in)  :: face_vertices(n_basic_triangles,3),face_edges(n_basic_triangles,3)
+    real(wp), intent(in)  :: lat_c(n_cells)
+    real(wp), intent(in)  :: lon_c(n_cells)
+    integer,  intent(in)  :: face_vertices(n_basic_triangles,3)
+    integer,  intent(in)  :: face_edges(n_basic_triangles,3)
     integer,  intent(in)  :: face_edges_reverse(n_basic_triangles,3)
     
     ! local variables
-    integer  :: ji,dual_scalar_index,point_1,point_2,point_3,point_4,point_5,point_6,dual_scalar_on_face_index
-    integer  :: small_triangle_edge_index,coord_1_points_amount,coord_1,coord_2,face_index,on_face_index
+    integer  :: ji
+    integer  :: dual_scalar_index
+    integer  :: point_1
+    integer  :: point_2
+    integer  :: point_3
+    integer  :: point_4
+    integer  :: point_5
+    integer  :: point_6
+    integer  :: dual_scalar_on_face_index
+    integer  :: small_triangle_edge_index
+    integer  :: coord_1_points_amount
+    integer  :: coord_1,coord_2
+    integer  :: face_index
+    integer  :: on_face_index
     integer  :: triangle_on_face_index
-    real(wp) :: triangle_sum_unit_sphere,triangle_avg_unit_sphere_ideal
+    real(wp) :: triangle_sum_unit_sphere
+    real(wp) :: triangle_avg_unit_sphere_ideal
     
     do ji=1,n_edges
       if (ji>n_basic_edges*(n_points_per_edge+1)) then
@@ -434,13 +456,25 @@ module mo_horizontal_generation
     
     ! This subroutine computes the neighbourship relationships of the horizontal vectors.
     
-    integer, intent(out) :: from_cell(n_edges),to_cell(n_edges)
-    integer, intent(in)  :: face_vertices(n_basic_edges,3),face_edges(n_basic_triangles,3)
-    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3),edge_vertices(n_basic_edges,2)
+    integer, intent(out) :: from_cell(n_edges)
+    integer, intent(out) :: to_cell(n_edges)
+    integer, intent(in)  :: face_vertices(n_basic_edges,3)
+    integer, intent(in)  :: face_edges(n_basic_triangles,3)
+    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3)
+    integer, intent(in)  :: edge_vertices(n_basic_edges,2)
     
     ! local variables
-    integer :: ji,edge_index,on_edge_index,point_1,point_2,point_3,point_4,point_5,point_6
-    integer :: dual_scalar_on_face_index,small_triangle_edge_index
+    integer :: ji
+    integer :: edge_index
+    integer :: on_edge_index
+    integer :: point_1
+    integer :: point_2
+    integer :: point_3
+    integer :: point_4
+    integer :: point_5
+    integer :: point_6
+    integer :: dual_scalar_on_face_index
+    integer :: small_triangle_edge_index
     
     !$omp parallel do private(ji,edge_index,on_edge_index,point_1,point_2,point_3,point_4,point_5,point_6, &
     !$omp dual_scalar_on_face_index,small_triangle_edge_index)
@@ -485,15 +519,33 @@ module mo_horizontal_generation
     
     ! This subroutine calculates the geographical coordinates of the dual scalar points.
     
-    real(wp), intent(out) :: lat_c_dual(n_triangles),lon_c_dual(n_triangles)
-    real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
-    integer,  intent(in)  :: face_vertices(n_basic_triangles,3),face_edges(n_basic_triangles,3)
-    integer,  intent(in)  :: face_edges_reverse(n_basic_triangles,3)
+    real(wp), intent(out) :: lat_c_dual(n_triangles)                 ! 
+    real(wp), intent(out) :: lon_c_dual(n_triangles)                 ! 
+    real(wp), intent(in)  :: lat_c(n_cells)                          ! latitudes of the cell centers
+    real(wp), intent(in)  :: lon_c(n_cells)                          ! longitudes of the cell centers
+    integer,  intent(in)  :: face_vertices(n_basic_triangles,3)      ! 
+    integer,  intent(in)  :: face_edges(n_basic_triangles,3)         ! 
+    integer,  intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! 
     
     ! local variables
-    integer  :: ji,point_1,point_2,point_3,point_4,point_5,point_6,dual_scalar_on_face_index,small_triangle_edge_index
-    integer  :: dual_scalar_index,coord_1,coord_2,coord_1_points_amount,face_index,on_face_index,triangle_on_face_index
-    real(wp) :: lat_res,lon_res
+    integer  :: ji
+    integer  :: point_1
+    integer  :: point_2
+    integer  :: point_3
+    integer  :: point_4
+    integer  :: point_5
+    integer  :: point_6
+    integer  :: dual_scalar_on_face_index
+    integer  :: small_triangle_edge_index
+    integer  :: dual_scalar_index
+    integer  :: coord_1
+    integer  :: coord_2
+    integer  :: coord_1_points_amount
+    integer  :: face_index
+    integer  :: on_face_index
+    integer  :: triangle_on_face_index
+    real(wp) :: lat_res
+    real(wp) :: lon_res
     
     !$omp parallel do private(ji,lat_res,lon_res,point_1,point_2,point_3,point_4,point_5,point_6,dual_scalar_on_face_index, &
     !$omp small_triangle_edge_index,dual_scalar_index,coord_1,coord_2,coord_1_points_amount,face_index, &
@@ -539,13 +591,28 @@ module mo_horizontal_generation
     
     ! This subroutine computes the neighbourship relationships of the horizontal dual vectors.
     
-    integer, intent(out) :: from_cell_dual(n_edges),to_cell_dual(n_edges)
-    integer, intent(in)  :: face_edges(n_basic_triangles,3),face_edges_reverse(n_basic_triangles,3)
+    integer, intent(out) :: from_cell_dual(n_edges)                 ! 
+    integer, intent(out) :: to_cell_dual(n_edges)                   ! 
+    integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! 
+    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! 
     
     ! local variables
-    integer :: ji,jk,coord_1,coord_2,on_face_index,on_edge_index,edge_index,small_triangle_edge_index
-    integer :: coord_1_points_amount,first_face_found,face_index,edge_rel_to_face_1,edge_rel_to_face_2
-    integer :: face_index_1,face_index_2,triangle_on_face_index
+    integer :: ji
+    integer :: jk
+    integer :: coord_1
+    integer :: coord_2
+    integer :: on_face_index
+    integer :: on_edge_index
+    integer :: edge_index
+    integer :: small_triangle_edge_index
+    integer :: coord_1_points_amount
+    integer :: first_face_found
+    integer :: face_index
+    integer :: edge_rel_to_face_1
+    integer :: edge_rel_to_face_2
+    integer :: face_index_1
+    integer :: face_index_2
+    integer :: triangle_on_face_index
     
     !$omp parallel do private(ji,jk,coord_1,coord_2,on_face_index,on_edge_index,edge_index,small_triangle_edge_index, &
     !$omp coord_1_points_amount,first_face_found,face_index,edge_rel_to_face_1,edge_rel_to_face_2,face_index_1, &
@@ -665,10 +732,18 @@ module mo_horizontal_generation
     integer,  intent(in)  :: edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3
     logical,  intent(in)  :: lpoints_upwards  ! switch indicating wether the triangle points upwards
     real(wp), intent(out) :: x_unity(n_cells),y_unity(n_cells),z_unity(n_cells)
-    real(wp), intent(out) :: lat_c(n_cells),lon_c(n_cells)
+    real(wp), intent(out) :: lat_c(n_cells) ! latitudes of the cell centers
+    real(wp), intent(out) :: lon_c(n_cells) ! longitudes of the cell centers
     
     ! local variables
-    real(wp) :: x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm,lat_res,lon_res
+    real(wp) :: x_res
+    real(wp) :: y_res
+    real(wp) :: z_res
+    real(wp) :: x_res_norm
+    real(wp) :: y_res_norm
+    real(wp) :: z_res_norm
+    real(wp) :: lat_res
+    real(wp) :: lon_res
 
     ! first point
     call find_between_point(x_unity(edgepoint_1),y_unity(edgepoint_1),z_unity(edgepoint_1), &
@@ -745,15 +820,24 @@ module mo_horizontal_generation
     ! This subroutine reads the arrays that fully define the horizontal grid from a previously created grid file.
     ! This is an optional feature.
     
-    real(wp),           intent(out) :: lat_c(n_cells) ! latitudes of the cell centers
-    real(wp),           intent(out) :: lon_c(n_cells) ! longitudes of the cell centers
-    integer,            intent(out) :: from_cell(n_edges),to_cell(n_edges)
-    integer,            intent(out) :: from_cell_dual(n_edges),to_cell_dual(n_edges),n_lloyd_read_file
-    character(len=256), intent(in)  :: filename       ! filename to read the horizontal grid properties from
+    real(wp),           intent(out) :: lat_c(n_cells)    ! latitudes of the cell centers
+    real(wp),           intent(out) :: lon_c(n_cells)    ! longitudes of the cell centers
+    integer,            intent(out) :: from_cell(n_edges)
+    integer,            intent(out) :: to_cell(n_edges)
+    integer,            intent(out) :: from_cell_dual(n_edges)
+    integer,            intent(out) :: to_cell_dual(n_edges)
+    integer,            intent(out) :: n_lloyd_read_file ! number of Lloyd iterations of the input grid
+    character(len=256), intent(in)  :: filename          ! filename to read the horizontal grid properties from
     
     ! local variables
-    integer           :: ncid,lat_c_id,lon_c_id,from_cell_id,to_cell_id
-    integer           :: from_cell_dual_id,to_cell_dual_id,n_lloyd_read_file_id
+    integer :: ncid                 ! netCDF ID of the file
+    integer :: lat_c_id             ! 
+    integer :: lon_c_id             ! 
+    integer :: from_cell_id         ! 
+    integer :: to_cell_id           ! 
+    integer :: from_cell_dual_id    ! 
+    integer :: to_cell_dual_id      ! 
+    integer :: n_lloyd_read_file_id ! 
 
     call nc_check(nf90_open(trim(filename),NF90_CLOBBER,ncid))
     call nc_check(nf90_inq_varid(ncid,"lat_c",lat_c_id))

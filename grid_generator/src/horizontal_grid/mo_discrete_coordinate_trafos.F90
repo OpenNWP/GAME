@@ -24,21 +24,23 @@ module mo_discrete_coordinate_trafos
     
     ! This subroutine finds which triangles a horizontal vector is connected to.
     
-    integer, intent(in)  :: ji
-    integer, intent(in)  :: face_edges(n_basic_triangles,3)
-    integer, intent(in)  :: face_vertices(n_basic_triangles,3)
-    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3)
-    integer, intent(out) :: point_1
-    integer, intent(out) :: point_2
-    integer, intent(out) :: point_3
-    integer, intent(out) :: point_4
-    integer, intent(out) :: point_5
-    integer, intent(out) :: point_6
-    integer, intent(out) :: dual_scalar_on_face_index
-    integer, intent(out) :: small_triangle_edge_index
+    integer, intent(in)  :: ji                                      ! 
+    integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! 
+    integer, intent(in)  :: face_vertices(n_basic_triangles,3)      ! 
+    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! 
+    integer, intent(out) :: point_1                                 ! 
+    integer, intent(out) :: point_2                                 ! 
+    integer, intent(out) :: point_3                                 ! 
+    integer, intent(out) :: point_4                                 ! 
+    integer, intent(out) :: point_5                                 ! 
+    integer, intent(out) :: point_6                                 ! 
+    integer, intent(out) :: dual_scalar_on_face_index               ! 
+    integer, intent(out) :: small_triangle_edge_index               ! 
     
     ! local variables
-    integer :: face_index,on_face_index,triangle_on_face_index
+    integer :: face_index
+    integer :: on_face_index
+    integer :: triangle_on_face_index
     
     face_index = (ji - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
     on_face_index = ji - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
@@ -144,12 +146,12 @@ module mo_discrete_coordinate_trafos
     
     ! This subroutine computes the vertices of a triangle from its dual scalar on face index.
     
-    integer, intent(in)  :: dual_scalar_on_face_index
-    integer, intent(in)  :: face_index
-    integer, intent(in)  :: res_id_local
-    integer, intent(in)  :: face_vertices(n_basic_triangles,3)
-    integer, intent(in)  :: face_edges(n_basic_triangles,3)
-    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3)
+    integer, intent(in)  :: dual_scalar_on_face_index               ! 
+    integer, intent(in)  :: face_index                              ! 
+    integer, intent(in)  :: res_id_local                            ! 
+    integer, intent(in)  :: face_vertices(n_basic_triangles,3)      ! 
+    integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! 
+    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! 
     integer, intent(out) :: point_1                                 ! index of vertex 1 (result)
     integer, intent(out) :: point_2                                 ! index of vertex 3 (result)
     integer, intent(out) :: point_3                                 ! index of vertex 2 (result)

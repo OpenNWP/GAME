@@ -214,7 +214,9 @@ module mo_derived_hor_quantities
     
     ! This subroutine writes out statistical properties of the grid to a text file.
     
-    real(wp),           intent(in) :: pent_hex_face_unity_sphere(n_cells),dx(n_edges,n_layers),dy(n_edges,n_levels)
+    real(wp),           intent(in) :: pent_hex_face_unity_sphere(n_cells)
+    real(wp),           intent(in) :: dx(n_edges,n_layers)
+    real(wp),           intent(in) :: dy(n_edges,n_levels)
     real(wp),           intent(in) :: z_vector_h(n_edges,n_layers)
     character(len=128), intent(in) :: grid_name
     character(len=256), intent(in) :: statistics_file_name
@@ -272,8 +274,10 @@ module mo_derived_hor_quantities
   
     ! This subroutine finds the horizontal vectors that are adjacent to a grid cell.
     
-    integer, intent(in)  :: from_cell(n_edges),to_cell(n_edges)
-    integer, intent(out) :: adjacent_signs(6,n_cells),adjacent_edges(6,n_cells)
+    integer, intent(in)  :: from_cell(n_edges)
+    integer, intent(in)  :: to_cell(n_edges)
+    integer, intent(out) :: adjacent_signs(6,n_cells)
+    integer, intent(out) :: adjacent_edges(6,n_cells)
     
     ! local variables
     integer :: ji,jk,jl,trouble_detected,counter,n_edges_of_cell,double_check,sign_sum_check
@@ -363,8 +367,18 @@ module mo_derived_hor_quantities
     integer,  intent(in)  :: adjacent_edges(6,n_cells)                  ! adjacent edges of the cells
     integer,  intent(in)  :: vorticity_indices_triangles(3,n_triangles) ! adjacent edges of the dual cells
     
-    integer  :: ji,jk,check_1,check_2,check_3,counter,n_edges_of_cell,cell_vector_indices(6)
-    real(wp) :: pent_hex_sum_unity_sphere,pent_hex_avg_unity_sphere_ideal,lat_points(6),lon_points(6)
+    integer  :: ji
+    integer  :: jk
+    integer  :: check_1
+    integer  :: check_2
+    integer  :: check_3
+    integer  :: counter
+    integer  :: n_edges_of_cell
+    integer  :: cell_vector_indices(6)
+    real(wp) :: pent_hex_sum_unity_sphere
+    real(wp) :: pent_hex_avg_unity_sphere_ideal
+    real(wp) :: lat_points(6)
+    real(wp) :: lon_points(6)
     
     !$omp parallel do private(ji,jk,check_1,check_2,check_3,counter,n_edges_of_cell,cell_vector_indices,lat_points,lon_points)
     do ji=1,n_cells
