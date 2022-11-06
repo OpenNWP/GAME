@@ -29,7 +29,7 @@ module mo_diff_nml
   subroutine diff_nml_setup()
     
     ! local variables
-    integer :: fileunit
+    integer :: fileunit ! file unit of the namelist file
     
     ! default values
     h_prandtl = 100._wp

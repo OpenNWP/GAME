@@ -50,7 +50,7 @@ module mo_grid_nml
   subroutine grid_nml_setup()
     
     ! local variables
-    integer :: fileunit
+    integer :: fileunit ! file unit of the namelist file
     
     res_id = 5
     n_layers = 26

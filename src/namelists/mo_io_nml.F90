@@ -32,7 +32,7 @@ module mo_io_nml
   subroutine io_nml_setup()
   
     ! local variables
-    integer          :: fileunit
+    integer          :: fileunit ! file unit of the namelist file
     character(len=2) :: start_month_str
     character(len=2) :: start_day_str
     character(len=2) :: start_hour_str

@@ -49,7 +49,7 @@ module mo_grid_nml
   subroutine grid_nml_setup()
     
     ! local variables
-    integer :: fileunit
+    integer :: fileunit ! file unit of the namelist file
     
 #ifndef COMPILE_TIME_CONFIG
     res_id = 5

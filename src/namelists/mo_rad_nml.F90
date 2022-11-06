@@ -33,7 +33,7 @@ module mo_rad_nml
     type(t_grid), intent(in) :: grid
     
     ! local variables
-    integer :: fileunit
+    integer :: fileunit ! file unit of the namelist file
     integer :: jl       ! layer index
     
     rad_config = 1

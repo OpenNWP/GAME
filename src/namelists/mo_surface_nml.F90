@@ -20,7 +20,7 @@ module mo_surface_nml
   subroutine surface_nml_setup()
   
     ! local variables
-    integer :: fileunit
+    integer :: fileunit ! file unit of the namelist file
     
     ! default values
     nsoillays = 5
