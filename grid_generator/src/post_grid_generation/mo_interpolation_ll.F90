@@ -17,17 +17,25 @@ module mo_interpolation_ll
   
   subroutine interpolate_ll(lat_c,lon_c,interpol_indices,interpol_weights)
     
-    ! This function interpolates to the lat-lon grid.
+    ! This function interpolates to the latitude-longitude grid.
     
-    integer,  intent(out) :: interpol_indices(5,n_lat_io_points,n_lon_io_points)
-    real(wp), intent(out) :: interpol_weights(5,n_lat_io_points,n_lon_io_points)
-    real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
+    real(wp), intent(in)  :: lat_c(n_cells)                                      ! latitudes of the cell centers
+    real(wp), intent(in)  :: lon_c(n_cells)                                      ! longitudes of the cell centers
+    integer,  intent(out) :: interpol_indices(5,n_lat_io_points,n_lon_io_points) ! interpolation indices of the latitude-longitude grid
+    real(wp), intent(out) :: interpol_weights(5,n_lat_io_points,n_lon_io_points) ! interpolation weights of the latitude-longitude grid
     
     ! local variables
-    real(wp) :: delta_latitude,delta_longitude,lat_value,lon_value,weights_sum, &
-                ! the vector containing distances to the horizontal points of the native model grid
-                distance_vector(n_cells),weights_vector(5)
-    integer  :: ji,jk,jm,min_indices_vector(5)
+    real(wp) :: delta_latitude           ! latitude resolution of the latitude-longitude grid
+    real(wp) :: delta_longitude          ! longitude resolution of the latitude-longitude grid
+    real(wp) :: lat_value                ! latitude value (helper variable)
+    real(wp) :: lon_value                ! longitude value (helper variable)
+    real(wp) :: weights_sum              ! sum of interpolation weights (helper variable)
+    real(wp) :: distance_vector(n_cells) ! the vector containing distances to the horizontal points of the native model grid
+    real(wp) :: weights_vector(5)        ! vector containing interpolation weights
+    integer  :: ji                       ! horizontal index
+    integer  :: jk                       ! horizontal index
+    integer  :: jm                       ! interpolation index
+    integer  :: min_indices_vector(5)    ! vector containing interpolation indices
     
     ! latitude resolution of the grid
     delta_latitude = M_PI/n_lat_io_points
