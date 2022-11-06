@@ -19,7 +19,7 @@ module run_nml
   subroutine run_nml_setup()
   
     ! local variables
-    integer :: fileunit
+    integer :: fileunit ! explanation
     
     ! default values
     run_id = "ideal"

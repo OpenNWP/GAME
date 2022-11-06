@@ -15,11 +15,11 @@ module this_does_something
   
     ! This subroutine does something useful.
     
-    real(wp), intent(in)  :: in_field(10)
-    real(wp), intent(out) :: out_field(10)
+    real(wp), intent(in)  :: in_field(10)  ! explanation
+    real(wp), intent(out) :: out_field(10) ! explanation
     
     ! local variables
-    integer :: ji
+    integer :: ji ! explanation
     
     !$omp parallel do private(ji)
     do ji=1,10

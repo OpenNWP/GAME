@@ -49,40 +49,40 @@ module mo_coriolis
     integer              :: sign_1                      ! one of the signs used for computing a TRSK weight
     integer              :: sign_2                      ! one of the signs used for computing a TRSK weight
     integer              :: n_edges_of_cell             ! number of edges of the given cell (five or six)
-    integer              :: index_offset
-    integer              :: vertex_index_candidate_1
-    integer              :: vertex_index_candidate_2
-    integer              :: counter
-    integer              :: check_result
-    integer              :: first_index
-    integer              :: last_index
-    integer              :: second_index_1
-    integer              :: second_index_2
-    integer              :: vertex_indices(6)
-    integer              :: edge_indices(6)
-    integer              :: indices_resorted(6)
-    integer              :: vertex_indices_resorted(6)
-    integer              :: value_written
-    integer              :: trsk_indices_pre(10)
-    integer              :: next_vertex_index
-    integer              :: next_vertex_index_candidate
-    integer              :: indices_used_counter
-    integer              :: indices_used(5)
+    integer              :: index_offset                ! 
+    integer              :: vertex_index_candidate_1    ! 
+    integer              :: vertex_index_candidate_2    ! 
+    integer              :: counter                     ! 
+    integer              :: check_result                ! 
+    integer              :: first_index                 ! 
+    integer              :: last_index                  ! 
+    integer              :: second_index_1              ! 
+    integer              :: second_index_2              ! 
+    integer              :: vertex_indices(6)           ! 
+    integer              :: edge_indices(6)             ! 
+    integer              :: indices_resorted(6)         ! 
+    integer              :: vertex_indices_resorted(6)  ! 
+    integer              :: value_written               ! 
+    integer              :: trsk_indices_pre(10)        ! unsorted TRSK indices
+    integer              :: next_vertex_index           ! 
+    integer              :: next_vertex_index_candidate ! 
+    integer              :: indices_used_counter        ! 
+    integer              :: indices_used(5)             ! 
     integer, allocatable :: from_or_to_cell(:)          ! either from_cell or to_cell
-    real(wp)             :: check_sum
-    real(wp)             :: triangle_1
-    real(wp)             :: triangle_2
-    real(wp)             :: sum_of_weights
+    real(wp)             :: check_sum                   ! used for checking if the result is self-consistent
+    real(wp)             :: triangle_1                  ! 
+    real(wp)             :: triangle_2                  ! 
+    real(wp)             :: sum_of_weights              ! 
     real(wp)             :: latitude_vertices(6)        ! latitudes of the vertices of a given cell
     real(wp)             :: longitude_vertices(6)       ! longitudes of the vertices of a given cell
     real(wp)             :: latitude_edges(6)           ! latitudes of the edges of a given cell
     real(wp)             :: longitude_edges(6)          ! longitudes of the edges of a given cell
-    real(wp)             :: vector_of_areas(6)
-    real(wp)             :: trsk_weights_pre(10)
-    real(wp)             :: value_1
-    real(wp)             :: value_2
-    real(wp)             :: rescale_for_z_offset_1d
-    real(wp)             :: rescale_for_z_offset_2d
+    real(wp)             :: vector_of_areas(6)          ! 
+    real(wp)             :: trsk_weights_pre(10)        ! unsorted TRSK weights
+    real(wp)             :: value_1                     ! 
+    real(wp)             :: value_2                     ! 
+    real(wp)             :: rescale_for_z_offset_1d     ! rescales lengths from the highest level to the highest layer
+    real(wp)             :: rescale_for_z_offset_2d     ! rescales areas from the highest level to the highest layer
     
     rescale_for_z_offset_1d = (radius+z_scalar(1,1))/(radius+toa)
     rescale_for_z_offset_2d = rescale_for_z_offset_1d**2
@@ -258,15 +258,21 @@ module mo_coriolis
                                  dx(ji,1)*trsk_weights(jk,ji)
         endif
       enddo
+      ! -----------------------------------------------------------------------
+      ! The original TRSK calculation for this edge is completed at this point.
       
-      ! modification following Gassmann (2018)
+      ! Modification following Gassmann (2018)
+      ! --------------------------------------
       ! First off all, the indices need to be resorted.
       ! As usual, the from cell is treated first.
+      
       ! First of all, it needs to be determined wether the cell at hand is pentagonal or hexagonal.
       n_edges_of_cell = 6
       if (from_cell(ji)<=n_pentagons) then
         n_edges_of_cell = 5
       endif
+      
+      ! First of all, the weights and indices need to be brought into the order defined in Gassmann (2018).
       trsk_indices_pre = trsk_indices(:,ji)
       trsk_weights_pre = trsk_weights(:,ji)
       next_vertex_index = to_cell_dual(ji)

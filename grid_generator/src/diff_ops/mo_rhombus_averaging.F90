@@ -39,32 +39,32 @@ module mo_rhombus_averaging
     real(wp), intent(out) :: density_to_rhombus_weights(4,n_edges)      ! weights used for computing the density on rhombi
 
     ! local variables
-    integer  :: ji           ! edge index
-    integer  :: jk           ! further horizontal index
-    integer  :: jl           ! further horizontal index
-    integer  :: jm           ! further horizontal index
-    integer  :: counter
-    integer  :: indices_list_pre(6)
-    integer  :: indices_list(4)
-    integer  :: double_indices(2)
-    integer  :: density_to_rhombus_indices_pre(4)
-    integer  :: density_to_rhombus_index_candidate
-    integer  :: check_counter
-    integer  :: triangle_index_1
-    integer  :: triangle_index_2
-    integer  :: edge_index_1
-    integer  :: edge_index_2
-    integer  :: edge_index_1_found
-    integer  :: edge_index_2_found
-    integer  :: which_vertex_check_result
-    integer  :: first_case_counter
-    integer  :: second_case_counter
-    real(wp) :: triangle_1   ! one of the triangles constituting the rhombus
-    real(wp) :: triangle_2   ! one of the triangles constituting the rhombus
-    real(wp) :: triangle_3   ! one of the triangles constituting the rhombus
-    real(wp) :: triangle_4   ! one of the triangles constituting the rhombus
-    real(wp) :: rhombus_area ! the rhombus area
-    real(wp) :: check_sum    ! sum of all interpolation weights as a check quantity
+    integer  :: ji                                 ! edge index
+    integer  :: jk                                 ! further horizontal index
+    integer  :: jl                                 ! further horizontal index
+    integer  :: jm                                 ! further horizontal index
+    integer  :: counter                            ! 
+    integer  :: indices_list_pre(6)                ! 
+    integer  :: indices_list(4)                    ! 
+    integer  :: double_indices(2)                  ! 
+    integer  :: density_to_rhombus_indices_pre(4)  ! 
+    integer  :: density_to_rhombus_index_candidate ! 
+    integer  :: check_counter                      ! 
+    integer  :: triangle_index_1                   ! 
+    integer  :: triangle_index_2                   ! 
+    integer  :: edge_index_1                       ! 
+    integer  :: edge_index_2                       ! 
+    integer  :: edge_index_1_found                 ! 
+    integer  :: edge_index_2_found                 ! 
+    integer  :: which_vertex_check_result          ! 
+    integer  :: first_case_counter                 ! 
+    integer  :: second_case_counter                ! 
+    real(wp) :: triangle_1                         ! one of the triangles constituting the rhombus
+    real(wp) :: triangle_2                         ! one of the triangles constituting the rhombus
+    real(wp) :: triangle_3                         ! one of the triangles constituting the rhombus
+    real(wp) :: triangle_4                         ! one of the triangles constituting the rhombus
+    real(wp) :: rhombus_area                       ! the rhombus area
+    real(wp) :: check_sum                          ! sum of all interpolation weights as a check quantity
     
     !$omp parallel do private(ji,jk,jl,jm,counter,indices_list_pre,indices_list,double_indices,density_to_rhombus_indices_pre, &
     !$omp density_to_rhombus_index_candidate,check_counter,triangle_index_1,triangle_index_2, &
