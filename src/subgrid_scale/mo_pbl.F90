@@ -27,12 +27,31 @@ module mo_pbl
     type(t_grid),  intent(in)    :: grid  ! grid properties
   
     ! local variables
-    integer  :: ji ! edge index
-    integer  :: jl ! layer index
-    real(wp) :: flux_resistance,wind_speed_lowest_layer,z_agl,layer_thickness,roughness_length_value, &
-                monin_obukhov_length_value,wind_rescale_factor,bndr_lr_visc_max,sigma_b,standard_vert_lapse_rate, &
-                exner_from,exner_to,pressure_from,pressure_to,pressure,temp_lowest_layer, pressure_value_lowest_layer, &
-                temp_surface,surface_p_factor,pressure_sfc_from,pressure_sfc_to,pressure_sfc,sigma
+    integer  :: ji                          ! edge index
+    integer  :: jl                          ! layer index
+    real(wp) :: flux_resistance             ! 
+    real(wp) :: wind_speed_lowest_layer     ! 
+    real(wp) :: z_agl                       ! height of a gridpoint above ground level
+    real(wp) :: layer_thickness             ! 
+    real(wp) :: roughness_length_value      ! 
+    real(wp) :: monin_obukhov_length_value  ! 
+    real(wp) :: wind_rescale_factor         ! 
+    real(wp) :: bndr_lr_visc_max            ! 
+    real(wp) :: sigma_b                     ! 
+    real(wp) :: standard_vert_lapse_rate    ! 
+    real(wp) :: exner_from                  ! Exner pressure at the from-gridpoint
+    real(wp) :: exner_to                    ! Exner pressure at the to-gridpoint
+    real(wp) :: pressure_from               ! pressure at the from-gridpoint
+    real(wp) :: pressure_to                 ! pressure at the to-gridpoint
+    real(wp) :: pressure                    ! air pressure
+    real(wp) :: temp_lowest_layer           ! temperature in the lowest layer
+    real(wp) :: pressure_value_lowest_layer ! 
+    real(wp) :: temp_surface                ! 
+    real(wp) :: surface_p_factor            ! 
+    real(wp) :: pressure_sfc_from           ! surface pressure at the from-gridpoint
+    real(wp) :: pressure_sfc_to             ! surface pressure at the to-gridpoint
+    real(wp) :: pressure_sfc                ! surface pressure at the edge
+    real(wp) :: sigma                       ! pressure/(surface pressure)
     
     ! NWP case
     if (pbl_scheme==1) then
@@ -131,9 +150,18 @@ module mo_pbl
     type(t_grid),  intent(inout) :: grid  ! grid properties
     
     ! local variables
-    integer  :: ji ! cell index
-    real(wp) :: u_lowest_layer,u10,z_agl,theta_v_lowest_layer,theta_v_second_layer, &
-                dz,dtheta_v_dz,w_pert,theta_v_pert_value,w_pert_theta_v_pert_avg,w_theta_v_corr
+    integer  :: ji                       ! cell index
+    real(wp) :: u_lowest_layer           ! 
+    real(wp) :: u10                      ! 
+    real(wp) :: z_agl                    ! 
+    real(wp) :: theta_v_lowest_layer     ! 
+    real(wp) :: theta_v_second_layer     ! 
+    real(wp) :: dz                       ! 
+    real(wp) :: dtheta_v_dz              ! 
+    real(wp) :: w_pert                   ! 
+    real(wp) :: theta_v_pert_value       ! 
+    real(wp) :: w_pert_theta_v_pert_avg  ! 
+    real(wp) :: w_theta_v_corr           ! 
     
     ! semi-empirical coefficient
     w_theta_v_corr = 0.2_wp
@@ -206,9 +234,7 @@ module mo_pbl
     ! This function returns the roughness length as a function of the mean wind speed at 10 m above a fully developed sea.
     ! refer to Stensrud,Parameterization schemes (2007), p.130
 
-    ! input variable
-    real(wp), intent(in) :: u10                           ! wind speed 10 m above the surface (m/s)
-    ! output variable
+    real(wp), intent(in) :: u10                           ! wind speed 10 m above the surface (m/s)e
     real(wp)             :: roughness_length_from_u10_sea ! result
 
     ! local variables
@@ -234,12 +260,10 @@ module mo_pbl
   function calc_scalar_flux_resistance(roughness_velocity_value,z_agl,roughness_length_value,monin_obukhov_length_value)
 
     ! This function returns the surface flux resistance for scalar quantities.
-
-    ! input variables
+    
     real(wp), intent(in) :: roughness_velocity_value,z_agl,roughness_length_value,monin_obukhov_length_value
-    ! output variable
     real(wp)             :: calc_scalar_flux_resistance ! result (m)
-
+    
     ! local variables
     real(wp) :: used_vertical_height
     
@@ -253,7 +277,7 @@ module mo_pbl
     - psi_h(used_vertical_height,monin_obukhov_length_value) &
     ! interfacial sublayer
     + log(7._wp))
-
+    
     ! limitting the result for security
     if (calc_scalar_flux_resistance<dtime/z_agl) then
       calc_scalar_flux_resistance = dtime/z_agl
@@ -265,9 +289,10 @@ module mo_pbl
 
     ! This function returns the surface flux resistance for momentum.
 
-    ! input variables
-    real(wp), intent(in) :: wind_h_lowest_layer,z_agl,roughness_length_value,monin_obukhov_length_value
-    ! output variable
+    real(wp), intent(in) :: wind_h_lowest_layer
+    real(wp), intent(in) :: z_agl
+    real(wp), intent(in) :: roughness_length_value
+    real(wp), intent(in) :: monin_obukhov_length_value
     real(wp)             :: momentum_flux_resistance
 
     ! local variables
@@ -292,12 +317,10 @@ module mo_pbl
   function calc_roughness_velocity(wind_speed,z_agl,roughness_length_value)
 
     ! This function returns the roughness velocity.
-
-    ! input variables
+    
     real(wp), intent(in) :: wind_speed              ! wind speed at a certain height
     real(wp), intent(in) :: z_agl                   ! height at which the wind speed is valid
     real(wp), intent(in) :: roughness_length_value  ! roughness length at this point
-    ! output variable
     real(wp)             :: calc_roughness_velocity ! the result
 
     ! local variables
@@ -319,13 +342,11 @@ module mo_pbl
   function psi_h(z_eff,l)
 
     ! This is a helper function for the correction to the surface scalar flux resistance for non-neutral conditions.
-
-    ! input variables
+    
     real(wp), intent(in) :: z_eff ! effective height above the surface
     real(wp), intent(in) :: l     ! Monin-Obukhov length
-    ! output variable
     real(wp)             :: psi_h ! the value of the helper function
-
+    
     ! local variables
     real(wp) :: x       ! helper variable
     real(wp) :: l_local ! used to avoid l==0
@@ -335,7 +356,7 @@ module mo_pbl
     if (abs(l_local)<EPSILON_SECURITY) then
       l_local = EPSILON_SECURITY
     endif
-
+    
     ! unstable conditions
     if (l_local<0._wp) then
       x = (1._wp-15._wp*z_eff/l_local)**0.25_wp
@@ -350,27 +371,25 @@ module mo_pbl
   function psi_m(z_eff,l)
 
     ! This is a helper function for the correction to the surface momentum flux resistance for non-neutral conditions.
-
-    ! input variables
+    
     real(wp), intent(in) :: z_eff ! effective height above the surface (m)
     real(wp), intent(in) :: l     ! Monin-Obukhov length (m)
-    ! output variable
     real(wp)             :: psi_m ! the value of the helper function
-
+    
     ! local variables
     real(wp) :: x       ! helper variable
     real(wp) :: l_local ! used to avoid l==0
-
+    
     ! avoiding l==0
     l_local = l
     if (abs(l_local)<EPSILON_SECURITY) then
       l_local = EPSILON_SECURITY
     endif
-
+    
     ! unstable conditions
     if (l_local<0._wp) then
       x = (1._wp-15._wp*z_eff/l_local)**0.25_wp
-
+    
       psi_m = 2.0_wp*log((1._wp + x)/2._wp) + log((1._wp + x**2)/2._wp) - 2._wp*atan(x) + M_PI/2._wp
     ! neutral and stable conditions
     else
