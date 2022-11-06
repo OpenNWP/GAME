@@ -16,6 +16,8 @@ module mo_held_suarez
 
   subroutine held_suar(latitude_scalar,mass_densities,temperature_gas,n_cells_rad,radiation_tendency)
   
+    ! This subroutine calculates the Held-Suarez radiative forcing.
+  
     integer,  intent(in)  :: n_cells_rad                                         ! number of columns of the given radiation slice
     real(wp), intent(in)  :: latitude_scalar(n_cells_rad)                        ! latitudes of the scalar gridpoints in this radiation block
     real(wp), intent(in)  :: mass_densities(n_cells_rad,n_layers,n_constituents) ! mass densities in this radiation block
@@ -49,7 +51,9 @@ module mo_held_suarez
     real(wp)             :: t_eq     ! equilibrium temperature in Kelvin (result)
   
     ! local variables
-    real(wp) :: delta_t_y,delta_theta_v_z,kappa
+    real(wp) :: delta_t_y       ! for definition see Held-Suarez paper
+    real(wp) :: delta_theta_v_z ! for definition see Held-Suarez paper
+    real(wp) :: kappa           ! for definition see Held-Suarez paper
   
     delta_t_y = 60._wp
     delta_theta_v_z = 10._wp
@@ -71,7 +75,10 @@ module mo_held_suarez
     real(wp)             :: k_t      ! relaxation coefficient in 1/s (result)
   
     ! local variables
-    real(wp) :: k_a,k_s,sigma_b,sigma
+    real(wp) :: k_a     ! for definition see Held-Suarez paper
+    real(wp) :: k_s     ! for definition see Held-Suarez paper
+    real(wp) :: sigma_b ! for definition see Held-Suarez paper
+    real(wp) :: sigma   ! for definition see Held-Suarez paper
   
     k_a = 1._wp/40._wp*1._wp/86400._wp
     k_s = 1._wp/4._wp*1._wp/86400._wp
@@ -82,6 +89,11 @@ module mo_held_suarez
   end function k_t
 
 end module mo_held_suarez
+
+
+
+
+
 
 
 
