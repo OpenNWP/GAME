@@ -14,10 +14,12 @@ module mo_linear_combination
 
   subroutine linear_combine_two_states(state_1,state_2,state_res,coeff_1,coeff_2,grid)
     
-    type(t_state), intent(inout) :: state_1,state_2 ! the states to linearly combine
-    type(t_state), intent(inout) :: state_res       ! the resulting state
-    real(wp),      intent(in)    :: coeff_1,coeff_2 ! the coefficients for the linear combination
-    type(t_grid),  intent(in)    :: grid            ! grid quantities (needed for the background state)
+    type(t_state), intent(in)    :: state_1   ! first state to linearly combine
+    type(t_state), intent(in)    :: state_2   ! second state to linearly combine
+    type(t_state), intent(inout) :: state_res ! the resulting state
+    real(wp),      intent(in)    :: coeff_1   ! coefficient for the first state
+    real(wp),      intent(in)    :: coeff_2   ! coefficient for the second state
+    type(t_grid),  intent(in)    :: grid      ! grid quantities (needed for the background state)
     
     !$omp parallel workshare
     state_res%rho = coeff_1*state_1%rho+coeff_2*state_2%rho
