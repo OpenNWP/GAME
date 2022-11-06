@@ -29,7 +29,7 @@ module mo_pbl
     ! local variables
     integer  :: ji                          ! edge index
     integer  :: jl                          ! layer index
-    real(wp) :: flux_resistance             ! 
+    real(wp) :: flux_resistance             ! momentum flux resistance value
     real(wp) :: wind_speed_lowest_layer     ! 
     real(wp) :: z_agl                       ! height of a gridpoint above ground level
     real(wp) :: layer_thickness             ! 
@@ -45,9 +45,9 @@ module mo_pbl
     real(wp) :: pressure_to                 ! pressure at the to-gridpoint
     real(wp) :: pressure                    ! air pressure
     real(wp) :: temp_lowest_layer           ! temperature in the lowest layer
-    real(wp) :: pressure_value_lowest_layer ! 
-    real(wp) :: temp_surface                ! 
-    real(wp) :: surface_p_factor            ! 
+    real(wp) :: pressure_value_lowest_layer ! pressure in the lowest layer (helper variable)
+    real(wp) :: temp_surface                ! temperature at the surface
+    real(wp) :: surface_p_factor            ! factor used for computing the sea surface pressure
     real(wp) :: pressure_sfc_from           ! surface pressure at the from-gridpoint
     real(wp) :: pressure_sfc_to             ! surface pressure at the to-gridpoint
     real(wp) :: pressure_sfc                ! surface pressure at the edge
@@ -238,7 +238,9 @@ module mo_pbl
     real(wp)             :: roughness_length_from_u10_sea ! result
 
     ! local variables
-    real(wp) :: swh,period,wavelength ! properties of the wave field
+    real(wp) :: swh        ! significant wave height
+    real(wp) :: period     ! mean sea surface wave period
+    real(wp) :: wavelength ! mean sea surface wave length
 
     ! empirically determined formula for the SWH
     swh = 0.0248_wp*u10**2
@@ -261,11 +263,14 @@ module mo_pbl
 
     ! This function returns the surface flux resistance for scalar quantities.
     
-    real(wp), intent(in) :: roughness_velocity_value,z_agl,roughness_length_value,monin_obukhov_length_value
+    real(wp), intent(in) :: roughness_velocity_value    ! roughness length
+    real(wp), intent(in) :: z_agl                       ! height above ground level of the lowest layer
+    real(wp), intent(in) :: roughness_length_value      ! roughness length
+    real(wp), intent(in) :: monin_obukhov_length_value  ! Monin-Obukhov length
     real(wp)             :: calc_scalar_flux_resistance ! result (m)
     
     ! local variables
-    real(wp) :: used_vertical_height
+    real(wp) :: used_vertical_height ! vertical height (above ground level) actually used in the calculation
     
     ! height of the prandtl layer
     used_vertical_height = min(z_agl,h_prandtl)
@@ -289,14 +294,14 @@ module mo_pbl
 
     ! This function returns the surface flux resistance for momentum.
 
-    real(wp), intent(in) :: wind_h_lowest_layer
-    real(wp), intent(in) :: z_agl
-    real(wp), intent(in) :: roughness_length_value
-    real(wp), intent(in) :: monin_obukhov_length_value
-    real(wp)             :: momentum_flux_resistance
+    real(wp), intent(in) :: wind_h_lowest_layer        ! horizontal wind speed in the lowest layer
+    real(wp), intent(in) :: z_agl                      ! height above ground level
+    real(wp), intent(in) :: roughness_length_value     ! roughness length
+    real(wp), intent(in) :: monin_obukhov_length_value ! Monin-Obukhov length
+    real(wp)             :: momentum_flux_resistance   ! result
 
     ! local variables
-    real(wp) :: used_vertical_height
+    real(wp) :: used_vertical_height ! vertical height (above ground level) actually used in the calculation
 
     ! height of the prandtl layer
     used_vertical_height = min(z_agl,h_prandtl)
