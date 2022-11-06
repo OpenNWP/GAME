@@ -47,14 +47,36 @@ module mo_phys_sfc_properties
     real(wp), intent(out) :: oro(n_cells)              ! orography (result)
     
     ! local variables
-    integer               :: ji,jk,ncid,is_land_id,lat_in_id,lon_in_id,z_in_id,n_lat_points
-    integer               :: n_lon_points,lat_index,lon_index,min_indices_vector(n_avg_points)
-    real(wp)              :: c_p_water,c_p_soil,albedo_water,albedo_soil,albedo_ice,density_soil
-    real(wp)              :: t_conductivity_water,t_conductivity_soil,lat_deg,distance_vector(n_cells)
-    real(wp), allocatable :: latitude_input(:),longitude_input(:),oro_unfiltered(:),lat_distance_vector(:),lon_distance_vector(:)
-    integer,  allocatable :: z_input(:,:) ! ETOPO orography
-    character(len=64)     :: is_land_file ! file to read the land-sea-mask from
-    character(len=64)     :: oro_file     ! file to read the orography from
+    integer               :: ji                               ! cell index
+    integer               :: jk                               ! helper index
+    integer               :: ncid                             ! netCDF file ID 
+    integer               :: is_land_id                       ! netCDF ID of the land-sea mask
+    integer               :: lat_in_id                        ! netCDF ID of the latitudes of the input dataset
+    integer               :: lon_in_id                        ! netCDF ID of the longitudes of the input dataset
+    integer               :: z_in_id                          ! netCDF ID of the input orography
+    integer               :: n_lat_points                     ! number of latitude points of the input grid
+    integer               :: n_lon_points                     ! number of longitude points of the input grid
+    integer               :: lat_index                        ! latitude index of a point of the input grid
+    integer               :: lon_index                        ! longitude index of a point of the input grid
+    integer               :: min_indices_vector(n_avg_points) ! vector of closest gridpoint indices
+    real(wp)              :: c_p_water                        ! specific heat capacity at constant pressure of water
+    real(wp)              :: c_p_soil                         ! specific heat capacity at constant pressure of soil
+    real(wp)              :: albedo_water                     ! albedo of water
+    real(wp)              :: albedo_soil                      ! albedo of soil
+    real(wp)              :: albedo_ice                       ! albedo of ice
+    real(wp)              :: density_soil                     ! density of soil
+    real(wp)              :: t_conductivity_water             ! temperature conductivity of water
+    real(wp)              :: t_conductivity_soil              ! temperature conductivity of soil
+    real(wp)              :: lat_deg                          ! latitude value in degrees
+    real(wp)              :: distance_vector(n_cells)         ! vector containing geodetic distances to compute the interpolation
+    real(wp), allocatable :: latitude_input(:)                ! latitude vector of the input grid
+    real(wp), allocatable :: longitude_input(:)               ! longitude vector of the input grid
+    real(wp), allocatable :: oro_unfiltered(:)                ! input orography interpolated to the model grid without smoothing
+    real(wp), allocatable :: lat_distance_vector(:)           ! vector containing distances in the latitude direction
+    real(wp), allocatable :: lon_distance_vector(:)           ! vector containing distances in the longitude direction
+    integer,  allocatable :: z_input(:,:)                     ! input orography
+    character(len=64)     :: is_land_file                     ! file to read the land-sea-mask from
+    character(len=64)     :: oro_file                         ! file to read the orography from
     
     ! Orography
     ! ---------
