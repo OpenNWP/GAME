@@ -65,8 +65,18 @@ module mo_derived_hor_quantities
     real(wp), intent(out) :: direction(n_edges) ! geodetic directions of the edges (result)
     
     ! local variables
-    integer  :: ji ! edge index
-    real(wp) :: x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,x_res,y_res,z_res,lat_res,lon_res
+    integer  :: ji        ! edge index
+    real(wp) :: x_point_1 ! 
+    real(wp) :: y_point_1 ! 
+    real(wp) :: z_point_1 ! 
+    real(wp) :: x_point_2 ! 
+    real(wp) :: y_point_2 ! 
+    real(wp) :: z_point_2 ! 
+    real(wp) :: x_res     ! 
+    real(wp) :: y_res     ! 
+    real(wp) :: z_res     ! 
+    real(wp) :: lat_res   ! 
+    real(wp) :: lon_res   ! 
 
     !$omp parallel do private(ji,x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,x_res,y_res,z_res,lat_res,lon_res)
     do ji=1,n_edges
@@ -90,10 +100,13 @@ module mo_derived_hor_quantities
   
     ! This subroutine determines the directions of the dual vectors.
     
-    integer,  intent(out) :: to_cell_dual(n_edges),from_cell_dual(n_edges)
-    real(wp), intent(in)  :: lat_c_dual(n_triangles),lon_c_dual(n_triangles)
+    integer,  intent(out) :: to_cell_dual(n_edges)
+    integer,  intent(out) :: from_cell_dual(n_edges)
+    real(wp), intent(in)  :: lat_c_dual(n_triangles)
+    real(wp), intent(in)  :: lon_c_dual(n_triangles)
     real(wp), intent(in)  :: direction(n_edges)
-    real(wp), intent(out) :: direction_dual(n_edges),rel_on_line_dual(n_edges)
+    real(wp), intent(out) :: direction_dual(n_edges)
+    real(wp), intent(out) :: rel_on_line_dual(n_edges)
     
     ! local variables
     integer  :: ji               ! edge index
@@ -144,7 +157,7 @@ module mo_derived_hor_quantities
     real(wp), intent(out) :: f_vec_v(n_edges)        ! vertical Coriolis component
     
     ! local variables
-    integer :: ji
+    integer :: ji ! edge index
   
     ! horizontal component at dual vector points
     !$omp parallel do private(ji)
@@ -167,9 +180,12 @@ module mo_derived_hor_quantities
   
     ! This subroutine computes the vector indices needed for calculating the vorticity on triangles.
     
-    integer,  intent(in)  :: from_cell_dual(n_edges),to_cell_dual(n_edges)
-    real(wp), intent(in)  :: direction(n_edges),direction_dual(n_edges)
-    integer,  intent(out) :: vorticity_indices_triangles(3,n_triangles),vorticity_signs_triangles(3,n_triangles)
+    integer,  intent(in)  :: from_cell_dual(n_edges)                    ! 
+    integer,  intent(in)  :: to_cell_dual(n_edges)                      ! 
+    real(wp), intent(in)  :: direction(n_edges)                         ! 
+    real(wp), intent(in)  :: direction_dual(n_edges)                    ! 
+    integer,  intent(out) :: vorticity_indices_triangles(3,n_triangles) ! 
+    integer,  intent(out) :: vorticity_signs_triangles(3,n_triangles)   ! 
     
     ! local variables
     integer  :: ji               ! triangle index
@@ -214,16 +230,21 @@ module mo_derived_hor_quantities
     
     ! This subroutine writes out statistical properties of the grid to a text file.
     
-    real(wp),           intent(in) :: pent_hex_face_unity_sphere(n_cells)
-    real(wp),           intent(in) :: dx(n_edges,n_layers)
-    real(wp),           intent(in) :: dy(n_edges,n_levels)
-    real(wp),           intent(in) :: z_vector_h(n_edges,n_layers)
-    character(len=128), intent(in) :: grid_name
-    character(len=256), intent(in) :: statistics_file_name
+    real(wp),           intent(in) :: pent_hex_face_unity_sphere(n_cells) ! 
+    real(wp),           intent(in) :: dx(n_edges,n_layers)                ! 
+    real(wp),           intent(in) :: dy(n_edges,n_levels)                ! 
+    real(wp),           intent(in) :: z_vector_h(n_edges,n_layers)        ! 
+    character(len=128), intent(in) :: grid_name                           ! 
+    character(len=256), intent(in) :: statistics_file_name                ! 
     
     ! local variables
-    real(wp)              :: area_max,area_min,dx_min,dx_max,dy_min,dy_max
-    real(wp), allocatable :: distance_vector(:)
+    real(wp)              :: area_max           ! 
+    real(wp)              :: area_min           ! 
+    real(wp)              :: dx_min             ! 
+    real(wp)              :: dx_max             ! 
+    real(wp)              :: dy_min             ! 
+    real(wp)              :: dy_max             ! 
+    real(wp), allocatable :: distance_vector(:) ! 
     
     !$omp parallel workshare
     area_min = minval(pent_hex_face_unity_sphere)
@@ -280,7 +301,14 @@ module mo_derived_hor_quantities
     integer, intent(out) :: adjacent_edges(6,n_cells)
     
     ! local variables
-    integer :: ji,jk,jl,trouble_detected,counter,n_edges_of_cell,double_check,sign_sum_check
+    integer :: ji               ! 
+    integer :: jk               ! 
+    integer :: jl               ! 
+    integer :: trouble_detected ! 
+    integer :: counter          ! 
+    integer :: n_edges_of_cell  ! 
+    integer :: double_check     ! 
+    integer :: sign_sum_check   ! 
     
     trouble_detected = 0
     
@@ -367,18 +395,18 @@ module mo_derived_hor_quantities
     integer,  intent(in)  :: adjacent_edges(6,n_cells)                  ! adjacent edges of the cells
     integer,  intent(in)  :: vorticity_indices_triangles(3,n_triangles) ! adjacent edges of the dual cells
     
-    integer  :: ji
-    integer  :: jk
-    integer  :: check_1
-    integer  :: check_2
-    integer  :: check_3
-    integer  :: counter
-    integer  :: n_edges_of_cell
-    integer  :: cell_vector_indices(6)
-    real(wp) :: pent_hex_sum_unity_sphere
-    real(wp) :: pent_hex_avg_unity_sphere_ideal
-    real(wp) :: lat_points(6)
-    real(wp) :: lon_points(6)
+    integer  :: ji                              ! 
+    integer  :: jk                              ! 
+    integer  :: check_1                         ! 
+    integer  :: check_2                         ! 
+    integer  :: check_3                         ! 
+    integer  :: counter                         ! 
+    integer  :: n_edges_of_cell                 ! 
+    integer  :: cell_vector_indices(6)          ! 
+    real(wp) :: pent_hex_sum_unity_sphere       ! 
+    real(wp) :: pent_hex_avg_unity_sphere_ideal ! 
+    real(wp) :: lat_points(6)                   ! 
+    real(wp) :: lon_points(6)                   ! 
     
     !$omp parallel do private(ji,jk,check_1,check_2,check_3,counter,n_edges_of_cell,cell_vector_indices,lat_points,lon_points)
     do ji=1,n_cells

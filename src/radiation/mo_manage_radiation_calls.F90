@@ -30,17 +30,17 @@ module mo_manage_radiation_calls
     integer               :: rad_block_index   ! radiation block index (for OMP parallelization)
     integer               :: n_rad_blocks_used ! number of radiation slices
     integer               :: n_cells_rad_used  ! number of columns of the given radiation slice
-    real(wp), allocatable :: lat_scal(:)
-    real(wp), allocatable :: lon_scal(:)
-    real(wp), allocatable :: sfc_sw_in(:)
-    real(wp), allocatable :: sfc_lw_out(:)
-    real(wp), allocatable :: sfc_albedo(:)
-    real(wp), allocatable :: temp_sfc(:)
-    real(wp), allocatable :: z_scal(:,:)
-    real(wp), allocatable :: z_vect(:,:)
-    real(wp), allocatable :: rho(:,:,:)
-    real(wp), allocatable :: temp(:,:)
-    real(wp), allocatable :: rad_tend(:,:)
+    real(wp), allocatable :: lat_scal(:)       ! latitudes of the gridpoints in the radiation slice
+    real(wp), allocatable :: lon_scal(:)       ! longitudes of the gridpoints in the radiation slice
+    real(wp), allocatable :: sfc_sw_in(:)      ! surface downward shortwave radiation flux density in the radiation slice
+    real(wp), allocatable :: sfc_lw_out(:)     ! surface upward longwave radiation flux density in the radiation slice
+    real(wp), allocatable :: sfc_albedo(:)     ! surface albedo in the radiation slice
+    real(wp), allocatable :: temp_sfc(:)       ! temperature at the surface in the radiation slice
+    real(wp), allocatable :: z_scal(:,:)       ! z-coordinates of the scalar gridpoints in the radiation slice
+    real(wp), allocatable :: z_vect(:,:)       ! z-coordinates of the vertical vector gridpoints in the radiation slice
+    real(wp), allocatable :: rho(:,:,:)        ! mass densities in the radiation slice
+    real(wp), allocatable :: temp(:,:)         ! air temperature in the radiation slice
+    real(wp), allocatable :: rad_tend(:,:)     ! radiative power density in the radiation slice
     
     if (rad_config==1) then
       write(*,*) "Starting update of radiative fluxes ..."
@@ -74,7 +74,7 @@ module mo_manage_radiation_calls
       allocate(temp(n_cells_rad_used,n_layers))
       allocate(rad_tend(n_cells_rad_used,n_layers))
       
-      ! initializing all radiation-specific arrays with zeros
+      ! initializing all radiation-specific arrays with zeroes
       lat_scal = 0._wp
       lon_scal = 0._wp
       sfc_sw_in = 0._wp
@@ -142,10 +142,10 @@ module mo_manage_radiation_calls
 
     ! This subroutine cuts out a slice of a scalar field for hand-over to the radiation routine (done for RAM efficiency reasons).
     
-    integer,  intent(in)  :: n_cells_rad_used
-    real(wp), intent(in)  :: in_array(n_cells,n_layers)
-    real(wp), intent(out) :: out_array(n_cells_rad_used,n_layers)
-    integer,  intent(in)  :: rad_block_index
+    integer,  intent(in)  :: n_cells_rad_used                     ! 
+    real(wp), intent(in)  :: in_array(n_cells,n_layers)           ! 
+    real(wp), intent(out) :: out_array(n_cells_rad_used,n_layers) ! 
+    integer,  intent(in)  :: rad_block_index                      ! 
     
     ! local variables
     integer :: ji ! horizontal loop index
@@ -161,10 +161,10 @@ module mo_manage_radiation_calls
 
     ! This subroutine cuts out a slice of a horizontal scalar field for hand-over to the radiation routine (done for RAM efficiency reasons).
     
-    integer,  intent(in)  :: n_cells_rad_used
-    real(wp), intent(in)  :: in_array(n_cells)
-    real(wp), intent(out) :: out_array(n_cells_rad_used)
-    integer,  intent(in)  :: rad_block_index
+    integer,  intent(in)  :: n_cells_rad_used            ! 
+    real(wp), intent(in)  :: in_array(n_cells)           ! 
+    real(wp), intent(out) :: out_array(n_cells_rad_used) ! 
+    integer,  intent(in)  :: rad_block_index             ! 
     
     ! local variables
     integer :: ji ! horizontal loop index
@@ -181,10 +181,10 @@ module mo_manage_radiation_calls
     ! This subroutine cuts out a slice of a vector field for hand-over to the radiation routine (done for RAM efficiency reasons).
   ! Only the vertical vector points are taken into account since only they are needed by the radiation.
 
-    integer,  intent(in)  :: n_cells_rad_used
-    real(wp), intent(in)  :: in_array(n_cells,n_levels)
-    real(wp), intent(out) :: out_array(n_cells_rad_used,n_levels)
-    integer,  intent(in)  :: rad_block_index
+    integer,  intent(in)  :: n_cells_rad_used                     ! 
+    real(wp), intent(in)  :: in_array(n_cells,n_levels)           ! 
+    real(wp), intent(out) :: out_array(n_cells_rad_used,n_levels) ! 
+    integer,  intent(in)  :: rad_block_index                      ! 
     
     ! local variables
     integer :: ji ! horizontal loop index
@@ -200,13 +200,13 @@ module mo_manage_radiation_calls
 
     ! This subroutine does same thing as create_rad_array_scalar,only for a mass density field.
     
-    integer,  intent(in)  :: n_cells_rad_used
-    real(wp), intent(in)  :: in_array(n_cells,n_layers,n_constituents)
-    real(wp), intent(out) :: out_array(n_cells_rad_used,n_layers,n_constituents)
-    integer,  intent(in)  :: rad_block_index
+    integer,  intent(in)  :: n_cells_rad_used                                    ! 
+    real(wp), intent(in)  :: in_array(n_cells,n_layers,n_constituents)           ! 
+    real(wp), intent(out) :: out_array(n_cells_rad_used,n_layers,n_constituents) ! 
+    integer,  intent(in)  :: rad_block_index                                     ! 
     
     ! local variables
-    integer :: ji
+    integer :: ji ! horizontal loop index
     
     ! loop over all cells of the resulting array
     do ji=1,n_cells_rad_used
@@ -219,13 +219,13 @@ module mo_manage_radiation_calls
 
     ! This subroutine reverses what create_rad_array_scalar has done.
     
-    integer,  intent(in)  :: n_cells_rad_used
-    real(wp), intent(in)  :: in_array(n_cells_rad_used,n_layers)
-    real(wp), intent(out) :: out_array(n_cells,n_layers)
-    integer,  intent(in)  :: rad_block_index
+    integer,  intent(in)  :: n_cells_rad_used                    ! 
+    real(wp), intent(in)  :: in_array(n_cells_rad_used,n_layers) ! 
+    real(wp), intent(out) :: out_array(n_cells,n_layers)         ! 
+    integer,  intent(in)  :: rad_block_index                     ! 
     
     ! local variables
-    integer :: ji
+    integer :: ji ! horizontal loop index
     
     ! loop over all cells of the resulting array
     do ji=1,n_cells_rad_used
@@ -238,13 +238,13 @@ module mo_manage_radiation_calls
 
     ! This subroutine reverses what create_rad_array_scalar_h has done.
     
-    integer,  intent(in)  :: n_cells_rad_used
-    real(wp), intent(in)  :: in_array(n_cells_rad_used)
-    real(wp), intent(out) :: out_array(n_cells)
-    integer,  intent(in)  :: rad_block_index
+    integer,  intent(in)  :: n_cells_rad_used           ! 
+    real(wp), intent(in)  :: in_array(n_cells_rad_used) ! 
+    real(wp), intent(out) :: out_array(n_cells)         ! 
+    integer,  intent(in)  :: rad_block_index            ! 
     
     ! local variables
-    integer :: ji
+    integer :: ji ! horizontal loop index
     
     ! loop over all elements of the resulting array
     do ji=1,n_cells_rad_used
