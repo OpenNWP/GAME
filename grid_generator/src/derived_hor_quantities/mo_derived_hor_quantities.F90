@@ -24,12 +24,17 @@ module mo_derived_hor_quantities
     ! - where they are placed in between the dual scalar points
     ! - in which direction they point
     
-    real(wp), intent(in)  :: lat_c_dual(n_triangles),lon_c_dual(n_triangles),lat_e(n_edges),lon_e(n_edges)
-    integer,  intent(in)  :: from_cell_dual(n_edges),to_cell_dual(n_edges)
-    real(wp), intent(out) :: direction_dual(n_edges),rel_on_line_dual(n_edges)
+    real(wp), intent(in)  :: lat_c_dual(n_triangles)   ! latitudes of the dual grid cells (triangles)
+    real(wp), intent(in)  :: lon_c_dual(n_triangles)   ! longitudes of the dual grid cells (triangles)
+    real(wp), intent(in)  :: lat_e(n_edges)            ! latitudes of the edges
+    real(wp), intent(in)  :: lon_e(n_edges)            ! longitudes of the eddges
+    integer,  intent(in)  :: from_cell_dual(n_edges)   ! dual cell in the from-direction of a dual vector
+    integer,  intent(in)  :: to_cell_dual(n_edges)     ! dual cell in the to-direction of a dual vector
+    real(wp), intent(out) :: direction_dual(n_edges)   ! directions of the dual vectors (result)
+    real(wp), intent(out) :: rel_on_line_dual(n_edges) ! positions of the dual vectors in relation to the two adjecent dual cells (result)
     
     ! local variables
-    integer :: ji
+    integer :: ji ! edge index
     
     !$omp parallel do private(ji)
     do ji=1,n_edges
@@ -51,12 +56,16 @@ module mo_derived_hor_quantities
     
     ! This subroutine sets the geographical coordinates and the directions of the horizontal vector points.
     
-    integer,  intent(in)  :: from_cell(n_edges),to_cell(n_edges)
-    real(wp), intent(in)  :: lat_c(n_cells),lon_c(n_cells)
-    real(wp), intent(out) :: lat_e(n_edges),lon_e(n_edges),direction(n_edges)
+    integer,  intent(in)  :: from_cell(n_edges) ! cells in the from-directions of the vectors
+    integer,  intent(in)  :: to_cell(n_edges)   ! cells in the to-directions of the vectors
+    real(wp), intent(in)  :: lat_c(n_cells)     ! latitudes of the cell centers
+    real(wp), intent(in)  :: lon_c(n_cells)     ! longitudes of the cell centers
+    real(wp), intent(out) :: lat_e(n_edges)     ! latitudes of the edges (result)
+    real(wp), intent(out) :: lon_e(n_edges)     ! longitude of the edges (result)
+    real(wp), intent(out) :: direction(n_edges) ! geodetic directions of the edges (result)
     
     ! local variables
-    integer  :: ji
+    integer  :: ji ! edge index
     real(wp) :: x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,x_res,y_res,z_res,lat_res,lon_res
 
     !$omp parallel do private(ji,x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,x_res,y_res,z_res,lat_res,lon_res)
@@ -67,6 +76,8 @@ module mo_derived_hor_quantities
       call find_geos(x_res,y_res,z_res,lat_res,lon_res)
       lat_e(ji) = lat_res
       lon_e(ji) = lon_res
+      
+      ! calculating the direction of the vector at the edge
       direction(ji) = find_geodetic_direction(lat_c(from_cell(ji)),lon_c(from_cell(ji)), &
                                               lat_c(to_cell(ji)),lon_c(to_cell(ji)),0.5_wp)
     enddo
@@ -80,13 +91,14 @@ module mo_derived_hor_quantities
     ! This subroutine determines the directions of the dual vectors.
     
     integer,  intent(out) :: to_cell_dual(n_edges),from_cell_dual(n_edges)
-    real(wp), intent(in)  :: lat_c_dual(n_triangles),lon_c_dual(n_triangles), &
-                             direction(n_edges)
+    real(wp), intent(in)  :: lat_c_dual(n_triangles),lon_c_dual(n_triangles)
+    real(wp), intent(in)  :: direction(n_edges)
     real(wp), intent(out) :: direction_dual(n_edges),rel_on_line_dual(n_edges)
     
     ! local variables
-    integer  :: ji,temp_index
-    real(wp) :: direction_change
+    integer  :: ji               ! edge index
+    integer  :: temp_index       ! helper index
+    real(wp) :: direction_change ! test variable to check grid orthogonality
     
     !$omp parallel do private(ji,temp_index,direction_change)
     do ji=1,n_edges
@@ -160,8 +172,11 @@ module mo_derived_hor_quantities
     integer,  intent(out) :: vorticity_indices_triangles(3,n_triangles),vorticity_signs_triangles(3,n_triangles)
     
     ! local variables
-    integer             :: ji,jk,counter,vorticity_sign
-    real(wp)            :: direction_change
+    integer  :: ji               ! triangle index
+    integer  :: jk               ! edge index
+    integer  :: counter          ! helper vaiable, incremented of an adjacent edge of a triangle is found
+    integer  :: vorticity_sign   ! sign with which the wind at an edge contributes to the vorticity at the triangle
+    real(wp) :: direction_change ! used to check in which direction the edge at hand points
     
     !$omp parallel do private(ji,jk,counter,vorticity_sign,direction_change)
     do ji=1,n_triangles
@@ -342,9 +357,11 @@ module mo_derived_hor_quantities
     
     ! This subroutine computes the areas of the cells (pentagons and hexagons) on the unity sphere.
     
-    real(wp), intent(out) :: pent_hex_face_unity_sphere(n_cells)
-    real(wp), intent(in)  :: lat_c_dual(n_triangles),lon_c_dual(n_triangles)
-    integer,  intent(in)  :: adjacent_edges(6,n_cells),vorticity_indices_triangles(3,n_triangles)
+    real(wp), intent(out) :: pent_hex_face_unity_sphere(n_cells)        ! areas of the pentagons and hexagons on the unity sphere (result)
+    real(wp), intent(in)  :: lat_c_dual(n_triangles)                    ! latitudes of the dual cell centers (triangles)
+    real(wp), intent(in)  :: lon_c_dual(n_triangles)                    ! longitudes of the dual cell centers (triangles)
+    integer,  intent(in)  :: adjacent_edges(6,n_cells)                  ! adjacent edges of the cells
+    integer,  intent(in)  :: vorticity_indices_triangles(3,n_triangles) ! adjacent edges of the dual cells
     
     integer  :: ji,jk,check_1,check_2,check_3,counter,n_edges_of_cell,cell_vector_indices(6)
     real(wp) :: pent_hex_sum_unity_sphere,pent_hex_avg_unity_sphere_ideal,lat_points(6),lon_points(6)
