@@ -17,7 +17,7 @@ module mo_spatial_ops_for_output
   subroutine inner_product_tangential(in_field_1_h,in_field_1_v,in_field_2_h,in_field_2_v,out_field,grid)
     
     ! This subroutine computes the inner product of the two vector fields in_field_1 and in_field_2.
-    ! The difference to the normal inner product is, that in_field_1_h is given in tangential components.
+    ! The difference to the normal inner product is that in_field_1_h is given in tangential components.
     
     real(wp),     intent(in)  :: in_field_1_h(n_edges,n_layers) ! first field of which to take the inner product (horizontal component)
     real(wp),     intent(in)  :: in_field_1_v(n_cells,n_levels) ! first field of which to take the inner product (vertical component)
