@@ -66,17 +66,17 @@ module mo_derived_hor_quantities
     
     ! local variables
     integer  :: ji        ! edge index
-    real(wp) :: x_point_1 ! 
-    real(wp) :: y_point_1 ! 
-    real(wp) :: z_point_1 ! 
-    real(wp) :: x_point_2 ! 
-    real(wp) :: y_point_2 ! 
-    real(wp) :: z_point_2 ! 
-    real(wp) :: x_res     ! 
-    real(wp) :: y_res     ! 
-    real(wp) :: z_res     ! 
-    real(wp) :: lat_res   ! 
-    real(wp) :: lon_res   ! 
+    real(wp) :: x_point_1 ! x-coordinate of the from-cell
+    real(wp) :: y_point_1 ! y-coordinate of the from-cell
+    real(wp) :: z_point_1 ! z-coordinate of the from-cell
+    real(wp) :: x_point_2 ! x-coordinate of the to-cell
+    real(wp) :: y_point_2 ! y-coordinate of the to-cell
+    real(wp) :: z_point_2 ! z-coordinate of the to-cell
+    real(wp) :: x_res     ! x-coordinate of an individual edge
+    real(wp) :: y_res     ! z-coordinate of an individual edge
+    real(wp) :: z_res     ! y-coordinate of an individual edge
+    real(wp) :: lat_res   ! individual latitude value
+    real(wp) :: lon_res   ! individual longitude value
 
     !$omp parallel do private(ji,x_point_1,y_point_1,z_point_1,x_point_2,y_point_2,z_point_2,x_res,y_res,z_res,lat_res,lon_res)
     do ji=1,n_edges
@@ -182,10 +182,10 @@ module mo_derived_hor_quantities
     
     integer,  intent(in)  :: from_cell_dual(n_edges)                    ! dual cell indices in the from-directions of the horizontal dual vectors
     integer,  intent(in)  :: to_cell_dual(n_edges)                      ! dual cell indices in the to-directions of the horizontal dual vectors
-    real(wp), intent(in)  :: direction(n_edges)                         ! 
-    real(wp), intent(in)  :: direction_dual(n_edges)                    ! 
-    integer,  intent(out) :: vorticity_indices_triangles(3,n_triangles) ! 
-    integer,  intent(out) :: vorticity_signs_triangles(3,n_triangles)   ! 
+    real(wp), intent(in)  :: direction(n_edges)                         ! directions of the vectors
+    real(wp), intent(in)  :: direction_dual(n_edges)                    ! directions of the dual vectors
+    integer,  intent(out) :: vorticity_indices_triangles(3,n_triangles) ! indices for computing the vorticity on triangles
+    integer,  intent(out) :: vorticity_signs_triangles(3,n_triangles)   ! signs for computing the vorticity on the triangles
     
     ! local variables
     integer  :: ji               ! triangle index
@@ -295,18 +295,18 @@ module mo_derived_hor_quantities
   
     ! This subroutine finds the horizontal vectors that are adjacent to a grid cell.
     
-    integer, intent(in)  :: from_cell(n_edges)        ! 
-    integer, intent(in)  :: to_cell(n_edges)          ! 
-    integer, intent(out) :: adjacent_signs(6,n_cells) ! 
-    integer, intent(out) :: adjacent_edges(6,n_cells) ! 
+    integer, intent(in)  :: from_cell(n_edges)        ! cells in the from-directions of the vectors
+    integer, intent(in)  :: to_cell(n_edges)          ! cells in the to-directions of the vectors
+    integer, intent(out) :: adjacent_signs(6,n_cells) ! signs indicating the directions of the vectors relative to a cell (1 = outbound, -1 = inbound)
+    integer, intent(out) :: adjacent_edges(6,n_cells) ! edges adjacent to a cell
     
     ! local variables
-    integer :: ji               ! 
+    integer :: ji               ! cell index
     integer :: jk               ! 
     integer :: jl               ! 
     integer :: trouble_detected ! 
     integer :: counter          ! 
-    integer :: n_edges_of_cell  ! 
+    integer :: n_edges_of_cell  ! number of edges a given cell has (five or six)
     integer :: double_check     ! 
     integer :: sign_sum_check   ! 
     
@@ -395,20 +395,18 @@ module mo_derived_hor_quantities
     integer,  intent(in)  :: adjacent_edges(6,n_cells)                  ! adjacent edges of the cells
     integer,  intent(in)  :: vorticity_indices_triangles(3,n_triangles) ! adjacent edges of the dual cells
     
-    integer  :: ji                              ! 
-    integer  :: jk                              ! 
-    integer  :: check_1                         ! 
-    integer  :: check_2                         ! 
-    integer  :: check_3                         ! 
+    integer  :: ji                              ! cell index
+    integer  :: jk                              ! secondary horizontal loop index
+    integer  :: check                           ! 
     integer  :: counter                         ! 
-    integer  :: n_edges_of_cell                 ! 
+    integer  :: n_edges_of_cell                 ! number of edges a given cell has
     integer  :: cell_vector_indices(6)          ! 
-    real(wp) :: pent_hex_sum_unity_sphere       ! 
-    real(wp) :: pent_hex_avg_unity_sphere_ideal ! 
+    real(wp) :: pent_hex_sum_unit_sphere        ! sum of all cell areas on the unit sphere
+    real(wp) :: pent_hex_avg_unit_sphere_ideal  ! mean area of a cell on the unit sphere (used for a check)
     real(wp) :: lat_points(6)                   ! 
     real(wp) :: lon_points(6)                   ! 
     
-    !$omp parallel do private(ji,jk,check_1,check_2,check_3,counter,n_edges_of_cell,cell_vector_indices,lat_points,lon_points)
+    !$omp parallel do private(ji,jk,check,counter,n_edges_of_cell,cell_vector_indices,lat_points,lon_points)
     do ji=1,n_cells
       n_edges_of_cell = 6
       if (ji<=n_pentagons) then
@@ -419,10 +417,11 @@ module mo_derived_hor_quantities
       enddo
       counter = 1
       do jk=1,n_triangles
-        check_1 = in_bool_checker(vorticity_indices_triangles(1,jk),cell_vector_indices)
-        check_2 = in_bool_checker(vorticity_indices_triangles(2,jk),cell_vector_indices)
-        check_3 = in_bool_checker(vorticity_indices_triangles(3,jk),cell_vector_indices)
-        if (check_1==1 .or. check_2==1 .or. check_3==1) then
+        check = 0
+        check = check + in_bool_checker(vorticity_indices_triangles(1,jk),cell_vector_indices)
+        check = check + in_bool_checker(vorticity_indices_triangles(2,jk),cell_vector_indices)
+        check = check + in_bool_checker(vorticity_indices_triangles(3,jk),cell_vector_indices)
+        if (check>0) then
           lat_points(counter) = lat_c_dual(jk)
           lon_points(counter) = lon_c_dual(jk)
           counter = counter+1
@@ -436,22 +435,22 @@ module mo_derived_hor_quantities
     enddo
     !$omp end parallel do
     
-    pent_hex_sum_unity_sphere = 0._wp
-    pent_hex_avg_unity_sphere_ideal = 4._wp*M_PI/n_cells
+    pent_hex_sum_unit_sphere = 0._wp
+    pent_hex_avg_unit_sphere_ideal = 4._wp*M_PI/n_cells
     
     do ji=1,n_cells
-      pent_hex_sum_unity_sphere = pent_hex_sum_unity_sphere+pent_hex_face_unity_sphere(ji)
+      pent_hex_sum_unit_sphere = pent_hex_sum_unit_sphere+pent_hex_face_unity_sphere(ji)
       if (pent_hex_face_unity_sphere(ji)<=0._wp) then
         write(*,*) "Pent_hex_face_unity_sphere contains a non-positive value."
         call exit(1)
       endif
-      if (abs(pent_hex_face_unity_sphere(ji)/pent_hex_avg_unity_sphere_ideal-1._wp)>0.4_wp) then
+      if (abs(pent_hex_face_unity_sphere(ji)/pent_hex_avg_unit_sphere_ideal-1._wp)>0.4_wp) then
         write(*,*) "Pentagons and hexagons on unit sphere have significantly different surfaces."
         call exit(1)
       endif
     enddo
     
-    if (abs(pent_hex_sum_unity_sphere/(4._wp*M_PI)-1._wp)>EPSILON_SECURITY) then
+    if (abs(pent_hex_sum_unit_sphere/(4._wp*M_PI)-1._wp)>EPSILON_SECURITY) then
       write(*,*) "Sum of faces of pentagons and hexagons on unit sphere does not match face of unit sphere."
       call exit(1)
     endif

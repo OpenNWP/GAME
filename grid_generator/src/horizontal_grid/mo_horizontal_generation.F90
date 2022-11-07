@@ -36,9 +36,9 @@ module mo_horizontal_generation
     ! This subroutine sets the properties of the icosahedron the global grid is based on (angles and indices of faces,edges and vertices).
     
     ! local variables
-    integer :: ji                                    ! 
-    integer :: jk                                    ! 
-    integer :: jm                                    ! 
+    integer :: ji                                    ! index of a property of the icosahedron
+    integer :: jk                                    ! index of a property of the icosahedron
+    integer :: jm                                    ! index of a property of the icosahedron
     integer :: vertices_check_counter(n_basic_edges) ! 
     integer :: edge_other_vertex_index               ! 
     integer :: check_index                           ! 
@@ -128,7 +128,7 @@ module mo_horizontal_generation
     edge_vertices(29,2) = 12
     edge_vertices(30,1) = 11
     edge_vertices(30,2) = 12
-    vertices_check_counter = 0
+    vertices_check_counter(:) = 0
     do ji=1,n_pentagons
       do jk=1,n_basic_edges
         do jm=1,2
@@ -306,9 +306,9 @@ module mo_horizontal_generation
     integer  :: coord_2                    ! 
     integer  :: triangle_on_face_index     ! 
     integer  :: coord_1_points_amount      ! 
-    real(wp) :: x_res                      ! 
-    real(wp) :: y_res                      ! 
-    real(wp) :: z_res                      ! 
+    real(wp) :: x_res                      ! x-coordinate of a gridpoint
+    real(wp) :: y_res                      ! y-coordinate of a gridpoint
+    real(wp) :: z_res                      ! z-coordinate of a gridpoint
     
     do ji=1,n_cells
       test_index = upscale_scalar_point(res_id,ji)
@@ -406,8 +406,8 @@ module mo_horizontal_generation
     integer,  intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
     
     ! local variables
-    integer  :: ji                             ! 
-    integer  :: dual_scalar_index              ! 
+    integer  :: ji                             ! edge index
+    integer  :: dual_scalar_index              ! dual scalar index (triangle index)
     integer  :: point_1                        ! 
     integer  :: point_2                        ! 
     integer  :: point_3                        ! 
@@ -618,7 +618,7 @@ module mo_horizontal_generation
     integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
     
     ! local variables
-    integer :: ji                        ! 
+    integer :: ji                        ! edge index
     integer :: jk                        ! 
     integer :: coord_1                   ! 
     integer :: coord_2                   ! 

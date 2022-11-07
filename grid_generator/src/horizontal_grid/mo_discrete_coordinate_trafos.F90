@@ -25,9 +25,9 @@ module mo_discrete_coordinate_trafos
     ! This subroutine finds which triangles a horizontal vector is connected to.
     
     integer, intent(in)  :: ji                                      ! 
-    integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! 
-    integer, intent(in)  :: face_vertices(n_basic_triangles,3)      ! 
-    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! 
+    integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! relation between faces and edges
+    integer, intent(in)  :: face_vertices(n_basic_triangles,3)      ! relation between faces and vertices
+    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
     integer, intent(out) :: point_1                                 ! 
     integer, intent(out) :: point_2                                 ! 
     integer, intent(out) :: point_3                                 ! 
@@ -59,9 +59,9 @@ module mo_discrete_coordinate_trafos
     integer, intent(in)  :: triangle_on_face_index                  ! 
     integer, intent(in)  :: face_index                              ! 
     integer, intent(in)  :: res_id_local                            ! 
-    integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! 
-    integer, intent(in)  :: face_vertices(n_basic_triangles,3)      ! 
-    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! 
+    integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! relation between faces and edges
+    integer, intent(in)  :: face_vertices(n_basic_triangles,3)      ! relation between faces and vertices
+    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
     integer, intent(out) :: point_1                                 ! 
     integer, intent(out) :: point_2                                 ! 
     integer, intent(out) :: point_3                                 ! 
@@ -155,12 +155,12 @@ module mo_discrete_coordinate_trafos
     
     ! This subroutine computes the vertices of a triangle from its dual scalar on face index.
     
-    integer, intent(in)  :: dual_scalar_on_face_index               ! 
-    integer, intent(in)  :: face_index                              ! 
-    integer, intent(in)  :: res_id_local                            ! 
-    integer, intent(in)  :: face_vertices(n_basic_triangles,3)      ! 
-    integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! 
-    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! 
+    integer, intent(in)  :: dual_scalar_on_face_index               ! the index of the triangle on the face of the icosahedron
+    integer, intent(in)  :: face_index                              ! the index of the face of the icosahedron
+    integer, intent(in)  :: res_id_local                            ! the resolution ID to work with
+    integer, intent(in)  :: face_vertices(n_basic_triangles,3)      ! relation between faces and vertices
+    integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! relation between faces and edges
+    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
     integer, intent(out) :: point_1                                 ! index of vertex 1 (result)
     integer, intent(out) :: point_2                                 ! index of vertex 3 (result)
     integer, intent(out) :: point_3                                 ! index of vertex 2 (result)
@@ -232,11 +232,11 @@ module mo_discrete_coordinate_trafos
     
     ! This subroutine computes the discrete coordinates of a triangle from its index on face.
     
-    integer, intent(in)  :: triangle_on_face_index ! 
-    integer, intent(in)  :: res_id_local           ! 
-    integer, intent(out) :: coord_1                ! 
-    integer, intent(out) :: coord_2                ! 
-    integer, intent(out) :: coord_1_points_amount  ! 
+    integer, intent(in)  :: triangle_on_face_index ! the index of the triangle on the face of the icosahedron
+    integer, intent(in)  :: res_id_local           ! the resolution ID to work with
+    integer, intent(out) :: coord_1                ! first discrete coordinate
+    integer, intent(out) :: coord_2                ! second discrete coordinate
+    integer, intent(out) :: coord_1_points_amount  ! maximum amount of points on the coord_1-axis
     
     ! local variables
     logical :: lcheck          ! 
@@ -272,9 +272,9 @@ module mo_discrete_coordinate_trafos
     integer             :: find_triangle_on_face_index_from_coords ! the result
     
     ! local variables
-    integer :: i                     ! 
-    integer :: coord_1_points_amount ! 
-    integer :: points_per_edge       ! 
+    integer :: points_per_edge       ! primal scalar points per edge of the final icosahedron
+    integer :: coord_1_points_amount ! maximum amount of points in the coord_1-direction
+    integer :: i                     ! loop variable (walks along the coord_2-axis)
     
     i = 0
     find_triangle_on_face_index_from_coords = 0
@@ -365,11 +365,11 @@ module mo_discrete_coordinate_trafos
     ! This subroutine finds the on face index of a triangle from the dual scalar on face index and some further
     ! properties of this triangle (wether it points upwards or downwards,...).
     
-    integer, intent(in)  :: dual_scalar_on_face_index ! 
-    integer, intent(in)  :: res_id_local              ! 
+    integer, intent(in)  :: dual_scalar_on_face_index ! the index of the triangle on the face of the icosahedron
+    integer, intent(in)  :: res_id_local              ! the resolution ID to work with
     logical, intent(out) :: lspecial_case             ! 
     logical, intent(out) :: llast_triangle            ! 
-    logical, intent(out) :: lpoints_downwards         ! 
+    logical, intent(out) :: lpoints_downwards         ! true if the triangle points downwards, otherwise false
     integer, intent(out) :: triangle_on_face_index    ! 
     
     ! local variables
