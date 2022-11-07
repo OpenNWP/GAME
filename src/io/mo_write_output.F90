@@ -490,11 +490,13 @@ module mo_write_output
       ! writing the variables
       call nc_check(nf90_put_var(ncid,start_date_id,start_date))
       call nc_check(nf90_put_var(ncid,start_hour_id,start_hour))
+      
       call nc_check(nf90_put_var(ncid,lat_id,lat_vector))
       call nc_check(nf90_put_var(ncid,lon_id,lon_vector))
       
       call interpolate_to_ll(mslp,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,mslp_id,lat_lon_output_field))
+      
       call interpolate_to_ll(sp,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,sp_id,lat_lon_output_field))
       
