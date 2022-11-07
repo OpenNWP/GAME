@@ -196,7 +196,7 @@ module mo_vertical_grid
     real(wp), intent(in)  :: dx(n_edges,n_layers)                   ! horizontal normal gridpoint distances
     real(wp), intent(in)  :: z_vector_h(n_edges,n_layers)           ! z-coordinates of the horizontal vectors
     real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)           ! z-coordinates of the vertical vectors
-    real(wp), intent(in)  :: triangle_face_unit_sphere(n_triangles) ! areas of the dual grid cells (triangles) on the unity sphere
+    real(wp), intent(in)  :: triangle_face_unit_sphere(n_triangles) ! areas of the dual grid cells (triangles) on the unit sphere
     integer,  intent(in)  :: from_cell(n_edges)                     ! cells in the from-directions of the vectors
     integer,  intent(in)  :: to_cell(n_edges)                       ! cells in the to-directions of the vectors
   
@@ -282,7 +282,7 @@ module mo_vertical_grid
     real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)        ! z-coordinates of the vertical vectors
     real(wp), intent(in)  :: z_vector_dual_h(n_edges,n_levels)   ! z-coordinates of the dual horizontal vectors
     real(wp), intent(in)  :: dy(n_edges,n_levels)                ! tangential gridpoint distances
-    real(wp), intent(in)  :: pent_hex_face_unity_sphere(n_cells) ! areas of the pentagons and hexagons on the unity sphere
+    real(wp), intent(in)  :: pent_hex_face_unity_sphere(n_cells) ! areas of the pentagons and hexagons on the unit sphere
   
     ! local variables
     integer  :: ji ! horizontal loop index

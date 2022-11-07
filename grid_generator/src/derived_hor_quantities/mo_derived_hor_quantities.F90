@@ -100,13 +100,13 @@ module mo_derived_hor_quantities
   
     ! This subroutine determines the directions of the dual vectors.
     
-    integer,  intent(out) :: to_cell_dual(n_edges)     ! 
-    integer,  intent(out) :: from_cell_dual(n_edges)   ! 
-    real(wp), intent(in)  :: lat_c_dual(n_triangles)   ! 
-    real(wp), intent(in)  :: lon_c_dual(n_triangles)   ! 
-    real(wp), intent(in)  :: direction(n_edges)        ! 
-    real(wp), intent(out) :: direction_dual(n_edges)   ! 
-    real(wp), intent(out) :: rel_on_line_dual(n_edges) ! 
+    integer,  intent(out) :: to_cell_dual(n_edges)     ! dual cell indices in the to-directions of the horizontal dual vectors
+    integer,  intent(out) :: from_cell_dual(n_edges)   ! dual cell indices in the from-directions of the horizontal dual vectors
+    real(wp), intent(in)  :: lat_c_dual(n_triangles)   ! latitudes of the dual cell centers
+    real(wp), intent(in)  :: lon_c_dual(n_triangles)   ! longitudes of the dual cell centers
+    real(wp), intent(in)  :: direction(n_edges)        ! directions of the horizontal vectors
+    real(wp), intent(out) :: direction_dual(n_edges)   ! directions of the horizontal dual vectors (result)
+    real(wp), intent(out) :: rel_on_line_dual(n_edges) ! positions of the vectors on the lines connecting the two adjacent duall cells (triangles)
     
     ! local variables
     integer  :: ji               ! edge index
@@ -180,8 +180,8 @@ module mo_derived_hor_quantities
   
     ! This subroutine computes the vector indices needed for calculating the vorticity on triangles.
     
-    integer,  intent(in)  :: from_cell_dual(n_edges)                    ! 
-    integer,  intent(in)  :: to_cell_dual(n_edges)                      ! 
+    integer,  intent(in)  :: from_cell_dual(n_edges)                    ! dual cell indices in the from-directions of the horizontal dual vectors
+    integer,  intent(in)  :: to_cell_dual(n_edges)                      ! dual cell indices in the to-directions of the horizontal dual vectors
     real(wp), intent(in)  :: direction(n_edges)                         ! 
     real(wp), intent(in)  :: direction_dual(n_edges)                    ! 
     integer,  intent(out) :: vorticity_indices_triangles(3,n_triangles) ! 
@@ -387,9 +387,9 @@ module mo_derived_hor_quantities
   subroutine calc_cell_area_unity(pent_hex_face_unity_sphere,lat_c_dual,lon_c_dual, &
                                   adjacent_edges,vorticity_indices_triangles)
     
-    ! This subroutine computes the areas of the cells (pentagons and hexagons) on the unity sphere.
+    ! This subroutine computes the areas of the cells (pentagons and hexagons) on the unit sphere.
     
-    real(wp), intent(out) :: pent_hex_face_unity_sphere(n_cells)        ! areas of the pentagons and hexagons on the unity sphere (result)
+    real(wp), intent(out) :: pent_hex_face_unity_sphere(n_cells)        ! areas of the pentagons and hexagons on the unit sphere (result)
     real(wp), intent(in)  :: lat_c_dual(n_triangles)                    ! latitudes of the dual cell centers (triangles)
     real(wp), intent(in)  :: lon_c_dual(n_triangles)                    ! longitudes of the dual cell centers (triangles)
     integer,  intent(in)  :: adjacent_edges(6,n_cells)                  ! adjacent edges of the cells
@@ -446,13 +446,13 @@ module mo_derived_hor_quantities
         call exit(1)
       endif
       if (abs(pent_hex_face_unity_sphere(ji)/pent_hex_avg_unity_sphere_ideal-1._wp)>0.4_wp) then
-        write(*,*) "Pentagons and hexagons on unity sphere have significantly different surfaces."
+        write(*,*) "Pentagons and hexagons on unit sphere have significantly different surfaces."
         call exit(1)
       endif
     enddo
     
     if (abs(pent_hex_sum_unity_sphere/(4._wp*M_PI)-1._wp)>EPSILON_SECURITY) then
-      write(*,*) "Sum of faces of pentagons and hexagons on unity sphere does not match face of unit sphere."
+      write(*,*) "Sum of faces of pentagons and hexagons on unit sphere does not match face of unit sphere."
       call exit(1)
     endif
     

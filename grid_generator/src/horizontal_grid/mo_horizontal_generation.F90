@@ -396,11 +396,11 @@ module mo_horizontal_generation
   subroutine calc_triangle_area_unity(triangle_face_unit_sphere,lat_c,lon_c, &
                                       face_edges,face_edges_reverse,face_vertices)
     
-    ! This subroutine computes the areas of the triangles on the unity sphere.
+    ! This subroutine computes the areas of the triangles on the unit sphere.
     
-    real(wp), intent(out) :: triangle_face_unit_sphere(n_triangles)  ! 
-    real(wp), intent(in)  :: lat_c(n_cells)                          ! 
-    real(wp), intent(in)  :: lon_c(n_cells)                          ! 
+    real(wp), intent(out) :: triangle_face_unit_sphere(n_triangles)  ! the areas of the dual cells (triangles) on the unit sphere
+    real(wp), intent(in)  :: lat_c(n_cells)                          ! latitudes of cell centers
+    real(wp), intent(in)  :: lon_c(n_cells)                          ! longitudes of cell centers
     integer,  intent(in)  :: face_vertices(n_basic_triangles,3)      ! 
     integer,  intent(in)  :: face_edges(n_basic_triangles,3)         ! 
     integer,  intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! 
@@ -540,8 +540,8 @@ module mo_horizontal_generation
     
     ! This subroutine calculates the geographical coordinates of the dual scalar points.
     
-    real(wp), intent(out) :: lat_c_dual(n_triangles)                 ! 
-    real(wp), intent(out) :: lon_c_dual(n_triangles)                 ! 
+    real(wp), intent(out) :: lat_c_dual(n_triangles)                 ! latitudes of the dual cell centers
+    real(wp), intent(out) :: lon_c_dual(n_triangles)                 ! longitudes of the dual cell centers
     real(wp), intent(in)  :: lat_c(n_cells)                          ! latitudes of the cell centers
     real(wp), intent(in)  :: lon_c(n_cells)                          ! longitudes of the cell centers
     integer,  intent(in)  :: face_vertices(n_basic_triangles,3)      ! 
@@ -612,8 +612,8 @@ module mo_horizontal_generation
     
     ! This subroutine computes the neighbourship relationships of the horizontal dual vectors.
     
-    integer, intent(out) :: from_cell_dual(n_edges)                 ! 
-    integer, intent(out) :: to_cell_dual(n_edges)                   ! 
+    integer, intent(out) :: from_cell_dual(n_edges)                 ! dual cell indices in the from-directions of the horizontal dual vectors
+    integer, intent(out) :: to_cell_dual(n_edges)                   ! dual cell indices in the to-directions of the horizontal dual vectors
     integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! 
     integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! 
     
@@ -850,22 +850,22 @@ module mo_horizontal_generation
     
     real(wp),           intent(out) :: lat_c(n_cells)          ! latitudes of the cell centers
     real(wp),           intent(out) :: lon_c(n_cells)          ! longitudes of the cell centers
-    integer,            intent(out) :: from_cell(n_edges)      ! 
-    integer,            intent(out) :: to_cell(n_edges)        ! 
-    integer,            intent(out) :: from_cell_dual(n_edges) ! 
-    integer,            intent(out) :: to_cell_dual(n_edges)   ! 
+    integer,            intent(out) :: from_cell(n_edges)      ! cell indices in the from-directions of the horizontal vectors
+    integer,            intent(out) :: to_cell(n_edges)        ! cell indices in the from-directions of the horizontal vectors
+    integer,            intent(out) :: from_cell_dual(n_edges) ! dual cell indices in the from-directions of the horizontal dual vectors
+    integer,            intent(out) :: to_cell_dual(n_edges)   ! dual cell indices in the to-directions of the horizontal dual vectors
     integer,            intent(out) :: n_lloyd_read_file       ! number of Lloyd iterations of the input grid
     character(len=256), intent(in)  :: filename                ! filename to read the horizontal grid properties from
     
     ! local variables
     integer :: ncid                 ! netCDF ID of the file
-    integer :: lat_c_id             ! 
-    integer :: lon_c_id             ! 
-    integer :: from_cell_id         ! 
-    integer :: to_cell_id           ! 
-    integer :: from_cell_dual_id    ! 
-    integer :: to_cell_dual_id      ! 
-    integer :: n_lloyd_read_file_id ! 
+    integer :: lat_c_id             ! netCDF ID of the cell center latitudes
+    integer :: lon_c_id             ! netCDF ID of the cell center longitudes
+    integer :: from_cell_id         ! netCDF ID of from_cell
+    integer :: to_cell_id           ! netCDF ID of to_cell
+    integer :: from_cell_dual_id    ! netCDF ID of from_cell_dual
+    integer :: to_cell_dual_id      ! netCDF ID of to_cell_dual
+    integer :: n_lloyd_read_file_id ! netCDF ID of n_lloyd_read_file
 
     call nc_check(nf90_open(trim(filename),NF90_CLOBBER,ncid))
     call nc_check(nf90_inq_varid(ncid,"lat_c",lat_c_id))

@@ -115,9 +115,9 @@ program control
   integer,  allocatable :: density_to_rhombi_indices(:,:)   ! indices for interpolating the density to the rhombi
   integer,  allocatable :: interpol_indices(:,:,:)          ! interpolation indices to the latitude-longitude grid
   integer,  allocatable :: is_land(:)                       ! land-sea mask
-  real(wp), allocatable :: x_unity(:)                       ! x-coordinates of the gridpoints on the unity sphere
-  real(wp), allocatable :: y_unity(:)                       ! y-coordinates of the gridpoints on the unity sphere
-  real(wp), allocatable :: z_unity(:)                       ! z-coordinates of the gridpoints on the unity sphere
+  real(wp), allocatable :: x_unity(:)                       ! x-coordinates of the gridpoints on the unit sphere
+  real(wp), allocatable :: y_unity(:)                       ! y-coordinates of the gridpoints on the unit sphere
+  real(wp), allocatable :: z_unity(:)                       ! z-coordinates of the gridpoints on the unit sphere
   real(wp), allocatable :: lat_c(:)                         ! latitudes of the cell centers
   real(wp), allocatable :: lon_c(:)                         ! longitudes of the cell centers
   real(wp), allocatable :: z_scalar(:,:)                    ! z-coordinates of the cell centers
@@ -145,11 +145,11 @@ program control
   real(wp), allocatable :: area_dual_v(:,:)                 ! vertical dual areas (triangles)
   real(wp), allocatable :: f_vec_h(:)                       ! horizontal Coriolis parameter (at the edges)
   real(wp), allocatable :: f_vec_v(:)                       ! vertical Coriolis parameter (at the edges)
-  real(wp), allocatable :: pent_hex_face_unity_sphere(:)    ! areas of pentagons and hexagons on the unity sphere
+  real(wp), allocatable :: pent_hex_face_unity_sphere(:)    ! areas of pentagons and hexagons on the unit sphere
   real(wp), allocatable :: rel_on_line_dual(:)              ! positions of the edegs relative to the adjacent centers
   real(wp), allocatable :: inner_product_weights(:,:,:)     ! weights for computing the inner product
   real(wp), allocatable :: density_to_rhombi_weights(:,:)   ! weights for interpolating the density to the rhombi
-  real(wp), allocatable :: triangle_face_unit_sphere(:)     ! faces of the triangles on the unity sphere
+  real(wp), allocatable :: triangle_face_unit_sphere(:)     ! faces of the triangles on the unit sphere
   real(wp), allocatable :: interpol_weights(:,:,:)          ! interpolation weights to the latitude-longitude grid
   real(wp), allocatable :: exner_bg(:,:)                    ! background Exner pressure
   real(wp), allocatable :: theta_v_bg(:,:)                  ! background virtual potential temperature
@@ -354,14 +354,14 @@ program control
   ! setting the Coriolis vector
   call set_f_vec(lat_e,direction_dual,f_vec_h,f_vec_v)
   
-  ! calculating the dual cells on the unity sphere
+  ! calculating the dual cells on the unit sphere
   call calc_triangle_area_unity(triangle_face_unit_sphere,lat_c,lon_c,face_edges,face_edges_reverse,face_vertices)
   
   ! finding the vorticity indices
   call calc_vorticity_indices_triangles(from_cell_dual,to_cell_dual,direction,direction_dual,vorticity_indices_triangles, &
                                         vorticity_signs_triangles)
   
-  ! calculating the cell faces on the unity sphere
+  ! calculating the cell faces on the unit sphere
   call calc_cell_area_unity(pent_hex_face_unity_sphere,lat_c_dual,lon_c_dual,adjacent_edges,vorticity_indices_triangles)
   write(*,*) "Horizontal grid structure determined."
   
