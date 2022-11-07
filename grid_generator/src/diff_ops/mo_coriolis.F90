@@ -20,69 +20,69 @@ module mo_coriolis
     
     ! This subroutine implements the modified TRSK scheme proposed by Gassmann (2018). Indices and weights are computed here for the highest layer but remain unchanged elsewhere.
     
-    real(wp), intent(in)  :: dx(n_edges,n_layers)                   ! normal distances
-    real(wp), intent(in)  :: dy(n_edges,n_levels)                   ! tangential distances
-    real(wp), intent(in)  :: area_v(n_cells,n_levels)               ! vertical areas of the cells
-    real(wp), intent(in)  :: z_scalar(n_cells,n_layers)             ! z-coordinates of the cell centers
-    real(wp), intent(in)  :: lat_c(n_cells)                         ! latitudes of the cell centers
-    real(wp), intent(in)  :: lon_c(n_cells)                         ! longitudes of the cell centers
-    real(wp), intent(in)  :: lat_e(n_edges)                         ! latitudes of the edges
-    real(wp), intent(in)  :: lon_e(n_edges)                         ! longitudes of the edges
-    real(wp), intent(in)  :: lat_c_dual(n_triangles)                ! latitudes of the dual ell centers (triangles)
-    real(wp), intent(in)  :: lon_c_dual(n_triangles)                ! longitudes of the dual ell centers (triangles)
-    real(wp), intent(in)  :: z_vector_h(n_edges,n_layers)           ! z-coordinates of the edges
-    integer,  intent(in)  :: from_cell_dual(n_edges)                ! dual cells in the from-directions of the dual vectors
-    integer,  intent(in)  :: to_cell_dual(n_edges)                  ! dual cells in the to-directions of the dual vectors
-    integer,  intent(in)  :: from_cell(n_edges)                     ! cells in the from-directions of the vectors
-    integer,  intent(in)  :: to_cell(n_edges)                       ! cells in the to-directions of the vectors
-    integer,  intent(in)  :: adjacent_edges(6,n_cells)              ! adjacent edges of the cells
-    real(wp), intent(out) :: trsk_weights(10,n_edges)               ! TRSK reconstruction weights (result)
-    integer,  intent(out) :: trsk_modified_curl_indices(10,n_edges) ! modified TRSK indices following Gassmann (2018) (result)
-    integer,  intent(out) :: trsk_indices(10,n_edges)               ! TRSK indices (result)
+    real(wp), intent(in)           :: dx(n_edges,n_layers)                   ! normal distances
+    real(wp), intent(in)           :: dy(n_edges,n_levels)                   ! tangential distances
+    real(wp), intent(in)           :: area_v(n_cells,n_levels)               ! vertical areas of the cells
+    real(wp), intent(in)           :: z_scalar(n_cells,n_layers)             ! z-coordinates of the cell centers
+    real(wp), intent(in)           :: lat_c(n_cells)                         ! latitudes of the cell centers
+    real(wp), intent(in)           :: lon_c(n_cells)                         ! longitudes of the cell centers
+    real(wp), intent(in)           :: lat_e(n_edges)                         ! latitudes of the edges
+    real(wp), intent(in)           :: lon_e(n_edges)                         ! longitudes of the edges
+    real(wp), intent(in)           :: lat_c_dual(n_triangles)                ! latitudes of the dual ell centers (triangles)
+    real(wp), intent(in)           :: lon_c_dual(n_triangles)                ! longitudes of the dual ell centers (triangles)
+    real(wp), intent(in)           :: z_vector_h(n_edges,n_layers)           ! z-coordinates of the edges
+    integer,  intent(in)           :: from_cell_dual(n_edges)                ! dual cells in the from-directions of the dual vectors
+    integer,  intent(in)           :: to_cell_dual(n_edges)                  ! dual cells in the to-directions of the dual vectors
+    integer,  intent(in),  target  :: from_cell(n_edges)                     ! cells in the from-directions of the vectors
+    integer,  intent(in),  target  :: to_cell(n_edges)                       ! cells in the to-directions of the vectors
+    integer,  intent(in)           :: adjacent_edges(6,n_cells)              ! adjacent edges of the cells
+    real(wp), intent(out)          :: trsk_weights(10,n_edges)               ! TRSK reconstruction weights (result)
+    integer,  intent(out)          :: trsk_modified_curl_indices(10,n_edges) ! modified TRSK indices following Gassmann (2018) (result)
+    integer,  intent(out)          :: trsk_indices(10,n_edges)               ! TRSK indices (result)
     
     ! local variables
-    integer              :: ji                          ! edge index
-    integer              :: jk                          ! further horizontal index
-    integer              :: jl                          ! further horizontal index
-    integer              :: jm                          ! further horizontal index
-    integer              :: offset                      ! offset index
-    integer              :: sign_1                      ! one of the signs used for computing a TRSK weight
-    integer              :: sign_2                      ! one of the signs used for computing a TRSK weight
-    integer              :: n_edges_of_cell             ! number of edges of the given cell (five or six)
-    integer              :: index_offset                ! 
-    integer              :: vertex_index_candidate_1    ! 
-    integer              :: vertex_index_candidate_2    ! 
-    integer              :: counter                     ! 
-    integer              :: check_result                ! 
-    integer              :: first_index                 ! 
-    integer              :: last_index                  ! 
-    integer              :: second_index_1              ! 
-    integer              :: second_index_2              ! 
-    integer              :: vertex_indices(6)           ! 
-    integer              :: edge_indices(6)             ! 
-    integer              :: indices_resorted(6)         ! 
-    integer              :: vertex_indices_resorted(6)  ! 
-    integer              :: value_written               ! 
-    integer              :: trsk_indices_pre(10)        ! unsorted TRSK indices
-    integer              :: next_vertex_index           ! 
-    integer              :: next_vertex_index_candidate ! 
-    integer              :: indices_used_counter        ! 
-    integer              :: indices_used(5)             ! 
-    integer, allocatable :: from_or_to_cell(:)          ! either from_cell or to_cell
-    real(wp)             :: check_sum                   ! used for checking if the result is self-consistent
-    real(wp)             :: triangle_1                  ! 
-    real(wp)             :: triangle_2                  ! 
-    real(wp)             :: sum_of_weights              ! 
-    real(wp)             :: latitude_vertices(6)        ! latitudes of the vertices of a given cell
-    real(wp)             :: longitude_vertices(6)       ! longitudes of the vertices of a given cell
-    real(wp)             :: latitude_edges(6)           ! latitudes of the edges of a given cell
-    real(wp)             :: longitude_edges(6)          ! longitudes of the edges of a given cell
-    real(wp)             :: vector_of_areas(6)          ! 
-    real(wp)             :: trsk_weights_pre(10)        ! unsorted TRSK weights
-    real(wp)             :: value_1                     ! 
-    real(wp)             :: value_2                     ! 
-    real(wp)             :: rescale_for_z_offset_1d     ! rescales lengths from the highest level to the highest layer
-    real(wp)             :: rescale_for_z_offset_2d     ! rescales areas from the highest level to the highest layer
+    integer          :: ji                          ! edge index
+    integer          :: jk                          ! further horizontal index
+    integer          :: jl                          ! further horizontal index
+    integer          :: jm                          ! further horizontal index
+    integer          :: offset                      ! offset index
+    integer          :: sign_1                      ! one of the signs used for computing a TRSK weight
+    integer          :: sign_2                      ! one of the signs used for computing a TRSK weight
+    integer          :: n_edges_of_cell             ! number of edges of the given cell (five or six)
+    integer          :: index_offset                ! 
+    integer          :: vertex_index_candidate_1    ! 
+    integer          :: vertex_index_candidate_2    ! 
+    integer          :: counter                     ! 
+    integer          :: check_result                ! 
+    integer          :: first_index                 ! 
+    integer          :: last_index                  ! 
+    integer          :: second_index_1              ! 
+    integer          :: second_index_2              ! 
+    integer          :: vertex_indices(6)           ! 
+    integer          :: edge_indices(6)             ! 
+    integer          :: indices_resorted(6)         ! 
+    integer          :: vertex_indices_resorted(6)  ! 
+    integer          :: value_written               ! 
+    integer          :: trsk_indices_pre(10)        ! unsorted TRSK indices
+    integer          :: next_vertex_index           ! 
+    integer          :: next_vertex_index_candidate ! 
+    integer          :: indices_used_counter        ! 
+    integer          :: indices_used(5)             ! 
+    integer, pointer :: from_or_to_cell(:)          ! either from_cell or to_cell
+    real(wp)         :: check_sum                   ! used for checking if the result is self-consistent
+    real(wp)         :: triangle_1                  ! 
+    real(wp)         :: triangle_2                  ! 
+    real(wp)         :: sum_of_weights              ! 
+    real(wp)         :: latitude_vertices(6)        ! latitudes of the vertices of a given cell
+    real(wp)         :: longitude_vertices(6)       ! longitudes of the vertices of a given cell
+    real(wp)         :: latitude_edges(6)           ! latitudes of the edges of a given cell
+    real(wp)         :: longitude_edges(6)          ! longitudes of the edges of a given cell
+    real(wp)         :: vector_of_areas(6)          ! 
+    real(wp)         :: trsk_weights_pre(10)        ! unsorted TRSK weights
+    real(wp)         :: value_1                     ! 
+    real(wp)         :: value_2                     ! 
+    real(wp)         :: rescale_for_z_offset_1d     ! rescales lengths from the highest level to the highest layer
+    real(wp)         :: rescale_for_z_offset_2d     ! rescales areas from the highest level to the highest layer
     
     rescale_for_z_offset_1d = (radius+z_scalar(1,1))/(radius+toa)
     rescale_for_z_offset_2d = rescale_for_z_offset_1d**2
@@ -101,7 +101,6 @@ module mo_coriolis
       ! sign_2: n_{e', i}
       ! trsk_weights: w
       
-      allocate(from_or_to_cell(n_edges))
       offset = 0
       first_index = 0
       last_index = 0
@@ -114,11 +113,11 @@ module mo_coriolis
         if (jk<=5) then
           index_offset = 0
           sign_1 = -1
-          from_or_to_cell = from_cell
+          from_or_to_cell => from_cell
         else
           index_offset = 5
           sign_1 = 1
-          from_or_to_cell = to_cell
+          from_or_to_cell => to_cell
         endif
         if (adjacent_edges(jk-index_offset,from_or_to_cell(ji))==ji) then
           offset = offset+1
@@ -389,7 +388,6 @@ module mo_coriolis
           endif
         enddo
       enddo
-      deallocate(from_or_to_cell)
     enddo
     !$omp end parallel do
     

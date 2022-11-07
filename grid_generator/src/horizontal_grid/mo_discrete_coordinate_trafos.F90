@@ -38,9 +38,9 @@ module mo_discrete_coordinate_trafos
     integer, intent(out) :: small_triangle_edge_index               ! 
     
     ! local variables
-    integer :: face_index
-    integer :: on_face_index
-    integer :: triangle_on_face_index
+    integer :: face_index             ! 
+    integer :: on_face_index          ! 
+    integer :: triangle_on_face_index ! 
     
     face_index = (ji - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
     on_face_index = ji - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
@@ -56,17 +56,26 @@ module mo_discrete_coordinate_trafos
     
     ! This subroutine finds the primal scalar points (pentagon and hexagon centers) a triangle consists of.
     
-    integer, intent(in)  :: triangle_on_face_index,face_index,res_id_local
-    integer, intent(in)  :: face_edges(n_basic_triangles,3),face_vertices(n_basic_triangles,3)
-    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3)
-    integer, intent(out) :: point_1,point_2,point_3,point_4,point_5,point_6,dual_scalar_on_face_index
+    integer, intent(in)  :: triangle_on_face_index                  ! 
+    integer, intent(in)  :: face_index                              ! 
+    integer, intent(in)  :: res_id_local                            ! 
+    integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! 
+    integer, intent(in)  :: face_vertices(n_basic_triangles,3)      ! 
+    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! 
+    integer, intent(out) :: point_1                                 ! 
+    integer, intent(out) :: point_2                                 ! 
+    integer, intent(out) :: point_3                                 ! 
+    integer, intent(out) :: point_4                                 ! 
+    integer, intent(out) :: point_5                                 ! 
+    integer, intent(out) :: point_6                                 ! 
+    integer, intent(out) :: dual_scalar_on_face_index               ! 
     
     ! local variables
-    integer :: coord_1
-    integer :: coord_2
-    integer :: coord_1_points_amount
-    integer :: points_per_edge
-    integer :: scalar_points_per_inner_face
+    integer :: coord_1                      ! 
+    integer :: coord_2                      ! 
+    integer :: coord_1_points_amount        ! 
+    integer :: points_per_edge              ! 
+    integer :: scalar_points_per_inner_face ! 
     
     call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local,coord_1,coord_2,coord_1_points_amount)
     dual_scalar_on_face_index = 1 + 2*triangle_on_face_index + coord_2
@@ -157,21 +166,21 @@ module mo_discrete_coordinate_trafos
     integer, intent(out) :: point_3                                 ! index of vertex 2 (result)
     
     ! local variables
-    logical :: lspecial_case
-    logical :: lpoints_downwards
-    logical :: llast_triangle
-    integer :: triangle_on_face_index
-    integer :: rhombuspoint_1
-    integer :: rhombuspoint_2
-    integer :: rhombuspoint_3
-    integer :: rhombuspoint_4
-    integer :: coord_1
-    integer :: coord_2
-    integer :: coord_1_points_amount
-    integer :: points_per_edge
-    integer :: dump
-    integer :: addpoint_1
-    integer :: addpoint_2
+    logical :: lspecial_case          ! 
+    logical :: lpoints_downwards      ! 
+    logical :: llast_triangle         ! 
+    integer :: triangle_on_face_index ! 
+    integer :: rhombuspoint_1         ! 
+    integer :: rhombuspoint_2         ! 
+    integer :: rhombuspoint_3         ! 
+    integer :: rhombuspoint_4         ! 
+    integer :: coord_1                ! 
+    integer :: coord_2                ! 
+    integer :: coord_1_points_amount  ! 
+    integer :: points_per_edge        ! 
+    integer :: dump                   ! 
+    integer :: addpoint_1             ! 
+    integer :: addpoint_2             ! 
     
     call find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id_local,triangle_on_face_index, &
                                                                     lpoints_downwards,lspecial_case,llast_triangle)
@@ -223,18 +232,18 @@ module mo_discrete_coordinate_trafos
     
     ! This subroutine computes the discrete coordinates of a triangle from its index on face.
     
-    integer, intent(in)  :: triangle_on_face_index
-    integer, intent(in)  :: res_id_local
-    integer, intent(out) :: coord_1
-    integer, intent(out) :: coord_2
-    integer, intent(out) :: coord_1_points_amount
+    integer, intent(in)  :: triangle_on_face_index ! 
+    integer, intent(in)  :: res_id_local           ! 
+    integer, intent(out) :: coord_1                ! 
+    integer, intent(out) :: coord_2                ! 
+    integer, intent(out) :: coord_1_points_amount  ! 
     
     ! local variables
-    logical :: lcheck
-    integer :: coord_2_pre
-    integer :: min_index
-    integer :: max_index
-    integer :: points_per_edge
+    logical :: lcheck          ! 
+    integer :: coord_2_pre     ! 
+    integer :: min_index       ! 
+    integer :: max_index       ! 
+    integer :: points_per_edge ! 
     
     lcheck = .true.
     coord_2_pre = -1
@@ -263,9 +272,9 @@ module mo_discrete_coordinate_trafos
     integer             :: find_triangle_on_face_index_from_coords ! the result
     
     ! local variables
-    integer :: i
-    integer :: coord_1_points_amount
-    integer :: points_per_edge
+    integer :: i                     ! 
+    integer :: coord_1_points_amount ! 
+    integer :: points_per_edge       ! 
     
     i = 0
     find_triangle_on_face_index_from_coords = 0
@@ -313,17 +322,17 @@ module mo_discrete_coordinate_trafos
     integer             :: upscale_scalar_point ! the result
     
     ! local variables
-    integer :: edge_index
-    integer :: face_index
-    integer :: points_per_edge
-    integer :: on_edge_index
-    integer :: scalar_points_per_inner_face
-    integer :: on_face_index
-    integer :: coord_1
-    integer :: coord_2
-    integer :: coord_1_points_amount
-    integer :: on_face_index_local
-    integer :: scalar_points_per_inner_face_full_grid
+    integer :: edge_index                             ! 
+    integer :: face_index                             ! 
+    integer :: points_per_edge                        ! 
+    integer :: on_edge_index                          ! 
+    integer :: scalar_points_per_inner_face           ! 
+    integer :: on_face_index                          ! 
+    integer :: coord_1                                ! 
+    integer :: coord_2                                ! 
+    integer :: coord_1_points_amount                  ! 
+    integer :: on_face_index_local                    ! 
+    integer :: scalar_points_per_inner_face_full_grid ! 
     
     scalar_points_per_inner_face_full_grid = (2**res_id-2)/2*(2**res_id-1)
     
@@ -356,24 +365,24 @@ module mo_discrete_coordinate_trafos
     ! This subroutine finds the on face index of a triangle from the dual scalar on face index and some further
     ! properties of this triangle (wether it points upwards or downwards,...).
     
-    integer, intent(in)  :: dual_scalar_on_face_index
-    integer, intent(in)  :: res_id_local
-    logical, intent(out) :: lspecial_case
-    logical, intent(out) :: llast_triangle
-    logical, intent(out) :: lpoints_downwards
-    integer, intent(out) :: triangle_on_face_index
+    integer, intent(in)  :: dual_scalar_on_face_index ! 
+    integer, intent(in)  :: res_id_local              ! 
+    logical, intent(out) :: lspecial_case             ! 
+    logical, intent(out) :: llast_triangle            ! 
+    logical, intent(out) :: lpoints_downwards         ! 
+    integer, intent(out) :: triangle_on_face_index    ! 
     
     ! local variables
-    logical :: lvalue_found
-    integer :: triangle_on_face_index_pre
-    integer :: coord_1_pre
-    integer :: coord_2_pre
-    integer :: coord_1_points_amount_pre
-    integer :: dual_scalar_on_face_index_1
-    integer :: dual_scalar_on_face_index_2
-    integer :: dual_scalar_on_face_index_3
-    integer :: dual_scalar_on_face_index_4
-    integer :: points_per_edge
+    logical :: lvalue_found                ! 
+    integer :: triangle_on_face_index_pre  ! 
+    integer :: coord_1_pre                 ! 
+    integer :: coord_2_pre                 ! 
+    integer :: coord_1_points_amount_pre   ! 
+    integer :: dual_scalar_on_face_index_1 ! 
+    integer :: dual_scalar_on_face_index_2 ! 
+    integer :: dual_scalar_on_face_index_3 ! 
+    integer :: dual_scalar_on_face_index_4 ! 
+    integer :: points_per_edge             ! 
     
     lvalue_found = .false.
     

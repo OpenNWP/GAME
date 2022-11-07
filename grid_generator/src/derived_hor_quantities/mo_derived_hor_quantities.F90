@@ -100,13 +100,13 @@ module mo_derived_hor_quantities
   
     ! This subroutine determines the directions of the dual vectors.
     
-    integer,  intent(out) :: to_cell_dual(n_edges)
-    integer,  intent(out) :: from_cell_dual(n_edges)
-    real(wp), intent(in)  :: lat_c_dual(n_triangles)
-    real(wp), intent(in)  :: lon_c_dual(n_triangles)
-    real(wp), intent(in)  :: direction(n_edges)
-    real(wp), intent(out) :: direction_dual(n_edges)
-    real(wp), intent(out) :: rel_on_line_dual(n_edges)
+    integer,  intent(out) :: to_cell_dual(n_edges)     ! 
+    integer,  intent(out) :: from_cell_dual(n_edges)   ! 
+    real(wp), intent(in)  :: lat_c_dual(n_triangles)   ! 
+    real(wp), intent(in)  :: lon_c_dual(n_triangles)   ! 
+    real(wp), intent(in)  :: direction(n_edges)        ! 
+    real(wp), intent(out) :: direction_dual(n_edges)   ! 
+    real(wp), intent(out) :: rel_on_line_dual(n_edges) ! 
     
     ! local variables
     integer  :: ji               ! edge index
@@ -295,10 +295,10 @@ module mo_derived_hor_quantities
   
     ! This subroutine finds the horizontal vectors that are adjacent to a grid cell.
     
-    integer, intent(in)  :: from_cell(n_edges)
-    integer, intent(in)  :: to_cell(n_edges)
-    integer, intent(out) :: adjacent_signs(6,n_cells)
-    integer, intent(out) :: adjacent_edges(6,n_cells)
+    integer, intent(in)  :: from_cell(n_edges)        ! 
+    integer, intent(in)  :: to_cell(n_edges)          ! 
+    integer, intent(out) :: adjacent_signs(6,n_cells) ! 
+    integer, intent(out) :: adjacent_edges(6,n_cells) ! 
     
     ! local variables
     integer :: ji               ! 
