@@ -290,8 +290,8 @@ module mo_spatial_ops_for_output
     type(t_grid), intent(in)  :: grid                                       ! grid quantities
     
     ! local variables
-    integer :: jk ! horizontal index
     integer :: ji ! horizontal index
+    integer :: jk ! horizontal index
     integer :: jm ! averaging index
     
     ! loop over all output points

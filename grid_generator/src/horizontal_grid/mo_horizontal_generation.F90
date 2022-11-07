@@ -28,10 +28,10 @@ module mo_horizontal_generation
     
     real(wp), intent(out) :: lat_ico(12)                             ! latitudes of the vertices of the icosahedron
     real(wp), intent(out) :: lon_ico(12)                             ! longitudes of the vertices of the icosahedron
-    integer,  intent(out) :: edge_vertices(n_basic_edges,2)          ! 
-    integer,  intent(out) :: face_vertices(n_basic_triangles,3)      ! 
-    integer,  intent(out) :: face_edges(n_basic_triangles,3)         ! 
-    integer,  intent(out) :: face_edges_reverse(n_basic_triangles,3) ! 
+    integer,  intent(out) :: edge_vertices(n_basic_edges,2)          ! relation between edges and vertices
+    integer,  intent(out) :: face_vertices(n_basic_triangles,3)      ! relation between faces and vertices
+    integer,  intent(out) :: face_edges(n_basic_triangles,3)         ! relation between faces and edges
+    integer,  intent(out) :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
     
     ! This subroutine sets the properties of the icosahedron the global grid is based on (angles and indices of faces,edges and vertices).
     
@@ -268,22 +268,22 @@ module mo_horizontal_generation
     
     ! This subroutine computes the geographical coordinates of the generators (centers of the pentagons and hexagons).
     
-    real(wp), intent(in)  :: lat_ico(n_pentagons)                    ! 
-    real(wp), intent(in)  :: lon_ico(n_pentagons)                    ! 
-    real(wp), intent(out) :: lat_c(n_cells)                          ! 
-    real(wp), intent(out) :: lon_c(n_cells)                          ! 
-    real(wp), intent(out) :: x_unity(n_cells)                        ! 
-    real(wp), intent(out) :: y_unity(n_cells)                        ! 
-    real(wp), intent(out) :: z_unity(n_cells)                        ! 
-    integer,  intent(in)  :: face_vertices(n_basic_triangles,3)      ! 
-    integer,  intent(in)  :: face_edges(n_basic_triangles,3)         ! 
-    integer,  intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! 
+    real(wp), intent(in)  :: lat_ico(n_pentagons)                    ! the latitudes of the vertices of the icosahedron
+    real(wp), intent(in)  :: lon_ico(n_pentagons)                    ! the longitudes of the vertices of the icosahedron
+    real(wp), intent(out) :: lat_c(n_cells)                          ! the latitudes of the cell centers
+    real(wp), intent(out) :: lon_c(n_cells)                          ! the longitudes of the cell centers
+    real(wp), intent(out) :: x_unity(n_cells)                        ! the x-coordinates of the cell centers on the unit sphere
+    real(wp), intent(out) :: y_unity(n_cells)                        ! the y-coordinates of the cell centers on the unit sphere
+    real(wp), intent(out) :: z_unity(n_cells)                        ! the z-coordinates of the cell centers on the unit sphere
+    integer,  intent(in)  :: face_vertices(n_basic_triangles,3)      ! relation between faces and vertices
+    integer,  intent(in)  :: face_edges(n_basic_triangles,3)         ! relation between faces and edges
+    integer,  intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
     
     ! local variables
-    logical  :: llast_triangle             ! 
-    logical  :: lpoints_downwards          ! 
-    logical  :: lpoints_upwards            ! 
-    logical  :: ldump                      ! 
+    logical  :: llast_triangle             ! true for the very last triangle of a face of the icosahedron
+    logical  :: lpoints_downwards          ! true if the triangle points downwards
+    logical  :: lpoints_upwards            ! true if the triangle points upwards
+    logical  :: ldump                      ! boolean required by a function but not needed further
     integer  :: ji                         ! 
     integer  :: jk                         ! 
     integer  :: jm                         ! 
@@ -401,9 +401,9 @@ module mo_horizontal_generation
     real(wp), intent(out) :: triangle_face_unit_sphere(n_triangles)  ! the areas of the dual cells (triangles) on the unit sphere
     real(wp), intent(in)  :: lat_c(n_cells)                          ! latitudes of cell centers
     real(wp), intent(in)  :: lon_c(n_cells)                          ! longitudes of cell centers
-    integer,  intent(in)  :: face_vertices(n_basic_triangles,3)      ! 
-    integer,  intent(in)  :: face_edges(n_basic_triangles,3)         ! 
-    integer,  intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! 
+    integer,  intent(in)  :: face_vertices(n_basic_triangles,3)      ! relation between faces and vertices
+    integer,  intent(in)  :: face_edges(n_basic_triangles,3)         ! relation between faces and edges
+    integer,  intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
     
     ! local variables
     integer  :: ji                             ! 
@@ -477,12 +477,12 @@ module mo_horizontal_generation
     
     ! This subroutine computes the neighbourship relationships of the horizontal vectors.
     
-    integer, intent(out) :: from_cell(n_edges)                      ! 
-    integer, intent(out) :: to_cell(n_edges)                        ! 
-    integer, intent(in)  :: face_vertices(n_basic_edges,3)          ! 
-    integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! 
-    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! 
-    integer, intent(in)  :: edge_vertices(n_basic_edges,2)          ! 
+    integer, intent(out) :: from_cell(n_edges)                      ! cells in the from-directions of the vectors
+    integer, intent(out) :: to_cell(n_edges)                        ! cells in the to-directions of the vectors
+    integer, intent(in)  :: face_vertices(n_basic_edges,3)          ! relation between faces and vertices
+    integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! relation between faces and edges
+    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
+    integer, intent(in)  :: edge_vertices(n_basic_edges,2)          ! relation between edges and vertices
     
     ! local variables
     integer :: ji                        ! 
@@ -544,9 +544,9 @@ module mo_horizontal_generation
     real(wp), intent(out) :: lon_c_dual(n_triangles)                 ! longitudes of the dual cell centers
     real(wp), intent(in)  :: lat_c(n_cells)                          ! latitudes of the cell centers
     real(wp), intent(in)  :: lon_c(n_cells)                          ! longitudes of the cell centers
-    integer,  intent(in)  :: face_vertices(n_basic_triangles,3)      ! 
-    integer,  intent(in)  :: face_edges(n_basic_triangles,3)         ! 
-    integer,  intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! 
+    integer,  intent(in)  :: face_vertices(n_basic_triangles,3)      ! relation between faces and vertices
+    integer,  intent(in)  :: face_edges(n_basic_triangles,3)         ! relation between faces and edges
+    integer,  intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
     
     ! local variables
     integer  :: ji                        ! 
@@ -565,8 +565,8 @@ module mo_horizontal_generation
     integer  :: face_index                ! 
     integer  :: on_face_index             ! 
     integer  :: triangle_on_face_index    ! 
-    real(wp) :: lat_res                   ! 
-    real(wp) :: lon_res                   ! 
+    real(wp) :: lat_res                   ! resulting individual latitude value
+    real(wp) :: lon_res                   ! resulting individual longitude value
     
     !$omp parallel do private(ji,lat_res,lon_res,point_1,point_2,point_3,point_4,point_5,point_6,dual_scalar_on_face_index, &
     !$omp small_triangle_edge_index,dual_scalar_index,coord_1,coord_2,coord_1_points_amount,face_index, &
@@ -614,8 +614,8 @@ module mo_horizontal_generation
     
     integer, intent(out) :: from_cell_dual(n_edges)                 ! dual cell indices in the from-directions of the horizontal dual vectors
     integer, intent(out) :: to_cell_dual(n_edges)                   ! dual cell indices in the to-directions of the horizontal dual vectors
-    integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! 
-    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! 
+    integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! relation between faces and edges
+    integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
     
     ! local variables
     integer :: ji                        ! 
@@ -750,28 +750,28 @@ module mo_horizontal_generation
     
     ! This subroutine computes the geographical and Cartesian coordinates of the three vertices of a triangle of the grid.
     
-    integer,  intent(in)  :: edgepoint_1      ! 
-    integer,  intent(in)  :: edgepoint_2      ! 
-    integer,  intent(in)  :: edgepoint_3      ! 
-    integer,  intent(in)  :: point_1          ! 
-    integer,  intent(in)  :: point_2          ! 
-    integer,  intent(in)  :: point_3          ! 
-    logical,  intent(in)  :: lpoints_upwards  ! switch indicating wether the triangle points upwards
-    real(wp), intent(out) :: x_unity(n_cells) ! 
-    real(wp), intent(out) :: y_unity(n_cells) ! 
-    real(wp), intent(out) :: z_unity(n_cells) ! 
-    real(wp), intent(out) :: lat_c(n_cells)   ! latitudes of the cell centers
-    real(wp), intent(out) :: lon_c(n_cells)   ! longitudes of the cell centers
+    integer,  intent(in)    :: edgepoint_1      ! first vertex index of the coarser triangle
+    integer,  intent(in)    :: edgepoint_2      ! second vertex index of the coarser triangle
+    integer,  intent(in)    :: edgepoint_3      ! third vertex index of the coarser triangle
+    integer,  intent(in)    :: point_1          ! first vertex index of the finer triangle
+    integer,  intent(in)    :: point_2          ! second vertex index of the finer triangle
+    integer,  intent(in)    :: point_3          ! third vertex index of the finer triangle
+    logical,  intent(in)    :: lpoints_upwards  ! switch indicating wether the triangle points upwards
+    real(wp), intent(inout) :: x_unity(n_cells) ! x-coordinates of the cell centers on the unit sphere
+    real(wp), intent(inout) :: y_unity(n_cells) ! y-coordinates of the cell centers on the unit sphere
+    real(wp), intent(out)   :: z_unity(n_cells) ! z-coordinates of the cell centers on the unit sphere
+    real(wp), intent(out)   :: lat_c(n_cells)   ! latitudes of the cell centers
+    real(wp), intent(out)   :: lon_c(n_cells)   ! longitudes of the cell centers
     
     ! local variables
-    real(wp) :: x_res      ! 
-    real(wp) :: y_res      ! 
-    real(wp) :: z_res      ! 
-    real(wp) :: x_res_norm ! 
-    real(wp) :: y_res_norm ! 
-    real(wp) :: z_res_norm ! 
-    real(wp) :: lat_res    ! 
-    real(wp) :: lon_res    ! 
+    real(wp) :: x_res      ! individual x-coordinate of a cell center
+    real(wp) :: y_res      ! individual y-coordinate of a cell center
+    real(wp) :: z_res      ! individual z-coordinate of a cell center
+    real(wp) :: x_res_norm ! normalized x_res
+    real(wp) :: y_res_norm ! normalized y_res
+    real(wp) :: z_res_norm ! normalized z_res
+    real(wp) :: lat_res    ! resulting individual latitude value of a cell center
+    real(wp) :: lon_res    ! resulting individual longitude value of a cell center
 
     ! first point
     call find_between_point(x_unity(edgepoint_1),y_unity(edgepoint_1),z_unity(edgepoint_1), &
@@ -795,6 +795,7 @@ module mo_horizontal_generation
       lat_c(point_2) = lat_res
       lon_c(point_2) = lon_res
     endif
+    
     ! second point
     call find_between_point(x_unity(edgepoint_2),y_unity(edgepoint_2),z_unity(edgepoint_2), &
                             x_unity(edgepoint_3),y_unity(edgepoint_3),z_unity(edgepoint_3), &
@@ -817,6 +818,7 @@ module mo_horizontal_generation
       lat_c(point_3) = lat_res
       lon_c(point_3) = lon_res
     endif
+    
     ! third point
     call find_between_point(x_unity(edgepoint_3),y_unity(edgepoint_3),z_unity(edgepoint_3), &
                             x_unity(edgepoint_1),y_unity(edgepoint_1),z_unity(edgepoint_1), &

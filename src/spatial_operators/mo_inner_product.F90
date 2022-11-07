@@ -2,7 +2,9 @@
 ! Github repository: https://github.com/OpenNWP/GAME
 
 module mo_inner_product
-
+  
+  ! The calculation of the inner product is executed in this module.
+  
   use mo_definitions, only: wp,t_grid
   use mo_grid_nml,    only: n_edges,n_cells,n_pentagons,n_layers,n_levels
 

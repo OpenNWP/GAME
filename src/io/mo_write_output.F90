@@ -326,12 +326,12 @@ module mo_write_output
             rprate(ji) = rain_velocity*state%rho(ji,n_layers,2)
           endif
           ! setting very small values to zero
+          if (sprate(ji)<min_precip_rate) then
+            sprate(ji) = 0._wp
+          ! setting very small values to zero
           if (rprate(ji)<min_precip_rate) then
             rprate(ji) = 0._wp
           endif
-          ! setting very small values to zero
-          if (sprate(ji)<min_precip_rate) then
-            sprate(ji) = 0._wp
           endif
         endif
       enddo
@@ -525,7 +525,7 @@ module mo_write_output
       call interpolate_to_ll(wind_10_m_gusts_speed_at_cell,lat_lon_output_field, grid)
       call nc_check(nf90_put_var(ncid,gusts_id,lat_lon_output_field))
       
-      ! closing the netcdf file
+      ! closing the netCDF file
       call nc_check(nf90_close(ncid))
       
       deallocate(wind_10_m_mean_u_at_cell)

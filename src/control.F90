@@ -509,13 +509,11 @@ program control
     
     ! interpolating to the output time
     if(t_0+dtime>=t_write .and. t_0<=t_write) then
+      new_weight = (t_write-t_0)/dtime
+      old_weight = 1._wp-new_weight
       if (mod(time_step_counter,2)==0) then
-        new_weight = (t_write-t_0)/dtime
-        old_weight = 1._wp-new_weight
         call linear_combine_two_states(state_1,state_2,state_write,old_weight,new_weight,grid)
       else
-        new_weight = (t_write-t_0)/dtime
-        old_weight = 1._wp-new_weight
         call linear_combine_two_states(state_2,state_1,state_write,old_weight,new_weight,grid)
       endif
     endif

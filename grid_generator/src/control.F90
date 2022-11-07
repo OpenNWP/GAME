@@ -101,15 +101,15 @@ program control
   integer               :: stretching_parameter_id          ! netCDF ID of the stretching parameter
   integer               :: toa_id                           ! netCDF ID of the top of atmosphere
   integer               :: radius_id                        ! netCDF ID of the radius
-  integer,  allocatable :: to_cell(:)                       ! cell in the to-direction of a vector
-  integer,  allocatable :: from_cell(:)                     ! cell in the from-direction of a vector
+  integer,  allocatable :: to_cell(:)                       ! cells in the to-directions of the vectors
+  integer,  allocatable :: from_cell(:)                     ! cells in the from-directions of the vectors
   integer,  allocatable :: trsk_indices(:,:)                ! indices for computing the TRSK reconstruction
   integer,  allocatable :: trsk_modified_curl_indices(:,:)  ! indices for computing the vorticity of the modified TRSK scheme
   integer,  allocatable :: adjacent_edges(:,:)              ! edges adjacent to a cell
   integer,  allocatable :: vorticity_indices_triangles(:,:) ! indices for computing the vorticity on triangles
   integer,  allocatable :: vorticity_indices_rhombi(:,:)    ! indices for computing the vorticity on rhombi
-  integer,  allocatable :: to_cell_dual(:)                  ! triangle in the to-direction of a dual vector
-  integer,  allocatable :: from_cell_dual(:)                ! triangle in the from-direction of a dual vector
+  integer,  allocatable :: to_cell_dual(:)                  ! triangles in the to-directions of the dual vectors
+  integer,  allocatable :: from_cell_dual(:)                ! triangles in the from-directions of the dual vectors
   integer,  allocatable :: adjacent_signs(:,:)              ! signs indicating the directions of the vectors relative to a cell (1 = outbound, -1 = inbound)
   integer,  allocatable :: vorticity_signs_triangles(:,:)   ! signs for computing the vorticity on the triangles
   integer,  allocatable :: density_to_rhombi_indices(:,:)   ! indices for interpolating the density to the rhombi
@@ -165,7 +165,7 @@ program control
   integer               :: edge_vertices(30,2)              ! relation between edges and vertices
   integer               :: face_vertices(20,3)              ! relation between faces and vertices
   integer               :: face_edges(20,3)                 ! relation between faces and edges
-  integer               :: face_edges_reverse(20,3)         ! indicating wether an edge of a face is reversed relative to the standard direction
+  integer               :: face_edges_reverse(20,3)         ! indicates wether an edge of a face is reversed relative to the standard direction
   character(len=128)    :: grid_name                        ! name of the grid to be created
   character(len=256)    :: output_file                      ! name of the output file
   character(len=256)    :: statistics_file                  ! name of the file to which statistical properties will be written
