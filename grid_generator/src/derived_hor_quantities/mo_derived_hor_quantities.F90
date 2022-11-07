@@ -230,21 +230,21 @@ module mo_derived_hor_quantities
     
     ! This subroutine writes out statistical properties of the grid to a text file.
     
-    real(wp),           intent(in) :: pent_hex_face_unity_sphere(n_cells) ! 
-    real(wp),           intent(in) :: dx(n_edges,n_layers)                ! 
-    real(wp),           intent(in) :: dy(n_edges,n_levels)                ! 
-    real(wp),           intent(in) :: z_vector_h(n_edges,n_layers)        ! 
-    character(len=128), intent(in) :: grid_name                           ! 
-    character(len=256), intent(in) :: statistics_file_name                ! 
+    real(wp),           intent(in) :: pent_hex_face_unity_sphere(n_cells) ! areas of pentagons and hexagons on the unit sphere
+    real(wp),           intent(in) :: dx(n_edges,n_layers)                ! horizontal normal distances
+    real(wp),           intent(in) :: dy(n_edges,n_levels)                ! horizontal tangential distances
+    real(wp),           intent(in) :: z_vector_h(n_edges,n_layers)        ! z-coordinates of horizontal vectors
+    character(len=128), intent(in) :: grid_name                           ! name of the grid
+    character(len=256), intent(in) :: statistics_file_name                ! the name of the statistics file to write
     
     ! local variables
-    real(wp)              :: area_max           ! 
-    real(wp)              :: area_min           ! 
-    real(wp)              :: dx_min             ! 
-    real(wp)              :: dx_max             ! 
-    real(wp)              :: dy_min             ! 
-    real(wp)              :: dy_max             ! 
-    real(wp), allocatable :: distance_vector(:) ! 
+    real(wp)              :: area_min           ! maximum pentagon or hexagon area on the unit sphere
+    real(wp)              :: area_max           ! maximum pentagon or hexagon area on the unit sphere
+    real(wp)              :: dx_min             ! minimum horizontal normal distance
+    real(wp)              :: dx_max             ! maximum horizontal normal distance
+    real(wp)              :: dy_min             ! minimum horizontal tangential distance
+    real(wp)              :: dy_max             ! maximum horizontal tangential distance
+    real(wp), allocatable :: distance_vector(:) ! vector of horizontal distances (helper variable)
     
     !$omp parallel workshare
     area_min = minval(pent_hex_face_unity_sphere)
