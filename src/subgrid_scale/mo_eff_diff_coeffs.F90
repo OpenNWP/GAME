@@ -39,7 +39,7 @@ module mo_eff_diff_coeffs
                                                                      state%rho(ji,jl,n_condensed_constituents+1))
         diag%viscosity(ji,jl) = diag%molecular_diffusion_coeff(ji,jl)
         ! computing and adding the turbulent component
-        diag%viscosity(ji,jl) = diag%viscosity(ji,jl) + tke2hor_diff_coeff(diag%tke(ji,jl),eff_hor_res)
+        diag%viscosity(ji,jl) = diag%viscosity(ji,jl) + tke2hor_diff_coeff(diag%tke(ji,jl))
       enddo
     enddo
     !$omp end parallel do
@@ -280,20 +280,19 @@ module mo_eff_diff_coeffs
     
   end subroutine update_n_squared
   
-  function tke2hor_diff_coeff(tke,effective_resolution)
+  function tke2hor_diff_coeff(tke)
     
     ! This function returns the horizontal kinematic eddy viscosity as a function of the specific TKE.
     
-    real(wp), intent(in) :: tke                  ! specific turbulent kinetic energy
-    real(wp), intent(in) :: effective_resolution ! effective horizontal resolution
-    real(wp)             :: tke2hor_diff_coeff   ! result
+    real(wp), intent(in) :: tke                ! specific turbulent kinetic energy
+    real(wp)             :: tke2hor_diff_coeff ! result
     
     ! local variables
     real(wp) :: mean_velocity  ! mean velocity of a sub-grid scale movement
     real(wp) :: mean_free_path ! mean free path of a sub-grid scale movement
     
     mean_velocity = (2._wp*tke)**0.5_wp
-    mean_free_path = effective_resolution/6._wp
+    mean_free_path = eff_hor_res/6._wp
     tke2hor_diff_coeff = 1._wp/6._wp*mean_free_path*mean_velocity
     
   end function tke2hor_diff_coeff
