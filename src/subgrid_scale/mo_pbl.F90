@@ -30,14 +30,14 @@ module mo_pbl
     integer  :: ji                          ! edge index
     integer  :: jl                          ! layer index
     real(wp) :: flux_resistance             ! momentum flux resistance value
-    real(wp) :: wind_speed_lowest_layer     ! 
+    real(wp) :: wind_speed_lowest_layer     ! wind speed in the lowest layer
     real(wp) :: z_agl                       ! height of a gridpoint above ground level
-    real(wp) :: layer_thickness             ! 
-    real(wp) :: roughness_length_value      ! 
-    real(wp) :: monin_obukhov_length_value  ! 
-    real(wp) :: wind_rescale_factor         ! 
-    real(wp) :: bndr_lr_visc_max            ! 
-    real(wp) :: sigma_b                     ! 
+    real(wp) :: layer_thickness             ! thickness of the lowest layer
+    real(wp) :: roughness_length_value      ! individual roughness length value
+    real(wp) :: monin_obukhov_length_value  ! individual Monin-Obukhov length value
+    real(wp) :: wind_rescale_factor         ! used to rescale the wind if the lowest wind vector is above the height of the Prandtl layer
+    real(wp) :: bndr_lr_visc_max            ! maximum friction coefficient in the boundary layer
+    real(wp) :: sigma_b                     ! boundary layer height in sigma-p coordinates
     real(wp) :: exner_from                  ! Exner pressure at the from-gridpoint
     real(wp) :: exner_to                    ! Exner pressure at the to-gridpoint
     real(wp) :: pressure_from               ! pressure at the from-gridpoint
@@ -52,6 +52,10 @@ module mo_pbl
     real(wp) :: pressure_sfc                ! surface pressure at the edge
     real(wp) :: sigma                       ! pressure/(surface pressure)
     
+    ! constants
+    bndr_lr_visc_max = 1._wp/86400._wp
+    sigma_b = 0.7_wp
+      
     ! NWP case
     if (pbl_scheme==1) then
       !$omp parallel do private(ji,flux_resistance,wind_speed_lowest_layer,z_agl, &
@@ -88,9 +92,6 @@ module mo_pbl
   
     ! This is the explicit friction ansatz in the boundary layer from the Held-Suarez (1994) test case.
     if (pbl_scheme==2) then
-      ! some parameters
-      bndr_lr_visc_max = 1._wp/86400._wp ! maximum friction coefficient in the boundary layer
-      sigma_b = 0.7_wp ! boundary layer height in sigma-p coordinates
       !$omp parallel do private(ji,jl,exner_from,exner_to,pressure_from,pressure_to,pressure, &
       !$omp temp_lowest_layer,pressure_value_lowest_layer,temp_surface,surface_p_factor, &
       !$omp pressure_sfc_from,pressure_sfc_to,pressure_sfc,sigma)
@@ -148,18 +149,18 @@ module mo_pbl
     type(t_grid),  intent(inout) :: grid  ! grid properties
     
     ! local variables
-    integer  :: ji                       ! cell index
-    real(wp) :: u_lowest_layer           ! 
-    real(wp) :: u10                      ! 
-    real(wp) :: z_agl                    ! 
-    real(wp) :: theta_v_lowest_layer     ! 
-    real(wp) :: theta_v_second_layer     ! 
-    real(wp) :: dz                       ! 
-    real(wp) :: dtheta_v_dz              ! 
-    real(wp) :: w_pert                   ! 
-    real(wp) :: theta_v_pert_value       ! 
-    real(wp) :: w_pert_theta_v_pert_avg  ! 
-    real(wp) :: w_theta_v_corr           ! 
+    integer  :: ji                      ! cell index
+    real(wp) :: u_lowest_layer          ! wind speed in the lowest layer
+    real(wp) :: u10                     ! wind speed in 10 m height above the surface
+    real(wp) :: z_agl                   ! height of the lowest vector above ground
+    real(wp) :: theta_v_lowest_layer    ! virtual potential temperature in the lowest layer
+    real(wp) :: theta_v_second_layer    ! virtual potential temperature in the second-lowest layer
+    real(wp) :: dz                      ! delta z
+    real(wp) :: dtheta_v_dz             ! vertical difference of the virtual potential temperature
+    real(wp) :: w_pert                  ! vertical velocity perturbation
+    real(wp) :: theta_v_pert_value      ! virtual potential temperature perturbation
+    real(wp) :: w_theta_v_corr          ! correcation coefficient between w_pert and theta_v_pert
+    real(wp) :: w_pert_theta_v_pert_avg ! covariance of w_pert and theta_v_pert
     
     ! semi-empirical coefficient
     w_theta_v_corr = 0.2_wp

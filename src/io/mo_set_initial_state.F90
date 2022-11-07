@@ -35,33 +35,33 @@ module mo_set_initial_state
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer               :: ji                ! cell or edge index
-    integer               :: jl                ! layer index
-    integer               :: ncid_grid
-    integer               :: lat_e_id
-    integer               :: lon_e_id
-    real(wp)              :: dummy_1           ! unused argument that will be handed over to the baroclinic wave test function
-    real(wp)              :: dummy_2           ! unused argument that will be handed over to the baroclinic wave test function
-    real(wp)              :: dummy_3           ! unused argument that will be handed over to the baroclinic wave test function
-    real(wp)              :: dummy_4           ! unused argument that will be handed over to the baroclinic wave test function
-    real(wp)              :: dummy_5           ! unused argument that will be handed over to the baroclinic wave test function
-    real(wp)              :: dummy_6           ! unused argument that will be handed over to the baroclinic wave test function
-    real(wp)              :: dummy_7           ! unused argument that will be handed over to the baroclinic wave test function
-    real(wp)              :: lat               ! single latitude value
-    real(wp)              :: lon               ! single longitude value
-    real(wp)              :: z_height          ! single geometrical height value
-    real(wp)              :: u                 ! single zonal wind value
-    real(wp)              :: v                 ! single meridional wind value
-    real(wp)              :: pressure_value    ! single pressure value
-    real(wp)              :: specific_humidity ! single specific humidity value
-    real(wp)              :: dry_density       ! single dry air density value
-    real(wp)              :: b
-    real(wp)              :: c
-    real(wp)              :: small_atmos_rescale
-    real(wp), allocatable :: pressure(:,:)
-    real(wp), allocatable :: temperature(:,:)
-    real(wp), allocatable :: temperature_v(:,:)
-    real(wp), allocatable :: water_vapour_density(:,:)
+    integer               :: ji                        ! cell or edge index
+    integer               :: jl                        ! layer index
+    integer               :: ncid_grid                 ! netCDF ID of the grid file
+    integer               :: lat_e_id                  ! netCDF ID of the latitudes at edges
+    integer               :: lon_e_id                  ! netCDF ID of the longitudes at edges
+    real(wp)              :: dummy_1                   ! unused argument that will be handed over to the baroclinic wave test function
+    real(wp)              :: dummy_2                   ! unused argument that will be handed over to the baroclinic wave test function
+    real(wp)              :: dummy_3                   ! unused argument that will be handed over to the baroclinic wave test function
+    real(wp)              :: dummy_4                   ! unused argument that will be handed over to the baroclinic wave test function
+    real(wp)              :: dummy_5                   ! unused argument that will be handed over to the baroclinic wave test function
+    real(wp)              :: dummy_6                   ! unused argument that will be handed over to the baroclinic wave test function
+    real(wp)              :: dummy_7                   ! unused argument that will be handed over to the baroclinic wave test function
+    real(wp)              :: lat                       ! single latitude value
+    real(wp)              :: lon                       ! single longitude value
+    real(wp)              :: z_height                  ! single geometrical height value
+    real(wp)              :: u                         ! single zonal wind value
+    real(wp)              :: v                         ! single meridional wind value
+    real(wp)              :: pressure_value            ! single pressure value
+    real(wp)              :: specific_humidity         ! single specific humidity value
+    real(wp)              :: dry_density               ! single dry air density value
+    real(wp)              :: b                         ! used to vertically integrate the hydrostatic equation
+    real(wp)              :: c                         ! used to vertically integrate the hydrostatic equation
+    real(wp)              :: small_earth_rescale       ! small Earth recaling factor
+    real(wp), allocatable :: pressure(:,:)             ! pressure field
+    real(wp), allocatable :: temperature(:,:)          ! temperature field
+    real(wp), allocatable :: temperature_v(:,:)        ! virtual temperature field
+    real(wp), allocatable :: water_vapour_density(:,:) ! water vapour density field
     real(wp), allocatable :: lat_e(:)                  ! latitudes of the edges
     real(wp), allocatable :: lon_e(:)                  ! longitudes of the edges
     character(len=128)    :: grid_file_name            ! name fo the grid file to read the coordinates of the edges from
@@ -70,7 +70,7 @@ module mo_set_initial_state
     grid_file_name = "../../grid_generator/grids/RES" // trim(int2string(res_id)) // "_L" // &
                      trim(int2string(n_layers)) // "_ORO" // trim(int2string(oro_id)) // ".nc"
     
-    small_atmos_rescale = 1._wp/radius_rescale
+    small_earth_rescale = 1._wp/radius_rescale
     
     ! dummy arguments
     dummy_1 = 0._wp
@@ -109,13 +109,13 @@ module mo_set_initial_state
         endif
         ! dry Ullrich test
         if (ideal_input_id==1) then
-          call baroclinic_wave_test(1,0,1,small_atmos_rescale,lon,lat,pressure(ji,jl),z_height,1,dummy_1,dummy_2, &
+          call baroclinic_wave_test(1,0,1,small_earth_rescale,lon,lat,pressure(ji,jl),z_height,1,dummy_1,dummy_2, &
                                     temperature(ji,jl),dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
           temperature_v(ji,jl) = temperature(ji,jl)
         endif
         ! moist Ullrich test
         if (ideal_input_id==2) then
-          call baroclinic_wave_test(1,1,1,small_atmos_rescale,lon,lat,pressure(ji,jl),z_height,1,dummy_1,dummy_2, &
+          call baroclinic_wave_test(1,1,1,small_earth_rescale,lon,lat,pressure(ji,jl),z_height,1,dummy_1,dummy_2, &
                                     temperature(ji,jl),dummy_3,dummy_5,dummy_6,dry_density,specific_humidity)
           temperature_v(ji,jl) = temperature(ji,jl)*(1._wp+specific_humidity*(m_d/m_v-1._wp))
           water_vapour_density(ji,jl) = dry_density*specific_humidity/(1._wp-specific_humidity)
@@ -165,13 +165,13 @@ module mo_set_initial_state
         endif
         ! dry Ullrich test
         if (ideal_input_id==1) then
-          call baroclinic_wave_test(1,0,1,small_atmos_rescale,lon,lat,dummy_1,z_height,1, &
+          call baroclinic_wave_test(1,0,1,small_earth_rescale,lon,lat,dummy_1,z_height,1, &
                                     u,v,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
           state%wind_h(ji,jl) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
         endif
         ! moist Ullrich test
         if (ideal_input_id==2) then
-          call baroclinic_wave_test(1,1,1,small_atmos_rescale,lon,lat,dummy_1,z_height,1, &
+          call baroclinic_wave_test(1,1,1,small_earth_rescale,lon,lat,dummy_1,z_height,1, &
                                     u,v,dummy_2,dummy_3,dummy_4,dummy_5,dummy_6,dummy_7)
           state%wind_h(ji,jl) = u*cos(grid%direction(ji)) + v*sin(grid%direction(ji))
         endif
@@ -275,20 +275,20 @@ module mo_set_initial_state
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer               :: ji     ! cell index
-    integer               :: jl     ! layer index
-    integer               :: jc     ! constituent index
-    integer               :: ncid   ! netCDF file ID
-    integer               :: tke_id ! netCDF ID of the turbulent kinetic energy
-    integer               :: tke_avail
-    integer               :: densities_id
-    integer               :: temperature_id
-    integer               :: wind_h_id
-    integer               :: wind_v_id
-    real(wp)              :: pressure
-    real(wp)              :: pot_temp_v
-    real(wp), allocatable :: temperature(:,:)
-    real(wp), allocatable :: temperature_v(:,:)
+    integer               :: ji                 ! cell index
+    integer               :: jl                 ! layer index
+    integer               :: jc                 ! constituent index
+    integer               :: ncid               ! netCDF file ID
+    integer               :: tke_id             ! netCDF ID of the turbulent kinetic energy
+    integer               :: tke_avail          ! indicates turbulent kinetic energy availability
+    integer               :: densities_id       ! netCDF ID of the mass densities
+    integer               :: temperature_id     ! netCDF ID of the temperature
+    integer               :: wind_h_id          ! netCDF ID of the horizontal wind
+    integer               :: wind_v_id          ! netCDF ID of the vertical wind
+    real(wp)              :: pressure           ! individual pressure value
+    real(wp)              :: pot_temp_v         ! individual virtual potential temperature value
+    real(wp), allocatable :: temperature(:,:)   ! temperature field
+    real(wp), allocatable :: temperature_v(:,:) ! virtual temperature field
     
     allocate(temperature(n_cells,n_layers))
     call nc_check(nf90_open(init_state_file,NF90_CLOBBER,ncid))
@@ -381,17 +381,16 @@ module mo_set_initial_state
     type(t_grid),  intent(in)    :: grid                          ! grid quantities
     
     ! local variables
-    integer               :: ji   ! soil index
-    integer               :: jl   ! soil layer index
-    integer               :: ncid ! netCDF file ID
-    integer               :: sst_id
-    integer               :: soil_index
-    integer               :: sst_avail
-    integer               :: t_soil_avail
-    integer               :: soil_id
-    real(wp)              :: z_soil
-    real(wp)              :: t_sfc
-    real(wp), allocatable :: sst(:) ! sea surface temperature
+    integer               :: ji           ! soil index
+    integer               :: jl           ! soil layer index
+    integer               :: ncid         ! netCDF file ID
+    integer               :: sst_id       ! netCDF ID of the sea surface temperature
+    integer               :: sst_avail    ! indicates sea surface temperature availability
+    integer               :: t_soil_avail ! indicates soil temperature availability
+    integer               :: soil_id      ! netCDF ID of the soil temperature
+    real(wp)              :: z_soil       ! negative vertical coordinate of the center of a soil layer
+    real(wp)              :: t_sfc        ! individual surface temperature value
+    real(wp), allocatable :: sst(:)       ! sea surface temperature
     
     ! figuring out if the SST is included in the initialization file and reading it if it exists (important for NWP)
     allocate(sst(n_cells))
@@ -440,7 +439,7 @@ module mo_set_initial_state
     endif
     
     ! setting what has not yet been set
-    !$omp parallel do private(ji,jl,soil_index,z_soil,t_sfc)
+    !$omp parallel do private(ji,jl,z_soil,t_sfc)
     do ji=1,n_cells
       ! sea surface temperature if SST is available
       if (grid%is_land(ji)==0 .and. sst_avail==1) then

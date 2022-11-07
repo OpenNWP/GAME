@@ -185,8 +185,10 @@ module mo_eff_diff_coeffs
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer  :: ji,jl
-    real(wp) :: mom_diff_coeff,molecular_viscosity
+    integer  :: ji                  ! edge index
+    integer  :: jl                  ! layer index
+    real(wp) :: mom_diff_coeff      ! kinematic momentum diffusion coefficient
+    real(wp) :: molecular_viscosity ! molecular viscosity
     
     ! loop over horizontal vector points at half levels
     !$omp parallel do private(ji,jl,mom_diff_coeff,molecular_viscosity)
@@ -244,7 +246,7 @@ module mo_eff_diff_coeffs
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer :: jl
+    integer :: jl ! layer index
     
     ! calculating the full virtual potential temperature
     !$omp parallel workshare

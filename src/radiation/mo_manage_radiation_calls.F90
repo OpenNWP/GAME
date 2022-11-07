@@ -142,10 +142,10 @@ module mo_manage_radiation_calls
 
     ! This subroutine cuts out a slice of a scalar field for hand-over to the radiation routine (done for RAM efficiency reasons).
     
-    integer,  intent(in)  :: n_cells_rad_used                     ! 
-    real(wp), intent(in)  :: in_array(n_cells,n_layers)           ! 
-    real(wp), intent(out) :: out_array(n_cells_rad_used,n_layers) ! 
-    integer,  intent(in)  :: rad_block_index                      ! 
+    integer,  intent(in)  :: n_cells_rad_used                     ! number of cells of the given radiation slice
+    real(wp), intent(in)  :: in_array(n_cells,n_layers)           ! the array to reformat
+    real(wp), intent(out) :: out_array(n_cells_rad_used,n_layers) ! the given quantity restricted to the radiation slice
+    integer,  intent(in)  :: rad_block_index                      ! the number of the given radiation slice
     
     ! local variables
     integer :: ji ! horizontal loop index
@@ -161,10 +161,10 @@ module mo_manage_radiation_calls
 
     ! This subroutine cuts out a slice of a horizontal scalar field for hand-over to the radiation routine (done for RAM efficiency reasons).
     
-    integer,  intent(in)  :: n_cells_rad_used            ! 
-    real(wp), intent(in)  :: in_array(n_cells)           ! 
-    real(wp), intent(out) :: out_array(n_cells_rad_used) ! 
-    integer,  intent(in)  :: rad_block_index             ! 
+    integer,  intent(in)  :: n_cells_rad_used            ! number of cells of the given radiation slice
+    real(wp), intent(in)  :: in_array(n_cells)           ! the array to reformat
+    real(wp), intent(out) :: out_array(n_cells_rad_used) ! the given quantity restricted to the radiation slice
+    integer,  intent(in)  :: rad_block_index             ! the number of the given radiation slice
     
     ! local variables
     integer :: ji ! horizontal loop index
@@ -181,10 +181,10 @@ module mo_manage_radiation_calls
     ! This subroutine cuts out a slice of a vector field for hand-over to the radiation routine (done for RAM efficiency reasons).
   ! Only the vertical vector points are taken into account since only they are needed by the radiation.
 
-    integer,  intent(in)  :: n_cells_rad_used                     ! 
-    real(wp), intent(in)  :: in_array(n_cells,n_levels)           ! 
-    real(wp), intent(out) :: out_array(n_cells_rad_used,n_levels) ! 
-    integer,  intent(in)  :: rad_block_index                      ! 
+    integer,  intent(in)  :: n_cells_rad_used                     ! number of cells of the given radiation slice
+    real(wp), intent(in)  :: in_array(n_cells,n_levels)           ! the array to reformat
+    real(wp), intent(out) :: out_array(n_cells_rad_used,n_levels) ! the given quantity restricted to the radiation slice
+    integer,  intent(in)  :: rad_block_index                      ! the number of the given radiation slice
     
     ! local variables
     integer :: ji ! horizontal loop index
@@ -200,10 +200,10 @@ module mo_manage_radiation_calls
 
     ! This subroutine does same thing as create_rad_array_scalar,only for a mass density field.
     
-    integer,  intent(in)  :: n_cells_rad_used                                    ! 
-    real(wp), intent(in)  :: in_array(n_cells,n_layers,n_constituents)           ! 
-    real(wp), intent(out) :: out_array(n_cells_rad_used,n_layers,n_constituents) ! 
-    integer,  intent(in)  :: rad_block_index                                     ! 
+    integer,  intent(in)  :: n_cells_rad_used                                    ! number of cells of the given radiation slice
+    real(wp), intent(in)  :: in_array(n_cells,n_layers,n_constituents)           ! the array to reformat
+    real(wp), intent(out) :: out_array(n_cells_rad_used,n_layers,n_constituents) ! the given quantity restricted to the radiation slice
+    integer,  intent(in)  :: rad_block_index                                     ! the number of the given radiation slice
     
     ! local variables
     integer :: ji ! horizontal loop index
@@ -219,10 +219,10 @@ module mo_manage_radiation_calls
 
     ! This subroutine reverses what create_rad_array_scalar has done.
     
-    integer,  intent(in)  :: n_cells_rad_used                    ! 
-    real(wp), intent(in)  :: in_array(n_cells_rad_used,n_layers) ! 
-    real(wp), intent(out) :: out_array(n_cells,n_layers)         ! 
-    integer,  intent(in)  :: rad_block_index                     ! 
+    integer,  intent(in)  :: n_cells_rad_used                    ! number of cells of the given radiation slice
+    real(wp), intent(in)  :: in_array(n_cells_rad_used,n_layers) ! the given quantity restricted to the radiation slice
+    real(wp), intent(out) :: out_array(n_cells,n_layers)         ! the given quantity on the whole domain
+    integer,  intent(in)  :: rad_block_index                     ! the number of the given radiation slice
     
     ! local variables
     integer :: ji ! horizontal loop index
@@ -238,10 +238,10 @@ module mo_manage_radiation_calls
 
     ! This subroutine reverses what create_rad_array_scalar_h has done.
     
-    integer,  intent(in)  :: n_cells_rad_used           ! 
-    real(wp), intent(in)  :: in_array(n_cells_rad_used) ! 
-    real(wp), intent(out) :: out_array(n_cells)         ! 
-    integer,  intent(in)  :: rad_block_index            ! 
+    integer,  intent(in)  :: n_cells_rad_used           ! number of cells of the given radiation slice
+    real(wp), intent(in)  :: in_array(n_cells_rad_used) ! the given quantity restricted to the radiation slice
+    real(wp), intent(out) :: out_array(n_cells)         ! the given quantity on the whole domain
+    integer,  intent(in)  :: rad_block_index            ! the number of the given radiation slice
     
     ! local variables
     integer :: ji ! horizontal loop index
