@@ -20,7 +20,6 @@ module mo_grid_setup
   real(wp) :: dtime                ! time step
   integer  :: n_oro_layers         ! number of layers following the orography
   integer  :: n_flat_layers        ! number of flat layers
-  real(wp) :: stretching_parameter ! vertical grid stretching parameter
   real(wp) :: radius_rescale       ! radius rescaling factor
   real(wp) :: radius               ! radius of the planet to construct the grid for
   real(wp) :: mean_velocity_area   ! the area that can be attributed to one horizontal vector gridpoint
@@ -37,60 +36,58 @@ module mo_grid_setup
     type(t_grid), intent(inout) :: grid ! the grid properties to fill
     
     ! local variables
-    integer            :: ncid          ! netCDF ID of the file
-    integer            :: dx_id         ! netCDF ID of the normal grid distances
-    integer            :: volume_id     ! netCDF ID of the volumes of the gridboxes
-    integer            :: area_h_id     ! netCDF ID of the horizontal areas
-    integer            :: area_v_id     ! netCDF ID of the vertical areas
-    integer            :: z_scalar_id   ! netCDF ID of the z-coordinates of the cell centers
-    integer            :: z_vector_h_id ! netCDF ID of the z-coordinates of the horizontal vectors
-    integer            :: z_vector_v_id ! netCDF ID of the z-coordinates of the vertical vectors
-    integer            :: area_dual_h_id
-    integer            :: area_dual_v_id
-    integer            :: z_vector_dual_h_id
-    integer            :: f_vec_v_id    ! netCDF ID of the vertical Coriolis parameter (located at the edges)
-    integer            :: f_vec_h_id    ! netCDF ID of the horizontal Coriolis parameter (located at the edges)
-    integer            :: to_cell_id
-    integer            :: from_cell_id
-    integer            :: to_cell_dual_id
-    integer            :: from_cell_dual_id
-    integer            :: adjacent_edges_id
-    integer            :: trsk_indices_id
-    integer            :: trsk_weights_id
-    integer            :: trsk_modified_curl_indices_id
-    integer            :: adjacent_signs_id
-    integer            :: direction_id
-    integer            :: gravity_potential_id
-    integer            :: inner_product_weights_id
-    integer            :: density_to_rhombi_weights_id
-    integer            :: density_to_rhombi_indices_id
-    integer            :: dy_id
-    integer            :: vorticity_indices_triangles_id
-    integer            :: vorticity_signs_triangles_id
-    integer            :: dz_dual_id
-    integer            :: lat_c_id
-    integer            :: lon_c_id
-    integer            :: toa_id
-    integer            :: radius_id
-    integer            :: interpol_indices_id
-    integer            :: dz_id
-    integer            :: interpol_weights_id
-    integer            :: theta_v_bg_id
-    integer            :: exner_bg_id
-    integer            :: sfc_rho_c_id
-    integer            :: sfc_albedo_id
-    integer            :: roughness_length_id
-    integer            :: is_land_id
-    integer            :: t_conductivity_id
-    integer            :: n_oro_layers_id
-    integer            :: stretching_parameter_id
-    integer            :: ji
-    integer            :: jl
-    integer            :: z_vector_dual_v_id
-    real(wp)           :: max_z          ! helper variable
-    real(wp)           :: sigma_soil     ! stretching parameter of the soil grid
-    real(wp)           :: rescale_factor ! helper variable for computing the soil grid
-    character(len=128) :: grid_file_name ! name of the file to read the grid properties from
+    integer            :: ncid                           ! netCDF ID of the file
+    integer            :: dx_id                          ! netCDF ID of dx
+    integer            :: volume_id                      ! netCDF ID of volume
+    integer            :: area_h_id                      ! netCDF ID of area_h
+    integer            :: area_v_id                      ! netCDF ID of area_v
+    integer            :: z_scalar_id                    ! netCDF ID of z_scalar
+    integer            :: z_vector_h_id                  ! netCDF ID of z_vector_h
+    integer            :: z_vector_v_id                  ! netCDF ID of z_vector_v
+    integer            :: area_dual_h_id                 ! netCDF ID of area_dual_h
+    integer            :: area_dual_v_id                 ! netCDF ID of area_dual_v
+    integer            :: z_vector_dual_h_id             ! netCDF ID of z_vector_dual_h
+    integer            :: f_vec_v_id                     ! netCDF ID of f_vec_v
+    integer            :: f_vec_h_id                     ! netCDF ID of f_vec_h
+    integer            :: to_cell_id                     ! netCDF ID of to_cell
+    integer            :: from_cell_id                   ! netCDF ID of from_cell
+    integer            :: to_cell_dual_id                ! netCDF ID of to_cell_dual
+    integer            :: from_cell_dual_id              ! netCDF ID of from_cell
+    integer            :: adjacent_edges_id              ! netCDF ID of adjacent_edges
+    integer            :: trsk_indices_id                ! netCDF ID of trsk_indices
+    integer            :: trsk_weights_id                ! netCDF ID of trsk_weights
+    integer            :: trsk_modified_curl_indices_id  ! netCDF ID of trsk_modified_curl_indices
+    integer            :: adjacent_signs_id              ! netCDF ID of adjacent_signs
+    integer            :: direction_id                   ! netCDF ID of direction
+    integer            :: gravity_potential_id           ! netCDF ID of gravity_potential
+    integer            :: inner_product_weights_id       ! netCDF ID of inner_product_weights
+    integer            :: density_to_rhombi_weights_id   ! netCDF ID of inner_product_weights
+    integer            :: density_to_rhombi_indices_id   ! netCDF ID of density_to_rhombi_indices
+    integer            :: dy_id                          ! netCDF ID of dy
+    integer            :: vorticity_indices_triangles_id ! netCDF ID of vorticity_indices_triangles
+    integer            :: vorticity_signs_triangles_id   ! netCDF ID of vorticity_signs_triangles
+    integer            :: dz_dual_id                     ! netCDF ID of dz_dual
+    integer            :: lat_c_id                       ! netCDF ID of lat_c
+    integer            :: lon_c_id                       ! netCDF ID of lon_c_
+    integer            :: toa_id                         ! netCDF ID of toa
+    integer            :: radius_id                      ! netCDF ID of radius
+    integer            :: interpol_indices_id            ! netCDF ID of interpol_indices
+    integer            :: dz_id                          ! netCDF ID of dz
+    integer            :: interpol_weights_id            ! netCDF ID of interpol_weights
+    integer            :: theta_v_bg_id                  ! netCDF ID of theta_v_bg
+    integer            :: exner_bg_id                    ! netCDF ID of exner_bg
+    integer            :: sfc_rho_c_id                   ! netCDF ID of sfc_rho_c
+    integer            :: sfc_albedo_id                  ! netCDF ID of sfc_albedo
+    integer            :: roughness_length_id            ! netCDF ID of roughness_length
+    integer            :: is_land_id                     ! netCDF ID of is_land
+    integer            :: t_conductivity_id              ! netCDF ID of t_conductivity
+    integer            :: n_oro_layers_id                ! netCDF ID of n_oro_layers
+    integer            :: z_vector_dual_v_id             ! netCDF ID of z_vector_dual_v
+    integer            :: jl                             ! layer or level index
+    real(wp)           :: max_z                          ! helper variable
+    real(wp)           :: sigma_soil                     ! stretching parameter of the soil grid
+    real(wp)           :: rescale_factor                 ! helper variable for computing the soil grid
+    character(len=128) :: grid_file_name                 ! name of the file to read the grid properties from
     
     ! determining the grid file
     grid_file_name = "../../grid_generator/grids/RES" // trim(int2string(res_id)) // "_L" // &
@@ -101,7 +98,6 @@ module mo_grid_setup
     call nc_check(nf90_inq_varid(ncid,"n_oro_layers",n_oro_layers_id))
     call nc_check(nf90_inq_varid(ncid,"toa",toa_id))
     call nc_check(nf90_inq_varid(ncid,"radius",radius_id))
-    call nc_check(nf90_inq_varid(ncid,"stretching_parameter",stretching_parameter_id))
     call nc_check(nf90_inq_varid(ncid,"dx",dx_id))
     call nc_check(nf90_inq_varid(ncid,"dz",dz_id))
     call nc_check(nf90_inq_varid(ncid,"volume",volume_id))
@@ -148,7 +144,6 @@ module mo_grid_setup
     call nc_check(nf90_get_var(ncid,n_oro_layers_id,n_oro_layers))
     call nc_check(nf90_get_var(ncid,toa_id,toa))
     call nc_check(nf90_get_var(ncid,radius_id,radius))
-    call nc_check(nf90_get_var(ncid,stretching_parameter_id,stretching_parameter))
     call nc_check(nf90_get_var(ncid,dx_id,grid%dx))
     call nc_check(nf90_get_var(ncid,dz_id,grid%dz))
     call nc_check(nf90_get_var(ncid,inner_product_weights_id,grid%inner_product_weights))
@@ -235,15 +230,15 @@ module mo_grid_setup
     
     ! the surface is always at zero
     grid%z_soil_interface(1) = 0._wp
-    do ji=2,nsoillays+1
-      grid%z_soil_interface(ji) = grid%z_soil_interface(ji-1) + sigma_soil**(nsoillays+1-ji)
+    do jl=2,nsoillays+1
+      grid%z_soil_interface(jl) = grid%z_soil_interface(jl-1) + sigma_soil**(nsoillays+1-jl)
     enddo
     rescale_factor = z_t_const/grid%z_soil_interface(nsoillays+1)
-    do ji=2,nsoillays+1
-      grid%z_soil_interface(ji) = rescale_factor*grid%z_soil_interface(ji)
+    do jl=2,nsoillays+1
+      grid%z_soil_interface(jl) = rescale_factor*grid%z_soil_interface(jl)
     enddo
-    do ji=1,nsoillays
-      grid%z_soil_center(ji) = 0.5_wp*(grid%z_soil_interface(ji) + grid%z_soil_interface(ji+1))
+    do jl=1,nsoillays
+      grid%z_soil_center(jl) = 0.5_wp*(grid%z_soil_interface(jl) + grid%z_soil_interface(jl+1))
     enddo
     
   end subroutine set_grid_properties

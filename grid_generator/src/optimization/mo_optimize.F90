@@ -21,13 +21,17 @@ module mo_optimize
     ! This subroutine manages the grid optimization with Lloyd's algorithm.
     ! The result is (almost) a SCVT.
     
-    real(wp), intent(inout) :: lat_c(n_cells)          ! latitudes of cell centers (rad)
-    real(wp), intent(inout) :: lon_c(n_cells)          ! longitudes of cell centers (rad)
-    real(wp), intent(inout) :: lat_c_dual(n_triangles) ! latitudes of triangle centers (rad)
-    real(wp), intent(inout) :: lon_c_dual(n_triangles) ! longitudes of triangle centers (rad)
-    integer,  intent(in)    :: n_iterations,face_edges(n_basic_triangles,3),face_edges_reverse(n_basic_triangles,3), &
-                               face_vertices(n_basic_triangles,3),adjacent_edges(6,n_cells),from_cell_dual(n_edges), &
-                               to_cell_dual(n_edges)
+    real(wp), intent(inout) :: lat_c(n_cells)                          ! latitudes of cell centers (rad)
+    real(wp), intent(inout) :: lon_c(n_cells)                          ! longitudes of cell centers (rad)
+    real(wp), intent(inout) :: lat_c_dual(n_triangles)                 ! latitudes of triangle centers (rad)
+    real(wp), intent(inout) :: lon_c_dual(n_triangles)                 ! longitudes of triangle centers (rad)
+    integer,  intent(in)    :: n_iterations                            ! number of iterations with which to optimize the grid
+    integer,  intent(in)    :: face_edges(n_basic_triangles,3)         ! relation between faces and edges
+    integer,  intent(in)    :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
+    integer,  intent(in)    :: face_vertices(n_basic_triangles,3)      ! relation between faces and vertices
+    integer,  intent(in)    :: adjacent_edges(6,n_cells)               ! edges adjacent to a cell
+    integer,  intent(in)    :: from_cell_dual(n_edges)                 ! triangles in the from-directions of the dual vectors
+    integer,  intent(in)    :: to_cell_dual(n_edges)                   ! triangles in the to-directions of the dual vectors
     
     ! local variables
     integer :: ji ! iteration index
@@ -44,21 +48,52 @@ module mo_optimize
     
     ! This subroutine calculates the barycenters (centers of gravity) of the cells.
     
-    real(wp), intent(inout) :: lat_c(n_cells)          ! latitudes of cell centers (rad)
-    real(wp), intent(inout) :: lon_c(n_cells)          ! longitudes of cell centers (rad)
-    real(wp), intent(in)    :: lat_c_dual(n_triangles) ! latitudes of triangle centers (rad)
-    real(wp), intent(in)    :: lon_c_dual(n_triangles) ! longitudes of triangle centers (rad)
-    integer,  intent(in)    :: adjacent_edges(6,n_cells),from_cell_dual(n_edges),to_cell_dual(n_edges)
+    real(wp), intent(inout) :: lat_c(n_cells)            ! latitudes of cell centers (rad)
+    real(wp), intent(inout) :: lon_c(n_cells)            ! longitudes of cell centers (rad)
+    real(wp), intent(in)    :: lat_c_dual(n_triangles)   ! latitudes of triangle centers (rad)
+    real(wp), intent(in)    :: lon_c_dual(n_triangles)   ! longitudes of triangle centers (rad)
+    integer,  intent(in)    :: adjacent_edges(6,n_cells) ! edges adjacent to a cell
+    integer,  intent(in)    :: from_cell_dual(n_edges)   ! triangles in the from-directions of the dual vectors
+    integer,  intent(in)    :: to_cell_dual(n_edges)     ! triangles in the to-directions of the dual vectors
     
     ! local variables
-    integer  :: ji,jk,n_edges_of_cell,counter,vertex_index_candidate_1,vertex_index_candidate_2,check_result, &
-                vertex_indices(6),vertex_indices_resorted(6),indices_resorted(6)
-    real(wp) :: lat_res,lon_res,x_res,y_res,z_res,triangle_unity_face,x_1,y_1,z_1,x_2,y_2,z_2, &
-                x_3,y_3,z_3,lat_1,lon_1,lat_2,lon_2,lat_3,lon_3,latitude_vertices(6),longitude_vertices(6)
+    integer  :: ji                         ! cell index
+    integer  :: jk                         ! loop over the edges of a given cell
+    integer  :: n_edges_of_cell            ! number of egdes of a given cell (five or six)
+    real(wp) :: latitude_vertices(6)       ! latitudes of the vertices of a given cell
+    real(wp) :: longitude_vertices(6)      ! longitudes of the vertices of a given cell
+    integer  :: counter                    ! helper variable for sorting vertex indices
+    integer  :: vertex_index_candidate_1   ! helper variable for sorting vertex indices
+    integer  :: vertex_index_candidate_2   ! helper variable for sorting vertex indices
+    integer  :: check_result               ! helper variable for sorting vertex indices
+    integer  :: vertex_indices(6)          ! unsorted vertex indices
+    integer  :: indices_resorted(6)        ! reserted vertex indices (1 - 6)
+    integer  :: vertex_indices_resorted(6) ! reserted vertex indices
+    real(wp) :: triangle_unit_area         ! area of a triangle on the unit sphere
+    real(wp) :: x_1                        ! x-coordinate of a cell center
+    real(wp) :: y_1                        ! y-coordinate of a cell center
+    real(wp) :: z_1                        ! z-coordinate of a cell center
+    real(wp) :: x_2                        ! x-coordinate of a dual cell center
+    real(wp) :: y_2                        ! y-coordinate of a dual cell center
+    real(wp) :: z_2                        ! z-coordinate of a dual cell center
+    real(wp) :: x_3                        ! x-coordinate of a dual cell center
+    real(wp) :: y_3                        ! y-coordinate of a dual cell center
+    real(wp) :: z_3                        ! z-coordinate of a dual cell center
+    real(wp) :: lat_1                      ! latitude of a cell center
+    real(wp) :: lon_1                      ! longitude of a cell center
+    real(wp) :: lat_2                      ! latitude of a dual cell center
+    real(wp) :: lon_2                      ! longitude of a dual cell center
+    real(wp) :: lat_3                      ! latitude of a dual cell center
+    real(wp) :: lon_3                      ! longitude of a dual cell center
+    real(wp) :: x_res                      ! resulting x-coordinate of an individual gridpoint after the iteration
+    real(wp) :: y_res                      ! resulting y-coordinate of an individual gridpoint after the iteration
+    real(wp) :: z_res                      ! resulting z-coordinate of an individual gridpoint after the iteration
+    real(wp) :: lat_res                    ! resulting latitude of an individual gridpoint after the iteration
+    real(wp) :: lon_res                    ! resulting longitude of an individual gridpoint after the iteration
     
     !$omp parallel do private(ji,jk,n_edges_of_cell,counter,vertex_index_candidate_1, &
     !$omp vertex_index_candidate_2,check_result,lat_res,lon_res, &
-    !$omp x_res,y_res,z_res,triangle_unity_face,x_1,y_1,z_1,x_2,y_2,z_2,x_3,y_3,z_3,lat_1,lon_1,lat_2,lon_2,lat_3,lon_3, &
+    !$omp x_res,y_res,z_res,triangle_unit_area,x_1,y_1,z_1,x_2,y_2,z_2,x_3,y_3,z_3,lat_1,lon_1,lat_2,lon_2,lat_3,lon_3, &
     !$omp vertex_indices,vertex_indices_resorted,indices_resorted,latitude_vertices,longitude_vertices)
     do ji=1,n_cells
       n_edges_of_cell = 6
@@ -105,10 +140,10 @@ module mo_optimize
         call find_global_normal(lat_1,lon_1,x_1,y_1,z_1)
         call find_global_normal(lat_2,lon_2,x_2,y_2,z_2)
         call find_global_normal(lat_3,lon_3,x_3,y_3,z_3)
-        triangle_unity_face = calc_triangle_area(lat_1,lon_1,lat_2,lon_2,lat_3,lon_3)
-        x_res = x_res + triangle_unity_face*(x_1+x_2+x_3)
-        y_res = y_res + triangle_unity_face*(y_1+y_2+y_3)
-        z_res = z_res + triangle_unity_face*(z_1+z_2+z_3)
+        triangle_unit_area = calc_triangle_area(lat_1,lon_1,lat_2,lon_2,lat_3,lon_3)
+        x_res = x_res + triangle_unit_area*(x_1+x_2+x_3)
+        y_res = y_res + triangle_unit_area*(y_1+y_2+y_3)
+        z_res = z_res + triangle_unit_area*(z_1+z_2+z_3)
       enddo
       call find_geos(x_res,y_res,z_res,lat_res,lon_res)
       lat_c(ji) = lat_res

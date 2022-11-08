@@ -201,8 +201,11 @@ module mo_vertical_grid
     integer,  intent(in)  :: to_cell(n_edges)                       ! cells in the to-directions of the vectors
   
     ! local variables
-    integer  :: ji,jl
-    real(wp) :: radius_1,radius_2,base_distance
+    integer  :: ji            ! edge index
+    integer  :: jl            ! level index
+    real(wp) :: radius_1      ! inner radius
+    real(wp) :: radius_2      ! outer radius
+    real(wp) :: base_distance ! length of the lower edge of a horizontal dual area
   
     ! dual areas with vertical normal
     !$omp parallel do private(jl)
@@ -244,8 +247,12 @@ module mo_vertical_grid
     real(wp), intent(out) :: exner_bg(n_cells,n_layers)          ! background Exner pressure
   
     ! local variables
-    integer  :: ji,jl
-    real(wp) :: temperature,pressure,b,c
+    integer  :: ji          ! cell index
+    integer  :: jl          ! layer index
+    real(wp) :: temperature ! individual temperature value
+    real(wp) :: pressure    ! individual pressure value
+    real(wp) :: b           ! helper variable for vertically integrating the hydrostatic equation
+    real(wp) :: c           ! helper variable for vertically integrating the hydrostatic equation
   
     !$omp parallel do private(ji,jl,temperature,pressure,b,c)
     do ji=1,n_cells
@@ -285,9 +292,11 @@ module mo_vertical_grid
     real(wp), intent(in)  :: pent_hex_face_unity_sphere(n_cells) ! areas of the pentagons and hexagons on the unit sphere
   
     ! local variables
-    integer  :: ji ! horizontal loop index
-    integer  :: jl ! vertical loop index
-    real(wp) :: base_distance,radius_1,radius_2
+    integer  :: ji            ! horizontal loop index
+    integer  :: jl            ! vertical loop index
+    real(wp) :: base_distance ! length of the lower edge of a dual area
+    real(wp) :: radius_1      ! inner radius
+    real(wp) :: radius_2      ! outer radius
     
     ! areas with horizontal normal
     !$omp parallel do private(ji,jl,base_distance,radius_1,radius_2)
@@ -326,10 +335,12 @@ module mo_vertical_grid
     integer,  intent(in)  :: to_cell(n_edges)             ! cells in the to-directions of the vectors
   
     ! local variables
-    integer               :: ji ! horizontal index
-    integer               :: jl ! vertical index
-    real(wp)              :: min_thick,max_thick,thick_rel
-    real(wp), allocatable :: lowest_thicknesses(:)
+    integer               :: ji                    ! edge or cell index
+    integer               :: jl                    ! layer or level index
+    real(wp)              :: min_thick             ! minimum layer thickness of the global grid
+    real(wp)              :: max_thick             ! maximum layer thickness of the global grid
+    real(wp)              :: thick_rel             ! max_thick/min_thick
+    real(wp), allocatable :: lowest_thicknesses(:) ! thicknesses of the lowest layer
     
     ! horizontal vector points
     !$omp parallel do private(ji,jl)
