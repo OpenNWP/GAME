@@ -226,16 +226,16 @@ module mo_derived_hor_quantities
   
   end subroutine calc_vorticity_indices_triangles
   
-  subroutine write_statistics_file(pent_hex_face_unity_sphere,dx,dy,z_vector_h,grid_name,statistics_file_name)
+  subroutine write_statistics_file(pent_hex_face_unit_sphere,dx,dy,z_vector_h,grid_name,statistics_file_name)
     
     ! This subroutine writes out statistical properties of the grid to a text file.
     
-    real(wp),           intent(in) :: pent_hex_face_unity_sphere(n_cells) ! areas of pentagons and hexagons on the unit sphere
-    real(wp),           intent(in) :: dx(n_edges,n_layers)                ! horizontal normal distances
-    real(wp),           intent(in) :: dy(n_edges,n_levels)                ! horizontal tangential distances
-    real(wp),           intent(in) :: z_vector_h(n_edges,n_layers)        ! z-coordinates of horizontal vectors
-    character(len=128), intent(in) :: grid_name                           ! name of the grid
-    character(len=256), intent(in) :: statistics_file_name                ! the name of the statistics file to write
+    real(wp),           intent(in) :: pent_hex_face_unit_sphere(n_cells) ! areas of pentagons and hexagons on the unit sphere
+    real(wp),           intent(in) :: dx(n_edges,n_layers)               ! horizontal normal distances
+    real(wp),           intent(in) :: dy(n_edges,n_levels)               ! horizontal tangential distances
+    real(wp),           intent(in) :: z_vector_h(n_edges,n_layers)       ! z-coordinates of horizontal vectors
+    character(len=128), intent(in) :: grid_name                          ! name of the grid
+    character(len=256), intent(in) :: statistics_file_name               ! the name of the statistics file to write
     
     ! local variables
     real(wp)              :: area_min           ! maximum pentagon or hexagon area on the unit sphere
@@ -247,11 +247,11 @@ module mo_derived_hor_quantities
     real(wp), allocatable :: distance_vector(:) ! vector of horizontal distances (helper variable)
     
     !$omp parallel workshare
-    area_min = minval(pent_hex_face_unity_sphere)
+    area_min = minval(pent_hex_face_unit_sphere)
     !$omp end parallel workshare
     
     !$omp parallel workshare
-    area_max = maxval(pent_hex_face_unity_sphere)
+    area_max = maxval(pent_hex_face_unit_sphere)
     !$omp end parallel workshare
     
     allocate(distance_vector(n_edges))
@@ -301,39 +301,39 @@ module mo_derived_hor_quantities
     integer, intent(out) :: adjacent_edges(6,n_cells) ! edges adjacent to a cell
     
     ! local variables
-    integer :: ji               ! cell index
-    integer :: jk               ! 
-    integer :: jl               ! 
-    integer :: trouble_detected ! 
-    integer :: counter          ! 
+    integer :: ji               ! cell or edge index
+    integer :: jk               ! secondary horizontal index
+    integer :: jl               ! index of an edge of a given cell
+    integer :: counter          ! gets incremented if an adjacent edge is found
     integer :: n_edges_of_cell  ! number of edges a given cell has (five or six)
-    integer :: double_check     ! 
-    integer :: sign_sum_check   ! 
+    integer :: trouble_detected ! check variable, must remain at 0
+    integer :: double_check     ! check variable, must remain at <= 1
+    integer :: sign_sum_check   ! sign_sum_check, must remain at 0
     
     trouble_detected = 0
     
     !$omp parallel do private(ji,jk,trouble_detected,counter)
     do ji=1,n_cells
-      counter = 0
+      counter = 1
       do jk=1,n_edges
         if (from_cell(jk)==ji .or. to_cell(jk)==ji) then
           if (from_cell(jk)==to_cell(jk)) then
             write(*,*) "It is from_cell == to_cell at the following gridpoint:", jk
             call exit(1)
           endif
-          adjacent_edges(counter+1,ji) = jk
+          adjacent_edges(counter,ji) = jk
           if (from_cell(jk)==ji) then
-            adjacent_signs(counter+1,ji) = 1
+            adjacent_signs(counter,ji) = 1
           endif
           if (to_cell(jk)==ji) then
-            adjacent_signs(counter+1,ji) = -1
+            adjacent_signs(counter,ji) = -1
           endif
           counter = counter+1
         endif
       enddo
-      if (counter/=6) then
+      if (counter/=7) then
         trouble_detected = 1
-        if (counter==5 .and. ji<=n_pentagons) then
+        if (counter==6 .and. ji<=n_pentagons) then
           trouble_detected = 0
         endif
       endif
@@ -384,27 +384,27 @@ module mo_derived_hor_quantities
   
   end subroutine find_adjacent_edges
   
-  subroutine calc_cell_area_unity(pent_hex_face_unity_sphere,lat_c_dual,lon_c_dual, &
-                                  adjacent_edges,vorticity_indices_triangles)
+  subroutine calc_cell_areas_unit_phere(pent_hex_face_unit_sphere,lat_c_dual,lon_c_dual, &
+                                        adjacent_edges,vorticity_indices_triangles)
     
     ! This subroutine computes the areas of the cells (pentagons and hexagons) on the unit sphere.
     
-    real(wp), intent(out) :: pent_hex_face_unity_sphere(n_cells)        ! areas of the pentagons and hexagons on the unit sphere (result)
+    real(wp), intent(out) :: pent_hex_face_unit_sphere(n_cells)         ! areas of the pentagons and hexagons on the unit sphere (result)
     real(wp), intent(in)  :: lat_c_dual(n_triangles)                    ! latitudes of the dual cell centers (triangles)
     real(wp), intent(in)  :: lon_c_dual(n_triangles)                    ! longitudes of the dual cell centers (triangles)
     integer,  intent(in)  :: adjacent_edges(6,n_cells)                  ! adjacent edges of the cells
     integer,  intent(in)  :: vorticity_indices_triangles(3,n_triangles) ! adjacent edges of the dual cells
     
-    integer  :: ji                              ! cell index
-    integer  :: jk                              ! secondary horizontal loop index
-    integer  :: check                           ! 
-    integer  :: counter                         ! 
-    integer  :: n_edges_of_cell                 ! number of edges a given cell has
-    integer  :: cell_vector_indices(6)          ! 
-    real(wp) :: pent_hex_sum_unit_sphere        ! sum of all cell areas on the unit sphere
-    real(wp) :: pent_hex_avg_unit_sphere_ideal  ! mean area of a cell on the unit sphere (used for a check)
-    real(wp) :: lat_points(6)                   ! 
-    real(wp) :: lon_points(6)                   ! 
+    integer  :: ji                             ! cell index
+    integer  :: jk                             ! secondary horizontal loop index
+    integer  :: check                          ! gets set to 1 if an adjacent vertex is found
+    integer  :: counter                        ! gets incremented if an adjacent vertex is found
+    integer  :: n_edges_of_cell                ! number of edges a given cell has
+    integer  :: cell_vector_indices(6)         ! edge indices of a given cell
+    real(wp) :: pent_hex_sum_unit_sphere       ! sum of all cell areas on the unit sphere
+    real(wp) :: pent_hex_avg_unit_sphere_ideal ! mean area of a cell on the unit sphere (used for a check)
+    real(wp) :: lat_points(6)                  ! latitudes of the vertices of a given cell
+    real(wp) :: lon_points(6)                  ! longitudes of the vertices of a given cell
     
     !$omp parallel do private(ji,jk,check,counter,n_edges_of_cell,cell_vector_indices,lat_points,lon_points)
     do ji=1,n_cells
@@ -412,9 +412,7 @@ module mo_derived_hor_quantities
       if (ji<=n_pentagons) then
         n_edges_of_cell = 5
       endif
-      do jk=1,n_edges_of_cell
-        cell_vector_indices(jk) = adjacent_edges(jk,ji)
-      enddo
+      cell_vector_indices(:) = adjacent_edges(:,ji)
       counter = 1
       do jk=1,n_triangles
         check = 0
@@ -431,7 +429,7 @@ module mo_derived_hor_quantities
         write(*,*) "Trouble in calc_cell_face_unity."
         call exit(1)
       endif
-      pent_hex_face_unity_sphere(ji) = calc_spherical_polygon_area(lat_points,lon_points,n_edges_of_cell)
+      pent_hex_face_unit_sphere(ji) = calc_spherical_polygon_area(lat_points,lon_points,n_edges_of_cell)
     enddo
     !$omp end parallel do
     
@@ -439,12 +437,12 @@ module mo_derived_hor_quantities
     pent_hex_avg_unit_sphere_ideal = 4._wp*M_PI/n_cells
     
     do ji=1,n_cells
-      pent_hex_sum_unit_sphere = pent_hex_sum_unit_sphere+pent_hex_face_unity_sphere(ji)
-      if (pent_hex_face_unity_sphere(ji)<=0._wp) then
-        write(*,*) "Pent_hex_face_unity_sphere contains a non-positive value."
+      pent_hex_sum_unit_sphere = pent_hex_sum_unit_sphere+pent_hex_face_unit_sphere(ji)
+      if (pent_hex_face_unit_sphere(ji)<=0._wp) then
+        write(*,*) "pent_hex_face_unit_sphere contains a non-positive value."
         call exit(1)
       endif
-      if (abs(pent_hex_face_unity_sphere(ji)/pent_hex_avg_unit_sphere_ideal-1._wp)>0.4_wp) then
+      if (abs(pent_hex_face_unit_sphere(ji)/pent_hex_avg_unit_sphere_ideal-1._wp)>0.4_wp) then
         write(*,*) "Pentagons and hexagons on unit sphere have significantly different surfaces."
         call exit(1)
       endif
@@ -455,7 +453,7 @@ module mo_derived_hor_quantities
       call exit(1)
     endif
     
-  end subroutine calc_cell_area_unity
+  end subroutine calc_cell_areas_unit_phere
 
 end module mo_derived_hor_quantities
 

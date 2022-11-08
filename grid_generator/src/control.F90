@@ -17,7 +17,7 @@ program control
                                        build_icosahedron
   use mo_derived_hor_quantities, only: find_adjacent_edges,set_vector_h_attributes,set_dual_vector_h_atttributes, &
                                        direct_tangential_unity,set_f_vec,calc_vorticity_indices_triangles, &
-                                       calc_cell_area_unity,write_statistics_file
+                                       calc_cell_areas_unit_phere,write_statistics_file
   use mo_phys_sfc_properties,    only: set_sfc_properties
   use mo_vertical_grid,          only: set_z_scalar,set_z_vector_and_normal_distance,set_z_scalar_dual,set_volume, &
                                        set_z_vector_dual_and_normal_distance_dual,set_area,set_area_dual, &
@@ -145,7 +145,7 @@ program control
   real(wp), allocatable :: area_dual_v(:,:)                 ! vertical dual areas (triangles)
   real(wp), allocatable :: f_vec_h(:)                       ! horizontal Coriolis parameter (at the edges)
   real(wp), allocatable :: f_vec_v(:)                       ! vertical Coriolis parameter (at the edges)
-  real(wp), allocatable :: pent_hex_face_unity_sphere(:)    ! areas of pentagons and hexagons on the unit sphere
+  real(wp), allocatable :: pent_hex_face_unit_sphere(:)     ! areas of pentagons and hexagons on the unit sphere
   real(wp), allocatable :: rel_on_line_dual(:)              ! positions of the edegs relative to the adjacent centers
   real(wp), allocatable :: inner_product_weights(:,:,:)     ! weights for computing the inner product
   real(wp), allocatable :: density_to_rhombi_weights(:,:)   ! weights for interpolating the density to the rhombi
@@ -218,7 +218,7 @@ program control
   allocate(f_vec_h(n_edges))
   allocate(f_vec_v(n_edges))
   allocate(triangle_face_unit_sphere(n_triangles))
-  allocate(pent_hex_face_unity_sphere(n_cells))
+  allocate(pent_hex_face_unit_sphere(n_cells))
   allocate(rel_on_line_dual(n_edges))
   allocate(inner_product_weights(8,n_cells,n_layers))
   allocate(density_to_rhombi_weights(4,n_edges))
@@ -278,7 +278,7 @@ program control
   f_vec_h = 0._wp
   f_vec_v = 0._wp
   triangle_face_unit_sphere = 0._wp
-  pent_hex_face_unity_sphere = 0._wp
+  pent_hex_face_unit_sphere = 0._wp
   rel_on_line_dual = 0._wp
   inner_product_weights = 0._wp
   density_to_rhombi_weights = 0._wp
@@ -362,7 +362,7 @@ program control
                                         vorticity_signs_triangles)
   
   ! calculating the cell faces on the unit sphere
-  call calc_cell_area_unity(pent_hex_face_unity_sphere,lat_c_dual,lon_c_dual,adjacent_edges,vorticity_indices_triangles)
+  call calc_cell_areas_unit_phere(pent_hex_face_unit_sphere,lat_c_dual,lon_c_dual,adjacent_edges,vorticity_indices_triangles)
   write(*,*) "Horizontal grid structure determined."
   
   ! 5.) setting the physical surface properties
@@ -402,7 +402,7 @@ program control
   write(*,*) "Finished."
   
   write(*,*) "Calculating areas ..."
-  call set_area(area_h,area_v,z_vector_v,z_vector_dual_h,dy,pent_hex_face_unity_sphere)
+  call set_area(area_h,area_v,z_vector_v,z_vector_dual_h,dy,pent_hex_face_unit_sphere)
   write(*,*) "Finished."
   
   write(*,*) "Calculating dual areas ..."
@@ -444,7 +444,7 @@ program control
   write(*,*) "Finished."
   
   ! A statistics file is created to compare the fundamental statistical properties of the grid with the literature.
-  call write_statistics_file(pent_hex_face_unity_sphere,dx,dy,z_vector_h,grid_name,statistics_file)
+  call write_statistics_file(pent_hex_face_unit_sphere,dx,dy,z_vector_h,grid_name,statistics_file)
   
   ! writing the result to a netCDF file
   
@@ -767,7 +767,7 @@ program control
   deallocate(x_unity)
   deallocate(y_unity)
   deallocate(z_unity)
-  deallocate(pent_hex_face_unity_sphere)
+  deallocate(pent_hex_face_unit_sphere)
   deallocate(triangle_face_unit_sphere)
   deallocate(direction_dual)
   deallocate(density_to_rhombi_weights)
