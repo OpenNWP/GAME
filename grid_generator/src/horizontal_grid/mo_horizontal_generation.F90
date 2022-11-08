@@ -39,10 +39,10 @@ module mo_horizontal_generation
     integer :: ji                                    ! index of a property of the icosahedron
     integer :: jk                                    ! index of a property of the icosahedron
     integer :: jm                                    ! index of a property of the icosahedron
-    integer :: vertices_check_counter(n_basic_edges) ! 
-    integer :: edge_other_vertex_index               ! 
-    integer :: check_index                           ! 
-    integer :: edges_check_counter(n_basic_edges)    ! 
+    integer :: vertices_check_counter(n_basic_edges) ! only used to check the output quantities
+    integer :: edge_other_vertex_index               ! used to generate face_edges and face_edges_reverse
+    integer :: check_index                           ! used to generate face_edges and face_edges_reverse
+    integer :: edges_check_counter(n_basic_edges)    ! only used to check the output quantities
     
     lat_ico(1) = M_PI/2._wp
     lat_ico(2) = atan(0.5_wp)
@@ -220,7 +220,7 @@ module mo_horizontal_generation
         call exit(1)
       endif
     enddo
-    edges_check_counter = 0
+    edges_check_counter(:) = 0
     do ji=1,n_basic_triangles
       do jk=1,3
         do jm=1,n_basic_edges
@@ -263,7 +263,7 @@ module mo_horizontal_generation
     
   end subroutine build_icosahedron
 
-  subroutine generate_horizontal_generators(lat_ico,lon_ico,lat_c,lon_c,x_unity,y_unity,z_unity, &
+  subroutine generate_horizontal_generators(lat_ico,lon_ico,lat_c,lon_c,x_unit,y_unit,z_unit, &
                                             face_edges_reverse,face_edges,face_vertices)
     
     ! This subroutine computes the geographical coordinates of the generators (centers of the pentagons and hexagons).
@@ -272,9 +272,9 @@ module mo_horizontal_generation
     real(wp), intent(in)  :: lon_ico(n_pentagons)                    ! the longitudes of the vertices of the icosahedron
     real(wp), intent(out) :: lat_c(n_cells)                          ! the latitudes of the cell centers
     real(wp), intent(out) :: lon_c(n_cells)                          ! the longitudes of the cell centers
-    real(wp), intent(out) :: x_unity(n_cells)                        ! the x-coordinates of the cell centers on the unit sphere
-    real(wp), intent(out) :: y_unity(n_cells)                        ! the y-coordinates of the cell centers on the unit sphere
-    real(wp), intent(out) :: z_unity(n_cells)                        ! the z-coordinates of the cell centers on the unit sphere
+    real(wp), intent(out) :: x_unit(n_cells)                         ! the x-coordinates of the cell centers on the unit sphere
+    real(wp), intent(out) :: y_unit(n_cells)                         ! the y-coordinates of the cell centers on the unit sphere
+    real(wp), intent(out) :: z_unit(n_cells)                         ! the z-coordinates of the cell centers on the unit sphere
     integer,  intent(in)  :: face_vertices(n_basic_triangles,3)      ! relation between faces and vertices
     integer,  intent(in)  :: face_edges(n_basic_triangles,3)         ! relation between faces and edges
     integer,  intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
@@ -320,9 +320,9 @@ module mo_horizontal_generation
       lat_c(ji) = lat_ico(ji)
       lon_c(ji) = lon_ico(ji)
       call find_global_normal(lat_ico(ji),lon_ico(ji),x_res,y_res,z_res)
-      x_unity(ji) = x_res
-      y_unity(ji) = y_res
-      z_unity(ji) = z_res
+      x_unit(ji) = x_res
+      y_unit(ji) = y_res
+      z_unit(ji) = z_res
     enddo
     ! loop over all triangles of the icosahedron
     do ji=1,n_basic_triangles
@@ -340,8 +340,8 @@ module mo_horizontal_generation
             point_3 = upscale_scalar_point(res_id_local,point_3)
             lpoints_upwards = .true.
             call set_scalar_coordinates(face_vertices(ji,1),face_vertices(ji,2),face_vertices(ji,3), &
-                                        point_1,point_2,point_3,lpoints_upwards,x_unity,y_unity, &
-                                        z_unity,lat_c,lon_c)
+                                        point_1,point_2,point_3,lpoints_upwards,x_unit,y_unit, &
+                                        z_unit,lat_c,lon_c)
           else
             call find_triangle_edge_points_from_dual_scalar_on_face_index(jk-1,ji-1,res_id_local-1, &
                                                                           edgepoint_1,edgepoint_2,edgepoint_3, &
@@ -385,7 +385,7 @@ module mo_horizontal_generation
               lpoints_upwards = .false.
             endif
             call set_scalar_coordinates(edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3, &
-                                        lpoints_upwards,x_unity,y_unity,z_unity,lat_c,lon_c)
+                                        lpoints_upwards,x_unit,y_unit,z_unit,lat_c,lon_c)
           endif
         enddo
       enddo
@@ -393,8 +393,8 @@ module mo_horizontal_generation
     
   end subroutine generate_horizontal_generators
 
-  subroutine calc_triangle_area_unity(triangle_face_unit_sphere,lat_c,lon_c, &
-                                      face_edges,face_edges_reverse,face_vertices)
+  subroutine calc_triangle_areas_unit_sphere(triangle_face_unit_sphere,lat_c,lon_c, &
+                                             face_edges,face_edges_reverse,face_vertices)
     
     ! This subroutine computes the areas of the triangles on the unit sphere.
     
@@ -471,7 +471,7 @@ module mo_horizontal_generation
       call exit(1)
     endif
     
-  end subroutine calc_triangle_area_unity
+  end subroutine calc_triangle_areas_unit_sphere
 
   subroutine set_from_to_cell(from_cell,to_cell,face_edges,face_edges_reverse,face_vertices,edge_vertices)
     
@@ -746,22 +746,22 @@ module mo_horizontal_generation
   end subroutine set_from_to_cell_dual
   
   subroutine set_scalar_coordinates(edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3,lpoints_upwards, &
-                                    x_unity,y_unity,z_unity,lat_c,lon_c)
+                                    x_unit,y_unit,z_unit,lat_c,lon_c)
     
     ! This subroutine computes the geographical and Cartesian coordinates of the three vertices of a triangle of the grid.
     
-    integer,  intent(in)    :: edgepoint_1      ! first vertex index of the coarser triangle
-    integer,  intent(in)    :: edgepoint_2      ! second vertex index of the coarser triangle
-    integer,  intent(in)    :: edgepoint_3      ! third vertex index of the coarser triangle
-    integer,  intent(in)    :: point_1          ! first vertex index of the finer triangle
-    integer,  intent(in)    :: point_2          ! second vertex index of the finer triangle
-    integer,  intent(in)    :: point_3          ! third vertex index of the finer triangle
-    logical,  intent(in)    :: lpoints_upwards  ! switch indicating wether the triangle points upwards
-    real(wp), intent(inout) :: x_unity(n_cells) ! x-coordinates of the cell centers on the unit sphere
-    real(wp), intent(inout) :: y_unity(n_cells) ! y-coordinates of the cell centers on the unit sphere
-    real(wp), intent(out)   :: z_unity(n_cells) ! z-coordinates of the cell centers on the unit sphere
-    real(wp), intent(out)   :: lat_c(n_cells)   ! latitudes of the cell centers
-    real(wp), intent(out)   :: lon_c(n_cells)   ! longitudes of the cell centers
+    integer,  intent(in)    :: edgepoint_1     ! first vertex index of the coarser triangle
+    integer,  intent(in)    :: edgepoint_2     ! second vertex index of the coarser triangle
+    integer,  intent(in)    :: edgepoint_3     ! third vertex index of the coarser triangle
+    integer,  intent(in)    :: point_1         ! first vertex index of the finer triangle
+    integer,  intent(in)    :: point_2         ! second vertex index of the finer triangle
+    integer,  intent(in)    :: point_3         ! third vertex index of the finer triangle
+    logical,  intent(in)    :: lpoints_upwards ! switch indicating wether the triangle points upwards
+    real(wp), intent(inout) :: x_unit(n_cells) ! x-coordinates of the cell centers on the unit sphere
+    real(wp), intent(inout) :: y_unit(n_cells) ! y-coordinates of the cell centers on the unit sphere
+    real(wp), intent(out)   :: z_unit(n_cells) ! z-coordinates of the cell centers on the unit sphere
+    real(wp), intent(out)   :: lat_c(n_cells)  ! latitudes of the cell centers
+    real(wp), intent(out)   :: lon_c(n_cells)  ! longitudes of the cell centers
     
     ! local variables
     real(wp) :: x_res      ! individual x-coordinate of a cell center
@@ -774,18 +774,18 @@ module mo_horizontal_generation
     real(wp) :: lon_res    ! resulting individual longitude value of a cell center
 
     ! first point
-    call find_between_point(x_unity(edgepoint_1),y_unity(edgepoint_1),z_unity(edgepoint_1), &
-                            x_unity(edgepoint_2),y_unity(edgepoint_2),z_unity(edgepoint_2), &
+    call find_between_point(x_unit(edgepoint_1),y_unit(edgepoint_1),z_unit(edgepoint_1), &
+                            x_unit(edgepoint_2),y_unit(edgepoint_2),z_unit(edgepoint_2), &
                             0.5_wp,x_res,y_res,z_res)
     call normalize_cartesian(x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm)
     if (lpoints_upwards) then
-      x_unity(point_1) = x_res_norm
-      y_unity(point_1) = y_res_norm
-      z_unity(point_1) = z_res_norm
+      x_unit(point_1) = x_res_norm
+      y_unit(point_1) = y_res_norm
+      z_unit(point_1) = z_res_norm
     else
-      x_unity(point_2) = x_res_norm
-      y_unity(point_2) = y_res_norm
-      z_unity(point_2) = z_res_norm
+      x_unit(point_2) = x_res_norm
+      y_unit(point_2) = y_res_norm
+      z_unit(point_2) = z_res_norm
     endif
     call find_geos(x_res,y_res,z_res,lat_res,lon_res)
     if (lpoints_upwards) then
@@ -797,18 +797,18 @@ module mo_horizontal_generation
     endif
     
     ! second point
-    call find_between_point(x_unity(edgepoint_2),y_unity(edgepoint_2),z_unity(edgepoint_2), &
-                            x_unity(edgepoint_3),y_unity(edgepoint_3),z_unity(edgepoint_3), &
+    call find_between_point(x_unit(edgepoint_2),y_unit(edgepoint_2),z_unit(edgepoint_2), &
+                            x_unit(edgepoint_3),y_unit(edgepoint_3),z_unit(edgepoint_3), &
                             0.5_wp,x_res,y_res,z_res)
     call normalize_cartesian(x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm)
     if (lpoints_upwards) then
-      x_unity(point_2) = x_res_norm
-      y_unity(point_2) = y_res_norm
-      z_unity(point_2) = z_res_norm
+      x_unit(point_2) = x_res_norm
+      y_unit(point_2) = y_res_norm
+      z_unit(point_2) = z_res_norm
     else
-      x_unity(point_3) = x_res_norm
-      y_unity(point_3) = y_res_norm
-      z_unity(point_3) = z_res_norm
+      x_unit(point_3) = x_res_norm
+      y_unit(point_3) = y_res_norm
+      z_unit(point_3) = z_res_norm
     endif
     call find_geos(x_res,y_res,z_res,lat_res,lon_res)
     if (lpoints_upwards) then
@@ -820,18 +820,18 @@ module mo_horizontal_generation
     endif
     
     ! third point
-    call find_between_point(x_unity(edgepoint_3),y_unity(edgepoint_3),z_unity(edgepoint_3), &
-                            x_unity(edgepoint_1),y_unity(edgepoint_1),z_unity(edgepoint_1), &
+    call find_between_point(x_unit(edgepoint_3),y_unit(edgepoint_3),z_unit(edgepoint_3), &
+                            x_unit(edgepoint_1),y_unit(edgepoint_1),z_unit(edgepoint_1), &
                             0.5_wp,x_res,y_res,z_res)
     call normalize_cartesian(x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm)
     if (lpoints_upwards) then
-      x_unity(point_3) = x_res_norm
-      y_unity(point_3) = y_res_norm
-      z_unity(point_3) = z_res_norm
+      x_unit(point_3) = x_res_norm
+      y_unit(point_3) = y_res_norm
+      z_unit(point_3) = z_res_norm
     else
-      x_unity(point_1) = x_res_norm
-      y_unity(point_1) = y_res_norm
-      z_unity(point_1) = z_res_norm
+      x_unit(point_1) = x_res_norm
+      y_unit(point_1) = y_res_norm
+      z_unit(point_1) = z_res_norm
     endif
     call find_geos(x_res,y_res,z_res,lat_res,lon_res)
     if (lpoints_upwards) then
@@ -844,8 +844,7 @@ module mo_horizontal_generation
   
   end subroutine set_scalar_coordinates
   
-  subroutine read_horizontal_explicit(lat_c,lon_c,from_cell,to_cell, &
-                                      from_cell_dual,to_cell_dual,filename,n_lloyd_read_file)
+  subroutine read_horizontal_explicit(lat_c,lon_c,from_cell,to_cell,from_cell_dual,to_cell_dual,filename,n_lloyd_read_file)
     
     ! This subroutine reads the arrays that fully define the horizontal grid from a previously created grid file.
     ! This is an optional feature.

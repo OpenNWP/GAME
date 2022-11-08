@@ -280,16 +280,16 @@ module mo_vertical_grid
   
   end subroutine set_background_state
   
-  subroutine set_area(area_h,area_v,z_vector_v,z_vector_dual_h,dy,pent_hex_face_unity_sphere)
+  subroutine set_area(area_h,area_v,z_vector_v,z_vector_dual_h,dy,pent_hex_face_unit_sphere)
 
     ! This function sets the areas of the gridboxes.
     
-    real(wp), intent(out) :: area_h(n_edges,n_layers)            ! horizontal areas
-    real(wp), intent(out) :: area_v(n_cells,n_levels)            ! vertical areas
-    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)        ! z-coordinates of the vertical vectors
-    real(wp), intent(in)  :: z_vector_dual_h(n_edges,n_levels)   ! z-coordinates of the dual horizontal vectors
-    real(wp), intent(in)  :: dy(n_edges,n_levels)                ! tangential gridpoint distances
-    real(wp), intent(in)  :: pent_hex_face_unity_sphere(n_cells) ! areas of the pentagons and hexagons on the unit sphere
+    real(wp), intent(out) :: area_h(n_edges,n_layers)           ! horizontal areas
+    real(wp), intent(out) :: area_v(n_cells,n_levels)           ! vertical areas
+    real(wp), intent(in)  :: z_vector_v(n_cells,n_levels)       ! z-coordinates of the vertical vectors
+    real(wp), intent(in)  :: z_vector_dual_h(n_edges,n_levels)  ! z-coordinates of the dual horizontal vectors
+    real(wp), intent(in)  :: dy(n_edges,n_levels)               ! tangential gridpoint distances
+    real(wp), intent(in)  :: pent_hex_face_unit_sphere(n_cells) ! areas of the pentagons and hexagons on the unit sphere
   
     ! local variables
     integer  :: ji            ! horizontal loop index
@@ -313,7 +313,7 @@ module mo_vertical_grid
     ! areas with vertical normal
     !$omp parallel do private(jl)
     do jl=1,n_levels
-      area_v(:,jl) = pent_hex_face_unity_sphere*(radius+z_vector_v(:,jl))**2
+      area_v(:,jl) = pent_hex_face_unit_sphere*(radius+z_vector_v(:,jl))**2
     enddo
     !$omp end parallel do
     

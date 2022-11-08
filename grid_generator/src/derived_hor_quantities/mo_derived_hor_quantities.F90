@@ -95,8 +95,8 @@ module mo_derived_hor_quantities
     
   end subroutine set_vector_h_attributes
   
-  subroutine direct_tangential_unity(lat_c_dual,lon_c_dual,direction,direction_dual, &
-                                     to_cell_dual,from_cell_dual,rel_on_line_dual)
+  subroutine direct_tangential(lat_c_dual,lon_c_dual,direction,direction_dual, &
+                               to_cell_dual,from_cell_dual,rel_on_line_dual)
   
     ! This subroutine determines the directions of the dual vectors.
     
@@ -138,13 +138,13 @@ module mo_derived_hor_quantities
       direction_change = find_turn_angle(direction(ji),direction_dual(ji))
       if (abs(rad2deg(direction_change))<orth_criterion_deg .or. abs(rad2deg(direction_change)) &
           >90._wp+(90._wp-orth_criterion_deg)) then
-         write(*,*) "Grid non-orthogonal. Error in subroutine direct_tangential_unity."
+         write(*,*) "Grid non-orthogonal. Error in subroutine direct_tangential."
          call exit(1)
       endif
     enddo
     !$omp end parallel do
   
-  end subroutine direct_tangential_unity
+  end subroutine direct_tangential
   
   subroutine set_f_vec(lat_e,direction_dual,f_vec_h,f_vec_v)
   
@@ -426,7 +426,7 @@ module mo_derived_hor_quantities
         endif
       enddo
       if (counter/=n_edges_of_cell+1) then
-        write(*,*) "Trouble in calc_cell_face_unity."
+        write(*,*) "Trouble in calc_cell_areas_unit_phere."
         call exit(1)
       endif
       pent_hex_face_unit_sphere(ji) = calc_spherical_polygon_area(lat_points,lon_points,n_edges_of_cell)

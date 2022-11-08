@@ -13,10 +13,10 @@ program control
                                        scalar_h_file,n_lon_io_points
   use mo_various_helpers,        only: nc_check,int2string
   use mo_horizontal_generation,  only: generate_horizontal_generators,set_from_to_cell,set_from_to_cell_dual, &
-                                       set_scalar_h_dual_coords,calc_triangle_area_unity,read_horizontal_explicit, &
+                                       set_scalar_h_dual_coords,calc_triangle_areas_unit_sphere,read_horizontal_explicit, &
                                        build_icosahedron
   use mo_derived_hor_quantities, only: find_adjacent_edges,set_vector_h_attributes,set_dual_vector_h_atttributes, &
-                                       direct_tangential_unity,set_f_vec,calc_vorticity_indices_triangles, &
+                                       direct_tangential,set_f_vec,calc_vorticity_indices_triangles, &
                                        calc_cell_areas_unit_phere,write_statistics_file
   use mo_phys_sfc_properties,    only: set_sfc_properties
   use mo_vertical_grid,          only: set_z_scalar,set_z_vector_and_normal_distance,set_z_scalar_dual,set_volume, &
@@ -115,9 +115,9 @@ program control
   integer,  allocatable :: density_to_rhombi_indices(:,:)   ! indices for interpolating the density to the rhombi
   integer,  allocatable :: interpol_indices(:,:,:)          ! interpolation indices to the latitude-longitude grid
   integer,  allocatable :: is_land(:)                       ! land-sea mask
-  real(wp), allocatable :: x_unity(:)                       ! x-coordinates of the gridpoints on the unit sphere
-  real(wp), allocatable :: y_unity(:)                       ! y-coordinates of the gridpoints on the unit sphere
-  real(wp), allocatable :: z_unity(:)                       ! z-coordinates of the gridpoints on the unit sphere
+  real(wp), allocatable :: x_unit(:)                        ! x-coordinates of the gridpoints on the unit sphere
+  real(wp), allocatable :: y_unit(:)                        ! y-coordinates of the gridpoints on the unit sphere
+  real(wp), allocatable :: z_unit(:)                        ! z-coordinates of the gridpoints on the unit sphere
   real(wp), allocatable :: lat_c(:)                         ! latitudes of the cell centers
   real(wp), allocatable :: lon_c(:)                         ! longitudes of the cell centers
   real(wp), allocatable :: z_scalar(:,:)                    ! z-coordinates of the cell centers
@@ -187,9 +187,9 @@ program control
   
   ! allocating memory
   write(*,*) "Allocating memory ..."
-  allocate(x_unity(n_cells))
-  allocate(y_unity(n_cells))
-  allocate(z_unity(n_cells))
+  allocate(x_unit(n_cells))
+  allocate(y_unit(n_cells))
+  allocate(z_unit(n_cells))
   allocate(lat_c(n_cells))
   allocate(lon_c(n_cells))
   allocate(z_scalar(n_cells,n_layers))
@@ -247,9 +247,9 @@ program control
   
   ! initializing arrays to zero
   !$omp parallel workshare
-  x_unity = 0._wp
-  y_unity = 0._wp
-  z_unity = 0._wp
+  x_unit = 0._wp
+  y_unit = 0._wp
+  z_unit = 0._wp
   lat_c = 0._wp
   lon_c = 0._wp
   z_scalar = 0._wp
@@ -313,7 +313,7 @@ program control
   n_lloyd_read_from_file = 0
   if (.not. luse_scalar_h_file) then
     ! Here,the positions of the horizontal generators,i.e. the horizontal scalar points are determined.
-    call generate_horizontal_generators(lat_ico,lon_ico,lat_c,lon_c,x_unity,y_unity,z_unity,face_edges_reverse,face_edges, &
+    call generate_horizontal_generators(lat_ico,lon_ico,lat_c,lon_c,x_unit,y_unit,z_unit,face_edges_reverse,face_edges, &
                                         face_vertices)
     ! By setting the from_cell and to_cell arrrays,the discrete positions of the vector points are determined.
     call set_from_to_cell(from_cell,to_cell,face_edges,face_edges_reverse,face_vertices,edge_vertices)
@@ -349,13 +349,13 @@ program control
   call set_dual_vector_h_atttributes(lat_c_dual,lat_e,direction_dual,lon_e,to_cell_dual,from_cell_dual,lon_c_dual,rel_on_line_dual)
   
   ! determining the directions of the dual vectors
-  call direct_tangential_unity(lat_c_dual,lon_c_dual,direction,direction_dual,to_cell_dual,from_cell_dual,rel_on_line_dual)
+  call direct_tangential(lat_c_dual,lon_c_dual,direction,direction_dual,to_cell_dual,from_cell_dual,rel_on_line_dual)
   
   ! setting the Coriolis vector
   call set_f_vec(lat_e,direction_dual,f_vec_h,f_vec_v)
   
   ! calculating the dual cells on the unit sphere
-  call calc_triangle_area_unity(triangle_face_unit_sphere,lat_c,lon_c,face_edges,face_edges_reverse,face_vertices)
+  call calc_triangle_areas_unit_sphere(triangle_face_unit_sphere,lat_c,lon_c,face_edges,face_edges_reverse,face_vertices)
   
   ! finding the vorticity indices
   call calc_vorticity_indices_triangles(from_cell_dual,to_cell_dual,direction,direction_dual,vorticity_indices_triangles, &
@@ -764,9 +764,9 @@ program control
   deallocate(sfc_rho_c)
   deallocate(t_conductivity)
   deallocate(is_land)
-  deallocate(x_unity)
-  deallocate(y_unity)
-  deallocate(z_unity)
+  deallocate(x_unit)
+  deallocate(y_unit)
+  deallocate(z_unit)
   deallocate(pent_hex_face_unit_sphere)
   deallocate(triangle_face_unit_sphere)
   deallocate(direction_dual)
