@@ -621,21 +621,21 @@ module mo_horizontal_generation
     
     ! local variables
     integer :: ji                        ! edge index
-    integer :: jk                        ! 
-    integer :: coord_1                   ! 
-    integer :: coord_2                   ! 
-    integer :: on_face_index             ! 
-    integer :: on_edge_index             ! 
-    integer :: edge_index                ! 
-    integer :: small_triangle_edge_index ! 
-    integer :: coord_1_points_amount     ! 
-    integer :: first_face_found          ! 
-    integer :: face_index                ! 
-    integer :: edge_rel_to_face_1        ! 
-    integer :: edge_rel_to_face_2        ! 
-    integer :: face_index_1              ! 
-    integer :: face_index_2              ! 
-    integer :: triangle_on_face_index    ! 
+    integer :: jk                        ! used to loop over all triangles of the icosahedron
+    integer :: face_index                ! index of a face of the icosahedron
+    integer :: coord_1                   ! discrete coordinate of a dual cell along the left edge of a triangle of the icosahedron
+    integer :: coord_2                   ! discrete coordinate of a dual cell along the lower edge of a triangle of the icosahedron
+    integer :: on_face_index             ! index of an edge on a face of the icosahedron
+    integer :: on_edge_index             ! index of a point on an edge of the icosahedron
+    integer :: edge_index                ! index of an edge of the icosahedron
+    integer :: small_triangle_edge_index ! indicates the vertex of a dual cell
+    integer :: coord_1_points_amount     ! amount of points on the coord_1-axis
+    integer :: edge_rel_to_face_1        ! second index of face_edges where it is face_edges(face_index_1+1,:)==edge_index
+    integer :: edge_rel_to_face_2        ! second index of face_edges where it is face_edges(face_index_2+1,:)==edge_index
+    integer :: face_index_1              ! index of one of the triangles of the basic icosahedron adjacent to an edge of the icosahedron
+    integer :: first_face_found          ! helper variable, will be set to 1 if face_index_1 is found
+    integer :: face_index_2              ! index of one of the triangles of the basic icosahedron adjacent to an edge of the icosahedron
+    integer :: triangle_on_face_index    ! index of a triangle on a face of the icosahedron
     
     !$omp parallel do private(ji,jk,coord_1,coord_2,on_face_index,on_edge_index,edge_index,small_triangle_edge_index, &
     !$omp coord_1_points_amount,first_face_found,face_index,edge_rel_to_face_1,edge_rel_to_face_2,face_index_1, &
