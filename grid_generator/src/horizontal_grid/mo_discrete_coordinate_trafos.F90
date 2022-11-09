@@ -28,19 +28,19 @@ module mo_discrete_coordinate_trafos
     integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! relation between faces and edges
     integer, intent(in)  :: face_vertices(n_basic_triangles,3)      ! relation between faces and vertices
     integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
-    integer, intent(out) :: point_1                                 ! 
-    integer, intent(out) :: point_2                                 ! 
-    integer, intent(out) :: point_3                                 ! 
-    integer, intent(out) :: point_4                                 ! 
-    integer, intent(out) :: point_5                                 ! 
-    integer, intent(out) :: point_6                                 ! 
-    integer, intent(out) :: dual_scalar_on_face_index               ! 
-    integer, intent(out) :: small_triangle_edge_index               ! 
+    integer, intent(out) :: point_1                                 ! one of the six vertices relevant for the up to four triangles computed around edge ji
+    integer, intent(out) :: point_2                                 ! one of the six vertices relevant for the up to four triangles computed around edge ji
+    integer, intent(out) :: point_3                                 ! one of the six vertices relevant for the up to four triangles computed around edge ji
+    integer, intent(out) :: point_4                                 ! one of the six vertices relevant for the up to four triangles computed around edge ji
+    integer, intent(out) :: point_5                                 ! one of the six vertices relevant for the up to four triangles computed around edge ji
+    integer, intent(out) :: point_6                                 ! one of the six vertices relevant for the up to four triangles computed around edge ji
+    integer, intent(out) :: dual_scalar_on_face_index               ! index of a dual cell on a face of the icosahedron
+    integer, intent(out) :: small_triangle_edge_index               ! identifies a vertex of a dual cell
     
     ! local variables
-    integer :: face_index             ! 
-    integer :: on_face_index          ! 
-    integer :: triangle_on_face_index ! 
+    integer :: face_index             ! index of a face of the icosahedron
+    integer :: on_face_index          ! index of an edge on a face of the icosahedron
+    integer :: triangle_on_face_index ! index of a triangle on a face of the icosahedron
     
     face_index = (ji - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
     on_face_index = ji - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
@@ -56,26 +56,26 @@ module mo_discrete_coordinate_trafos
     
     ! This subroutine finds the primal scalar points (pentagon and hexagon centers) a triangle consists of.
     
-    integer, intent(in)  :: triangle_on_face_index                  ! 
-    integer, intent(in)  :: face_index                              ! 
-    integer, intent(in)  :: res_id_local                            ! 
+    integer, intent(in)  :: triangle_on_face_index                  ! index of a triangle on a face of the icosahedron
+    integer, intent(in)  :: face_index                              ! index of a face of the icosahedron
+    integer, intent(in)  :: res_id_local                            ! locally used resolution ID
     integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! relation between faces and edges
     integer, intent(in)  :: face_vertices(n_basic_triangles,3)      ! relation between faces and vertices
     integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
-    integer, intent(out) :: point_1                                 ! 
-    integer, intent(out) :: point_2                                 ! 
-    integer, intent(out) :: point_3                                 ! 
-    integer, intent(out) :: point_4                                 ! 
-    integer, intent(out) :: point_5                                 ! 
-    integer, intent(out) :: point_6                                 ! 
+    integer, intent(out) :: point_1                                 ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer, intent(out) :: point_2                                 ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer, intent(out) :: point_3                                 ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer, intent(out) :: point_4                                 ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer, intent(out) :: point_5                                 ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer, intent(out) :: point_6                                 ! one of the six vertices relevant for the up to four triangles computed around an edge
     integer, intent(out) :: dual_scalar_on_face_index               ! 
     
     ! local variables
-    integer :: coord_1                      ! 
-    integer :: coord_2                      ! 
-    integer :: coord_1_points_amount        ! 
-    integer :: points_per_edge              ! 
-    integer :: scalar_points_per_inner_face ! 
+    integer :: coord_1                      ! discrete coordinate of an edge along the left side of a triangle of the icosahedron
+    integer :: coord_2                      ! discrete coordinate of an edge along the lower side of a triangle of the icosahedron
+    integer :: coord_1_points_amount        ! number of points in the coord_1-direction
+    integer :: points_per_edge              ! points on an edge of the icosahedron
+    integer :: scalar_points_per_inner_face ! number of scalar data points on the inner domain of a face of the icosahedron
     
     call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local,coord_1,coord_2,coord_1_points_amount)
     dual_scalar_on_face_index = 1 + 2*triangle_on_face_index + coord_2
@@ -166,21 +166,21 @@ module mo_discrete_coordinate_trafos
     integer, intent(out) :: point_3                                 ! index of vertex 2 (result)
     
     ! local variables
-    logical :: lspecial_case          ! 
-    logical :: lpoints_downwards      ! 
-    logical :: llast_triangle         ! 
-    integer :: triangle_on_face_index ! 
-    integer :: rhombuspoint_1         ! 
-    integer :: rhombuspoint_2         ! 
-    integer :: rhombuspoint_3         ! 
-    integer :: rhombuspoint_4         ! 
-    integer :: coord_1                ! 
-    integer :: coord_2                ! 
-    integer :: coord_1_points_amount  ! 
-    integer :: points_per_edge        ! 
-    integer :: dump                   ! 
-    integer :: addpoint_1             ! 
-    integer :: addpoint_2             ! 
+    logical :: lspecial_case          ! true only for the very last triangle along a coord_1-axis
+    logical :: lpoints_downwards      ! true if the triangle points downwards
+    logical :: llast_triangle         ! only true for the very last triangle on a face of the icosahedron
+    integer :: triangle_on_face_index ! index of a triangle on a face of the icosahedron
+    integer :: rhombuspoint_1         ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer :: rhombuspoint_2         ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer :: rhombuspoint_3         ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer :: rhombuspoint_4         ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer :: coord_1                ! discrete coordinate of an edge along the left side of a triangle of the icosahedron
+    integer :: coord_2                ! discrete coordinate of an edge along the lower side of a triangle of the icosahedron
+    integer :: coord_1_points_amount  ! number of points in the coord_1-direction
+    integer :: points_per_edge        ! points on an edge of the icosahedron
+    integer :: dump                   ! only used as an argument of a subroutine, not needed further
+    integer :: addpoint_1             ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer :: addpoint_2             ! one of the six vertices relevant for the up to four triangles computed around an edge
     
     call find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id_local,triangle_on_face_index, &
                                                                     lpoints_downwards,lspecial_case,llast_triangle)
@@ -239,11 +239,11 @@ module mo_discrete_coordinate_trafos
     integer, intent(out) :: coord_1_points_amount  ! maximum amount of points on the coord_1-axis
     
     ! local variables
-    logical :: lcheck          ! 
-    integer :: coord_2_pre     ! 
-    integer :: min_index       ! 
-    integer :: max_index       ! 
-    integer :: points_per_edge ! 
+    logical :: lcheck          ! set to false if loop does not have to be continued
+    integer :: coord_2_pre     ! preliminary result for coord_2
+    integer :: min_index       ! minimum index of a triangle along a coord_1-axis
+    integer :: max_index       ! maximum index of a triangle along a coord_1-axis
+    integer :: points_per_edge ! number of points along a coord_1-axis
     
     lcheck = .true.
     coord_2_pre = -1
@@ -267,8 +267,8 @@ module mo_discrete_coordinate_trafos
   
     ! This subroutine computes the index on face of a triangle from its discrete coordinates.
     
-    integer, intent(in) :: coord_1                                 ! coordinate along left edge of the basic icosahedron
-    integer, intent(in) :: coord_2                                 ! coordinate along lower edge of the basic icosahedron
+    integer, intent(in) :: coord_1                                 ! discrete coordinate along the left edge of the basic icosahedron
+    integer, intent(in) :: coord_2                                 ! discrete coordinate along the lower edge of the basic icosahedron
     integer             :: find_triangle_on_face_index_from_coords ! the result
     
     ! local variables
@@ -322,17 +322,17 @@ module mo_discrete_coordinate_trafos
     integer             :: upscale_scalar_point ! the result
     
     ! local variables
-    integer :: edge_index                             ! 
-    integer :: face_index                             ! 
-    integer :: points_per_edge                        ! 
-    integer :: on_edge_index                          ! 
-    integer :: scalar_points_per_inner_face           ! 
-    integer :: on_face_index                          ! 
-    integer :: coord_1                                ! 
-    integer :: coord_2                                ! 
-    integer :: coord_1_points_amount                  ! 
-    integer :: on_face_index_local                    ! 
-    integer :: scalar_points_per_inner_face_full_grid ! 
+    integer :: edge_index                             ! index of an edge of the icosahedron
+    integer :: face_index                             ! index of a face of the icosahedron
+    integer :: points_per_edge                        ! number of points on an edge of the icosahedron with resolution_id=res_id_local
+    integer :: on_edge_index                          ! index of a point on the edge of the icosahedron
+    integer :: scalar_points_per_inner_face           ! number of scalar data points on the inner domain of a face of the icosahedron with resolution_id=res_id_local
+    integer :: scalar_points_per_inner_face_full_grid ! number of scalar data points on the inner domain of a face of the icosahedron with resolution_id=res_id
+    integer :: on_face_index                          ! index of an edge on a face of the icosahedron
+    integer :: coord_1                                ! discrete coordinate along left edge of the basic icosahedron
+    integer :: coord_2                                ! discrete coordinate along lower edge of the basic icosahedron
+    integer :: coord_1_points_amount                  ! maximum amount of points in the coord_1-direction
+    integer :: on_face_index_local                    ! index of an edge on a face of the icosahedron with resolution_id=res_id_local
     
     scalar_points_per_inner_face_full_grid = (2**res_id-2)/2*(2**res_id-1)
     
@@ -367,22 +367,22 @@ module mo_discrete_coordinate_trafos
     
     integer, intent(in)  :: dual_scalar_on_face_index ! the index of the triangle on the face of the icosahedron
     integer, intent(in)  :: res_id_local              ! the resolution ID to work with
-    logical, intent(out) :: lspecial_case             ! 
-    logical, intent(out) :: llast_triangle            ! 
+    logical, intent(out) :: lspecial_case             ! true only for the very last triangle along a coord_1-axis
+    logical, intent(out) :: llast_triangle            ! only true for the very last triangle on a face of the icosahedron
     logical, intent(out) :: lpoints_downwards         ! true if the triangle points downwards, otherwise false
-    integer, intent(out) :: triangle_on_face_index    ! 
+    integer, intent(out) :: triangle_on_face_index    ! the index of the triangle on the face of the icosahedron
     
     ! local variables
-    logical :: lvalue_found                ! 
-    integer :: triangle_on_face_index_pre  ! 
-    integer :: coord_1_pre                 ! 
-    integer :: coord_2_pre                 ! 
-    integer :: coord_1_points_amount_pre   ! 
-    integer :: dual_scalar_on_face_index_1 ! 
-    integer :: dual_scalar_on_face_index_2 ! 
-    integer :: dual_scalar_on_face_index_3 ! 
-    integer :: dual_scalar_on_face_index_4 ! 
-    integer :: points_per_edge             ! 
+    logical :: lvalue_found                ! will be set to true once the correct result is found
+    integer :: triangle_on_face_index_pre  ! preliminary value of the result
+    integer :: coord_1_pre                 ! temporary value of the discrete coordinate along the left edge of the basic icosahedron
+    integer :: coord_2_pre                 ! temporary value of the discrete coordinate along the lower edge of the basic icosahedron
+    integer :: coord_1_points_amount_pre   ! temporary value of the maximum amount of points in the coord_1-direction
+    integer :: dual_scalar_on_face_index_1 ! index of one of the four triangles around an identifying triangle on a face of the icosahedron
+    integer :: dual_scalar_on_face_index_2 ! index of one of the four triangles around an identifying triangle on a face of the icosahedron
+    integer :: dual_scalar_on_face_index_3 ! index of one of the four triangles around an identifying triangle on a face of the icosahedron
+    integer :: dual_scalar_on_face_index_4 ! index of one of the four triangles around an identifying triangle on a face of the icosahedron
+    integer :: points_per_edge             ! number of points on an edge of the icosahedron with resolution_id=res_id_local
     
     lvalue_found = .false.
     

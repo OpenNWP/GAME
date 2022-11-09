@@ -559,14 +559,14 @@ module mo_horizontal_generation
     integer  :: point_5                   ! one of the six vertices relevant for the up to four triangles computed around an edge
     integer  :: point_6                   ! one of the six vertices relevant for the up to four triangles computed around an edge
     integer  :: dual_scalar_on_face_index ! index of a dual cell on the face of the icosahedron
-    integer  :: small_triangle_edge_index ! only needed for calling a function, value is not used
+    integer  :: small_triangle_edge_index ! only needed for calling a subroutine, value is not used
     integer  :: dual_scalar_index         ! index of a dual cell
     integer  :: coord_1                   ! discrete coordinate of an edge along the left side of a triangle of the icosahedron
     integer  :: coord_2                   ! discrete coordinate of an edge along the lower side of a triangle of the icosahedron
     integer  :: coord_1_points_amount     ! number of points in the coord_1-direction
     integer  :: face_index                ! index of a face of the icosahedron
     integer  :: on_face_index             ! index of an edge on a face of the icosahedron
-    integer  :: triangle_on_face_index    ! index of triangle on a face of the icosahedron
+    integer  :: triangle_on_face_index    ! index of a triangle on a face of the icosahedron
     real(wp) :: lat_res                   ! resulting individual latitude value
     real(wp) :: lon_res                   ! resulting individual longitude value
     
