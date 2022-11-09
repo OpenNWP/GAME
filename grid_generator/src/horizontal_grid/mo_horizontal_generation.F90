@@ -487,17 +487,17 @@ module mo_horizontal_generation
     integer, intent(in)  :: edge_vertices(n_basic_edges,2)          ! relation between edges and vertices
     
     ! local variables
-    integer :: ji                        ! 
-    integer :: edge_index                ! 
-    integer :: on_edge_index             ! 
-    integer :: point_1                   ! 
-    integer :: point_2                   ! 
-    integer :: point_3                   ! 
-    integer :: point_4                   ! 
-    integer :: point_5                   ! 
-    integer :: point_6                   ! 
-    integer :: dual_scalar_on_face_index ! 
-    integer :: small_triangle_edge_index ! 
+    integer :: ji                        ! edge index
+    integer :: edge_index                ! index of an edge of the icosahedron
+    integer :: on_edge_index             ! index of an edge on an edge of the icosahedron
+    integer :: point_1                   ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer :: point_2                   ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer :: point_3                   ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer :: point_4                   ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer :: point_5                   ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer :: point_6                   ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer :: dual_scalar_on_face_index ! index of a dual cell on a face of the icosahedron
+    integer :: small_triangle_edge_index ! identifies a vertex of a dual cell
     
     !$omp parallel do private(ji,edge_index,on_edge_index,point_1,point_2,point_3,point_4,point_5,point_6, &
     !$omp dual_scalar_on_face_index,small_triangle_edge_index)
@@ -551,22 +551,22 @@ module mo_horizontal_generation
     integer,  intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
     
     ! local variables
-    integer  :: ji                        ! 
-    integer  :: point_1                   ! 
-    integer  :: point_2                   ! 
-    integer  :: point_3                   ! 
-    integer  :: point_4                   ! 
-    integer  :: point_5                   ! 
-    integer  :: point_6                   ! 
-    integer  :: dual_scalar_on_face_index ! 
-    integer  :: small_triangle_edge_index ! 
-    integer  :: dual_scalar_index         ! 
-    integer  :: coord_1                   ! 
-    integer  :: coord_2                   ! 
-    integer  :: coord_1_points_amount     ! 
-    integer  :: face_index                ! 
-    integer  :: on_face_index             ! 
-    integer  :: triangle_on_face_index    ! 
+    integer  :: ji                        ! edge index
+    integer  :: point_1                   ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer  :: point_2                   ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer  :: point_3                   ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer  :: point_4                   ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer  :: point_5                   ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer  :: point_6                   ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer  :: dual_scalar_on_face_index ! index of a dual cell on the face of the icosahedron
+    integer  :: small_triangle_edge_index ! only needed for calling a function, value is not used
+    integer  :: dual_scalar_index         ! index of a dual cell
+    integer  :: coord_1                   ! discrete coordinate of an edge along the left side of a triangle of the icosahedron
+    integer  :: coord_2                   ! discrete coordinate of an edge along the lower side of a triangle of the icosahedron
+    integer  :: coord_1_points_amount     ! number of points in the coord_1-direction
+    integer  :: face_index                ! index of a face of the icosahedron
+    integer  :: on_face_index             ! index of an edge on a face of the icosahedron
+    integer  :: triangle_on_face_index    ! index of triangle on a face of the icosahedron
     real(wp) :: lat_res                   ! resulting individual latitude value
     real(wp) :: lon_res                   ! resulting individual longitude value
     
