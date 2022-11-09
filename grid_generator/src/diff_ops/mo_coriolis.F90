@@ -49,38 +49,38 @@ module mo_coriolis
     integer          :: sign_1                      ! one of the signs used for computing a TRSK weight
     integer          :: sign_2                      ! one of the signs used for computing a TRSK weight
     integer          :: n_edges_of_cell             ! number of edges of the given cell (five or six)
-    integer          :: index_offset                ! 
-    integer          :: vertex_index_candidate_1    ! 
-    integer          :: vertex_index_candidate_2    ! 
-    integer          :: counter                     ! 
-    integer          :: check_result                ! 
-    integer          :: first_index                 ! 
-    integer          :: last_index                  ! 
-    integer          :: second_index_1              ! 
-    integer          :: second_index_2              ! 
-    integer          :: vertex_indices(6)           ! 
-    integer          :: edge_indices(6)             ! 
-    integer          :: indices_resorted(6)         ! 
-    integer          :: vertex_indices_resorted(6)  ! 
-    integer          :: value_written               ! 
+    integer          :: index_offset                ! 0 for the first adjacent cell, 5 for the second
+    integer          :: vertex_index_candidate_1    ! used for sorting the vertices of a cell
+    integer          :: vertex_index_candidate_2    ! used for sorting the vertices of a cell
+    integer          :: counter                     ! used for finding the vertices of a cell, will be incremented if a vertex is found
+    integer          :: check_result                ! helper variable, used for finding the vertices of a cell
+    integer          :: first_index                 ! first index of the edges that need to be resorted for calculating an individual TRSK weight
+    integer          :: last_index                  ! last index of the edges that need to be resorted for calculating an individual TRSK weight
+    integer          :: second_index_1              ! used for checks only, one of the two indices identifying a TRSK weight
+    integer          :: second_index_2              ! used for checks only, one of the two indices identifying a TRSK weight
+    integer          :: vertex_indices(6)           ! vertex indices of a given cell
+    integer          :: edge_indices(6)             ! edge indices of a given cell
+    integer          :: indices_resorted(6)         ! resorted vertex indices of a given cell (1 - 6)
+    integer          :: vertex_indices_resorted(6)  ! resorted vertex indices of a given cell
+    integer          :: value_written               ! helper variable, used for resorting the TRSK weights
     integer          :: trsk_indices_pre(10)        ! unsorted TRSK indices
-    integer          :: next_vertex_index           ! 
-    integer          :: next_vertex_index_candidate ! 
-    integer          :: indices_used_counter        ! 
-    integer          :: indices_used(5)             ! 
+    integer          :: next_vertex_index_candidate ! used for resorting the edges, candidate for the next vertex
+    integer          :: next_vertex_index           ! used for resorting the edges, index of the next vertex
+    integer          :: indices_used_counter        ! used for resorting the edges, counts how many edges have already been resorted
+    integer          :: indices_used(5)             ! used for resorting the edges, holds the indices that have already been resorted
     integer, pointer :: from_or_to_cell(:)          ! either from_cell or to_cell
     real(wp)         :: check_sum                   ! used for checking if the result is self-consistent
-    real(wp)         :: triangle_1                  ! 
-    real(wp)         :: triangle_2                  ! 
-    real(wp)         :: sum_of_weights              ! 
+    real(wp)         :: triangle_1                  ! triangle connecting an edge, a cell center and a dual cell center
+    real(wp)         :: triangle_2                  ! triangle connecting an edge, a cell center and a dual cell center
+    real(wp)         :: sum_of_weights              ! sum of areas, preliminary value of a TRSK weight
     real(wp)         :: latitude_vertices(6)        ! latitudes of the vertices of a given cell
     real(wp)         :: longitude_vertices(6)       ! longitudes of the vertices of a given cell
     real(wp)         :: latitude_edges(6)           ! latitudes of the edges of a given cell
     real(wp)         :: longitude_edges(6)          ! longitudes of the edges of a given cell
-    real(wp)         :: vector_of_areas(6)          ! 
+    real(wp)         :: vector_of_areas(6)          ! holds the six (five) triangles a hexagon (pentagon) consists of
     real(wp)         :: trsk_weights_pre(10)        ! unsorted TRSK weights
-    real(wp)         :: value_1                     ! 
-    real(wp)         :: value_2                     ! 
+    real(wp)         :: value_1                     ! only used for checks
+    real(wp)         :: value_2                     ! only used for checks
     real(wp)         :: rescale_for_z_offset_1d     ! rescales lengths from the highest level to the highest layer
     real(wp)         :: rescale_for_z_offset_2d     ! rescales areas from the highest level to the highest layer
     
@@ -276,7 +276,7 @@ module mo_coriolis
       trsk_weights_pre = trsk_weights(:,ji)
       next_vertex_index = to_cell_dual(ji)
       indices_used_counter = 1
-      indices_used = 0
+      indices_used(:) = 0
       do jk=1,n_edges_of_cell-1
         value_written = 0
         do jl=1,n_edges_of_cell-1
@@ -402,15 +402,15 @@ module mo_coriolis
           second_index_2 = 0
           do jl=1,10
             if (trsk_indices(jl,first_index)==ji) then
-              second_index_1 = first_index
-              second_index_2 = jl
+              second_index_1 = jl
+              second_index_2 = first_index
             endif
           enddo
           if (second_index_1==0 .or. second_index_2==0) then
             write(*,*) "Problem 10 in TRSK implementation detected."
             call exit(1)
           endif
-          value_2 = dx(first_index,1)/(rescale_for_z_offset_1d*dy(ji,1))*trsk_weights(second_index_2,second_index_1)
+          value_2 = dx(first_index,1)/(rescale_for_z_offset_1d*dy(ji,1))*trsk_weights(second_index_1,second_index_2)
           check_sum = value_1+value_2
           if (abs(check_sum)>EPSILON_SECURITY) then
             write(*,*) "Problem 11 in TRSK implementation detected."
