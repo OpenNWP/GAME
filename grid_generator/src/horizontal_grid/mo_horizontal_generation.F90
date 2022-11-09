@@ -408,22 +408,22 @@ module mo_horizontal_generation
     ! local variables
     integer  :: ji                             ! edge index
     integer  :: dual_scalar_index              ! dual scalar index (triangle index)
-    integer  :: point_1                        ! 
-    integer  :: point_2                        ! 
-    integer  :: point_3                        ! 
-    integer  :: point_4                        ! 
-    integer  :: point_5                        ! 
-    integer  :: point_6                        ! 
-    integer  :: dual_scalar_on_face_index      ! 
-    integer  :: small_triangle_edge_index      ! 
-    integer  :: coord_1_points_amount          ! 
-    integer  :: coord_1                        ! 
-    integer  :: coord_2                        ! 
-    integer  :: face_index                     ! 
-    integer  :: on_face_index                  ! 
-    integer  :: triangle_on_face_index         ! 
-    real(wp) :: triangle_sum_unit_sphere       ! 
-    real(wp) :: triangle_avg_unit_sphere_ideal ! 
+    integer  :: point_1                        ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer  :: point_2                        ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer  :: point_3                        ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer  :: point_4                        ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer  :: point_5                        ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer  :: point_6                        ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer  :: dual_scalar_on_face_index      ! index of a triangle on a face of the icosahedron
+    integer  :: small_triangle_edge_index      ! needed by a discrete coordinate transformation
+    integer  :: coord_1_points_amount          ! number of points on the coord_1-axis
+    integer  :: coord_1                        ! first discrete coordinate on a face of the icosahedron
+    integer  :: coord_2                        ! second discrete coordinate on a face of the icosahedron
+    integer  :: face_index                     ! index of a face of the icosahedron
+    integer  :: on_face_index                  ! index of an edge on the face of the icosahedron
+    integer  :: triangle_on_face_index         ! index of a downward triangle on a face of the icosahedron
+    real(wp) :: triangle_sum_unit_sphere       ! the sum of the areas of the triangles on the unit sphere (check quantity)
+    real(wp) :: triangle_avg_unit_sphere_ideal ! the average area of a triangle
     
     do ji=1,n_edges
       if (ji>n_basic_edges*(n_points_per_edge+1)) then
@@ -453,6 +453,8 @@ module mo_horizontal_generation
         endif
       endif
     enddo
+    
+    ! checks
     triangle_sum_unit_sphere = 0._wp
     triangle_avg_unit_sphere_ideal = 4._wp*M_PI/n_triangles
     do ji=1,n_triangles
