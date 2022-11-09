@@ -284,28 +284,28 @@ module mo_horizontal_generation
     logical  :: lpoints_downwards          ! true if the triangle points downwards
     logical  :: lpoints_upwards            ! true if the triangle points upwards
     logical  :: ldump                      ! boolean required by a function but not needed further
-    integer  :: ji                         ! 
-    integer  :: jk                         ! 
-    integer  :: jm                         ! 
-    integer  :: res_id_local               ! 
-    integer  :: n_triangles_per_face       ! 
-    integer  :: base_index_down_triangles  ! 
-    integer  :: base_index_old             ! 
-    integer  :: test_index                 ! 
-    integer  :: old_triangle_on_line_index ! 
-    integer  :: base_index_up_triangles    ! 
-    integer  :: points_per_edge            ! 
-    integer  :: edgepoint_1                ! 
-    integer  :: edgepoint_2                ! 
-    integer  :: edgepoint_3                ! 
-    integer  :: point_1                    ! 
-    integer  :: point_2                    ! 
-    integer  :: point_3                    ! 
-    integer  :: dual_scalar_on_face_index  ! 
-    integer  :: coord_1                    ! 
-    integer  :: coord_2                    ! 
-    integer  :: triangle_on_face_index     ! 
-    integer  :: coord_1_points_amount      ! 
+    integer  :: ji                         ! used to loop over a horizontal grid quantity
+    integer  :: jk                         ! index of a triangle on a face of the icosahedron
+    integer  :: jm                         ! used to loop along the lower discrete coordinate axis
+    integer  :: res_id_local               ! locally used resolution ID, <= res_id
+    integer  :: n_triangles_per_face       ! number of triangles a face of the icosahedron has
+    integer  :: base_index_down_triangle   ! index of a downward-pointing triangle on a face of the icosahedron
+    integer  :: base_index_old             ! index of a triangle before a resolution-refinement
+    integer  :: test_index                 ! used to check the function upscale_scalar_point
+    integer  :: old_triangle_on_line_index ! index of a triangle on the coord_1-axis before a resolution refinement
+    integer  :: base_index_up_triangles    ! index of an upward-pointing triangle on the coord_1-axis before a resolution refinement
+    integer  :: points_per_edge            ! points on an edge of the icosahedron
+    integer  :: vertex_old_1               ! vertex index of a coarser triangle
+    integer  :: vertex_old_2               ! vertex index of a coarser triangle
+    integer  :: vertex_old_3               ! vertex index of a coarser triangle
+    integer  :: point_1                    ! index of a primal scalar point (triangle edge point)
+    integer  :: point_2                    ! index of a primal scalar point (triangle edge point)
+    integer  :: point_3                    ! index of a primal scalar point (triangle edge point)
+    integer  :: dual_scalar_on_face_index  ! index of a dual scalar on a face of the icosahedron
+    integer  :: coord_1                    ! first discrete coordinate on a face of the icosahedron
+    integer  :: coord_2                    ! second discrete coordinate on a face of the icosahedron
+    integer  :: triangle_on_face_index     ! index of a triangle on a face of the icosahedron
+    integer  :: coord_1_points_amount      ! number of points on the coord_1-axis
     real(wp) :: x_res                      ! x-coordinate of a gridpoint
     real(wp) :: y_res                      ! y-coordinate of a gridpoint
     real(wp) :: z_res                      ! z-coordinate of a gridpoint
@@ -344,7 +344,7 @@ module mo_horizontal_generation
                                         z_unit,lat_c,lon_c)
           else
             call find_triangle_edge_points_from_dual_scalar_on_face_index(jk-1,ji-1,res_id_local-1, &
-                                                                          edgepoint_1,edgepoint_2,edgepoint_3, &
+                                                                          vertex_old_1,vertex_old_2,vertex_old_3, &
                                                                           face_vertices,face_edges,face_edges_reverse)
             call find_triangle_on_face_index_from_dual_scalar_on_face_index(jk-1,res_id_local-1,triangle_on_face_index, &
                                                                             lpoints_downwards,ldump,llast_triangle)
@@ -352,31 +352,31 @@ module mo_horizontal_generation
                                                          coord_1_points_amount)
             points_per_edge = find_points_per_edge(res_id_local-1)
             base_index_old = 0
-            base_index_down_triangles = 0
-            base_index_up_triangles = base_index_down_triangles + 4*points_per_edge + 3
+            base_index_down_triangle = 0
+            base_index_up_triangles = base_index_down_triangle + 4*points_per_edge + 3
             do jm=0,coord_2-1
               coord_1_points_amount = points_per_edge - jm
               base_index_old = base_index_old + 2*coord_1_points_amount + 1
-              base_index_down_triangles = base_index_down_triangles + 4*(2*coord_1_points_amount + 1)
-              base_index_up_triangles = base_index_down_triangles + 4*(points_per_edge-jm) + 3
+              base_index_down_triangle = base_index_down_triangle + 4*(2*coord_1_points_amount + 1)
+              base_index_up_triangles = base_index_down_triangle + 4*(points_per_edge-jm) + 3
             enddo
             if (llast_triangle) then
               base_index_old = base_index_old + 3
-              base_index_down_triangles = base_index_down_triangles + 12
-              base_index_up_triangles = base_index_down_triangles + 3
+              base_index_down_triangle = base_index_down_triangle + 12
+              base_index_up_triangles = base_index_down_triangle + 3
             endif
             old_triangle_on_line_index = jk-1 - base_index_old
             if (.not. lpoints_downwards) then
-              dual_scalar_on_face_index = base_index_down_triangles + 1 + 2*old_triangle_on_line_index
+              dual_scalar_on_face_index = base_index_down_triangle + 1 + 2*old_triangle_on_line_index
             else
               dual_scalar_on_face_index = base_index_up_triangles + 2*old_triangle_on_line_index
             endif
             call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji-1,res_id_local, &
                                                                           point_1,point_2,point_3, &
                                                                           face_vertices,face_edges,face_edges_reverse)
-            edgepoint_1 = upscale_scalar_point(res_id_local-1,edgepoint_1)
-            edgepoint_2 = upscale_scalar_point(res_id_local-1,edgepoint_2)
-            edgepoint_3 = upscale_scalar_point(res_id_local-1,edgepoint_3)
+            vertex_old_1 = upscale_scalar_point(res_id_local-1,vertex_old_1)
+            vertex_old_2 = upscale_scalar_point(res_id_local-1,vertex_old_2)
+            vertex_old_3 = upscale_scalar_point(res_id_local-1,vertex_old_3)
             point_1 = upscale_scalar_point(res_id_local,point_1)
             point_2 = upscale_scalar_point(res_id_local,point_2)
             point_3 = upscale_scalar_point(res_id_local,point_3)
@@ -384,7 +384,7 @@ module mo_horizontal_generation
             if (lpoints_downwards) then
               lpoints_upwards = .false.
             endif
-            call set_scalar_coordinates(edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3, &
+            call set_scalar_coordinates(vertex_old_1,vertex_old_2,vertex_old_3,point_1,point_2,point_3, &
                                         lpoints_upwards,x_unit,y_unit,z_unit,lat_c,lon_c)
           endif
         enddo
@@ -414,7 +414,7 @@ module mo_horizontal_generation
     integer  :: point_4                        ! one of the six vertices relevant for the up to four triangles computed around an edge
     integer  :: point_5                        ! one of the six vertices relevant for the up to four triangles computed around an edge
     integer  :: point_6                        ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer  :: dual_scalar_on_face_index      ! index of a triangle on a face of the icosahedron
+    integer  :: dual_scalar_on_face_index      ! index of a dual scalar on a face of the icosahedron
     integer  :: small_triangle_edge_index      ! needed by a discrete coordinate transformation
     integer  :: coord_1_points_amount          ! number of points on the coord_1-axis
     integer  :: coord_1                        ! first discrete coordinate on a face of the icosahedron
@@ -747,14 +747,14 @@ module mo_horizontal_generation
     
   end subroutine set_from_to_cell_dual
   
-  subroutine set_scalar_coordinates(edgepoint_1,edgepoint_2,edgepoint_3,point_1,point_2,point_3,lpoints_upwards, &
+  subroutine set_scalar_coordinates(vertex_old_1,vertex_old_2,vertex_old_3,point_1,point_2,point_3,lpoints_upwards, &
                                     x_unit,y_unit,z_unit,lat_c,lon_c)
     
     ! This subroutine computes the geographical and Cartesian coordinates of the three vertices of a triangle of the grid.
     
-    integer,  intent(in)    :: edgepoint_1     ! first vertex index of the coarser triangle
-    integer,  intent(in)    :: edgepoint_2     ! second vertex index of the coarser triangle
-    integer,  intent(in)    :: edgepoint_3     ! third vertex index of the coarser triangle
+    integer,  intent(in)    :: vertex_old_1    ! first vertex index of the coarser triangle
+    integer,  intent(in)    :: vertex_old_2    ! second vertex index of the coarser triangle
+    integer,  intent(in)    :: vertex_old_3    ! third vertex index of the coarser triangle
     integer,  intent(in)    :: point_1         ! first vertex index of the finer triangle
     integer,  intent(in)    :: point_2         ! second vertex index of the finer triangle
     integer,  intent(in)    :: point_3         ! third vertex index of the finer triangle
@@ -776,8 +776,8 @@ module mo_horizontal_generation
     real(wp) :: lon_res    ! resulting individual longitude value of a cell center
 
     ! first point
-    call find_between_point(x_unit(edgepoint_1),y_unit(edgepoint_1),z_unit(edgepoint_1), &
-                            x_unit(edgepoint_2),y_unit(edgepoint_2),z_unit(edgepoint_2), &
+    call find_between_point(x_unit(vertex_old_1),y_unit(vertex_old_1),z_unit(vertex_old_1), &
+                            x_unit(vertex_old_2),y_unit(vertex_old_2),z_unit(vertex_old_2), &
                             0.5_wp,x_res,y_res,z_res)
     call normalize_cartesian(x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm)
     if (lpoints_upwards) then
@@ -799,8 +799,8 @@ module mo_horizontal_generation
     endif
     
     ! second point
-    call find_between_point(x_unit(edgepoint_2),y_unit(edgepoint_2),z_unit(edgepoint_2), &
-                            x_unit(edgepoint_3),y_unit(edgepoint_3),z_unit(edgepoint_3), &
+    call find_between_point(x_unit(vertex_old_2),y_unit(vertex_old_2),z_unit(vertex_old_2), &
+                            x_unit(vertex_old_3),y_unit(vertex_old_3),z_unit(vertex_old_3), &
                             0.5_wp,x_res,y_res,z_res)
     call normalize_cartesian(x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm)
     if (lpoints_upwards) then
@@ -822,8 +822,8 @@ module mo_horizontal_generation
     endif
     
     ! third point
-    call find_between_point(x_unit(edgepoint_3),y_unit(edgepoint_3),z_unit(edgepoint_3), &
-                            x_unit(edgepoint_1),y_unit(edgepoint_1),z_unit(edgepoint_1), &
+    call find_between_point(x_unit(vertex_old_3),y_unit(vertex_old_3),z_unit(vertex_old_3), &
+                            x_unit(vertex_old_1),y_unit(vertex_old_1),z_unit(vertex_old_1), &
                             0.5_wp,x_res,y_res,z_res)
     call normalize_cartesian(x_res,y_res,z_res,x_res_norm,y_res_norm,z_res_norm)
     if (lpoints_upwards) then

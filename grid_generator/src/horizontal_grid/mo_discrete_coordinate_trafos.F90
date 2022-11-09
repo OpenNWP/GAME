@@ -24,7 +24,7 @@ module mo_discrete_coordinate_trafos
     
     ! This subroutine finds which triangles a horizontal vector is connected to.
     
-    integer, intent(in)  :: ji                                      ! 
+    integer, intent(in)  :: ji                                      ! edge index
     integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! relation between faces and edges
     integer, intent(in)  :: face_vertices(n_basic_triangles,3)      ! relation between faces and vertices
     integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
