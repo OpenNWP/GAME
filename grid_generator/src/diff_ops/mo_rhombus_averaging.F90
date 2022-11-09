@@ -43,22 +43,22 @@ module mo_rhombus_averaging
     integer  :: jk                                 ! further horizontal index
     integer  :: jl                                 ! further horizontal index
     integer  :: jm                                 ! further horizontal index
-    integer  :: counter                            ! 
-    integer  :: indices_list_pre(6)                ! 
-    integer  :: indices_list(4)                    ! 
-    integer  :: double_indices(2)                  ! 
-    integer  :: density_to_rhombus_indices_pre(4)  ! 
-    integer  :: density_to_rhombus_index_candidate ! 
-    integer  :: check_counter                      ! 
-    integer  :: triangle_index_1                   ! 
-    integer  :: triangle_index_2                   ! 
-    integer  :: edge_index_1                       ! 
-    integer  :: edge_index_2                       ! 
-    integer  :: edge_index_1_found                 ! 
-    integer  :: edge_index_2_found                 ! 
-    integer  :: which_vertex_check_result          ! 
-    integer  :: first_case_counter                 ! 
-    integer  :: second_case_counter                ! 
+    integer  :: indices_list_pre(6)                ! holds the six edge indices that occur around an edge, two of them appear twice
+    integer  :: indices_list(4)                    ! holds the four individual edge indices that occur around an edge, two of them appear twice
+    integer  :: counter                            ! used for generating indices_list out of indices_list_pre
+    integer  :: double_indices(2)                  ! holds the two indices of a vector that occurs twice around an edge
+    integer  :: density_to_rhombus_indices_pre(4)  ! preliminary result, will be copied into the final result for the indices
+    integer  :: density_to_rhombus_index_candidate ! candidate for a density_to_rhombus_indices_pre value
+    integer  :: first_case_counter                 ! used for computing density_to_rhombus_weights, true if cell is adjacent to the given edge
+    integer  :: second_case_counter                ! used for computing density_to_rhombus_weights, true if cell is not adjacent to the given edge
+    integer  :: check_counter                      ! helper variable, used for calculating density_to_rhombus_indices_pre
+    integer  :: triangle_index_1                   ! dual edge index
+    integer  :: triangle_index_2                   ! dual edge index
+    integer  :: edge_index_1                       ! primal edge index
+    integer  :: edge_index_2                       ! primal edge index
+    integer  :: edge_index_1_found                 ! used to check if a certain edge is relevant
+    integer  :: edge_index_2_found                 ! used to check if a certain edge is relevant
+    integer  :: which_vertex_check_result          ! helper variable, used to check which of the two adjacent triangles is relevant
     real(wp) :: triangle_1                         ! one of the triangles constituting the rhombus
     real(wp) :: triangle_2                         ! one of the triangles constituting the rhombus
     real(wp) :: triangle_3                         ! one of the triangles constituting the rhombus
@@ -71,8 +71,10 @@ module mo_rhombus_averaging
     !$omp edge_index_1,edge_index_2,edge_index_1_found,edge_index_2_found,which_vertex_check_result, &
     !$omp first_case_counter,second_case_counter,triangle_1,triangle_2,triangle_3,triangle_4,rhombus_area,check_sum)
     do ji=1,n_edges
+    
+      ! Preparations
+      ! ------------
       double_indices = -1
-      
       ! finding the vectors that are adjacent to the two triangles
       do jk=1,3
         indices_list_pre(jk) = vorticity_indices_triangles(jk,to_cell_dual(ji))
@@ -110,6 +112,7 @@ module mo_rhombus_averaging
       enddo
       
       ! Now comes the density interpolation to rhombi. First the indices.
+      ! -----------------------------------------------------------------
       density_to_rhombus_indices_pre = -1
       check_counter = 1
       do jk=1,4
@@ -130,7 +133,9 @@ module mo_rhombus_averaging
         call exit(1)
       endif
         density_to_rhombus_indices(:,ji) = density_to_rhombus_indices_pre
-      ! now the weights
+        
+      ! Now the weights
+      ! ---------------
       rhombus_area = area_dual_v(from_cell_dual(ji),1) + area_dual_v(to_cell_dual(ji),1)
       ! This is a sum over the four primal cells which are needed for the density interpolation.
       first_case_counter = 0
@@ -248,6 +253,9 @@ module mo_rhombus_averaging
           density_to_rhombus_weights(jk,ji) = (radius + z_vector_h(1,1))**2*(triangle_1+triangle_2)/rhombus_area
         endif
       enddo
+      
+      ! Checks
+      ! ------
       if (first_case_counter/=2) then
         write(*,*) "Error in subroutine rhombus_averaging, position 4."
         call exit(1)
@@ -269,6 +277,7 @@ module mo_rhombus_averaging
         call exit(1)
       endif
     enddo
+    
     !$omp end parallel do
     
   end subroutine rhombus_averaging
