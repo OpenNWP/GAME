@@ -16,16 +16,16 @@ module mo_grid_setup
   implicit none
   
   ! some quantities that need to be accessed from outside this module
-  real(wp) :: toa                  ! top of atmosphere in meters above MSL
-  real(wp) :: dtime                ! time step
-  integer  :: n_oro_layers         ! number of layers following the orography
-  integer  :: n_flat_layers        ! number of flat layers
-  real(wp) :: radius_rescale       ! radius rescaling factor
-  real(wp) :: radius               ! radius of the planet to construct the grid for
-  real(wp) :: mean_velocity_area   ! the area that can be attributed to one horizontal vector gridpoint
-  real(wp) :: eff_hor_res          ! effective horizontal resolution
-  real(wp) :: z_t_const            ! soil depth of constant temperature
-  integer  :: n_damping_levels     ! number of levels in which the swamp layer is active
+  real(wp) :: toa                ! top of atmosphere in meters above MSL
+  real(wp) :: dtime              ! time step
+  integer  :: n_oro_layers       ! number of layers following the orography
+  integer  :: n_flat_layers      ! number of flat layers
+  real(wp) :: radius_rescale     ! radius rescaling factor
+  real(wp) :: radius             ! radius of the planet to construct the grid for
+  real(wp) :: mean_velocity_area ! the area that can be attributed to one horizontal vector gridpoint
+  real(wp) :: eff_hor_res        ! effective horizontal resolution
+  real(wp) :: z_t_const          ! soil depth of constant temperature
+  integer  :: n_damping_levels   ! number of levels in which the swamp layer is active
   
   contains
   
