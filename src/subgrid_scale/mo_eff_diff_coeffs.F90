@@ -186,7 +186,7 @@ module mo_eff_diff_coeffs
     
     ! local variables
     integer  :: ji                  ! edge index
-    integer  :: jl                  ! layer index
+    integer  :: jl                  ! level index
     real(wp) :: mom_diff_coeff      ! kinematic momentum diffusion coefficient
     real(wp) :: molecular_viscosity ! molecular viscosity
     
