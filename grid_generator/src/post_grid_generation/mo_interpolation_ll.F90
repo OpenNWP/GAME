@@ -67,10 +67,8 @@ module mo_interpolation_ll
           weights_sum = weights_sum+weights_vector(jm)
         enddo
         ! writing the result to the arrays
-        do jm=1,5
-          interpol_indices(jm,ji,jk) = min_indices_vector(jm)
-          interpol_weights(jm,ji,jk) = weights_vector(jm)/weights_sum
-        enddo
+        interpol_indices(:,ji,jk) = min_indices_vector(:)
+        interpol_weights(:,ji,jk) = weights_vector(:)/weights_sum
       enddo
     enddo
     !$omp end parallel do
