@@ -735,7 +735,7 @@ module mo_rrtmgp_coupler
   
   subroutine handle_error(error_message)
   
-    character(len = *), intent(in) :: error_message
+    character(len = *), intent(in) :: error_message ! the error message that might have been returned by a netCDF function
     
     ! write the error message if its real length is larger than zero
     if (len(trim(error_message))>0) then
