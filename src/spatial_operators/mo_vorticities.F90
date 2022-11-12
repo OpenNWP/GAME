@@ -215,7 +215,7 @@ module mo_vorticities
     type(t_grid), intent(in)    :: grid ! grid quantities
     
     ! local variables
-    integer :: jl ! layer index
+    integer :: jl ! layer or level index
     
     ! horizontal
     !$omp parallel do private(jl)

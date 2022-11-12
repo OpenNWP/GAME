@@ -45,8 +45,7 @@ module mo_rrtmgp_coupler
     ! This is called only once, in the beginning.
     
     ! local variables
-    ! loop index
-    integer :: jc
+    integer :: jc ! gas index
     
     ! formatting the gas names
     do jc=1,size(active_gases)

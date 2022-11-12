@@ -93,7 +93,7 @@ module mo_multiplications
     
     ! local variables
     integer  :: ji ! cell index
-    integer  :: jl ! layer index
+    integer  :: jl ! level index
     
     !$omp parallel do private(ji,jl)
     do jl=2,n_layers
@@ -114,7 +114,7 @@ module mo_multiplications
     
     ! local variables
     integer  :: ji ! cell index
-    integer  :: jl ! layer index
+    integer  :: jl ! level index
     
     !$omp parallel do private(ji,jl)
     do jl=2,n_layers

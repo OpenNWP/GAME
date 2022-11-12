@@ -45,7 +45,7 @@ module mo_gradient_operators
     type(t_grid), intent(in)  :: grid                        ! grid quantities
     
     ! local variables
-    integer :: jl ! layer index
+    integer :: jl ! level index
     
     ! loop over the inner gridpoints
     !$omp parallel do private(jl)

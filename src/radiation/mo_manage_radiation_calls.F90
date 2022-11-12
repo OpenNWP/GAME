@@ -148,7 +148,7 @@ module mo_manage_radiation_calls
     integer,  intent(in)  :: rad_block_index                      ! the number of the given radiation slice
     
     ! local variables
-    integer :: ji ! horizontal loop index
+    integer :: ji ! cell index
     
     ! loop over all elements of the resulting array
     do ji=1,n_cells_rad_used
@@ -167,7 +167,7 @@ module mo_manage_radiation_calls
     integer,  intent(in)  :: rad_block_index             ! the number of the given radiation slice
     
     ! local variables
-    integer :: ji ! horizontal loop index
+    integer :: ji ! cell index
     
     ! loop over all elements of the resulting array
     do ji=1,n_cells_rad_used
@@ -187,7 +187,7 @@ module mo_manage_radiation_calls
     integer,  intent(in)  :: rad_block_index                      ! the number of the given radiation slice
     
     ! local variables
-    integer :: ji ! horizontal loop index
+    integer :: ji ! cell index
     
     ! loop over all elements of the resulting array
     do ji=1,n_cells_rad_used
@@ -206,7 +206,7 @@ module mo_manage_radiation_calls
     integer,  intent(in)  :: rad_block_index                                     ! the number of the given radiation slice
     
     ! local variables
-    integer :: ji ! horizontal loop index
+    integer :: ji ! cell index
     
     ! loop over all cells of the resulting array
     do ji=1,n_cells_rad_used
@@ -225,7 +225,7 @@ module mo_manage_radiation_calls
     integer,  intent(in)  :: rad_block_index                     ! the number of the given radiation slice
     
     ! local variables
-    integer :: ji ! horizontal loop index
+    integer :: ji ! cell index
     
     ! loop over all cells of the resulting array
     do ji=1,n_cells_rad_used
@@ -244,7 +244,7 @@ module mo_manage_radiation_calls
     integer,  intent(in)  :: rad_block_index            ! the number of the given radiation slice
     
     ! local variables
-    integer :: ji ! horizontal loop index
+    integer :: ji ! cell index
     
     ! loop over all elements of the resulting array
     do ji=1,n_cells_rad_used
