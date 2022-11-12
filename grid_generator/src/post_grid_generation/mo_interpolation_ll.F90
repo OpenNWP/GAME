@@ -59,7 +59,7 @@ module mo_interpolation_ll
         do jm=1,n_cells
           distance_vector(jm) = calculate_distance_h(lat_value,lon_value,lat_c(jm),lon_c(jm),1._wp)
         enddo
-        min_indices_vector = 0
+        min_indices_vector(:) = 0
         weights_sum = 0._wp
         do jm=1,5
           min_indices_vector(jm) = find_min_index_exclude(distance_vector,min_indices_vector)
