@@ -25,9 +25,13 @@ module mo_vertical_grid
     real(wp), intent(in)  :: max_oro                    ! maximum of the orography
     
     ! local variables
-    integer  :: ji ! cell index
-    integer  :: jl ! vertical index
-    real(wp) :: A,B,sigma_z,z_rel,z_vertical_vector_pre(n_levels)
+    integer  :: ji                              ! cell index
+    integer  :: jl                              ! vertical index
+    real(wp) :: A                               ! height of a level without orography
+    real(wp) :: B                               ! orography weighting factor
+    real(wp) :: sigma_z                         ! A/toa
+    real(wp) :: z_rel                           ! z/toa with equidistant levels
+    real(wp) :: z_vertical_vector_pre(n_levels) ! heights of the levels in a column
     
     ! the heights are defined according to z_k = A_k + B_k*oro with A_0 = toa, A_{n_levels} = 0, B_0 = 0, B_{n_levels} = 1
     
@@ -37,7 +41,7 @@ module mo_vertical_grid
     
       ! filling up z_vertical_vector_pre
       do jl=1,n_levels
-        z_rel = 1._wp-(jl-1._wp)/n_layers ! z/toa
+        z_rel = 1._wp-(jl-1._wp)/n_layers
         sigma_z = z_rel**stretching_parameter
         A = sigma_z*toa ! the height without orography
         ! B corrects for orography
@@ -113,7 +117,7 @@ module mo_vertical_grid
     real(wp)             :: standard_temp ! result
     
     ! local variables
-    real(wp) :: tropo_temp_standard
+    real(wp) :: tropo_temp_standard ! temperature at the tropopause in the ICAO standard atmosphere
     
     tropo_temp_standard = surface_temp-tropo_height*lapse_rate
     
@@ -135,7 +139,8 @@ module mo_vertical_grid
     real(wp)             :: standard_pres ! air pressure in the standard atmosphere (result)
     
     ! local variables
-    real(wp) :: tropo_temp_standard,pressure_at_inv_standard
+    real(wp) :: tropo_temp_standard      ! temperature at the tropopause in the ICAO standard atmosphere
+    real(wp) :: pressure_at_inv_standard ! pressure at the inversion height (inv_height) in the ICAO standard atmosphere
     
     tropo_temp_standard = surface_temp-tropo_height*lapse_rate
     
