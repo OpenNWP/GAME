@@ -6,7 +6,7 @@ module mo_dictionary
   ! This module contains look-up functions for properties of the atmosphere.
 
   use mo_definitions, only: wp
-  use mo_constants,   only: t_0,m_v
+  use mo_constants,   only: t_0,m_v,rho_h2o,M_PI
   
   implicit none
   
@@ -471,6 +471,20 @@ module mo_dictionary
     *(5723.265_wp/temperature**2+3.53068_wp/temperature-0.00728332_wp)
       
   end function dsaturation_pressure_ice_murphy_dT
+  
+  function marshall_palmer_diameter(liquid_density)
+    
+    ! This function retruns the mean diameter of rain drops assuming a Marshall-Palmer (1948) distribution.
+    
+    real(wp) :: liquid_density           ! the density of liquid water (clouds + rain)
+    real(wp) :: marshall_palmer_diameter ! result
+    
+    ! local variables
+    real(wp) :: n_0 = 8.e6_wp ! prefactor of the Marshall-Palmer distribution
+    
+    marshall_palmer_diameter = (liquid_density/(rho_h2o*M_PI*n_0))**0.25_wp
+    
+  end function marshall_palmer_diameter
 
 end module mo_dictionary
 
