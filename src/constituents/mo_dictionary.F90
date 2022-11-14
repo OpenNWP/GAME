@@ -16,52 +16,48 @@ module mo_dictionary
     
     ! This function returns the molar fraction of certain gases in dry air.
     
-    ! gaseous constituents IDs:
-    ! 0: dry air
-    ! 1: H2O
-    ! 2: N2
-    ! 3: O2
-    ! 4: Ar
-    ! 5: CO2
-    ! 6: Ne
-    ! 7: He
-    ! 8: CH4
-    ! 9: CO
-    ! 10: O3
-    ! 11: N2O
+    integer, intent(in) :: gas_number                ! defines the gas (definition see below)
+    real(wp)            :: molar_fraction_in_dry_air ! result
     
-    integer, intent(in) :: gas_number
-    real(wp)            :: molar_fraction_in_dry_air
-    
+    ! N2
     if (gas_number==2) then
       molar_fraction_in_dry_air = 0.7809_wp
     endif
+    ! O2
     if (gas_number==3) then
       molar_fraction_in_dry_air = 0.2095_wp
     endif
+    ! Ar
     if (gas_number==4) then
       molar_fraction_in_dry_air = 0.0093_wp
     endif
+    ! CO2
     if (gas_number==5) then
       molar_fraction_in_dry_air = 0.0003_wp
     endif
+    ! Ne
     if (gas_number==6) then
       molar_fraction_in_dry_air = 1.8e-5_wp
     endif
+    ! He
     if (gas_number==7) then
       molar_fraction_in_dry_air = 5.2e-6_wp
     endif
+    ! CH4
     if (gas_number==8) then
       molar_fraction_in_dry_air = 1.5e-6_wp
     endif
+    ! CO
     if (gas_number==9) then
       molar_fraction_in_dry_air = 1.0e-7_wp
     endif
+    ! O3
     if (gas_number==10) then
       molar_fraction_in_dry_air = 1e-6_wp
     endif
+    ! N2O
     if (gas_number==11) then
-    ! https://www.epa.gov/climate-indicators/climate-change-indicators-atmospheric-concentrations-greenhouse-gases
+      ! source: https://www.epa.gov/climate-indicators/climate-change-indicators-atmospheric-concentrations-greenhouse-gases
       molar_fraction_in_dry_air = 0.3e-6_wp
     endif
     
@@ -92,25 +88,21 @@ module mo_dictionary
   function phase_trans_heat(direction,temperature)
     
     ! This function calculates the phase transition heat.
-
-    ! input arguments
-    integer  :: direction
-    real(wp) :: temperature
-
-    real(wp) :: phase_trans_heat
     
-    ! directions:
-    ! 0: gas to liquid
-    ! 1: gas to solid
-    ! 2: liquid to solid
+    integer  :: direction        ! defines the kind of phase transition (definition see below)
+    real(wp) :: temperature      ! air temperature
+    real(wp) :: phase_trans_heat ! result
 
     phase_trans_heat = 0._wp
+    ! 0: gas to liquid
     if (direction==0) then
       phase_trans_heat = enthalpy_evaporation(temperature)
     endif
+    ! 1: gas to solid
     if (direction==1) then
       phase_trans_heat = enthalpy_sublimation(temperature)
     endif
+    ! 2: liquid to solid
     if (direction==2) then
       phase_trans_heat = enthalpy_sublimation(temperature) - enthalpy_evaporation(temperature)
     endif
@@ -121,7 +113,7 @@ module mo_dictionary
     
     ! This function returns c_p of water.
   
-    real(wp), intent(in) :: temperature ! temperature ()K
+    real(wp), intent(in) :: temperature ! temperature
     real(wp)             :: c_p_water   ! result
   
     ! local variables
@@ -158,11 +150,11 @@ module mo_dictionary
     ! It follows Eq. (4) in Murphy DM, Koop T. Review of the vapour pressures of ice and supercooled water for atmospheric applications.
     ! QUARTERLY JOURNAL OF THE ROYAL METEOROLOGICAL SOCIETY. 2005;131(608):1539-1565.
   
-    real(wp), intent(in) :: temperature
-    real(wp)             :: c_p_ice
+    real(wp), intent(in) :: temperature ! temperature
+    real(wp)             :: c_p_ice     ! result
     
     ! local variables
-    real(wp) :: temperature_local
+    real(wp) :: temperature_local ! local copy of the temperature
     
     temperature_local = temperature
   
@@ -184,9 +176,9 @@ module mo_dictionary
   
     ! This function resturns c_p of a specific condensed constituent.
     
-    integer,  intent(in) :: const_id
-    real(wp), intent(in) :: temperature
-    real(wp)             :: c_p_cond
+    integer,  intent(in) :: const_id    ! index of the constituent
+    real(wp), intent(in) :: temperature ! temperature
+    real(wp)             :: c_p_cond    ! result
   
     if (mod(const_id-1,2)==0) then
       c_p_cond = c_p_ice(temperature)
@@ -200,11 +192,11 @@ module mo_dictionary
     
     ! This function returns the enthalpy of evaporation depending on the temperature.
     
-    real(wp), intent(in) :: temperature
-    real(wp)             :: enthalpy_evaporation
+    real(wp), intent(in) :: temperature          ! temperature
+    real(wp)             :: enthalpy_evaporation ! result
     
     ! local variables
-    real(wp) :: temperature_local
+    real(wp) :: temperature_local ! local copy of the temperature
     
     temperature_local = temperature
     
@@ -236,11 +228,11 @@ module mo_dictionary
     ! It follows Eq. (5) in Murphy DM, Koop T. Review of the vapour pressures of ice and supercooled water for atmospheric applications.
     ! QUARTERLY JOURNAL OF THE ROYAL METEOROLOGICAL SOCIETY. 2005;131(608):1539-1565.
     
-    real(wp), intent(in) :: temperature
-    real(wp)             :: enthalpy_sublimation
+    real(wp), intent(in) :: temperature          ! temperature
+    real(wp)             :: enthalpy_sublimation ! result
 
     ! local variables
-    real(wp) :: temperature_local
+    real(wp) :: temperature_local ! local copy of the temperature
     
     temperature_local = temperature
      
@@ -266,7 +258,7 @@ module mo_dictionary
     ! This function returns the saturation pressure in Pa over liquid water as a function of the temperature in K.
     ! It uses the formula by Huang: A Simple Accurate Formula for Calculating Saturation Vapor Pressure of Water and Ice, 2018, DOI: 10.1175/JAMC-D-17-0334.1.
     
-    real(wp), intent(in) :: temperature                    ! temperature in Kelvin
+    real(wp), intent(in) :: temperature                    ! temperature
     real(wp)             :: saturation_pressure_over_water ! result
     
     ! local variables
@@ -302,7 +294,7 @@ module mo_dictionary
     
     ! This function computes the derivative of the function saturation_pressure_over_water.
     
-    real(wp), intent(in) :: temperature                        ! temperature in Kelvin
+    real(wp), intent(in) :: temperature                        ! temperature
     real(wp)             :: dsaturation_pressure_over_water_dT ! result
     
     ! local variables
@@ -328,7 +320,7 @@ module mo_dictionary
     ! This function returns the saturation pressure in Pa over ice as a function of the temperature in K.
     ! It blends the two formulas of Huang and Murphy.
     
-    real(wp), intent(in) :: temperature                  ! temperature in Kelvin
+    real(wp), intent(in) :: temperature                  ! temperature
     real(wp)             :: saturation_pressure_over_ice ! result
     
     ! local variables
@@ -364,7 +356,7 @@ module mo_dictionary
 
     ! This function computes the derivative of the function saturation_pressure_over_ice.
     
-    real(wp), intent(in) :: temperature                      ! temperature in Kelvin
+    real(wp), intent(in) :: temperature                      ! temperature
     real(wp)             :: dsaturation_pressure_over_ice_dT ! result
     
     ! local variables
@@ -400,8 +392,8 @@ module mo_dictionary
     ! This function calculates the enhancement factor over water, which accounts for the fact the the saturation vapour pressure is different in moist air compared to pure water vapour.
     ! It uses the formula by Huang: A Simple Accurate Formula for Calculating Saturation Vapor Pressure of Water and Ice, 2018, DOI: 10.1175/JAMC-D-17-0334.1.
 
-    real(wp), intent(in) :: air_pressure
-    real(wp)             :: enhancement_factor_over_water
+    real(wp), intent(in) :: air_pressure                  ! air pressure
+    real(wp)             :: enhancement_factor_over_water ! result
     
     enhancement_factor_over_water = 1.00071_wp*exp(0.000000045_wp*air_pressure)
 
@@ -412,8 +404,8 @@ module mo_dictionary
     ! This function calculates the enhancement factor over ice, which accounts for the fact the the saturation vapour pressure is different in moist air compared to pure water vapour.
     ! It uses the formula by Huang: A Simple Accurate Formula for Calculating Saturation Vapor Pressure of Water and Ice, 2018, DOI: 10.1175/JAMC-D-17-0334.1.
 
-    real(wp), intent(in) :: air_pressure
-    real(wp)             :: enhancement_factor_over_ice
+    real(wp), intent(in) :: air_pressure                ! air pressure
+    real(wp)             :: enhancement_factor_over_ice ! result
     
     enhancement_factor_over_ice = 0.99882_wp*exp(0.00000008_wp*air_pressure)
 
@@ -424,7 +416,7 @@ module mo_dictionary
     ! This function computes the saturation pressure over ice.
     ! It follows the formula by Huang: A Simple Accurate Formula for Calculating Saturation Vapor Pressure of Water and Ice, 2018, DOI: 10.1175/JAMC-D-17-0334.1.
     
-    real(wp), intent(in) :: temperature                   ! temperature in Kelvin
+    real(wp), intent(in) :: temperature                   ! temperature
     real(wp)             :: saturation_pressure_ice_huang ! result
     
     ! local variables
@@ -442,7 +434,7 @@ module mo_dictionary
     ! It follows Eq. (7) in Murphy DM, Koop T. Review of the vapour pressures of ice and supercooled water for atmospheric applications.
     ! QUARTERLY JOURNAL OF THE ROYAL METEOROLOGICAL SOCIETY. 2005;131(608):1539-1565.
 
-    real(wp), intent(in) :: temperature                    ! temperature in Kelvin
+    real(wp), intent(in) :: temperature                    ! temperature
     real(wp)             :: saturation_pressure_ice_murphy ! result
     
     ! computing the result
@@ -454,7 +446,7 @@ module mo_dictionary
   
     ! This function computes the derivative of the function saturation_pressure_ice_huang.
   
-    real(wp), intent(in) :: temperature                       ! temperature in Kelvin
+    real(wp), intent(in) :: temperature                       ! temperature
     real(wp)             :: dsaturation_pressure_ice_huang_dT ! result
     
     ! local variables
@@ -471,7 +463,7 @@ module mo_dictionary
   
     ! This function computes the derivative of the function saturation_pressure_ice_murphy.
   
-    real(wp), intent(in) :: temperature                        ! temperature in Kelvin
+    real(wp), intent(in) :: temperature                        ! temperature
     real(wp)             :: dsaturation_pressure_ice_murphy_dT ! result
   
     ! computing the result
