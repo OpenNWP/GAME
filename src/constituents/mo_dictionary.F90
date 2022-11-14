@@ -90,7 +90,7 @@ module mo_dictionary
     ! This function calculates the phase transition heat.
     
     integer  :: direction        ! defines the kind of phase transition (definition see below)
-    real(wp) :: temperature      ! air temperature
+    real(wp) :: temperature      ! temperature
     real(wp) :: phase_trans_heat ! result
 
     phase_trans_heat = 0._wp
