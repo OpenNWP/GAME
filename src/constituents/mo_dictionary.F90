@@ -472,19 +472,19 @@ module mo_dictionary
       
   end function dsaturation_pressure_ice_murphy_dT
   
-  function cloud_drops_radius(liquid_density)
+  function rain_drops_radius(liquid_density)
     
     ! This function returns the mean radius of rain drops assuming a Marshall-Palmer (1948) distribution.
     
-    real(wp) :: liquid_density     ! the density of liquid water (clouds + rain)
-    real(wp) :: cloud_drops_radius ! result
+    real(wp) :: liquid_density    ! the density of liquid water (clouds + rain)
+    real(wp) :: rain_drops_radius ! result
     
     ! local variables
     real(wp) :: n_0 = 8.e6_wp ! prefactor of the Marshall-Palmer distribution
     
-    cloud_drops_radius = 0.5_wp*(liquid_density/(rho_h2o*M_PI*n_0))**0.25_wp
+    rain_drops_radius = 0.5_wp*(liquid_density/(rho_h2o*M_PI*n_0))**0.25_wp
     
-  end function cloud_drops_radius
+  end function rain_drops_radius
 
 end module mo_dictionary
 

@@ -7,7 +7,7 @@ module mo_rrtmgp_coupler
   
   use mo_definitions,             only: wp
   use mo_constants,               only: EPSILON_SECURITY,r_d,r_v
-  use mo_dictionary,              only: molar_fraction_in_dry_air,calc_o3_vmr,cloud_drops_radius
+  use mo_dictionary,              only: molar_fraction_in_dry_air,calc_o3_vmr,rain_drops_radius
   use mo_rrtmgp_util_string,      only: lower_case
   use mo_gas_optics_rrtmgp,       only: ty_gas_optics_rrtmgp
   use mo_load_coefficients,       only: load_and_init
@@ -196,7 +196,7 @@ module mo_rrtmgp_coupler
           liquid_precip_weight = rho(ji,jl,2)+EPSILON_SECURITY
           liquid_cloud_weight = rho(ji,jl,4)+EPSILON_SECURITY
           ! calculating the radius of raindrops
-          liquid_precip_radius = cloud_drops_radius(rho(ji,jl,2)+rho(ji,jl,4))*1.e6_wp
+          liquid_precip_radius = rain_drops_radius(rho(ji,jl,2)+rho(ji,jl,4))*1.e6_wp
           ! clipping too extreme values
           if (liquid_precip_radius>cloud_optics_sw%get_max_radius_liq()) then
             liquid_precip_radius = cloud_optics_sw%get_max_radius_liq()
