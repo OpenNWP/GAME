@@ -472,6 +472,16 @@ module mo_dictionary
       
   end function dsaturation_pressure_ice_murphy_dT
   
+  function cloud_droplets_radius()
+  
+    ! This function returns the mean radius of cloud droplets.
+  
+    real(wp) :: cloud_droplets_radius ! result
+    
+    cloud_droplets_radius = 12.e-6_wp
+  
+  end function cloud_droplets_radius
+  
   function rain_drops_radius(liquid_density)
     
     ! This function returns the mean radius of rain drops assuming a Marshall-Palmer (1948) distribution.
@@ -485,6 +495,26 @@ module mo_dictionary
     rain_drops_radius = 0.5_wp*(liquid_density/(rho_h2o*M_PI*n_0))**0.25_wp
     
   end function rain_drops_radius
+  
+  function ice_particles_radius()
+  
+    ! This function returns the mean radius of ice particles.
+  
+    real(wp) :: ice_particles_radius ! result
+    
+    ice_particles_radius = 95.e-6_wp
+  
+  end function ice_particles_radius
+  
+  function snow_particles_radius()
+  
+    ! This function returns the mean radius of snowflakes.
+  
+    real(wp) :: snow_particles_radius ! result
+    
+    snow_particles_radius = 180.e-6_wp
+  
+  end function snow_particles_radius
 
 end module mo_dictionary
 

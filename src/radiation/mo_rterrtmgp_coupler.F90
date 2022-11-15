@@ -7,7 +7,8 @@ module mo_rrtmgp_coupler
   
   use mo_definitions,             only: wp
   use mo_constants,               only: EPSILON_SECURITY,r_d,r_v
-  use mo_dictionary,              only: molar_fraction_in_dry_air,calc_o3_vmr,rain_drops_radius
+  use mo_dictionary,              only: molar_fraction_in_dry_air,calc_o3_vmr,cloud_droplets_radius, &
+                                        rain_drops_radius,ice_particles_radius,snow_particles_radius
   use mo_rrtmgp_util_string,      only: lower_case
   use mo_gas_optics_rrtmgp,       only: ty_gas_optics_rrtmgp
   use mo_load_coefficients,       only: load_and_init
@@ -176,9 +177,6 @@ module mo_rrtmgp_coupler
     
     ! reformatting the clouds for RTE+RRTMGP
     ! the moist case
-    ice_precip_radius = cloud_optics_sw%get_max_radius_ice()
-    ice_cloud_radius = 0.5_wp*(cloud_optics_sw%get_min_radius_ice()+cloud_optics_sw%get_max_radius_ice())
-    liquid_cloud_radius = 0.5_wp*(cloud_optics_sw%get_min_radius_liq()+cloud_optics_sw%get_max_radius_liq())
     allocate(liquid_water_path(n_cells_rad,n_layers))
     allocate(ice_water_path(n_cells_rad,n_layers))
     allocate(liquid_eff_radius(n_cells_rad,n_layers))
@@ -186,15 +184,40 @@ module mo_rrtmgp_coupler
     if (lmoist) then
       do jl=1,n_layers
         do ji=1,n_cells_rad
+          
           ! Calculating the solid condensates' effective radius
           ice_precip_weight = rho(ji,jl,1)+EPSILON_SECURITY
           ice_cloud_weight = rho(ji,jl,3)+EPSILON_SECURITY
+          ! calculating the radius of ice particles
+          ice_cloud_radius = ice_particles_radius()*1.e6_wp
+          ! clipping too extreme values
+          if (ice_cloud_radius>cloud_optics_sw%get_max_radius_ice()) then
+            ice_cloud_radius = cloud_optics_sw%get_max_radius_ice()
+          elseif (ice_cloud_radius<cloud_optics_sw%get_min_radius_ice()) then
+            ice_cloud_radius = cloud_optics_sw%get_min_radius_ice()
+          endif
+          ! calculating the radius of snowflakes
+          ice_precip_radius = snow_particles_radius()*1.e6_wp
+          ! clipping too extreme values
+          if (ice_precip_radius>cloud_optics_sw%get_max_radius_ice()) then
+            ice_precip_radius = cloud_optics_sw%get_max_radius_ice()
+          elseif (ice_precip_radius<cloud_optics_sw%get_min_radius_ice()) then
+            ice_precip_radius = cloud_optics_sw%get_min_radius_ice()
+          endif
           ice_eff_radius_value = (ice_precip_weight*ice_precip_radius+ice_cloud_weight*ice_cloud_radius) &
           /(ice_precip_weight+ice_cloud_weight)
           
           ! Calculating the liquid condensates' effective radius
           liquid_precip_weight = rho(ji,jl,2)+EPSILON_SECURITY
           liquid_cloud_weight = rho(ji,jl,4)+EPSILON_SECURITY
+          ! calculating the radius of cloud droplets
+          liquid_cloud_radius = cloud_droplets_radius()*1.e6_wp
+          ! clipping too extreme values
+          if (liquid_cloud_radius>cloud_optics_sw%get_max_radius_liq()) then
+            liquid_cloud_radius = cloud_optics_sw%get_max_radius_liq()
+          elseif (liquid_cloud_radius<cloud_optics_sw%get_min_radius_liq()) then
+            liquid_cloud_radius = cloud_optics_sw%get_min_radius_liq()
+          endif
           ! calculating the radius of raindrops
           liquid_precip_radius = rain_drops_radius(rho(ji,jl,2)+rho(ji,jl,4))*1.e6_wp
           ! clipping too extreme values
