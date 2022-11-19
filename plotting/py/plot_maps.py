@@ -71,7 +71,7 @@ if var_id == "cape":
 	unit_string = "J / kg"
 	show_level_on = 0
 	surface_bool = 1
-if var_id == "dswrf":
+if var_id == "sfc_sw_down":
 	variable_name = "Downward shortwave flux at the surface"
 	unit_string = "W / m^2"
 	show_level_on = 0
