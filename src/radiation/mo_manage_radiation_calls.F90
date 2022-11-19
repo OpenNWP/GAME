@@ -7,7 +7,7 @@ module mo_manage_radiation_calls
 
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,         only: n_cells,n_layers,n_levels
-  use mo_rad_nml,          only: n_cells_rad,n_rad_blocks,rad_config,n_no_cond_rad_layers,n_cells_rad_last
+  use mo_rad_nml,          only: n_cells_rad,n_rad_blocks,rad_config,n_no_cond_rad_layers,n_cells_rad_last,radiation_dtime
   use mo_constituents_nml, only: lmoist,n_condensed_constituents,n_constituents
   use mo_surface_nml,      only: nsoillays
   use mo_held_suarez,      only: held_suar
@@ -105,7 +105,8 @@ module mo_manage_radiation_calls
           rho(:,1:n_no_cond_rad_layers,1:n_condensed_constituents) = 0._wp
         endif
         call calc_radiative_flux_convergence(lat_scal,lon_scal,z_scal,z_vect,rho,temp,rad_tend,temp_sfc, &
-                                             sfc_sw_in,sfc_lw_out,sfc_albedo,n_cells_rad_used,time_coordinate)
+                                             sfc_sw_in,sfc_lw_out,sfc_albedo,n_cells_rad_used, &
+                                             time_coordinate+0.5_wp*radiation_dtime)
       endif
       ! Held-Suarez
       if (rad_config==2) then
