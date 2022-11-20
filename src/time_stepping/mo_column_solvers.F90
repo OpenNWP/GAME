@@ -427,7 +427,7 @@ module mo_column_solvers
             elseif (jc==3) then
               vertical_flux_vector_impl(jl) = vertical_flux_vector_impl(jl) - cloud_droplets_velocity
               vertical_flux_vector_rhs(jl) = vertical_flux_vector_rhs(jl) - cloud_droplets_velocity
-            ! rain clouds
+            ! water clouds
             elseif (jc==4) then
               v_sink_upper = v_sink_liquid(state_old,diag,cloud_droplets_radius(),ji,jl)
               v_sink_lower = v_sink_liquid(state_old,diag,cloud_droplets_radius(),ji,jl+1)
