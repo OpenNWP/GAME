@@ -535,7 +535,7 @@ module mo_rrtmgp_coupler
         radiation_tendency(ji,jl) = &
         ! this function is called four times, therefore we need to
         ! add up the tendencies
-        radiation_tendency(ji,jl) + (&
+        radiation_tendency(ji,jl) + ( &
         ! this is a sum of four fluxes
         ! upward flux (going in)
         fluxes%flux_up(j_column,jl+1) &
