@@ -435,6 +435,8 @@ module mo_column_solvers
               v_sink_upper = v_sink_liquid(state_old,diag,cloud_droplets_radius(),ji,jl)
               v_sink_lower = v_sink_liquid(state_old,diag,cloud_droplets_radius(),ji,jl+1)
               v_sink(jl) = 0.5_wp*(v_sink_upper + v_sink_lower)
+            else
+              v_sink(jl) = 0._wp
             endif
             vertical_flux_vector_impl(jl) = vertical_flux_vector_impl(jl) - v_sink(jl)
             vertical_flux_vector_rhs(jl) = vertical_flux_vector_rhs(jl) - v_sink(jl)
