@@ -13,7 +13,7 @@ module mo_column_solvers
                                  snow_velocity,lmoist
   use mo_grid_setup,       only: dtime,toa
   use mo_dictionary,       only: c_p_cond,cloud_droplets_radius
-  use mo_eff_diff_coeffs,  only: v_sink_liquid
+  use mo_derived,          only: v_sink_liquid
   use mo_surface_nml,      only: nsoillays,lprog_soil_temp,lsfc_sensible_heat_flux
   use mo_diff_nml,         only: klemp_damp_max,klemp_begin_rel
   use mo_rad_nml,          only: radiation_dtime

@@ -5,7 +5,7 @@ module mo_eff_diff_coeffs
   
   ! This module computes the effective diffusion coefficients.
   
-  use mo_constants,          only: gravity,M_PI,rho_h2o
+  use mo_constants,          only: gravity
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_gradient_operators, only: grad_vert
   use mo_multiplications,    only: scalar_times_vector_v2
@@ -326,27 +326,6 @@ module mo_eff_diff_coeffs
     tke2vert_diff_coeff = 1._wp/6._wp*mean_free_path*mean_velocity
     
   end function tke2vert_diff_coeff
-  
-  function v_sink_liquid(state,diag,radius,ji,jl)
-    
-    ! This function returns the sink velocity of water droplets as a function of the radius of the droplets and the air density.
-    
-    type(t_state), intent(in)    :: state         ! state variables
-    type(t_diag),  intent(inout) :: diag          ! diagnostic quantities
-    real(wp),      intent(in)    :: radius        ! radius of the droplet
-    integer,       intent(in)    :: ji            ! horizontal index
-    integer,       intent(in)    :: jl            ! layer index
-    real(wp)                     :: v_sink_liquid ! result
-    
-    ! local variables
-    real(wp) :: kinematic_viscosity ! kinematic viscosity
-    
-    kinematic_viscosity = calc_diffusion_coeff(diag%temperature(ji,jl),state%rho(ji,jl,n_condensed_constituents+1))
-    
-    v_sink_liquid = 2._wp*M_PI*radius**2*rho_h2o*gravity &
-                    /(9._wp*M_PI*state%rho(ji,jl,n_condensed_constituents+1)*kinematic_viscosity)
-    
-  end function v_sink_liquid
   
 end module mo_eff_diff_coeffs
 
