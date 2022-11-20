@@ -12,7 +12,8 @@ module mo_column_solvers
   use mo_constituents_nml, only: n_constituents,n_condensed_constituents,cloud_droplets_velocity,rain_velocity,&
                                  snow_velocity,lmoist
   use mo_grid_setup,       only: dtime,toa
-  use mo_dictionary,       only: c_p_cond
+  use mo_dictionary,       only: c_p_cond,cloud_droplets_radius
+  use mo_eff_diff_coeffs,  only: v_sink_liquid
   use mo_surface_nml,      only: nsoillays,lprog_soil_temp,lsfc_sensible_heat_flux
   use mo_diff_nml,         only: klemp_damp_max,klemp_begin_rel
   use mo_rad_nml,          only: radiation_dtime
@@ -385,6 +386,9 @@ module mo_column_solvers
     real(wp) :: vertical_flux_vector_rhs(n_layers-1)      ! vertical flux at the old time step
     real(wp) :: vertical_enthalpy_flux_vector(n_layers-1) ! vertical enthalpy flux density vector
     real(wp) :: solution_vector(n_layers)                 ! solution of the system of linear equations
+    real(wp) :: v_sink_upper                              ! sink velocity of hydrometeor particles in the lower grid box
+    real(wp) :: v_sink_lower                              ! sink velocity of hydrometeor particles in the upper grid box
+    real(wp) :: v_sink                                    ! sink velocity of a droplet
           
     impl_weight = 0.5_wp
     expl_weight = 1._wp - impl_weight
@@ -395,8 +399,8 @@ module mo_column_solvers
       ! This is done for all tracers apart from the main gaseous constituent.
       if (jc/=n_condensed_constituents+1) then
         ! loop over all columns
-        !$omp parallel do private(ji,jl,density_old_at_interface,&
-        !$omp temperature_old_at_interface,c_vector,d_vector,e_vector,r_vector,vertical_flux_vector_impl,&
+        !$omp parallel do private(ji,jl,density_old_at_interface,v_sink_upper,v_sink_lower,v_sink, &
+        !$omp temperature_old_at_interface,c_vector,d_vector,e_vector,r_vector,vertical_flux_vector_impl, &
         !$omp vertical_flux_vector_rhs,vertical_enthalpy_flux_vector,solution_vector)
         do ji=1,n_cells
           
@@ -412,17 +416,24 @@ module mo_column_solvers
             ! For condensed constituents, a sink velocity must be added.
             ! precipitation
             ! snow
-            if (jc<=n_condensed_constituents/4) then
+            if (jc==1) then
               vertical_flux_vector_impl(jl) = vertical_flux_vector_impl(jl) - snow_velocity
               vertical_flux_vector_rhs(jl) = vertical_flux_vector_rhs(jl) - snow_velocity
             ! rain
-            elseif (jc<=n_condensed_constituents/2) then
+            elseif (jc==2) then
               vertical_flux_vector_impl(jl) = vertical_flux_vector_impl(jl) - rain_velocity
               vertical_flux_vector_rhs(jl) = vertical_flux_vector_rhs(jl) - rain_velocity
-            ! clouds
-            elseif (jc<=n_condensed_constituents) then
+            ! ice clouds
+            elseif (jc==3) then
               vertical_flux_vector_impl(jl) = vertical_flux_vector_impl(jl) - cloud_droplets_velocity
               vertical_flux_vector_rhs(jl) = vertical_flux_vector_rhs(jl) - cloud_droplets_velocity
+            ! rain clouds
+            elseif (jc==4) then
+              v_sink_upper = v_sink_liquid(state_old,diag,cloud_droplets_radius(),ji,jl)
+              v_sink_lower = v_sink_liquid(state_old,diag,cloud_droplets_radius(),ji,jl+1)
+              v_sink = 0.5_wp*(v_sink_upper + v_sink_lower)
+              vertical_flux_vector_impl(jl) = vertical_flux_vector_impl(jl) - v_sink
+              vertical_flux_vector_rhs(jl) = vertical_flux_vector_rhs(jl) - v_sink
             endif
             ! multiplying the vertical velocity by the vertical areas
             vertical_flux_vector_impl(jl) = grid%area_v(ji,jl+1)*vertical_flux_vector_impl(jl)
