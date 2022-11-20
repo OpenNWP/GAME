@@ -229,7 +229,7 @@ module mo_rrtmgp_coupler
           liquid_eff_radius_value = (liquid_precip_weight*liquid_precip_radius+liquid_cloud_weight*liquid_cloud_radius) &
           /(liquid_precip_weight+liquid_cloud_weight)
           
-          ! thickness of the gridbox
+          ! thickness of the grid box
           thickness = z_vector(ji,jl)-z_vector(ji,jl+1)
           ! solid water "content"
           ice_water_path(ji,jl) = thickness*1000._wp*(rho(ji,jl,1) + rho(ji,jl,3))

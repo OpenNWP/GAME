@@ -283,7 +283,7 @@ module mo_write_output
         do while (z_height<z_tropopause)
           ! full virtual potential temperature in the grid box
           theta_v = grid%theta_v_bg(ji,jl) + state%theta_v_pert(ji,jl)
-          ! thickness of the gridbox
+          ! thickness of the grid box
           delta_z = grid%layer_thickness(ji,jl)
           ! this is the candidate that we might want to add to the integral
           cape_integrand = grid%gravity_m_v(ji,jl)*(theta_e - theta_v)/theta_v

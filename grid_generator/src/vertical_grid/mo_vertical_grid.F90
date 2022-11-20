@@ -85,17 +85,17 @@ module mo_vertical_grid
   
   subroutine set_volume(volume,z_vector_v,area_v)
     
-    ! This subroutine computes the volumes of the gridboxes.
+    ! This subroutine computes the volumes of the grid boxes.
     
-    real(wp), intent(out) :: volume(n_cells,n_layers)     ! the volumes of the gridboxes
+    real(wp), intent(out) :: volume(n_cells,n_layers)     ! the volumes of the grid boxes
     real(wp), intent(in)  :: z_vector_v(n_cells,n_levels) ! z-coordinates of vertical vector points
     real(wp), intent(in)  :: area_v(n_cells,n_levels)     ! vertical areas
     
     ! local variables
     integer  :: ji       ! cell index
     integer  :: jl       ! layer index
-    real(wp) :: radius_1 ! radius of the lower boundary of the gridbox
-    real(wp) :: radius_2 ! radius of the upper boundary of the gridbox
+    real(wp) :: radius_1 ! radius of the lower boundary of the grid box
+    real(wp) :: radius_2 ! radius of the upper boundary of the grid box
     
     !$omp parallel do private(ji,jl,radius_1,radius_2)
     do jl=1,n_layers
@@ -287,7 +287,7 @@ module mo_vertical_grid
   
   subroutine set_area(area_h,area_v,z_vector_v,z_vector_dual_h,dy,pent_hex_face_unit_sphere)
 
-    ! This function sets the areas of the gridboxes.
+    ! This function sets the areas of the grid boxes.
     
     real(wp), intent(out) :: area_h(n_edges,n_layers)           ! horizontal areas
     real(wp), intent(out) :: area_v(n_cells,n_levels)           ! vertical areas

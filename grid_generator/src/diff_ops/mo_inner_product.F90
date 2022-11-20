@@ -18,7 +18,7 @@ module mo_inner_product
 
     real(wp), intent(out) :: inner_product_weights(8,n_cells,n_layers) ! the result
     real(wp), intent(in)  :: dx(n_edges,n_layers)                      ! horizontal gridpoint distances
-    real(wp), intent(in)  :: volume(n_cells,n_layers)                  ! volumes of the gridboxes
+    real(wp), intent(in)  :: volume(n_cells,n_layers)                  ! volumes of the grid boxes
     real(wp), intent(in)  :: area_h(n_edges,n_layers)                  ! horizontal areas
     real(wp), intent(in)  :: area_v(n_cells,n_levels)                  ! vertical areas
     real(wp), intent(in)  :: z_scalar(n_cells,n_layers)                ! vertical coordinates of the scalar gridpoints

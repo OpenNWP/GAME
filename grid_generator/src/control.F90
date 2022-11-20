@@ -45,7 +45,7 @@ program control
   integer               :: z_vector_h_id                    ! netCDF ID of the z-coordinates of the edges
   integer               :: dx_id                            ! netCDF ID of the normal distances
   integer               :: dz_id                            ! netCDF ID of the tangential distances
-  integer               :: volume_id                        ! netCDF ID of the volumes of the gridboxes
+  integer               :: volume_id                        ! netCDF ID of the volumes of the grid boxes
   integer               :: area_h_id                        ! netCDF ID of the horizontal areas
   integer               :: trsk_weights_id                  ! netCDF ID of the TRSK weights
   integer               :: z_vector_dual_h_id               ! netCDF ID of the z-coordinates of the horizontal dual vectors
@@ -129,7 +129,7 @@ program control
   real(wp), allocatable :: lat_e(:)                         ! latitudes of the edges
   real(wp), allocatable :: lon_e(:)                         ! longitudes of the edges
   real(wp), allocatable :: direction(:)                     ! directions of the vectors of the primal grid
-  real(wp), allocatable :: volume(:,:)                      ! volumes of the gridboxes
+  real(wp), allocatable :: volume(:,:)                      ! volumes of the grid boxes
   real(wp), allocatable :: area_h(:,:)                      ! horizontal areas of the primal grid
   real(wp), allocatable :: area_v(:,:)                      ! vertical areas of the primal grid
   real(wp), allocatable :: trsk_weights(:,:)                ! TRSK reconstruction weights
@@ -409,7 +409,7 @@ program control
   call set_area_dual(area_dual_h,area_dual_v,z_vector_dual_v,dx,z_vector_h,z_vector_v,from_cell,to_cell,triangle_face_unit_sphere)
   write(*,*) "Finished."
   
-  write(*,*) "Calculating gridbox volumes ..."
+  write(*,*) "Calculating grid box volumes ..."
   call set_volume(volume,z_vector_v,area_v)
   write(*,*) "Finished."
   
