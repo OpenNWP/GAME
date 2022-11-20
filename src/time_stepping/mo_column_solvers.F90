@@ -386,9 +386,9 @@ module mo_column_solvers
     real(wp) :: vertical_flux_vector_rhs(n_layers-1)      ! vertical flux at the old time step
     real(wp) :: vertical_enthalpy_flux_vector(n_layers-1) ! vertical enthalpy flux density vector
     real(wp) :: solution_vector(n_layers)                 ! solution of the system of linear equations
-    real(wp) :: v_sink_upper                              ! sink velocity of hydrometeor particles in the lower grid box
-    real(wp) :: v_sink_lower                              ! sink velocity of hydrometeor particles in the upper grid box
-    real(wp) :: v_sink                                    ! sink velocity of a droplet
+    real(wp) :: v_sink_upper                              ! sink velocity of a hydrometeor particle in the lower grid box
+    real(wp) :: v_sink_lower                              ! sink velocity of a hydrometeor particle in the upper grid box
+    real(wp) :: v_sink                                    ! sink velocity of a hydrometeor particle in a level
           
     impl_weight = 0.5_wp
     expl_weight = 1._wp - impl_weight
