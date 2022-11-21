@@ -23,10 +23,6 @@ module mo_constituents_nml
   integer :: n_constituents = 1
   logical :: dummy                        ! dummy variable with no effect
 #endif
-  real(wp) :: snow_velocity            ! sedimentation velocity of snow
-  real(wp) :: rain_velocity            ! sedimentation velocity of rain
-  real(wp) :: cloud_droplets_velocity  ! sedimentation velocity of cloud droplets
-
 #ifndef COMPILE_TIME_CONFIG
   namelist /constituents/lmoist
 #endif
@@ -46,9 +42,6 @@ module mo_constituents_nml
     n_condensed_constituents = 4
     n_gaseous_constituents = 2
 #endif
-    snow_velocity = 5._wp
-    rain_velocity = 10._wp
-    cloud_droplets_velocity = .01_wp
     
     ! open and read namelist file
     open(action="read",file="namelist.nml",newunit=fileunit)

@@ -512,7 +512,7 @@ module mo_dictionary
   
     real(wp) :: snow_particles_radius ! result
     
-    snow_particles_radius = 180.e-6_wp
+    snow_particles_radius = 500.e-6_wp
   
   end function snow_particles_radius
 

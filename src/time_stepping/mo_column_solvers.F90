@@ -9,11 +9,10 @@ module mo_column_solvers
   use mo_constants,        only: r_d,c_d_v,c_d_p,M_PI,m_d,m_v,impl_thermo_weight
   use mo_grid_nml,         only: n_layers,n_cells,n_levels
   use mo_grid_setup,       only: z_t_const
-  use mo_constituents_nml, only: n_constituents,n_condensed_constituents,cloud_droplets_velocity,rain_velocity, &
-                                 snow_velocity,lmoist
+  use mo_constituents_nml, only: n_constituents,n_condensed_constituents,lmoist
   use mo_grid_setup,       only: dtime,toa
-  use mo_dictionary,       only: c_p_cond,cloud_droplets_radius
-  use mo_derived,          only: v_sink_liquid
+  use mo_dictionary,       only: c_p_cond,snow_particles_radius,ice_particles_radius,cloud_droplets_radius
+  use mo_derived,          only: v_fall_solid,v_fall_liquid
   use mo_surface_nml,      only: nsoillays,lprog_soil_temp,lsfc_sensible_heat_flux
   use mo_diff_nml,         only: klemp_damp_max,klemp_begin_rel
   use mo_rad_nml,          only: radiation_dtime
@@ -386,9 +385,9 @@ module mo_column_solvers
     real(wp) :: vertical_flux_vector_rhs(n_layers-1)      ! vertical flux at the old time step
     real(wp) :: vertical_enthalpy_flux_vector(n_layers-1) ! vertical enthalpy flux density vector
     real(wp) :: solution_vector(n_layers)                 ! solution of the system of linear equations
-    real(wp) :: v_sink_upper                              ! sink velocity of a hydrometeor particle in the lower grid box
-    real(wp) :: v_sink_lower                              ! sink velocity of a hydrometeor particle in the upper grid box
-    real(wp) :: v_sink(n_layers)                          ! sink velocity of hydrometeor particles in the levels
+    real(wp) :: v_fall_upper                              ! fall velocity of a hydrometeor particle in the lower grid box
+    real(wp) :: v_fall_lower                              ! fall velocity of a hydrometeor particle in the upper grid box
+    real(wp) :: v_fall(n_layers)                          ! fall velocity of a hydrometeor particle in a level
           
     impl_weight = 0.5_wp
     expl_weight = 1._wp - impl_weight
@@ -399,7 +398,7 @@ module mo_column_solvers
       ! This is done for all tracers apart from the main gaseous constituent.
       if (jc/=n_condensed_constituents+1) then
         ! loop over all columns
-        !$omp parallel do private(ji,jl,density_old_at_interface,v_sink_upper,v_sink_lower,v_sink, &
+        !$omp parallel do private(ji,jl,density_old_at_interface,v_fall_upper,v_fall_lower,v_fall, &
         !$omp temperature_old_at_interface,c_vector,d_vector,e_vector,r_vector,vertical_flux_vector_impl, &
         !$omp vertical_flux_vector_rhs,vertical_enthalpy_flux_vector,solution_vector)
         do ji=1,n_cells
@@ -413,33 +412,33 @@ module mo_column_solvers
             vertical_flux_vector_impl(jl) = state_old%wind_v(ji,jl+1)
             vertical_flux_vector_rhs(jl) = state_new%wind_v(ji,jl+1)
             ! preparing the vertical interpolation
-            ! For condensed constituents, a sink velocity must be added.
+            ! For condensed constituents, a fall velocity must be added.
             ! precipitation
             ! snow
             if (jc==1) then
-              v_sink_upper = snow_velocity
-              v_sink_lower = snow_velocity
-              v_sink(jl) = 0.5_wp*(v_sink_upper + v_sink_lower)
+              v_fall_upper = v_fall_solid(state_old,diag,snow_particles_radius(),ji,jl)
+              v_fall_lower = v_fall_solid(state_old,diag,snow_particles_radius(),ji,jl+1)
+              v_fall(jl) = 0.5_wp*(v_fall_upper + v_fall_lower)
             ! rain
             elseif (jc==2) then
-              v_sink_upper = rain_velocity
-              v_sink_lower = rain_velocity
-              v_sink(jl) = 0.5_wp*(v_sink_upper + v_sink_lower)
+              v_fall_upper = v_fall_liquid(state_old,diag,diag%a_rain(ji,jl),ji,jl)
+              v_fall_lower = v_fall_liquid(state_old,diag,diag%a_rain(ji,jl+1),ji,jl+1)
+              v_fall(jl) = 0.5_wp*(v_fall_upper + v_fall_lower)
             ! ice clouds
             elseif (jc==3) then
-              v_sink_upper = cloud_droplets_velocity
-              v_sink_lower = cloud_droplets_velocity
-              v_sink(jl) = 0.5_wp*(v_sink_upper + v_sink_lower)
+              v_fall_upper = v_fall_solid(state_old,diag,ice_particles_radius(),ji,jl)
+              v_fall_lower = v_fall_solid(state_old,diag,ice_particles_radius(),ji,jl+1)
+              v_fall(jl) = 0.5_wp*(v_fall_upper + v_fall_lower)
             ! water clouds
             elseif (jc==4) then
-              v_sink_upper = v_sink_liquid(state_old,diag,cloud_droplets_radius(),ji,jl)
-              v_sink_lower = v_sink_liquid(state_old,diag,cloud_droplets_radius(),ji,jl+1)
-              v_sink(jl) = 0.5_wp*(v_sink_upper + v_sink_lower)
+              v_fall_upper = v_fall_liquid(state_old,diag,cloud_droplets_radius(),ji,jl)
+              v_fall_lower = v_fall_liquid(state_old,diag,cloud_droplets_radius(),ji,jl+1)
+              v_fall(jl) = 0.5_wp*(v_fall_upper + v_fall_lower)
             else
-              v_sink(jl) = 0._wp
+              v_fall(jl) = 0._wp
             endif
-            vertical_flux_vector_impl(jl) = vertical_flux_vector_impl(jl) - v_sink(jl)
-            vertical_flux_vector_rhs(jl) = vertical_flux_vector_rhs(jl) - v_sink(jl)
+            vertical_flux_vector_impl(jl) = vertical_flux_vector_impl(jl) - v_fall(jl)
+            vertical_flux_vector_rhs(jl) = vertical_flux_vector_rhs(jl) - v_fall(jl)
             ! multiplying the vertical velocity by the vertical areas
             vertical_flux_vector_impl(jl) = grid%area_v(ji,jl+1)*vertical_flux_vector_impl(jl)
             vertical_flux_vector_rhs(jl) = grid%area_v(ji,jl+1)*vertical_flux_vector_rhs(jl)
@@ -462,16 +461,16 @@ module mo_column_solvers
           ! sink velocities at the surface
           ! ice
           if (jc==1) then
-            v_sink(n_layers) = snow_velocity
+            v_fall(n_layers) = v_fall_solid(state_old,diag,snow_particles_radius(),ji,n_layers)
           ! rain
           elseif (jc==2) then
-            v_sink(n_layers) = rain_velocity
+            v_fall(n_layers) = v_fall_liquid(state_old,diag,diag%a_rain(ji,jl),ji,n_layers)
           ! ice clouds
           elseif (jc==3) then
-            v_sink(n_layers) = cloud_droplets_velocity
+            v_fall(n_layers) = v_fall_solid(state_old,diag,ice_particles_radius(),ji,n_layers)
           ! water clouds
           elseif (jc==4) then
-            v_sink(n_layers) = v_sink_liquid(state_old,diag,cloud_droplets_radius(),ji,n_layers)
+            v_fall(n_layers) = v_fall_liquid(state_old,diag,cloud_droplets_radius(),ji,n_layers)
           endif
           
           ! Now we proceed to solving the vertical tridiagonal problem.
@@ -502,13 +501,13 @@ module mo_column_solvers
               ! precipitation
               ! snow
               if (jc<=n_condensed_constituents/4) then
-                d_vector(jl) = d_vector(jl) + impl_weight*v_sink(jl)*dtime*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
+                d_vector(jl) = d_vector(jl) + impl_weight*v_fall(jl)*dtime*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
               ! rain
               elseif (jc<=n_condensed_constituents/2) then
-                d_vector(jl) = d_vector(jl) + impl_weight*v_sink(jl)*dtime*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
+                d_vector(jl) = d_vector(jl) + impl_weight*v_fall(jl)*dtime*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
               ! clouds
               elseif (jc<=n_condensed_constituents) then
-                d_vector(jl) = d_vector(jl) + impl_weight*v_sink(jl)*dtime*grid%area_v(ji,n_levels) &
+                d_vector(jl) = d_vector(jl) + impl_weight*v_fall(jl)*dtime*grid%area_v(ji,n_levels) &
                                /grid%volume(ji,jl)
               endif
             else
@@ -539,31 +538,31 @@ module mo_column_solvers
               ! precipitation
               ! snow
               if (jc<=n_condensed_constituents/4) then
-                r_vector(jl) = r_vector(jl) - expl_weight*v_sink(jl)*dtime &
+                r_vector(jl) = r_vector(jl) - expl_weight*v_fall(jl)*dtime &
                 *state_old%rho(ji,n_layers,jc)*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
                 if (rk_step==1) then
                   diag%condensates_sediment_heat(ji,jl) = diag%condensates_sediment_heat(ji,jl) &
-                  - v_sink(jl) &
+                  - v_fall(jl) &
                   *diag%temperature(ji,n_layers)*c_p_cond(jc,diag%temperature(ji,n_layers)) &
                   *state_old%rho(ji,n_layers,jc)*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
                 endif
               ! rain
               elseif (jc<=n_condensed_constituents/2) then
-                r_vector(jl) = r_vector(jl) - expl_weight*v_sink(jl)*dtime &
+                r_vector(jl) = r_vector(jl) - expl_weight*v_fall(jl)*dtime &
                 *state_old%rho(ji,n_layers,jc)*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
                 if (rk_step==1) then
                   diag%condensates_sediment_heat(ji,jl) = diag%condensates_sediment_heat(ji,jl) &
-                  - v_sink(jl) &
+                  - v_fall(jl) &
                   *diag%temperature(ji,n_layers)*c_p_cond(jc,diag%temperature(ji,n_layers)) &
                   *state_old%rho(ji,n_layers,jc)*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
                 endif
               ! clouds
               elseif (jc<=n_condensed_constituents) then
-                r_vector(jl) = r_vector(jl) - expl_weight*v_sink(jl)*dtime &
+                r_vector(jl) = r_vector(jl) - expl_weight*v_fall(jl)*dtime &
                 *state_old%rho(ji,n_layers,jc)*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
                 if (rk_step==1) then
                   diag%condensates_sediment_heat(ji,jl) = diag%condensates_sediment_heat(ji,jl) &
-                  - v_sink(jl) &
+                  - v_fall(jl) &
                   *diag%temperature(ji,n_layers)*c_p_cond(jc,diag%temperature(ji,n_layers)) &
                   *state_old%rho(ji,n_layers,jc)*grid%area_v(ji,n_levels)/grid%volume(ji,jl)
                 endif

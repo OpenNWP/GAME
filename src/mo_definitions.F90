@@ -152,6 +152,7 @@ module mo_definitions
     real(wp), allocatable :: sfc_sw_in(:)                          ! surface inbound short-wave radiation flux density (W/m**2)
     real(wp), allocatable :: sfc_lw_out(:)                         ! surface outbound long-wave radiation flux density (W/m**2)
     real(wp), allocatable :: radiation_tendency(:,:)               ! radiative flux convergence power density (W/m**3)
+    real(wp), allocatable :: a_rain(:,:)                           ! radius of raindrops
     
   end type t_diag
 

@@ -138,26 +138,57 @@ module mo_derived
     
   end function calc_diffusion_coeff
   
-  function v_sink_liquid(state,diag,radius,ji,jl)
+  function v_fall_liquid(state,diag,radius,ji,jl)
     
-    ! This function returns the sink velocity of water droplets as a function of the radius of the droplets and the air density.
+    ! This function returns the fall velocity of water droplets as a function of the radius of the droplets and the air density.
     
     type(t_state), intent(in)    :: state         ! state variables
     type(t_diag),  intent(inout) :: diag          ! diagnostic quantities
     real(wp),      intent(in)    :: radius        ! radius of the droplet
     integer,       intent(in)    :: ji            ! horizontal index
     integer,       intent(in)    :: jl            ! layer index
-    real(wp)                     :: v_sink_liquid ! result
+    real(wp)                     :: v_fall_liquid ! result
     
     ! local variables
     real(wp) :: kinematic_viscosity ! kinematic viscosity
+    real(wp) :: reynolds_number     ! Reynolds number of the flow around the particle
+    real(wp) :: reynolds_crit       ! critical Reynolds number, where turbulent flow takes over
+    real(wp) :: c_w                 ! c_w value of a liquid particle in turbulent flow
+    
+    reynolds_crit = 10._wp
     
     kinematic_viscosity = calc_diffusion_coeff(diag%temperature(ji,jl),state%rho(ji,jl,n_condensed_constituents+1))
     
-    v_sink_liquid = 2._wp*M_PI*radius**2*rho_h2o*gravity &
-                    /(9._wp*M_PI*state%rho(ji,jl,n_condensed_constituents+1)*kinematic_viscosity)
+    v_fall_liquid = 2._wp*radius**2*(rho_h2o-state%rho(ji,jl,n_condensed_constituents+1))*gravity &
+                    /(9._wp*state%rho(ji,jl,n_condensed_constituents+1)*kinematic_viscosity)
     
-  end function v_sink_liquid
+    reynolds_number = v_fall_liquid*radius/kinematic_viscosity
+    
+    if (reynolds_number>reynolds_crit) then
+      c_w = .8_wp
+      v_fall_liquid = sqrt(8._wp*radius*rho_h2o*gravity/(3._wp*state%rho(ji,jl,n_condensed_constituents+1)*c_w))
+    endif
+    
+  end function v_fall_liquid
+  
+  function v_fall_solid(state,diag,radius,ji,jl)
+    
+    ! This function returns the fall velocity of ice particles (including snow) as a function of the radius of the droplets and the air density.
+    
+    type(t_state), intent(in)    :: state        ! state variables
+    type(t_diag),  intent(inout) :: diag         ! diagnostic quantities
+    real(wp),      intent(in)    :: radius       ! radius of the droplet
+    integer,       intent(in)    :: ji           ! horizontal index
+    integer,       intent(in)    :: jl           ! layer index
+    real(wp)                     :: v_fall_solid ! result
+    
+    v_fall_solid = 0.001_wp
+    
+    if (radius>250.e-6) then
+      v_fall_solid = 1._wp
+    endif
+    
+  end function v_fall_solid
 
 end module mo_derived
 

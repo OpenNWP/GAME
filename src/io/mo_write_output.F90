@@ -12,12 +12,12 @@ module mo_write_output
   use mo_grid_nml,               only: n_cells,n_edges,n_lat_io_points,n_lon_io_points,n_levels,n_layers
   use mo_various_helpers,        only: nc_check,find_min_index,int2string
   use mo_geodesy,                only: passive_turn
-  use mo_constituents_nml,       only: n_constituents,n_condensed_constituents,lmoist,rain_velocity,snow_velocity
+  use mo_constituents_nml,       only: n_constituents,n_condensed_constituents,lmoist
   use mo_io_nml,                 only: n_pressure_levels,pressure_levels,time_to_next_analysis_min,lmodel_level_output, &
                                        lsurface_output,lpressure_level_output,n_output_steps_10m_wind,ideal_input_id
-  use mo_dictionary,             only: saturation_pressure_over_ice,saturation_pressure_over_water
+  use mo_dictionary,             only: saturation_pressure_over_ice,saturation_pressure_over_water,snow_particles_radius
   use mo_surface_nml,            only: nsoillays,lprog_soil_temp,pbl_scheme,lsfc_sensible_heat_flux,lsfc_phase_trans
-  use mo_derived,                only: rel_humidity,gas_constant_diagnostics,temperature_diagnostics
+  use mo_derived,                only: rel_humidity,gas_constant_diagnostics,temperature_diagnostics,v_fall_solid,v_fall_liquid
   use mo_run_nml,                only: run_id,start_date,start_hour
   use mo_vorticities,            only: calc_rel_vort,calc_pot_vort
   use mo_spatial_ops_for_output, only: epv_diagnostics,edges_to_cells_lowest_layer,calc_uv_at_edge,edges_to_cells, &
@@ -318,12 +318,12 @@ module mo_write_output
           ! solid precipitation rate
           sprate(ji) = 0._wp
           if (lmoist) then
-            sprate(ji) = snow_velocity*state%rho(ji,n_layers,1)
+            sprate(ji) = v_fall_solid(state,diag,snow_particles_radius(),ji,n_layers)*state%rho(ji,n_layers,1)
           endif
           ! liquid precipitation rate
           rprate(ji) = 0._wp
           if (lmoist) then
-            rprate(ji) = rain_velocity*state%rho(ji,n_layers,2)
+            rprate(ji) = v_fall_liquid(state,diag,diag%a_rain(ji,n_layers),ji,n_layers)*state%rho(ji,n_layers,2)
           endif
           ! setting very small values to zero
           if (sprate(ji)<min_precip_rate) then

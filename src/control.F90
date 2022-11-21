@@ -9,8 +9,7 @@ program control
   use mo_definitions,            only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,               only: n_layers,n_cells,n_edges,n_triangles,n_lat_io_points,n_lon_io_points, &
                                        n_levels,grid_nml_setup
-  use mo_constituents_nml,       only: cloud_droplets_velocity,rain_velocity,snow_velocity,n_constituents, &
-                                       n_condensed_constituents,constituents_nml_setup
+  use mo_constituents_nml,       only: n_constituents,n_condensed_constituents,constituents_nml_setup
   use mo_run_nml,                only: run_span_min,run_nml_setup,t_init
   use mo_grid_setup,             only: eff_hor_res,radius_rescale,set_grid_properties,dtime,toa
   use mo_io_nml,                 only: n_output_steps_10m_wind,lwrite_integrals,write_out_interval_min, &
@@ -210,6 +209,7 @@ program control
   allocate(diag%sfc_sw_in(n_cells))
   allocate(diag%sfc_lw_out(n_cells))
   allocate(diag%radiation_tendency(n_cells,n_layers))
+  allocate(diag%a_rain(n_cells,n_layers))
   allocate(state_write%rho(n_cells,n_layers,n_constituents))
   allocate(state_write%rhotheta_v(n_cells,n_layers))
   allocate(state_write%theta_v_pert(n_cells,n_layers))
@@ -346,6 +346,7 @@ program control
   diag%sfc_sw_in = 0._wp
   diag%sfc_lw_out = 0._wp
   diag%radiation_tendency = 0._wp
+  diag%a_rain = 0._wp
   state_write%rho = 0._wp
   state_write%rhotheta_v = 0._wp
   state_write%theta_v_pert = 0._wp
@@ -405,10 +406,6 @@ program control
       normal_dist_min_ver = grid%dz(ji,n_layers)
     endif
   enddo
-  
-  write(*,fmt="(A,F6.3,A5)") " Cloud droplets falling velocity set to",cloud_droplets_velocity," m/s."
-  write(*,fmt="(A,F7.3,A5)") " Rain falling velocity set to",rain_velocity," m/s."
-  write(*,fmt="(A,F6.3,A5)") " Snow falling velocity set to",snow_velocity," m/s."
   
   write(*,fmt="(A,F8.3,A3)") " Effective horizontal resolution:",1e-3*eff_hor_res,"km"
   write(*,fmt="(A,F8.3,A3)") " Minimum horizontal normal distance:",1e-3*normal_dist_min_hor," km"
@@ -698,6 +695,7 @@ program control
   deallocate(diag%sfc_sw_in)
   deallocate(diag%sfc_lw_out)
   deallocate(diag%radiation_tendency)
+  deallocate(diag%a_rain)
   deallocate(state_write%rho)
   deallocate(state_write%rhotheta_v)
   deallocate(state_write%theta_v_pert)

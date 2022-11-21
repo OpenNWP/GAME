@@ -10,7 +10,7 @@ module mo_phase_trans
   use mo_constants,        only: r_v,t_0,r_d
   use mo_constituents_nml, only: n_condensed_constituents,n_constituents
   use mo_grid_setup,       only: dtime
-  use mo_dictionary,       only: saturation_pressure_over_water,saturation_pressure_over_ice, &
+  use mo_dictionary,       only: saturation_pressure_over_water,saturation_pressure_over_ice,rain_drops_radius, &
                                  dsaturation_pressure_over_water_dT,dsaturation_pressure_over_ice_dT, &
                                  phase_trans_heat,enhancement_factor_over_water,enhancement_factor_over_ice
   use mo_derived,          only: c_v_mass_weighted_air
@@ -57,8 +57,12 @@ module mo_phase_trans
     !$omp a,b,c,p,q,enhancement_factor)
     do jl=1,n_layers
       do ji=1,n_cells
+        
         ! Preparation
         ! -----------
+        
+        ! determining the radius of rain drops
+        diag%a_rain(ji,jl) = rain_drops_radius(state%rho(ji,jl,2)+state%rho(ji,jl,4))
         
         ! determining the saturation pressure
         ! "positive" temperatures (the saturation pressure is different over water compared to over ice)
