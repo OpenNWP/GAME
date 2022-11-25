@@ -20,23 +20,31 @@ module mo_scalar_tend_expl
   
   contains
 
-  subroutine scalar_tend_expl(state_scalar,state_wind,state_tend,diag,grid,rk_step)
+  subroutine scalar_tend_expl(state_old,state_new,state_tend,diag,grid,rk_step)
     
     ! This subroutine manages the calculation of the explicit part of the scalar tendencies.
     
-    type(t_state), intent(in)    :: state_scalar ! state containing the scalar quantities
-    type(t_state), intent(in)    :: state_wind   ! state from which to use the wind
-    type(t_state), intent(inout) :: state_tend   ! state containing the tendencies
-    type(t_diag),  intent(inout) :: diag         ! diagnostic quantities
-    type(t_grid),  intent(in)    :: grid         ! grid quantities
-    integer,       intent(in)    :: rk_step      ! Runge-Kutta substep
+    type(t_state), intent(in),   target :: state_old  ! state variables at the old predictor-corrector substep
+    type(t_state), intent(in),   target :: state_new  ! state variables at the new predictor-corrector substep
+    type(t_state), intent(inout)        :: state_tend ! state containing the tendencies
+    type(t_diag),  intent(inout)        :: diag       ! diagnostic quantities
+    type(t_grid),  intent(in)           :: grid       ! grid quantities
+    integer,       intent(in)           :: rk_step    ! Runge-Kutta substep
     
     ! local variables
-    integer  :: ji                         ! cell index
-    integer  :: jl                         ! layer index
-    integer  :: jc                         ! constituent index
-    real(wp) :: old_weight(n_constituents) ! time stepping weight of the old time step
-    real(wp) :: new_weight(n_constituents) ! time stepping weight of the new time step
+    integer                :: ji                         ! cell index
+    integer                :: jl                         ! layer index
+    integer                :: jc                         ! constituent index
+    real(wp)               :: old_weight(n_constituents) ! time stepping weight of the old time step
+    real(wp)               :: new_weight(n_constituents) ! time stepping weight of the new time step
+    type(t_state), pointer :: state_scalar               ! state from which to use the scalar quantities
+    
+    ! setting the scalar state
+    if (rk_step==1) then
+      state_scalar => state_old
+    else
+      state_scalar => state_new
+    endif
     
     ! Firstly,some things need to prepared.
     ! -------------------------------------
@@ -100,12 +108,12 @@ module mo_scalar_tend_expl
       ! ------------------------------------------------------------------------------
       ! moist air
       if (jc==n_condensed_constituents+1) then
-        call scalar_times_vector_h(state_scalar%rho(:,:,jc),state_wind%wind_h,diag%flux_density_h,grid)
+        call scalar_times_vector_h(state_scalar%rho(:,:,jc),state_new%wind_h,diag%flux_density_h,grid)
         call div_h(diag%flux_density_h,diag%flux_density_div,grid)
       ! all other constituents
       else
-        call scalar_times_vector_h_upstream(state_scalar%rho(:,:,jc),state_wind%wind_h,diag%flux_density_h,grid)
-        call div_h_tracer(diag%flux_density_h,state_scalar%rho(:,:,jc),state_wind%wind_h,diag%flux_density_div,grid)
+        call scalar_times_vector_h_upstream(state_scalar%rho(:,:,jc),state_new%wind_h,diag%flux_density_h,grid)
+        call div_h_tracer(diag%flux_density_h,state_scalar%rho(:,:,jc),state_new%wind_h,diag%flux_density_div,grid)
       endif
       
       ! adding the tendencies in all grid boxes
