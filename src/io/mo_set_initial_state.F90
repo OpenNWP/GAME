@@ -238,7 +238,7 @@ module mo_set_initial_state
     deallocate(pressure)
     deallocate(temperature_v)
     
-    ! substracting the background state
+    ! subtracting the background state
     !$omp parallel workshare
     state%exner_pert = state%exner_pert - grid%exner_bg
     state%theta_v_pert = state%theta_v_pert - grid%theta_v_bg
