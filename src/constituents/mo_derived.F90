@@ -47,8 +47,8 @@ module mo_derived
     real(wp)             :: rel_humidity ! result
     
     ! local variables
-    real(wp)             :: vapour_pressure     ! actual water vapour pressure
-    real(wp)             :: saturation_pressure ! saturation water vapour pressure
+    real(wp) :: vapour_pressure     ! actual water vapour pressure
+    real(wp) :: saturation_pressure ! saturation water vapour pressure
     
     ! calculation of the water vapour pressure according to the equation of state
     vapour_pressure = abs_humidity*r_v*temperature
@@ -68,9 +68,10 @@ module mo_derived
     
     ! This function calculates the specific gas constant of the gas phase.
     
-    real(wp), intent(in) :: rho(n_cells,n_layers,n_constituents)
-    integer,  intent(in) :: ji,jl
-    real(wp)             :: gas_constant_diagnostics
+    real(wp), intent(in) :: rho(n_cells,n_layers,n_constituents) ! mass densities
+    integer,  intent(in) :: ji                                   ! cell index
+    integer,  intent(in) :: jl                                   ! layer index
+    real(wp)             :: gas_constant_diagnostics             ! result
     
     gas_constant_diagnostics = 0._wp
     ! in the dry case this is just the individual gas constant of dry air
@@ -90,9 +91,11 @@ module mo_derived
   
     ! This function calculates the mass-weighted c_v of the air.
     
-    real(wp), intent(in) :: rho(n_cells,n_layers,n_constituents),temperature(n_cells,n_layers)
-    integer,  intent(in) :: ji,jl
-    real(wp)             :: c_v_mass_weighted_air
+    real(wp), intent(in) :: rho(n_cells,n_layers,n_constituents) ! mass densities
+    real(wp), intent(in) :: temperature(n_cells,n_layers)        ! temperature
+    integer,  intent(in) :: ji                                   ! cell index
+    integer,  intent(in) :: jl                                   ! layer index
+    real(wp)             :: c_v_mass_weighted_air                ! result
     
     ! local variables
     integer :: jc ! constituent index
@@ -123,7 +126,12 @@ module mo_derived
     real(wp)             :: calc_diffusion_coeff ! result
     
     ! local variables
-    real(wp) :: particle_radius,particle_mass,thermal_velocity,particle_density,cross_section,mean_free_path
+    real(wp) :: particle_radius  ! radius of the particles
+    real(wp) :: particle_mass    ! mass of the particles
+    real(wp) :: thermal_velocity ! thermal velocity of the particles
+    real(wp) :: particle_density ! numeric particle density
+    real(wp) :: cross_section    ! cross section of the particles
+    real(wp) :: mean_free_path   ! mean free path of the particles
 
     ! these things are hardly ever modified
     particle_radius = 130e-12_wp
