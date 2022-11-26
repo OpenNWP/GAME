@@ -45,8 +45,8 @@ module mo_vertical_grid
         sigma_z = z_rel**stretching_parameter
         A = sigma_z*toa ! the height without orography
         ! B corrects for orography
-        if (jl>n_flat_layers) then
-          B = (jl-n_flat_layers-1._wp)/n_oro_layers
+        if (jl>n_flat_layers+1) then
+          B = (jl-(n_flat_layers+1._wp))/n_oro_layers
         else
           B = 0._wp
         endif
