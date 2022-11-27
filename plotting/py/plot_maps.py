@@ -324,9 +324,6 @@ for i in range(int((run_span_min - start_time_since_init_min)/plot_interval_min)
 	if (projection == "Mollweide"):
 		fig = plt.figure(figsize = (fig_size, 0.5*fig_size))
 		coord_sys = cs.GeogCS(6371229)
-	if (projection == "EckertIII"):
-		fig = plt.figure(figsize = (fig_size, 0.5*fig_size))
-		coord_sys = cs.GeogCS(6371229)
 	if (projection == "Orthographic"):
 		fig = plt.figure(figsize = (fig_size, fig_size))
 		ax = plt.axes(projection = ccrs.Orthographic(central_latitude = 0, central_longitude = 0))
