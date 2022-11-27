@@ -22,7 +22,7 @@ export OMP_NUM_THREADS=4
 cat > namelist.nml << EOF
 
 &grid
-res_id=5
+res_id=6
 n_layers=26
 oro_id=0
 /

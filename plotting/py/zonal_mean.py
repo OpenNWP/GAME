@@ -17,7 +17,7 @@ no_of_layers = 26
 run_span_min = 1200*1440 # run length in minutes
 dt_data_min = 1440 # output time step in minutes
 begin_since_init_min = 200*1440 #  when to begin computing the zonal average in minutes
-grid_filename = "/home/max/code/GAME/grid_generator/grids/RES5_L26_ORO0.nc" # grid filename
+grid_filename = "/home/max/code/GAME/grid_generator/grids/RES6_L26_ORO0.nc" # grid filename
 toa = 41152.0 # top of atmosphere
 
 # END OF USUAL INPUT SECTION
