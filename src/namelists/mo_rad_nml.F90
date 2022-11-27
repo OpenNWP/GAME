@@ -7,7 +7,7 @@ module mo_rad_nml
   
   use mo_definitions, only: wp,t_grid
   use mo_grid_nml,    only: n_cells,n_layers
-  use mo_grid_setup,  only: eff_hor_res
+  use mo_grid_setup,  only: eff_hor_res,dtime
   use omp_lib,        only: omp_get_num_threads
   
   implicit none
@@ -59,6 +59,11 @@ module mo_rad_nml
     read(nml=rad,unit=fileunit)
     
     close(fileunit)
+    
+    ! in case of the Held-Suarez test, radiation is updated at every time step
+    if (rad_config==2) then
+      radiation_dtime = dtime
+    endif
     
     n_cells_rad = n_cells/n_rad_blocks
     n_cells_rad_last = mod(n_cells,n_cells_rad)
