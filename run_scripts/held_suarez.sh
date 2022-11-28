@@ -54,7 +54,6 @@ lmass_diff_v=.false.
 /
 
 &rad
-n_rad_blocks=1
 rad_config=2
 /
 
