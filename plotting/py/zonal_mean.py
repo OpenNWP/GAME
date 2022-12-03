@@ -20,7 +20,7 @@ begin_since_init_min = 200*1440 #  when to begin computing the zonal average in 
 grid_filename = "/home/max/code/GAME/grid_generator/grids/RES6_L26_ORO0.nc" # grid filename
 toa = 41152.0 # top of atmosphere
 
-# END OF USUAL INPUT SECTION
+# end of usual input section
 
 # 1.) bureaucracy
 

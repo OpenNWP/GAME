@@ -15,7 +15,7 @@ number_of_days = 15
 save_directory = "/home/max/code/GAME/figs"
 small_earth_rescale = 1
 
-# END OF USUAL INPUT SECTION
+# end of usual input section
 
 def fetch_model_output(input_filename, varname):
 	ds = nc.Dataset(input_filename, "r", format = "NETCDF4")

@@ -19,7 +19,7 @@ dt_data_min = 1440 # output time step in minutes
 begin_since_init_min = 200*1440 #  when to begin computing the zonal average in minutes
 toa = 41152 # top of atmosphere
 
-# END OF USUAL INPUT SECTION
+# end of usual input section
 
 # 1.) bureaucracy
 
