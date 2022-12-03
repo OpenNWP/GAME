@@ -4,18 +4,14 @@
 # This file is for plotting maps.
 
 import numpy as np
-import sys
 import toolbox.read_model_output as rmo
 import toolbox.map_properties as mp
-import cartopy.feature as cfeature
 import iris
 import toolbox.dist_stuff as ds
-import toolbox.conversions as conv
 import toolbox.time_coord_stuff as tcs
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import cartopy.crs as ccrs
-import matplotlib.offsetbox as offsetbox
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 import iris.coord_systems as cs
 import iris.plot as iplt
@@ -28,132 +24,12 @@ save_directory = "/home/max/code/GAME/figs"
 netcdf_dir = "/home/max/code/GAME/output"
 on_pressure_bool = 1
 level = 850
-title_add_string = ", day 8"
+title_add_string = " in 850 hPa, day 8"
 unit_string = "hPa"
 
 # end of usual input section
 
-# default values
-shift = 0
-rescale = 1
-colormap = "jet"
-show_level_on = 1
-contourf_plot = 1
-gravity_mean = 9.80616
-
-surface_bool = 0
-if var_id == "geopot":
-	variable_name = "Geopotential height"
-	unit_string = "gpdam"
-	rescale = 1/gravity_mean
-	contourf_plot = 0
-if var_id == "temperature":
-	variable_name = "Temperature"
-	unit_string = "°C"
-	shift = -conv.c2k(0)
-if var_id == "prmsl":
-	variable_name = "MSLP / hPa"
-	rescale = 0.01
-	unit_string = "hPa"
-	show_level_on = 0
-	contourf_plot = 0
-	surface_bool = 1
-if var_id == "sp":
-	variable_name = "Surface pressure"
-	rescale = 0.01
-	unit_string = "hPa"
-	show_level_on = 0
-	surface_bool = 1
-if var_id == "cape":
-	variable_name = "CAPE"
-	unit_string = "J / kg"
-	show_level_on = 0
-	surface_bool = 1
-if var_id == "sfc_sw_down":
-	variable_name = "Downward shortwave flux at the surface"
-	unit_string = "W / m^2"
-	show_level_on = 0
-	surface_bool = 1
-if var_id == "pres":
-	variable_name = "Pressure"
-	unit_string = "Pa"
-if var_id == "rel_hum":
-	variable_name = "Relative humidity"
-	unit_string = "%"
-	colormap = "Blues"
-if var_id == "wind_u":
-	variable_name = "Zonal wind"
-	unit_string = "m/s"
-if var_id == "wind_v":
-	variable_name = "Meridional wind"
-	unit_string = "m/s"
-if var_id == "t2":
-	variable_name = "2 m temperature"
-	unit_string = "°C"
-	shift = -conv.c2k(0)
-	show_level_on = 0
-	surface_bool = 1
-if var_id == "rel_vort":
-	variable_name = "Relative vorticity"
-	unit_string = "10^-5/s"
-	rescale = 1e5
-if var_id == "epv":
-	variable_name = "Potential vorticity"
-	unit_string = "PVU"
-	rescale = 1e6
-if var_id == "u10":
-	variable_name = "10 m zonal wind"
-	unit_string = "m/s"
-	show_level_on = 0
-	surface_bool = 1
-if var_id == "v10":
-	variable_name = "10 m meridional wind"
-	unit_string = "m/s"
-	show_level_on = 0
-	surface_bool = 1
-if var_id == "gusts10":
-	variable_name = "10 m gusts"
-	unit_string = "kn"
-	show_level_on = 0
-	surface_bool = 1
-	rescale = conv.ms2kn(1)
-if var_id == "rprate":
-	variable_name = "Precipitation rate (rain)"
-	unit_string = "mm/h"
-	rescale = conv.kgm_2s_12mmh_1(1)
-	colormap = "Greys"
-	show_level_on = 0
-	surface_bool = 1
-if var_id == "sprate":
-	variable_name = "Precipitation rate (snow)"
-	unit_string = "mm/h"
-	rescale = conv.kgm_2s_12mmh_1(1)
-	colormap = "Greys"
-	show_level_on = 0
-	surface_bool = 1
-if var_id == "tcc":
-	variable_name = "Total cloud cover"
-	unit_string = "%"
-	colormap = "Greys"
-	show_level_on = 0
-	surface_bool = 1
-if var_id == "density_dry":
-	variable_name = "Dry air density"
-	unit_string = "g/m^3"
-	rescale = 1000
-if var_id == "wind_w":
-	variable_name = "Vertical velocity"
-	unit_string = "m/s"
-	rescale = 1
-if var_id == "div_h":
-	variable_name = "Horizontal divergence"
-	unit_string = "1/s"
-	rescale = 1
-if var_id == "surface_wind":
-	variable_name = "10 m wind (colors: gusts)"
-	unit_string = "kn"
-	rescale = conv.ms2kn(1)
-	surface_bool = 1
+surface_bool, variable_name, unit_string, rescale, show_level_on, contourf_plot, colormap, shift = mp.var_properties(var_id)
 
 netcdf_dir = netcdf_dir + "/" + run_id
 
@@ -227,34 +103,8 @@ else:
 		lat, lon, values = rmo.fetch_model_output(input_file, var_id + "_layer_" + str(level))
 	values = rescale*values + shift
 
-# correcting the problem when plotting across lon = 0
 lat_plot_deg = np.rad2deg(lat)
 lon_plot_deg = np.rad2deg(lon)
-shift_index = -1
-for j in range(len(lon_plot_deg)):
-	if lon_plot_deg[j] >= 180:
-		lon_plot_deg[j] = lon_plot_deg[j] - 360
-		if shift_index == -1:
-			shift_index = j
-lon_plot_deg_new = lon_plot_deg.copy()
-lon_new = lon.copy()
-values_new = values.copy()
-if var_id == "surface_wind":
-	values_u10_new = values_u10.copy()
-	values_v10_new = values_u10.copy()
-for j in range(len(lon_plot_deg)):
-	lon_plot_deg_new[j] = lon_plot_deg[(j + shift_index)%len(lon_plot_deg)]
-	lon_new[j] = lon[(j + shift_index)%len(lon_plot_deg)]
-	values_new[:, j] = values[:, (j + shift_index)%len(lon_plot_deg)]
-	if var_id == "surface_wind":
-		values_u10_new[:, j] = values_u10[:, (j + shift_index)%len(lon_plot_deg)]
-		values_v10_new[:, j] = values_v10[:, (j + shift_index)%len(lon_plot_deg)]
-lon_plot_deg = lon_plot_deg_new.copy()
-lon = lon_new.copy()
-values = values_new.copy()
-if var_id == "surface_wind":
-	values_u10 = values_u10_new.copy()
-	values_v10 = values_v10_new.copy()
 
 total_min = np.nanmin(values)
 total_max = np.nanmax(values)
