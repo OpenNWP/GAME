@@ -13,7 +13,7 @@ program control
   use mo_run_nml,                only: run_span_min,run_nml_setup,t_init
   use mo_grid_setup,             only: eff_hor_res,radius_rescale,set_grid_properties,dtime,toa
   use mo_io_nml,                 only: n_output_steps_10m_wind,lwrite_integrals,write_out_interval_min, &
-                                       io_nml_setup,ideal_input_id
+                                       io_nml_setup,ideal_input_id,lwrite_integrals
   use mo_surface_nml,            only: nsoillays,surface_nml_setup
   use mo_rad_nml,                only: rad_config,radiation_dtime,rad_nml_setup
   use mo_diff_nml,               only: diff_nml_setup
@@ -454,8 +454,7 @@ program control
   t_write = t_0 + 60._wp*write_out_interval_min
   
   write(*,"(A,F10.3,A2)") " Run progress:",(t_init-t_init)/3600._wp,"h"
-  ! clock_t first_time,second_time
-  ! first_time = clock()
+  
   if (lwrite_integrals) then
     call write_out_integrals(state_1,diag,grid,0._wp)
   endif

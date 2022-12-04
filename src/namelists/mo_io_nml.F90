@@ -18,7 +18,7 @@ module mo_io_nml
   logical            :: lmodel_level_output                ! model level output switch
   logical            :: lpressure_level_output             ! pressure level output switch
   logical            :: lsurface_output                    ! surface level output switch
-  logical            :: lwrite_integrals                   ! If set to 1, fundamental integrals of the atmosphere will be written out at every time step.
+  logical            :: lwrite_integrals                   ! If set to true, fundamental integrals of the atmosphere will be written out at every time step.
   integer            :: time_to_next_analysis_min          ! time to next analysis time in minutes (relevant only for NWP)
   integer            :: n_output_steps_10m_wind            ! number of time steps for 10 m wind averaging
   integer, parameter :: n_pressure_levels = 6              ! number of pressure levels for the output
