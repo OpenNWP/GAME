@@ -11,7 +11,7 @@
 export OMP_NUM_THREADS=4 # relevant only for OMP
 
 oro_id=0
-luse_scalar_h_file=".true."
+luse_scalar_h_file=".false."
 
 # creating a namelist
 cat > namelist.nml << EOF
