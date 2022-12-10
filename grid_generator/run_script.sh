@@ -10,6 +10,7 @@
 
 export OMP_NUM_THREADS=4 # relevant only for OMP
 
+res_id=5
 oro_id=0
 luse_scalar_h_file=".false."
 
@@ -17,7 +18,7 @@ luse_scalar_h_file=".false."
 cat > namelist.nml << EOF
 
 &grid
-res_id=5
+res_id=$res_id
 oro_id=$oro_id
 n_lloyd_iterations=2000
 luse_scalar_h_file=$luse_scalar_h_file
