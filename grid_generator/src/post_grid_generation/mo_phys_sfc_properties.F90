@@ -8,7 +8,7 @@ module mo_phys_sfc_properties
   use netcdf
   use mo_constants,       only: M_PI,rho_h2o
   use mo_definitions,     only: wp
-  use mo_grid_nml,        only: res_id,n_cells,n_avg_points,n_pentagons,oro_id
+  use mo_grid_nml,        only: res_id,n_cells,n_avg_points,n_pentagons,oro_id,lsleve
   use mo_geodesy,         only: deg2rad,calculate_distance_h
   use mo_various_helpers, only: nc_check,int2string,find_min_index,find_min_index_exclude
 
@@ -167,6 +167,12 @@ module mo_phys_sfc_properties
         endif
       enddo
       !$omp end parallel do
+      
+      if (.not. lsleve) then
+        !$omp parallel workshare
+        oro = oro_smoothed
+        !$omp end parallel workshare
+      endif
       
     endif
     

@@ -49,8 +49,8 @@ module mo_vertical_grid
         ! including orography
         if (jl>n_flat_layers+1) then
           if (lsleve) then
-            vertical_vector_pre(jl) = A + sinh((toa_oro-A)/5.e3_wp)/sinh(toa_oro/5.e3_wp)*oro_smoothed(ji) &
-                                      + sinh((toa_oro-A)/2.e3_wp)/sinh(toa_oro/2.e3_wp)*(oro(ji) - oro_smoothed(ji))
+            vertical_vector_pre(jl) = A + sinh((toa_oro-A)/20.e3_wp)/sinh(toa_oro/20.e3_wp)*oro_smoothed(ji) &
+                                      + sinh((toa_oro-A)/10.e3_wp)/sinh(toa_oro/10.e3_wp)*(oro(ji) - oro_smoothed(ji))
           else
             B = (jl-(n_flat_layers+1._wp))/n_oro_layers
             vertical_vector_pre(jl) = A + B*oro(ji)
@@ -62,9 +62,19 @@ module mo_vertical_grid
         if (jl==n_flat_layers+1) then
           toa_oro = vertical_vector_pre(jl)
         endif
+        
+        ! check
+        if (jl>1) then
+          if (vertical_vector_pre(jl)>=vertical_vector_pre(jl-1)) then
+            write(*,*) "Problem in vertical grid generation. You might have to change SLEVE parameters."
+            write(*,*) "Aborting."
+            call exit(1)
+          endif
+        endif
+        
       enddo
       
-      ! doing a check
+      ! check
       if (ji==1) then
         if (max_oro>=vertical_vector_pre(n_flat_layers+1)) then
           write(*,*) "Maximum of orography larger or equal to the height of the lowest flat level."

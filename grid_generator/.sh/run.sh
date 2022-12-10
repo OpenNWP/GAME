@@ -6,9 +6,6 @@
 # verbosity
 echo "***** GRID FILE CREATION *****"
 echo ""
-echo "Setup:"
-echo "oro_id = $oro_id"
-echo "number of Lloyd iterations: $n_lloyd_iterations"
 
 if [ ! -f ./build/grid_generator ]
 then
@@ -20,16 +17,6 @@ fi
 if [ $luse_scalar_h_file = ".true." ]
 then
   echo "Horizontal coordinates of the generating points (the scalar points in terms of the model) will be read from a file."
-fi
-
-echo "model top: "$toa" m"
-echo "number of layers following orography: "$n_oro_layers
-echo "stretching parameter: "$stretching_parameter
-echo "radius rescale factor: "$radius_rescale
-
-if [ $oro_id -eq 1 ]
-then
-  echo "number of points used for averaging the orography: "$n_avg_points
 fi
 
 # downloading orography if necessary
