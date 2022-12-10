@@ -14,11 +14,6 @@ then
   exit
 fi
 
-if [ $luse_scalar_h_file = ".true." ]
-then
-  echo "Horizontal coordinates of the generating points (the scalar points in terms of the model) will be read from a file."
-fi
-
 # downloading orography if necessary
 if [ $oro_id -eq 1 ] && [ ! -f phys_quantities/etopo.nc ]
 then

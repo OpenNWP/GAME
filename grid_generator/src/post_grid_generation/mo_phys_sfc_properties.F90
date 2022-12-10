@@ -8,7 +8,7 @@ module mo_phys_sfc_properties
   use netcdf
   use mo_constants,       only: M_PI,rho_h2o
   use mo_definitions,     only: wp
-  use mo_grid_nml,        only: res_id,n_cells,n_avg_points,n_pentagons,oro_id,lsleve
+  use mo_grid_nml,        only: res_id,n_cells,n_avg_points,n_pentagons,oro_id,lsleve,n_edges
   use mo_geodesy,         only: deg2rad,calculate_distance_h
   use mo_various_helpers, only: nc_check,int2string,find_min_index,find_min_index_exclude
 
@@ -33,13 +33,19 @@ module mo_phys_sfc_properties
 
   end function vegetation_height_ideal
   
-  subroutine set_sfc_properties(lat_c,lon_c,roughness_length,sfc_albedo,sfc_rho_c,t_conductivity,oro,oro_smoothed,is_land)
+  subroutine set_sfc_properties(lat_c,lon_c,lat_e,lon_e,from_cell,to_cell,adjacent_edges,roughness_length, &
+                                sfc_albedo,sfc_rho_c,t_conductivity,oro,oro_smoothed,is_land)
     
     ! This subroutine sets the physical surface properties.
     
     integer,  intent(out) :: is_land(n_cells)          ! land-sea mask (result)
     real(wp), intent(in)  :: lat_c(n_cells)            ! latitudes at cell centers
     real(wp), intent(in)  :: lon_c(n_cells)            ! longitudes at cell centers
+    real(wp), intent(in)  :: lat_e(n_edges)            ! latitudes at the edges
+    real(wp), intent(in)  :: lon_e(n_edges)            ! longitudes at the edges
+    integer,  intent(in)  :: from_cell(n_edges)        ! cells in the from-directions of the vectors
+    integer,  intent(in)  :: to_cell(n_edges)          ! cells in the to-directions of the vectors
+    integer,  intent(in)  :: adjacent_edges(6,n_cells) ! edges adjacent to a cell
     real(wp), intent(out) :: roughness_length(n_cells) ! roughness length of the surface (result)
     real(wp), intent(out) :: sfc_albedo(n_cells)       ! surface albedo (result)
     real(wp), intent(out) :: sfc_rho_c(n_cells)        ! surface volumetric heat capacity (result)
@@ -60,6 +66,7 @@ module mo_phys_sfc_properties
     integer               :: lat_index                        ! latitude index of a point of the input grid
     integer               :: lon_index                        ! longitude index of a point of the input grid
     integer               :: min_indices_vector(n_avg_points) ! vector of closest gridpoint indices
+    integer               :: n_edges_of_cell                  ! number of edges a given cell has
     real(wp)              :: c_p_water                        ! specific heat capacity at constant pressure of water
     real(wp)              :: c_p_soil                         ! specific heat capacity at constant pressure of soil
     real(wp)              :: albedo_water                     ! albedo of water
@@ -74,6 +81,7 @@ module mo_phys_sfc_properties
     real(wp), allocatable :: longitude_input(:)               ! longitude vector of the input grid
     real(wp), allocatable :: lat_distance_vector(:)           ! vector containing distances in the latitude direction
     real(wp), allocatable :: lon_distance_vector(:)           ! vector containing distances in the longitude direction
+    real(wp), allocatable :: oro_edges(:)                     ! orography at the edges
     integer,  allocatable :: z_input(:,:)                     ! input orography
     character(len=64)     :: is_land_file                     ! file to read the land-sea-mask from
     character(len=64)     :: oro_file                         ! file to read the orography from
@@ -135,6 +143,56 @@ module mo_phys_sfc_properties
       enddo
       !$omp end parallel do
       
+      ! setting the unfiltered orography at the edges
+      allocate(oro_edges(n_edges))
+      !$omp parallel do private(ji,jk,lat_index,lon_index,lat_distance_vector,lon_distance_vector)
+      do ji=1,n_edges
+        
+        allocate(lat_distance_vector(n_lat_points))
+        allocate(lon_distance_vector(n_lon_points))
+        do jk=1,n_lat_points
+          lat_distance_vector(jk) = abs(deg2rad(latitude_input(jk))-lat_e(ji))
+        enddo
+        do jk=1,n_lon_points
+          lon_distance_vector(jk) = abs(deg2rad(longitude_input(jk))-lon_e(ji))
+        enddo
+        lat_index = find_min_index(lat_distance_vector)
+        lon_index = find_min_index(lon_distance_vector)
+        
+        oro_edges(ji) = z_input(lon_index,lat_index)
+        
+        ! over the sea there is no orography
+        if (is_land(from_cell(ji))==0 .or. is_land(to_cell(ji))==0) then
+          oro_edges(ji) = 0._wp
+        endif
+        
+        ! freeing the memory
+        deallocate(lat_distance_vector)
+        deallocate(lon_distance_vector)
+        
+      enddo
+      !$omp end parallel do
+      
+      ! computing the orography at the cells including the values at the edges
+      !$omp parallel do private(ji,jk,n_edges_of_cell)
+      do ji=1,n_cells
+        
+        ! number of edges the given cell has
+        n_edges_of_cell = 6
+        if (ji<=n_pentagons) then
+          n_edges_of_cell = 5
+        endif
+        
+        do jk=1,n_edges_of_cell
+          oro(ji) = oro(ji) + oro_edges(adjacent_edges(jk,ji))
+        enddo
+        
+        oro(ji) = oro(ji)/(1._wp+n_edges_of_cell)
+        
+      enddo
+      !$omp end parallel do
+      
+      deallocate(oro_edges)
       deallocate(z_input)
       deallocate(latitude_input)
       deallocate(longitude_input)
@@ -226,7 +284,7 @@ module mo_phys_sfc_properties
     enddo
     !$omp end parallel do
     
-  end subroutine
+  end subroutine set_sfc_properties
   
 end module mo_phys_sfc_properties
 

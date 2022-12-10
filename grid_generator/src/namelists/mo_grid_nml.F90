@@ -60,7 +60,7 @@ module mo_grid_nml
     stretching_parameter = 1.3_wp
     radius_rescale = 1._wp
     lsleve = .true.
-    n_avg_points = 13
+    n_avg_points = 7
     oro_id = 1
     n_lloyd_iterations = 2000
     luse_scalar_h_file = .false.
@@ -70,6 +70,11 @@ module mo_grid_nml
     read(nml=grid,unit=fileunit)
     
     close(fileunit)
+    
+    ! giving the user some information on the configuration
+    write(*,fmt="(A,I3)") " number of orography following layers: ",n_oro_layers
+    write(*,fmt="(A,F9.3)") " top of atmosphere / m: ",toa
+    write(*,fmt="(A,F5.3)") " vertical grid stretching parameter: ",stretching_parameter
     
     ! derived quantities
     n_pentagons = 12

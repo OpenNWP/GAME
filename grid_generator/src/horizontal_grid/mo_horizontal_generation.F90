@@ -870,6 +870,8 @@ module mo_horizontal_generation
     integer :: to_cell_dual_id      ! netCDF ID of to_cell_dual
     integer :: n_lloyd_read_file_id ! netCDF ID of n_lloyd_read_file
 
+    write(*,*) "Reading horizontal grid quantities from file ",trim(filename)
+
     call nc_check(nf90_open(trim(filename),NF90_CLOBBER,ncid))
     call nc_check(nf90_inq_varid(ncid,"lat_c",lat_c_id))
     call nc_check(nf90_inq_varid(ncid,"lon_c",lon_c_id))

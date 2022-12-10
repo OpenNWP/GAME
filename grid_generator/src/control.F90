@@ -371,7 +371,8 @@ program control
   ! 5.) setting the physical surface properties
   !     ---------------------------------------
   write(*,*) "Setting the physical surface properties ..."
-  call set_sfc_properties(lat_c,lon_c,roughness_length,sfc_albedo,sfc_rho_c,t_conductivity,oro,oro_smoothed,is_land)
+  call set_sfc_properties(lat_c,lon_c,lat_e,lon_e,from_cell,to_cell,adjacent_edges,roughness_length,sfc_albedo, &
+                          sfc_rho_c,t_conductivity,oro,oro_smoothed,is_land)
   write(*,*) "Finished."
   
   !$omp parallel workshare
