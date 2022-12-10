@@ -49,23 +49,6 @@ echo ""
 echo "********** Calling the GAME grid generator **********"
 echo ""
 
-# creating a namelist
-cat > namelist.nml << EOF
-
-&grid
-res_id=$res_id
-oro_id=$oro_id
-n_lloyd_iterations=$n_lloyd_iterations
-luse_scalar_h_file=$luse_scalar_h_file
-stretching_parameter=$stretching_parameter
-toa=$toa
-n_oro_layers=$n_oro_layers
-radius_rescale=$radius_rescale
-n_avg_points=$n_avg_points
-/
-
-EOF
-
 # moving the namelist to the directory where the executable resides
 mv namelist.nml build
 # executing the grid generator

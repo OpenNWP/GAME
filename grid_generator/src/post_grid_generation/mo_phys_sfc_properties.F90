@@ -33,7 +33,7 @@ module mo_phys_sfc_properties
 
   end function vegetation_height_ideal
   
-  subroutine set_sfc_properties(lat_c,lon_c,roughness_length,sfc_albedo,sfc_rho_c,t_conductivity,oro,is_land)
+  subroutine set_sfc_properties(lat_c,lon_c,roughness_length,sfc_albedo,sfc_rho_c,t_conductivity,oro,oro_smoothed,is_land)
     
     ! This subroutine sets the physical surface properties.
     
@@ -45,6 +45,7 @@ module mo_phys_sfc_properties
     real(wp), intent(out) :: sfc_rho_c(n_cells)        ! surface volumetric heat capacity (result)
     real(wp), intent(out) :: t_conductivity(n_cells)   ! temperature conductivity in the soil (m**2/s, result)
     real(wp), intent(out) :: oro(n_cells)              ! orography (result)
+    real(wp), intent(out) :: oro_smoothed(n_cells)     ! smoothed orography (result)
     
     ! local variables
     integer               :: ji                               ! cell index
@@ -71,7 +72,6 @@ module mo_phys_sfc_properties
     real(wp)              :: distance_vector(n_cells)         ! vector containing geodetic distances to compute the interpolation
     real(wp), allocatable :: latitude_input(:)                ! latitude vector of the input grid
     real(wp), allocatable :: longitude_input(:)               ! longitude vector of the input grid
-    real(wp), allocatable :: oro_unfiltered(:)                ! input orography interpolated to the model grid without smoothing
     real(wp), allocatable :: lat_distance_vector(:)           ! vector containing distances in the latitude direction
     real(wp), allocatable :: lon_distance_vector(:)           ! vector containing distances in the longitude direction
     integer,  allocatable :: z_input(:,:)                     ! input orography
@@ -82,8 +82,6 @@ module mo_phys_sfc_properties
     ! ---------
     
     if (oro_id==1) then
-    
-      allocate(oro_unfiltered(n_cells))
     
       is_land_file = "phys_quantities/RES" // trim(int2string(res_id)) // "_is_land.nc"
       call nc_check(nf90_open(trim(is_land_file),NF90_CLOBBER,ncid))
@@ -123,11 +121,11 @@ module mo_phys_sfc_properties
         lat_index = find_min_index(lat_distance_vector)
         lon_index = find_min_index(lon_distance_vector)
         
-        oro_unfiltered(ji) = z_input(lon_index,lat_index)
+        oro(ji) = z_input(lon_index,lat_index)
         
         ! over the sea there is no orography
         if (is_land(ji)==0) then
-          oro_unfiltered(ji) = 0._wp
+          oro(ji) = 0._wp
         endif
         
         ! freeing the memory
@@ -157,20 +155,18 @@ module mo_phys_sfc_properties
         do jk=1,n_avg_points
           min_indices_vector(jk) = find_min_index_exclude(distance_vector,min_indices_vector)
         enddo
-        oro(ji) = 0._wp
+        oro_smoothed(ji) = 0._wp
         if (ji<=n_pentagons) then
           do jk=1,max(n_avg_points-1,1)
-            oro(ji) = oro(ji) + oro_unfiltered(min_indices_vector(jk))/max(n_avg_points-1,1)
+            oro_smoothed(ji) = oro_smoothed(ji) + oro(min_indices_vector(jk))/max(n_avg_points-1,1)
           enddo
         else
           do jk=1,n_avg_points
-            oro(ji) = oro(ji) + oro_unfiltered(min_indices_vector(jk))/n_avg_points
+            oro_smoothed(ji) = oro_smoothed(ji) + oro(min_indices_vector(jk))/n_avg_points
           enddo
         endif
       enddo
       !$omp end parallel do
-      
-      deallocate(oro_unfiltered)
       
     endif
     

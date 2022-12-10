@@ -154,6 +154,7 @@ program control
   real(wp), allocatable :: exner_bg(:,:)                    ! background Exner pressure
   real(wp), allocatable :: theta_v_bg(:,:)                  ! background virtual potential temperature
   real(wp), allocatable :: oro(:)                           ! orography
+  real(wp), allocatable :: oro_smoothed(:)                  ! smoothed orography
   real(wp), allocatable :: roughness_length(:)              ! surface roughness length
   real(wp), allocatable :: sfc_albedo(:)                    ! surface albedo
   real(wp), allocatable :: sfc_rho_c(:)                     ! volumetric heat capacity of the soil
@@ -226,6 +227,7 @@ program control
   allocate(exner_bg(n_cells,n_layers))
   allocate(theta_v_bg(n_cells,n_layers))
   allocate(oro(n_cells))
+  allocate(oro_smoothed(n_cells))
   allocate(roughness_length(n_cells))
   allocate(sfc_albedo(n_cells))
   allocate(sfc_rho_c(n_cells))
@@ -286,6 +288,7 @@ program control
   exner_bg = 0._wp
   theta_v_bg = 0._wp
   oro = 0._wp
+  oro_smoothed = 0._wp
   roughness_length = 0._wp
   sfc_albedo = 0._wp
   sfc_rho_c = 0._wp
@@ -368,7 +371,7 @@ program control
   ! 5.) setting the physical surface properties
   !     ---------------------------------------
   write(*,*) "Setting the physical surface properties ..."
-  call set_sfc_properties(lat_c,lon_c,roughness_length,sfc_albedo,sfc_rho_c,t_conductivity,oro,is_land)
+  call set_sfc_properties(lat_c,lon_c,roughness_length,sfc_albedo,sfc_rho_c,t_conductivity,oro,oro_smoothed,is_land)
   write(*,*) "Finished."
   
   !$omp parallel workshare
@@ -381,7 +384,8 @@ program control
   !6.) setting the explicit property of the vertical grid
   !    --------------------------------------------------
   write(*,*) "Setting the vertical coordinates of the scalar data points ..."
-  call set_z_scalar(z_scalar,oro,max_oro)
+  call set_z_scalar(z_scalar,oro,oro_smoothed,max_oro)
+  deallocate(oro_smoothed)
   write(*,*) "Finished."
   
   ! 7.) setting the implicit quantities of the vertical grid

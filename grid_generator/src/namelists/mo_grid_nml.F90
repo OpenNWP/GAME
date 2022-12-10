@@ -32,6 +32,7 @@ module mo_grid_nml
   real(wp)           :: radius                   ! radius of the planet to construct the grid for
   integer            :: n_lat_io_points          ! number of points of the post-processing lat-lon grid in lat direction
   integer            :: n_lon_io_points          ! number of points of the post-processing lat-lon grid in lon direction
+  logical            :: lsleve                   ! SLEVE vertical coordinate switch
   integer            :: n_avg_points             ! number of points used for smoothing the orography
   integer            :: oro_id                   ! orography ID
   integer            :: n_lloyd_iterations       ! number of Lloyd iterations used for the optimization
@@ -43,7 +44,7 @@ module mo_grid_nml
   real(wp), parameter :: orth_criterion_deg = 89.99_wp ! used for checking grid orthogonality
   
   namelist /grid/res_id,n_layers,toa,n_oro_layers,stretching_parameter,radius_rescale,n_avg_points,oro_id, &
-                 n_lloyd_iterations,luse_scalar_h_file,scalar_h_file
+                 n_lloyd_iterations,luse_scalar_h_file,scalar_h_file,lsleve
 
   contains
 
@@ -58,7 +59,8 @@ module mo_grid_nml
     n_oro_layers = 23
     stretching_parameter = 1.3_wp
     radius_rescale = 1._wp
-    n_avg_points = 7
+    lsleve = .true.
+    n_avg_points = 13
     oro_id = 1
     n_lloyd_iterations = 2000
     luse_scalar_h_file = .false.

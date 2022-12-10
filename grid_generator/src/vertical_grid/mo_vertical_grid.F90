@@ -9,62 +9,75 @@ module mo_vertical_grid
   use mo_constants,   only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv,r_d, &
                             p_0_standard,c_d_p,p_0
   use mo_grid_nml,    only: n_cells,n_layers,n_levels,n_triangles,n_edges,toa,n_oro_layers, &
-                            stretching_parameter,radius,n_flat_layers
+                            stretching_parameter,radius,n_flat_layers,lsleve
   use mo_geodesy,     only: calculate_vertical_area,calculate_distance_h
   
   implicit none
   
   contains
   
-  subroutine set_z_scalar(z_scalar,oro,max_oro)
+  subroutine set_z_scalar(z_scalar,oro,oro_smoothed,max_oro)
     
     ! This function sets the z-coordinates of the scalar data points.
     
     real(wp), intent(out) :: z_scalar(n_cells,n_layers) ! z-coordinates of scalar points
     real(wp), intent(in)  :: oro(n_cells)               ! orography
+    real(wp), intent(in)  :: oro_smoothed(n_cells)      ! smoothed orography
     real(wp), intent(in)  :: max_oro                    ! maximum of the orography
     
     ! local variables
-    integer  :: ji                              ! cell index
-    integer  :: jl                              ! vertical index
-    real(wp) :: A                               ! height of a level without orography
-    real(wp) :: B                               ! orography weighting factor
-    real(wp) :: sigma_z                         ! A/toa
-    real(wp) :: z_rel                           ! z/toa with equidistant levels
-    real(wp) :: z_vertical_vector_pre(n_levels) ! heights of the levels in a column
+    integer  :: ji                            ! cell index
+    integer  :: jl                            ! vertical index
+    real(wp) :: A                             ! height of a level without orography
+    real(wp) :: B                             ! orography weighting factor
+    real(wp) :: sigma_z                       ! A/toa
+    real(wp) :: z_rel                         ! z/toa with equidistant levels
+    real(wp) :: vertical_vector_pre(n_levels) ! heights of the levels in a column
+    real(wp) :: toa_oro                       ! top of terrain-following coordinates
     
     ! the heights are defined according to z_k = A_k + B_k*oro with A_0 = toa, A_{n_levels} = 0, B_0 = 0, B_{n_levels} = 1
     
     ! loop over all columns
-    !$omp parallel do private(ji,jl,A,B,sigma_z,z_rel,z_vertical_vector_pre)
+    !$omp parallel do private(ji,jl,A,B,sigma_z,toa_oro,z_rel,vertical_vector_pre)
     do ji=1,n_cells
     
-      ! filling up z_vertical_vector_pre
+      ! filling up vertical_vector_pre
       do jl=1,n_levels
         z_rel = 1._wp-(jl-1._wp)/n_layers
         sigma_z = z_rel**stretching_parameter
         A = sigma_z*toa ! the height without orography
-        ! B corrects for orography
+        ! including orography
         if (jl>n_flat_layers+1) then
-          B = (jl-(n_flat_layers+1._wp))/n_oro_layers
+          if (lsleve) then
+            vertical_vector_pre(jl) = A + sinh((toa_oro-A)/5.e3_wp)/sinh(toa_oro/5.e3_wp)*oro_smoothed(ji) &
+                                      + sinh((toa_oro-A)/2.e3_wp)/sinh(toa_oro/2.e3_wp)*(oro(ji) - oro_smoothed(ji))
+          else
+            B = (jl-(n_flat_layers+1._wp))/n_oro_layers
+            vertical_vector_pre(jl) = A + B*oro(ji)
+          endif
         else
-          B = 0._wp
+          vertical_vector_pre(jl) = A
         endif
-        z_vertical_vector_pre(jl) = A + B*oro(ji)
+        ! setting toa_oro
+        if (jl==n_flat_layers+1) then
+          toa_oro = vertical_vector_pre(jl)
+        endif
       enddo
-    
+      
       ! doing a check
       if (ji==1) then
-        if (max_oro>=z_vertical_vector_pre(n_flat_layers+1)) then
+        if (max_oro>=vertical_vector_pre(n_flat_layers+1)) then
           write(*,*) "Maximum of orography larger or equal to the height of the lowest flat level."
+          write(*,*) "Aborting."
           call exit(1)
         endif
       endif
-    
+      
       ! placing the scalar points in the middle between the preliminary values of the adjacent levels
       do jl=1,n_layers
-        z_scalar(ji,jl) = 0.5_wp*(z_vertical_vector_pre(jl) + z_vertical_vector_pre(jl+1))
+        z_scalar(ji,jl) = 0.5_wp*(vertical_vector_pre(jl) + vertical_vector_pre(jl+1))
       enddo
+        
     enddo
     !$omp end parallel do
     
