@@ -49,6 +49,7 @@ module mo_vertical_grid
         ! including orography
         if (jl>n_flat_layers+1) then
           if (lsleve) then
+            toa_oro = vertical_vector_pre(n_flat_layers+1)
             vertical_vector_pre(jl) = A + sinh((toa_oro-A)/(0.5_wp*toa_oro))/sinh(toa_oro/(0.5_wp*toa_oro))*oro_smoothed(ji) &
                                   + sinh((toa_oro-A)/(0.25_wp*toa_oro))/sinh(toa_oro/(0.25_wp*toa_oro))*(oro(ji) - oro_smoothed(ji))
           else
@@ -57,10 +58,6 @@ module mo_vertical_grid
           endif
         else
           vertical_vector_pre(jl) = A
-        endif
-        ! setting toa_oro
-        if (jl==n_flat_layers+1) then
-          toa_oro = vertical_vector_pre(jl)
         endif
         
         ! check
