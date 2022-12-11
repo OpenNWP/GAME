@@ -697,6 +697,9 @@ program control
   ! land-sea mask
   call nc_check(nf90_def_var(ncid_g_prop,"is_land",NF90_INT,cell_dimid,is_land_id))
   
+  ! orography
+  call nc_check(nf90_def_var(ncid_g_prop,"oro",NF90_REAL,cell_dimid,oro_nc_id))
+  
   ! temperature conductivity of the surface
   call nc_check(nf90_def_var(ncid_g_prop,"t_conductivity",NF90_REAL,cell_dimid,t_conductivity_id))
   call nc_check(nf90_put_att(ncid_g_prop,t_conductivity_id,"units","m**2/2"))
