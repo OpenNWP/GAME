@@ -20,6 +20,12 @@ def modify_value_boundaries(total_min, total_max, short_name):
 		total_min = 0.0
 	if short_name == "sprate":
 		total_min = 0.0
+	if short_name == "oro":
+		total_min = 100*np.floor(total_min/100)
+		total_max = 100*np.ceil(total_max/100)
+	if short_name == "is_land":
+		total_min = 0.0
+		total_max = 100.0
 	return total_min, total_max
 
 def return_central_point(scope):
@@ -210,6 +216,36 @@ def var_properties(var_id):
 		unit_string = "kn"
 		rescale = conv.ms2kn(1)
 		surface_bool = 1
+	if var_id == "oro":
+		variable_name = "Orography"
+		unit_string = "m"
+	if var_id == "is_land":
+		variable_name = "Land fraction"
+		unit_string = "%"
+		rescale = 100
+	if var_id == "roughness_length":
+		variable_name = "Roughness length"
+		unit_string = "m"
+	if var_id == "sfc_albedo":
+		variable_name = "Surface albedo"
+		unit_string = "1"
+	if var_id == "sfc_rho_c":
+		variable_name = "Surface volumetric specific heat capacity"
+		unit_string = "J/(K*m**3)"
+	if var_id == "t_conductivity":
+		variable_name = "Temperature conductivity"
+		unit_string = "m**2/s"
 	return surface_bool, variable_name, unit_string, rescale, show_level_on, contourf_plot, colormap, shift
+
+
+
+
+
+
+
+
+
+
+
 
 

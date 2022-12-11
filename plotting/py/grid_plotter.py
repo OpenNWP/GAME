@@ -22,36 +22,21 @@ import iris.plot as iplt
 import math
 
 var_id = "oro"
-save_directory = "/home/code/GAME/figs"
-grid_file = "/home/code/GAME/grid_generator/gris/RES5_L26_ORO1.nc"
+save_directory = "/home/max/code/GAME/figs"
+grid_file = "/home/max/code/GAME/grid_generator/grids/RES5_L26_ORO1.nc"
 projection = "EckertIII"
 scope = "WORLD"
 
 surface_bool, variable_name, unit_string, rescale, show_level_on, contourf_plot, colormap, shift = mp.var_properties(var_id)
 
 unit_string_for_iris = unit_string
-if var_id == "geopot":
-    unit_string_for_iris = "dam"
-if unit_string == "kn":
-    unit_string_for_iris = "kts"
 
-if surface_bool == 0:
-	savename = run_id + "_" + var_id + "_" + str(level) + "_" + scope
-# for surface quantties, we do not need the level in the file name
-if surface_bool == 1:
-	savename = run_id + "_" + var_id + "_" + scope
+savename = var_id
 
-# finiding the analysis time
-init_year, init_month, init_day, init_hour = rmo.return_analysis_time(input_file)
-start_timestamp = tcs.find_time_coord(init_year, init_month, init_day, init_hour, 0, 0, 0)
+lat, lon, values_pre = rmo.fetch_grid_output(grid_file, var_id)
 
-if surface_bool == 1:
-	lat, lon, values_pre = rmo.fetch_grid_output(grid_file, var_id)
-else:
-	lat, lon, values_pre = rmo.fetch_grid_output(grid_file, var_id)
-
-values = np.zeros([len(lat), len(lon), int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1])
-values[:, :, 0] = rescale*values_pre + shift
+values = np.zeros([len(lat), len(lon)])
+values = rescale*values_pre + shift
 
 # correcting the problem when plotting across lon = 0
 lat_plot_deg = np.rad2deg(lat)
@@ -68,7 +53,7 @@ values_new = values.copy()
 for j in range(len(lon_plot_deg)):
 	lon_plot_deg_new[j] = lon_plot_deg[(j + shift_index)%len(lon_plot_deg)]
 	lon_new[j] = lon[(j + shift_index)%len(lon_plot_deg)]
-	values_new[:, j, :] = values[:, (j + shift_index)%len(lon_plot_deg), :]
+	values_new[:, j] = values[:, (j + shift_index)%len(lon_plot_deg)]
 lon_plot_deg = lon_plot_deg_new.copy()
 lon = lon_new.copy()
 values = values_new.copy()
@@ -88,6 +73,10 @@ else:
 	total_min = np.nanmin(values)
 	total_max = np.nanmax(values)
 total_min, total_max = mp.modify_value_boundaries(total_min, total_max, var_id)
+
+if var_id == "is_land" or var_id == "sfc_albedo":
+	values = np.clip(values, total_min, total_max)
+
 values_range_for_plot = total_max - total_min
 color_plot_dist = values_range_for_plot/10
 bounds = np.arange(total_min, total_max + color_plot_dist, color_plot_dist)
@@ -95,11 +84,6 @@ color_bar_dist = values_range_for_plot/10
 cmap = plt.get_cmap(colormap)
 
 fig_size = 7
-time_after_init_min =  start_time_since_init_min + i*plot_interval_min
-if surface_bool == 0:
-	print("plotting " + var_id + " at level " + str(level) + " for t - t_init = " + str(time_after_init_min) + " min ...")
-if surface_bool == 1:
-	print("plotting " + var_id + " for t - t_init = " + str(time_after_init_min) + " min ...")
 if (projection == "Orthographic"):
 	fig = plt.figure(figsize = (fig_size, fig_size))
 	coord_sys = cs.GeogCS(6371229)
@@ -145,33 +129,22 @@ lon_coord.guess_bounds()
 gl = ax.gridlines(draw_labels = True)
 gl.xformatter = LONGITUDE_FORMATTER
 gl.yformatter = LATITUDE_FORMATTER
-new_cube = iris.cube.Cube(values[:, :, i], units = unit_string_for_iris, dim_coords_and_dims = [(lat_coord, 0), (lon_coord, 1)])
+new_cube = iris.cube.Cube(values, units = unit_string_for_iris, dim_coords_and_dims = [(lat_coord, 0), (lon_coord, 1)])
 cf = iplt.contourf(new_cube, cmap = cmap, levels = bounds)
 if scope == "WORLD":
 	cbar = plt.colorbar(cf, fraction = 0.02, pad = 0.1, aspect = 80, orientation = "horizontal", ticks = np.arange(total_min, total_max + color_bar_dist, color_bar_dist))
 else:
 	cbar = plt.colorbar(cf, fraction = 0.02, pad = 0.1, aspect = 80, orientation = "horizontal", ticks = np.arange(total_min, total_max + color_bar_dist, color_bar_dist))
-cbar.ax.tick_params(labelsize = 12)
-cbar.set_label(unit_string, fontsize = 16)
-if var_id == "surface_wind":
-	ax.barbs(lon_plot_deg, lat_plot_deg, values_u10[:, :, i], values_v10[:, :, i], length = 6, sizes = dict(emptybarb = 0.3, spacing = 0.2, height = 0.5), linewidth = 1.1, transform = ccrs.PlateCarree())
+cbar.ax.tick_params(labelsize = 10)
+cbar.set_label(unit_string, fontsize = 10)
 ax.add_feature(cfeature.LAND)
 ax.add_feature(cfeature.OCEAN)
 countries = cfeature.NaturalEarthFeature(category = "cultural", name = "admin_0_countries", scale = "10m", facecolor = "none")
 ax.add_feature(countries, edgecolor = "gray")
-time_after_init_min_title = time_after_init_min
-if disp_time_in_hr == 1:
-	time_after_init_min_title = int(time_after_init_min/60.0)
 implementation_name = "GAME"
-if show_level_on == 1:
-	textstr = variable_name + "\n"
-else:
-	textstr = variable_name + " (" + implementation_name + ")\n"
-ob = offsetbox.AnchoredText(textstr, loc = 3)
-ax.add_artist(ob)
-fig.savefig(save_directory + "/" + savename + "+" + str(time_after_init_min_title) + time_unit_string + ".png", dpi = 200, bbox_inches = "tight")
+plt.title(variable_name)
+fig.savefig(save_directory + "/" + savename + ".png", dpi = 200, bbox_inches = "tight")
 plt.close("all")
-print("done")
 
 
 

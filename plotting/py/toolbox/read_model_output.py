@@ -29,14 +29,14 @@ def fetch_grid_output(grid_filename, varname):
 	plot_array_1d = ds[varname][:]
 	
 	# grid quantity on the latitude-longitude grid
-	plt_array_2d = np.zeros([len(lat), len(lon)])
+	plt_array_2d = np.zeros([len(lat_vector), len(lon_vector)])
 	# interpolation to the latitude-longitude grid
-	for i in range(len(lat)):
-		for j in range(len(lon)):
-			plt_array_2d[i, j] = interpol_weights[i, j, :]*plot_array_1d[interpol_indices[i, j, :]]
+	for i in range(len(lat_vector)):
+		for j in range(len(lon_vector)):
+			plt_array_2d[i, j] = np.inner(interpol_weights[j, i, :],plot_array_1d[interpol_indices[j, i, :] - 1])
 	ds.close()
 	
-	return lat_vector, lon_vector, plot_array
+	return lat_vector, lon_vector, plt_array_2d
 
 def return_analysis_time(input_filename):
 	ds = nc.Dataset(input_filename, "r", format = "NETCDF4")
