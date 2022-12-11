@@ -131,6 +131,8 @@ program control
   allocate(grid%is_land(n_cells))
   allocate(grid%latlon_interpol_indices(5,n_lat_io_points,n_lon_io_points))
   allocate(grid%latlon_interpol_weights(5,n_lat_io_points,n_lon_io_points))
+  allocate(grid%lat_output_vector(n_lat_io_points))
+  allocate(grid%lon_output_vector(n_lon_io_points))
   allocate(grid%z_soil_interface(nsoillays+1))
   allocate(grid%z_soil_center(nsoillays))
   allocate(grid%t_const_soil(n_cells))
@@ -268,6 +270,8 @@ program control
   grid%is_land = 0
   grid%latlon_interpol_indices = 0
   grid%latlon_interpol_weights = 0._wp
+  grid%lat_output_vector = 0._wp
+  grid%lon_output_vector = 0._wp
   grid%z_soil_interface = 0._wp
   grid%z_soil_center = 0._wp
   grid%t_const_soil = 0._wp
@@ -616,6 +620,8 @@ program control
   deallocate(grid%is_land)
   deallocate(grid%latlon_interpol_indices)
   deallocate(grid%latlon_interpol_weights)
+  deallocate(grid%lat_output_vector)
+  deallocate(grid%lon_output_vector)
   deallocate(grid%z_soil_interface)
   deallocate(grid%z_soil_center)
   deallocate(grid%t_const_soil)

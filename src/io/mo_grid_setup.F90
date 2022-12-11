@@ -74,6 +74,8 @@ module mo_grid_setup
     integer            :: interpol_indices_id            ! netCDF ID of interpol_indices
     integer            :: dz_id                          ! netCDF ID of dz
     integer            :: interpol_weights_id            ! netCDF ID of interpol_weights
+    integer            :: lat_output_vector_id           ! netCDF IF of lat_output_vector
+    integer            :: lon_output_vector_id           ! netCDF IF of lon_output_vector
     integer            :: theta_v_bg_id                  ! netCDF ID of theta_v_bg
     integer            :: exner_bg_id                    ! netCDF ID of exner_bg
     integer            :: sfc_rho_c_id                   ! netCDF ID of sfc_rho_c
@@ -136,6 +138,8 @@ module mo_grid_setup
     call nc_check(nf90_inq_varid(ncid,"lon_c",lon_c_id))
     call nc_check(nf90_inq_varid(ncid,"interpol_indices",interpol_indices_id))
     call nc_check(nf90_inq_varid(ncid,"interpol_weights",interpol_weights_id))
+    call nc_check(nf90_inq_varid(ncid,"lat",lat_output_vector_id))
+    call nc_check(nf90_inq_varid(ncid,"lon",lon_output_vector_id))
     call nc_check(nf90_inq_varid(ncid,"sfc_rho_c",sfc_rho_c_id))
     call nc_check(nf90_inq_varid(ncid,"sfc_albedo",sfc_albedo_id))
     call nc_check(nf90_inq_varid(ncid,"roughness_length",roughness_length_id))
@@ -170,6 +174,8 @@ module mo_grid_setup
     call nc_check(nf90_get_var(ncid,lat_c_id,grid%lat_c))
     call nc_check(nf90_get_var(ncid,lon_c_id,grid%lon_c))
     call nc_check(nf90_get_var(ncid,interpol_weights_id,grid%latlon_interpol_weights))
+    call nc_check(nf90_get_var(ncid,lat_output_vector_id,grid%lat_output_vector))
+    call nc_check(nf90_get_var(ncid,lon_output_vector_id,grid%lon_output_vector))
     call nc_check(nf90_get_var(ncid,from_cell_id,grid%from_cell))
     call nc_check(nf90_get_var(ncid,to_cell_id,grid%to_cell))
     call nc_check(nf90_get_var(ncid,from_cell_dual_id,grid%from_cell_dual))

@@ -100,10 +100,6 @@ module mo_write_output
     integer               :: pressure_level_hpa                ! output pressure level in hPa
     integer               :: cell_dimid                        ! netCDF ID of the cell dimension
     integer               :: dimids_vector_3(3)                ! vector containing three netCDF dimension IDs
-    real(wp)              :: delta_latitude                    ! latitude resolution of the output grid
-    real(wp)              :: delta_longitude                   ! longitude resolution of the output grid
-    real(wp)              :: lat_vector(n_lat_io_points)       ! latitude vector of the output grid
-    real(wp)              :: lon_vector(n_lon_io_points)       ! longitude vector of the output grid
     real(wp)              :: min_precip_rate                   ! the precitpiation rate below which values will be written out as zeroes
     real(wp)              :: min_precip_rate_mmh               ! the precitpiation rate below which values will be written out as zeroes in mm/h
     real(wp)              :: cloud_water2cloudiness            ! the factor that converts cloud water content to total cloud cover
@@ -182,18 +178,6 @@ module mo_write_output
       write(*,*) "Congratulations, the model crashed."
       call exit(1)
     endif
-    
-    ! latitude resolution of the grid
-    delta_latitude = M_PI/n_lat_io_points
-    ! longitude resolution of the grid
-    delta_longitude = 2._wp*M_PI/n_lon_io_points
-    
-    do ji=1,n_lat_io_points
-      lat_vector(ji) = M_PI/2._wp - 0.5_wp*delta_latitude - (ji-1)*delta_latitude
-    enddo
-    do ji=1,n_lon_io_points
-      lon_vector(ji) = (ji-1)*delta_longitude
-    enddo
     
     ! precipitation rates smaller than this value are set to zero to not confuse users
     min_precip_rate_mmh = 0.01_wp
@@ -491,8 +475,8 @@ module mo_write_output
       call nc_check(nf90_put_var(ncid,start_date_id,start_date))
       call nc_check(nf90_put_var(ncid,start_hour_id,start_hour))
       
-      call nc_check(nf90_put_var(ncid,lat_id,lat_vector))
-      call nc_check(nf90_put_var(ncid,lon_id,lon_vector))
+      call nc_check(nf90_put_var(ncid,lat_id,grid%lat_output_vector))
+      call nc_check(nf90_put_var(ncid,lon_id,grid%lon_output_vector))
       
       call interpolate_to_ll(mslp,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,mslp_id,lat_lon_output_field))
@@ -709,8 +693,8 @@ module mo_write_output
       ! writing the variables
       call nc_check(nf90_put_var(ncid,start_date_id,start_date))
       call nc_check(nf90_put_var(ncid,start_hour_id,start_hour))
-      call nc_check(nf90_put_var(ncid,lat_id,lat_vector))
-      call nc_check(nf90_put_var(ncid,lon_id,lon_vector))
+      call nc_check(nf90_put_var(ncid,lat_id,grid%lat_output_vector))
+      call nc_check(nf90_put_var(ncid,lon_id,grid%lon_output_vector))
       
       do jl=1,n_pressure_levels
         
@@ -811,8 +795,8 @@ module mo_write_output
       ! writing the variables
       call nc_check(nf90_put_var(ncid,start_date_id,start_date))
       call nc_check(nf90_put_var(ncid,start_hour_id,start_hour))
-      call nc_check(nf90_put_var(ncid,lat_id,lat_vector))
-      call nc_check(nf90_put_var(ncid,lon_id,lon_vector))
+      call nc_check(nf90_put_var(ncid,lat_id,grid%lat_output_vector))
+      call nc_check(nf90_put_var(ncid,lon_id,grid%lon_output_vector))
       do jl=1,n_layers
         ! temperature
         call interpolate_to_ll(diag%temperature(:,jl),lat_lon_output_field,grid)

@@ -64,6 +64,8 @@ module mo_definitions
     integer,  allocatable :: is_land(:)                       ! land-sea mask
     integer,  allocatable :: latlon_interpol_indices(:,:,:)   ! indices for computing the interpolation to the lat-lon grid
     real(wp), allocatable :: latlon_interpol_weights(:,:,:)   ! weights for computing the interpolation to the lat-lon grid
+    real(wp), allocatable :: lat_output_vector(:)             ! latitude vector of the latitude-longitude output grid
+    real(wp), allocatable :: lon_output_vector(:)             ! longitude vector of the latitude-longitude output grid
     real(wp), allocatable :: z_soil_interface(:)              ! z-coordinates of the interfaces of the soil layers
     real(wp), allocatable :: z_soil_center(:)                 ! z-coordinates of the centers of the soil layers
     real(wp), allocatable :: t_const_soil(:)                  ! temperature below the lowest soil layer
