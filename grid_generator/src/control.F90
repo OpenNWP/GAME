@@ -102,6 +102,8 @@ program control
   integer               :: stretching_parameter_id          ! netCDF ID of the stretching parameter
   integer               :: toa_id                           ! netCDF ID of the top of atmosphere
   integer               :: radius_id                        ! netCDF ID of the radius
+  integer               :: lat_id                           ! netCDF ID of the latitude vector of the latitude-longitude grid
+  integer               :: lon_id                           ! netCDF ID of the longitude vector of the latitude-longitude grid
   integer,  allocatable :: from_cell(:)                     ! cells in the from-directions of the vectors
   integer,  allocatable :: to_cell(:)                       ! cells in the to-directions of the vectors
   integer,  allocatable :: trsk_indices(:,:)                ! indices for computing the TRSK reconstruction
@@ -160,6 +162,8 @@ program control
   real(wp), allocatable :: sfc_albedo(:)                    ! surface albedo
   real(wp), allocatable :: sfc_rho_c(:)                     ! volumetric heat capacity of the soil
   real(wp), allocatable :: t_conductivity(:)                ! temperature conductivity in the soil (m**2/s)
+  real(wp), allocatable :: lat_vector(:)                    ! latitude vector of the latitude-longitude grid
+  real(wp), allocatable :: lon_vector(:)                    ! longitude vector of the latitude-longitude grid
   real(wp)              :: lat_ico(12)                      ! latitudes of the vertices of the basic icosahedron
   real(wp)              :: lon_ico(12)                      ! longitudes of the vertices of the basic icosahedron
   real(wp)              :: min_oro                          ! minimum of the orography
@@ -245,6 +249,8 @@ program control
   allocate(adjacent_signs(6,n_cells))
   allocate(vorticity_signs_triangles(3,n_triangles))
   allocate(density_to_rhombi_indices(4,n_edges))
+  allocate(lat_vector(n_lat_io_points))
+  allocate(lon_vector(n_lon_io_points))
   allocate(interpol_indices(5,n_lat_io_points,n_lon_io_points))
   allocate(is_land(n_cells))
   
@@ -445,7 +451,7 @@ program control
   write(*,*) "Finished."
   
   write(*,*) "Calculating interpolation to the lat-lon grid ..."
-  call interpolate_ll(lat_c,lon_c,interpol_indices,interpol_weights)
+  call interpolate_ll(lat_c,lon_c,lat_vector,lon_vector,interpol_indices,interpol_weights)
   write(*,*) "Finished."
   
   ! A statistics file is created to compare the fundamental statistical properties of the grid with the literature.
@@ -622,6 +628,12 @@ program control
   ! longitudes of the edges
   call nc_check(nf90_def_var(ncid_g_prop,"lon_e",NF90_REAL,edge_dimid,lon_e_id))
   
+  ! latitudes of the latitude-longitude grid
+  call nc_check(nf90_def_var(ncid_g_prop,"lat",NF90_REAL,lat_dimid,lat_id))
+  
+  ! longitudes of the latitude-longitude grid
+  call nc_check(nf90_def_var(ncid_g_prop,"lon",NF90_REAL,lon_dimid,lon_id))
+  
   ! inner product weights
   dimids_vector_3(1) = dimid_8
   dimids_vector_3(2) = cell_dimid
@@ -763,6 +775,8 @@ program control
   call nc_check(nf90_put_var(ncid_g_prop,density_to_rhombi_indices_id,density_to_rhombi_indices))
   call nc_check(nf90_put_var(ncid_g_prop,interpol_indices_id,interpol_indices))
   call nc_check(nf90_put_var(ncid_g_prop,is_land_id,is_land))
+  call nc_check(nf90_put_var(ncid_g_prop,lat_id,lat_vector))
+  call nc_check(nf90_put_var(ncid_g_prop,lon_id,lon_vector))
   call nc_check(nf90_put_var(ncid_g_prop,oro_nc_id,oro))
   call nc_check(nf90_close(ncid_g_prop))
   write(*,*) "Finished."

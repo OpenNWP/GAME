@@ -19,9 +19,23 @@ def fetch_grid_output(grid_filename, varname):
 	# reading the variable
 	lat_vector = ds["lat"][:]
 	lon_vector = ds["lon"][:]
-	# flip is due to how Fortran handles arrays
-	plot_array = np.transpose(ds[varname][:])
+	
+	# interpolation indices to the latitude-longitude grid
+	interpol_indices = ds["interpol_indices"][:]
+	# interpolation weights to the latitude-longitude grid
+	interpol_weights = ds["interpol_weights"][:]
+	
+	# grid quantity on the hexagonal grid
+	plot_array_1d = ds[varname][:]
+	
+	# grid quantity on the latitude-longitude grid
+	plt_array_2d = np.zeros([len(lat), len(lon)])
+	# interpolation to the latitude-longitude grid
+	for i in range(len(lat)):
+		for j in range(len(lon)):
+			plt_array_2d[i, j] = interpol_weights[i, j, :]*plot_array_1d[interpol_indices[i, j, :]]
 	ds.close()
+	
 	return lat_vector, lon_vector, plot_array
 
 def return_analysis_time(input_filename):
