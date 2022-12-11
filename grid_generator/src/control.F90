@@ -97,6 +97,7 @@ program control
   integer               :: t_conductivity_id                ! netCDF ID of the temperature conductivity of the soil
   integer               :: roughness_length_id              ! netCDF ID of the roughness length
   integer               :: is_land_id                       ! netCDF ID of the land-sea mask
+  integer               :: oro_nc_id                        ! netCDF ID of the orography
   integer               :: n_oro_layers_id                  ! netCDF ID of the number of orography layers
   integer               :: stretching_parameter_id          ! netCDF ID of the stretching parameter
   integer               :: toa_id                           ! netCDF ID of the top of atmosphere
@@ -393,7 +394,6 @@ program control
   !     ----------------------------------------------------
   write(*,*) "Determining z coordinates and normal distances of the primal grid vector data points ..."
   call set_z_vector_and_normal_distance(z_vector_h,z_vector_v,dx,dz,z_scalar,lat_c,lon_c,from_cell,to_cell,oro)
-  deallocate(oro)
   write(*,*) "Finished."
   
   write(*,*) "Determining scalar z coordinates of the dual grid ..."
@@ -760,6 +760,7 @@ program control
   call nc_check(nf90_put_var(ncid_g_prop,density_to_rhombi_indices_id,density_to_rhombi_indices))
   call nc_check(nf90_put_var(ncid_g_prop,interpol_indices_id,interpol_indices))
   call nc_check(nf90_put_var(ncid_g_prop,is_land_id,is_land))
+  call nc_check(nf90_put_var(ncid_g_prop,oro_nc_id,oro))
   call nc_check(nf90_close(ncid_g_prop))
   write(*,*) "Finished."
   
@@ -819,6 +820,7 @@ program control
   deallocate(area_dual_v)
   deallocate(interpol_indices)
   deallocate(interpol_weights)
+  deallocate(oro)
 
 end program control
 

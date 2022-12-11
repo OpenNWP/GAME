@@ -14,6 +14,16 @@ def fetch_model_output(input_filename, varname):
 	ds.close()
 	return lat_vector, lon_vector, plot_array
 
+def fetch_grid_output(grid_filename, varname):
+	ds = nc.Dataset(grid_filename, "r", format = "NETCDF4")
+	# reading the variable
+	lat_vector = ds["lat"][:]
+	lon_vector = ds["lon"][:]
+	# flip is due to how Fortran handles arrays
+	plot_array = np.transpose(ds[varname][:])
+	ds.close()
+	return lat_vector, lon_vector, plot_array
+
 def return_analysis_time(input_filename):
 	ds = nc.Dataset(input_filename, "r", format = "NETCDF4")
 	# reading the variables
