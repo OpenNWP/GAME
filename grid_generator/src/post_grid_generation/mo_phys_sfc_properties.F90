@@ -226,7 +226,11 @@ module mo_phys_sfc_properties
       enddo
       !$omp end parallel do
       
-      if (.not. lsleve) then
+      if (lsleve) then
+        !$omp parallel workshare
+        oro = oro_smoothed + 0.2_wp*(oro - oro_smoothed)
+        !$omp end parallel workshare
+      else
         !$omp parallel workshare
         oro = oro_smoothed
         !$omp end parallel workshare
