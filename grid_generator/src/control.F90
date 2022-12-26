@@ -96,7 +96,7 @@ program control
   integer               :: sfc_rho_c_id                     ! netCDF ID of the surface volumetric heat capacity
   integer               :: t_conductivity_id                ! netCDF ID of the temperature conductivity of the soil
   integer               :: roughness_length_id              ! netCDF ID of the roughness length
-  integer               :: is_land_id                       ! netCDF ID of the land-sea mask
+  integer               :: land_fraction_id                 ! netCDF ID of the land fraction
   integer               :: oro_nc_id                        ! netCDF ID of the orography
   integer               :: n_oro_layers_id                  ! netCDF ID of the number of orography layers
   integer               :: stretching_parameter_id          ! netCDF ID of the stretching parameter
@@ -117,7 +117,7 @@ program control
   integer,  allocatable :: vorticity_signs_triangles(:,:)   ! signs for computing the vorticity on the triangles
   integer,  allocatable :: density_to_rhombi_indices(:,:)   ! indices for interpolating the density to the rhombi
   integer,  allocatable :: interpol_indices(:,:,:)          ! interpolation indices to the latitude-longitude grid
-  integer,  allocatable :: is_land(:)                       ! land-sea mask
+  integer,  allocatable :: land_fraction(:)                 ! land fraction
   real(wp), allocatable :: x_unit(:)                        ! x-coordinates of the gridpoints on the unit sphere
   real(wp), allocatable :: y_unit(:)                        ! y-coordinates of the gridpoints on the unit sphere
   real(wp), allocatable :: z_unit(:)                        ! z-coordinates of the gridpoints on the unit sphere
@@ -252,7 +252,7 @@ program control
   allocate(lat_vector(n_lat_io_points))
   allocate(lon_vector(n_lon_io_points))
   allocate(interpol_indices(5,n_lat_io_points,n_lon_io_points))
-  allocate(is_land(n_cells))
+  allocate(land_fraction(n_cells))
   
   ! initializing arrays to zero
   !$omp parallel workshare
@@ -313,7 +313,7 @@ program control
   vorticity_signs_triangles = 0
   density_to_rhombi_indices = 0
   interpol_indices = 0
-  is_land = 0
+  land_fraction = 0
   !$omp end parallel workshare
   write(*,*) "Finished."
   
@@ -379,7 +379,7 @@ program control
   !     ---------------------------------------
   write(*,*) "Setting the physical surface properties ..."
   call set_sfc_properties(lat_c,lon_c,lat_e,lon_e,from_cell,to_cell,adjacent_edges,roughness_length,sfc_albedo, &
-                          sfc_rho_c,t_conductivity,oro,oro_smoothed,is_land)
+                          sfc_rho_c,t_conductivity,oro,oro_smoothed,land_fraction)
   write(*,*) "Finished."
   
   !$omp parallel workshare
@@ -706,8 +706,8 @@ program control
   call nc_check(nf90_def_var(ncid_g_prop,"sfc_rho_c",NF90_REAL,cell_dimid,sfc_rho_c_id))
   call nc_check(nf90_put_att(ncid_g_prop,sfc_rho_c_id,"units","J/(K*m**3)"))
   
-  ! land-sea mask
-  call nc_check(nf90_def_var(ncid_g_prop,"is_land",NF90_INT,cell_dimid,is_land_id))
+  ! land fraction
+  call nc_check(nf90_def_var(ncid_g_prop,"land_fraction",NF90_INT,cell_dimid,land_fraction_id))
   
   ! orography
   call nc_check(nf90_def_var(ncid_g_prop,"oro",NF90_REAL,cell_dimid,oro_nc_id))
@@ -774,7 +774,7 @@ program control
   call nc_check(nf90_put_var(ncid_g_prop,vorticity_indices_triangles_id,vorticity_indices_triangles))
   call nc_check(nf90_put_var(ncid_g_prop,density_to_rhombi_indices_id,density_to_rhombi_indices))
   call nc_check(nf90_put_var(ncid_g_prop,interpol_indices_id,interpol_indices))
-  call nc_check(nf90_put_var(ncid_g_prop,is_land_id,is_land))
+  call nc_check(nf90_put_var(ncid_g_prop,land_fraction_id,land_fraction))
   call nc_check(nf90_put_var(ncid_g_prop,lat_id,lat_vector))
   call nc_check(nf90_put_var(ncid_g_prop,lon_id,lon_vector))
   call nc_check(nf90_put_var(ncid_g_prop,oro_nc_id,oro))
@@ -786,7 +786,7 @@ program control
   deallocate(sfc_albedo)
   deallocate(sfc_rho_c)
   deallocate(t_conductivity)
-  deallocate(is_land)
+  deallocate(land_fraction)
   deallocate(x_unit)
   deallocate(y_unit)
   deallocate(z_unit)

@@ -61,7 +61,7 @@ module mo_definitions
     real(wp), allocatable :: sfc_rho_c(:)                     ! indices needed for interpolating the densities to the rhombi
     real(wp), allocatable :: t_conduc_soil(:)                 ! temperature conductivity of the soil (m**2/s)
     real(wp), allocatable :: roughness_length(:)              ! roughness length at the surface
-    integer,  allocatable :: is_land(:)                       ! land-sea mask
+    integer,  allocatable :: land_fraction(:)                 ! land fraction
     integer,  allocatable :: latlon_interpol_indices(:,:,:)   ! indices for computing the interpolation to the lat-lon grid
     real(wp), allocatable :: latlon_interpol_weights(:,:,:)   ! weights for computing the interpolation to the lat-lon grid
     real(wp), allocatable :: lat_output_vector(:)             ! latitude vector of the latitude-longitude output grid

@@ -129,7 +129,7 @@ module mo_column_solvers
     do ji=1,n_cells
       
       if (lprog_soil_temp) then
-        soil_switch = grid%is_land(ji)
+        soil_switch = grid%land_fraction(ji)
       else
         soil_switch = 0
       endif

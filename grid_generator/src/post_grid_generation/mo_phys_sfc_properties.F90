@@ -34,11 +34,11 @@ module mo_phys_sfc_properties
   end function vegetation_height_ideal
   
   subroutine set_sfc_properties(lat_c,lon_c,lat_e,lon_e,from_cell,to_cell,adjacent_edges,roughness_length, &
-                                sfc_albedo,sfc_rho_c,t_conductivity,oro,oro_smoothed,is_land)
+                                sfc_albedo,sfc_rho_c,t_conductivity,oro,oro_smoothed,land_fraction)
     
     ! This subroutine sets the physical surface properties.
     
-    integer,  intent(out) :: is_land(n_cells)          ! land-sea mask (result)
+    integer,  intent(out) :: land_fraction(n_cells)    ! land fraction (result)
     real(wp), intent(in)  :: lat_c(n_cells)            ! latitudes at cell centers
     real(wp), intent(in)  :: lon_c(n_cells)            ! longitudes at cell centers
     real(wp), intent(in)  :: lat_e(n_edges)            ! latitudes at the edges
@@ -57,7 +57,7 @@ module mo_phys_sfc_properties
     integer               :: ji                               ! cell index
     integer               :: jk                               ! helper index
     integer               :: ncid                             ! netCDF file ID 
-    integer               :: is_land_id                       ! netCDF ID of the land-sea mask
+    integer               :: land_fraction_id                 ! netCDF ID of the land fraction
     integer               :: lat_in_id                        ! netCDF ID of the latitudes of the input dataset
     integer               :: lon_in_id                        ! netCDF ID of the longitudes of the input dataset
     integer               :: z_in_id                          ! netCDF ID of the input orography
@@ -83,7 +83,7 @@ module mo_phys_sfc_properties
     real(wp), allocatable :: lon_distance_vector(:)           ! vector containing distances in the longitude direction
     real(wp), allocatable :: oro_edges(:)                     ! orography at the edges
     integer,  allocatable :: z_input(:,:)                     ! input orography
-    character(len=64)     :: is_land_file                     ! file to read the land-sea-mask from
+    character(len=64)     :: land_fraction_file               ! file to read the land fraction from
     character(len=64)     :: oro_file                         ! file to read the orography from
     
     ! Orography
@@ -91,10 +91,10 @@ module mo_phys_sfc_properties
     
     if (oro_id==1) then
     
-      is_land_file = "phys_quantities/RES" // trim(int2string(res_id)) // "_is_land.nc"
-      call nc_check(nf90_open(trim(is_land_file),NF90_CLOBBER,ncid))
-      call nc_check(nf90_inq_varid(ncid,"is_land",is_land_id))
-      call nc_check(nf90_get_var(ncid,is_land_id,is_land))
+      land_fraction_file = "phys_quantities/RES" // trim(int2string(res_id)) // "_land_fraction.nc"
+      call nc_check(nf90_open(trim(land_fraction_file),NF90_CLOBBER,ncid))
+      call nc_check(nf90_inq_varid(ncid,"land_fraction",land_fraction_id))
+      call nc_check(nf90_get_var(ncid,land_fraction_id,land_fraction))
       call nc_check(nf90_close(ncid))
       
       ! reading the ETOPO orography
@@ -132,7 +132,7 @@ module mo_phys_sfc_properties
         oro(ji) = z_input(lon_index,lat_index)
         
         ! over the sea there is no orography
-        if (is_land(ji)==0) then
+        if (land_fraction(ji)==0) then
           oro(ji) = 0._wp
         endif
         
@@ -162,7 +162,7 @@ module mo_phys_sfc_properties
         oro_edges(ji) = z_input(lon_index,lat_index)
         
         ! over the sea there is no orography
-        if (is_land(from_cell(ji))==0 .or. is_land(to_cell(ji))==0) then
+        if (land_fraction(from_cell(ji))==0 .or. land_fraction(to_cell(ji))==0) then
           oro_edges(ji) = 0._wp
         endif
         
@@ -264,7 +264,7 @@ module mo_phys_sfc_properties
       t_conductivity(ji) = t_conductivity_water
       
       ! land
-      if (is_land(ji)==1) then
+      if (land_fraction(ji)==1) then
         
         lat_deg = 360._wp/(2._wp*M_PI)*lat_c(ji)
         

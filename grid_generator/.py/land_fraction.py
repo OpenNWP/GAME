@@ -12,16 +12,16 @@ lat_vector = ds["lat_c"][:]
 lon_vector = ds["lon_c"][:]
 ds.close()
 
-is_land = np.zeros(len(lat_vector), dtype=np.int8)
+land_fraction = np.zeros(len(lat_vector), dtype=np.int8)
 
-for i in range(len(is_land)):
+for i in range(len(land_fraction)):
 	if globe.is_land(np.rad2deg(lat_vector[i]), np.rad2deg(lon_vector[i])):
-		is_land[i] = 1
+		land_fraction[i] = 1
 
-output_filename = "phys_quantities/RES" + str(res_id) + "_is_land.nc"
+output_filename = "phys_quantities/RES" + str(res_id) + "_land_fraction.nc"
 ds = nc.Dataset(output_filename, "w", format="NETCDF4")
-ds.createDimension("scalar_points", len(is_land))
-is_land_nc = ds.createVariable("is_land", int, ("scalar_points"))
-is_land_nc[:] = is_land
+ds.createDimension("scalar_points", len(land_fraction))
+land_fraction_nc = ds.createVariable("land_fraction", int, ("scalar_points"))
+land_fraction_nc[:] = land_fraction
 ds.close()
 

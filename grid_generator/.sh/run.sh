@@ -22,9 +22,9 @@ fi
 
 if [ $oro_id -eq 1 ]
 then
-  echo "Creating land-sea mask ..."
-  python3 .py/is_land.py $res_id
-  echo "Land-sea mask created."
+  echo "Creating land fraction ..."
+  python3 .py/land_fraction.py $res_id
+  echo "Land fraction created."
 fi
 
 echo ""

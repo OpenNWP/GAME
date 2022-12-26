@@ -128,7 +128,7 @@ program control
   allocate(grid%sfc_rho_c(n_cells))
   allocate(grid%t_conduc_soil(n_cells))
   allocate(grid%roughness_length(n_cells))
-  allocate(grid%is_land(n_cells))
+  allocate(grid%land_fraction(n_cells))
   allocate(grid%latlon_interpol_indices(5,n_lat_io_points,n_lon_io_points))
   allocate(grid%latlon_interpol_weights(5,n_lat_io_points,n_lon_io_points))
   allocate(grid%lat_output_vector(n_lat_io_points))
@@ -267,7 +267,7 @@ program control
   grid%sfc_rho_c = 0._wp
   grid%t_conduc_soil = 0._wp
   grid%roughness_length = 0._wp
-  grid%is_land = 0
+  grid%land_fraction = 0
   grid%latlon_interpol_indices = 0
   grid%latlon_interpol_weights = 0._wp
   grid%lat_output_vector = 0._wp
@@ -617,7 +617,7 @@ program control
   deallocate(grid%sfc_rho_c)
   deallocate(grid%t_conduc_soil)
   deallocate(grid%roughness_length)
-  deallocate(grid%is_land)
+  deallocate(grid%land_fraction)
   deallocate(grid%latlon_interpol_indices)
   deallocate(grid%latlon_interpol_weights)
   deallocate(grid%lat_output_vector)

@@ -81,7 +81,7 @@ module mo_grid_setup
     integer            :: sfc_rho_c_id                   ! netCDF ID of sfc_rho_c
     integer            :: sfc_albedo_id                  ! netCDF ID of sfc_albedo
     integer            :: roughness_length_id            ! netCDF ID of roughness_length
-    integer            :: is_land_id                     ! netCDF ID of is_land
+    integer            :: land_fraction_id               ! netCDF ID of land_fraction
     integer            :: t_conductivity_id              ! netCDF ID of t_conductivity
     integer            :: n_oro_layers_id                ! netCDF ID of n_oro_layers
     integer            :: z_vector_dual_v_id             ! netCDF ID of z_vector_dual_v
@@ -144,7 +144,7 @@ module mo_grid_setup
     call nc_check(nf90_inq_varid(ncid,"sfc_albedo",sfc_albedo_id))
     call nc_check(nf90_inq_varid(ncid,"roughness_length",roughness_length_id))
     call nc_check(nf90_inq_varid(ncid,"t_conductivity",t_conductivity_id))
-    call nc_check(nf90_inq_varid(ncid,"is_land",is_land_id))
+    call nc_check(nf90_inq_varid(ncid,"land_fraction",land_fraction_id))
     call nc_check(nf90_get_var(ncid,n_oro_layers_id,n_oro_layers))
     call nc_check(nf90_get_var(ncid,toa_id,toa))
     call nc_check(nf90_get_var(ncid,radius_id,radius))
@@ -192,7 +192,7 @@ module mo_grid_setup
     call nc_check(nf90_get_var(ncid,sfc_albedo_id,grid%sfc_albedo))
     call nc_check(nf90_get_var(ncid,roughness_length_id,grid%roughness_length))
     call nc_check(nf90_get_var(ncid,t_conductivity_id,grid%t_conduc_soil))
-    call nc_check(nf90_get_var(ncid,is_land_id,grid%is_land))
+    call nc_check(nf90_get_var(ncid,land_fraction_id,grid%land_fraction))
     call nc_check(nf90_close(ncid))
     
     n_flat_layers = n_layers - n_oro_layers
