@@ -128,8 +128,8 @@ module mo_column_solvers
     !$omp gamma_new,alpha,beta,gammaa,rho_int_new,heat_flux_density_expl)
     do ji=1,n_cells
       
-      if (lprog_soil_temp) then
-        soil_switch = grid%land_fraction(ji)
+      if (lprog_soil_temp .and. grid%land_fraction(ji)>0._wp) then
+        soil_switch = 1
       else
         soil_switch = 0
       endif

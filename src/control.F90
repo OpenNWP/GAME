@@ -267,7 +267,7 @@ program control
   grid%sfc_rho_c = 0._wp
   grid%t_conduc_soil = 0._wp
   grid%roughness_length = 0._wp
-  grid%land_fraction = 0
+  grid%land_fraction = 0._wp
   grid%latlon_interpol_indices = 0
   grid%latlon_interpol_weights = 0._wp
   grid%lat_output_vector = 0._wp

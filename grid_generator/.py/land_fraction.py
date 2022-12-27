@@ -21,7 +21,7 @@ for i in range(len(land_fraction)):
 output_filename = "phys_quantities/RES" + str(res_id) + "_land_fraction.nc"
 ds = nc.Dataset(output_filename, "w", format="NETCDF4")
 ds.createDimension("scalar_points", len(land_fraction))
-land_fraction_nc = ds.createVariable("land_fraction", int, ("scalar_points"))
+land_fraction_nc = ds.createVariable("land_fraction", float, ("scalar_points"))
 land_fraction_nc[:] = land_fraction
 ds.close()
 

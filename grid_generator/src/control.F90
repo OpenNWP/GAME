@@ -117,7 +117,7 @@ program control
   integer,  allocatable :: vorticity_signs_triangles(:,:)   ! signs for computing the vorticity on the triangles
   integer,  allocatable :: density_to_rhombi_indices(:,:)   ! indices for interpolating the density to the rhombi
   integer,  allocatable :: interpol_indices(:,:,:)          ! interpolation indices to the latitude-longitude grid
-  integer,  allocatable :: land_fraction(:)                 ! land fraction
+  real(wp), allocatable :: land_fraction(:)                 ! land fraction
   real(wp), allocatable :: x_unit(:)                        ! x-coordinates of the gridpoints on the unit sphere
   real(wp), allocatable :: y_unit(:)                        ! y-coordinates of the gridpoints on the unit sphere
   real(wp), allocatable :: z_unit(:)                        ! z-coordinates of the gridpoints on the unit sphere
@@ -313,7 +313,7 @@ program control
   vorticity_signs_triangles = 0
   density_to_rhombi_indices = 0
   interpol_indices = 0
-  land_fraction = 0
+  land_fraction = 0._wp
   !$omp end parallel workshare
   write(*,*) "Finished."
   
@@ -707,7 +707,7 @@ program control
   call nc_check(nf90_put_att(ncid_g_prop,sfc_rho_c_id,"units","J/(K*m**3)"))
   
   ! land fraction
-  call nc_check(nf90_def_var(ncid_g_prop,"land_fraction",NF90_INT,cell_dimid,land_fraction_id))
+  call nc_check(nf90_def_var(ncid_g_prop,"land_fraction",NF90_REAL,cell_dimid,land_fraction_id))
   
   ! orography
   call nc_check(nf90_def_var(ncid_g_prop,"oro",NF90_REAL,cell_dimid,oro_nc_id))

@@ -355,7 +355,7 @@ module mo_write_output
         actual_roughness_length = 0.5_wp*(grid%roughness_length(grid%from_cell(ji)) + grid%roughness_length(grid%to_cell(ji)))
         ! roughness length of grass according to WMO
         roughness_length_extrapolation = 0.02_wp
-        if (grid%land_fraction(grid%from_cell(ji))==0) then
+        if (grid%land_fraction(grid%from_cell(ji))==0._wp) then
           roughness_length_extrapolation = actual_roughness_length
         endif
         z_sfc = 0.5_wp*(grid%z_vector_v(grid%from_cell(ji),n_levels) + grid%z_vector_v(grid%to_cell(ji),n_levels))
