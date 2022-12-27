@@ -177,6 +177,7 @@ program control
   allocate(diag%scalar_flux_resistance(n_cells))
   allocate(diag%power_flux_density_sensible(n_cells))
   allocate(diag%power_flux_density_latent(n_cells))
+  allocate(diag%roughness_length(n_cells))
   allocate(diag%roughness_velocity(n_cells))
   allocate(diag%monin_obukhov_length(n_cells))
   allocate(diag%temperature_diffusion_heating(n_cells,n_layers))
@@ -316,6 +317,7 @@ program control
   diag%scalar_flux_resistance = 0._wp
   diag%power_flux_density_sensible = 0._wp
   diag%power_flux_density_latent = 0._wp
+  diag%roughness_length = 0._wp
   diag%roughness_velocity = 0._wp
   diag%monin_obukhov_length = 0._wp
   diag%temperature_diffusion_heating = 0._wp
@@ -363,6 +365,11 @@ program control
   ! reading the grid
   write(*,*) "Reading grid data ..."
   call set_grid_properties(grid)
+  
+  ! initializing the diagnostic roughness length
+  !$omp parallel workshare
+  diag%roughness_length = grid%roughness_length
+  !$omp end parallel workshare
   
   call io_nml_setup()
   call rad_nml_setup(grid)
@@ -666,6 +673,7 @@ program control
   deallocate(diag%scalar_flux_resistance)
   deallocate(diag%power_flux_density_sensible)
   deallocate(diag%power_flux_density_latent)
+  deallocate(diag%roughness_length)
   deallocate(diag%roughness_velocity)
   deallocate(diag%monin_obukhov_length)
   deallocate(diag%temperature_diffusion_heating)

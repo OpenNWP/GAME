@@ -60,7 +60,7 @@ module mo_definitions
     real(wp), allocatable :: sfc_albedo(:)                    ! surface albedo
     real(wp), allocatable :: sfc_rho_c(:)                     ! indices needed for interpolating the densities to the rhombi
     real(wp), allocatable :: t_conduc_soil(:)                 ! temperature conductivity of the soil (m**2/s)
-    real(wp), allocatable :: roughness_length(:)              ! roughness length at the surface
+    real(wp), allocatable :: roughness_length(:)              ! roughness length of the land
     real(wp), allocatable :: land_fraction(:)                 ! land fraction
     integer,  allocatable :: latlon_interpol_indices(:,:,:)   ! indices for computing the interpolation to the lat-lon grid
     real(wp), allocatable :: latlon_interpol_weights(:,:,:)   ! weights for computing the interpolation to the lat-lon grid
@@ -120,6 +120,7 @@ module mo_definitions
     real(wp), allocatable :: scalar_flux_resistance(:)             ! flux resistance at the surface for scalar quantities
     real(wp), allocatable :: power_flux_density_sensible(:)        ! sensible power flux density at the surface
     real(wp), allocatable :: power_flux_density_latent(:)          ! latent power flux density at the surface
+    real(wp), allocatable :: roughness_length(:)                   ! actual roughness length
     real(wp), allocatable :: roughness_velocity(:)                 ! roughness velocity at the surface
     real(wp), allocatable :: monin_obukhov_length(:)               ! Monin-Obukhov length (m)
     real(wp), allocatable :: temperature_diffusion_heating(:,:)    ! power density resulting from temperature diffusion (W/m**3)
