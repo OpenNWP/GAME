@@ -19,9 +19,9 @@ land_fraction = np.zeros(len(lat_c))
 
 for i in range(len(lat_c)):
 	land_fraction_local = 0.0
-	n_edges = 6;
+	n_edges = 6
 	if i < 12:
-		n_edges = 5;
+		n_edges = 5
 	if globe.is_land(np.rad2deg(lat_c[i]), np.rad2deg(lon_c[i])):
 		land_fraction_local = land_fraction_local + 1.0/(1 + n_edges)
 	for j in range(n_edges):
