@@ -48,12 +48,13 @@ module mo_phase_trans
     real(wp) :: q                           ! helper variable for computing the second-order phase transition rates
     real(wp) :: enhancement_factor          ! factor taking into account non-ideal effects of air
     real(wp) :: maximum_cloud_water_content ! maximum cloud water content in (kg cloud)/(kg dry air)
+    real(wp) :: water_fraction              ! share of a grid cell that is covered by water
     
     maximum_cloud_water_content = 0.2e-3_wp
     
     ! loop over all grid boxes
     !$omp parallel do private(ji,jl,diff_density,phase_trans_density,saturation_pressure,water_vapour_pressure, &
-    !$omp diff_density_sfc,saturation_pressure_sfc,dry_pressure,air_pressure, &
+    !$omp diff_density_sfc,saturation_pressure_sfc,dry_pressure,air_pressure,water_fraction, &
     !$omp a,b,c,p,q,enhancement_factor)
     do jl=1,n_layers
       do ji=1,n_cells
@@ -282,17 +283,23 @@ module mo_phase_trans
             diff_density_sfc = saturation_pressure_sfc/(r_v*state%temperature_soil(ji,1)) &
             - state%rho(ji,jl,n_condensed_constituents+2)
             
+            ! calculating the water fraction of the grid cell
+            water_fraction = 1._wp - grid%land_fraction(ji)
+            
             ! evporation, sublimation
             diag%phase_trans_rates(ji,jl,n_condensed_constituents+1) = &
             diag%phase_trans_rates(ji,jl,n_condensed_constituents+1) + &
-            max(0._wp,diff_density_sfc/diag%scalar_flux_resistance(ji))/grid%layer_thickness(ji,jl)
+            water_fraction &
+            *max(0._wp,diff_density_sfc/diag%scalar_flux_resistance(ji))/grid%layer_thickness(ji,jl)
             
             ! calculating the latent heat flux density affecting the surface
             if (state%temperature_soil(ji,1)>=t_0) then
               diag%power_flux_density_latent(ji) = -phase_trans_heat(1,state%temperature_soil(ji,1)) &
+              *water_fraction &
               *max(0._wp,diff_density_sfc/diag%scalar_flux_resistance(ji))
             else
               diag%power_flux_density_latent(ji) = -phase_trans_heat(2,state%temperature_soil(ji,1)) &
+              *water_fraction &
               *max(0._wp,diff_density_sfc/diag%scalar_flux_resistance(ji))
             endif
           endif
