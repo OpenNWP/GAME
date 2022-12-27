@@ -23,7 +23,7 @@ def modify_value_boundaries(total_min, total_max, short_name):
 	if short_name == "oro":
 		total_min = 100*np.floor(total_min/100)
 		total_max = 100*np.ceil(total_max/100)
-	if short_name == "is_land":
+	if short_name == "land_fraction":
 		total_min = 0.0
 		total_max = 100.0
 	return total_min, total_max
@@ -219,7 +219,7 @@ def var_properties(var_id):
 	if var_id == "oro":
 		variable_name = "Orography"
 		unit_string = "m"
-	if var_id == "is_land":
+	if var_id == "land_fraction":
 		variable_name = "Land fraction"
 		unit_string = "%"
 		rescale = 100

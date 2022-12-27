@@ -449,7 +449,7 @@ module mo_set_initial_state
       ! if the soil temperature over land or the SST over water is not available in the initialization
       ! state filewe obtain it by linearly interpolating between the surface
       ! and the depth of constant temperature
-      if ((grid%land_fraction(ji)==1._wp .and. t_soil_avail==0) .or. (grid%land_fraction(ji)==0._wp .and. sst_avail==0)) then
+      if ((grid%land_fraction(ji)>0._wp .and. t_soil_avail==0) .or. (grid%land_fraction(ji)==0._wp .and. sst_avail==0)) then
         ! setting the surface temperature identical to the air temperature in the lowest layer
         t_sfc = temperature(ji,n_layers)
         

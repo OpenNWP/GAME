@@ -132,7 +132,7 @@ module mo_phys_sfc_properties
         oro(ji) = z_input(lon_index,lat_index)
         
         ! over the sea there is no orography
-        if (land_fraction(ji)==0._wp) then
+        if (land_fraction(ji)<0.5_wp) then
           oro(ji) = 0._wp
         endif
         
@@ -162,7 +162,7 @@ module mo_phys_sfc_properties
         oro_edges(ji) = z_input(lon_index,lat_index)
         
         ! over the sea there is no orography
-        if (land_fraction(from_cell(ji))==0._wp .or. land_fraction(to_cell(ji))==0._wp) then
+        if (land_fraction(from_cell(ji))<0.5_wp .or. land_fraction(to_cell(ji))<0.5_wp) then
           oro_edges(ji) = 0._wp
         endif
         
@@ -264,7 +264,7 @@ module mo_phys_sfc_properties
       t_conductivity(ji) = t_conductivity_water
       
       ! land
-      if (land_fraction(ji)==1._wp) then
+      if (land_fraction(ji)>0._wp) then
         
         lat_deg = 360._wp/(2._wp*M_PI)*lat_c(ji)
         

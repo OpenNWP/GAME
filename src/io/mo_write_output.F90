@@ -195,7 +195,7 @@ module mo_write_output
     ! Surface output including diagnostics.
     ! -------------------------------------
     if (lsurface_output) then
-    
+      
       allocate(mslp(n_cells))
       allocate(sp(n_cells))
       allocate(t2(n_cells))
