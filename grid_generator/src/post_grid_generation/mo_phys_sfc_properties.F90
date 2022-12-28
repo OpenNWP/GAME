@@ -263,7 +263,7 @@ module mo_phys_sfc_properties
       
       t_conductivity(ji) = t_conductivity_water
       
-      ! land
+      ! land is present in this grid cell
       if (land_fraction(ji)>0._wp) then
         
         lat_deg = 360._wp/(2._wp*M_PI)*lat_c(ji)
