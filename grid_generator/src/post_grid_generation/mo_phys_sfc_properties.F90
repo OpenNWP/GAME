@@ -272,9 +272,9 @@ module mo_phys_sfc_properties
         
         ! setting the surface albedo of land depending on the latitude
         if (abs(lat_deg)>70._wp) then
-          sfc_albedo(ji) = albedo_ice
+          sfc_albedo(ji) = land_fraction(ji)*albedo_ice + (1._wp - land_fraction(ji))*albedo_water
         else
-          sfc_albedo(ji) = albedo_soil
+          sfc_albedo(ji) = land_fraction(ji)*albedo_soil + (1._wp - land_fraction(ji))*albedo_water
         endif
         
         sfc_rho_c(ji) = density_soil*c_p_soil
