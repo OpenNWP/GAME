@@ -307,7 +307,7 @@ module mo_write_output
           ! liquid precipitation rate
           rprate(ji) = 0._wp
           if (lmoist) then
-            rprate(ji) = v_fall_liquid(state,diag,diag%a_rain(ji,n_layers),ji,n_layers)*state%rho(ji,n_layers,2)
+            rprate(ji) = v_fall_liquid(state,diag,grid,diag%a_rain(ji,n_layers),ji,n_layers)*state%rho(ji,n_layers,2)
           endif
           ! setting very small values to zero
           if (sprate(ji)<min_precip_rate) then

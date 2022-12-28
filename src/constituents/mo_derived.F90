@@ -146,12 +146,13 @@ module mo_derived
     
   end function calc_diffusion_coeff
   
-  function v_fall_liquid(state,diag,radius,ji,jl)
+  function v_fall_liquid(state,diag,grid,radius,ji,jl)
     
     ! This function returns the fall velocity of water droplets as a function of the radius of the droplets and the air density.
     
     type(t_state), intent(in)    :: state         ! state variables
     type(t_diag),  intent(inout) :: diag          ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid          ! grid quantities
     real(wp),      intent(in)    :: radius        ! radius of the droplet
     integer,       intent(in)    :: ji            ! horizontal index
     integer,       intent(in)    :: jl            ! layer index
@@ -161,20 +162,32 @@ module mo_derived
     real(wp) :: kinematic_viscosity ! kinematic viscosity
     real(wp) :: reynolds_number     ! Reynolds number of the flow around the particle
     real(wp) :: reynolds_crit       ! critical Reynolds number, where turbulent flow takes over
+    real(wp) :: gravity_local       ! local gravity acceleration
     real(wp) :: c_w                 ! c_w value of a liquid particle in turbulent flow
     
     reynolds_crit = 10._wp
     
+    ! computing the local gravity acceleration
+    if (jl==1) then
+      gravity_local = grid%gravity_m_v(ji,jl+1)
+    elseif (jl==n_layers) then
+      gravity_local = grid%gravity_m_v(ji,jl)
+    else
+      gravity_local &
+      = grid%inner_product_weights(7,ji,jl)*grid%gravity_m_v(ji,jl) &
+      + grid%inner_product_weights(8,ji,jl)*grid%gravity_m_v(ji,jl+1)
+    endif
+    
     kinematic_viscosity = calc_diffusion_coeff(diag%temperature(ji,jl),state%rho(ji,jl,n_condensed_constituents+1))
     
-    v_fall_liquid = 2._wp*radius**2*(rho_h2o-state%rho(ji,jl,n_condensed_constituents+1))*gravity &
+    v_fall_liquid = 2._wp*radius**2*(rho_h2o-state%rho(ji,jl,n_condensed_constituents+1))*gravity_local &
                     /(9._wp*state%rho(ji,jl,n_condensed_constituents+1)*kinematic_viscosity)
     
     reynolds_number = v_fall_liquid*radius/kinematic_viscosity
     
     if (reynolds_number>reynolds_crit) then
       c_w = .8_wp
-      v_fall_liquid = sqrt(8._wp*radius*rho_h2o*gravity/(3._wp*state%rho(ji,jl,n_condensed_constituents+1)*c_w))
+      v_fall_liquid = sqrt(8._wp*radius*rho_h2o*gravity_local/(3._wp*state%rho(ji,jl,n_condensed_constituents+1)*c_w))
     endif
     
   end function v_fall_liquid
