@@ -81,6 +81,7 @@ module mo_write_output
     integer               :: v10_id                            ! netCDF ID of the 10 m meridional wind
     integer               :: gusts_id                          ! netCDF ID of the 10 m gust speed
     integer               :: sfc_sw_down_id                    ! netCDF ID of the surface shortwave downward radiation
+    integer               :: sst_id                            ! netCDF ID of the SST
     integer               :: gh_ids(n_pressure_levels)         ! netCDF IDs of the geopotential height on pressure levels
     integer               :: temp_p_ids(n_pressure_levels)     ! netCDF IDs of the temperature on pressure levels
     integer               :: rh_p_ids(n_pressure_levels)       ! netCDF IDs of the relative humidity on pressure levels
@@ -144,6 +145,7 @@ module mo_write_output
     real(wp), allocatable :: sprate(:)                         ! solid precipitation rate to be written out
     real(wp), allocatable :: cape(:)                           ! CAPE to be written out
     real(wp), allocatable :: sfc_sw_down(:)                    ! surface downward shortwave radiation power flux density (W/m**2) to be written out
+    real(wp), allocatable :: sst(:)                            ! sea surface temperature
     real(wp), allocatable :: geopotential_height(:,:)          ! gepotential height on pressure levels to be written out
     real(wp), allocatable :: t_on_p_levels(:,:)                ! temperature on pressure levels to be written out
     real(wp), allocatable :: rh_on_p_levels(:,:)               ! relative humidity on pressure levels to be written out
@@ -204,12 +206,15 @@ module mo_write_output
       allocate(sprate(n_cells))
       allocate(cape(n_cells))
       allocate(sfc_sw_down(n_cells))
+      allocate(sst(n_cells))
       
-      ! initializing moisture variables with zero
       !$omp parallel workshare
+      ! initializing moisture variables with zeros
       tcc = 0._wp
       rprate = 0._wp
       sprate = 0._wp
+      ! initializing the SST with zeros
+      sst = 0._wp
       !$omp end parallel workshare
       
       z_tropopause = 12e3_wp
@@ -256,6 +261,13 @@ module mo_write_output
         endif
         ! performing the interpolation / extrapolation to two meters above the surface
         t2(ji) = temp_closest + delta_z_temp*temperature_gradient
+        
+        ! sea surface temperature
+        if (grid%land_fraction(ji)<0.5_wp) then
+          sst(ji) = state%temperature_soil(ji,1)
+        else
+          sst(ji) = 9999
+        endif
         
         ! diagnozing CAPE
         ! initializing CAPE with zero
@@ -463,6 +475,8 @@ module mo_write_output
       call nc_check(nf90_put_att(ncid,cape_id,"units","J/kg"))
       call nc_check(nf90_def_var(ncid,"sfc_sw_down",NF90_REAL,lat_lon_dimids,sfc_sw_down_id))
       call nc_check(nf90_put_att(ncid,sfc_sw_down_id,"units","W/m^2"))
+      call nc_check(nf90_def_var(ncid,"sst",NF90_REAL,lat_lon_dimids,sst_id))
+      call nc_check(nf90_put_att(ncid,sst_id,"units","K"))
       call nc_check(nf90_def_var(ncid,"u10",NF90_REAL,lat_lon_dimids,u10_id))
       call nc_check(nf90_put_att(ncid,u10_id,"units","m/s"))
       call nc_check(nf90_def_var(ncid,"v10",NF90_REAL,lat_lon_dimids,v10_id))
@@ -502,6 +516,9 @@ module mo_write_output
       call interpolate_to_ll(sfc_sw_down,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,sfc_sw_down_id,lat_lon_output_field))
       
+      call interpolate_to_ll(sst,lat_lon_output_field,grid)
+      call nc_check(nf90_put_var(ncid,sst_id,lat_lon_output_field))
+      
       call interpolate_to_ll(wind_10_m_mean_u_at_cell,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,u10_id,lat_lon_output_field))
       
@@ -525,6 +542,7 @@ module mo_write_output
       deallocate(tcc)
       deallocate(cape)
       deallocate(sfc_sw_down)
+      deallocate(sst)
       
     endif
     
