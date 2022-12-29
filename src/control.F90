@@ -721,7 +721,7 @@ program control
   deallocate(state_write%temperature_soil)
   write(*,*) stars
   call cpu_time(end_timestamp)
-  write(*,fmt="(A,F9.3)") "Average speed:",(60._wp*run_span_min+300._wp)/((end_timestamp-init_timestamp)/omp_num_threads)
+  write(*,fmt="(A,F9.3)") " Average speed:",(60._wp*run_span_min+300._wp)/((end_timestamp-init_timestamp)/omp_num_threads)
   write(*,*) "GAME over."
 
 end program control
