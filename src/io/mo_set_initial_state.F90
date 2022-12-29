@@ -442,14 +442,14 @@ module mo_set_initial_state
     !$omp parallel do private(ji,jl,z_soil,t_sfc)
     do ji=1,n_cells
       ! sea surface temperature if SST is available
-      if (grid%land_fraction(ji)==0._wp .and. sst_avail==1) then
+      if (grid%land_fraction(ji)<0.5_wp .and. sst_avail==1) then
         state%temperature_soil(ji,:) = sst(ji)
       endif
       
       ! if the soil temperature over land or the SST over water is not available in the initialization
       ! state filewe obtain it by linearly interpolating between the surface
       ! and the depth of constant temperature
-      if ((grid%land_fraction(ji)>0._wp .and. t_soil_avail==0) .or. (grid%land_fraction(ji)==0._wp .and. sst_avail==0)) then
+      if ((grid%land_fraction(ji)>=0.5_wp .and. t_soil_avail==0) .or. (grid%land_fraction(ji)<0.5_wp .and. sst_avail==0)) then
         ! setting the surface temperature identical to the air temperature in the lowest layer
         t_sfc = temperature(ji,n_layers)
         
