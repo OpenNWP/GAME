@@ -97,6 +97,7 @@ program control
   integer               :: t_conductivity_id                ! netCDF ID of the temperature conductivity of the soil
   integer               :: roughness_length_id              ! netCDF ID of the roughness length
   integer               :: land_fraction_id                 ! netCDF ID of the land fraction
+  integer               :: lake_fraction_id                 ! netCDF ID of the lake fraction
   integer               :: oro_nc_id                        ! netCDF ID of the orography
   integer               :: n_oro_layers_id                  ! netCDF ID of the number of orography layers
   integer               :: stretching_parameter_id          ! netCDF ID of the stretching parameter
@@ -118,6 +119,7 @@ program control
   integer,  allocatable :: density_to_rhombi_indices(:,:)   ! indices for interpolating the density to the rhombi
   integer,  allocatable :: interpol_indices(:,:,:)          ! interpolation indices to the latitude-longitude grid
   real(wp), allocatable :: land_fraction(:)                 ! land fraction
+  real(wp), allocatable :: lake_fraction(:)                 ! lake fraction
   real(wp), allocatable :: x_unit(:)                        ! x-coordinates of the gridpoints on the unit sphere
   real(wp), allocatable :: y_unit(:)                        ! y-coordinates of the gridpoints on the unit sphere
   real(wp), allocatable :: z_unit(:)                        ! z-coordinates of the gridpoints on the unit sphere
@@ -253,6 +255,7 @@ program control
   allocate(lon_vector(n_lon_io_points))
   allocate(interpol_indices(5,n_lat_io_points,n_lon_io_points))
   allocate(land_fraction(n_cells))
+  allocate(lake_fraction(n_cells))
   
   ! initializing arrays to zero
   !$omp parallel workshare
@@ -314,6 +317,7 @@ program control
   density_to_rhombi_indices = 0
   interpol_indices = 0
   land_fraction = 0._wp
+  lake_fraction = 0._wp
   !$omp end parallel workshare
   write(*,*) "Finished."
   
@@ -709,6 +713,9 @@ program control
   ! land fraction
   call nc_check(nf90_def_var(ncid_g_prop,"land_fraction",NF90_REAL,cell_dimid,land_fraction_id))
   
+  ! lake fraction
+  call nc_check(nf90_def_var(ncid_g_prop,"lake_fraction",NF90_REAL,cell_dimid,lake_fraction_id))
+  
   ! orography
   call nc_check(nf90_def_var(ncid_g_prop,"oro",NF90_REAL,cell_dimid,oro_nc_id))
   
@@ -775,6 +782,7 @@ program control
   call nc_check(nf90_put_var(ncid_g_prop,density_to_rhombi_indices_id,density_to_rhombi_indices))
   call nc_check(nf90_put_var(ncid_g_prop,interpol_indices_id,interpol_indices))
   call nc_check(nf90_put_var(ncid_g_prop,land_fraction_id,land_fraction))
+  call nc_check(nf90_put_var(ncid_g_prop,lake_fraction_id,lake_fraction))
   call nc_check(nf90_put_var(ncid_g_prop,lat_id,lat_vector))
   call nc_check(nf90_put_var(ncid_g_prop,lon_id,lon_vector))
   call nc_check(nf90_put_var(ncid_g_prop,oro_nc_id,oro))
@@ -787,6 +795,7 @@ program control
   deallocate(sfc_rho_c)
   deallocate(t_conductivity)
   deallocate(land_fraction)
+  deallocate(lake_fraction)
   deallocate(x_unit)
   deallocate(y_unit)
   deallocate(z_unit)
