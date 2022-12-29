@@ -62,6 +62,7 @@ module mo_definitions
     real(wp), allocatable :: t_conduc_soil(:)                 ! temperature conductivity of the soil (m**2/s)
     real(wp), allocatable :: roughness_length(:)              ! roughness length of the land
     real(wp), allocatable :: land_fraction(:)                 ! land fraction
+    real(wp), allocatable :: lake_fraction(:)                 ! lake fraction
     integer,  allocatable :: latlon_interpol_indices(:,:,:)   ! indices for computing the interpolation to the lat-lon grid
     real(wp), allocatable :: latlon_interpol_weights(:,:,:)   ! weights for computing the interpolation to the lat-lon grid
     real(wp), allocatable :: lat_output_vector(:)             ! latitude vector of the latitude-longitude output grid
