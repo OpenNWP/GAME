@@ -99,6 +99,9 @@ if var_id == "surface_wind":
 else:
 	if surface_bool == 1:
 		lat, lon, values = rmo.fetch_model_output(input_file, var_id)
+		# masking land masses for plotting the sea surface temperature
+		if var_id == "sst":
+			values[np.where(values == 9999)] = np.nan
 	else:
 		lat, lon, values = rmo.fetch_model_output(input_file, var_id + "_layer_" + str(level))
 	values = rescale*values + shift

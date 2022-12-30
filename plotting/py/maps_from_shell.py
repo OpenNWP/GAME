@@ -75,18 +75,31 @@ if var_id == "surface_wind":
 else:
 	if surface_bool == 1:
 		lat, lon, values_pre = rmo.fetch_model_output(input_file, var_id)
+		# masking land masses for plotting the sea surface temperature
+		if var_id == "sst":
+			values_pre[np.where(values_pre == 9999)] = np.nan
 	else:
 		lat, lon, values_pre = rmo.fetch_model_output(input_file, var_id + "_layer_" + str(level))
 
-values = np.zeros([len(lat), len(lon), int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1])
+# calculating the number of times for which plots will be created
+if plot_interval_min == 0:
+	number_of_times = 1
+else:
+	number_of_times = int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1
+
+# for the SST, if only one plot is required, it is usually for the analysis time
+if var_id == "sst" and number_of_times == 1 and start_time_since_init_min != 0:
+	sys.exit()
+
+values = np.zeros([len(lat), len(lon), number_of_times])
 values[:, :, 0] = rescale*values_pre + shift
 if var_id == "surface_wind":
-	values_u10 = np.zeros([len(lat), len(lon), int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1])
+	values_u10 = np.zeros([len(lat), len(lon), number_of_times])
 	values_u10[:, :, 0] = rescale*values_pre_u10 + shift
-	values_v10 = np.zeros([len(lat), len(lon), int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1])
+	values_v10 = np.zeros([len(lat), len(lon), number_of_times])
 	values_v10[:, :, 0] = rescale*values_pre_v10 + shift
 
-for i in np.arange(1, int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1):
+for i in np.arange(1, number_of_times):
 	time_after_init_min = start_time_since_init_min + i*plot_interval_min
 	if on_pressure_bool == 0:
 		if surface_bool == 1:
@@ -105,6 +118,9 @@ for i in np.arange(1, int((run_span_min - start_time_since_init_min)/plot_interv
 	else:
 		if surface_bool == 1:
 			lat, lon, values[:, :, i] = rmo.fetch_model_output(input_file, var_id)
+			# masking land masses for plotting the sea surface temperature
+			if var_id == "sst":
+				values[:, :, i][np.where(values[:, :, i] == 9999)] = np.nan
 		else:
 			lat, lon, values[:, :, i] = rmo.fetch_model_output(input_file, var_id + "_layer_" + str(level))
 		values[:, :, i] = rescale*values[:, :, i] + shift
@@ -169,7 +185,7 @@ if uniform_range == 1:
 	cmap = plt.get_cmap(colormap)
 
 fig_size = 7
-for i in range(int((run_span_min - start_time_since_init_min)/plot_interval_min) + 1):
+for i in range(number_of_times):
 	if uniform_range == 0:
 		if projection == "Gnomonic":
 			total_min = np.nanmin(values[scope_bool_array, i])
@@ -188,7 +204,7 @@ for i in range(int((run_span_min - start_time_since_init_min)/plot_interval_min)
 			values_range_for_plot = values_range_for_plot + np.mod(100 - np.mod(values_range_for_plot, 100), 100)
 			total_max = total_max + np.mod(100 - np.mod(total_max - total_min, 100), 100)
 		color_plot_dist = values_range_for_plot/10
-		if var_id == "t2":
+		if var_id == "t2" or var_id == "sst":
 			color_plot_dist = values_range_for_plot/20
 		bounds = np.arange(total_min, total_max + color_plot_dist, color_plot_dist)
 		color_bar_dist = values_range_for_plot/10

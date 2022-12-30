@@ -235,6 +235,12 @@ def var_properties(var_id):
 	if var_id == "t_conductivity":
 		variable_name = "Temperature conductivity"
 		unit_string = "m**2/s"
+	if var_id == "sst":
+		variable_name = "Sea surface temperature"
+		unit_string = "°C"
+		shift = -conv.c2k(0)
+		show_level_on = 0
+		surface_bool = 1
 	return surface_bool, variable_name, unit_string, rescale, show_level_on, contourf_plot, colormap, shift
 
 
