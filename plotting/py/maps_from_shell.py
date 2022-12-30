@@ -267,7 +267,11 @@ for i in range(number_of_times):
 		else:
 			cbar = plt.colorbar(cf, fraction = 0.02, pad = 0.1, aspect = 80, orientation = "horizontal", ticks = np.arange(total_min, total_max + color_bar_dist, color_bar_dist))
 		cbar.ax.tick_params(labelsize = 12)
-		cbar.set_label(unit_string, fontsize = 16)
+		# to avoid too big text boxes in global plots, the variable name is written into the legend of the colour bar in this case
+		if scope == "WORLD" and synoptical_time_mode == 1:
+			cbar.set_label(variable_name + " [" + unit_string + "]", fontsize = 16)
+		else:
+			cbar.set_label(unit_string, fontsize = 16)
 	else:
 		if var_id == "geopot":
 			levels_vector = np.arange(100, 2055, 8)
@@ -292,10 +296,15 @@ for i in range(number_of_times):
 	if synoptical_time_mode == 0:
 		time_string = "init + " + str(time_after_init_min_title) + " " + time_unit_string
 	if synoptical_time_mode == 1:
-		implementation_name = "EFS"
-		time_string = "init: " + str(init_year) + "-" + str(init_month) + "-" + str(init_day) + ", " + str(init_hour) + " UTC\n"
-		valid_year, valid_month, valid_day, valid_hour, dump, dump, dump = tcs.return_date(start_timestamp + 60*time_after_init_min)
-		time_string = time_string + "valid: " + str(valid_year) + "-" + str(valid_month) + "-" + str(valid_day) + ", " + str(valid_hour) + " UTC (+ " + str(time_after_init_min_title) + " hrs)"
+		# for world maps only a small text is displayed to avoid covering too much of the plot
+		# the variable name is part of the legend in this case
+		if scope == "WORLD":
+			time_string = "valid: " + str(init_year) + "-" + str(init_month) + "-" + str(init_day) + ", " + str(init_hour) + " UTC"
+		else:
+			implementation_name = "EFS"
+			time_string = "init: " + str(init_year) + "-" + str(init_month) + "-" + str(init_day) + ", " + str(init_hour) + " UTC\n"
+			valid_year, valid_month, valid_day, valid_hour, dump, dump, dump = tcs.return_date(start_timestamp + 60*time_after_init_min)
+			time_string = time_string + "valid: " + str(valid_year) + "-" + str(valid_month) + "-" + str(valid_day) + ", " + str(valid_hour) + " UTC (+ " + str(time_after_init_min_title) + " hrs)"
 	if show_level_on == 1:
 		if on_pressure_bool == 1:
 			if contourf_plot == 0:
@@ -308,6 +317,9 @@ for i in range(number_of_times):
 			textstr = variable_name + " at level " + str(level) + "\n" + time_string
 	else:
 		textstr = variable_name + " (" + implementation_name + ")\n" + time_string
+	# for world maps only a small text is displayed to avoid covering too much of the plot
+	if scope == "WORLD" and synoptical_time_mode == 1:
+		textstr = time_string
 	ob = offsetbox.AnchoredText(textstr, loc = 3)
 	ax.add_artist(ob)
 	fig.savefig(save_directory + "/" + savename + "+" + str(time_after_init_min_title) + time_unit_string + ".png", dpi = 200, bbox_inches = "tight")
