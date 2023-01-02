@@ -34,11 +34,12 @@ module mo_phys_sfc_properties
   end function vegetation_height_ideal
   
   subroutine set_sfc_properties(lat_c,lon_c,lat_e,lon_e,from_cell,to_cell,adjacent_edges,roughness_length, &
-                                sfc_albedo,sfc_rho_c,t_conductivity,oro,oro_smoothed,land_fraction)
+                                sfc_albedo,sfc_rho_c,t_conductivity,oro,oro_smoothed,land_fraction,lake_fraction)
     
     ! This subroutine sets the physical surface properties.
     
     real(wp), intent(out) :: land_fraction(n_cells)    ! land fraction (result)
+    real(wp), intent(in)  :: lake_fraction(n_cells)    ! lake fraction
     real(wp), intent(in)  :: lat_c(n_cells)            ! latitudes at cell centers
     real(wp), intent(in)  :: lon_c(n_cells)            ! longitudes at cell centers
     real(wp), intent(in)  :: lat_e(n_edges)            ! latitudes at the edges
@@ -132,7 +133,7 @@ module mo_phys_sfc_properties
         oro(ji) = z_input(lon_index,lat_index)
         
         ! over the sea there is no orography
-        if (land_fraction(ji)<0.5_wp) then
+        if (land_fraction(ji)+lake_fraction(ji)<0.5_wp) then
           oro(ji) = 0._wp
         endif
         
@@ -162,7 +163,8 @@ module mo_phys_sfc_properties
         oro_edges(ji) = z_input(lon_index,lat_index)
         
         ! over the sea there is no orography
-        if (land_fraction(from_cell(ji))<0.5_wp .or. land_fraction(to_cell(ji))<0.5_wp) then
+        if (land_fraction(from_cell(ji))+land_fraction(to_cell(ji)) &
+            +lake_fraction(from_cell(ji))+lake_fraction(to_cell(ji))<1._wp) then
           oro_edges(ji) = 0._wp
         endif
         
