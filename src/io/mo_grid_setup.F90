@@ -230,7 +230,7 @@ module mo_grid_setup
     ! fundamental SFC properties
     z_t_const = -10._wp
     !$omp parallel workshare
-    grid%t_const_soil = t_0 + 25._wp*cos(2._wp*grid%lat_c) - lapse_rate*grid%z_vector_v(:,n_layers+1)
+    grid%t_const_soil = t_0 + 25._wp*cos(2._wp*grid%lat_c) - lapse_rate*grid%z_vector_v(:,n_levels)
     !$omp end parallel workshare
         
     ! constructing the soil grid
