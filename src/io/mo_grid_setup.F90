@@ -6,7 +6,7 @@ module mo_grid_setup
   ! This module reads the grid properties and sets some further grid quantities.
 
   use netcdf
-  use mo_constants,       only: t_0,r_e,M_PI
+  use mo_constants,       only: t_0,r_e,M_PI,lapse_rate
   use mo_definitions,     only: wp,t_grid
   use mo_grid_nml,        only: n_layers,n_cells,oro_id,res_id,n_levels
   use mo_diff_nml,        only: klemp_begin_rel
@@ -230,7 +230,7 @@ module mo_grid_setup
     ! fundamental SFC properties
     z_t_const = -10._wp
     !$omp parallel workshare
-    grid%t_const_soil = t_0 + 25._wp*cos(2._wp*grid%lat_c)
+    grid%t_const_soil = t_0 + 25._wp*cos(2._wp*grid%lat_c) - lapse_rate*grid%z_vector_v(:,n_layers+1)
     !$omp end parallel workshare
         
     ! constructing the soil grid
