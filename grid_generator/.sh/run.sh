@@ -17,13 +17,17 @@ fi
 # downloading orography if necessary
 if [ $oro_id -eq 1 ] && [ ! -f phys_quantities/etopo.nc ]
 then
-  ./phys_quantities/download_etopo.sh
+  cd phys_quantities
+  ./download_etopo.sh
+  cd ..
 fi
 
 # downloading lake data if necessary
 if [ $oro_id -eq 1 ] && [ ! -f phys_quantities/GlobalLakeStatus.dat ]
 then
-  ./phys_quantities/download_gldbv2.sh
+  cd phys_quantities
+  ./download_gldbv2.sh
+  cd ..
 fi
 
 if [ $oro_id -eq 1 ]
