@@ -20,6 +20,12 @@ then
   ./phys_quantities/download_etopo.sh
 fi
 
+# downloading lake data if necessary
+if [ $oro_id -eq 1 ] && [ ! -f phys_quantities/GlobalLakeStatus.dat ]
+then
+  ./phys_quantities/download_gldbv2.sh
+fi
+
 if [ $oro_id -eq 1 ]
 then
   echo "Creating land fraction ..."

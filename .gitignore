@@ -12,6 +12,7 @@ build
 *.xml
 *.toc
 grid_generator/grid_generator
+GlobalLakeStatus.dat
 output
 figs
 nwp_init
