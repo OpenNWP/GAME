@@ -23,7 +23,7 @@ then
 fi
 
 # downloading lake data if necessary
-if [ $oro_id -eq 1 ] && [ ! -f phys_quantities/GlobalLakeStatus.dat ]
+if [ $oro_id -eq 1 ] && [ ! -f phys_quantities/GlobalLakeDepth.dat ]
 then
   cd phys_quantities
   ./download_gldbv2.sh
