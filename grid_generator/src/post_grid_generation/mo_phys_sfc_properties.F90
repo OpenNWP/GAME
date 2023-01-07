@@ -38,54 +38,59 @@ module mo_phys_sfc_properties
     
     ! This subroutine sets the physical surface properties.
     
-    real(wp), intent(out) :: land_fraction(n_cells)    ! land fraction (result)
-    real(wp), intent(in)  :: lake_fraction(n_cells)    ! lake fraction
-    real(wp), intent(in)  :: lat_c(n_cells)            ! latitudes at cell centers
-    real(wp), intent(in)  :: lon_c(n_cells)            ! longitudes at cell centers
-    real(wp), intent(in)  :: lat_e(n_edges)            ! latitudes at the edges
-    real(wp), intent(in)  :: lon_e(n_edges)            ! longitudes at the edges
-    integer,  intent(in)  :: from_cell(n_edges)        ! cells in the from-directions of the vectors
-    integer,  intent(in)  :: to_cell(n_edges)          ! cells in the to-directions of the vectors
-    integer,  intent(in)  :: adjacent_edges(6,n_cells) ! edges adjacent to a cell
-    real(wp), intent(out) :: roughness_length(n_cells) ! roughness length of the surface (result)
-    real(wp), intent(out) :: sfc_albedo(n_cells)       ! surface albedo (result)
-    real(wp), intent(out) :: sfc_rho_c(n_cells)        ! surface volumetric heat capacity (result)
-    real(wp), intent(out) :: t_conductivity(n_cells)   ! temperature conductivity in the soil (m**2/s, result)
-    real(wp), intent(out) :: oro(n_cells)              ! orography (result)
-    real(wp), intent(out) :: oro_smoothed(n_cells)     ! smoothed orography (result)
+    real(wp), intent(out)   :: land_fraction(n_cells)    ! land fraction (result)
+    real(wp), intent(in)    :: lake_fraction(n_cells)    ! lake fraction
+    real(wp), intent(in)    :: lat_c(n_cells)            ! latitudes at cell centers
+    real(wp), intent(in)    :: lon_c(n_cells)            ! longitudes at cell centers
+    real(wp), intent(in)    :: lat_e(n_edges)            ! latitudes at the edges
+    real(wp), intent(in)    :: lon_e(n_edges)            ! longitudes at the edges
+    integer,  intent(in)    :: from_cell(n_edges)        ! cells in the from-directions of the vectors
+    integer,  intent(in)    :: to_cell(n_edges)          ! cells in the to-directions of the vectors
+    integer,  intent(in)    :: adjacent_edges(6,n_cells) ! edges adjacent to a cell
+    real(wp), intent(out)   :: roughness_length(n_cells) ! roughness length of the surface (result)
+    real(wp), intent(out)   :: sfc_albedo(n_cells)       ! surface albedo (result)
+    real(wp), intent(out)   :: sfc_rho_c(n_cells)        ! surface volumetric heat capacity (result)
+    real(wp), intent(out)   :: t_conductivity(n_cells)   ! temperature conductivity in the soil (m**2/s, result)
+    real(wp), intent(out)   :: oro(n_cells)              ! orography (result)
+    real(wp), intent(out)   :: oro_smoothed(n_cells)     ! smoothed orography (result)
     
     ! local variables
-    integer               :: ji                               ! cell index
-    integer               :: jk                               ! helper index
-    integer               :: ncid                             ! netCDF file ID 
-    integer               :: land_fraction_id                 ! netCDF ID of the land fraction
-    integer               :: lat_in_id                        ! netCDF ID of the latitudes of the input dataset
-    integer               :: lon_in_id                        ! netCDF ID of the longitudes of the input dataset
-    integer               :: z_in_id                          ! netCDF ID of the input orography
-    integer               :: n_lat_points                     ! number of latitude points of the input grid
-    integer               :: n_lon_points                     ! number of longitude points of the input grid
-    integer               :: lat_index                        ! latitude index of a point of the input grid
-    integer               :: lon_index                        ! longitude index of a point of the input grid
-    integer               :: min_indices_vector(n_avg_points) ! vector of closest gridpoint indices
-    integer               :: n_edges_of_cell                  ! number of edges a given cell has
-    real(wp)              :: c_p_water                        ! specific heat capacity at constant pressure of water
-    real(wp)              :: c_p_soil                         ! specific heat capacity at constant pressure of soil
-    real(wp)              :: albedo_water                     ! albedo of water
-    real(wp)              :: albedo_soil                      ! albedo of soil
-    real(wp)              :: albedo_ice                       ! albedo of ice
-    real(wp)              :: density_soil                     ! density of soil
-    real(wp)              :: t_conductivity_water             ! temperature conductivity of water
-    real(wp)              :: t_conductivity_soil              ! temperature conductivity of soil
-    real(wp)              :: lat_deg                          ! latitude value in degrees
-    real(wp)              :: distance_vector(n_cells)         ! vector containing geodetic distances to compute the interpolation
-    real(wp), allocatable :: latitude_input(:)                ! latitude vector of the input grid
-    real(wp), allocatable :: longitude_input(:)               ! longitude vector of the input grid
-    real(wp), allocatable :: lat_distance_vector(:)           ! vector containing distances in the latitude direction
-    real(wp), allocatable :: lon_distance_vector(:)           ! vector containing distances in the longitude direction
-    real(wp), allocatable :: oro_edges(:)                     ! orography at the edges
-    integer,  allocatable :: z_input(:,:)                     ! input orography
-    character(len=64)     :: land_fraction_file               ! file to read the land fraction from
-    character(len=64)     :: oro_file                         ! file to read the orography from
+    integer                 :: ji                               ! cell index
+    integer                 :: jk                               ! helper index
+    integer                 :: ncid                             ! netCDF file ID 
+    integer                 :: land_fraction_id                 ! netCDF ID of the land fraction
+    integer                 :: lat_in_id                        ! netCDF ID of the latitudes of the input dataset
+    integer                 :: lon_in_id                        ! netCDF ID of the longitudes of the input dataset
+    integer                 :: z_in_id                          ! netCDF ID of the input orography
+    integer                 :: n_lat_points                     ! number of latitude points of the input grid
+    integer                 :: n_lon_points                     ! number of longitude points of the input grid
+    integer                 :: lat_index                        ! latitude index of a point of the input grid
+    integer                 :: lon_index                        ! longitude index of a point of the input grid
+    integer                 :: min_indices_vector(n_avg_points) ! vector of closest gridpoint indices
+    integer                 :: n_edges_of_cell                  ! number of edges a given cell has
+    integer                 :: gldb_fileunit                    ! file unit of the GLDB (Global Lake Database) file
+    integer                 :: nlon_gldb                        ! number of longitude points of the GLDB grid
+    integer                 :: nlat_gldb                        ! number of latitude points of the GLDB grid
+    real(wp)                :: c_p_water                        ! specific heat capacity at constant pressure of water
+    real(wp)                :: c_p_soil                         ! specific heat capacity at constant pressure of soil
+    real(wp)                :: albedo_water                     ! albedo of water
+    real(wp)                :: albedo_soil                      ! albedo of soil
+    real(wp)                :: albedo_ice                       ! albedo of ice
+    real(wp)                :: density_soil                     ! density of soil
+    real(wp)                :: t_conductivity_water             ! temperature conductivity of water
+    real(wp)                :: t_conductivity_soil              ! temperature conductivity of soil
+    real(wp)                :: lat_deg                          ! latitude value in degrees
+    real(wp)                :: distance_vector(n_cells)         ! vector containing geodetic distances to compute the interpolation
+    real(wp),   allocatable :: latitude_input(:)                ! latitude vector of the input grid
+    real(wp),   allocatable :: longitude_input(:)               ! longitude vector of the input grid
+    real(wp),   allocatable :: lat_distance_vector(:)           ! vector containing distances in the latitude direction
+    real(wp),   allocatable :: lon_distance_vector(:)           ! vector containing distances in the longitude direction
+    real(wp),   allocatable :: oro_edges(:)                     ! orography at the edges
+    real(wp),   allocatable :: lake_depth_gldb(:,:)             ! GLDB lake depth data
+    integer,    allocatable :: z_input(:,:)                     ! input orography
+    integer(2), allocatable :: lake_depth_gldb_raw(:,:)         ! GLDB lake depth data as read from file
+    character(len=64)       :: land_fraction_file               ! file to read the land fraction from
+    character(len=64)       :: oro_file                         ! file to read the orography from
     
     ! Orography
     ! ---------
@@ -289,6 +294,37 @@ module mo_phys_sfc_properties
       
     enddo
     !$omp end parallel do
+    
+    ! Lake fraction
+    ! This is only done if real-world orography is used.
+    
+    nlat_gldb = 21600
+    nlon_gldb = 43200
+    
+    if (oro_id==1) then
+      
+      ! opening the lake depth file
+      open(action="read",file="phys_quantities/GlobalLakeDepth.dat",form="unformatted", &
+      access="direct",recl=2*nlon_gldb,newunit=gldb_fileunit)
+      
+      allocate(lake_depth_gldb_raw(nlat_gldb,nlon_gldb))
+      allocate(lake_depth_gldb(nlat_gldb,nlon_gldb))
+      
+      !$omp parallel do private(ji)
+      do ji=1,nlat_gldb
+        read(unit=gldb_fileunit,rec=ji) lake_depth_gldb_raw(ji,:)
+        lake_depth_gldb(ji,:) = lake_depth_gldb_raw(ji,:)/10._wp
+      enddo
+      !$omp end parallel do
+      
+      ! closing the lake depth file
+      close(gldb_fileunit)
+      
+      deallocate(lake_depth_gldb_raw)
+      
+      deallocate(lake_depth_gldb)
+      
+    endif
     
   end subroutine set_sfc_properties
   
