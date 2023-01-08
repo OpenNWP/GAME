@@ -39,7 +39,9 @@ module mo_grid_nml
   real(wp)           :: mean_velocity_area       ! the area that can be attributed to one horizontal vector gridpoint
   real(wp)           :: eff_hor_res              ! effective horizontal resolution
   logical            :: luse_scalar_h_file       ! switch to determine wether to read the horizontal coordinates from a file or not
+  logical            :: luse_sfc_file            ! switch to determine wether to read the surface properties from a file or not
   character(len=256) :: scalar_h_file            ! file to read the horizontal coordinates from
+  character(len=256) :: sfc_file                 ! file to read the surface properties from
   
   real(wp), parameter :: orth_criterion_deg = 89.99_wp ! used for checking grid orthogonality
   
@@ -64,6 +66,7 @@ module mo_grid_nml
     oro_id = 1
     n_lloyd_iterations = 2000
     luse_scalar_h_file = .false.
+    luse_sfc_file = .false.
     
     ! open and read namelist file
     open(action="read",file="build/namelist.nml",newunit=fileunit)
@@ -97,6 +100,9 @@ module mo_grid_nml
     ! the file to potentially read the horizontal quantities from
     scalar_h_file = "grids/RES" // trim(int2string(res_id)) // "_L" // trim(int2string(n_layers)) &
                     // "_ORO0.nc"
+    ! the file to potentially read the surface properties from
+    sfc_file = "grids/RES" // trim(int2string(res_id)) // "_L" // trim(int2string(n_layers)) &
+               // "_ORO1.nc"
     
     ! sanity checks
     ! -------------

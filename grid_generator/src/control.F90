@@ -99,6 +99,7 @@ program control
   integer               :: land_fraction_id                 ! netCDF ID of the land fraction
   integer               :: lake_fraction_id                 ! netCDF ID of the lake fraction
   integer               :: oro_nc_id                        ! netCDF ID of the orography
+  integer               :: oro_smoothed_nc_id               ! netCDF ID of the smoothed orography
   integer               :: n_oro_layers_id                  ! netCDF ID of the number of orography layers
   integer               :: stretching_parameter_id          ! netCDF ID of the stretching parameter
   integer               :: toa_id                           ! netCDF ID of the top of atmosphere
@@ -334,7 +335,7 @@ program control
     ! By setting the from_cell_dual and to_cell_dual arrrays,the discrete positions of the dual scalar points are determined.
     call set_from_to_cell_dual(from_cell_dual,to_cell_dual,face_edges,face_edges_reverse)
   else
-    call read_horizontal_explicit(lat_c,lon_c,from_cell,to_cell,from_cell_dual,to_cell_dual,scalar_h_file,n_lloyd_read_from_file)
+    call read_horizontal_explicit(lat_c,lon_c,from_cell,to_cell,from_cell_dual,to_cell_dual,n_lloyd_read_from_file)
   endif
   
   ! 2.) finding the neighbouring vector points of the cells
@@ -397,7 +398,6 @@ program control
   !    --------------------------------------------------
   write(*,*) "Setting the vertical coordinates of the scalar data points ..."
   call set_z_scalar(z_scalar,oro,oro_smoothed,max_oro)
-  deallocate(oro_smoothed)
   write(*,*) "Finished."
   
   ! 7.) setting the implicit quantities of the vertical grid
@@ -719,6 +719,9 @@ program control
   ! orography
   call nc_check(nf90_def_var(ncid_g_prop,"oro",NF90_REAL,cell_dimid,oro_nc_id))
   
+  ! smoothed orography
+  call nc_check(nf90_def_var(ncid_g_prop,"oro_smoothed",NF90_REAL,cell_dimid,oro_smoothed_nc_id))
+  
   ! temperature conductivity of the surface
   call nc_check(nf90_def_var(ncid_g_prop,"t_conductivity",NF90_REAL,cell_dimid,t_conductivity_id))
   call nc_check(nf90_put_att(ncid_g_prop,t_conductivity_id,"units","m**2/2"))
@@ -786,6 +789,7 @@ program control
   call nc_check(nf90_put_var(ncid_g_prop,lat_id,lat_vector))
   call nc_check(nf90_put_var(ncid_g_prop,lon_id,lon_vector))
   call nc_check(nf90_put_var(ncid_g_prop,oro_nc_id,oro))
+  call nc_check(nf90_put_var(ncid_g_prop,oro_smoothed_nc_id,oro_smoothed))
   call nc_check(nf90_close(ncid_g_prop))
   write(*,*) "Finished."
   
@@ -847,6 +851,7 @@ program control
   deallocate(interpol_indices)
   deallocate(interpol_weights)
   deallocate(oro)
+  deallocate(oro_smoothed)
 
 end program control
 

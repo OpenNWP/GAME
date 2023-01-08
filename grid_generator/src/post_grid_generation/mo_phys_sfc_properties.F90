@@ -8,7 +8,8 @@ module mo_phys_sfc_properties
   use netcdf
   use mo_constants,       only: M_PI,rho_h2o,EPSILON_SECURITY
   use mo_definitions,     only: wp
-  use mo_grid_nml,        only: res_id,n_cells,n_avg_points,n_pentagons,oro_id,lsleve,n_edges,eff_hor_res,radius
+  use mo_grid_nml,        only: res_id,n_cells,n_avg_points,n_pentagons,oro_id,lsleve,n_edges,eff_hor_res,radius,sfc_file, &
+                                luse_sfc_file
   use mo_geodesy,         only: deg2rad,calculate_distance_h
   use mo_various_helpers, only: nc_check,int2string,find_min_index,find_min_index_exclude
 
@@ -62,6 +63,12 @@ module mo_phys_sfc_properties
     integer                 :: lat_in_id                        ! netCDF ID of the latitudes of the input dataset
     integer                 :: lon_in_id                        ! netCDF ID of the longitudes of the input dataset
     integer                 :: z_in_id                          ! netCDF ID of the input orography
+    integer                 :: land_fraction_id                 ! netCDF ID of the input orography
+    integer                 :: lake_fraction_id                 ! netCDF ID of the input orography
+    integer                 :: roughness_length_id              ! netCDF ID of the input orography
+    integer                 :: sfc_albedo_id                    ! netCDF ID of the input orography
+    integer                 :: t_conductivity_id                ! netCDF ID of the input orography
+    integer                 :: oro_smoothed_id                  ! netCDF ID of the input orography
     integer                 :: n_lat_points                     ! number of latitude points of the input grid
     integer                 :: n_lon_points                     ! number of longitude points of the input grid
     integer                 :: lat_index                        ! latitude index of a point of the input grid
@@ -110,6 +117,31 @@ module mo_phys_sfc_properties
     ! ---------
     
     if (oro_id==1) then
+      
+      if (luse_sfc_file) then
+        
+        write(*,*) "Reading physical surface properties from file ",trim(sfc_file)
+        
+        call nc_check(nf90_open(trim(sfc_file),NF90_CLOBBER,ncid))
+        call nc_check(nf90_inq_varid(ncid,"land_fraction",land_fraction_id))
+        call nc_check(nf90_inq_varid(ncid,"lake_fraction",lake_fraction_id))
+        call nc_check(nf90_inq_varid(ncid,"roughness_length",roughness_length_id))
+        call nc_check(nf90_inq_varid(ncid,"sfc_albedo",sfc_albedo_id))
+        call nc_check(nf90_inq_varid(ncid,"t_conductivity",t_conductivity_id))
+        call nc_check(nf90_inq_varid(ncid,"oro",oro_id))
+        call nc_check(nf90_inq_varid(ncid,"oro_smoothed",oro_smoothed_id))
+        call nc_check(nf90_get_var(ncid,lake_fraction_id,lake_fraction))
+        call nc_check(nf90_get_var(ncid,land_fraction_id,land_fraction))
+        call nc_check(nf90_get_var(ncid,roughness_length_id,roughness_length))
+        call nc_check(nf90_get_var(ncid,sfc_albedo_id,sfc_albedo))
+        call nc_check(nf90_get_var(ncid,t_conductivity_id,t_conductivity))
+        call nc_check(nf90_get_var(ncid,oro_id,oro))
+        call nc_check(nf90_get_var(ncid,oro_smoothed_id,oro_smoothed))
+        call nc_check(nf90_close(ncid))
+        
+        return
+        
+      endif
       
       ! creating the land fraction
       

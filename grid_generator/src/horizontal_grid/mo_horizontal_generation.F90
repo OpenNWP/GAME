@@ -11,7 +11,7 @@ module mo_horizontal_generation
   use mo_constants,                  only: EPSILON_SECURITY,M_PI
   use mo_grid_nml,                   only: n_cells,n_edges,radius_rescale,n_triangles,orth_criterion_deg, &
                                            n_lloyd_iterations,n_pentagons,n_basic_edges,n_triangles_per_face,n_triangles, &
-                                           n_basic_triangles,n_vectors_per_inner_face,n_points_per_edge,res_id
+                                           n_basic_triangles,n_vectors_per_inner_face,n_points_per_edge,res_id,scalar_h_file
   use mo_geodesy,                    only: find_geodetic_direction,find_between_point,normalize_cartesian,find_geos, &
                                            rad2deg,find_turn_angle,calc_triangle_area,find_voronoi_center_sphere, &
                                            find_global_normal
@@ -846,7 +846,7 @@ module mo_horizontal_generation
   
   end subroutine set_scalar_coordinates
   
-  subroutine read_horizontal_explicit(lat_c,lon_c,from_cell,to_cell,from_cell_dual,to_cell_dual,filename,n_lloyd_read_file)
+  subroutine read_horizontal_explicit(lat_c,lon_c,from_cell,to_cell,from_cell_dual,to_cell_dual,n_lloyd_read_file)
     
     ! This subroutine reads the arrays that fully define the horizontal grid from a previously created grid file.
     ! This is an optional feature.
@@ -858,7 +858,6 @@ module mo_horizontal_generation
     integer,            intent(out) :: from_cell_dual(n_edges) ! dual cell indices in the from-directions of the horizontal dual vectors
     integer,            intent(out) :: to_cell_dual(n_edges)   ! dual cell indices in the to-directions of the horizontal dual vectors
     integer,            intent(out) :: n_lloyd_read_file       ! number of Lloyd iterations of the input grid
-    character(len=256), intent(in)  :: filename                ! filename to read the horizontal grid properties from
     
     ! local variables
     integer :: ncid                 ! netCDF ID of the file
@@ -870,9 +869,9 @@ module mo_horizontal_generation
     integer :: to_cell_dual_id      ! netCDF ID of to_cell_dual
     integer :: n_lloyd_read_file_id ! netCDF ID of n_lloyd_read_file
 
-    write(*,*) "Reading horizontal grid quantities from file ",trim(filename)
+    write(*,*) "Reading horizontal grid quantities from file ",trim(scalar_h_file)
 
-    call nc_check(nf90_open(trim(filename),NF90_CLOBBER,ncid))
+    call nc_check(nf90_open(trim(scalar_h_file),NF90_CLOBBER,ncid))
     call nc_check(nf90_inq_varid(ncid,"lat_c",lat_c_id))
     call nc_check(nf90_inq_varid(ncid,"lon_c",lon_c_id))
     call nc_check(nf90_inq_varid(ncid,"from_cell",from_cell_id))
