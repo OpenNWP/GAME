@@ -20,6 +20,7 @@ res_id=$res_id
 oro_id=$oro_id
 n_lloyd_iterations=2000
 luse_scalar_h_file=.false.
+luse_sfc_file=.false.
 stretching_parameter=1.3
 toa=41152
 n_oro_layers=23

@@ -263,7 +263,7 @@ module mo_write_output
         t2(ji) = temp_closest + delta_z_temp*temperature_gradient
         
         ! sea surface temperature
-        if (grid%land_fraction(ji)<0.5_wp) then
+        if (grid%land_fraction(ji)+grid%lake_fraction(ji)<0.5_wp) then
           sst(ji) = state%temperature_soil(ji,1)
         else
           sst(ji) = 9999
@@ -367,7 +367,8 @@ module mo_write_output
         actual_roughness_length = 0.5_wp*(grid%roughness_length(grid%from_cell(ji)) + grid%roughness_length(grid%to_cell(ji)))
         ! roughness length of grass according to WMO
         roughness_length_extrapolation = 0.02_wp
-        if (grid%land_fraction(grid%from_cell(ji))==0._wp) then
+        if (grid%land_fraction(grid%from_cell(ji))+grid%land_fraction(grid%to_cell(ji)) &
+            +grid%lake_fraction(grid%from_cell(ji))+grid%lake_fraction(grid%to_cell(ji))<1._wp) then
           roughness_length_extrapolation = actual_roughness_length
         endif
         z_sfc = 0.5_wp*(grid%z_vector_v(grid%from_cell(ji),n_levels) + grid%z_vector_v(grid%to_cell(ji),n_levels))

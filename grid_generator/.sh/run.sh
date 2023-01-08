@@ -30,13 +30,6 @@ then
   cd ..
 fi
 
-if [ $oro_id -eq 1 ]
-then
-  echo "Creating land fraction ..."
-  python3 .py/land_fraction.py $res_id
-  echo "Land fraction created."
-fi
-
 echo ""
 echo "********** Calling the GAME grid generator **********"
 echo ""

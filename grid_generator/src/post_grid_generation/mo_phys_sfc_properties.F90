@@ -59,7 +59,6 @@ module mo_phys_sfc_properties
     integer                 :: jk                               ! helper index
     integer                 :: jm                               ! helper index
     integer                 :: ncid                             ! netCDF file ID 
-    integer                 :: land_fraction_id                 ! netCDF ID of the land fraction
     integer                 :: lat_in_id                        ! netCDF ID of the latitudes of the input dataset
     integer                 :: lon_in_id                        ! netCDF ID of the longitudes of the input dataset
     integer                 :: z_in_id                          ! netCDF ID of the input orography
@@ -105,7 +104,6 @@ module mo_phys_sfc_properties
     real(wp),   allocatable :: lake_depth_gldb(:,:)             ! GLDB lake depth data
     integer,    allocatable :: z_input(:,:)                     ! input orography
     integer(2), allocatable :: lake_depth_gldb_raw(:,:)         ! GLDB lake depth data as read from file
-    character(len=64)       :: land_fraction_file               ! file to read the land fraction from
     character(len=64)       :: oro_file                         ! file to read the orography from
     
     ! Orography
@@ -113,12 +111,7 @@ module mo_phys_sfc_properties
     
     if (oro_id==1) then
       
-      ! reading the land fraction
-      land_fraction_file = "phys_quantities/RES" // trim(int2string(res_id)) // "_land_fraction.nc"
-      call nc_check(nf90_open(trim(land_fraction_file),NF90_CLOBBER,ncid))
-      call nc_check(nf90_inq_varid(ncid,"land_fraction",land_fraction_id))
-      call nc_check(nf90_get_var(ncid,land_fraction_id,land_fraction))
-      call nc_check(nf90_close(ncid))
+      ! creating the land fraction
       
       ! Lake fraction
       ! This is only done if real-world orography is used.
