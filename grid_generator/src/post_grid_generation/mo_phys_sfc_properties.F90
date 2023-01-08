@@ -6,9 +6,9 @@ module mo_phys_sfc_properties
   ! In this module, the physical surface properties are set.
 
   use netcdf
-  use mo_constants,       only: M_PI,rho_h2o
+  use mo_constants,       only: M_PI,rho_h2o,EPSILON_SECURITY
   use mo_definitions,     only: wp
-  use mo_grid_nml,        only: res_id,n_cells,n_avg_points,n_pentagons,oro_id,lsleve,n_edges
+  use mo_grid_nml,        only: res_id,n_cells,n_avg_points,n_pentagons,oro_id,lsleve,n_edges,eff_hor_res,radius
   use mo_geodesy,         only: deg2rad,calculate_distance_h
   use mo_various_helpers, only: nc_check,int2string,find_min_index,find_min_index_exclude
 
@@ -39,7 +39,7 @@ module mo_phys_sfc_properties
     ! This subroutine sets the physical surface properties.
     
     real(wp), intent(out)   :: land_fraction(n_cells)    ! land fraction (result)
-    real(wp), intent(in)    :: lake_fraction(n_cells)    ! lake fraction
+    real(wp), intent(inout) :: lake_fraction(n_cells)    ! lake fraction
     real(wp), intent(in)    :: lat_c(n_cells)            ! latitudes at cell centers
     real(wp), intent(in)    :: lon_c(n_cells)            ! longitudes at cell centers
     real(wp), intent(in)    :: lat_e(n_edges)            ! latitudes at the edges
@@ -57,6 +57,7 @@ module mo_phys_sfc_properties
     ! local variables
     integer                 :: ji                               ! cell index
     integer                 :: jk                               ! helper index
+    integer                 :: jm                               ! helper index
     integer                 :: ncid                             ! netCDF file ID 
     integer                 :: land_fraction_id                 ! netCDF ID of the land fraction
     integer                 :: lat_in_id                        ! netCDF ID of the latitudes of the input dataset
@@ -71,6 +72,17 @@ module mo_phys_sfc_properties
     integer                 :: gldb_fileunit                    ! file unit of the GLDB (Global Lake Database) file
     integer                 :: nlon_gldb                        ! number of longitude points of the GLDB grid
     integer                 :: nlat_gldb                        ! number of latitude points of the GLDB grid
+    integer                 :: lat_index_gldb                   ! latitude index of a grid point of GLDB
+    integer                 :: lon_index_gldb                   ! longitude index of a grid point of GLDB
+    integer                 :: lat_index_span_gldb              ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                 :: lon_index_span_gldb              ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                 :: left_index_gldb                  ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                 :: right_index_gldb                 ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                 :: lower_index_gldb                 ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                 :: upper_index_gldb                 ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                 :: n_points_gldb_domain             ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                 :: jk_used                          ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                 :: jm_used                          ! helper variable for interpolating the GLDB data to the GAME grid
     real(wp)                :: c_p_water                        ! specific heat capacity at constant pressure of water
     real(wp)                :: c_p_soil                         ! specific heat capacity at constant pressure of soil
     real(wp)                :: albedo_water                     ! albedo of water
@@ -80,6 +92,10 @@ module mo_phys_sfc_properties
     real(wp)                :: t_conductivity_water             ! temperature conductivity of water
     real(wp)                :: t_conductivity_soil              ! temperature conductivity of soil
     real(wp)                :: lat_deg                          ! latitude value in degrees
+    real(wp)                :: delta_lat_gldb                   ! latitude resolution of the GLDB grid
+    real(wp)                :: delta_lon_gldb                   ! longitude resolution of the GLDB grid
+    real(wp)                :: min_lake_fraction                ! minimum lake fraction
+    real(wp)                :: max_lake_fraction                ! maximum lake fraction
     real(wp)                :: distance_vector(n_cells)         ! vector containing geodetic distances to compute the interpolation
     real(wp),   allocatable :: latitude_input(:)                ! latitude vector of the input grid
     real(wp),   allocatable :: longitude_input(:)               ! longitude vector of the input grid
@@ -96,12 +112,113 @@ module mo_phys_sfc_properties
     ! ---------
     
     if (oro_id==1) then
-    
+      
+      ! reading the land fraction
       land_fraction_file = "phys_quantities/RES" // trim(int2string(res_id)) // "_land_fraction.nc"
       call nc_check(nf90_open(trim(land_fraction_file),NF90_CLOBBER,ncid))
       call nc_check(nf90_inq_varid(ncid,"land_fraction",land_fraction_id))
       call nc_check(nf90_get_var(ncid,land_fraction_id,land_fraction))
       call nc_check(nf90_close(ncid))
+      
+      ! Lake fraction
+      ! This is only done if real-world orography is used.
+      
+      nlat_gldb = 21600
+      nlon_gldb = 43200
+      
+      ! opening the lake depth file
+      open(action="read",file="phys_quantities/GlobalLakeDepth.dat",form="unformatted", &
+      access="direct",recl=2*nlon_gldb,newunit=gldb_fileunit)
+      
+      allocate(lake_depth_gldb_raw(nlat_gldb,nlon_gldb))
+      allocate(lake_depth_gldb(nlat_gldb,nlon_gldb))
+      
+      !$omp parallel do private(ji)
+      do ji=1,nlat_gldb
+      ! nlat_gldb+1-
+        read(unit=gldb_fileunit,rec=ji) lake_depth_gldb_raw(ji,:)
+        lake_depth_gldb(ji,:) = lake_depth_gldb_raw(ji,:)/10._wp
+      enddo
+      !$omp end parallel do
+      
+      ! closing the lake depth file
+      close(gldb_fileunit)
+      
+      deallocate(lake_depth_gldb_raw)
+      
+      delta_lat_gldb = M_PI/nlat_gldb
+      delta_lon_gldb = 2._wp*M_PI/nlon_gldb
+      
+      lat_index_span_gldb = int(eff_hor_res/(radius*delta_lat_gldb))
+      
+      !$omp parallel do private(ji,lat_index_gldb,lon_index_gldb,lon_index_span_gldb,left_index_gldb,right_index_gldb, &
+      !$omp lower_index_gldb,upper_index_gldb,n_points_gldb_domain,jk_used,jm_used)
+      do ji=1,n_cells
+        
+        ! if there is no land in this grid cell, there can also be no lakes in this grid cell
+        if (land_fraction(ji)==0._wp) then
+          cycle
+        endif
+        
+        ! computing the indices of the GLDB grid point that is the closest to the center of this grid cell
+        lat_index_gldb = nlat_gldb/2 - int(lat_c(ji)/delta_lat_gldb)
+        lon_index_gldb = nlon_gldb/2 + int(lon_c(ji)/delta_lon_gldb)
+        
+        ! making sure the point is actually on the GLDB grid
+        lat_index_gldb = max(1,lat_index_gldb)
+        lat_index_gldb = min(nlat_gldb,lat_index_gldb)
+        lon_index_gldb = max(1,lon_index_gldb)
+        lon_index_gldb = min(nlon_gldb,lon_index_gldb)
+        
+        lon_index_span_gldb = int(eff_hor_res/(radius*delta_lon_gldb*max(cos(lat_c(ji)),EPSILON_SECURITY)))
+        lon_index_span_gldb = min(lon_index_span_gldb,nlon_gldb)
+        n_points_gldb_domain = (lat_index_span_gldb+1)*(lon_index_span_gldb+1)
+        
+        lower_index_gldb = lat_index_gldb + lat_index_span_gldb/2
+        upper_index_gldb = lat_index_gldb - lat_index_span_gldb/2
+        left_index_gldb = lon_index_gldb - lon_index_span_gldb/2
+        right_index_gldb = lon_index_gldb + lon_index_span_gldb/2
+        
+        ! counting the number of lake points in the GLDB domain that is used to interpolate to the GAME grid cell
+        do jk=upper_index_gldb,lower_index_gldb
+          do jm=left_index_gldb,right_index_gldb
+            jk_used = jk
+            if (jk_used<1) then
+              jk_used = 1
+            endif
+            if (jk_used>nlat_gldb) then
+              jk_used = nlat_gldb
+            endif
+            jm_used = jm
+            if (jm_used<1) then
+              jm_used = jm_used + nlon_gldb
+            endif
+            if (jm_used>nlon_gldb) then
+              jm_used = jm_used - nlon_gldb
+            endif
+            
+            if (lake_depth_gldb(jk_used,jm_used)>0._wp) then
+              lake_fraction(ji) = lake_fraction(ji)+1._wp
+            endif
+            
+          enddo
+        enddo
+        
+        lake_fraction(ji) = lake_fraction(ji)/n_points_gldb_domain
+        ! lakes belong to the land (not the sea), the lake fraction cannot be greater than the land fraction
+        lake_fraction(ji) = min(lake_fraction(ji),land_fraction(ji))
+        
+      enddo
+      !$omp end parallel do
+      
+      !$omp parallel workshare
+      min_lake_fraction = minval(lake_fraction)
+      max_lake_fraction = maxval(lake_fraction)
+      !$omp end parallel workshare
+      write(*,*) "minimum lake fraction:",min_lake_fraction
+      write(*,*) "maximum lake fraction:",max_lake_fraction
+      
+      deallocate(lake_depth_gldb)
       
       ! reading the ETOPO orography
       n_lat_points = 10801
@@ -294,37 +411,6 @@ module mo_phys_sfc_properties
       
     enddo
     !$omp end parallel do
-    
-    ! Lake fraction
-    ! This is only done if real-world orography is used.
-    
-    nlat_gldb = 21600
-    nlon_gldb = 43200
-    
-    if (oro_id==1) then
-      
-      ! opening the lake depth file
-      open(action="read",file="phys_quantities/GlobalLakeDepth.dat",form="unformatted", &
-      access="direct",recl=2*nlon_gldb,newunit=gldb_fileunit)
-      
-      allocate(lake_depth_gldb_raw(nlat_gldb,nlon_gldb))
-      allocate(lake_depth_gldb(nlat_gldb,nlon_gldb))
-      
-      !$omp parallel do private(ji)
-      do ji=1,nlat_gldb
-        read(unit=gldb_fileunit,rec=ji) lake_depth_gldb_raw(ji,:)
-        lake_depth_gldb(ji,:) = lake_depth_gldb_raw(ji,:)/10._wp
-      enddo
-      !$omp end parallel do
-      
-      ! closing the lake depth file
-      close(gldb_fileunit)
-      
-      deallocate(lake_depth_gldb_raw)
-      
-      deallocate(lake_depth_gldb)
-      
-    endif
     
   end subroutine set_sfc_properties
   

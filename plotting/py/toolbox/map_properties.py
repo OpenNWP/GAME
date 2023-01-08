@@ -26,6 +26,8 @@ def modify_value_boundaries(total_min, total_max, short_name):
 	if short_name == "land_fraction":
 		total_min = 0.0
 		total_max = 100.0
+	if short_name == "lake_fraction":
+		total_min = 0.0
 	return total_min, total_max
 
 def return_central_point(scope):
@@ -221,6 +223,10 @@ def var_properties(var_id):
 		unit_string = "m"
 	if var_id == "land_fraction":
 		variable_name = "Land fraction"
+		unit_string = "%"
+		rescale = 100
+	if var_id == "lake_fraction":
+		variable_name = "Lake fraction"
 		unit_string = "%"
 		rescale = 100
 	if var_id == "roughness_length":
