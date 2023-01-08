@@ -81,8 +81,8 @@ module mo_phys_sfc_properties
     integer                 :: lower_index_gldb                 ! helper variable for interpolating the GLDB data to the GAME grid
     integer                 :: upper_index_gldb                 ! helper variable for interpolating the GLDB data to the GAME grid
     integer                 :: n_points_gldb_domain             ! helper variable for interpolating the GLDB data to the GAME grid
-    integer                 :: jk_used                          ! helper variable for interpolating the GLDB data to the GAME grid
-    integer                 :: jm_used                          ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                 :: jk_used                          ! helper index for interpolating the GLDB data to the GAME grid
+    integer                 :: jm_used                          ! helper index for interpolating the GLDB data to the GAME grid
     real(wp)                :: c_p_water                        ! specific heat capacity at constant pressure of water
     real(wp)                :: c_p_soil                         ! specific heat capacity at constant pressure of soil
     real(wp)                :: albedo_water                     ! albedo of water
