@@ -267,6 +267,7 @@ Use the bash script \texttt{grid\_generator/compile.sh} to compile the grid gene
 The properties of the surface of the Earth influence the evolution of the atmospheric fields. Therefore, physical surface properties need to be obtained from external sources and interpolated to the model grid. The following fields are required:
 %
 \begin{itemize}
+\item The land distribution. source: \url{https://ral.ucar.edu/sites/default/files/public/product-tool/noah-multiparameterization-land-surface-model-noah-mp-lsm/usgs/sfc-fields-usgs-veg30susgs.gz} \cite{glcc}
 \item The orography. source: \url{https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/ice_surface/grid_registered/netcdf/ETOPO1_Ice_g_gmt4.grd.gz} \cite{etopo1}, \cite{etopo1_add}
 \item The lake fraction (share of a grid cell covered by lakes). source: \url{http://www.flake.igb-berlin.de/data/gldbv2.tar.gz} \cite{gldb}
 \item The density of the soil.
