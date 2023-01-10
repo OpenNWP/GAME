@@ -5,7 +5,7 @@
 
 # downloading datasets containing physical surface properties
 
-cd phys_quantities
+cd phys_sfc_quantities
 
 # downloading land use data if necessary
 if [ ! -f sfc-fields-usgs-veg30susgs ]
@@ -30,4 +30,3 @@ then
 fi
 
 cd ..
-
