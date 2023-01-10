@@ -14,28 +14,10 @@ then
   exit
 fi
 
-# downloading land use data if necessary
-if [ $oro_id -eq 1 ] && [ ! -f phys_quantities/sfc-fields-usgs-veg30susgs ]
+# downloading datasets containing physical surface properties if necessary
+if [ $oro_id -eq 1 ]
 then
-  cd phys_quantities
-  ./download_glcc.sh
-  cd .. 
-fi
-
-# downloading orography if necessary
-if [ $oro_id -eq 1 ] && [ ! -f phys_quantities/etopo.nc ]
-then
-  cd phys_quantities
-  ./download_etopo.sh
-  cd ..
-fi
-
-# downloading lake data if necessary
-if [ $oro_id -eq 1 ] && [ ! -f phys_quantities/GlobalLakeDepth.dat ]
-then
-  cd phys_quantities
-  ./download_gldbv2.sh
-  cd ..
+  ./.sh/download_phys_sfc_quantities.sh
 fi
 
 echo ""
