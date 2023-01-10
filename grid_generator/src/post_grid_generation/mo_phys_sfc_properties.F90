@@ -252,7 +252,7 @@ module mo_phys_sfc_properties
       allocate(longitude_input(n_lon_points))
       allocate(z_input(n_lon_points,n_lat_points))
       
-      oro_file = "phys_quantities/etopo.nc"
+      oro_file = "phys_quantities/ETOPO1_Ice_g_gmt4.grd"
       call nc_check(nf90_open(trim(oro_file),NF90_CLOBBER,ncid))
       call nc_check(nf90_inq_varid(ncid,"y",lat_in_id))
       call nc_check(nf90_inq_varid(ncid,"x",lon_in_id))

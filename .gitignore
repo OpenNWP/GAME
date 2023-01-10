@@ -11,7 +11,9 @@ build
 *.out
 *.xml
 *.toc
-grid_generator/grid_generator
+grid_generator/gridgenerator
+sfc-fields-usgs-veg30susgs
+ETOPO1_Ice_g_gmt4.grd
 GlobalLakeDepth.dat
 output
 figs

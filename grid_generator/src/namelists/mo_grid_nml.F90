@@ -46,7 +46,7 @@ module mo_grid_nml
   real(wp), parameter :: orth_criterion_deg = 89.99_wp ! used for checking grid orthogonality
   
   namelist /grid/res_id,n_layers,toa,n_oro_layers,stretching_parameter,radius_rescale,n_avg_points,oro_id, &
-                 n_lloyd_iterations,luse_scalar_h_file,scalar_h_file,lsleve
+                 n_lloyd_iterations,luse_scalar_h_file,scalar_h_file,lsleve,luse_sfc_file
 
   contains
 

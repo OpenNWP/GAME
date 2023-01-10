@@ -14,6 +14,14 @@ then
   exit
 fi
 
+# downloading land use data if necessary
+if [ $oro_id -eq 1 ] && [ ! -f phys_quantities/sfc-fields-usgs-veg30susgs ]
+then
+  cd phys_quantities
+  ./download_glcc.sh
+  cd .. 
+fi
+
 # downloading orography if necessary
 if [ $oro_id -eq 1 ] && [ ! -f phys_quantities/etopo.nc ]
 then
