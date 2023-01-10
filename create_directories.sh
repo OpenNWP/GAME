@@ -3,11 +3,14 @@
 # This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 # Github repository: https://github.com/OpenNWP/GAME
 
-echo "Creating directories ..."
-
 if [ ! -d grid_generator/grids ]
 then
   mkdir grid_generator/grids
+fi
+
+if [ ! -d grid_generator/phys_sfc_quantities ]
+then
+  mkdir grid_generator/phys_sfc_quantities
 fi
 
 if [ ! -d grid_generator/statistics ]
@@ -29,5 +32,3 @@ if [ ! -d figs ]
 then
   mkdir figs
 fi
-
-echo "Completed."

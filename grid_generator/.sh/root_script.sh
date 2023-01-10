@@ -17,7 +17,7 @@ fi
 # downloading datasets containing physical surface properties if necessary
 if [ $oro_id -eq 1 ]
 then
-  ./.sh/download_phys_sfc_quantities.sh
+  source .sh/download_phys_sfc_quantities.sh
 fi
 
 echo ""

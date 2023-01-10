@@ -31,4 +31,4 @@ lsleve=.true.
 
 EOF
 
-source .sh/run.sh
+source .sh/root_script.sh
