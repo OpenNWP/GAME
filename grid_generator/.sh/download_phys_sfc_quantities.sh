@@ -15,14 +15,14 @@ then
 fi
 
 # downloading orography if necessary
-if [ ! -f phys_quantities/etopo.nc ]
+if [ ! -f ETOPO1_Ice_g_gmt4.grd ]
 then
   wget "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/ice_surface/grid_registered/netcdf/ETOPO1_Ice_g_gmt4.grd.gz"
   gzip -d ETOPO1_Ice_g_gmt4.grd.gz
 fi
 
 # downloading lake data if necessary
-if [ ! -f phys_quantities/GlobalLakeDepth.dat ]
+if [ ! -f GlobalLakeDepth.dat ]
 then
   wget "http://www.flake.igb-berlin.de/data/gldbv2.tar.gz"
   tar -xzf gldbv2.tar.gz GlobalLakeDepth.dat
