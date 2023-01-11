@@ -81,14 +81,23 @@ module mo_phys_sfc_properties
     integer                       :: nlat_glcc                        ! number of latitude points of the GLCC grid
     integer                       :: nlon_gldb                        ! number of longitude points of the GLDB grid
     integer                       :: nlat_gldb                        ! number of latitude points of the GLDB grid
+    integer                       :: lat_index_glcc                   ! latitude index of a grid point of GLCC
+    integer                       :: lon_index_glcc                   ! longitude index of a grid point of GLCC
     integer                       :: lat_index_gldb                   ! latitude index of a grid point of GLDB
     integer                       :: lon_index_gldb                   ! longitude index of a grid point of GLDB
+    integer                       :: lat_index_span_glcc              ! helper variable for interpolating the GLCC data to the GAME grid
+    integer                       :: lon_index_span_glcc              ! helper variable for interpolating the GLCC data to the GAME grid
     integer                       :: lat_index_span_gldb              ! helper variable for interpolating the GLDB data to the GAME grid
     integer                       :: lon_index_span_gldb              ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                       :: left_index_glcc                  ! helper variable for interpolating the GLCC data to the GAME grid
+    integer                       :: right_index_glcc                 ! helper variable for interpolating the GLCC data to the GAME grid
+    integer                       :: lower_index_glcc                 ! helper variable for interpolating the GLCC data to the GAME grid
+    integer                       :: upper_index_glcc                 ! helper variable for interpolating the GLCC data to the GAME grid
     integer                       :: left_index_gldb                  ! helper variable for interpolating the GLDB data to the GAME grid
     integer                       :: right_index_gldb                 ! helper variable for interpolating the GLDB data to the GAME grid
     integer                       :: lower_index_gldb                 ! helper variable for interpolating the GLDB data to the GAME grid
     integer                       :: upper_index_gldb                 ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                       :: n_points_glcc_domain             ! helper variable for interpolating the GLCC data to the GAME grid
     integer                       :: n_points_gldb_domain             ! helper variable for interpolating the GLDB data to the GAME grid
     integer                       :: jk_used                          ! helper index for interpolating the GLDB data to the GAME grid
     integer                       :: jm_used                          ! helper index for interpolating the GLDB data to the GAME grid
@@ -101,11 +110,14 @@ module mo_phys_sfc_properties
     real(wp)                      :: t_conductivity_water             ! temperature conductivity of water
     real(wp)                      :: t_conductivity_soil              ! temperature conductivity of soil
     real(wp)                      :: lat_deg                          ! latitude value in degrees
+    real(wp)                      :: delta_lat_glcc                   ! latitude resolution of the GLCC grid
+    real(wp)                      :: delta_lon_glcc                   ! longitude resolution of the GLCC grid
     real(wp)                      :: delta_lat_gldb                   ! latitude resolution of the GLDB grid
     real(wp)                      :: delta_lon_gldb                   ! longitude resolution of the GLDB grid
     real(wp)                      :: min_lake_fraction                ! minimum lake fraction
     real(wp)                      :: max_lake_fraction                ! maximum lake fraction
     real(wp)                      :: distance_vector(n_cells)         ! vector containing geodetic distances to compute the interpolation
+    real(wp)                      :: fractions_sum                    ! sum of land fraction and lake fraction
     real(wp),         allocatable :: latitude_input(:)                ! latitude vector of the input grid
     real(wp),         allocatable :: longitude_input(:)               ! longitude vector of the input grid
     real(wp),         allocatable :: lat_distance_vector(:)           ! vector containing distances in the latitude direction
@@ -165,15 +177,72 @@ module mo_phys_sfc_properties
       end do
       !$omp end parallel do
        
+      close(glcc_fileunit)
+       
       deallocate(glcc_raw)
       
+      delta_lat_glcc = M_PI/nlat_glcc
+      delta_lon_glcc = 2._wp*M_PI/nlon_glcc
       
+      lat_index_span_glcc = int(eff_hor_res/(radius*delta_lat_glcc))
+      
+      !$omp parallel do private(ji,lat_index_glcc,lon_index_glcc,lon_index_span_glcc,left_index_glcc,right_index_glcc, &
+      !$omp lower_index_glcc,upper_index_glcc,n_points_glcc_domain,jk_used,jm_used)
+      do ji=1,n_cells
+        
+        ! computing the indices of the GLCC grid point that is the closest to the center of this grid cell
+        lat_index_glcc = nlat_glcc/2 - int(lat_c(ji)/delta_lat_glcc)
+        lon_index_glcc = nlon_glcc/2 + int(lon_c(ji)/delta_lon_glcc)
+        
+        ! making sure the point is actually on the GLCC grid
+        lat_index_glcc = max(1,lat_index_glcc)
+        lat_index_glcc = min(nlat_glcc,lat_index_glcc)
+        lon_index_glcc = max(1,lon_index_glcc)
+        lon_index_glcc = min(nlon_glcc,lon_index_glcc)
+        
+        lon_index_span_glcc = int(eff_hor_res/(radius*delta_lon_glcc*max(cos(lat_c(ji)),EPSILON_SECURITY)))
+        lon_index_span_glcc = min(lon_index_span_glcc,nlon_glcc)
+        n_points_glcc_domain = (lat_index_span_glcc+1)*(lon_index_span_glcc+1)
+        
+        lower_index_glcc = lat_index_glcc + lat_index_span_glcc/2
+        upper_index_glcc = lat_index_glcc - lat_index_span_glcc/2
+        left_index_glcc = lon_index_glcc - lon_index_span_glcc/2
+        right_index_glcc = lon_index_glcc + lon_index_span_glcc/2
+        
+        ! counting the number of lake points in the GLCC domain that is used to interpolate to the GAME grid cell
+        do jk=upper_index_glcc,lower_index_glcc
+          do jm=left_index_glcc,right_index_glcc
+            jk_used = jk
+            if (jk_used<1) then
+              jk_used = 1
+            endif
+            if (jk_used>nlat_glcc) then
+              jk_used = nlat_glcc
+            endif
+            jm_used = jm
+            if (jm_used<1) then
+              jm_used = jm_used + nlon_glcc
+            endif
+            if (jm_used>nlon_glcc) then
+              jm_used = jm_used - nlon_glcc
+            endif
+            
+            if (glcc(jk_used,jm_used)/=16) then
+              land_fraction(ji) = land_fraction(ji)+1._wp
+            endif
+            
+          enddo
+        enddo
+        
+        land_fraction(ji) = land_fraction(ji)/n_points_glcc_domain
+        
+      enddo
+      !$omp end parallel do
       
       deallocate(glcc)
       
       ! Lake fraction
       ! -------------
-      ! This is only done if real-world orography is used.
       
       nlat_gldb = 21600
       nlon_gldb = 43200
@@ -260,6 +329,17 @@ module mo_phys_sfc_properties
         ! lakes belong to the land (not the sea), the lake fraction cannot be greater than the land fraction
         lake_fraction(ji) = min(lake_fraction(ji),land_fraction(ji))
         
+      enddo
+      !$omp end parallel do
+      
+      ! restricting the sum of lake fraction and land fraction to one
+      !$omp parallel do private(ji,fractions_sum)
+      do ji=1,n_cells
+        if (land_fraction(ji)+lake_fraction(ji)>1._wp) then
+          fractions_sum = land_fraction(ji)+lake_fraction(ji)
+          land_fraction(ji) = land_fraction(ji)/fractions_sum
+          lake_fraction(ji) = lake_fraction(ji)/fractions_sum
+        endif
       enddo
       !$omp end parallel do
       
