@@ -56,65 +56,67 @@ module mo_phys_sfc_properties
     real(wp), intent(out)   :: oro_smoothed(n_cells)     ! smoothed orography (result)
     
     ! local variables
-    integer                 :: ji                               ! cell index
-    integer                 :: jk                               ! helper index
-    integer                 :: jm                               ! helper index
-    integer                 :: ncid                             ! netCDF file ID 
-    integer                 :: lat_in_id                        ! netCDF ID of the latitudes of the input dataset
-    integer                 :: lon_in_id                        ! netCDF ID of the longitudes of the input dataset
-    integer                 :: z_in_id                          ! netCDF ID of the input orography
-    integer                 :: land_fraction_id                 ! netCDF ID of the input orography
-    integer                 :: lake_fraction_id                 ! netCDF ID of the input orography
-    integer                 :: roughness_length_id              ! netCDF ID of the input orography
-    integer                 :: sfc_albedo_id                    ! netCDF ID of the input orography
-    integer                 :: t_conductivity_id                ! netCDF ID of the input orography
-    integer                 :: oro_smoothed_id                  ! netCDF ID of the input orography
-    integer                 :: n_lat_points                     ! number of latitude points of the input grid
-    integer                 :: n_lon_points                     ! number of longitude points of the input grid
-    integer                 :: lat_index                        ! latitude index of a point of the input grid
-    integer                 :: lon_index                        ! longitude index of a point of the input grid
-    integer                 :: min_indices_vector(n_avg_points) ! vector of closest gridpoint indices
-    integer                 :: n_edges_of_cell                  ! number of edges a given cell has
-    integer                 :: gldb_fileunit                    ! file unit of the GLDB (Global Lake Database) file
-    integer                 :: nlon_gldb                        ! number of longitude points of the GLDB grid
-    integer                 :: nlat_gldb                        ! number of latitude points of the GLDB grid
-    integer                 :: lat_index_gldb                   ! latitude index of a grid point of GLDB
-    integer                 :: lon_index_gldb                   ! longitude index of a grid point of GLDB
-    integer                 :: lat_index_span_gldb              ! helper variable for interpolating the GLDB data to the GAME grid
-    integer                 :: lon_index_span_gldb              ! helper variable for interpolating the GLDB data to the GAME grid
-    integer                 :: left_index_gldb                  ! helper variable for interpolating the GLDB data to the GAME grid
-    integer                 :: right_index_gldb                 ! helper variable for interpolating the GLDB data to the GAME grid
-    integer                 :: lower_index_gldb                 ! helper variable for interpolating the GLDB data to the GAME grid
-    integer                 :: upper_index_gldb                 ! helper variable for interpolating the GLDB data to the GAME grid
-    integer                 :: n_points_gldb_domain             ! helper variable for interpolating the GLDB data to the GAME grid
-    integer                 :: jk_used                          ! helper index for interpolating the GLDB data to the GAME grid
-    integer                 :: jm_used                          ! helper index for interpolating the GLDB data to the GAME grid
-    real(wp)                :: c_p_water                        ! specific heat capacity at constant pressure of water
-    real(wp)                :: c_p_soil                         ! specific heat capacity at constant pressure of soil
-    real(wp)                :: albedo_water                     ! albedo of water
-    real(wp)                :: albedo_soil                      ! albedo of soil
-    real(wp)                :: albedo_ice                       ! albedo of ice
-    real(wp)                :: density_soil                     ! density of soil
-    real(wp)                :: t_conductivity_water             ! temperature conductivity of water
-    real(wp)                :: t_conductivity_soil              ! temperature conductivity of soil
-    real(wp)                :: lat_deg                          ! latitude value in degrees
-    real(wp)                :: delta_lat_gldb                   ! latitude resolution of the GLDB grid
-    real(wp)                :: delta_lon_gldb                   ! longitude resolution of the GLDB grid
-    real(wp)                :: min_lake_fraction                ! minimum lake fraction
-    real(wp)                :: max_lake_fraction                ! maximum lake fraction
-    real(wp)                :: distance_vector(n_cells)         ! vector containing geodetic distances to compute the interpolation
-    real(wp),   allocatable :: latitude_input(:)                ! latitude vector of the input grid
-    real(wp),   allocatable :: longitude_input(:)               ! longitude vector of the input grid
-    real(wp),   allocatable :: lat_distance_vector(:)           ! vector containing distances in the latitude direction
-    real(wp),   allocatable :: lon_distance_vector(:)           ! vector containing distances in the longitude direction
-    real(wp),   allocatable :: oro_edges(:)                     ! orography at the edges
-    real(wp),   allocatable :: lake_depth_gldb(:,:)             ! GLDB lake depth data
-    integer,    allocatable :: z_input(:,:)                     ! input orography
-    integer(2), allocatable :: lake_depth_gldb_raw(:,:)         ! GLDB lake depth data as read from file
-    character(len=64)       :: oro_file                         ! file to read the orography from
-    
-    ! Orography
-    ! ---------
+    integer                       :: ji                               ! cell index
+    integer                       :: jk                               ! helper index
+    integer                       :: jm                               ! helper index
+    integer                       :: ncid                             ! netCDF file ID 
+    integer                       :: lat_in_id                        ! netCDF ID of the latitudes of the input dataset
+    integer                       :: lon_in_id                        ! netCDF ID of the longitudes of the input dataset
+    integer                       :: z_in_id                          ! netCDF ID of the input orography
+    integer                       :: land_fraction_id                 ! netCDF ID of the input orography
+    integer                       :: lake_fraction_id                 ! netCDF ID of the input orography
+    integer                       :: roughness_length_id              ! netCDF ID of the input orography
+    integer                       :: sfc_albedo_id                    ! netCDF ID of the input orography
+    integer                       :: t_conductivity_id                ! netCDF ID of the input orography
+    integer                       :: oro_smoothed_id                  ! netCDF ID of the input orography
+    integer                       :: n_lat_points                     ! number of latitude points of the input grid
+    integer                       :: n_lon_points                     ! number of longitude points of the input grid
+    integer                       :: lat_index                        ! latitude index of a point of the input grid
+    integer                       :: lon_index                        ! longitude index of a point of the input grid
+    integer                       :: min_indices_vector(n_avg_points) ! vector of closest gridpoint indices
+    integer                       :: n_edges_of_cell                  ! number of edges a given cell has
+    integer                       :: glcc_fileunit                    ! file unit of the GLCC (Global Land Cover Characteristics) file
+    integer                       :: gldb_fileunit                    ! file unit of the GLDB (Global Lake Database) file
+    integer                       :: nlon_glcc                        ! number of longitude points of the GLCC grid
+    integer                       :: nlat_glcc                        ! number of latitude points of the GLCC grid
+    integer                       :: nlon_gldb                        ! number of longitude points of the GLDB grid
+    integer                       :: nlat_gldb                        ! number of latitude points of the GLDB grid
+    integer                       :: lat_index_gldb                   ! latitude index of a grid point of GLDB
+    integer                       :: lon_index_gldb                   ! longitude index of a grid point of GLDB
+    integer                       :: lat_index_span_gldb              ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                       :: lon_index_span_gldb              ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                       :: left_index_gldb                  ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                       :: right_index_gldb                 ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                       :: lower_index_gldb                 ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                       :: upper_index_gldb                 ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                       :: n_points_gldb_domain             ! helper variable for interpolating the GLDB data to the GAME grid
+    integer                       :: jk_used                          ! helper index for interpolating the GLDB data to the GAME grid
+    integer                       :: jm_used                          ! helper index for interpolating the GLDB data to the GAME grid
+    real(wp)                      :: c_p_water                        ! specific heat capacity at constant pressure of water
+    real(wp)                      :: c_p_soil                         ! specific heat capacity at constant pressure of soil
+    real(wp)                      :: albedo_water                     ! albedo of water
+    real(wp)                      :: albedo_soil                      ! albedo of soil
+    real(wp)                      :: albedo_ice                       ! albedo of ice
+    real(wp)                      :: density_soil                     ! density of soil
+    real(wp)                      :: t_conductivity_water             ! temperature conductivity of water
+    real(wp)                      :: t_conductivity_soil              ! temperature conductivity of soil
+    real(wp)                      :: lat_deg                          ! latitude value in degrees
+    real(wp)                      :: delta_lat_gldb                   ! latitude resolution of the GLDB grid
+    real(wp)                      :: delta_lon_gldb                   ! longitude resolution of the GLDB grid
+    real(wp)                      :: min_lake_fraction                ! minimum lake fraction
+    real(wp)                      :: max_lake_fraction                ! maximum lake fraction
+    real(wp)                      :: distance_vector(n_cells)         ! vector containing geodetic distances to compute the interpolation
+    real(wp),         allocatable :: latitude_input(:)                ! latitude vector of the input grid
+    real(wp),         allocatable :: longitude_input(:)               ! longitude vector of the input grid
+    real(wp),         allocatable :: lat_distance_vector(:)           ! vector containing distances in the latitude direction
+    real(wp),         allocatable :: lon_distance_vector(:)           ! vector containing distances in the longitude direction
+    real(wp),         allocatable :: oro_edges(:)                     ! orography at the edges
+    integer,          allocatable :: z_input(:,:)                     ! input orography
+    character(len=1), allocatable :: glcc_raw(:,:)                    ! GLCC raw data
+    integer,          allocatable :: glcc(:,:)                        ! GLCC data
+    integer(2),       allocatable :: lake_depth_gldb_raw(:,:)         ! GLDB lake depth data as read from file
+    real(wp),         allocatable :: lake_depth_gldb(:,:)             ! GLDB lake depth data
+    character(len=64)             :: oro_file                         ! file to read the orography from
     
     if (oro_id==1) then
       
@@ -143,9 +145,34 @@ module mo_phys_sfc_properties
         
       endif
       
-      ! creating the land fraction
+      ! Land fraction
+      ! -------------
+      
+      nlat_glcc = 21600
+      nlon_glcc = 43200
+      
+      ! opening the GLCC file
+      open(action="read",file="phys_sfc_quantities/sfc-fields-usgs-veg30susgs",form="unformatted", &
+      access="direct",recl=nlon_glcc,newunit=glcc_fileunit)
+      
+      allocate(glcc_raw(nlat_glcc,nlon_glcc))
+      allocate(glcc(nlat_glcc,nlon_glcc))
+      
+      !$omp parallel do private(ji)
+      do ji=1,nlat_glcc
+        read(unit=glcc_fileunit,rec=ji) glcc_raw(ji,:)
+        glcc(ji,:) = ichar(glcc_raw(ji,:))
+      end do
+      !$omp end parallel do
+       
+      deallocate(glcc_raw)
+      
+      
+      
+      deallocate(glcc)
       
       ! Lake fraction
+      ! -------------
       ! This is only done if real-world orography is used.
       
       nlat_gldb = 21600
