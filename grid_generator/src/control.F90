@@ -385,7 +385,7 @@ program control
   write(*,*) "Setting the physical surface properties ..."
   call set_sfc_properties(lat_c,lon_c,lat_e,lon_e,from_cell,to_cell,adjacent_edges,roughness_length,sfc_albedo, &
                           sfc_rho_c,t_conductivity,oro,oro_smoothed,land_fraction,lake_fraction)
-  write(*,*) "Finished."
+  write(*,*) "Physical surface properties set."
   
   !$omp parallel workshare
   min_oro = minval(oro)
