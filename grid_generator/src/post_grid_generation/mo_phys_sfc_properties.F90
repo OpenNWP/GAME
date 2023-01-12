@@ -153,12 +153,16 @@ module mo_phys_sfc_properties
         call nc_check(nf90_get_var(ncid,oro_smoothed_id,oro_smoothed))
         call nc_check(nf90_close(ncid))
         
+        write(*,*) "Physical surface properties read."
+        
         return
         
       endif
       
       ! Land fraction
       ! -------------
+      
+      write(*,*) "Setting the land fraction ..."
       
       nlat_glcc = 21600
       nlon_glcc = 43200
@@ -241,8 +245,12 @@ module mo_phys_sfc_properties
       
       deallocate(glcc)
       
+      write(*,*) "Land fraction set."
+      
       ! Lake fraction
       ! -------------
+      
+      write(*,*) "Setting the lake fraction ..."
       
       nlat_gldb = 21600
       nlon_gldb = 43200
@@ -351,6 +359,13 @@ module mo_phys_sfc_properties
       write(*,*) "maximum lake fraction:",max_lake_fraction
       
       deallocate(lake_depth_gldb)
+      
+      write(*,*) "Lake fraction set."
+      
+      ! Orography
+      ! ---------
+      
+      write(*,*) "Setting the orography ..."
       
       ! reading the ETOPO orography
       n_lat_points = 10801
@@ -491,6 +506,8 @@ module mo_phys_sfc_properties
         oro = oro_smoothed
         !$omp end parallel workshare
       endif
+      
+      write(*,*) "Orography set."
       
     endif
     
