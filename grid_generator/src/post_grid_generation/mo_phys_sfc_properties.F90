@@ -62,13 +62,15 @@ module mo_phys_sfc_properties
     integer                       :: ncid                             ! netCDF file ID 
     integer                       :: lat_in_id                        ! netCDF ID of the latitudes of the input dataset
     integer                       :: lon_in_id                        ! netCDF ID of the longitudes of the input dataset
-    integer                       :: z_in_id                          ! netCDF ID of the input orography
-    integer                       :: land_fraction_id                 ! netCDF ID of the input orography
-    integer                       :: lake_fraction_id                 ! netCDF ID of the input orography
-    integer                       :: roughness_length_id              ! netCDF ID of the input orography
-    integer                       :: sfc_albedo_id                    ! netCDF ID of the input orography
-    integer                       :: t_conductivity_id                ! netCDF ID of the input orography
-    integer                       :: oro_smoothed_id                  ! netCDF ID of the input orography
+    integer                       :: z_in_id                          ! netCDF ID of the input orography (from ETOPO)
+    integer                       :: oro_nc_id                        ! netCDF ID of the input orography (from a previously generated grid)
+    integer                       :: land_fraction_id                 ! netCDF ID of the input land_fraction (from a previously generated grid)
+    integer                       :: lake_fraction_id                 ! netCDF ID of the input lake_fraction (from a previously generated grid)
+    integer                       :: roughness_length_id              ! netCDF ID of the input roughness_length (from a previously generated grid)
+    integer                       :: sfc_albedo_id                    ! netCDF ID of the input sfc_albedo (from a previously generated grid)
+    integer                       :: sfc_rho_c_id                     ! netCDF ID of the input sfc_rho_c (from a previously generated grid)
+    integer                       :: t_conductivity_id                ! netCDF ID of the input t_conductivity (from a previously generated grid)
+    integer                       :: oro_smoothed_id                  ! netCDF ID of the input smoothed orography (from a previously generated grid)
     integer                       :: n_lat_points                     ! number of latitude points of the input grid
     integer                       :: n_lon_points                     ! number of longitude points of the input grid
     integer                       :: lat_index                        ! latitude index of a point of the input grid
@@ -141,15 +143,17 @@ module mo_phys_sfc_properties
         call nc_check(nf90_inq_varid(ncid,"lake_fraction",lake_fraction_id))
         call nc_check(nf90_inq_varid(ncid,"roughness_length",roughness_length_id))
         call nc_check(nf90_inq_varid(ncid,"sfc_albedo",sfc_albedo_id))
+        call nc_check(nf90_inq_varid(ncid,"sfc_rho_c",sfc_rho_c_id))
         call nc_check(nf90_inq_varid(ncid,"t_conductivity",t_conductivity_id))
-        call nc_check(nf90_inq_varid(ncid,"oro",oro_id))
+        call nc_check(nf90_inq_varid(ncid,"oro",oro_nc_id))
         call nc_check(nf90_inq_varid(ncid,"oro_smoothed",oro_smoothed_id))
         call nc_check(nf90_get_var(ncid,lake_fraction_id,lake_fraction))
         call nc_check(nf90_get_var(ncid,land_fraction_id,land_fraction))
         call nc_check(nf90_get_var(ncid,roughness_length_id,roughness_length))
         call nc_check(nf90_get_var(ncid,sfc_albedo_id,sfc_albedo))
+        call nc_check(nf90_get_var(ncid,sfc_rho_c_id,sfc_rho_c))
         call nc_check(nf90_get_var(ncid,t_conductivity_id,t_conductivity))
-        call nc_check(nf90_get_var(ncid,oro_id,oro))
+        call nc_check(nf90_get_var(ncid,oro_nc_id,oro))
         call nc_check(nf90_get_var(ncid,oro_smoothed_id,oro_smoothed))
         call nc_check(nf90_close(ncid))
         
