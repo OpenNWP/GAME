@@ -408,6 +408,7 @@ module mo_phys_sfc_properties
               jm_used = jm_used - nlon_ext
             endif
             
+            ! adding the orography value, restrictued to the global minimum of the orography
             oro(ji) = oro(ji)+max(etopo_oro(jm_used,jk_used),-440)
             
           enddo
