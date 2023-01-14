@@ -6,7 +6,7 @@ module mo_phys_sfc_properties
   ! In this module, the physical surface properties are set.
 
   use netcdf
-  use mo_constants,       only: M_PI,rho_h2o,EPSILON_SECURITY
+  use mo_constants,       only: M_PI,rho_h2o,t_0,lapse_rate,EPSILON_SECURITY
   use mo_definitions,     only: wp
   use mo_grid_nml,        only: res_id,n_cells,n_avg_points,n_pentagons,oro_id,lsleve,n_edges,eff_hor_res,radius,sfc_file, &
                                 luse_sfc_file
@@ -34,8 +34,8 @@ module mo_phys_sfc_properties
 
   end function vegetation_height_ideal
   
-  subroutine set_sfc_properties(lat_c,lon_c,lat_e,lon_e,from_cell,to_cell,adjacent_edges,roughness_length, &
-                                sfc_albedo,sfc_rho_c,t_conductivity,oro,oro_smoothed,land_fraction,lake_fraction)
+  subroutine set_sfc_properties(lat_c,lon_c,roughness_length,sfc_albedo,sfc_rho_c,t_conductivity, &
+                                oro,oro_smoothed,land_fraction,lake_fraction,t_const_soil)
     
     ! This subroutine sets the physical surface properties.
     
@@ -43,40 +43,30 @@ module mo_phys_sfc_properties
     real(wp), intent(inout) :: lake_fraction(n_cells)    ! lake fraction
     real(wp), intent(in)    :: lat_c(n_cells)            ! latitudes at cell centers
     real(wp), intent(in)    :: lon_c(n_cells)            ! longitudes at cell centers
-    real(wp), intent(in)    :: lat_e(n_edges)            ! latitudes at the edges
-    real(wp), intent(in)    :: lon_e(n_edges)            ! longitudes at the edges
-    integer,  intent(in)    :: from_cell(n_edges)        ! cells in the from-directions of the vectors
-    integer,  intent(in)    :: to_cell(n_edges)          ! cells in the to-directions of the vectors
-    integer,  intent(in)    :: adjacent_edges(6,n_cells) ! edges adjacent to a cell
     real(wp), intent(out)   :: roughness_length(n_cells) ! roughness length of the surface (result)
     real(wp), intent(out)   :: sfc_albedo(n_cells)       ! surface albedo (result)
     real(wp), intent(out)   :: sfc_rho_c(n_cells)        ! surface volumetric heat capacity (result)
     real(wp), intent(out)   :: t_conductivity(n_cells)   ! temperature conductivity in the soil (m**2/s, result)
     real(wp), intent(out)   :: oro(n_cells)              ! orography (result)
     real(wp), intent(out)   :: oro_smoothed(n_cells)     ! smoothed orography (result)
+    real(wp), intent(out)   :: t_const_soil(n_cells)     ! mean surface temperature
     
     ! local variables
     integer                       :: ji                               ! cell index
     integer                       :: jk                               ! helper index
     integer                       :: jm                               ! helper index
     integer                       :: ncid                             ! netCDF file ID 
-    integer                       :: lat_in_id                        ! netCDF ID of the latitudes of the input dataset
-    integer                       :: lon_in_id                        ! netCDF ID of the longitudes of the input dataset
-    integer                       :: z_in_id                          ! netCDF ID of the input orography (from ETOPO)
+    integer                       :: etopo_oro_id                     ! netCDF ID of the input orography (from ETOPO)
     integer                       :: oro_nc_id                        ! netCDF ID of the input orography (from a previously generated grid)
     integer                       :: land_fraction_id                 ! netCDF ID of the input land_fraction (from a previously generated grid)
     integer                       :: lake_fraction_id                 ! netCDF ID of the input lake_fraction (from a previously generated grid)
     integer                       :: roughness_length_id              ! netCDF ID of the input roughness_length (from a previously generated grid)
     integer                       :: sfc_albedo_id                    ! netCDF ID of the input sfc_albedo (from a previously generated grid)
     integer                       :: sfc_rho_c_id                     ! netCDF ID of the input sfc_rho_c (from a previously generated grid)
+    integer                       :: t_const_soil_id                  ! netCDF ID of the input t_const_soil (from a previously generated grid)
     integer                       :: t_conductivity_id                ! netCDF ID of the input t_conductivity (from a previously generated grid)
     integer                       :: oro_smoothed_id                  ! netCDF ID of the input smoothed orography (from a previously generated grid)
-    integer                       :: n_lat_points                     ! number of latitude points of the input grid
-    integer                       :: n_lon_points                     ! number of longitude points of the input grid
-    integer                       :: lat_index                        ! latitude index of a point of the input grid
-    integer                       :: lon_index                        ! longitude index of a point of the input grid
     integer                       :: min_indices_vector(n_avg_points) ! vector of closest gridpoint indices
-    integer                       :: n_edges_of_cell                  ! number of edges a given cell has
     integer                       :: ext_fileunit                     ! file unit of an external data file
     integer                       :: nlon_ext                         ! number of longitude points of the external data grid
     integer                       :: nlat_ext                         ! number of latitude points of the external data grid
@@ -106,12 +96,7 @@ module mo_phys_sfc_properties
     real(wp)                      :: max_lake_fraction                ! maximum lake fraction
     real(wp)                      :: distance_vector(n_cells)         ! vector containing geodetic distances to compute the interpolation
     real(wp)                      :: fractions_sum                    ! sum of land fraction and lake fraction
-    real(wp),         allocatable :: latitude_input(:)                ! latitude vector of the input grid
-    real(wp),         allocatable :: longitude_input(:)               ! longitude vector of the input grid
-    real(wp),         allocatable :: lat_distance_vector(:)           ! vector containing distances in the latitude direction
-    real(wp),         allocatable :: lon_distance_vector(:)           ! vector containing distances in the longitude direction
-    real(wp),         allocatable :: oro_edges(:)                     ! orography at the edges
-    integer,          allocatable :: z_input(:,:)                     ! input orography
+    integer,          allocatable :: etopo_oro(:,:)                   ! input orography
     character(len=1), allocatable :: glcc_raw(:,:)                    ! GLCC raw data
     integer,          allocatable :: glcc(:,:)                        ! GLCC data
     integer(2),       allocatable :: lake_depth_ext_raw(:,:)          ! GLDB lake depth data as read from file
@@ -130,6 +115,7 @@ module mo_phys_sfc_properties
         call nc_check(nf90_inq_varid(ncid,"roughness_length",roughness_length_id))
         call nc_check(nf90_inq_varid(ncid,"sfc_albedo",sfc_albedo_id))
         call nc_check(nf90_inq_varid(ncid,"sfc_rho_c",sfc_rho_c_id))
+        call nc_check(nf90_inq_varid(ncid,"t_const_soil",t_const_soil_id))
         call nc_check(nf90_inq_varid(ncid,"t_conductivity",t_conductivity_id))
         call nc_check(nf90_inq_varid(ncid,"oro",oro_nc_id))
         call nc_check(nf90_inq_varid(ncid,"oro_smoothed",oro_smoothed_id))
@@ -138,6 +124,7 @@ module mo_phys_sfc_properties
         call nc_check(nf90_get_var(ncid,roughness_length_id,roughness_length))
         call nc_check(nf90_get_var(ncid,sfc_albedo_id,sfc_albedo))
         call nc_check(nf90_get_var(ncid,sfc_rho_c_id,sfc_rho_c))
+        call nc_check(nf90_get_var(ncid,t_const_soil_id,t_const_soil))
         call nc_check(nf90_get_var(ncid,t_conductivity_id,t_conductivity))
         call nc_check(nf90_get_var(ncid,oro_nc_id,oro))
         call nc_check(nf90_get_var(ncid,oro_smoothed_id,oro_smoothed))
@@ -358,105 +345,80 @@ module mo_phys_sfc_properties
       write(*,*) "Setting the orography ..."
       
       ! reading the ETOPO orography
-      n_lat_points = 10801
-      n_lon_points = 21601
-      allocate(latitude_input(n_lat_points))
-      allocate(longitude_input(n_lon_points))
-      allocate(z_input(n_lon_points,n_lat_points))
+      nlat_ext = 10801
+      nlon_ext = 21601
+      allocate(etopo_oro(nlon_ext,nlat_ext))
       
       oro_file = "phys_sfc_quantities/ETOPO1_Ice_g_gmt4.grd"
       call nc_check(nf90_open(trim(oro_file),NF90_CLOBBER,ncid))
-      call nc_check(nf90_inq_varid(ncid,"y",lat_in_id))
-      call nc_check(nf90_inq_varid(ncid,"x",lon_in_id))
-      call nc_check(nf90_inq_varid(ncid,"z",z_in_id))
-      call nc_check(nf90_get_var(ncid,lat_in_id,latitude_input))
-      call nc_check(nf90_get_var(ncid,lon_in_id,longitude_input))
-      call nc_check(nf90_get_var(ncid,z_in_id,z_input))
+      call nc_check(nf90_inq_varid(ncid,"z",etopo_oro_id))
+      call nc_check(nf90_get_var(ncid,etopo_oro_id,etopo_oro))
       call nc_check(nf90_close(ncid))
       
       ! setting the unfiltered orography
-      !$omp parallel do private(ji,jk,lat_index,lon_index,lat_distance_vector,lon_distance_vector)
+      
+      delta_lat_ext = M_PI/nlat_ext
+      delta_lon_ext = 2._wp*M_PI/nlon_ext
+      
+      lat_index_span_ext = int(eff_hor_res/(radius*delta_lat_ext))
+      
+      !$omp parallel do private(ji,lat_index_ext,lon_index_ext,lon_index_span_ext,left_index_ext,right_index_ext, &
+      !$omp lower_index_ext,upper_index_ext,n_points_ext_domain,jk_used,jm_used)
       do ji=1,n_cells
         
-        allocate(lat_distance_vector(n_lat_points))
-        allocate(lon_distance_vector(n_lon_points))
-        do jk=1,n_lat_points
-          lat_distance_vector(jk) = abs(deg2rad(latitude_input(jk))-lat_c(ji))
-        enddo
-        do jk=1,n_lon_points
-          lon_distance_vector(jk) = abs(deg2rad(longitude_input(jk))-lon_c(ji))
-        enddo
-        lat_index = find_min_index(lat_distance_vector)
-        lon_index = find_min_index(lon_distance_vector)
-        
-        oro(ji) = z_input(lon_index,lat_index)
-        
-        ! over the sea there is no orography
+        ! if there is primarily sea in this grid cell, the orography remains at zero
         if (land_fraction(ji)+lake_fraction(ji)<0.5_wp) then
-          oro(ji) = 0._wp
+          cycle
         endif
         
-        ! freeing the memory
-        deallocate(lat_distance_vector)
-        deallocate(lon_distance_vector)
+        ! computing the indices of the GLDB grid point that is the closest to the center of this grid cell
+        lat_index_ext = nlat_ext/2 + int(lat_c(ji)/delta_lat_ext)
+        lon_index_ext = nlon_ext/2 + int(lon_c(ji)/delta_lon_ext)
+        
+        ! making sure the point is actually on the GLDB grid
+        lat_index_ext = max(1,lat_index_ext)
+        lat_index_ext = min(nlat_ext,lat_index_ext)
+        lon_index_ext = max(1,lon_index_ext)
+        lon_index_ext = min(nlon_ext,lon_index_ext)
+        
+        lon_index_span_ext = int(min(eff_hor_res/(radius*delta_lon_ext*max(cos(lat_c(ji)),EPSILON_SECURITY)),0._wp+nlon_ext))
+        lon_index_span_ext = min(lon_index_span_ext,nlon_ext)
+        n_points_ext_domain = (lat_index_span_ext+1)*(lon_index_span_ext+1)
+        
+        lower_index_ext = lat_index_ext + lat_index_span_ext/2
+        upper_index_ext = lat_index_ext - lat_index_span_ext/2
+        left_index_ext = lon_index_ext - lon_index_span_ext/2
+        right_index_ext = lon_index_ext + lon_index_span_ext/2
+        
+        ! counting the number of lake points in the GLDB domain that is used to interpolate to the GAME grid cell
+        do jk=upper_index_ext,lower_index_ext
+          do jm=left_index_ext,right_index_ext
+            jk_used = jk
+            if (jk_used<1) then
+              jk_used = 1
+            endif
+            if (jk_used>nlat_ext) then
+              jk_used = nlat_ext
+            endif
+            jm_used = jm
+            if (jm_used<1) then
+              jm_used = jm_used + nlon_ext
+            endif
+            if (jm_used>nlon_ext) then
+              jm_used = jm_used - nlon_ext
+            endif
+            
+            oro(ji) = oro(ji)+etopo_oro(jm_used,jk_used)
+            
+          enddo
+        enddo
+        
+        oro(ji) = oro(ji)/n_points_ext_domain
         
       enddo
       !$omp end parallel do
       
-      ! setting the unfiltered orography at the edges
-      allocate(oro_edges(n_edges))
-      !$omp parallel do private(ji,jk,lat_index,lon_index,lat_distance_vector,lon_distance_vector)
-      do ji=1,n_edges
-        
-        allocate(lat_distance_vector(n_lat_points))
-        allocate(lon_distance_vector(n_lon_points))
-        do jk=1,n_lat_points
-          lat_distance_vector(jk) = abs(deg2rad(latitude_input(jk))-lat_e(ji))
-        enddo
-        do jk=1,n_lon_points
-          lon_distance_vector(jk) = abs(deg2rad(longitude_input(jk))-lon_e(ji))
-        enddo
-        lat_index = find_min_index(lat_distance_vector)
-        lon_index = find_min_index(lon_distance_vector)
-        
-        oro_edges(ji) = z_input(lon_index,lat_index)
-        
-        ! over the sea there is no orography
-        if (land_fraction(from_cell(ji))+land_fraction(to_cell(ji)) &
-            +lake_fraction(from_cell(ji))+lake_fraction(to_cell(ji))<1._wp) then
-          oro_edges(ji) = 0._wp
-        endif
-        
-        ! freeing the memory
-        deallocate(lat_distance_vector)
-        deallocate(lon_distance_vector)
-        
-      enddo
-      !$omp end parallel do
-      
-      ! computing the orography at the cells including the values at the edges
-      !$omp parallel do private(ji,jk,n_edges_of_cell)
-      do ji=1,n_cells
-        
-        ! number of edges the given cell has
-        n_edges_of_cell = 6
-        if (ji<=n_pentagons) then
-          n_edges_of_cell = 5
-        endif
-        
-        do jk=1,n_edges_of_cell
-          oro(ji) = oro(ji) + oro_edges(adjacent_edges(jk,ji))
-        enddo
-        
-        oro(ji) = oro(ji)/(1._wp+n_edges_of_cell)
-        
-      enddo
-      !$omp end parallel do
-      
-      deallocate(oro_edges)
-      deallocate(z_input)
-      deallocate(latitude_input)
-      deallocate(longitude_input)
+      deallocate(etopo_oro)
       
       ! smoothing the real orography
       !$omp parallel do private(ji,jk,min_indices_vector,distance_vector)
@@ -523,6 +485,11 @@ module mo_phys_sfc_properties
       
       ! for water roughness_length is set to some sea-typical value, will not be used anyway
       roughness_length(ji) = 0.08_wp
+      
+      ! mean surface temperature
+      !$omp parallel workshare
+      t_const_soil(ji) = t_0 + 25._wp*cos(2._wp*lat_c(ji)) - lapse_rate*oro(ji)
+      !$omp end parallel workshare
       
       t_conductivity(ji) = t_conductivity_water
       

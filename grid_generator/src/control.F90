@@ -94,6 +94,7 @@ program control
   integer               :: exner_bg_id                      ! netCDF ID of the background Exner pressure
   integer               :: sfc_albedo_id                    ! netCDF ID of the surface albedo
   integer               :: sfc_rho_c_id                     ! netCDF ID of the surface volumetric heat capacity
+  integer               :: t_const_soil_id                  ! netCDF ID of the mean surface temperature
   integer               :: t_conductivity_id                ! netCDF ID of the temperature conductivity of the soil
   integer               :: roughness_length_id              ! netCDF ID of the roughness length
   integer               :: land_fraction_id                 ! netCDF ID of the land fraction
@@ -164,6 +165,7 @@ program control
   real(wp), allocatable :: roughness_length(:)              ! surface roughness length
   real(wp), allocatable :: sfc_albedo(:)                    ! surface albedo
   real(wp), allocatable :: sfc_rho_c(:)                     ! volumetric heat capacity of the soil
+  real(wp), allocatable :: t_const_soil(:)                  ! mean surface temperature
   real(wp), allocatable :: t_conductivity(:)                ! temperature conductivity in the soil (m**2/s)
   real(wp), allocatable :: lat_vector(:)                    ! latitude vector of the latitude-longitude grid
   real(wp), allocatable :: lon_vector(:)                    ! longitude vector of the latitude-longitude grid
@@ -239,6 +241,7 @@ program control
   allocate(roughness_length(n_cells))
   allocate(sfc_albedo(n_cells))
   allocate(sfc_rho_c(n_cells))
+  allocate(t_const_soil(n_cells))
   allocate(t_conductivity(n_cells))
   allocate(to_cell(n_edges))
   allocate(from_cell(n_edges))
@@ -303,6 +306,7 @@ program control
   roughness_length = 0._wp
   sfc_albedo = 0._wp
   sfc_rho_c = 0._wp
+  t_const_soil = 0._wp
   t_conductivity = 0._wp
   to_cell = 0
   from_cell = 0
@@ -383,8 +387,8 @@ program control
   ! 5.) setting the physical surface properties
   !     ---------------------------------------
   write(*,*) "Setting the physical surface properties ..."
-  call set_sfc_properties(lat_c,lon_c,lat_e,lon_e,from_cell,to_cell,adjacent_edges,roughness_length,sfc_albedo, &
-                          sfc_rho_c,t_conductivity,oro,oro_smoothed,land_fraction,lake_fraction)
+  call set_sfc_properties(lat_c,lon_c,roughness_length,sfc_albedo,sfc_rho_c,t_conductivity, &
+                          oro,oro_smoothed,land_fraction,lake_fraction,t_const_soil)
   write(*,*) "Physical surface properties set."
   
   !$omp parallel workshare
@@ -722,6 +726,10 @@ program control
   ! smoothed orography
   call nc_check(nf90_def_var(ncid_g_prop,"oro_smoothed",NF90_REAL,cell_dimid,oro_smoothed_nc_id))
   
+  ! mean surface temperature
+  call nc_check(nf90_def_var(ncid_g_prop,"t_const_soil",NF90_REAL,cell_dimid,t_const_soil_id))
+  call nc_check(nf90_put_att(ncid_g_prop,t_const_soil_id,"units","K"))
+  
   ! temperature conductivity of the surface
   call nc_check(nf90_def_var(ncid_g_prop,"t_conductivity",NF90_REAL,cell_dimid,t_conductivity_id))
   call nc_check(nf90_put_att(ncid_g_prop,t_conductivity_id,"units","m**2/2"))
@@ -770,6 +778,7 @@ program control
   call nc_check(nf90_put_var(ncid_g_prop,interpol_weights_id,interpol_weights))
   call nc_check(nf90_put_var(ncid_g_prop,sfc_albedo_id,sfc_albedo))
   call nc_check(nf90_put_var(ncid_g_prop,sfc_rho_c_id,sfc_rho_c))
+  call nc_check(nf90_put_var(ncid_g_prop,t_const_soil_id,t_const_soil))
   call nc_check(nf90_put_var(ncid_g_prop,t_conductivity_id,t_conductivity))
   call nc_check(nf90_put_var(ncid_g_prop,roughness_length_id,roughness_length))
   call nc_check(nf90_put_var(ncid_g_prop,from_cell_id,from_cell))
@@ -797,6 +806,7 @@ program control
   deallocate(roughness_length)
   deallocate(sfc_albedo)
   deallocate(sfc_rho_c)
+  deallocate(t_const_soil)
   deallocate(t_conductivity)
   deallocate(land_fraction)
   deallocate(lake_fraction)

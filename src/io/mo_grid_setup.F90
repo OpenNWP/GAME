@@ -83,6 +83,7 @@ module mo_grid_setup
     integer            :: roughness_length_id            ! netCDF ID of roughness_length
     integer            :: land_fraction_id               ! netCDF ID of land_fraction
     integer            :: lake_fraction_id               ! netCDF ID of lake_fraction
+    integer            :: t_const_soil_id                ! netCDF ID of t_const_soil
     integer            :: t_conductivity_id              ! netCDF ID of t_conductivity
     integer            :: n_oro_layers_id                ! netCDF ID of n_oro_layers
     integer            :: z_vector_dual_v_id             ! netCDF ID of z_vector_dual_v
@@ -144,6 +145,7 @@ module mo_grid_setup
     call nc_check(nf90_inq_varid(ncid,"sfc_rho_c",sfc_rho_c_id))
     call nc_check(nf90_inq_varid(ncid,"sfc_albedo",sfc_albedo_id))
     call nc_check(nf90_inq_varid(ncid,"roughness_length",roughness_length_id))
+    call nc_check(nf90_inq_varid(ncid,"t_const_soil",t_const_soil_id))
     call nc_check(nf90_inq_varid(ncid,"t_conductivity",t_conductivity_id))
     call nc_check(nf90_inq_varid(ncid,"land_fraction",land_fraction_id))
     call nc_check(nf90_inq_varid(ncid,"lake_fraction",lake_fraction_id))
@@ -193,6 +195,7 @@ module mo_grid_setup
     call nc_check(nf90_get_var(ncid,sfc_rho_c_id,grid%sfc_rho_c))
     call nc_check(nf90_get_var(ncid,sfc_albedo_id,grid%sfc_albedo))
     call nc_check(nf90_get_var(ncid,roughness_length_id,grid%roughness_length))
+    call nc_check(nf90_get_var(ncid,t_const_soil_id,grid%t_const_soil))
     call nc_check(nf90_get_var(ncid,t_conductivity_id,grid%t_conduc_soil))
     call nc_check(nf90_get_var(ncid,land_fraction_id,grid%land_fraction))
     call nc_check(nf90_get_var(ncid,lake_fraction_id,grid%lake_fraction))
@@ -227,11 +230,8 @@ module mo_grid_setup
       endif
     enddo
     
-    ! fundamental SFC properties
+    ! lower boundary of the soil grid
     z_t_const = -10._wp
-    !$omp parallel workshare
-    grid%t_const_soil = t_0 + 25._wp*cos(2._wp*grid%lat_c) - lapse_rate*grid%z_vector_v(:,n_levels)
-    !$omp end parallel workshare
         
     ! constructing the soil grid
     ! --------------------------
