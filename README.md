@@ -11,7 +11,6 @@ It is known that the forecast skill of a NWP model depends more on physics and d
 * the numerical dispersion relation shall contain no unphysical branches
 * the numerical dispersion relation shall contain all relevant physical branches, including a geostrophic mode
 * strong scalability on massively parallel computer architectures
-* at least of second order accuracy
 * mass conservation to machine precision
 * energy conversions shall be based on a spatial discretization of Poisson brackets
 * energy conservation in the spatial discretization
