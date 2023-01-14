@@ -452,7 +452,7 @@ module mo_phys_sfc_properties
       
       if (lsleve) then
         !$omp parallel workshare
-        oro = oro_smoothed + 0.5_wp*(oro - oro_smoothed)
+        oro = oro_smoothed + 0.2_wp*(oro - oro_smoothed)
         !$omp end parallel workshare
       else
         !$omp parallel workshare
