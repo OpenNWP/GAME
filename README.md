@@ -60,9 +60,13 @@ The following packages are additionally required if you want to make use of the 
 
 ### Compiling the code
 
-	./compile.sh
+	./compile.sh -f
 
-Before being able to run the model, however, you need to create a grid file. The handbook gives further information on that.
+Before being able to run the model, however, you need to create a grid file. The handbook gives further information on that. A first try could be
+
+	cd grid_generator
+	./compile.sh
+	./run_script.sh
 
 ## Fundamental literature
 
