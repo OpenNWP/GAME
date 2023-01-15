@@ -290,9 +290,14 @@ module mo_spatial_ops_for_output
     type(t_grid), intent(in)  :: grid                                       ! grid quantities
     
     ! local variables
-    integer :: ji ! horizontal index
-    integer :: jk ! horizontal index
-    integer :: jm ! averaging index
+    integer, allocatable :: invalid_counter(:,:) ! counts the number of values that were not used in the interpolation
+    real,    allocatable :: sum_of_weights(:,:)  ! sum of interpolation weights
+    integer              :: ji                   ! horizontal index
+    integer              :: jk                   ! horizontal index
+    integer              :: jm                   ! averaging index
+    
+    allocate(invalid_counter(n_lat_io_points,n_lon_io_points))
+    allocate(sum_of_weights(n_lat_io_points,n_lon_io_points))
     
     ! loop over all output points
     !$omp parallel do private(ji,jk,jm)
@@ -300,20 +305,32 @@ module mo_spatial_ops_for_output
       do ji=1,n_lat_io_points
         ! initializing the result with zero
         out_field(ji,jk) = 0._wp
-        ! 1/r-average
+        invalid_counter(ji,jk) = 0
+        sum_of_weights(ji,jk) = 0._wp
         do jm=1,5
           if (in_field(grid%latlon_interpol_indices(jm,ji,jk))/=9999) then
             out_field(ji,jk) = out_field(ji,jk) + grid%latlon_interpol_weights(jm,ji,jk) &
                                *in_field(grid%latlon_interpol_indices(jm,ji,jk))
+            sum_of_weights(ji,jk) = sum_of_weights(ji,jk)+grid%latlon_interpol_weights(jm,ji,jk)
           else
-            out_field(ji,jk) = 9999
-            exit
+            invalid_counter(ji,jk) = invalid_counter(ji,jk)+1
           endif
         enddo
+        
+        ! if at least three values were invalid, the value is masked
+        if (invalid_counter(ji,jk)<3) then
+          out_field(ji,jk) = out_field(ji,jk)/sum_of_weights(ji,jk)
+        else
+          out_field(ji,jk) = 9999
+        endif
+        
       enddo
     enddo
     !$omp end parallel do
-  
+    
+    deallocate(invalid_counter)
+    deallocate(sum_of_weights)
+    
   end subroutine interpolate_to_ll
 
 end module mo_spatial_ops_for_output

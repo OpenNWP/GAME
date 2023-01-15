@@ -35,7 +35,7 @@ module mo_column_solvers
     ! local variables
     integer                :: ji                                    ! cell index
     integer                :: jl                                    ! layer or level index
-    integer                :: soil_switch                           ! soil switch: 0 if soil does not have to be calculated off, 1 if soil has to be calculated
+    integer                :: soil_switch                           ! soil switch: 0 if soil does not have to be calculated, 1 if soil has to be calculated
     real(wp)               :: damping_coeff                         ! damping coefficient of the Klemp layer
     real(wp)               :: damping_start_height                  ! lower boundary height of the Klemp layer
     real(wp)               :: damping_prefactor(n_layers-1)         ! damping coefficient of the Klemp layer
@@ -128,7 +128,8 @@ module mo_column_solvers
     !$omp gamma_new,alpha,beta,gammaa,rho_int_new,heat_flux_density_expl)
     do ji=1,n_cells
       
-      if (lprog_soil_temp .and. grid%land_fraction(ji)>=0.5_wp) then
+      ! determining wether soil needs to be calculated
+      if (lprog_soil_temp .and. grid%land_fraction(ji)+grid%lake_fraction(ji)>0._wp) then
         soil_switch = 1
       else
         soil_switch = 0
