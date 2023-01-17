@@ -143,6 +143,7 @@ module mo_definitions
     real(wp), allocatable :: viscosity_triangles(:,:)              ! effective viscosity at the triangles
     real(wp), allocatable :: vert_hor_viscosity(:,:)               ! effective visosity for vertical diffusion of horizontal velocity
     real(wp), allocatable :: tke(:,:)                              ! specific turbulent kinetic energy (J/kg)
+    real(wp), allocatable :: sst(:)                                ! sea surface temperature
     real(wp), allocatable :: pgrad_acc_old_h(:,:)                  ! old time step horizontal pressure gradient
     real(wp), allocatable :: pressure_gradient_acc_neg_nl_h(:,:)   ! negative non-linear component of the horizontal pressure gradient
     real(wp), allocatable :: pressure_gradient_acc_neg_nl_v(:,:)   ! vertical non-linear component of the horizontal pressure gradient

@@ -200,6 +200,7 @@ program control
   allocate(diag%viscosity_triangles(n_triangles,n_layers))
   allocate(diag%vert_hor_viscosity(n_edges,n_levels))
   allocate(diag%tke(n_cells,n_layers))
+  allocate(diag%sst(n_cells))
   allocate(diag%pgrad_acc_old_h(n_edges,n_layers))
   allocate(diag%pressure_gradient_acc_neg_nl_h(n_edges,n_layers))
   allocate(diag%pressure_gradient_acc_neg_nl_v(n_cells,n_levels))
@@ -341,6 +342,7 @@ program control
   diag%viscosity_triangles = 0._wp
   diag%vert_hor_viscosity = 0._wp
   diag%tke = 0._wp
+  diag%sst = 0._wp
   diag%pgrad_acc_old_h = 0._wp
   diag%pressure_gradient_acc_neg_nl_h = 0._wp
   diag%pressure_gradient_acc_neg_nl_v = 0._wp
@@ -698,6 +700,7 @@ program control
   deallocate(diag%viscosity_triangles)
   deallocate(diag%vert_hor_viscosity)
   deallocate(diag%tke)
+  deallocate(diag%sst)
   deallocate(diag%pgrad_acc_old_h)
   deallocate(diag%pressure_gradient_acc_neg_nl_h)
   deallocate(diag%pressure_gradient_acc_neg_nl_v)

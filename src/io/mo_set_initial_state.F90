@@ -261,7 +261,7 @@ module mo_set_initial_state
     deallocate(water_vapour_density)
     
     ! setting the soil temperature
-    call set_soil_temp(state,temperature,grid)
+    call set_soil_temp(state,diag,temperature,grid)
     deallocate(temperature)
     
   end subroutine set_ideal_init
@@ -366,17 +366,18 @@ module mo_set_initial_state
     !$omp end parallel do
     
     ! setting the soil temperature
-    call set_soil_temp(state,temperature,grid)
+    call set_soil_temp(state,diag,temperature,grid)
     
     deallocate(temperature)
     
   end subroutine read_init_data
 
-  subroutine set_soil_temp(state,temperature,grid)
+  subroutine set_soil_temp(state,diag,temperature,grid)
     
     ! This subroutine sets the soil and SST temperature.
     
     type(t_state), intent(inout) :: state                         ! state to which to write
+    type(t_diag),  intent(inout) :: diag                          ! diagnostic quantities
     real(wp),      intent(in)    :: temperature(n_cells,n_layers) ! air temperature
     type(t_grid),  intent(in)    :: grid                          ! grid quantities
     
@@ -390,10 +391,6 @@ module mo_set_initial_state
     integer               :: soil_id      ! netCDF ID of the soil temperature
     real(wp)              :: z_soil       ! negative vertical coordinate of the center of a soil layer
     real(wp)              :: t_sfc        ! individual surface temperature value
-    real(wp), allocatable :: sst(:)       ! sea surface temperature
-    
-    ! figuring out if the SST is included in the initialization file and reading it if it exists (important for NWP)
-    allocate(sst(n_cells))
     
     sst_avail = 0
     if (ideal_input_id==-1) then
@@ -409,7 +406,7 @@ module mo_set_initial_state
       
       ! reading the SST data if it is present in the netcdf file
       if (sst_avail==1) then
-        call nc_check(nf90_get_var(ncid,sst_id,sst))
+        call nc_check(nf90_get_var(ncid,sst_id,diag%sst))
       endif
       
       ! we do not need the netcdf file any further
@@ -443,7 +440,7 @@ module mo_set_initial_state
     do ji=1,n_cells
       ! sea surface temperature if SST is available
       if (grid%land_fraction(ji)+grid%lake_fraction(ji)<0.5_wp .and. sst_avail==1) then
-        state%temperature_soil(ji,:) = sst(ji)
+        state%temperature_soil(ji,:) = diag%sst(ji)
       endif
       
       ! if the soil temperature over land or the SST over water is not available in the initialization
@@ -464,8 +461,13 @@ module mo_set_initial_state
     enddo
     !$omp end parallel do
     
-    deallocate(sst)
-  
+    ! if the SST has not been found in the input file we set it equal to the surface temperature
+    if (sst_avail==0) then
+      !$omp parallel workshare
+      diag%sst = state%temperature_soil(:,1)
+      !$omp end parallel workshare
+    endif
+    
   end subroutine set_soil_temp
   
 end module mo_set_initial_state

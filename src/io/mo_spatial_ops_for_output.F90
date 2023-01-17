@@ -290,11 +290,11 @@ module mo_spatial_ops_for_output
     type(t_grid), intent(in)  :: grid                                       ! grid quantities
     
     ! local variables
-    integer, allocatable :: invalid_counter(:,:) ! counts the number of values that were not used in the interpolation
-    real,    allocatable :: sum_of_weights(:,:)  ! sum of interpolation weights
-    integer              :: ji                   ! horizontal index
-    integer              :: jk                   ! horizontal index
-    integer              :: jm                   ! averaging index
+    integer,  allocatable :: invalid_counter(:,:) ! counts the number of values that were not used in the interpolation
+    real(wp), allocatable :: sum_of_weights(:,:)  ! sum of interpolation weights
+    integer               :: ji                   ! horizontal index
+    integer               :: jk                   ! horizontal index
+    integer               :: jm                   ! averaging index
     
     allocate(invalid_counter(n_lat_io_points,n_lon_io_points))
     allocate(sum_of_weights(n_lat_io_points,n_lon_io_points))

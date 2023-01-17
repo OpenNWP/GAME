@@ -264,7 +264,7 @@ module mo_write_output
         
         ! sea surface temperature
         if (grid%land_fraction(ji)+grid%lake_fraction(ji)<0.5_wp) then
-          sst(ji) = state%temperature_soil(ji,1)
+          sst(ji) = diag%sst(ji)
         else
           sst(ji) = 9999
         endif
