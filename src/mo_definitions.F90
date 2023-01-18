@@ -119,8 +119,10 @@ module mo_definitions
     real(wp), allocatable :: n_squared(:,:)                        ! squared Brunt-Väisälä frequency
     real(wp), allocatable :: dv_hdz(:,:)                           ! vertical gradient of horizontal vorticity
     real(wp), allocatable :: scalar_flux_resistance(:)             ! flux resistance at the surface for scalar quantities
-    real(wp), allocatable :: power_flux_density_sensible(:)        ! sensible power flux density at the surface
-    real(wp), allocatable :: power_flux_density_latent(:)          ! latent power flux density at the surface
+    real(wp), allocatable :: power_flux_density_sensible_sea(:)    ! sensible power flux density at the surface above the sea
+    real(wp), allocatable :: power_flux_density_sensible_soil(:)   ! sensible power flux density at the surface above the soil (including lakes)
+    real(wp), allocatable :: power_flux_density_latent_sea(:)      ! latent power flux density at the surface above the sea
+    real(wp), allocatable :: power_flux_density_latent_lake(:)     ! latent power flux density at the surface above lakes
     real(wp), allocatable :: roughness_length(:)                   ! actual roughness length
     real(wp), allocatable :: roughness_velocity(:)                 ! roughness velocity at the surface
     real(wp), allocatable :: monin_obukhov_length(:)               ! Monin-Obukhov length (m)

@@ -37,8 +37,10 @@ module mo_phase_trans
     real(wp) :: phase_trans_density         ! actual phase transition density
     real(wp) :: saturation_pressure         ! saturation water vapour pressure
     real(wp) :: water_vapour_pressure       ! actual water vapour pressure
-    real(wp) :: diff_density_sfc            ! diff_density at the surface
-    real(wp) :: saturation_pressure_sfc     ! saturation water vapour pressure at the surface
+    real(wp) :: diff_density_sfc_sea        ! diff_density at the surface above the sea
+    real(wp) :: diff_density_sfc_lake       ! diff_density at the surface above lakes
+    real(wp) :: saturation_pressure_sea     ! saturation water vapour pressure at the surface above the sea
+    real(wp) :: saturation_pressure_lake    ! saturation water vapour pressure at the surface above lakes
     real(wp) :: dry_pressure                ! dry air pressure
     real(wp) :: air_pressure                ! complete air pressure
     real(wp) :: a                           ! helper variable for computing the second-order phase transition rates
@@ -48,14 +50,14 @@ module mo_phase_trans
     real(wp) :: q                           ! helper variable for computing the second-order phase transition rates
     real(wp) :: enhancement_factor          ! factor taking into account non-ideal effects of air
     real(wp) :: maximum_cloud_water_content ! maximum cloud water content in (kg cloud)/(kg dry air)
-    real(wp) :: water_fraction              ! share of a grid cell that is covered by water
+    real(wp) :: sea_fraction                ! share of a grid cell that is covered by sea
     
     maximum_cloud_water_content = 0.2e-3_wp
     
     ! loop over all grid boxes
     !$omp parallel do private(ji,jl,diff_density,phase_trans_density,saturation_pressure,water_vapour_pressure, &
-    !$omp diff_density_sfc,saturation_pressure_sfc,dry_pressure,air_pressure,water_fraction, &
-    !$omp a,b,c,p,q,enhancement_factor)
+    !$omp diff_density_sfc_sea,saturation_pressure_sea,dry_pressure,air_pressure,sea_fraction, &
+    !$omp a,b,c,p,q,enhancement_factor,saturation_pressure_lake,diff_density_sfc_lake)
     do jl=1,n_layers
       do ji=1,n_cells
         
@@ -270,38 +272,58 @@ module mo_phase_trans
           
           ! evaporation and latent heat rates
           if (grid%land_fraction(ji)<1._wp) then
-            ! saturation pressure at surface temperature
+            
+            ! calculating the sea fraction of the grid cell
+            sea_fraction = 1._wp - grid%land_fraction(ji) - grid%lake_fraction(ji)
+            
+            ! saturation pressure at the surface temperature above lakes
             if (state%temperature_soil(ji,1)>=t_0) then
-              saturation_pressure_sfc = saturation_pressure_over_water(state%temperature_soil(ji,1))
-              saturation_pressure_sfc = enhancement_factor_over_water(air_pressure)*saturation_pressure_sfc
+              saturation_pressure_lake = saturation_pressure_over_water(state%temperature_soil(ji,1))
+              saturation_pressure_lake = enhancement_factor_over_water(air_pressure)*saturation_pressure_lake
             else
-              saturation_pressure_sfc = saturation_pressure_over_ice(state%temperature_soil(ji,1))
-              saturation_pressure_sfc = enhancement_factor_over_ice(air_pressure)*saturation_pressure_sfc
+              saturation_pressure_lake = saturation_pressure_over_ice(state%temperature_soil(ji,1))
+              saturation_pressure_lake = enhancement_factor_over_ice(air_pressure)*saturation_pressure_lake
+            endif
+            
+            ! saturation pressure at the surface temperature above the sea
+            if (diag%sst(ji)>=t_0) then
+              saturation_pressure_sea = saturation_pressure_over_water(diag%sst(ji))
+              saturation_pressure_sea = enhancement_factor_over_water(air_pressure)*saturation_pressure_sea
+            else
+              saturation_pressure_sea = saturation_pressure_over_ice(diag%sst(ji))
+              saturation_pressure_sea = enhancement_factor_over_ice(air_pressure)*saturation_pressure_sea
             endif
             
             ! difference water vapour density between saturation at ground temperature and actual absolute humidity in the lowest model layer
-            diff_density_sfc = saturation_pressure_sfc/(r_v*state%temperature_soil(ji,1)) &
-            - state%rho(ji,jl,n_condensed_constituents+2)
-            
-            ! calculating the water fraction of the grid cell
-            water_fraction = 1._wp - grid%land_fraction(ji)
+            diff_density_sfc_sea = sea_fraction &
+            *(saturation_pressure_sea/(r_v*diag%sst(ji)) - state%rho(ji,jl,n_condensed_constituents+2))
+            diff_density_sfc_lake = grid%lake_fraction(ji)* &
+            (saturation_pressure_lake/(r_v*state%temperature_soil(ji,1)) - state%rho(ji,jl,n_condensed_constituents+2))
             
             ! evporation, sublimation
             diag%phase_trans_rates(ji,jl,n_condensed_constituents+1) = &
             diag%phase_trans_rates(ji,jl,n_condensed_constituents+1) + &
-            water_fraction &
-            *max(0._wp,diff_density_sfc/diag%scalar_flux_resistance(ji))/grid%layer_thickness(ji,jl)
+            max(0._wp,diff_density_sfc_sea/diag%scalar_flux_resistance(ji))/grid%layer_thickness(ji,jl) + &
+            max(0._wp,diff_density_sfc_lake/diag%scalar_flux_resistance(ji))/grid%layer_thickness(ji,jl)
             
-            ! calculating the latent heat flux density affecting the surface
+            ! calculating the latent heat flux density affecting the surface above lakes
             if (state%temperature_soil(ji,1)>=t_0) then
-              diag%power_flux_density_latent(ji) = -phase_trans_heat(1,state%temperature_soil(ji,1)) &
-              *water_fraction &
-              *max(0._wp,diff_density_sfc/diag%scalar_flux_resistance(ji))
+              diag%power_flux_density_latent_lake(ji) = -phase_trans_heat(1,state%temperature_soil(ji,1)) &
+              *max(0._wp,diff_density_sfc_lake/diag%scalar_flux_resistance(ji))
             else
-              diag%power_flux_density_latent(ji) = -phase_trans_heat(2,state%temperature_soil(ji,1)) &
-              *water_fraction &
-              *max(0._wp,diff_density_sfc/diag%scalar_flux_resistance(ji))
+              diag%power_flux_density_latent_lake(ji) = -phase_trans_heat(2,state%temperature_soil(ji,1)) &
+              *max(0._wp,diff_density_sfc_lake/diag%scalar_flux_resistance(ji))
             endif
+            
+            ! calculating the latent heat flux density affecting the surface above the sea
+            if (diag%sst(ji)>=t_0) then
+              diag%power_flux_density_latent_sea(ji) = -phase_trans_heat(1,diag%sst(ji)) &
+              *max(0._wp,diff_density_sfc_sea/diag%scalar_flux_resistance(ji))
+            else
+              diag%power_flux_density_latent_sea(ji) = -phase_trans_heat(2,diag%sst(ji)) &
+              *max(0._wp,diff_density_sfc_sea/diag%scalar_flux_resistance(ji))
+            endif
+            
           endif
         endif
       enddo

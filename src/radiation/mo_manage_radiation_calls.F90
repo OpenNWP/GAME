@@ -27,14 +27,17 @@ module mo_manage_radiation_calls
     real(wp),      intent(in)    :: time_coordinate ! epoch timestamp (needed for computing the zenith angle)
   
     ! local variables
+    integer               :: ji                ! cell index
     integer               :: rad_block_index   ! radiation block index (for OMP parallelization)
     integer               :: n_rad_blocks_used ! number of radiation slices
     integer               :: n_cells_rad_used  ! number of columns of the given radiation slice
+    real(wp)              :: sea_fraction      ! fraction of a grid cell that is covered by sea
     real(wp), allocatable :: lat_scal(:)       ! latitudes of the gridpoints in the radiation slice
     real(wp), allocatable :: lon_scal(:)       ! longitudes of the gridpoints in the radiation slice
     real(wp), allocatable :: sfc_sw_in(:)      ! surface downward shortwave radiation flux density in the radiation slice
     real(wp), allocatable :: sfc_lw_out(:)     ! surface upward longwave radiation flux density in the radiation slice
     real(wp), allocatable :: sfc_albedo(:)     ! surface albedo in the radiation slice
+    real(wp), allocatable :: temp_sfc_full(:)  ! global surface temperature field
     real(wp), allocatable :: temp_sfc(:)       ! temperature at the surface in the radiation slice
     real(wp), allocatable :: z_scal(:,:)       ! z-coordinates of the scalar gridpoints in the radiation slice
     real(wp), allocatable :: z_vect(:,:)       ! z-coordinates of the vertical vector gridpoints in the radiation slice
@@ -50,6 +53,15 @@ module mo_manage_radiation_calls
     if (n_cells_rad_last==0) then
       n_rad_blocks_used = n_rad_blocks
     endif
+    
+    allocate(temp_sfc_full(n_cells))
+    
+    !$omp parallel do private(ji,sea_fraction)
+    do ji=1,n_cells
+      sea_fraction = 1._wp-grid%land_fraction(ji)-grid%lake_fraction(ji)
+      temp_sfc_full(ji) = sea_fraction*diag%sst(ji) + (1._wp-sea_fraction)*state%temperature_soil(ji,1)
+    enddo
+    !$omp end parallel do
     
     ! loop over all radiation blocks
     !$omp parallel do private(rad_block_index,lat_scal,lon_scal,sfc_sw_in,sfc_lw_out,sfc_albedo, &
@@ -90,7 +102,7 @@ module mo_manage_radiation_calls
       ! remapping all the arrays
       call create_rad_array_scalar_h(grid%lat_c,lat_scal,rad_block_index,n_cells_rad_used)
       call create_rad_array_scalar_h(grid%lon_c,lon_scal,rad_block_index,n_cells_rad_used)
-      call create_rad_array_scalar_h(state%temperature_soil(:,1),temp_sfc,rad_block_index,n_cells_rad_used)
+      call create_rad_array_scalar_h(temp_sfc_full,temp_sfc,rad_block_index,n_cells_rad_used)
       call create_rad_array_scalar_h(grid%sfc_albedo,sfc_albedo,rad_block_index,n_cells_rad_used)
       call create_rad_array_scalar(grid%z_scalar,z_scal,rad_block_index,n_cells_rad_used)
       call create_rad_array_vector(grid%z_vector_v,z_vect,rad_block_index,n_cells_rad_used)
@@ -132,6 +144,8 @@ module mo_manage_radiation_calls
       
     enddo
     !$omp end parallel do
+    
+    deallocate(temp_sfc_full)
     
     if (rad_config==1) then
       write(*,*) "Update of radiative fluxes completed."
