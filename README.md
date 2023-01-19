@@ -50,7 +50,7 @@ Everything is easy and quick to install.
 The following packages are additionally required if you want to make use of the plotting routines:
 
 * Python visualization library scitools-iris (installation manual: https://scitools-iris.readthedocs.io/en/latest/installing.html#installing-from-source-without-conda-on-debian-based-linux-distros-developers)
-* FFMPEG (Ubuntu: `sudo apt-get install ffmpeg`)
+* FFMPEG (`sudo apt-get install ffmpeg`)
 
 ### Download
 
