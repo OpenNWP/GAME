@@ -487,10 +487,10 @@ module mo_phys_sfc_properties
       ! for water roughness_length is set to some sea-typical value, will not be used anyway
       roughness_length(ji) = 0.08_wp
       
-      ! mean surface temperature
-      !$omp parallel workshare
-      t_const_soil(ji) = t_0 + 25._wp*cos(2._wp*lat_c(ji))
-      !$omp end parallel workshare
+      ! mean surface temperature for an Earth without real orography
+      ! if (oro_id==0) then
+        t_const_soil(ji) = t_0 + 25._wp*cos(2._wp*lat_c(ji))
+      ! endif
       
       t_conductivity(ji) = t_conductivity_water
       
