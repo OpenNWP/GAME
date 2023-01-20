@@ -6,7 +6,7 @@ module mo_phys_sfc_properties
   ! In this module, the physical surface properties are set.
 
   use netcdf
-  use mo_constants,       only: M_PI,rho_h2o,t_0,lapse_rate,EPSILON_SECURITY
+  use mo_constants,       only: M_PI,rho_h2o,t_0,EPSILON_SECURITY
   use mo_definitions,     only: wp
   use mo_grid_nml,        only: res_id,n_cells,n_avg_points,n_pentagons,oro_id,lsleve,n_edges,eff_hor_res,radius,sfc_file, &
                                 luse_sfc_file
@@ -489,7 +489,7 @@ module mo_phys_sfc_properties
       
       ! mean surface temperature
       !$omp parallel workshare
-      t_const_soil(ji) = t_0 + 25._wp*cos(2._wp*lat_c(ji)) - lapse_rate*oro(ji)
+      t_const_soil(ji) = t_0 + 25._wp*cos(2._wp*lat_c(ji))
       !$omp end parallel workshare
       
       t_conductivity(ji) = t_conductivity_water

@@ -29,4 +29,10 @@ then
   rm gldbv2.tar.gz
 fi
 
+# downloading the global mean of the 2-m-temperature if necessary
+if [ ! -f air.mon.ltm.nc ]
+then
+  wget "https://downloads.psl.noaa.gov/Datasets/ghcncams/Derived/air.mon.ltm.nc"
+fi
+
 cd ..
