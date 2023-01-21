@@ -499,6 +499,7 @@ module mo_phys_sfc_properties
       write(*,*) "Orography set."
       
       ! Lower boundary soil temperature
+      ! -------------------------------
       
       write(*,*) "Setting the lower boundary soil temperature ..."
       
