@@ -171,8 +171,7 @@ program control
   real(wp), allocatable :: lon_vector(:)                    ! longitude vector of the latitude-longitude grid
   real(wp)              :: lat_ico(12)                      ! latitudes of the vertices of the basic icosahedron
   real(wp)              :: lon_ico(12)                      ! longitudes of the vertices of the basic icosahedron
-  real(wp)              :: min_oro                          ! minimum of the orography
-  real(wp)              :: max_oro                          ! maximum of the orography
+  real(wp)              :: dq_value                         ! data quality value
   integer               :: edge_vertices(30,2)              ! relation between edges and vertices
   integer               :: face_vertices(20,3)              ! relation between faces and vertices
   integer               :: face_edges(20,3)                 ! relation between faces and edges
@@ -390,18 +389,11 @@ program control
   call set_sfc_properties(lat_c,lon_c,roughness_length,sfc_albedo,sfc_rho_c,t_conductivity, &
                           oro,oro_smoothed,land_fraction,lake_fraction,t_const_soil)
   write(*,*) "Physical surface properties set."
-  
-  !$omp parallel workshare
-  min_oro = minval(oro)
-  max_oro = maxval(oro)
-  !$omp end parallel workshare
-  write(*,*) "minimum orography:",min_oro,"m"
-  write(*,*) "maximum orography:",max_oro,"m"
     
   !6.) setting the explicit property of the vertical grid
   !    --------------------------------------------------
   write(*,*) "Setting the vertical coordinates of the scalar data points ..."
-  call set_z_scalar(z_scalar,oro,oro_smoothed,max_oro)
+  call set_z_scalar(z_scalar,oro,oro_smoothed)
   write(*,*) "Finished."
   
   ! 7.) setting the implicit quantities of the vertical grid
@@ -423,6 +415,12 @@ program control
   write(*,*) "Calculating areas ..."
   call set_area(area_h,area_v,z_vector_v,z_vector_dual_h,dy,pent_hex_face_unit_sphere)
   write(*,*) "Finished."
+  
+  ! some DQ
+  !$omp parallel workshare
+  dq_value = sum(land_fraction*area_v(:,n_levels))/sum(area_v(:,n_levels))
+  !$omp end parallel workshare
+  write(*,*) "share of the surface covered by land:",dq_value
   
   write(*,*) "Calculating dual areas ..."
   call set_area_dual(area_dual_h,area_dual_v,z_vector_dual_v,dx,z_vector_h,z_vector_v,from_cell,to_cell,triangle_face_unit_sphere)

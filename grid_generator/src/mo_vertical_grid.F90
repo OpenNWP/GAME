@@ -16,14 +16,13 @@ module mo_vertical_grid
   
   contains
   
-  subroutine set_z_scalar(z_scalar,oro,oro_smoothed,max_oro)
+  subroutine set_z_scalar(z_scalar,oro,oro_smoothed)
     
     ! This function sets the z-coordinates of the scalar data points.
     
     real(wp), intent(out) :: z_scalar(n_cells,n_layers) ! z-coordinates of scalar points
     real(wp), intent(in)  :: oro(n_cells)               ! orography
     real(wp), intent(in)  :: oro_smoothed(n_cells)      ! smoothed orography
-    real(wp), intent(in)  :: max_oro                    ! maximum of the orography
     
     ! local variables
     integer  :: ji                            ! cell index
@@ -34,6 +33,7 @@ module mo_vertical_grid
     real(wp) :: z_rel                         ! z/toa with equidistant levels
     real(wp) :: vertical_vector_pre(n_levels) ! heights of the levels in a column
     real(wp) :: toa_oro                       ! top of terrain-following coordinates
+    real(wp) :: max_oro                       ! maximum of the orography
     
     ! the heights are defined according to z_k = A_k + B_k*oro with A_0 = toa, A_{n_levels} = 0, B_0 = 0, B_{n_levels} = 1
     
@@ -70,6 +70,10 @@ module mo_vertical_grid
         endif
         
       enddo
+      
+      !$omp parallel workshare
+      max_oro = maxval(oro)
+      !$omp end parallel workshare
       
       ! check
       if (ji==1) then

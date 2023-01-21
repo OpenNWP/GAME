@@ -487,6 +487,15 @@ module mo_phys_sfc_properties
         !$omp end parallel workshare
       endif
       
+      !$omp parallel workshare
+      dq_value = minval(oro)
+      !$omp end parallel workshare
+      write(*,*) "minimum orography:",dq_value
+      !$omp parallel workshare
+      dq_value = maxval(oro)
+      !$omp end parallel workshare
+      write(*,*) "maximum orography:",dq_value
+      
       write(*,*) "Orography set."
       
       ! Lower boundary soil temperature
