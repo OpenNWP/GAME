@@ -182,7 +182,7 @@ module mo_phys_sfc_properties
         do jk=upper_index_ext,lower_index_ext
           do jm=left_index_ext,right_index_ext
             
-            ! coorecting the indices for boundary cases
+            ! correcting the indices for boundary cases
             call correct_ext_data_indices(jk,jm,nlat_ext,nlon_ext,jk_used,jm_used)
             
             if (glcc(jk_used,jm_used)/=16) then
@@ -266,7 +266,7 @@ module mo_phys_sfc_properties
         do jk=upper_index_ext,lower_index_ext
           do jm=left_index_ext,right_index_ext
             
-            ! coorecting the indices for boundary cases
+            ! correcting the indices for boundary cases
             call correct_ext_data_indices(jk,jm,nlat_ext,nlon_ext,jk_used,jm_used)
             
             if (lake_depth_ext(jk_used,jm_used)>0._wp) then
@@ -349,7 +349,7 @@ module mo_phys_sfc_properties
         do jk=upper_index_ext,lower_index_ext
           do jm=left_index_ext,right_index_ext
             
-            ! coorecting the indices for boundary cases
+            ! correcting the indices for boundary cases
             call correct_ext_data_indices(jk,jm,nlat_ext,nlon_ext,jk_used,jm_used)
             
             ! adding the orography value, restrictued to the global minimum of the orography
@@ -461,7 +461,7 @@ module mo_phys_sfc_properties
         do jk=upper_index_ext,lower_index_ext
           do jm=left_index_ext,right_index_ext
             
-            ! coorecting the indices for boundary cases
+            ! correcting the indices for boundary cases
             call correct_ext_data_indices(jk,jm,nlat_ext,nlon_ext,jk_used,jm_used)
             
             ! adding the temperature value at hand to the interpolated value if the temperature value is not invalid
@@ -604,7 +604,7 @@ module mo_phys_sfc_properties
     ! updating n_points_ext_domain
     n_points_ext_domain = (lower_index_ext-upper_index_ext+1)*(right_index_ext-left_index_ext+1)
     
-  end subroutine
+  end subroutine calc_ext_subset
   
   subroutine correct_ext_data_indices(jk,jm,nlat_ext,nlon_ext,jk_used,jm_used)
     
