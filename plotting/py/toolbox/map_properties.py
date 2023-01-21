@@ -247,6 +247,12 @@ def var_properties(var_id):
 		shift = -conv.c2k(0)
 		show_level_on = 0
 		surface_bool = 1
+	if var_id == "t_const_soil":
+		variable_name = "Mean surface temperature"
+		unit_string = "°C"
+		shift = -conv.c2k(0)
+		show_level_on = 0
+		surface_bool = 1
 	return surface_bool, variable_name, unit_string, rescale, show_level_on, contourf_plot, colormap, shift
 
 

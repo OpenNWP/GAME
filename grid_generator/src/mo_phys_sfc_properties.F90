@@ -6,7 +6,7 @@ module mo_phys_sfc_properties
   ! In this module, the physical surface properties are set.
 
   use netcdf
-  use mo_constants,       only: M_PI,rho_h2o,t_0,EPSILON_SECURITY
+  use mo_constants,       only: M_PI,rho_h2o,t_0,lapse_rate,EPSILON_SECURITY
   use mo_definitions,     only: wp
   use mo_grid_nml,        only: res_id,n_cells,n_avg_points,n_pentagons,oro_id,lsleve,n_edges,eff_hor_res,radius,sfc_file, &
                                 luse_sfc_file
@@ -57,6 +57,7 @@ module mo_phys_sfc_properties
     integer                       :: jm                               ! helper index
     integer                       :: ncid                             ! netCDF file ID 
     integer                       :: etopo_oro_id                     ! netCDF ID of the input orography (from ETOPO)
+    integer                       :: ghcn_cams_id                     ! netCDF ID of the input 2-m-temperature mean (from GHCN-CAMS)
     integer                       :: oro_nc_id                        ! netCDF ID of the input orography (from a previously generated grid)
     integer                       :: land_fraction_id                 ! netCDF ID of the input land_fraction (from a previously generated grid)
     integer                       :: lake_fraction_id                 ! netCDF ID of the input lake_fraction (from a previously generated grid)
@@ -96,12 +97,15 @@ module mo_phys_sfc_properties
     real(wp)                      :: max_lake_fraction                ! maximum lake fraction
     real(wp)                      :: distance_vector(n_cells)         ! vector containing geodetic distances to compute the interpolation
     real(wp)                      :: fractions_sum                    ! sum of land fraction and lake fraction
+    real(wp)                      :: lon_c_used                       ! helper variable for interpolating external data to the model grid
     integer,          allocatable :: etopo_oro(:,:)                   ! input orography
+    integer,          allocatable :: invalid_counter(:)               ! counts invalid values encountered in an interpolation
+    real(wp),         allocatable :: ghcn_cams(:,:,:)                 ! GHCN-CAMS data (2-m-temperature mean)
     character(len=1), allocatable :: glcc_raw(:,:)                    ! GLCC raw data
     integer,          allocatable :: glcc(:,:)                        ! GLCC data
     integer(2),       allocatable :: lake_depth_ext_raw(:,:)          ! GLDB lake depth data as read from file
     real(wp),         allocatable :: lake_depth_ext(:,:)              ! GLDB lake depth data
-    character(len=64)             :: oro_file                         ! file to read the orography from
+    character(len=64)             :: ext_file                         ! file to read external data from
     
     if (oro_id==1) then
       
@@ -189,6 +193,9 @@ module mo_phys_sfc_properties
         upper_index_ext = lat_index_ext - lat_index_span_ext/2
         left_index_ext = lon_index_ext - lon_index_span_ext/2
         right_index_ext = lon_index_ext + lon_index_span_ext/2
+        
+        ! updating n_points_ext_domain
+        n_points_ext_domain = (lower_index_ext-upper_index_ext+1)*(right_index_ext-left_index_ext+1)
         
         ! counting the number of lake points in the GLCC domain that is used to interpolate to the GAME grid cell
         do jk=upper_index_ext,lower_index_ext
@@ -285,6 +292,9 @@ module mo_phys_sfc_properties
         left_index_ext = lon_index_ext - lon_index_span_ext/2
         right_index_ext = lon_index_ext + lon_index_span_ext/2
         
+        ! updating n_points_ext_domain
+        n_points_ext_domain = (lower_index_ext-upper_index_ext+1)*(right_index_ext-left_index_ext+1)
+        
         ! counting the number of lake points in the GLDB domain that is used to interpolate to the GAME grid cell
         do jk=upper_index_ext,lower_index_ext
           do jm=left_index_ext,right_index_ext
@@ -349,8 +359,8 @@ module mo_phys_sfc_properties
       nlon_ext = 21601
       allocate(etopo_oro(nlon_ext,nlat_ext))
       
-      oro_file = "phys_sfc_quantities/ETOPO1_Ice_g_gmt4.grd"
-      call nc_check(nf90_open(trim(oro_file),NF90_CLOBBER,ncid))
+      ext_file = "phys_sfc_quantities/ETOPO1_Ice_g_gmt4.grd"
+      call nc_check(nf90_open(trim(ext_file),NF90_CLOBBER,ncid))
       call nc_check(nf90_inq_varid(ncid,"z",etopo_oro_id))
       call nc_check(nf90_get_var(ncid,etopo_oro_id,etopo_oro))
       call nc_check(nf90_close(ncid))
@@ -389,6 +399,9 @@ module mo_phys_sfc_properties
         upper_index_ext = lat_index_ext - lat_index_span_ext/2
         left_index_ext = lon_index_ext - lon_index_span_ext/2
         right_index_ext = lon_index_ext + lon_index_span_ext/2
+        
+        ! updating n_points_ext_domain
+        n_points_ext_domain = (lower_index_ext-upper_index_ext+1)*(right_index_ext-left_index_ext+1)
         
         ! counting the number of lake points in the GLDB domain that is used to interpolate to the GAME grid cell
         do jk=upper_index_ext,lower_index_ext
@@ -462,6 +475,108 @@ module mo_phys_sfc_properties
       
       write(*,*) "Orography set."
       
+      ! Lower boundary soil temperature
+      
+      write(*,*) "Setting the lower boundary soil temperature ..."
+      
+      nlat_ext = 360
+      nlon_ext = 720
+      
+      allocate(ghcn_cams(nlon_ext,nlat_ext,12))
+      
+      ! reading the GHCN-CAMS data
+      ext_file = "phys_sfc_quantities/air.mon.ltm.nc"
+      call nc_check(nf90_open(trim(ext_file),NF90_CLOBBER,ncid))
+      call nc_check(nf90_inq_varid(ncid,"air",ghcn_cams_id))
+      call nc_check(nf90_get_var(ncid,ghcn_cams_id,ghcn_cams))
+      call nc_check(nf90_close(ncid))
+      
+      delta_lat_ext = M_PI/nlat_ext
+      delta_lon_ext = 2._wp*M_PI/nlon_ext
+      
+      lat_index_span_ext = int(eff_hor_res/(radius*delta_lat_ext))
+      
+      allocate(invalid_counter(n_cells))
+      
+      !$omp parallel workshare
+      invalid_counter = 0
+      !$omp end parallel workshare
+      
+      !$omp parallel do private(ji,lat_index_ext,lon_index_ext,lon_index_span_ext,left_index_ext,right_index_ext, &
+      !$omp lower_index_ext,upper_index_ext,n_points_ext_domain,jk_used,jm_used,lon_c_used)
+      do ji=1,n_cells
+        
+        ! computing the indices of the GLCC grid point that is the closest to the center of this grid cell
+        lat_index_ext = nlat_ext/2 - int(lat_c(ji)/delta_lat_ext)
+        lon_c_used = lon_c(ji)
+        if (lon_c_used<0._wp) then
+          lon_c_used = lon_c_used+2._wp*M_PI
+        endif
+        lon_index_ext = int(lon_c_used/delta_lon_ext)
+        
+        ! making sure the point is actually on the GLCC grid
+        lat_index_ext = max(1,lat_index_ext)
+        lat_index_ext = min(nlat_ext,lat_index_ext)
+        lon_index_ext = max(1,lon_index_ext)
+        lon_index_ext = min(nlon_ext,lon_index_ext)
+        
+        lon_index_span_ext = int(min(eff_hor_res/(radius*delta_lon_ext*max(cos(lat_c(ji)),EPSILON_SECURITY)),0._wp+nlon_ext))
+        lon_index_span_ext = min(lon_index_span_ext,nlon_ext)
+        n_points_ext_domain = (lat_index_span_ext+1)*(lon_index_span_ext+1)
+        
+        lower_index_ext = lat_index_ext + lat_index_span_ext/2
+        upper_index_ext = lat_index_ext - lat_index_span_ext/2
+        left_index_ext = lon_index_ext - lon_index_span_ext/2
+        right_index_ext = lon_index_ext + lon_index_span_ext/2
+        
+        ! updating n_points_ext_domain
+        n_points_ext_domain = (lower_index_ext-upper_index_ext+1)*(right_index_ext-left_index_ext+1)
+        
+        ! counting the number of lake points in the GLCC domain that is used to interpolate to the GAME grid cell
+        do jk=upper_index_ext,lower_index_ext
+          do jm=left_index_ext,right_index_ext
+            jk_used = jk
+            if (jk_used<1) then
+              jk_used = 1
+            endif
+            if (jk_used>nlat_ext) then
+              jk_used = nlat_ext
+            endif
+            jm_used = jm
+            if (jm_used<1) then
+              jm_used = jm_used + nlon_ext
+            endif
+            if (jm_used>nlon_ext) then
+              jm_used = jm_used - nlon_ext
+            endif
+            
+            ! adding the temperature value at hand to the interpolated value if the temperature value is not invalid
+            if (ghcn_cams(jm_used,jk_used,1)/=-9.96921e36) then
+              t_const_soil(ji) = t_const_soil(ji) + sum(ghcn_cams(jm_used,jk_used,:))/12._wp + lapse_rate*oro(ji)
+            else
+              invalid_counter(ji) = invalid_counter(ji)+1
+            endif
+            
+          enddo
+        enddo
+        
+        ! computing the average
+        if (invalid_counter(ji)<n_points_ext_domain) then
+          t_const_soil(ji) = t_const_soil(ji)/(n_points_ext_domain-invalid_counter(ji))
+        ! this is the case if all input values were invalid
+        else
+          ! adding realistic values where no real-world values were found
+          t_const_soil(ji) = t_0 + 25._wp*cos(2._wp*lat_c(ji))
+        endif
+        
+      enddo
+      !$omp end parallel do
+      
+      deallocate(ghcn_cams)
+      deallocate(invalid_counter)
+      
+      write(*,*) "Lower boundary soil temperature set."
+      
     endif
     
     ! Other physical properties of the surface
@@ -488,9 +603,9 @@ module mo_phys_sfc_properties
       roughness_length(ji) = 0.08_wp
       
       ! mean surface temperature for an Earth without real orography
-      ! if (oro_id==0) then
+      if (oro_id==0) then
         t_const_soil(ji) = t_0 + 25._wp*cos(2._wp*lat_c(ji))
-      ! endif
+      endif
       
       t_conductivity(ji) = t_conductivity_water
       
