@@ -199,20 +199,8 @@ module mo_phys_sfc_properties
         ! looping over all points of the input dataset in the vicinity of the grid cell at hand
         do jk=upper_index_ext,lower_index_ext
           do jm=left_index_ext,right_index_ext
-            jk_used = jk
-            if (jk_used<1) then
-              jk_used = 1
-            endif
-            if (jk_used>nlat_ext) then
-              jk_used = nlat_ext
-            endif
-            jm_used = jm
-            if (jm_used<1) then
-              jm_used = jm_used + nlon_ext
-            endif
-            if (jm_used>nlon_ext) then
-              jm_used = jm_used - nlon_ext
-            endif
+            
+            call calculate_ext_data_indices(jk,jm,nlat_ext,nlon_ext,jk_used,jm_used)
             
             if (glcc(jk_used,jm_used)/=16) then
               land_fraction(ji) = land_fraction(ji)+1._wp
@@ -310,20 +298,8 @@ module mo_phys_sfc_properties
         ! looping over all points of the input dataset in the vicinity of the grid cell at hand
         do jk=upper_index_ext,lower_index_ext
           do jm=left_index_ext,right_index_ext
-            jk_used = jk
-            if (jk_used<1) then
-              jk_used = 1
-            endif
-            if (jk_used>nlat_ext) then
-              jk_used = nlat_ext
-            endif
-            jm_used = jm
-            if (jm_used<1) then
-              jm_used = jm_used + nlon_ext
-            endif
-            if (jm_used>nlon_ext) then
-              jm_used = jm_used - nlon_ext
-            endif
+            
+            call calculate_ext_data_indices(jk,jm,nlat_ext,nlon_ext,jk_used,jm_used)
             
             if (lake_depth_ext(jk_used,jm_used)>0._wp) then
               lake_fraction(ji) = lake_fraction(ji)+1._wp
@@ -420,20 +396,8 @@ module mo_phys_sfc_properties
         ! looping over all points of the input dataset in the vicinity of the grid cell at hand
         do jk=upper_index_ext,lower_index_ext
           do jm=left_index_ext,right_index_ext
-            jk_used = jk
-            if (jk_used<1) then
-              jk_used = 1
-            endif
-            if (jk_used>nlat_ext) then
-              jk_used = nlat_ext
-            endif
-            jm_used = jm
-            if (jm_used<1) then
-              jm_used = jm_used + nlon_ext
-            endif
-            if (jm_used>nlon_ext) then
-              jm_used = jm_used - nlon_ext
-            endif
+            
+            call calculate_ext_data_indices(jk,jm,nlat_ext,nlon_ext,jk_used,jm_used)
             
             ! adding the orography value, restrictued to the global minimum of the orography
             oro(ji) = oro(ji)+max(etopo_oro(jm_used,jk_used),-440)
@@ -559,20 +523,8 @@ module mo_phys_sfc_properties
         ! looping over all points of the input dataset in the vicinity of the grid cell at hand
         do jk=upper_index_ext,lower_index_ext
           do jm=left_index_ext,right_index_ext
-            jk_used = jk
-            if (jk_used<1) then
-              jk_used = 1
-            endif
-            if (jk_used>nlat_ext) then
-              jk_used = nlat_ext
-            endif
-            jm_used = jm
-            if (jm_used<1) then
-              jm_used = jm_used + nlon_ext
-            endif
-            if (jm_used>nlon_ext) then
-              jm_used = jm_used - nlon_ext
-            endif
+            
+            call calculate_ext_data_indices(jk,jm,nlat_ext,nlon_ext,jk_used,jm_used)
             
             ! adding the temperature value at hand to the interpolated value if the temperature value is not invalid
             if (ghcn_cams(jm_used,jk_used,1)/=-9.96921e36) then
@@ -668,6 +620,34 @@ module mo_phys_sfc_properties
     write(*,*) "maximum background soil temperature:",dq_value,"K"
     
   end subroutine set_sfc_properties
+  
+  subroutine calculate_ext_data_indices(jk,jm,nlat_ext,nlon_ext,jk_used,jm_used)
+    
+    ! This subroutine calculates which indices of an external dataset to actually use.
+    
+    integer, intent(in)  :: jk       ! latitude index
+    integer, intent(in)  :: jm       ! longitude index
+    integer, intent(in)  :: nlat_ext ! maximum latitude index
+    integer, intent(in)  :: nlon_ext ! maximum longitude index
+    integer, intent(out) :: jk_used  ! corrected latitude index
+    integer, intent(out) :: jm_used  ! corrected longitude index
+    
+    jk_used = jk
+    if (jk_used<1) then
+      jk_used = 1
+    endif
+    if (jk_used>nlat_ext) then
+      jk_used = nlat_ext
+    endif
+    jm_used = jm
+    if (jm_used<1) then
+      jm_used = jm_used + nlon_ext
+    endif
+    if (jm_used>nlon_ext) then
+      jm_used = jm_used - nlon_ext
+    endif
+            
+  end subroutine calculate_ext_data_indices
   
 end module mo_phys_sfc_properties
 
