@@ -93,8 +93,7 @@ module mo_phys_sfc_properties
     real(wp)                      :: lat_deg                          ! latitude value in degrees
     real(wp)                      :: delta_lat_ext                    ! latitude resolution of the external grid
     real(wp)                      :: delta_lon_ext                    ! longitude resolution of the external grid
-    real(wp)                      :: min_lake_fraction                ! minimum lake fraction
-    real(wp)                      :: max_lake_fraction                ! maximum lake fraction
+    real(wp)                      :: dq_value                         ! data quality value
     real(wp)                      :: distance_vector(n_cells)         ! vector containing geodetic distances to compute the interpolation
     real(wp)                      :: fractions_sum                    ! sum of land fraction and lake fraction
     real(wp)                      :: lon_c_used                       ! helper variable for interpolating external data to the model grid
@@ -339,11 +338,13 @@ module mo_phys_sfc_properties
       !$omp end parallel do
       
       !$omp parallel workshare
-      min_lake_fraction = minval(lake_fraction)
-      max_lake_fraction = maxval(lake_fraction)
+      dq_value = minval(lake_fraction)
       !$omp end parallel workshare
-      write(*,*) "minimum lake fraction:",min_lake_fraction
-      write(*,*) "maximum lake fraction:",max_lake_fraction
+      write(*,*) "minimum lake fraction:",dq_value
+      !$omp parallel workshare
+      dq_value = maxval(lake_fraction)
+      !$omp end parallel workshare
+      write(*,*) "maximum lake fraction:",dq_value
       
       deallocate(lake_depth_ext)
       
