@@ -657,6 +657,15 @@ module mo_phys_sfc_properties
     enddo
     !$omp end parallel do
     
+    !$omp parallel workshare
+    dq_value = minval(t_const_soil)
+    !$omp end parallel workshare
+    write(*,*) "minimum background soil temperature:",dq_value,"K"
+    !$omp parallel workshare
+    dq_value = maxval(t_const_soil)
+    !$omp end parallel workshare
+    write(*,*) "maximum background soil temperature:",dq_value,"K"
+    
   end subroutine set_sfc_properties
   
 end module mo_phys_sfc_properties
