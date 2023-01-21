@@ -228,6 +228,19 @@ module mo_phys_sfc_properties
       
       deallocate(glcc)
       
+      !$omp parallel workshare
+      dq_value = minval(land_fraction)
+      !$omp end parallel workshare
+      write(*,*) "minimum land fraction:",dq_value
+      !$omp parallel workshare
+      dq_value = maxval(land_fraction)
+      !$omp end parallel workshare
+      write(*,*) "maximum land fraction:",dq_value
+      !$omp parallel workshare
+      dq_value = sum(land_fraction)/n_cells
+      !$omp end parallel workshare
+      write(*,*) "average land fraction:",dq_value
+      
       write(*,*) "Land fraction set."
       
       ! Lake fraction
