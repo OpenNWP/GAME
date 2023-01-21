@@ -196,7 +196,7 @@ module mo_phys_sfc_properties
         ! updating n_points_ext_domain
         n_points_ext_domain = (lower_index_ext-upper_index_ext+1)*(right_index_ext-left_index_ext+1)
         
-        ! counting the number of lake points in the GLCC domain that is used to interpolate to the GAME grid cell
+        ! looping over all points of the input dataset in the vicinity of the grid cell at hand
         do jk=upper_index_ext,lower_index_ext
           do jm=left_index_ext,right_index_ext
             jk_used = jk
@@ -307,7 +307,7 @@ module mo_phys_sfc_properties
         ! updating n_points_ext_domain
         n_points_ext_domain = (lower_index_ext-upper_index_ext+1)*(right_index_ext-left_index_ext+1)
         
-        ! counting the number of lake points in the GLDB domain that is used to interpolate to the GAME grid cell
+        ! looping over all points of the input dataset in the vicinity of the grid cell at hand
         do jk=upper_index_ext,lower_index_ext
           do jm=left_index_ext,right_index_ext
             jk_used = jk
@@ -417,7 +417,7 @@ module mo_phys_sfc_properties
         ! updating n_points_ext_domain
         n_points_ext_domain = (lower_index_ext-upper_index_ext+1)*(right_index_ext-left_index_ext+1)
         
-        ! counting the number of lake points in the GLDB domain that is used to interpolate to the GAME grid cell
+        ! looping over all points of the input dataset in the vicinity of the grid cell at hand
         do jk=upper_index_ext,lower_index_ext
           do jm=left_index_ext,right_index_ext
             jk_used = jk
@@ -556,7 +556,7 @@ module mo_phys_sfc_properties
         ! updating n_points_ext_domain
         n_points_ext_domain = (lower_index_ext-upper_index_ext+1)*(right_index_ext-left_index_ext+1)
         
-        ! counting the number of lake points in the GLCC domain that is used to interpolate to the GAME grid cell
+        ! looping over all points of the input dataset in the vicinity of the grid cell at hand
         do jk=upper_index_ext,lower_index_ext
           do jm=left_index_ext,right_index_ext
             jk_used = jk
