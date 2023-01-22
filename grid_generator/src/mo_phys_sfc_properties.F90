@@ -67,10 +67,13 @@ module mo_phys_sfc_properties
     integer                       :: t_const_soil_id                  ! netCDF ID of the input t_const_soil (from a previously generated grid)
     integer                       :: t_conductivity_id                ! netCDF ID of the input t_conductivity (from a previously generated grid)
     integer                       :: oro_smoothed_id                  ! netCDF ID of the input smoothed orography (from a previously generated grid)
+    integer                       :: lsmask_id                        ! netCDF ID of the land-sea mask
     integer                       :: min_indices_vector(n_avg_points) ! vector of closest gridpoint indices
     integer                       :: ext_fileunit                     ! file unit of an external data file
     integer                       :: nlon_ext                         ! number of longitude points of the external data grid
     integer                       :: nlat_ext                         ! number of latitude points of the external data grid
+    integer                       :: nlon_ext_sst                     ! number of longitude points of the SST grid
+    integer                       :: nlat_ext_sst                     ! number of latitude points of the SST grid
     integer                       :: lat_index_ext                    ! latitude index of a grid point of the external data
     integer                       :: lon_index_ext                    ! longitude index of a grid point of the external data
     integer                       :: left_index_ext                   ! helper variable for interpolating external data to the GAME grid
@@ -91,12 +94,15 @@ module mo_phys_sfc_properties
     real(wp)                      :: lat_deg                          ! latitude value in degrees
     real(wp)                      :: delta_lat_ext                    ! latitude resolution of the external grid
     real(wp)                      :: delta_lon_ext                    ! longitude resolution of the external grid
+    real(wp)                      :: delta_lat_ext_sst                ! latitude resolution of the SST grid
+    real(wp)                      :: delta_lon_ext_sst                ! longitude resolution of the SST grid
     real(wp)                      :: dq_value                         ! data quality value
     real(wp)                      :: distance_vector(n_cells)         ! vector containing geodetic distances to compute the interpolation
     real(wp)                      :: fractions_sum                    ! sum of land fraction and lake fraction
     real(wp)                      :: lon_c_used                       ! helper variable for interpolating external data to the model grid
     integer,          allocatable :: etopo_oro(:,:)                   ! input orography
     integer,          allocatable :: invalid_counter(:)               ! counts invalid values encountered in an interpolation
+    integer,          allocatable :: ncep_nsst_lsmask(:,:)            ! NCET NSST land-sea mask
     real(wp),         allocatable :: ghcn_cams(:,:,:)                 ! GHCN-CAMS data (2-m-temperature mean)
     character(len=1), allocatable :: glcc_raw(:,:)                    ! GLCC raw data
     integer,          allocatable :: glcc(:,:)                        ! GLCC data
@@ -231,7 +237,6 @@ module mo_phys_sfc_properties
       
       !$omp parallel do private(ji)
       do ji=1,nlat_ext
-      ! nlat_ext+1-
         read(unit=ext_fileunit,rec=ji) lake_depth_ext_raw(ji,:)
         lake_depth_ext(ji,:) = lake_depth_ext_raw(ji,:)/10._wp
       enddo
@@ -245,8 +250,23 @@ module mo_phys_sfc_properties
       delta_lat_ext = M_PI/nlat_ext
       delta_lon_ext = 2._wp*M_PI/nlon_ext
       
+      ! reading the NCEP NSST land-sea mask
+      nlat_ext_sst = 180
+      nlon_ext_sst = 360
+      allocate(ncep_nsst_lsmask(nlon_ext_sst,nlat_ext_sst))
+      
+      ext_file = "phys_sfc_quantities/lsmask.nc"
+      call nc_check(nf90_open(trim(ext_file),NF90_CLOBBER,ncid))
+      call nc_check(nf90_inq_varid(ncid,"mask",lsmask_id))
+      call nc_check(nf90_get_var(ncid,lsmask_id,ncep_nsst_lsmask))
+      call nc_check(nf90_close(ncid))
+      
+      ! calculating the properties of the NCEP NSST land-sea mask grid
+      delta_lat_ext_sst = M_PI/nlat_ext_sst
+      delta_lon_ext_sst = 2._wp*M_PI/nlon_ext_sst
+      
       !$omp parallel do private(ji,lat_index_ext,lon_index_ext,left_index_ext,right_index_ext, &
-      !$omp lower_index_ext,upper_index_ext,n_points_ext_domain,jk_used,jm_used)
+      !$omp lower_index_ext,upper_index_ext,n_points_ext_domain,jk_used,jm_used,lon_c_used)
       do ji=1,n_cells
         
         ! if there is no land in this grid cell, there can also be no lakes in this grid cell
@@ -270,18 +290,36 @@ module mo_phys_sfc_properties
             call correct_ext_data_indices(jk,jm,nlat_ext,nlon_ext,jk_used,jm_used)
             
             if (lake_depth_ext(jk_used,jm_used)>0._wp) then
-              lake_fraction(ji) = lake_fraction(ji)+1._wp
+              
+              lon_c_used = lon_c(ji)
+              if (lon_c_used<0._wp) then
+                lon_c_used = lon_c_used+2._wp*M_PI
+              endif
+              lon_index_ext = int(lon_c_used/delta_lon_ext_sst)
+              
+              ! a lake is only considered a lake if it is not part of the NCEP NSST grid
+              lat_index_ext = nlat_ext_sst/2 - int(lat_c(ji)/delta_lat_ext_sst)
+              lon_index_ext = int(lon_c_used/delta_lon_ext_sst)
+              lat_index_ext = max(1,lat_index_ext)
+              lat_index_ext = min(nlat_ext_sst,lat_index_ext)
+              lon_index_ext = max(1,lon_index_ext)
+              lon_index_ext = min(nlon_ext_sst,lon_index_ext)
+              
+              if (ncep_nsst_lsmask(lon_index_ext,lat_index_ext)==0) then
+                lake_fraction(ji) = lake_fraction(ji)+1._wp
+              endif
+              
             endif
             
           enddo
         enddo
         
         lake_fraction(ji) = lake_fraction(ji)/n_points_ext_domain
-        ! lakes belong to the land (not the sea), the lake fraction cannot be greater than the land fraction
-        lake_fraction(ji) = min(lake_fraction(ji),land_fraction(ji))
         
       enddo
       !$omp end parallel do
+      
+      deallocate(ncep_nsst_lsmask)
       
       ! restricting the sum of lake fraction and land fraction to one
       !$omp parallel do private(ji,fractions_sum)
@@ -302,6 +340,10 @@ module mo_phys_sfc_properties
       dq_value = maxval(lake_fraction)
       !$omp end parallel workshare
       write(*,*) "maximum lake fraction:",dq_value
+      !$omp parallel workshare
+      dq_value = sum(lake_fraction)/n_cells
+      !$omp end parallel workshare
+      write(*,*) "average lake fraction:",dq_value
       
       deallocate(lake_depth_ext)
       
