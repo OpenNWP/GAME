@@ -58,7 +58,7 @@ module mo_definitions
     real(wp), allocatable :: density_to_rhombi_weights(:,:)   ! weights needed for interpolating the densities to the rhombi
     real(wp), allocatable :: trsk_weights(:,:)                ! weights needed for computing the TRSK reconstruction
     real(wp), allocatable :: sfc_albedo(:)                    ! surface albedo
-    real(wp), allocatable :: sfc_rho_c(:)                     ! indices needed for interpolating the densities to the rhombi
+    real(wp), allocatable :: sfc_rho_c(:)                     ! volumetric heat capacity of the surface
     real(wp), allocatable :: t_conduc_soil(:)                 ! temperature conductivity of the soil (m**2/s)
     real(wp), allocatable :: roughness_length(:)              ! roughness length of the land
     real(wp), allocatable :: land_fraction(:)                 ! land fraction

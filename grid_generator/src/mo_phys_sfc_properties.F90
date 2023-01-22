@@ -554,7 +554,7 @@ module mo_phys_sfc_properties
       sfc_albedo(ji) = albedo_water
       sfc_rho_c(ji) = rho_h2o*c_p_water
       
-      ! for water roughness_length is set to some sea-typical value, will not be used anyway
+      ! for water the roughness length is set to some sea-typical value, will not be used anyway
       roughness_length(ji) = 0.08_wp
       
       ! mean surface temperature for an Earth without real orography
@@ -565,11 +565,13 @@ module mo_phys_sfc_properties
       t_conductivity(ji) = t_conductivity_water
       
       ! land is present in this grid cell
-      if (land_fraction(ji)>0._wp) then
+      if (land_fraction(ji)>EPSILON_SECURITY) then
         
         lat_deg = 360._wp/(2._wp*M_PI)*lat_c(ji)
         
-        t_conductivity(ji) = t_conductivity_soil
+        ! lakes are included in the soil calculation
+        t_conductivity(ji) = (land_fraction(ji)*t_conductivity_soil+lake_fraction(ji)*t_conductivity_water) &
+                             /(land_fraction(ji)+lake_fraction(ji))
         
         ! setting the surface albedo of land depending on the latitude
         if (abs(lat_deg)>70._wp) then
@@ -578,9 +580,12 @@ module mo_phys_sfc_properties
           sfc_albedo(ji) = land_fraction(ji)*albedo_soil + (1._wp - land_fraction(ji))*albedo_water
         endif
         
-        sfc_rho_c(ji) = density_soil*c_p_soil
+        ! lakes are included in the soil calculation
+        sfc_rho_c(ji) = (land_fraction(ji)*density_soil*c_p_soil+lake_fraction(ji)*rho_h2o*c_p_water) &
+                        /(land_fraction(ji)+lake_fraction(ji))
         
         roughness_length(ji) = vegetation_height_ideal(lat_c(ji),oro(ji))/8._wp
+        
       endif
       
       ! restricting the roughness length to a minimum
@@ -597,6 +602,22 @@ module mo_phys_sfc_properties
     dq_value = maxval(t_const_soil)
     !$omp end parallel workshare
     write(*,*) "maximum background soil temperature:",dq_value,"K"
+    !$omp parallel workshare
+    dq_value = minval(t_conductivity)
+    !$omp end parallel workshare
+    write(*,*) "minimum temperature conductivity of the soil:",dq_value,"m**2/s"
+    !$omp parallel workshare
+    dq_value = maxval(t_conductivity)
+    !$omp end parallel workshare
+    write(*,*) "maximum temperature conductivity of the soil:",dq_value,"m**2/s"
+    !$omp parallel workshare
+    dq_value = minval(sfc_rho_c)
+    !$omp end parallel workshare
+    write(*,*) "minimum volumetric heat capacity of the soil:",dq_value,"J/(m**3K)"
+    !$omp parallel workshare
+    dq_value = maxval(sfc_rho_c)
+    !$omp end parallel workshare
+    write(*,*) "maximum volumetric heat capacity of the soil:",dq_value,"J/(m**3K)"
     
   end subroutine set_sfc_properties
   
