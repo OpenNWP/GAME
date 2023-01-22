@@ -67,7 +67,7 @@ module mo_phys_sfc_properties
     integer                       :: t_const_soil_id                  ! netCDF ID of the input t_const_soil (from a previously generated grid)
     integer                       :: t_conductivity_id                ! netCDF ID of the input t_conductivity (from a previously generated grid)
     integer                       :: oro_smoothed_id                  ! netCDF ID of the input smoothed orography (from a previously generated grid)
-    integer                       :: lsmask_id                        ! netCDF ID of the land-sea mask
+    integer                       :: lsmask_id                        ! netCDF ID of the land-sea mask of the NCEP NSST grid
     integer                       :: min_indices_vector(n_avg_points) ! vector of closest gridpoint indices
     integer                       :: ext_fileunit                     ! file unit of an external data file
     integer                       :: nlon_ext                         ! number of longitude points of the external data grid
@@ -102,7 +102,7 @@ module mo_phys_sfc_properties
     real(wp)                      :: lon_c_used                       ! helper variable for interpolating external data to the model grid
     integer,          allocatable :: etopo_oro(:,:)                   ! input orography
     integer,          allocatable :: invalid_counter(:)               ! counts invalid values encountered in an interpolation
-    integer,          allocatable :: ncep_nsst_lsmask(:,:)            ! NCET NSST land-sea mask
+    integer,          allocatable :: ncep_nsst_lsmask(:,:)            ! NCEP NSST land-sea mask
     real(wp),         allocatable :: ghcn_cams(:,:,:)                 ! GHCN-CAMS data (2-m-temperature mean)
     character(len=1), allocatable :: glcc_raw(:,:)                    ! GLCC raw data
     integer,          allocatable :: glcc(:,:)                        ! GLCC data
@@ -319,6 +319,7 @@ module mo_phys_sfc_properties
       enddo
       !$omp end parallel do
       
+      deallocate(lake_depth_ext)
       deallocate(ncep_nsst_lsmask)
       
       ! restricting the sum of lake fraction and land fraction to one
@@ -344,8 +345,6 @@ module mo_phys_sfc_properties
       dq_value = sum(lake_fraction)/n_cells
       !$omp end parallel workshare
       write(*,*) "average lake fraction:",dq_value
-      
-      deallocate(lake_depth_ext)
       
       write(*,*) "Lake fraction set."
       
