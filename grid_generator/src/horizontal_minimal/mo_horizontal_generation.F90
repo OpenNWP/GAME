@@ -329,6 +329,11 @@ module mo_horizontal_generation
       ! refining the grid on this triangle surface from res_id_local-1 to res_id_local
       do res_id_local=1,res_id
         n_triangles_per_face = 4**(res_id_local-1)
+        
+        ! OMP does not work here
+        !!$omp parallel do private(jk,dual_scalar_on_face_index,point_1,point_2,point_3,lpoints_upwards,coord_1,coord_2,jm, &
+        !!$omp vertex_old_1,vertex_old_2,vertex_old_3,triangle_on_face_index,lpoints_downwards,ldump,old_triangle_on_line_index, &
+        !!$omp coord_1_points_amount,base_index_old,base_index_down_triangle,base_index_up_triangles,llast_triangle,points_per_edge)
         do jk=1,n_triangles_per_face
           if (res_id_local==1) then
             dual_scalar_on_face_index = 1
@@ -340,8 +345,8 @@ module mo_horizontal_generation
             point_3 = upscale_scalar_point(res_id_local,point_3)
             lpoints_upwards = .true.
             call set_scalar_coordinates(face_vertices(ji,1),face_vertices(ji,2),face_vertices(ji,3), &
-                                        point_1,point_2,point_3,lpoints_upwards,x_unit,y_unit, &
-                                        z_unit,lat_c,lon_c)
+                                        point_1,point_2,point_3,lpoints_upwards,x_unit,y_unit,z_unit, &
+                                        lat_c,lon_c)
           else
             call find_triangle_edge_points_from_dual_scalar_on_face_index(jk-1,ji-1,res_id_local-1, &
                                                                           vertex_old_1,vertex_old_2,vertex_old_3, &
@@ -365,7 +370,7 @@ module mo_horizontal_generation
               base_index_down_triangle = base_index_down_triangle + 12
               base_index_up_triangles = base_index_down_triangle + 3
             endif
-            old_triangle_on_line_index = jk-1 - base_index_old
+            old_triangle_on_line_index = jk - 1 - base_index_old
             if (.not. lpoints_downwards) then
               dual_scalar_on_face_index = base_index_down_triangle + 1 + 2*old_triangle_on_line_index
             else
@@ -388,6 +393,8 @@ module mo_horizontal_generation
                                         lpoints_upwards,x_unit,y_unit,z_unit,lat_c,lon_c)
           endif
         enddo
+        !!$omp end parallel do
+        
       enddo
     enddo
     
@@ -550,60 +557,47 @@ module mo_horizontal_generation
     integer  :: point_5                   ! one of the six vertices relevant for the up to four triangles computed around an edge
     integer  :: point_6                   ! one of the six vertices relevant for the up to four triangles computed around an edge
     integer  :: dual_scalar_on_face_index ! index of a dual cell on the face of the icosahedron
-    integer  :: small_triangle_edge_index ! only needed for calling a subroutine, value is not used
-    integer  :: dual_scalar_index         ! index of a dual cell
-    integer  :: coord_1                   ! discrete coordinate of an edge along the left side of a triangle of the icosahedron
-    integer  :: coord_2                   ! discrete coordinate of an edge along the lower side of a triangle of the icosahedron
-    integer  :: coord_1_points_amount     ! number of points in the coord_1-direction
     integer  :: face_index                ! index of a face of the icosahedron
     integer  :: on_face_index             ! index of an edge on a face of the icosahedron
     integer  :: triangle_on_face_index    ! index of a triangle on a face of the icosahedron
-    real(wp) :: lat_res                   ! resulting individual latitude value
-    real(wp) :: lon_res                   ! resulting individual longitude value
+    logical  :: lspecial_case             ! true only for the very last triangle along a coord_1-axis
+    logical  :: llast_triangle            ! only true for the very last triangle on a face of the icosahedron
+    logical  :: lpoints_downwards         ! true if the triangle points downwards, otherwise false
     
-    !$omp parallel do private(ji,lat_res,lon_res,point_1,point_2,point_3,point_4,point_5,point_6,dual_scalar_on_face_index, &
-    !$omp small_triangle_edge_index,dual_scalar_index,coord_1,coord_2,coord_1_points_amount,face_index, &
-    !$omp on_face_index,triangle_on_face_index)
-    do ji=1,n_edges
-      if (ji>n_basic_edges*(n_points_per_edge+1)) then
-        
-        face_index = (ji-1 - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
-        on_face_index = ji-1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
-        triangle_on_face_index = on_face_index/3
-        small_triangle_edge_index = on_face_index - 3*triangle_on_face_index
-        call find_triangle_edge_points(triangle_on_face_index,face_index,res_id,point_1,point_2,point_3,point_4,point_5,point_6, &
-                                       dual_scalar_on_face_index,face_vertices,face_edges,face_edges_reverse)
-        
-        face_index = (ji-1 - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
-        on_face_index = ji-1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
-        triangle_on_face_index = on_face_index/3
-        call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_1,coord_2,coord_1_points_amount)
-        dual_scalar_index = dual_scalar_on_face_index + face_index*n_triangles_per_face
-        ! We want to construct a Voronoi gird,that's why we choose this function for calculating the dual cell centers.
-        call find_voronoi_center_sphere(lat_c(point_1),lon_c(point_1),lat_c(point_2),lon_c(point_2), &
-                                        lat_c(point_3),lon_c(point_3),lat_res,lon_res)
-        lat_c_dual(dual_scalar_index+1) = lat_res
-        lon_c_dual(dual_scalar_index+1) = lon_res
-        call find_voronoi_center_sphere(lat_c(point_4),lon_c(point_4),lat_c(point_1),lon_c(point_1), &
-                                        lat_c(point_3),lon_c(point_3),lat_res,lon_res)
-        lat_c_dual(dual_scalar_index) = lat_res
-        lon_c_dual(dual_scalar_index) = lon_res
-        
-        if (coord_1==coord_1_points_amount-1) then
-          call find_voronoi_center_sphere(lat_c(point_1),lon_c(point_1),lat_c(point_5),lon_c(point_5), &
-                                          lat_c(point_2),lon_c(point_2),lat_res,lon_res)
-          lat_c_dual(dual_scalar_index+2) = lat_res
-          lon_c_dual(dual_scalar_index+2) = lon_res
+    !$omp parallel do private(ji,point_1,point_2,point_3,point_4,point_5,point_6,dual_scalar_on_face_index, &
+    !$omp face_index, on_face_index,triangle_on_face_index,lspecial_case,llast_triangle,lpoints_downwards)
+    do ji=1,n_triangles
+    
+      
+      face_index = (ji - 1)/n_triangles_per_face
+      dual_scalar_on_face_index = ji - 1 - face_index*n_triangles_per_face
+      call find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id,triangle_on_face_index, &
+                                                                      lpoints_downwards,lspecial_case,llast_triangle)
+      
+      call find_triangle_edge_points(triangle_on_face_index,face_index,res_id,point_1,point_2,point_3,point_4,point_5,point_6, &
+                                     dual_scalar_on_face_index,face_vertices,face_edges,face_edges_reverse)
+      
+      if (.not. lspecial_case .and. .not. llast_triangle) then
+        if (lpoints_downwards) then
+          call find_voronoi_center_sphere(lat_c(point_1),lon_c(point_1),lat_c(point_2),lon_c(point_2), &
+                                          lat_c(point_3),lon_c(point_3),lat_c_dual(ji),lon_c_dual(ji))
+        else
           
-          if (coord_2==n_points_per_edge-1) then
-            call find_voronoi_center_sphere(lat_c(point_3),lon_c(point_3),lat_c(point_2),lon_c(point_2), &
-                                            lat_c(point_6),lon_c(point_6),lat_res,lon_res)
-            lat_c_dual(dual_scalar_index+3) = lat_res
-            lon_c_dual(dual_scalar_index+3) = lon_res
-          endif
+          call find_voronoi_center_sphere(lat_c(point_4),lon_c(point_4),lat_c(point_1),lon_c(point_1), &
+                                          lat_c(point_3),lon_c(point_3),lat_c_dual(ji),lon_c_dual(ji))
         endif
-        
       endif
+      
+      if (lspecial_case) then
+        call find_voronoi_center_sphere(lat_c(point_1),lon_c(point_1),lat_c(point_5),lon_c(point_5), &
+                                        lat_c(point_2),lon_c(point_2),lat_c_dual(ji),lon_c_dual(ji))
+      endif
+      
+      if (llast_triangle) then
+        call find_voronoi_center_sphere(lat_c(point_3),lon_c(point_3),lat_c(point_2),lon_c(point_2), &
+                                        lat_c(point_6),lon_c(point_6),lat_c_dual(ji),lon_c_dual(ji))
+      endif
+      
     enddo
     !$omp end parallel do
     
@@ -726,17 +720,17 @@ module mo_horizontal_generation
         face_index = (ji-1 - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
         on_face_index = ji-1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
         triangle_on_face_index = on_face_index/3
-        small_triangle_edge_index = on_face_index - 3*triangle_on_face_index
+        small_triangle_edge_index = on_face_index - 3*triangle_on_face_index + 1
         call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_1,coord_2,coord_1_points_amount)
-        if (small_triangle_edge_index==0) then
+        if (small_triangle_edge_index==1) then
           from_cell_dual(ji) = face_index*n_triangles_per_face + 2*triangle_on_face_index + coord_2 + 1
           to_cell_dual(ji) = from_cell_dual(ji) + 1
         endif
-        if (small_triangle_edge_index==1) then
+        if (small_triangle_edge_index==2) then
           from_cell_dual(ji) = face_index*n_triangles_per_face + 2*triangle_on_face_index + 1 + coord_2 + 1
           to_cell_dual(ji) = from_cell_dual(ji) + 1
         endif
-        if (small_triangle_edge_index==2) then
+        if (small_triangle_edge_index==3) then
           from_cell_dual(ji) = face_index*n_triangles_per_face + 2*triangle_on_face_index + 1 + coord_2 + 1
           to_cell_dual(ji) = from_cell_dual(ji) + 2*coord_1_points_amount
         endif
