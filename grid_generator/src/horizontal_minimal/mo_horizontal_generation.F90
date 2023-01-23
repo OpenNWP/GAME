@@ -16,8 +16,7 @@ module mo_horizontal_generation
                                            rad2deg,find_turn_angle,calc_triangle_area,find_voronoi_center_sphere, &
                                            find_global_normal
   use mo_discrete_coordinate_trafos, only: upscale_scalar_point,find_points_per_edge,inner_edge2neighbour_cells, &
-                                           find_coords_from_triangle_on_face_index,find_triangle_edge_points, &
-                                           find_triangle_edge_points_from_dual_scalar_on_face_index, &
+                                           find_coords_from_triangle_on_face_index,set_triangle_vertices, &
                                            find_triangle_on_face_index_from_dual_scalar_on_face_index
   
   implicit none
@@ -288,7 +287,8 @@ module mo_horizontal_generation
     integer  :: jk                         ! index of a triangle on a face of the icosahedron
     integer  :: jm                         ! used to loop along the lower discrete coordinate axis
     integer  :: res_id_local               ! locally used resolution ID, <= res_id
-    integer  :: n_triangles_per_face       ! number of triangles a face of the icosahedron has
+    integer  :: n_triangles_per_face_old   ! number of triangles a face of the icosahedron has before a refinement
+    integer  :: n_triangles_per_face_new   ! number of triangles a face of the icosahedron has after a refinement
     integer  :: base_index_down_triangle   ! index of a downward-pointing triangle on a face of the icosahedron
     integer  :: base_index_old             ! index of a triangle before a resolution-refinement
     integer  :: test_index                 ! used to check the function upscale_scalar_point
@@ -328,18 +328,19 @@ module mo_horizontal_generation
     do ji=1,n_basic_triangles
       ! refining the grid on this triangle surface from res_id_local-1 to res_id_local
       do res_id_local=1,res_id
-        n_triangles_per_face = 4**(res_id_local-1)
+        n_triangles_per_face_old = 4**(res_id_local-1)
+        n_triangles_per_face_new = 4**res_id_local
         
         ! OMP does not work here
         !!$omp parallel do private(jk,dual_scalar_on_face_index,point_1,point_2,point_3,lpoints_upwards,coord_1,coord_2,jm, &
         !!$omp vertex_old_1,vertex_old_2,vertex_old_3,triangle_on_face_index,lpoints_downwards,ldump,old_triangle_on_line_index, &
         !!$omp coord_1_points_amount,base_index_old,base_index_down_triangle,base_index_up_triangles,llast_triangle,points_per_edge)
-        do jk=1,n_triangles_per_face
+        do jk=1,n_triangles_per_face_old
           if (res_id_local==1) then
             dual_scalar_on_face_index = 1
-            call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji-1,res_id_local, &
-                                                                          point_1,point_2,point_3, &
-                                                                          face_vertices,face_edges,face_edges_reverse)
+            call set_triangle_vertices((ji-1)*n_triangles_per_face_new+dual_scalar_on_face_index+1,res_id_local, &
+                                       point_1,point_2,point_3, &
+                                       face_vertices,face_edges,face_edges_reverse)
             point_1 = upscale_scalar_point(res_id_local,point_1)
             point_2 = upscale_scalar_point(res_id_local,point_2)
             point_3 = upscale_scalar_point(res_id_local,point_3)
@@ -348,9 +349,9 @@ module mo_horizontal_generation
                                         point_1,point_2,point_3,lpoints_upwards,x_unit,y_unit,z_unit, &
                                         lat_c,lon_c)
           else
-            call find_triangle_edge_points_from_dual_scalar_on_face_index(jk-1,ji-1,res_id_local-1, &
-                                                                          vertex_old_1,vertex_old_2,vertex_old_3, &
-                                                                          face_vertices,face_edges,face_edges_reverse)
+            call set_triangle_vertices((ji-1)*n_triangles_per_face_old+jk,res_id_local-1, &
+                                       vertex_old_1,vertex_old_2,vertex_old_3, &
+                                       face_vertices,face_edges,face_edges_reverse)
             call find_triangle_on_face_index_from_dual_scalar_on_face_index(jk-1,res_id_local-1,triangle_on_face_index, &
                                                                             lpoints_downwards,ldump,llast_triangle)
             call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local-1,coord_1,coord_2, &
@@ -359,11 +360,11 @@ module mo_horizontal_generation
             base_index_old = 0
             base_index_down_triangle = 0
             base_index_up_triangles = base_index_down_triangle + 4*points_per_edge + 3
-            do jm=0,coord_2-1
-              coord_1_points_amount = points_per_edge - jm
+            do jm=1,coord_2
+              coord_1_points_amount = points_per_edge - jm + 1
               base_index_old = base_index_old + 2*coord_1_points_amount + 1
               base_index_down_triangle = base_index_down_triangle + 4*(2*coord_1_points_amount + 1)
-              base_index_up_triangles = base_index_down_triangle + 4*(points_per_edge-jm) + 3
+              base_index_up_triangles = base_index_down_triangle + 4*(points_per_edge-jm+1) + 3
             enddo
             if (llast_triangle) then
               base_index_old = base_index_old + 3
@@ -376,9 +377,9 @@ module mo_horizontal_generation
             else
               dual_scalar_on_face_index = base_index_up_triangles + 2*old_triangle_on_line_index
             endif
-            call find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,ji-1,res_id_local, &
-                                                                          point_1,point_2,point_3, &
-                                                                          face_vertices,face_edges,face_edges_reverse)
+            call set_triangle_vertices((ji-1)*n_triangles_per_face_new+dual_scalar_on_face_index+1,res_id_local, &
+                                       point_1,point_2,point_3, &
+                                       face_vertices,face_edges,face_edges_reverse)
             vertex_old_1 = upscale_scalar_point(res_id_local-1,vertex_old_1)
             vertex_old_2 = upscale_scalar_point(res_id_local-1,vertex_old_2)
             vertex_old_3 = upscale_scalar_point(res_id_local-1,vertex_old_3)
@@ -412,54 +413,20 @@ module mo_horizontal_generation
     integer,  intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
     
     ! local variables
-    integer  :: ji                             ! edge index
-    integer  :: point_1                        ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer  :: point_2                        ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer  :: point_3                        ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer  :: point_4                        ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer  :: point_5                        ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer  :: point_6                        ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer  :: dual_scalar_on_face_index      ! index of a dual scalar on a face of the icosahedron
-    integer  :: face_index                     ! index of a face of the icosahedron
-    integer  :: triangle_on_face_index         ! index of a downward triangle on a face of the icosahedron
-    logical  :: lspecial_case                  ! true only for the very last triangle along a coord_1-axis
-    logical  :: llast_triangle                 ! only true for the very last triangle on a face of the icosahedron
-    logical  :: lpoints_downwards              ! true if the triangle points downwards, otherwise false
+    integer  :: ji                             ! triangle index
+    integer  :: vertex_1                       ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer  :: vertex_2                       ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer  :: vertex_3                       ! one of the six vertices relevant for the up to four triangles computed around an edge
     real(wp) :: triangle_sum_unit_sphere       ! the sum of the areas of the triangles on the unit sphere (check quantity)
     real(wp) :: triangle_avg_unit_sphere_ideal ! the average area of a triangle
     
-    !$omp parallel do private(ji,point_1,point_2,point_3,point_4,point_5,point_6,dual_scalar_on_face_index,face_index, &
-    !$omp triangle_on_face_index,lspecial_case,llast_triangle,lpoints_downwards)
+    !$omp parallel do private(ji,vertex_1,vertex_2,vertex_3)
     do ji=1,n_triangles
       
-      face_index = (ji - 1)/n_triangles_per_face
-      dual_scalar_on_face_index = ji - 1 - face_index*n_triangles_per_face
-      call find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id,triangle_on_face_index, &
-                                                                      lpoints_downwards,lspecial_case,llast_triangle)
+      call set_triangle_vertices(ji,res_id,vertex_1,vertex_2,vertex_3,face_vertices,face_edges,face_edges_reverse)
+      triangle_face_unit_sphere(ji) = calc_triangle_area(lat_c(vertex_1),lon_c(vertex_1),lat_c(vertex_2),lon_c(vertex_2), &
+                                                         lat_c(vertex_3),lon_c(vertex_3))
       
-      call find_triangle_edge_points(triangle_on_face_index,face_index,res_id,point_1,point_2,point_3,point_4,point_5,point_6, &
-                                     dual_scalar_on_face_index,face_vertices,face_edges,face_edges_reverse)
-      
-      if (.not. lspecial_case .and. .not. llast_triangle) then
-        if (lpoints_downwards) then
-          triangle_face_unit_sphere(ji) = calc_triangle_area(lat_c(point_1),lon_c(point_1),lat_c(point_2),lon_c(point_2), &
-                                                             lat_c(point_3),lon_c(point_3))
-        else
-          triangle_face_unit_sphere(ji) = calc_triangle_area(lat_c(point_4),lon_c(point_4),lat_c(point_1),lon_c(point_1), &
-                                                             lat_c(point_3),lon_c(point_3))
-        endif
-      endif
-      
-      if (lspecial_case) then
-        triangle_face_unit_sphere(ji) = calc_triangle_area(lat_c(point_1),lon_c(point_1),lat_c(point_5),lon_c(point_5), &
-                                                           lat_c(point_2),lon_c(point_2))
-      endif
-      
-      if (llast_triangle) then
-        triangle_face_unit_sphere(ji) = calc_triangle_area(lat_c(point_3),lon_c(point_3),lat_c(point_2),lon_c(point_2), &
-                                                           lat_c(point_6),lon_c(point_6))
-      endif
-        
     enddo
     !$omp end parallel do
     
@@ -549,54 +516,17 @@ module mo_horizontal_generation
     integer,  intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
     
     ! local variables
-    integer  :: ji                        ! edge index
-    integer  :: point_1                   ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer  :: point_2                   ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer  :: point_3                   ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer  :: point_4                   ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer  :: point_5                   ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer  :: point_6                   ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer  :: dual_scalar_on_face_index ! index of a dual cell on the face of the icosahedron
-    integer  :: face_index                ! index of a face of the icosahedron
-    integer  :: on_face_index             ! index of an edge on a face of the icosahedron
-    integer  :: triangle_on_face_index    ! index of a triangle on a face of the icosahedron
-    logical  :: lspecial_case             ! true only for the very last triangle along a coord_1-axis
-    logical  :: llast_triangle            ! only true for the very last triangle on a face of the icosahedron
-    logical  :: lpoints_downwards         ! true if the triangle points downwards, otherwise false
+    integer  :: ji       ! edge index
+    integer  :: vertex_1 ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer  :: vertex_2 ! one of the six vertices relevant for the up to four triangles computed around an edge
+    integer  :: vertex_3 ! one of the six vertices relevant for the up to four triangles computed around an edge
     
-    !$omp parallel do private(ji,point_1,point_2,point_3,point_4,point_5,point_6,dual_scalar_on_face_index, &
-    !$omp face_index, on_face_index,triangle_on_face_index,lspecial_case,llast_triangle,lpoints_downwards)
+    !$omp parallel do private(ji,vertex_1,vertex_2,vertex_3)
     do ji=1,n_triangles
-    
       
-      face_index = (ji - 1)/n_triangles_per_face
-      dual_scalar_on_face_index = ji - 1 - face_index*n_triangles_per_face
-      call find_triangle_on_face_index_from_dual_scalar_on_face_index(dual_scalar_on_face_index,res_id,triangle_on_face_index, &
-                                                                      lpoints_downwards,lspecial_case,llast_triangle)
-      
-      call find_triangle_edge_points(triangle_on_face_index,face_index,res_id,point_1,point_2,point_3,point_4,point_5,point_6, &
-                                     dual_scalar_on_face_index,face_vertices,face_edges,face_edges_reverse)
-      
-      if (.not. lspecial_case .and. .not. llast_triangle) then
-        if (lpoints_downwards) then
-          call find_voronoi_center_sphere(lat_c(point_1),lon_c(point_1),lat_c(point_2),lon_c(point_2), &
-                                          lat_c(point_3),lon_c(point_3),lat_c_dual(ji),lon_c_dual(ji))
-        else
-          
-          call find_voronoi_center_sphere(lat_c(point_4),lon_c(point_4),lat_c(point_1),lon_c(point_1), &
-                                          lat_c(point_3),lon_c(point_3),lat_c_dual(ji),lon_c_dual(ji))
-        endif
-      endif
-      
-      if (lspecial_case) then
-        call find_voronoi_center_sphere(lat_c(point_1),lon_c(point_1),lat_c(point_5),lon_c(point_5), &
-                                        lat_c(point_2),lon_c(point_2),lat_c_dual(ji),lon_c_dual(ji))
-      endif
-      
-      if (llast_triangle) then
-        call find_voronoi_center_sphere(lat_c(point_3),lon_c(point_3),lat_c(point_2),lon_c(point_2), &
-                                        lat_c(point_6),lon_c(point_6),lat_c_dual(ji),lon_c_dual(ji))
-      endif
+      call set_triangle_vertices(ji,res_id,vertex_1,vertex_2,vertex_3,face_vertices,face_edges,face_edges_reverse)
+      call find_voronoi_center_sphere(lat_c(vertex_1),lon_c(vertex_1),lat_c(vertex_2),lon_c(vertex_2), &
+                                      lat_c(vertex_3),lon_c(vertex_3),lat_c_dual(ji),lon_c_dual(ji))
       
     enddo
     !$omp end parallel do
@@ -634,11 +564,11 @@ module mo_horizontal_generation
     !$omp coord_1_points_amount,first_face_found,face_index,edge_rel_to_face_1,edge_rel_to_face_2,face_index_1, &
     !$omp face_index_2,triangle_on_face_index)
     do ji=1,n_edges
-      edge_rel_to_face_1 = 0
-      edge_rel_to_face_2 = 0
-      face_index_1 = 0
-      face_index_2 = 0
-      triangle_on_face_index = 0
+      edge_rel_to_face_1 = 1
+      edge_rel_to_face_2 = 1
+      face_index_1 = 1
+      face_index_2 = 1
+      triangle_on_face_index = 1
       if (ji<=n_basic_edges*(n_points_per_edge+1)) then
         edge_index = (ji-1)/(n_points_per_edge+1)
         on_edge_index = ji - 1 - edge_index*(n_points_per_edge+1)
@@ -646,76 +576,76 @@ module mo_horizontal_generation
         do jk=1,n_basic_triangles
           if (face_edges(jk,1)-1==edge_index .or. face_edges(jk,2)-1==edge_index .or. face_edges(jk,3)-1==edge_index) then
             if (first_face_found==0) then
-              face_index_1 = jk - 1
+              face_index_1 = jk
               first_face_found = 1
             else
-              face_index_2 = jk - 1
+              face_index_2 = jk
             endif
           endif
         enddo
         
-        if (face_edges(face_index_1+1,1)-1==edge_index) then
+        if (face_edges(face_index_1,1)-1==edge_index) then
           edge_rel_to_face_1 = 1
         endif
-        if (face_edges(face_index_1+1,2)-1==edge_index) then
+        if (face_edges(face_index_1,2)-1==edge_index) then
           edge_rel_to_face_1 = 2
         endif
-        if (face_edges(face_index_1+1,3)-1==edge_index) then
+        if (face_edges(face_index_1,3)-1==edge_index) then
           edge_rel_to_face_1 = 3
         endif
-        if (face_edges(face_index_2+1,1)-1==edge_index) then
+        if (face_edges(face_index_2,1)-1==edge_index) then
           edge_rel_to_face_2 = 1
         endif
-        if (face_edges(face_index_2+1,2)-1==edge_index) then
+        if (face_edges(face_index_2,2)-1==edge_index) then
           edge_rel_to_face_2 = 2
         endif
-        if (face_edges(face_index_2+1,3)-1==edge_index) then
+        if (face_edges(face_index_2,3)-1==edge_index) then
           edge_rel_to_face_2 = 3
         endif
         if (edge_rel_to_face_1==1) then
-          if (face_edges_reverse(face_index_1+1,edge_rel_to_face_1)==0) then
+          if (face_edges_reverse(face_index_1,edge_rel_to_face_1)==0) then
             triangle_on_face_index = 2*on_edge_index
           else
             triangle_on_face_index = 2*n_points_per_edge - 2*on_edge_index
           endif
         endif
        if (edge_rel_to_face_1==2) then
-         if (face_edges_reverse(face_index_1+1,edge_rel_to_face_1)==0) then
+         if (face_edges_reverse(face_index_1,edge_rel_to_face_1)==0) then
             triangle_on_face_index = -1 + (on_edge_index+1)*(2*n_points_per_edge - on_edge_index + 1)
           else
             triangle_on_face_index = n_triangles_per_face - on_edge_index*on_edge_index - 1
           endif
         endif
         if (edge_rel_to_face_1==3) then
-          if (face_edges_reverse(face_index_1+1,edge_rel_to_face_1)==0) then
+          if (face_edges_reverse(face_index_1,edge_rel_to_face_1)==0) then
             triangle_on_face_index = n_triangles_per_face - 1 - on_edge_index*(on_edge_index+2)
           else
             triangle_on_face_index = on_edge_index*(2*n_points_per_edge + 2 - on_edge_index)
           endif
         endif
-        to_cell_dual(ji) = face_index_1*n_triangles_per_face + triangle_on_face_index + 1
+        to_cell_dual(ji) = (face_index_1-1)*n_triangles_per_face + triangle_on_face_index + 1
         if (edge_rel_to_face_2==1) then
-          if (face_edges_reverse(face_index_2+1,edge_rel_to_face_2)==0) then
+          if (face_edges_reverse(face_index_2,edge_rel_to_face_2)==0) then
             triangle_on_face_index = 2*on_edge_index
           else
             triangle_on_face_index = 2*n_points_per_edge - 2*on_edge_index
           endif
         endif
         if (edge_rel_to_face_2==2) then
-          if (face_edges_reverse(face_index_2+1,edge_rel_to_face_2)==0) then
+          if (face_edges_reverse(face_index_2,edge_rel_to_face_2)==0) then
             triangle_on_face_index = -1 + (on_edge_index + 1)*(2*n_points_per_edge - on_edge_index + 1)
           else
             triangle_on_face_index = n_triangles_per_face - on_edge_index*on_edge_index - 1
           endif
         endif
         if (edge_rel_to_face_2==3) then
-          if (face_edges_reverse(face_index_2+1,edge_rel_to_face_2)==0) then
+          if (face_edges_reverse(face_index_2,edge_rel_to_face_2)==0) then
             triangle_on_face_index = n_triangles_per_face - 1 - on_edge_index*(on_edge_index + 2)
           else
             triangle_on_face_index = on_edge_index*(2*n_points_per_edge + 2 - on_edge_index)
           endif
         endif
-        from_cell_dual(ji) = face_index_2*n_triangles_per_face + triangle_on_face_index + 1
+        from_cell_dual(ji) = (face_index_2-1)*n_triangles_per_face + triangle_on_face_index + 1
       else
         face_index = (ji-1 - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
         on_face_index = ji-1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
@@ -844,13 +774,13 @@ module mo_horizontal_generation
     ! This subroutine reads the arrays that fully define the horizontal grid from a previously created grid file.
     ! This is an optional feature.
     
-    real(wp),           intent(out) :: lat_c(n_cells)          ! latitudes of the cell centers
-    real(wp),           intent(out) :: lon_c(n_cells)          ! longitudes of the cell centers
-    integer,            intent(out) :: from_cell(n_edges)      ! cell indices in the from-directions of the horizontal vectors
-    integer,            intent(out) :: to_cell(n_edges)        ! cell indices in the from-directions of the horizontal vectors
-    integer,            intent(out) :: from_cell_dual(n_edges) ! dual cell indices in the from-directions of the horizontal dual vectors
-    integer,            intent(out) :: to_cell_dual(n_edges)   ! dual cell indices in the to-directions of the horizontal dual vectors
-    integer,            intent(out) :: n_lloyd_read_file       ! number of Lloyd iterations of the input grid
+    real(wp), intent(out) :: lat_c(n_cells)          ! latitudes of the cell centers
+    real(wp), intent(out) :: lon_c(n_cells)          ! longitudes of the cell centers
+    integer,  intent(out) :: from_cell(n_edges)      ! cell indices in the from-directions of the horizontal vectors
+    integer,  intent(out) :: to_cell(n_edges)        ! cell indices in the from-directions of the horizontal vectors
+    integer,  intent(out) :: from_cell_dual(n_edges) ! dual cell indices in the from-directions of the horizontal dual vectors
+    integer,  intent(out) :: to_cell_dual(n_edges)   ! dual cell indices in the to-directions of the horizontal dual vectors
+    integer,  intent(out) :: n_lloyd_read_file       ! number of Lloyd iterations of the input grid
     
     ! local variables
     integer :: ncid                 ! netCDF ID of the file
