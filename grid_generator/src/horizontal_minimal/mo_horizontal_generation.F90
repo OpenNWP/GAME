@@ -15,8 +15,8 @@ module mo_horizontal_generation
   use mo_geodesy,                    only: find_geodetic_direction,find_between_point,normalize_cartesian,find_geos, &
                                            rad2deg,find_turn_angle,calc_triangle_area,find_voronoi_center_sphere, &
                                            find_global_normal
-  use mo_discrete_coordinate_trafos, only: upscale_scalar_point,find_points_per_edge,find_triangle_indices_from_h_vector_index, &
-                                           find_coords_from_triangle_on_face_index, &
+  use mo_discrete_coordinate_trafos, only: upscale_scalar_point,find_points_per_edge,inner_edge2neighbour_cells, &
+                                           find_coords_from_triangle_on_face_index,find_triangle_edge_points, &
                                            find_triangle_edge_points_from_dual_scalar_on_face_index, &
                                            find_triangle_on_face_index_from_dual_scalar_on_face_index
   
@@ -427,9 +427,14 @@ module mo_horizontal_generation
     
     do ji=1,n_edges
       if (ji>n_basic_edges*(n_points_per_edge+1)) then
-        call find_triangle_indices_from_h_vector_index(ji-1,point_1,point_2,point_3,point_4,point_5,point_6, &
-                                                       dual_scalar_on_face_index,small_triangle_edge_index, &
-                                                       face_edges,face_vertices,face_edges_reverse)
+        
+        face_index = (ji-1 - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
+        on_face_index = ji-1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
+        triangle_on_face_index = on_face_index/3
+        small_triangle_edge_index = on_face_index - 3*triangle_on_face_index
+        call find_triangle_edge_points(triangle_on_face_index,face_index,res_id,point_1,point_2,point_3,point_4,point_5,point_6, &
+                                       dual_scalar_on_face_index,face_vertices,face_edges,face_edges_reverse)
+                                   
         face_index = (ji - 1 - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
         on_face_index = ji - 1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
         triangle_on_face_index = on_face_index/3
@@ -487,22 +492,15 @@ module mo_horizontal_generation
     integer, intent(in)  :: edge_vertices(n_basic_edges,2)          ! relation between edges and vertices
     
     ! local variables
-    integer :: ji                        ! edge index
-    integer :: edge_index                ! index of an edge of the icosahedron
-    integer :: on_edge_index             ! index of an edge on an edge of the icosahedron
-    integer :: point_1                   ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer :: point_2                   ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer :: point_3                   ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer :: point_4                   ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer :: point_5                   ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer :: point_6                   ! one of the six vertices relevant for the up to four triangles computed around an edge
-    integer :: dual_scalar_on_face_index ! index of a dual cell on a face of the icosahedron
-    integer :: small_triangle_edge_index ! identifies a vertex of a dual cell
+    integer :: ji            ! edge index
+    integer :: edge_index    ! index of an edge of the icosahedron
+    integer :: on_edge_index ! index of an edge on an edge of the icosahedron
     
-    !$omp parallel do private(ji,edge_index,on_edge_index,point_1,point_2,point_3,point_4,point_5,point_6, &
-    !$omp dual_scalar_on_face_index,small_triangle_edge_index)
+    !$omp parallel do private(ji,edge_index,on_edge_index)
+    ! edges
     do ji=1,n_edges
       if (ji<=n_basic_edges*(n_points_per_edge+1)) then
+        
         edge_index = (ji-1)/(n_points_per_edge+1)
         on_edge_index = ji-1 - edge_index*(n_points_per_edge+1)
         if(on_edge_index==0) then
@@ -515,22 +513,12 @@ module mo_horizontal_generation
           from_cell(ji) = n_pentagons + edge_index*n_points_per_edge + on_edge_index
           to_cell(ji) = n_pentagons + edge_index*n_points_per_edge + on_edge_index + 1
         endif
+      
+      ! inner domain of a face of the icosahedron
       else
-        call find_triangle_indices_from_h_vector_index(ji-1,point_1,point_2,point_3,point_4,point_5,point_6, &
-                                                       dual_scalar_on_face_index, &
-                                                       small_triangle_edge_index,face_edges,face_vertices,face_edges_reverse)
-        if (small_triangle_edge_index==0) then
-          from_cell(ji) = point_1
-          to_cell(ji) = point_3
-        endif
-        if (small_triangle_edge_index==1) then
-          from_cell(ji) = point_1
-          to_cell(ji) = point_2
-        endif
-        if (small_triangle_edge_index==2) then
-          from_cell(ji) = point_3
-          to_cell(ji) = point_2
-        endif
+        
+        call inner_edge2neighbour_cells(ji,from_cell(ji),to_cell(ji),face_edges,face_vertices,face_edges_reverse)
+        
       endif
     enddo
     !$omp end parallel do
@@ -575,9 +563,14 @@ module mo_horizontal_generation
     !$omp on_face_index,triangle_on_face_index)
     do ji=1,n_edges
       if (ji>n_basic_edges*(n_points_per_edge+1)) then
-        call find_triangle_indices_from_h_vector_index(ji-1,point_1,point_2,point_3,point_4,point_5,point_6, &
-                                                       dual_scalar_on_face_index, &
-                                                       small_triangle_edge_index,face_edges,face_vertices,face_edges_reverse)
+        
+        face_index = (ji-1 - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
+        on_face_index = ji-1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
+        triangle_on_face_index = on_face_index/3
+        small_triangle_edge_index = on_face_index - 3*triangle_on_face_index
+        call find_triangle_edge_points(triangle_on_face_index,face_index,res_id,point_1,point_2,point_3,point_4,point_5,point_6, &
+                                       dual_scalar_on_face_index,face_vertices,face_edges,face_edges_reverse)
+        
         face_index = (ji-1 - n_basic_edges*(n_points_per_edge+1))/n_vectors_per_inner_face
         on_face_index = ji-1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
         triangle_on_face_index = on_face_index/3
