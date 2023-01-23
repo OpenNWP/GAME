@@ -164,8 +164,8 @@ module mo_discrete_coordinate_trafos
   end subroutine find_triangle_edge_points
 
   subroutine find_triangle_edge_points_from_dual_scalar_on_face_index(dual_scalar_on_face_index,face_index,res_id_local, &
-                                                                      point_1,point_2,point_3,face_vertices, &
-                                                                      face_edges,face_edges_reverse)
+                                                                      point_1,point_2,point_3, &
+                                                                      face_vertices,face_edges,face_edges_reverse)
     
     ! This subroutine computes the vertices of a triangle from its dual scalar on face index.
     
