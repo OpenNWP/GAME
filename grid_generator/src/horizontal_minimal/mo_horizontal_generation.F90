@@ -458,14 +458,14 @@ module mo_horizontal_generation
     
   end subroutine calc_triangle_areas_unit_sphere
 
-  subroutine set_from_to_cell(from_cell,to_cell,face_edges,face_edges_reverse,face_vertices,edge_vertices)
+  subroutine set_from_to_cell(from_cell,to_cell,face_edges,face_vertices,face_edges_reverse,edge_vertices)
     
     ! This subroutine computes the neighbourship relationships of the horizontal vectors.
     
     integer, intent(out) :: from_cell(n_edges)                      ! cells in the from-directions of the vectors
     integer, intent(out) :: to_cell(n_edges)                        ! cells in the to-directions of the vectors
-    integer, intent(in)  :: face_vertices(n_basic_edges,3)          ! relation between faces and vertices
     integer, intent(in)  :: face_edges(n_basic_triangles,3)         ! relation between faces and edges
+    integer, intent(in)  :: face_vertices(n_basic_triangles,3)      ! relation between faces and vertices
     integer, intent(in)  :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
     integer, intent(in)  :: edge_vertices(n_basic_edges,2)          ! relation between edges and vertices
     

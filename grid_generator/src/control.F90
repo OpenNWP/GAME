@@ -334,7 +334,7 @@ program control
     call generate_horizontal_generators(lat_ico,lon_ico,lat_c,lon_c,x_unit,y_unit,z_unit,face_edges_reverse,face_edges, &
                                         face_vertices)
     ! By setting the from_cell and to_cell arrrays,the discrete positions of the vector points are determined.
-    call set_from_to_cell(from_cell,to_cell,face_edges,face_edges_reverse,face_vertices,edge_vertices)
+    call set_from_to_cell(from_cell,to_cell,face_edges,face_vertices,face_edges_reverse,edge_vertices)
     ! By setting the from_cell_dual and to_cell_dual arrrays,the discrete positions of the dual scalar points are determined.
     call set_from_to_cell_dual(from_cell_dual,to_cell_dual,face_edges,face_edges_reverse)
   else
