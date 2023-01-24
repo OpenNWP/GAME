@@ -2,8 +2,8 @@
 ! Github repository: https://github.com/OpenNWP/GAME
 
 module mo_grid_nml
-
-  ! This is the namelists the configures the basic run properties of a model integration.
+  
+  ! This is the namelist that configures the properties of the grid to create.
   
   use mo_definitions,     only: wp
   use mo_constants,       only: r_e,M_PI
@@ -47,9 +47,9 @@ module mo_grid_nml
   
   namelist /grid/res_id,n_layers,toa,n_oro_layers,stretching_parameter,radius_rescale,n_avg_points,oro_id, &
                  n_lloyd_iterations,luse_scalar_h_file,scalar_h_file,lsleve,luse_sfc_file
-
+  
   contains
-
+  
   subroutine grid_nml_setup()
     
     ! local variables
@@ -113,7 +113,7 @@ module mo_grid_nml
       call exit(1)
     endif
     
-    ! cechking wether the stretching parameter is in a valid range
+    ! checking wether the stretching parameter is in a valid range
     if (stretching_parameter<1._wp) then
       write(*,*) "stretching_parameter must be>=1."
       write(*,*) "Aborting."
