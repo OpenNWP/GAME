@@ -17,6 +17,7 @@ src/mo_grid_nml.F90
 ../shared/mo_geodesy.F90
 ../shared/mo_various_helpers.F90
 src/horizontal_minimal/mo_horizontal_generation.F90
+src/horizontal_minimal/mo_explicit_neighbourships.F90
 src/horizontal_minimal/mo_discrete_coordinate_trafos.F90
 src/mo_optimize.F90
 src/mo_derived_hor_quantities.F90

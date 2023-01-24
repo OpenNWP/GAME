@@ -12,12 +12,12 @@ module mo_horizontal_generation
   use mo_grid_nml,                   only: n_cells,n_edges,radius_rescale,n_triangles,orth_criterion_deg, &
                                            n_lloyd_iterations,n_pentagons,n_basic_edges,n_triangles_per_face,n_triangles, &
                                            n_basic_triangles,n_vectors_per_inner_face,n_points_per_edge,res_id,scalar_h_file
-  use mo_geodesy,                    only: find_geodetic_direction,find_between_point,normalize_cartesian,find_geos, &
-                                           rad2deg,find_turn_angle,calc_triangle_area,find_voronoi_center_sphere, &
+  use mo_geodesy,                    only: find_between_point,normalize_cartesian,find_geos, &
+                                           calc_triangle_area,find_voronoi_center_sphere, &
                                            find_global_normal
-  use mo_discrete_coordinate_trafos, only: upscale_scalar_point,find_points_per_edge,inner_edge2neighbour_cells, &
-                                           find_coords_from_triangle_on_face_index,set_triangle_vertices, &
-                                           find_triangle_on_face_index_from_dual_scalar_on_face_index
+  use mo_explicit_neighbourships,    only: inner_edge2neighbour_cells,set_triangle_vertices
+  use mo_discrete_coordinate_trafos, only: upscale_scalar_point,get_points_per_edge,down_triangle_index2coords, &
+                                           triangle_on_face_index2down_triangle
   
   implicit none
   
@@ -352,11 +352,11 @@ module mo_horizontal_generation
             call set_triangle_vertices((ji-1)*n_triangles_per_face_old+jk,res_id_local-1, &
                                        vertex_old_1,vertex_old_2,vertex_old_3, &
                                        face_vertices,face_edges,face_edges_reverse)
-            call find_triangle_on_face_index_from_dual_scalar_on_face_index(jk-1,res_id_local-1,triangle_on_face_index, &
+            call triangle_on_face_index2down_triangle(jk-1,res_id_local-1,triangle_on_face_index, &
                                                                             lpoints_downwards,ldump,llast_triangle)
-            call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id_local-1,coord_1,coord_2, &
+            call down_triangle_index2coords(triangle_on_face_index,res_id_local-1,coord_1,coord_2, &
                                                          coord_1_points_amount)
-            points_per_edge = find_points_per_edge(res_id_local-1)
+            points_per_edge = get_points_per_edge(res_id_local-1)
             base_index_old = 0
             base_index_down_triangle = 0
             base_index_up_triangles = base_index_down_triangle + 4*points_per_edge + 3
@@ -651,7 +651,7 @@ module mo_horizontal_generation
         on_face_index = ji-1 - (n_basic_edges*(n_points_per_edge+1) + face_index*n_vectors_per_inner_face)
         triangle_on_face_index = on_face_index/3
         small_triangle_edge_index = on_face_index - 3*triangle_on_face_index + 1
-        call find_coords_from_triangle_on_face_index(triangle_on_face_index,res_id,coord_1,coord_2,coord_1_points_amount)
+        call down_triangle_index2coords(triangle_on_face_index,res_id,coord_1,coord_2,coord_1_points_amount)
         if (small_triangle_edge_index==1) then
           from_cell_dual(ji) = face_index*n_triangles_per_face + 2*triangle_on_face_index + coord_2 + 1
           to_cell_dual(ji) = from_cell_dual(ji) + 1
