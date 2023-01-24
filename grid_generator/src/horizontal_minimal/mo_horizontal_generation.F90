@@ -3,7 +3,7 @@
 
 module mo_horizontal_generation
   
-  ! In this file,the horizontal grid generation procedure is stored.
+  ! In this module, the horizontal grid generation procedure is stored.
 
   use netcdf
   use mo_phys_sfc_properties,        only: nc_check
@@ -25,14 +25,14 @@ module mo_horizontal_generation
   
   subroutine build_icosahedron(lat_ico,lon_ico,edge_vertices,face_vertices,face_edges,face_edges_reverse)
     
+    ! This subroutine sets the properties of the icosahedron the global grid is based on (angles and indices of faces,edges and vertices).
+    
     real(wp), intent(out) :: lat_ico(12)                             ! latitudes of the vertices of the icosahedron
     real(wp), intent(out) :: lon_ico(12)                             ! longitudes of the vertices of the icosahedron
     integer,  intent(out) :: edge_vertices(n_basic_edges,2)          ! relation between edges and vertices
     integer,  intent(out) :: face_vertices(n_basic_triangles,3)      ! relation between faces and vertices
     integer,  intent(out) :: face_edges(n_basic_triangles,3)         ! relation between faces and edges
     integer,  intent(out) :: face_edges_reverse(n_basic_triangles,3) ! indicates wether an edge of a face is reversed relative to the standard direction
-    
-    ! This subroutine sets the properties of the icosahedron the global grid is based on (angles and indices of faces,edges and vertices).
     
     ! local variables
     integer :: ji                                    ! index of a property of the icosahedron

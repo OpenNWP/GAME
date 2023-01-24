@@ -3,7 +3,7 @@
 
 module mo_derived_hor_quantities
   
-  ! This module contains helper functions concerned with simple algebraic operations on vectors.
+  ! This module contains subroutines which compute derived quantities of the horizontal grid based on those quantities which have explicitly been set.
 
   use mo_definitions,     only: wp
   use mo_grid_nml,        only: n_cells,n_edges,radius_rescale,n_triangles,orth_criterion_deg,n_levels, &
@@ -20,7 +20,7 @@ module mo_derived_hor_quantities
   subroutine set_dual_vector_h_atttributes(lat_c_dual,lat_e,direction_dual,lon_e,to_cell_dual, &
                                            from_cell_dual,lon_c_dual,rel_on_line_dual)
     
-    ! This function computes the following two properties of horizontal dual vectors:
+    ! This subroutine computes the following two properties of horizontal dual vectors:
     ! - where they are placed in between the dual scalar points
     ! - in which direction they point
     
