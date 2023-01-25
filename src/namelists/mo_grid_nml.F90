@@ -2,8 +2,8 @@
 ! Github repository: https://github.com/OpenNWP/GAME
 
 module mo_grid_nml
-
-  ! This is the namelists the configures the basic run properties of a model integration.
+  
+  ! This is the namelist that configures the grid properties of a model integration.
   
   use mo_definitions, only: wp
   
@@ -43,9 +43,9 @@ module mo_grid_nml
 #ifdef COMPILE_TIME_CONFIG
   namelist /grid/oro_id
 #endif
-
+  
   contains
-
+  
   subroutine grid_nml_setup()
     
     ! local variables

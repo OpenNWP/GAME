@@ -3,8 +3,8 @@
 
 module mo_write_output
 
-  ! In this module,the output is written to netCDF files and integrals are written to text files if configured that way.
-  ! In addition to that,some postprocessing diagnostics are also calculated here.
+  ! In this module the output is written to netCDF files and integrals are written to text files if configured that way.
+  ! In addition to that, some postprocessing diagnostics are also calculated here.
   
   use netcdf
   use mo_definitions,            only: wp,t_grid,t_state,t_diag
@@ -30,9 +30,9 @@ module mo_write_output
   contains
   
   subroutine write_out(state,diag,grid,wind_h_lowest_layer_array,t_init,t_write,ltotally_first_step)
-  
+    
     ! This subroutine is the central subroutine for writing the output.
-  
+    
     type(t_state), intent(in)    :: state                                                      ! state variables
     type(t_diag),  intent(inout) :: diag                                                       ! diagnostic quantities
     type(t_grid),  intent(in)    :: grid                                                       ! grid quantities
@@ -40,7 +40,7 @@ module mo_write_output
     real(wp),      intent(in)    :: t_write                                                    ! epoch timestamp of the model output
     real(wp),      intent(in)    :: wind_h_lowest_layer_array(n_edges,n_output_steps_10m_wind) ! horizontal wind in the lowest layer (needed for computing 10 m wind average)
     logical,       intent(in)    :: ltotally_first_step                                        ! switch indicating the very first step of the model run
-  
+    
     ! local variables
     logical               :: lcontains_nan                     ! boolean indicating the presence of NaNs in the output, leading to a model crash
     integer               :: ji                                ! cell or edge index
@@ -169,7 +169,7 @@ module mo_write_output
     character(len=64)     :: output_file                       ! name of the output file
     character(len=64)     :: output_file_p_level               ! name of the file for output on pressure levels
     character(len=64)     :: varname                           ! placeholder for variable names
-  
+    
     write(*,*) "Writing output ..."
     
     ! checking for nan values
@@ -936,7 +936,7 @@ module mo_write_output
   subroutine write_out_integrals(state,diag,grid,time_since_init)
     
     ! This subroutine writes out fundamental integral properties of the atmosphere to a text file.
-   
+    
     type(t_grid),  intent(in) :: grid            ! grid properties
     type(t_diag),  intent(in) :: diag            ! diagnostic quantities
     type(t_state), intent(in) :: state           ! the state to use for writing the integrals
@@ -970,7 +970,7 @@ module mo_write_output
       endif
     enddo
     close(1)
-        
+    
     ! density times virtual potential temperature
     if (time_since_init==0._wp) then
       open(1,file="potential_temperature_density",action="write")
@@ -982,7 +982,7 @@ module mo_write_output
     !$omp end parallel workshare
     write(1,fmt="(F20.3,F30.3)") time_since_init,global_integral
     close(1)
-        
+    
     ! energies
     if (time_since_init==0._wp) then
       open(1,file="energy",action="write")
@@ -1012,7 +1012,7 @@ module mo_write_output
     close(1)
     
   end subroutine write_out_integrals
-
+  
   function pseudopotential_temperature(state,diag,ji,jl,grid)
     
     ! This function returns the pseudopotential temperature, which is needed for diagnozing CAPE.

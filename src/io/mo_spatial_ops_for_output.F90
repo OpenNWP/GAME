@@ -3,7 +3,7 @@
 
 module mo_spatial_ops_for_output
 
-  ! In this module, those spatial operators are collected which are only needed for the output.
+  ! In this module those spatial operators are collected which are only needed for the output.
   
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,           only: n_cells,n_edges,n_layers,n_pentagons,n_levels,n_lat_io_points,n_lon_io_points
@@ -13,7 +13,7 @@ module mo_spatial_ops_for_output
   implicit none
   
   contains
-
+  
   subroutine inner_product_tangential(in_field_1_h,in_field_1_v,in_field_2_h,in_field_2_v,out_field,grid)
     
     ! This subroutine computes the inner product of the two vector fields in_field_1 and in_field_2.
@@ -55,7 +55,7 @@ module mo_spatial_ops_for_output
     !$omp end parallel do
     
   end subroutine inner_product_tangential
-
+  
   subroutine epv_diagnostics(state,diag,epv,grid)
     
     ! This subroutine diagnozes Ertel's potential vorticity (EPV).
@@ -162,9 +162,9 @@ module mo_spatial_ops_for_output
     deallocate(grad_pot_temp_v)
     deallocate(pot_vort_as_tangential_vector_field_h)
     deallocate(pot_vort_v_at_levels)
-  
+    
   end subroutine epv_diagnostics
-
+  
   subroutine edges_to_cells_lowest_layer(in_field,out_field,grid)
     
     ! This subroutine averages a horizontal vector field (defined in the lowest layer) from edges to centers.
