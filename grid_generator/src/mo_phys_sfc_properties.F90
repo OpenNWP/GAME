@@ -559,7 +559,7 @@ module mo_phys_sfc_properties
       
     endif
     
-    ! giving the user some information on physical grid quantities
+    ! giving the user some information on physical surface quantities
     
     !$omp parallel workshare
     dq_value = minval(land_fraction)
