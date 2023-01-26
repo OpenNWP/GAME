@@ -2,9 +2,9 @@
 ! Github repository: https://github.com/OpenNWP/GAME
 
 module mo_manage_radiation_calls
-
+  
   ! This module manages the calls to the radiation routines.
-
+  
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,         only: n_cells,n_layers,n_levels
   use mo_rad_nml,          only: n_cells_rad,n_rad_blocks,rad_config,n_no_cond_rad_layers,n_cells_rad_last,radiation_dtime
@@ -12,7 +12,7 @@ module mo_manage_radiation_calls
   use mo_surface_nml,      only: nsoillays
   use mo_held_suarez,      only: held_suar
   use mo_rrtmgp_coupler,   only: calc_radiative_flux_convergence
-
+  
   implicit none
   
   contains
@@ -20,12 +20,12 @@ module mo_manage_radiation_calls
   subroutine update_rad_fluxes(state,diag,grid,time_coordinate)
     
     ! This subroutine manages the calls to RTE+RRTMGP and the Held-Suarez interface.
-  
+    
     type(t_state), intent(in)    :: state           ! state variables to use for updating the radiative fluxes
     type(t_diag),  intent(inout) :: diag            ! diagnostic quantities to use for updating the radiative fluxes
     type(t_grid),  intent(in)    :: grid            ! grid quantities
     real(wp),      intent(in)    :: time_coordinate ! epoch timestamp (needed for computing the zenith angle)
-  
+    
     ! local variables
     integer               :: ji                ! cell index
     integer               :: rad_block_index   ! radiation block index (for OMP parallelization)
@@ -98,7 +98,7 @@ module mo_manage_radiation_calls
       rho = 0._wp
       temp = 0._wp
       rad_tend = 0._wp
-    
+      
       ! remapping all the arrays
       call create_rad_array_scalar_h(grid%lat_c,lat_scal,rad_block_index,n_cells_rad_used)
       call create_rad_array_scalar_h(grid%lon_c,lon_scal,rad_block_index,n_cells_rad_used)
@@ -150,11 +150,11 @@ module mo_manage_radiation_calls
     if (rad_config==1) then
       write(*,*) "Update of radiative fluxes completed."
     endif
-  
+    
   end subroutine update_rad_fluxes
   
   subroutine create_rad_array_scalar(in_array,out_array,rad_block_index,n_cells_rad_used)
-
+    
     ! This subroutine cuts out a slice of a scalar field for hand-over to the radiation routine (done for RAM efficiency reasons).
     
     integer,  intent(in)  :: n_cells_rad_used                     ! number of cells of the given radiation slice
@@ -169,11 +169,11 @@ module mo_manage_radiation_calls
     do ji=1,n_cells_rad_used
       out_array(ji,:) = in_array((rad_block_index-1)*n_cells_rad+ji,:)
     enddo
-  
+    
   end subroutine create_rad_array_scalar
   
   subroutine create_rad_array_scalar_h(in_array,out_array,rad_block_index,n_cells_rad_used)
-
+    
     ! This subroutine cuts out a slice of a horizontal scalar field for hand-over to the radiation routine (done for RAM efficiency reasons).
     
     integer,  intent(in)  :: n_cells_rad_used            ! number of cells of the given radiation slice
@@ -188,13 +188,13 @@ module mo_manage_radiation_calls
     do ji=1,n_cells_rad_used
       out_array(ji) = in_array((rad_block_index-1)*n_cells_rad+ji)
     enddo
-  
+    
   end subroutine create_rad_array_scalar_h
-
+  
   subroutine create_rad_array_vector(in_array,out_array,rad_block_index,n_cells_rad_used)
-
+    
     ! This subroutine cuts out a slice of a vector field for hand-over to the radiation routine (done for RAM efficiency reasons).
-  ! Only the vertical vector points are taken into account since only they are needed by the radiation.
+    ! Only the vertical vector points are taken into account since only they are needed by the radiation.
 
     integer,  intent(in)  :: n_cells_rad_used                     ! number of cells of the given radiation slice
     real(wp), intent(in)  :: in_array(n_cells,n_levels)           ! the array to reformat
@@ -212,7 +212,7 @@ module mo_manage_radiation_calls
   end subroutine create_rad_array_vector
   
   subroutine create_rad_array_mass_den(in_array,out_array,rad_block_index,n_cells_rad_used)
-
+    
     ! This subroutine does same thing as create_rad_array_scalar,only for a mass density field.
     
     integer,  intent(in)  :: n_cells_rad_used                                    ! number of cells of the given radiation slice
@@ -227,11 +227,11 @@ module mo_manage_radiation_calls
     do ji=1,n_cells_rad_used
       out_array(ji,:,:) = in_array((rad_block_index-1)*n_cells_rad+ji,:,:)
     enddo
-  
+    
   end subroutine create_rad_array_mass_den
-
+  
   subroutine remap_to_original(in_array,out_array,rad_block_index,n_cells_rad_used)
-
+    
     ! This subroutine reverses what create_rad_array_scalar has done.
     
     integer,  intent(in)  :: n_cells_rad_used                    ! number of cells of the given radiation slice
@@ -246,11 +246,11 @@ module mo_manage_radiation_calls
     do ji=1,n_cells_rad_used
       out_array((rad_block_index-1)*n_cells_rad+ji,:) = in_array(ji,:)
     enddo
-  
+    
   end subroutine remap_to_original
-
+  
   subroutine remap_to_original_scalar_h(in_array,out_array,rad_block_index,n_cells_rad_used)
-
+    
     ! This subroutine reverses what create_rad_array_scalar_h has done.
     
     integer,  intent(in)  :: n_cells_rad_used           ! number of cells of the given radiation slice
@@ -265,10 +265,9 @@ module mo_manage_radiation_calls
     do ji=1,n_cells_rad_used
       out_array((rad_block_index-1)*n_cells_rad+ji) = in_array(ji)
     enddo
-  
-  
+    
   end subroutine remap_to_original_scalar_h
-
+  
 end module mo_manage_radiation_calls
 
 

@@ -3,7 +3,7 @@
 
 module mo_definitions
 
-  ! This file contains some definitions.
+  ! This module contains some definitions.
   
   implicit none
   

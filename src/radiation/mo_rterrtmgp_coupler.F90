@@ -2,7 +2,7 @@
 ! Github repository: https://github.com/OpenNWP/GAME
 
 module mo_rrtmgp_coupler
-
+  
   ! This module is a coupler to RTE+RRTMGP.
   
   use mo_definitions,             only: wp
@@ -43,7 +43,8 @@ module mo_rrtmgp_coupler
   contains
   
   subroutine radiation_init()
-    ! This is called only once, in the beginning.
+    
+    ! This subroutine is called only once, in the beginning.
     
     ! local variables
     integer :: jc ! gas index
@@ -58,7 +59,7 @@ module mo_rrtmgp_coupler
   subroutine calc_radiative_flux_convergence(latitude_scalar,longitude_scalar,z_scalar,z_vector,rho, &
                                              temperature_gas,radiation_tendency,temp_sfc,sfc_sw_in,sfc_lw_out, &
                                              sfc_albedo,n_cells_rad,time_coord)
-  
+    
     ! This is the subroutine that is called by the dynamical core. The dycore hands over
     ! the thermodynamic state as well as meta data (timestamp, coordinates) and gets
     ! back radiative flux convergences in W/m^3.
