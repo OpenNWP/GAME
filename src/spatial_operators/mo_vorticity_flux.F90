@@ -2,8 +2,8 @@
 ! Github repository: https://github.com/OpenNWP/GAME
 
 module mo_vorticity_flux
-
-  ! In this module, the vorticity flux term of the Lamb tansformation gets computed.
+  
+  ! In this module the vorticity flux term of the Lamb tansformation gets computed.
 
   use mo_definitions, only: wp,t_grid,t_diag
   use mo_grid_nml,    only: n_layers,n_pentagons,n_edges,n_cells
@@ -118,10 +118,11 @@ module mo_vorticity_flux
           *0.5_wp*(grid%inner_product_weights(jm,ji,jl-1)*diag%flux_density_h(grid%adjacent_edges(jm,ji),jl-1) &
           + grid%inner_product_weights(jm,ji,jl)*diag%flux_density_h(grid%adjacent_edges(jm,ji),jl))
         enddo
+        
       enddo
     enddo
     !$omp end parallel do
-  
+    
   end subroutine vorticity_flux
   
 end module mo_vorticity_flux

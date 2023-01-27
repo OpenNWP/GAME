@@ -7,11 +7,11 @@ module mo_inner_product
   
   use mo_definitions, only: wp,t_grid
   use mo_grid_nml,    only: n_edges,n_cells,n_pentagons,n_layers,n_levels
-
+  
   implicit none
   
   contains
-
+  
   subroutine inner_product(in_field_1_h,in_field_1_v,in_field_2_h,in_field_2_v,out_field,grid)
     
     ! This subroutine computes the inner product of the two vector fields in_field_1 and in_field_2.
@@ -51,7 +51,7 @@ module mo_inner_product
     !$omp end parallel do
     
   end subroutine inner_product
-
+  
 end module mo_inner_product
 
 

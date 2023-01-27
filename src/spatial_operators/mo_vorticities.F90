@@ -3,7 +3,7 @@
 
 module mo_vorticities
   
-  ! Here, vorticities are calculated. The word "vorticity" hereby refers to both vertical and tangential components.
+  ! In this module vorticities are calculated. The word "vorticity" hereby refers to both vertical and tangential components.
   
   use mo_definitions, only: wp,t_grid,t_state,t_diag
   use mo_grid_nml,    only: n_layers,n_edges,n_triangles,n_cells,n_edges,n_levels
@@ -15,7 +15,7 @@ module mo_vorticities
   contains
   
   subroutine calc_pot_vort(state,density_field,diag,grid)
-  
+    
     ! This subroutine calculates the potential vorticity.
     ! It is called "potential vorticity", but it is not Ertel's potential vorticity. It is the absolute vorticity divided by the density.
     
@@ -85,13 +85,13 @@ module mo_vorticities
         
         ! division by the density to obtain the "potential vorticity"
         diag%pot_vort_h(ji,jl) = diag%pot_vort_h(ji,jl)/density_value
-    
+        
       enddo
     enddo
     !$omp end parallel do
-  
+    
   end subroutine calc_pot_vort
-
+  
   subroutine calc_rel_vort_on_triangles(state,diag,grid)
     
     ! This subroutine calculates the vertical relative vorticity on triangles.
@@ -153,7 +153,7 @@ module mo_vorticities
     !$omp end parallel do
     
   end subroutine calc_rel_vort_on_triangles
-
+  
   subroutine calc_rel_vort(state,diag,grid)
     
     ! This subroutine averages the vorticities on triangles to rhombi and calculates horizontal (tangential) vorticities.
@@ -206,7 +206,7 @@ module mo_vorticities
     !$omp end parallel workshare
     
   end subroutine calc_rel_vort
-
+  
   subroutine add_f_to_rel_vort(diag,grid)
     
     ! This subroutine adds the Coriolis parameter to the relative vorticity.

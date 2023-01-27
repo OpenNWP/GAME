@@ -2,7 +2,7 @@
 ! Github repository: https://github.com/OpenNWP/GAME
 
 module mo_gradient_operators
-
+  
   ! This module contains the gradient operators.
   
   use mo_definitions, only: wp,t_grid
@@ -13,9 +13,9 @@ module mo_gradient_operators
   implicit none
   
   contains
-
-  subroutine grad_hor_cov(in_field,out_field,grid)
   
+  subroutine grad_hor_cov(in_field,out_field,grid)
+    
     ! This subroutine calculates the horizontal covariant gradient
     
     real(wp),     intent(in)  :: in_field(n_cells,n_layers)  ! the scalar field of which to compute the horizontal covariant gradient
@@ -37,7 +37,7 @@ module mo_gradient_operators
   end subroutine grad_hor_cov
   
   subroutine grad_vert(in_field,out_field,grid)
-  
+    
     ! This subroutine calculates the vertical covariant gradient.
     
     real(wp),     intent(in)  :: in_field(n_cells,n_layers)  ! the scalar field of which to compute the vertical gradient
@@ -53,7 +53,7 @@ module mo_gradient_operators
       out_field(:,jl) = (in_field(:,jl-1) - in_field(:,jl))/grid%dz(:,jl)
     enddo
     !$omp end parallel do
-  
+    
   end subroutine grad_vert
   
   subroutine grad_hor(in_field,out_field_h,out_field_v,grid)
@@ -84,7 +84,7 @@ module mo_gradient_operators
     !$omp end parallel do
     
   end subroutine grad_hor
-
+  
 end module mo_gradient_operators
 
 
