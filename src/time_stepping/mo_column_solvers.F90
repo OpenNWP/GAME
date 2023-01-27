@@ -2,9 +2,9 @@
 ! Github repository: https://github.com/OpenNWP/GAME
 
 module mo_column_solvers
-
+  
   ! This module contains the implicit vertical routines (implicit part of the HEVI scheme).
-
+  
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_constants,        only: r_d,c_d_v,c_d_p,M_PI,m_d,m_v,impl_thermo_weight
   use mo_grid_nml,         only: n_layers,n_cells,n_levels
@@ -231,6 +231,7 @@ module mo_column_solvers
       
       ! soil components of the matrix
       if (soil_switch==1) then
+        
         ! calculating the explicit part of the heat flux density
         do jl=1,nsoillays-1
           heat_flux_density_expl(jl) &
@@ -272,6 +273,7 @@ module mo_column_solvers
           ! heat conduction from below
           + heat_flux_density_expl(jl)) &
           /((grid%z_soil_interface(jl) - grid%z_soil_interface(jl+1))*grid%sfc_rho_c(ji))*dtime
+          
         enddo
         
         ! the diagonal component
@@ -291,6 +293,7 @@ module mo_column_solvers
             + 1._wp/(grid%z_soil_center(jl) - grid%z_soil_center(jl+1)))
           endif
         enddo
+        
         ! the off-diagonal components
         c_vector(n_layers-1) = 0._wp
         e_vector(n_layers-1) = 0._wp
@@ -302,6 +305,7 @@ module mo_column_solvers
           /((grid%z_soil_interface(jl) - grid%z_soil_interface(jl+1))*grid%sfc_rho_c(ji)) &
           /(grid%z_soil_center(jl) - grid%z_soil_center(jl+1))
         enddo
+        
       endif
       
       ! calling the algorithm to solve the system of linear equations
@@ -364,9 +368,9 @@ module mo_column_solvers
     !$omp end parallel do
     
   end subroutine three_band_solver_ver_waves
-
-  subroutine three_band_solver_gen_densities(state_old,state_new,state_tend,diag,grid,rk_step)
   
+  subroutine three_band_solver_gen_densities(state_old,state_new,state_tend,diag,grid,rk_step)
+    
     ! This subroutine contains the vertical advection of mass densities (of tracers) with 3-band matrices.
     
     type(t_state), intent(in)    :: state_old  ! state variables at the old time step
@@ -395,13 +399,13 @@ module mo_column_solvers
     real(wp) :: v_fall_upper                              ! fall velocity of a hydrometeor particle in the lower grid box
     real(wp) :: v_fall_lower                              ! fall velocity of a hydrometeor particle in the upper grid box
     real(wp) :: v_fall(n_layers)                          ! fall velocity of a hydrometeor particle in a level
-          
+    
     impl_weight = 0.5_wp
     expl_weight = 1._wp - impl_weight
     
     ! loop over all relevant constituents
     do jc=1,n_constituents
-    
+      
       ! This is done for all tracers apart from the main gaseous constituent.
       if (jc/=n_condensed_constituents+1) then
         ! loop over all columns
@@ -604,9 +608,9 @@ module mo_column_solvers
     enddo ! constituent
     
   end subroutine three_band_solver_gen_densities
-
+  
   subroutine thomas_algorithm(c_vector,d_vector,e_vector,r_vector,solution_vector,solution_length)
-
+    
     ! This subroutine solves a system of linear equations with a three-band matrix.
     
     integer,  intent(in)  :: solution_length                  ! length of the solution vector
@@ -638,9 +642,9 @@ module mo_column_solvers
     do jl=solution_length-1,1,-1
       solution_vector(jl) = r_prime_vector(jl) - e_prime_vector(jl)*solution_vector(jl+1)
     enddo
-  
+    
   end subroutine thomas_algorithm
-
+  
 end module mo_column_solvers
 
 
