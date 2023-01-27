@@ -3,7 +3,7 @@
 
 module mo_divergences
 
-  ! In this module, divergences get computed.
+  ! In this module divergences are computed.
   
   use mo_definitions, only: wp,t_grid
   use mo_grid_nml,    only: n_edges,n_layers,n_cells,n_pentagons
@@ -15,7 +15,7 @@ module mo_divergences
   contains
   
   subroutine div_h(in_field,out_field,grid)
-  
+    
     ! This subroutine computes the divergence of a horizontal vector field.
     
     real(wp),     intent(in)  :: in_field(n_edges,n_layers)  ! vector field to compute the divergence of
@@ -62,9 +62,9 @@ module mo_divergences
     enddo
     
   end subroutine div_h
-
-  subroutine div_h_tracer(in_field,density_field,wind_field_h,out_field,grid)
   
+  subroutine div_h_tracer(in_field,density_field,wind_field_h,out_field,grid)
+    
     ! This subroutine computes the divergence of a horizontal tracer flux density field.
     
     real(wp),     intent(in)  :: in_field(n_edges,n_layers)      ! horizontal vector field to compute the divergence of
@@ -84,7 +84,7 @@ module mo_divergences
     real(wp) :: comp_v          ! difference between upper und lower flux
     real(wp) :: density_lower   ! density at lower area of a given grid box
     real(wp) :: density_upper   ! density at upper area of a given grid box
-
+    
     !$omp parallel do private(ji,jl,jm,n_edges_of_cell,contra_upper,contra_lower,comp_h,comp_v,density_lower,density_upper)
     do jl=1,n_layers
       do ji=1,n_cells
@@ -136,10 +136,10 @@ module mo_divergences
     !$omp end parallel do
     
   end subroutine div_h_tracer
-
+  
   subroutine add_vertical_div(in_field,out_field,grid)
     
-    ! This adds the divergence of the vertical component of a vector field to the input scalar field.  
+    ! This subroutine adds the divergence of the vertical component of a vector field to the input scalar field.  
     
     real(wp),     intent(in)    :: in_field(n_cells,n_edges)   ! the vertical vector field to compute the divergence of
     real(wp),     intent(inout) :: out_field(n_cells,n_layers) ! result
@@ -170,9 +170,9 @@ module mo_divergences
       enddo
     enddo
     !$omp end parallel do
-  
+    
   end subroutine add_vertical_div
-
+  
 end module mo_divergences
 
 

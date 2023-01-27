@@ -2,8 +2,8 @@
 ! Github repository: https://github.com/OpenNWP/GAME
 
 module mo_momentum_diff_diss
-
-  ! The momentum diffusion acceleration is computed here (apart from the diffusion coefficients).
+  
+  ! The momentum diffusion acceleration is computed in this module (apart from the diffusion coefficients).
 
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_constants,          only: EPSILON_SECURITY,M_PI
@@ -16,11 +16,11 @@ module mo_momentum_diff_diss
   use mo_gradient_operators, only: grad_hor,grad_vert
   use mo_eff_diff_coeffs,    only: hor_viscosity,vert_vert_mom_viscosity,vert_hor_mom_viscosity
   use mo_grid_setup,         only: n_flat_layers,radius,toa,dtime,n_damping_levels
-
+  
   implicit none
   
   contains
-
+  
   subroutine mom_diff_h(state,diag,grid)
     
     ! This subroutine is the horizontal momentum diffusion operator (horizontal diffusion of horizontal velocity).
@@ -187,11 +187,11 @@ module mo_momentum_diff_diss
       /(0.5_wp*(sum(state%rho(:,jl-1,1:n_condensed_constituents+1),2) + sum(state%rho(:,jl,1:n_condensed_constituents+1),2)))
     enddo
     !$omp end parallel do
-  
+    
   end subroutine mom_diff_v
-
-  subroutine hor_calc_curl_of_vorticity(diag,grid)
   
+  subroutine hor_calc_curl_of_vorticity(diag,grid)
+    
     ! This subroutine calculates the curl of the vertical vorticity.
     
     type(t_diag), intent(inout) :: diag ! diagnostic quantities (the curl of the vertical vorticity is included here)
@@ -208,6 +208,7 @@ module mo_momentum_diff_diss
     real(wp) :: tangential_slope            ! tangential slope (dimensionless)
     real(wp) :: delta_zeta                  ! vertical vorticity difference
     real(wp) :: checkerboard_damping_weight ! weight (0 <= checkerboard_damping_weight <= 1) used for damping the checkerboard pattern
+    
     !$omp parallel do private(ji,jl,jm,delta_z,delta_y,tangential_slope, &
     !$omp upper_index_zeta,lower_index_zeta,delta_zeta,checkerboard_damping_weight)
     do jl=1,n_layers
@@ -273,7 +274,7 @@ module mo_momentum_diff_diss
     enddo
     
   end subroutine hor_calc_curl_of_vorticity
-
+  
   subroutine simple_dissipation_rate(state,diag,grid)
     
     ! This subroutine calculates a simplified dissipation rate.
@@ -297,9 +298,9 @@ module mo_momentum_diff_diss
     
     ! heating rate in the swamp layer
     if (lklemp) then
-    
+      
       damping_start_height = klemp_begin_rel*toa
-    
+      
       !$omp parallel do private(ji,jl,z_above_damping,damping_coeff,damping_prefactor)
       do jl=2,n_damping_levels
         do ji=1,n_cells
@@ -326,7 +327,7 @@ module mo_momentum_diff_diss
     !$omp end parallel workshare
     
   end subroutine simple_dissipation_rate
-
+  
 end module mo_momentum_diff_diss
 
 
