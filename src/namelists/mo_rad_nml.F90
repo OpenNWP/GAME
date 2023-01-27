@@ -3,7 +3,7 @@
 
 module mo_rad_nml
 
-  ! This is the namelists the configures the basic run properties of a model integration.
+  ! This is the namelist that sets the radiation configuration.
   
   use mo_definitions, only: wp,t_grid
   use mo_grid_nml,    only: n_cells,n_layers
