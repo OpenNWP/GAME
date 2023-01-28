@@ -20,8 +20,8 @@ import math
 run_id = "ullrich"
 time_since_init_min = 8*24*60
 var_id = "rel_vort"
-save_directory = "/home/max/code/GAME/figs"
 netcdf_dir = "/home/max/code/GAME/output"
+save_directory = "/home/max/code/GAME/output/" + run_id
 on_pressure_bool = 1
 level = 850
 title_add_string = " in 850 hPa, day 8"

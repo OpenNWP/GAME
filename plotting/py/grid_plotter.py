@@ -22,10 +22,12 @@ import iris.plot as iplt
 import math
 
 var_id = "oro"
-save_directory = "/home/max/code/GAME/figs"
+save_directory = "/home/max/code/GAME/grid_generator/grids"
 grid_file = "/home/max/code/GAME/grid_generator/grids/RES5_L26_ORO1.nc"
 projection = "EckertIII"
 scope = "WORLD"
+
+# end of usual input section
 
 surface_bool, variable_name, unit_string, rescale, show_level_on, contourf_plot, colormap, shift = mp.var_properties(var_id)
 
