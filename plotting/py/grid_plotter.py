@@ -22,8 +22,8 @@ import iris.plot as iplt
 import math
 
 var_id = "oro"
-save_directory = "/home/max/code/GAME/grid_generator/grids"
 grid_file = "/home/max/code/GAME/grid_generator/grids/RES5_L26_ORO1.nc"
+save_directory = "/home/max/code/GAME/grid_generator/grids"
 projection = "EckertIII"
 scope = "WORLD"
 

@@ -18,7 +18,7 @@ run_id = "ullrich"
 # end of usual input section
 
 output_dir = output_dir + "/" + run_id
-fig_save_path = "/home/max/code/GAME/output/" + run_id
+fig_save_path = output_dir
 
 fig_size = 6
 if write_out_dry_mass_integral == 1:
