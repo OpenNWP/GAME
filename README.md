@@ -52,13 +52,13 @@ The following packages are additionally required if you want to make use of the 
 * Python visualization library scitools-iris (installation manual: https://scitools-iris.readthedocs.io/en/latest/installing.html#installing-from-source-without-conda-on-debian-based-linux-distros-developers)
 * FFMPEG (`sudo apt-get install ffmpeg`)
 
-### Download
+### Download and compilation
 
-	git clone https://github.com/OpenNWP/GAME
 
-### Compiling the code
-
+	git clone https://github.com/OpenNWP/GAME.git
+	cd GAME
 	./compile.sh -f
+
 
 Before being able to run the model, however, you need to create a grid file. The handbook gives further information on that. A first try could be
 
