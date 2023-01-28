@@ -7,6 +7,22 @@
 echo "***** GRID FILE CREATION *****"
 echo ""
 
+# creating needed directories
+if [ ! -d grids ]
+then
+  mkdir grids
+fi
+
+if [ ! -d phys_sfc_quantities ]
+then
+  mkdir phys_sfc_quantities
+fi
+
+if [ ! -d statistics ]
+then
+  mkdir statistics
+fi
+
 if [ ! -f ./build/grid_generator ]
 then
   echo "Executable grid_generator does not exist. Compile first."
