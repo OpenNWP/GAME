@@ -55,8 +55,6 @@ The following packages are additionally required if you want to make use of the 
 ### Download
 
 	git clone https://github.com/OpenNWP/GAME
-	cd GAME
-	./create_directories.sh
 
 ### Compiling the code
 
