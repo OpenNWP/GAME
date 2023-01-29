@@ -2,17 +2,17 @@
 ! Github repository: https://github.com/OpenNWP/GAME
 
 module mo_averaging
-
+  
   ! This module contains functions that perform averagings.
-
+  
   use mo_definitions, only: wp,t_grid
   use mo_grid_nml,    only: n_edges,n_layers,n_cells,n_pentagons,n_levels
   use mo_grid_setup,  only: n_oro_layers,n_flat_layers
-
+  
   implicit none
-
+  
   contains
-
+  
   function vertical_contravariant_corr(vector_field_h,ji,jl,grid)
     
     ! This function calculates (the vertical contravariant component - the vertical covariant component)
@@ -58,7 +58,7 @@ module mo_averaging
     endif
     
   end function vertical_contravariant_corr
-
+  
   function remap_ver2hor(vector_field_v,ji,jl,grid)
     
     ! This function reconstructs the vertical vector component at edge ji in layer jl.
@@ -100,10 +100,17 @@ module mo_averaging
     if (jl>n_flat_layers) then
       horizontal_covariant = horizontal_covariant + grid%slope(ji,jl)*remap_ver2hor(vector_field_v,ji,jl,grid)
     endif
-   
+    
   end function horizontal_covariant
-
+  
 end module mo_averaging
+
+
+
+
+
+
+
 
 
 

@@ -2,7 +2,7 @@
 ! Github repository: https://github.com/OpenNWP/GAME
 
 module mo_divergences
-
+  
   ! In this module divergences are computed.
   
   use mo_definitions, only: wp,t_grid
