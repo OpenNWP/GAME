@@ -8,6 +8,7 @@
 \usepackage{fouriernc}
 \usepackage[T1]{fontenc}
 \usepackage[hidelinks]{hyperref}
+\usepackage[htt]{hyphenat}
 \geometry{a4paper, top = 15mm, left = 5mm, right = 5mm, bottom = 17mm}
 \fancypagestyle{plain}{
 \fancyhead[L]{\texttt{GAME} handbook}
@@ -88,7 +89,14 @@ The following dependencies must be installed before being able to successfully b
 \section{Building}
 \label{sec:building}
 
-\texttt{CMake} is used for building \texttt{GAME}. Execute \texttt{./compile.sh} to build the model.
+\texttt{CMake} is used for building \texttt{GAME}. Execute \texttt{./compile.sh} to build the model. The following flags can be used with \texttt{./compile.sh}:
+%
+\begin{itemize}
+\item \texttt{-d}: debugging flags (\texttt{-fbounds-check -Wall -Wno-c-binding-type -ffpe-trap=invalid,zero,overflow -fbacktrace -fdump-core})
+\item \texttt{-f}: more aggressive optimization (\texttt{O3} instead of \texttt{O2})
+\item \texttt{-c}: compile-time configuration of the model for more performance
+\item \texttt{-s}: single precision
+\end{itemize}
 
 \chapter{Grid generation}
 \label{chap:grid_generation}
