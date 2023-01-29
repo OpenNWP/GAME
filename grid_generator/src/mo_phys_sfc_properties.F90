@@ -2,9 +2,9 @@
 ! Github repository: https://github.com/OpenNWP/GAME
 
 module mo_phys_sfc_properties
-
+  
   ! In this module, the physical surface properties are set.
-
+  
   use netcdf
   use mo_constants,       only: M_PI,rho_h2o,t_0,lapse_rate,EPSILON_SECURITY
   use mo_definitions,     only: wp
@@ -12,11 +12,11 @@ module mo_phys_sfc_properties
                           luse_sfc_file
   use mo_geodesy,         only: deg2rad,calculate_distance_h
   use mo_various_helpers, only: nc_check,int2string,find_min_index,find_min_index_exclude
-
+  
   implicit none
   
   contains
-
+  
   function vegetation_height_ideal(latitude,oro)
     
     ! This function calculates a latitude- and height-dependant idealized vegetation height.
@@ -31,7 +31,7 @@ module mo_phys_sfc_properties
     vegetation_height_equator = 20._wp
     
     vegetation_height_ideal = vegetation_height_equator*cos(latitude)*exp(-oro/1500._wp)
-
+    
   end function vegetation_height_ideal
   
   subroutine set_sfc_properties(lat_c,lon_c,roughness_length,sfc_albedo,sfc_rho_c,t_conductivity, &
@@ -138,7 +138,7 @@ module mo_phys_sfc_properties
       write(*,*) "Physical surface properties read."
       
     else
-    
+      
       if (oro_id==1) then
         
         ! Land fraction
@@ -162,9 +162,9 @@ module mo_phys_sfc_properties
           glcc(ji,:) = ichar(glcc_raw(ji,:))
         end do
         !$omp end parallel do
-         
+        
         close(ext_fileunit)
-         
+        
         deallocate(glcc_raw)
         
         delta_lat_ext = M_PI/nlat_ext
@@ -494,7 +494,7 @@ module mo_phys_sfc_properties
         deallocate(invalid_counter)
         
         write(*,*) "Lower boundary soil temperature set."
-      
+        
       endif
       
       ! Other physical properties of the surface
@@ -529,26 +529,26 @@ module mo_phys_sfc_properties
         
         ! land is present in this grid cell
         if (land_fraction(ji)>EPSILON_SECURITY) then
-        
-        lat_deg = 360._wp/(2._wp*M_PI)*lat_c(ji)
-        
-        ! lakes are included in the soil calculation
-        t_conductivity(ji) = (land_fraction(ji)*t_conductivity_soil+lake_fraction(ji)*t_conductivity_water) &
-                         /(land_fraction(ji)+lake_fraction(ji))
-        
-        ! setting the surface albedo of land depending on the latitude
-        if (abs(lat_deg)>70._wp) then
-          sfc_albedo(ji) = land_fraction(ji)*albedo_ice + (1._wp - land_fraction(ji))*albedo_water
-        else
-          sfc_albedo(ji) = land_fraction(ji)*albedo_soil + (1._wp - land_fraction(ji))*albedo_water
-        endif
-        
-        ! lakes are included in the soil calculation
-        sfc_rho_c(ji) = (land_fraction(ji)*density_soil*c_p_soil+lake_fraction(ji)*rho_h2o*c_p_water) &
-                      /(land_fraction(ji)+lake_fraction(ji))
-        
-        roughness_length(ji) = vegetation_height_ideal(lat_c(ji),oro(ji))/8._wp
-        
+          
+          lat_deg = 360._wp/(2._wp*M_PI)*lat_c(ji)
+          
+          ! lakes are included in the soil calculation
+          t_conductivity(ji) = (land_fraction(ji)*t_conductivity_soil+lake_fraction(ji)*t_conductivity_water) &
+                           /(land_fraction(ji)+lake_fraction(ji))
+          
+          ! setting the surface albedo of land depending on the latitude
+          if (abs(lat_deg)>70._wp) then
+            sfc_albedo(ji) = land_fraction(ji)*albedo_ice + (1._wp - land_fraction(ji))*albedo_water
+          else
+            sfc_albedo(ji) = land_fraction(ji)*albedo_soil + (1._wp - land_fraction(ji))*albedo_water
+          endif
+          
+          ! lakes are included in the soil calculation
+          sfc_rho_c(ji) = (land_fraction(ji)*density_soil*c_p_soil+lake_fraction(ji)*rho_h2o*c_p_water) &
+                        /(land_fraction(ji)+lake_fraction(ji))
+          
+          roughness_length(ji) = vegetation_height_ideal(lat_c(ji),oro(ji))/8._wp
+          
         endif
         
         ! restricting the roughness length to a minimum
@@ -705,7 +705,7 @@ module mo_phys_sfc_properties
     if (jm_used>nlon_ext) then
       jm_used = jm_used - nlon_ext
     endif
-          
+    
   end subroutine correct_ext_data_indices
   
 end module mo_phys_sfc_properties
