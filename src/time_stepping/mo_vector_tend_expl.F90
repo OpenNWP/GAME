@@ -2,8 +2,8 @@
 ! Github repository: https://github.com/OpenNWP/GAME
 
 module mo_vector_tend_expl
-
-  ! In this module, the calculation of the explicit part of the momentum equation is managed.
+  
+  ! In this module the calculation of the explicit part of the momentum equation is managed.
   
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_constants,          only: impl_thermo_weight
@@ -23,8 +23,10 @@ module mo_vector_tend_expl
   implicit none
   
   contains
-
+  
   subroutine vector_tend_expl(state,state_tend,diag,grid,ltotally_first_step,rk_step)
+    
+    ! This subroutine manages the calculation of the explicit part of the wind tendencies.
     
     type(t_state), intent(in)    :: state               ! state to use for calculating the tendencies
     type(t_state), intent(inout) :: state_tend          ! state containing the tendencies

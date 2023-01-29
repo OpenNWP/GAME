@@ -4,7 +4,7 @@
 module mo_scalar_tend_expl
   
   ! This module contains the horizontal (explicit) part of the constituent integration.
-
+  
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_constants,          only: c_d_v,c_d_p
   use mo_grid_nml,           only: n_cells,n_layers
@@ -15,11 +15,11 @@ module mo_scalar_tend_expl
   use mo_divergences,        only: div_h_tracer,div_h,add_vertical_div
   use mo_gradient_operators, only: grad_hor,grad_vert
   use mo_eff_diff_coeffs,    only: scalar_diffusion_coeffs
-
+  
   implicit none
   
   contains
-
+  
   subroutine scalar_tend_expl(state_old,state_new,state_tend,diag,grid,rk_step)
     
     ! This subroutine manages the calculation of the explicit part of the scalar tendencies.
@@ -131,7 +131,7 @@ module mo_scalar_tend_expl
       ! -------------------------------------------------
       
       if (jc==n_condensed_constituents+1) then
-      
+        
         ! determining the virtual potential temperature
         !$omp parallel workshare
         diag%scalar_placeholder = state_scalar%rhotheta_v/state_scalar%rho(:,:,jc)
@@ -172,9 +172,9 @@ module mo_scalar_tend_expl
         !$omp end parallel do
       endif
     enddo
-  
+    
   end subroutine scalar_tend_expl
-
+  
 end module mo_scalar_tend_expl
 
 

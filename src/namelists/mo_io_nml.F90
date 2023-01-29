@@ -28,7 +28,7 @@ module mo_io_nml
                lsurface_output,time_to_next_analysis_min,lwrite_integrals
 
   contains
-
+  
   subroutine io_nml_setup()
   
     ! local variables

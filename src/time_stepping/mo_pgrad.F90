@@ -10,11 +10,11 @@ module mo_pgrad
   use mo_gradient_operators, only: grad_hor,grad_vert
   use mo_multiplications,    only: scalar_times_vector_h,scalar_times_vector_h2,scalar_times_vector_v,scalar_times_vector_v2
   use mo_constituents_nml,   only: n_condensed_constituents
-
+  
   implicit none
   
   contains
-
+  
   subroutine manage_pressure_gradient(state,diag,grid,ltotally_first_step)
     
     ! This subroutine computes the pressure gradient acceleration.
@@ -85,7 +85,7 @@ module mo_pgrad
     call scalar_times_vector_v(diag%pressure_gradient_decel_factor,grid%gravity_m_v,diag%pressure_grad_condensates_v)
     
   end subroutine calc_pressure_grad_condensates_v
-
+  
 end module mo_pgrad
 
 

@@ -3,7 +3,7 @@
 
 module mo_diff_nml
   
-  ! In this namelist, the diffusion properties are configured.
+  ! In this namelist the diffusion properties are configured.
   
   use mo_definitions, only: wp
   
