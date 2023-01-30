@@ -382,7 +382,7 @@ module mo_set_initial_state
     type(t_grid),  intent(in)    :: grid                          ! grid quantities
     
     ! local variables
-    integer               :: ji           ! soil index
+    integer               :: ji           ! cell index
     integer               :: jl           ! soil layer index
     integer               :: ncid         ! netCDF file ID
     integer               :: sst_id       ! netCDF ID of the sea surface temperature
@@ -396,7 +396,7 @@ module mo_set_initial_state
     if (ideal_input_id==-1) then
       call nc_check(nf90_open(init_state_file,NF90_CLOBBER,ncid))
       
-      ! figuring out if the netcdf file contains SST
+      ! figuring out if the netCDF file contains SST
       if (nf90_inq_varid(ncid,"sst",sst_id)==0) then
         sst_avail = 1
         write(*,*) "SST found in initialization file."
@@ -404,12 +404,12 @@ module mo_set_initial_state
         write(*,*) "SST not found in initialization file."
       endif
       
-      ! reading the SST data if it is present in the netcdf file
+      ! reading the SST data if it is present in the netCDF file
       if (sst_avail==1) then
         call nc_check(nf90_get_var(ncid,sst_id,diag%sst))
       endif
       
-      ! we do not need the netcdf file any further
+      ! we do not need the netCDF file any further
       call nc_check(nf90_close(ncid))
     endif
     
@@ -418,7 +418,7 @@ module mo_set_initial_state
     if (ideal_input_id==-1) then
       call nc_check(nf90_open(init_state_file,NF90_CLOBBER,ncid))
       
-      ! figuring out if the netcdf file contains the soil temperature
+      ! figuring out if the netCDF file contains the soil temperature
       if (nf90_inq_varid(ncid,"t_soil",soil_id)==0) then
         t_soil_avail = 1
         write(*,*) "Soil temperature found in initialization file."
@@ -426,12 +426,12 @@ module mo_set_initial_state
         write(*,*) "Soil temperature not found in initialization file."
       endif
       
-      ! reading the soil temperature if it is present in the netcdf file
+      ! reading the soil temperature if it is present in the netCDF file
       if (t_soil_avail==1) then
         call nc_check(nf90_get_var(ncid,soil_id,state%temperature_soil))
       endif
       
-      ! we do not need the netcdf file any further
+      ! we do not need the netCDF file any further
       call nc_check(nf90_close(ncid))
     endif
     
