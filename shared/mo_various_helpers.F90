@@ -105,7 +105,7 @@ module mo_various_helpers
     
     ! This is a helper function which converts an integer to a string.
     
-    integer, intent(in) :: input
+    integer, intent(in) :: input ! integer which to convert to a string
     
     write(int2string,*) input
     int2string = adjustl(int2string)
