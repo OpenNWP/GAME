@@ -20,8 +20,8 @@ module mo_various_helpers
     integer              :: find_min_index ! the index where the vector has its minimum
     
     ! local variables
-    integer  :: ji
-    real(wp) :: current_min
+    integer  :: ji          ! will loop over the elements of the vector
+    real(wp) :: current_min ! the smallest value encountered so far
     
     find_min_index = 1
     current_min = vector(1)
@@ -44,8 +44,8 @@ module mo_various_helpers
     integer              :: find_min_index_exclude    ! the index where the vector has its minimum
     
     ! local variables
-    integer  :: ji
-    real(wp) :: current_min
+    integer  :: ji          ! will loop over the elements of the vector
+    real(wp) :: current_min ! the smallest value encountered so far
     
     current_min = maxval(vector) + 1._wp
     find_min_index_exclude = 0
@@ -65,9 +65,9 @@ module mo_various_helpers
     endif
     
   end function find_min_index_exclude
-
-  function in_bool_checker(value,vector)
   
+  function in_bool_checker(value,vector)
+    
     ! This function checks if a vector of integers contains a certain value.
     
     integer, intent(in) :: value           ! value to search for
@@ -75,7 +75,7 @@ module mo_various_helpers
     integer             :: in_bool_checker ! the result (1 = vector contains value, 0 otherwise)
     
     ! local variables
-    integer :: ji
+    integer :: ji ! will loop over the elements of the vector
     
     in_bool_checker = 0
     
@@ -113,6 +113,11 @@ module mo_various_helpers
   end function int2string
   
 end module mo_various_helpers
+
+
+
+
+
 
 
 

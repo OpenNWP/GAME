@@ -50,23 +50,27 @@ module mo_geodesy
     y_2 = radius_2*y_2
     z_2 = radius_2*z_2
     calculate_distance_cart = sqrt((x_2-x_1)**2 + (y_2-y_1)**2 + (z_2-z_1)**2)
-  
+    
   end function calculate_distance_cart
   
   function calculate_distance_h(latitude_a,longitude_a,latitude_b,longitude_b,radius)
-  
+    
     ! This function returns the geodetic distance of two points given their geographical coordinates.
     
-    real(wp), intent(in) :: latitude_a,longitude_a,latitude_b,longitude_b,radius
+    real(wp), intent(in) :: latitude_a
+    real(wp), intent(in) :: longitude_a
+    real(wp), intent(in) :: latitude_b
+    real(wp), intent(in) :: longitude_b
+    real(wp), intent(in) :: radius
     real(wp)             :: calculate_distance_h ! the result
     
     calculate_distance_h = 2._wp*radius*asin(sqrt(0.5_wp-0.5_wp*(cos(latitude_a)*cos(latitude_b) &
     *cos(longitude_b-longitude_a)+sin(latitude_a)*sin(latitude_b))))
     
   end function calculate_distance_h
-
+  
   subroutine find_geodetic(lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau,lat_out,lon_out)
-
+    
     ! This subroutine calculates the geographical coordinates of a point on a geodetic between two points.
     
     real(wp), intent(in)  :: lat_2_in
@@ -78,7 +82,12 @@ module mo_geodesy
     real(wp), intent(out) :: lon_out
     
     ! local variables
-    real(wp) :: d,theta,tau_dash,x,y,z
+    real(wp) :: d
+    real(wp) :: theta
+    real(wp) :: tau_dash
+    real(wp) :: x
+    real(wp) :: y
+    real(wp) :: z
     
     d = calculate_distance_cart(lat_2_in,lon_2_in,lat_3_in,lon_3_in,1._wp,1._wp)
     theta = 2._wp*asin(d/2._wp)
@@ -232,8 +241,8 @@ module mo_geodesy
     ! This subroutine turns a three-dimensional vector around the x-axis.
     
     real(wp), intent(in)  :: angle         ! angle
-    real(wp), intent(in)  :: vector_in(3)  ! 
-    real(wp), intent(out) :: vector_out(3) ! 
+    real(wp), intent(in)  :: vector_in(3)  ! input vector
+    real(wp), intent(out) :: vector_out(3) ! resulting vector (after the rotation)
     
     vector_out(1) = vector_in(1)
     vector_out(2) = cos(angle)*vector_in(2) - sin(angle)*vector_in(3)
@@ -262,26 +271,26 @@ module mo_geodesy
     deg2rad = input*2._wp*M_PI/360._wp
     
   end function deg2rad
-
-  function calculate_vertical_area(base_distance,r_1,r_2)
   
+  function calculate_vertical_area(base_distance,r_1,r_2)
+    
     ! This function calculates the area of a vertical face (side face of a gridbox).
     
-    real(wp), intent(in) :: base_distance
-    real(wp), intent(in) :: r_1
-    real(wp), intent(in) :: r_2
-    real(wp)             :: calculate_vertical_area
+    real(wp), intent(in) :: base_distance           ! length of the lower edge of the area
+    real(wp), intent(in) :: r_1                     ! lower radius value
+    real(wp), intent(in) :: r_2                     ! upper radius value
+    real(wp)             :: calculate_vertical_area ! result
     
     calculate_vertical_area = base_distance*(0.5*r_2**2/r_1 - 0.5*r_1)
     
   end function calculate_vertical_area
-
-  function scalar_product_elementary(vector_a,vector_b)
   
+  function scalar_product_elementary(vector_a,vector_b)
+    
     ! This function returns the scalar product of two three-dimensional vectors.
     
-    real(wp), intent(in) :: vector_a(3)
-    real(wp), intent(in) :: vector_b(3)
+    real(wp), intent(in) :: vector_a(3)               ! first vector
+    real(wp), intent(in) :: vector_b(3)               ! second vector
     real(wp)             :: scalar_product_elementary ! the result
     
     ! local variables
@@ -294,9 +303,9 @@ module mo_geodesy
     enddo
     
   end function scalar_product_elementary
-
-  function scalar_product_elementary_2d(vector_a,vector_b)
   
+  function scalar_product_elementary_2d(vector_a,vector_b)
+    
     ! This function returns the scalar product of two two-dimensional vectors.
     
     real(wp), intent(in) :: vector_a(2)                  ! first vector
@@ -313,7 +322,7 @@ module mo_geodesy
     enddo
     
   end function scalar_product_elementary_2d
-
+  
   function find_turn_angle(angle_1,angle_2)
     
     ! This function returns the turn angle between two angles.
@@ -690,9 +699,9 @@ module mo_geodesy
     
     ! This function calculates the area of a spherical polygon.
     
-    integer,  intent(in) :: number_of_edges
-    real(wp), intent(in) :: lat_points(number_of_edges)
-    real(wp), intent(in) :: lon_points(number_of_edges)
+    integer,  intent(in) :: number_of_edges             ! number of edges of the polygon
+    real(wp), intent(in) :: lat_points(number_of_edges) ! latitudes of the vertices
+    real(wp), intent(in) :: lon_points(number_of_edges) ! longitudes of the vertices
     real(wp)             :: calc_spherical_polygon_area ! the result
     
     ! local variables
