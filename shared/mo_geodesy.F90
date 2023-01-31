@@ -69,56 +69,62 @@ module mo_geodesy
     
   end function calculate_distance_h
   
-  subroutine find_geodetic(lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau,lat_out,lon_out)
+  subroutine find_geodetic(lat_1_in,lon_1_in,lat_2_in,lon_2_in,tau,lat_out,lon_out)
     
     ! This subroutine calculates the geographical coordinates of a point on a geodetic between two points.
     
+    real(wp), intent(in)  :: lat_1_in
+    real(wp), intent(in)  :: lon_1_in
     real(wp), intent(in)  :: lat_2_in
     real(wp), intent(in)  :: lon_2_in
-    real(wp), intent(in)  :: lat_3_in
-    real(wp), intent(in)  :: lon_3_in
     real(wp), intent(in)  :: tau
-    real(wp), intent(out) :: lat_out
-    real(wp), intent(out) :: lon_out
+    real(wp), intent(out) :: lat_out   ! geographic latitude of the resulting point
+    real(wp), intent(out) :: lon_out   ! geographic longitude of the resulting point
     
     ! local variables
-    real(wp) :: d
-    real(wp) :: theta
-    real(wp) :: tau_dash
-    real(wp) :: x
-    real(wp) :: y
-    real(wp) :: z
+    real(wp) :: d        ! 
+    real(wp) :: theta    ! 
+    real(wp) :: tau_dash ! 
+    real(wp) :: x        ! x-coordinate of the resulting point
+    real(wp) :: y        ! y-coordinate of the resulting point
+    real(wp) :: z        ! z-coordinate of the resulting point
     
-    d = calculate_distance_cart(lat_2_in,lon_2_in,lat_3_in,lon_3_in,1._wp,1._wp)
+    d = calculate_distance_cart(lat_1_in,lon_1_in,lat_2_in,lon_2_in,1._wp,1._wp)
     theta = 2._wp*asin(d/2._wp)
     tau_dash = 0.5_wp + sqrt(1._wp/d**2 - 0.25_wp)*tan(theta*(tau - 0.5))
-    x = tau_dash*cos(lat_3_in)*cos(lon_3_in) + (1._wp - tau_dash)*cos(lat_2_in)*cos(lon_2_in)
-    y = tau_dash*cos(lat_3_in)*sin(lon_3_in) + (1._wp - tau_dash)*cos(lat_2_in)*sin(lon_2_in)
-    z = tau_dash*sin(lat_3_in) + (1._wp- tau_dash)*sin(lat_2_in)
+    x = tau_dash*cos(lat_2_in)*cos(lon_2_in) + (1._wp - tau_dash)*cos(lat_1_in)*cos(lon_1_in)
+    y = tau_dash*cos(lat_2_in)*sin(lon_2_in) + (1._wp - tau_dash)*cos(lat_1_in)*sin(lon_1_in)
+    z = tau_dash*sin(lat_2_in) + (1._wp- tau_dash)*sin(lat_1_in)
     lat_out = asin(z/sqrt(x**2 + y**2 + z**2))
     lon_out = atan2(y,x)
   
   end subroutine find_geodetic
   
-  function find_geodetic_direction(lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau)
+  function find_geodetic_direction(lat_1_in,lon_1_in,lat_2_in,lon_2_in,tau)
   
     ! This function calculates the geodetic direction between two points given their geographical coordinates at a certain point
     ! (defined by the parameter tau) between them.
     
+    real(wp), intent(in) :: lat_1_in
+    real(wp), intent(in) :: lon_1_in
     real(wp), intent(in) :: lat_2_in
     real(wp), intent(in) :: lon_2_in
-    real(wp), intent(in) :: lat_3_in
-    real(wp), intent(in) :: lon_3_in
     real(wp), intent(in) :: tau
     real(wp)             :: find_geodetic_direction ! the result
     
     ! local variables
-    real(wp) :: rel_vec(3),local_i(3),local_j(3),lat,lon,x_comp,y_comp
+    real(wp) :: rel_vec(3)
+    real(wp) :: local_i(3)
+    real(wp) :: local_j(3)
+    real(wp) :: lat
+    real(wp) :: lon
+    real(wp) :: x_comp
+    real(wp) :: y_comp
     
-    rel_vec(1) = cos(lat_3_in)*cos(lon_3_in) - cos(lat_2_in)*cos(lon_2_in)
-    rel_vec(2) = cos(lat_3_in)*sin(lon_3_in) - cos(lat_2_in)*sin(lon_2_in)
-    rel_vec(3) = sin(lat_3_in) - sin(lat_2_in)
-    call find_geodetic(lat_2_in,lon_2_in,lat_3_in,lon_3_in,tau,lat,lon)
+    rel_vec(1) = cos(lat_2_in)*cos(lon_2_in) - cos(lat_1_in)*cos(lon_1_in)
+    rel_vec(2) = cos(lat_2_in)*sin(lon_2_in) - cos(lat_1_in)*sin(lon_1_in)
+    rel_vec(3) = sin(lat_2_in) - sin(lat_1_in)
+    call find_geodetic(lat_1_in,lon_1_in,lat_2_in,lon_2_in,tau,lat,lon)
     call calc_local_i(lon,local_i)
     call calc_local_j(lat,lon,local_j)
     x_comp = scalar_product_elementary(local_i,rel_vec)
