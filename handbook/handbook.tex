@@ -253,15 +253,15 @@ Use the bash script \texttt{grid\_generator/compile.sh} to compile the grid gene
 \begin{tabular}{|>{\centering}p{5.0 cm}|>{\centering}p{3 cm}|>{\centering}p{7 cm}|}
 \hline \textbf{name} & \textbf{domain} & \textbf{meaning} \tabularnewline
 \hline\hline \texttt{\texttt{oro\_id}} & all value for which an orography is defined & orography ID \tabularnewline
-\hline\hline \texttt{n\_iterations} & integer $\geq$ 1 & number of iterations (ignored if \texttt{optimize} = 0), 2000 seems to be a safe value \tabularnewline
-\hline\hline \texttt{use\_scalar\_h\_coords\_file} & 0, 1 & switch to determine wether horizontal coordinates of triangle vertices (generators of the grid) shall be used from a previously generated file \tabularnewline
+\hline\hline \texttt{n\_iterations} & integer $\geq$ 0 & number of iterations, 2000 is a reasonable value \tabularnewline
+\hline\hline \texttt{luse\_scalar\_h\_file} & boolean & switch to determine wether fundamental horizontal grid properties shall be read from a previously generated file \tabularnewline
+\hline\hline \texttt{luse\_sfc\_file} & boolean & switch to determine wether physical surface properties shall be read from a file \tabularnewline
 \hline\hline \texttt{scalar\_h\_coords\_file} & string & input file for dual triangle vertices (only relevant if \texttt{use\_scalar\_h\_coords\_file} = 1) \tabularnewline
 \hline\hline \texttt{stretching\_parameter} & $\geq$ 1, real & defines the vertical stretching of the grid, one means no stretching \tabularnewline
 \hline\hline \texttt{toa} & $> 0$, real & height of the top of the atmosphere \tabularnewline
-\hline\hline \texttt{type\_of\_vertical\_grid} & 0, 1 & specifies the terrain handling; 0: terrain-following coordinates, 1: block-like orography \tabularnewline
 \hline\hline \texttt{orography\_layers} & $\geq$ 1, natural & number of layers following orography (only relevant if \texttt{type\_of\_vertical\_grid} == 0) \tabularnewline
 \hline\hline \texttt{radius\_rescale} & $> 0$, real & rescale factor for the radius of the grid, radius $r$ will be calculated according to $r = \texttt{radius\_rescale}\cdot a$, where $a$ is the Earth radius; angular velocity $\omega$ will be replaced according to $\omega \to \frac{\omega}{\texttt{radius\_rescale}}$ \tabularnewline
-\hline\hline \texttt{no\_of\_avg\_points} & $\geq$ 1 & number of points used for smoothing the orography \tabularnewline
+\hline\hline \texttt{n\_avg\_points} & $\geq$ 1 & number of points used for smoothing the orography \tabularnewline
 \hline
 \end{tabular}
 \caption{Grid generator run script explanation.}
