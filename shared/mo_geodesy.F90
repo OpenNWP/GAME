@@ -34,7 +34,7 @@ module mo_geodesy
     real(wp) :: z_2 ! z-coordinate of the second point
     
     calculate_distance_cart = 0._wp
-
+    
     ! if the two points are identical, we abort and return zero
     if (lat_1_in==lat_2_in .and. lon_1_in==lon_2_in) then
       calculate_distance_cart = 0._wp
@@ -57,11 +57,11 @@ module mo_geodesy
     
     ! This function returns the geodetic distance of two points given their geographical coordinates.
     
-    real(wp), intent(in) :: latitude_a
-    real(wp), intent(in) :: longitude_a
-    real(wp), intent(in) :: latitude_b
-    real(wp), intent(in) :: longitude_b
-    real(wp), intent(in) :: radius
+    real(wp), intent(in) :: latitude_a           ! geographic latitude of the first point
+    real(wp), intent(in) :: longitude_a          ! geographic longitude of the first point
+    real(wp), intent(in) :: latitude_b           ! geographic latitude of the second point
+    real(wp), intent(in) :: longitude_b          ! geographic longitude of the second point
+    real(wp), intent(in) :: radius               ! radius of the two points
     real(wp)             :: calculate_distance_h ! the result
     
     calculate_distance_h = 2._wp*radius*asin(sqrt(0.5_wp-0.5_wp*(cos(latitude_a)*cos(latitude_b) &
@@ -97,11 +97,11 @@ module mo_geodesy
     z = tau_dash*sin(lat_2_in) + (1._wp- tau_dash)*sin(lat_1_in)
     lat_out = asin(z/sqrt(x**2 + y**2 + z**2))
     lon_out = atan2(y,x)
-  
+    
   end subroutine find_geodetic
   
   function find_geodetic_direction(lat_1_in,lon_1_in,lat_2_in,lon_2_in,tau)
-  
+    
     ! This function calculates the geodetic direction between two points at a certain point
     ! (defined by the parameter tau) between them.
     
@@ -113,13 +113,13 @@ module mo_geodesy
     real(wp)             :: find_geodetic_direction ! the result
     
     ! local variables
-    real(wp) :: rel_vec(3)
-    real(wp) :: local_i(3)
-    real(wp) :: local_j(3)
-    real(wp) :: lat
-    real(wp) :: lon
-    real(wp) :: x_comp
-    real(wp) :: y_comp
+    real(wp) :: lat        ! geographic latitude of the point where to calculate the direction
+    real(wp) :: lon        ! geographic longitude of the point where to calculate the direction
+    real(wp) :: rel_vec(3) ! vector from the first to the second point
+    real(wp) :: local_i(3) ! local eastward basis vector at the point where to calculate the direction
+    real(wp) :: local_j(3) ! local northward basis vector at the point where to calculate the direction
+    real(wp) :: x_comp     ! eastward component of the tangent of the geodetic at the point where to calculate the direction
+    real(wp) :: y_comp     ! northward component of the tangent of the geodetic at the point where to calculate the direction
     
     rel_vec(1) = cos(lat_2_in)*cos(lon_2_in) - cos(lat_1_in)*cos(lon_1_in)
     rel_vec(2) = cos(lat_2_in)*sin(lon_2_in) - cos(lat_1_in)*sin(lon_1_in)
@@ -130,11 +130,11 @@ module mo_geodesy
     x_comp = scalar_product_elementary(local_i,rel_vec)
     y_comp = scalar_product_elementary(local_j,rel_vec)
     find_geodetic_direction = atan2(y_comp,x_comp)
-  
+    
   end function find_geodetic_direction
-
-  subroutine calc_local_i(lon,result_vec)
   
+  subroutine calc_local_i(lon,result_vec)
+    
     ! This subroutine calculates the local eastward basis vector.
     
     real(wp), intent(in)  :: lon           ! geographic longitude where to calculate the basis vector
@@ -145,9 +145,9 @@ module mo_geodesy
     result_vec(3) = 0._wp
     
   end subroutine calc_local_i
-
-  subroutine active_turn(x_in,y_in,turn_angle,x_out,y_out)
   
+  subroutine active_turn(x_in,y_in,turn_angle,x_out,y_out)
+    
     ! This subroutine turns a vector in the xy-plane around the z-axis.
     
     real(wp), intent(in)  :: x_in       ! x-component of the input vector
@@ -158,9 +158,9 @@ module mo_geodesy
     
     x_out = cos(turn_angle)*x_in-sin(turn_angle)*y_in
     y_out = sin(turn_angle)*x_in+cos(turn_angle)*y_in
-  
+    
   end subroutine active_turn
-
+  
   subroutine passive_turn(x_in,y_in,turn_angle,x_out,y_out)
     
     ! This subroutine turns a vector in the xy-plane around the z-axis passively.
@@ -173,11 +173,11 @@ module mo_geodesy
     real(wp), intent(out) :: y_out      ! y-component of the resulting vector
     
     call active_turn(x_in,y_in,-turn_angle,x_out,y_out)
-  
+    
   end subroutine passive_turn
-
-  subroutine find_between_point(x_1,y_1,z_1,x_2,y_2,z_2,rel_on_line,x_out,y_out,z_out)
   
+  subroutine find_between_point(x_1,y_1,z_1,x_2,y_2,z_2,rel_on_line,x_out,y_out,z_out)
+    
     ! This subroutine calculates the coordinates of a point on a straight line between two other points.
     
     real(wp), intent(in)  :: x_1         ! x-coordinate of the first point
@@ -194,11 +194,11 @@ module mo_geodesy
     x_out = x_1 + rel_on_line*(x_2 - x_1)
     y_out = y_1 + rel_on_line*(y_2 - y_1)
     z_out = z_1 + rel_on_line*(z_2 - z_1)
-  
+    
   end subroutine find_between_point
-
-  subroutine calc_local_j(lat,lon,result_vec)
   
+  subroutine calc_local_j(lat,lon,result_vec)
+    
     ! This subroutine calculates the local northward basis vector.
     
     real(wp), intent(in)  :: lat           ! geographic latitude of the point where to calculate the basis vector
@@ -210,9 +210,9 @@ module mo_geodesy
     result_vec(3) = cos(lat)
     
   end subroutine calc_local_j
-
-  subroutine find_geos(x,y,z,lat_out,lon_out)
   
+  subroutine find_geos(x,y,z,lat_out,lon_out)
+    
     ! This subroutine calculates the geographical coordinates of a point given its Cartesian coordinates
     
     real(wp), intent(in)  :: x       ! x-coordinate of the point to transform
@@ -220,14 +220,14 @@ module mo_geodesy
     real(wp), intent(in)  :: z       ! z-coordinate of the point to transform
     real(wp), intent(out) :: lat_out ! geographic latitude of the result
     real(wp), intent(out) :: lon_out ! geographic longitude of the result
-
+    
     lat_out = asin(z/sqrt(x**2+y**2+z**2))
     lon_out = atan2(y,x)
     
   end subroutine find_geos
   
   subroutine find_global_normal(lat,lon,x,y,z)
-  
+    
     ! This subroutine calculates the Cartesian coordinates of a point given its geographical coordinates.
     
     real(wp), intent(in)  :: lat ! latitude of the point of which to compute the Cartesian coordinates
@@ -235,15 +235,15 @@ module mo_geodesy
     real(wp), intent(out) :: x   ! x-coordinate (result)
     real(wp), intent(out) :: y   ! y-coordinate (result)
     real(wp), intent(out) :: z   ! z-coordinate (result)
-
+    
     x = cos(lat)*cos(lon)
     y = cos(lat)*sin(lon)
     z = sin(lat)
     
   end subroutine find_global_normal
-
-  subroutine active_turn_x(angle,vector_in,vector_out)
   
+  subroutine active_turn_x(angle,vector_in,vector_out)
+    
     ! This subroutine turns a three-dimensional vector around the x-axis.
     
     real(wp), intent(in)  :: angle         ! angle
@@ -255,9 +255,9 @@ module mo_geodesy
     vector_out(3) = sin(angle)*vector_in(2) + cos(angle)*vector_in(3)
     
   end subroutine active_turn_x
-
-  function rad2deg(input)
   
+  function rad2deg(input)
+    
     ! This function converts an angle in radians to an angle in degrees.
     
     real(wp), intent(in) :: input   ! angle in radians
@@ -266,9 +266,9 @@ module mo_geodesy
     rad2deg = input*360._wp/(2._wp*M_PI)
     
   end function rad2deg
-
-  function deg2rad(input)
   
+  function deg2rad(input)
+    
     ! This function converts an angle in degrees to an angle in radians.
     
     real(wp), intent(in) :: input   ! angle in degrees
@@ -425,51 +425,51 @@ module mo_geodesy
   end subroutine find_voronoi_center_sphere
   
   function calc_triangle_area(lat_1_in,lon_1_in,lat_2_in,lon_2_in,lat_3_in,lon_3_in)
-
+    
     ! This function calculates the area of a spherical triangle.
     
-    real(wp), intent(in) :: lat_1_in           ! latitude of one of the vertices
-    real(wp), intent(in) :: lon_1_in           ! longitude of one of the vertices
-    real(wp), intent(in) :: lat_2_in           ! latitude of one of the vertices
-    real(wp), intent(in) :: lon_2_in           ! longitude of one of the vertices
-    real(wp), intent(in) :: lat_3_in           ! latitude of one of the vertices
-    real(wp), intent(in) :: lon_3_in           ! longitude of one of the vertices
+    real(wp), intent(in) :: lat_1_in           ! geographic latitude of one of the vertices
+    real(wp), intent(in) :: lon_1_in           ! geographic longitude of one of the vertices
+    real(wp), intent(in) :: lat_2_in           ! geographic latitude of one of the vertices
+    real(wp), intent(in) :: lon_2_in           ! geographic longitude of one of the vertices
+    real(wp), intent(in) :: lat_3_in           ! geographic latitude of one of the vertices
+    real(wp), intent(in) :: lon_3_in           ! geographic longitude of one of the vertices
     real(wp)             :: calc_triangle_area ! the result
     
     ! local variables
-    real(wp) :: lat_1
-    real(wp) :: lon_1
-    real(wp) :: lat_2
-    real(wp) :: lon_2
-    real(wp) :: lat_3
-    real(wp) :: lon_3
-    real(wp) :: average_latitude
-    real(wp) :: x_1
-    real(wp) :: y_1
-    real(wp) :: z_1
-    real(wp) :: x_2
-    real(wp) :: y_2
-    real(wp) :: z_2
-    real(wp) :: x_3
-    real(wp) :: y_3
-    real(wp) :: z_3
-    real(wp) :: angle_1
-    real(wp) :: angle_2
-    real(wp) :: angle_3
-    real(wp) :: dir_12
-    real(wp) :: dir_13
-    real(wp) :: dir_21
-    real(wp) :: dir_23
-    real(wp) :: dir_31
-    real(wp) :: dir_32
-    real(wp) :: vector_12(2)
-    real(wp) :: vector_13(2)
-    real(wp) :: vector_21(2)
-    real(wp) :: vector_23(2)
-    real(wp) :: vector_31(2)
-    real(wp) :: vector_32(2)
-    real(wp) :: vector_in(3)
-    real(wp) :: vector_out(3)
+    real(wp) :: lat_1            ! geographic latitude of one of the vertices
+    real(wp) :: lon_1            ! geographic longitude of one of the vertices
+    real(wp) :: lat_2            ! geographic latitude of one of the vertices
+    real(wp) :: lon_2            ! geographic longitude of one of the vertices
+    real(wp) :: lat_3            ! geographic latitude of one of the vertices
+    real(wp) :: lon_3            ! geographic longitude of one of the vertices
+    real(wp) :: average_latitude ! average geographic latitude of the three vertices
+    real(wp) :: x_1              ! x-coordinate of one of the vertices
+    real(wp) :: y_1              ! y-coordinate of one of the vertices
+    real(wp) :: z_1              ! z-coordinate of one of the vertices
+    real(wp) :: x_2              ! x-coordinate of one of the vertices
+    real(wp) :: y_2              ! y-coordinate of one of the vertices
+    real(wp) :: z_2              ! z-coordinate of one of the vertices
+    real(wp) :: x_3              ! x-coordinate of one of the vertices
+    real(wp) :: y_3              ! y-coordinate of one of the vertices
+    real(wp) :: z_3              ! z-coordinate of one of the vertices
+    real(wp) :: dir_12           ! geodetic direction from the first to the second vertex (at the starting point)
+    real(wp) :: dir_13           ! geodetic direction from the first to the third vertex (at the starting point)
+    real(wp) :: dir_21           ! geodetic direction from the second to the first vertex (at the starting point)
+    real(wp) :: dir_23           ! geodetic direction from the second to the third vertex (at the starting point)
+    real(wp) :: dir_31           ! geodetic direction from the third to the first vertex (at the starting point)
+    real(wp) :: dir_32           ! geodetic direction from the third to the second vertex (at the starting point)
+    real(wp) :: vector_in(3)     ! only used as an argument to subroutines awating a vector
+    real(wp) :: vector_out(3)    ! only used as an argument to subroutines awating a vector
+    real(wp) :: vector_12(2)     ! vector from the first to the second vertex
+    real(wp) :: vector_13(2)     ! vector from the first to the third vertex
+    real(wp) :: vector_21(2)     ! vector from the second to the first vertex
+    real(wp) :: vector_23(2)     ! vector from the second to the third vertex
+    real(wp) :: vector_31(2)     ! vector from the third to the first vertex
+    real(wp) :: vector_32(2)     ! vector from the third to the second vertex
+    real(wp) :: angle_1          ! angle between two of the edges of the triangle
+    real(wp) :: angle_2          ! angle between two of the edges of the triangle
+    real(wp) :: angle_3          ! angle between two of the edges of the triangle
     
     ! copying the intent(in) arguments to local variables
     lat_1 = lat_1_in
@@ -480,6 +480,7 @@ module mo_geodesy
     lon_3 = lon_3_in
     
     average_latitude = (lat_1+lat_2+lat_3)/3.0_wp
+    ! special case for high latitudes
     if (abs(average_latitude)>0.9_wp*M_PI/2.0_wp) then
       call find_global_normal(lat_1,lon_1,x_1,y_1,z_1)
       call find_global_normal(lat_2,lon_2,x_2,y_2,z_2)
@@ -532,38 +533,37 @@ module mo_geodesy
     angle_2 = acos(scalar_product_elementary_2d(vector_21,vector_23))
     angle_3 = acos(scalar_product_elementary_2d(vector_31,vector_32))
     calc_triangle_area = angle_1+angle_2+angle_3-M_PI
-  
+    
   end function calc_triangle_area
   
-
-  function rel_on_line(lat_0,lon_0,lat_1,lon_1,lat_point,lon_point)
+  function rel_on_line(lat_1,lon_1,lat_2,lon_2,lat_point,lon_point)
     
     ! This function calculates where a geodetic is the closest to a certain point.
     
-    real(wp), intent(in) :: lat_0
-    real(wp), intent(in) :: lon_0
-    real(wp), intent(in) :: lat_1
-    real(wp), intent(in) :: lon_1
-    real(wp), intent(in) :: lat_point
-    real(wp), intent(in) :: lon_point
-    real(wp)             :: rel_on_line
+    real(wp), intent(in) :: lat_1       ! geographic latitude of the first point of the geodetic
+    real(wp), intent(in) :: lon_1       ! geographic longitude of the first point of the geodetic
+    real(wp), intent(in) :: lat_2       ! geographic latitude of the second point of the geodetic
+    real(wp), intent(in) :: lon_2       ! geographic longitude of the second point of the geodetic
+    real(wp), intent(in) :: lat_point   ! geographic latitude of the point to which to calculate the distance
+    real(wp), intent(in) :: lon_point   ! geographic longitude of the point to which to calculate the distance
+    real(wp)             :: rel_on_line ! result as a parameter >=0, <=1 on the geodetic
     
     ! local variables
-    integer               :: number_of_points
-    integer               :: ji
-    integer               :: min_index
-    real(wp), allocatable :: dist_vector(:)
-    real(wp)              :: lat
-    real(wp)              :: lon
-    real(wp)              :: tau
+    integer               :: number_of_points ! number of points on the geodetic where a distance will be calculated (the higher the more precise)
+    real(wp), allocatable :: dist_vector(:)   ! vector containing the distances
+    integer               :: min_index        ! the distance where the distance vector has its minimum
+    real(wp)              :: tau              ! parameter >=0, <=1 on the geodetic
+    real(wp)              :: lat              ! geographic latitude of a point on the geodetic
+    real(wp)              :: lon              ! geographic longitude of a point on the geodetic
+    integer               :: ji               ! will loop over all points at which to calculate a distance
     
     number_of_points = 1001
     
     allocate(dist_vector(number_of_points))
-
+    
     do ji=1,number_of_points
       tau = ji/(number_of_points + 1._wp)
-      call find_geodetic(lat_0,lon_0,lat_1,lon_1,tau,lat,lon)
+      call find_geodetic(lat_1,lon_1,lat_2,lon_2,tau,lat,lon)
       dist_vector(ji) = calculate_distance_cart(lat_point,lon_point,lat,lon,1._wp,1._wp)
     enddo
     
@@ -572,7 +572,7 @@ module mo_geodesy
     deallocate(dist_vector)
     
     rel_on_line = min_index/(number_of_points+1._wp)
-  
+    
   end function rel_on_line
   
   subroutine sort_vertex_indices(lat_points,lon_points,number_of_vertices,indices_resorted)
@@ -585,32 +585,31 @@ module mo_geodesy
     integer,  intent(out) :: indices_resorted(number_of_vertices) ! resorted vertex indices
     
     ! local variables
-    integer  :: ji
-    integer  :: jk
-    integer  :: index_array(number_of_vertices-1)
-    integer  :: first_index
-    integer  :: second_index
-    integer  :: third_index
-    integer  :: index_candidates(2)
-    integer  :: check
-    integer  :: needs_to_be_reversed
-    integer  :: counter
-    integer  :: neighbour(2*number_of_vertices)
-    integer  :: indices_resorted_w_dir(number_of_vertices)
-    real(wp) :: x_center
-    real(wp) :: y_center
-    real(wp) :: z_center
-    real(wp) :: x_points(number_of_vertices)
-    real(wp) :: y_points(number_of_vertices)
-    real(wp) :: z_points(number_of_vertices)
-    real(wp) :: lat_center
-    real(wp) :: lon_center
-    real(wp) :: distance_candidate
-    real(wp) :: distance_array(number_of_vertices-1)
-    real(wp) :: angle_sum
-    real(wp) :: new_direction
-    real(wp) :: direction_1
-    real(wp) :: direction_2
+    real(wp) :: x_points(number_of_vertices)               ! x-coordinates of the vertices
+    real(wp) :: y_points(number_of_vertices)               ! y-coordinates of the vertices
+    real(wp) :: z_points(number_of_vertices)               ! z-coordinates of the vertices
+    real(wp) :: x_center                                   ! x-coordinate of the center of the polygon
+    real(wp) :: y_center                                   ! y-coordinate of the center of the polygon
+    real(wp) :: z_center                                   ! z-coordinate of the center of the polygon
+    real(wp) :: lat_center                                 ! geographic latitude of the center of the polygon
+    real(wp) :: lon_center                                 ! geographic longitude of the center of the polygon
+    real(wp) :: distance_candidate                         ! distance between two vertices
+    real(wp) :: distance_array(number_of_vertices-1)       ! distance between a vertex and all other vertices
+    integer  :: index_array(number_of_vertices-1)          ! indices of all vertices excluding one
+    integer  :: neighbour(2*number_of_vertices)            ! array holding the neighbour relations of vertices
+    integer  :: index_candidates(2)                        ! the two neighbour vertex indices of a given vertex
+    integer  :: counter                                    ! used to increment array indices
+    real(wp) :: angle_sum                                  ! sum of the inner angles of the polygon
+    real(wp) :: direction_1                                ! geodetic direction of an edge
+    real(wp) :: direction_2                                ! geodetic direction of an edge
+    real(wp) :: new_direction                              ! turn angle from direction_1 to direction_2
+    integer  :: needs_to_be_reversed                       ! set to one if the sorted vertex indices need to be reversed, 0 otherwise
+    integer  :: first_index                                ! vertex index (helper variable used for reversing the vertex indices)
+    integer  :: second_index                               ! vertex index (helper variable used for reversing the vertex indices)
+    integer  :: third_index                                ! vertex index (helper variable used for reversing the vertex indices)
+    integer  :: indices_resorted_w_dir(number_of_vertices) ! helper variable holding the final result after resorting the vertex indices
+    integer  :: ji                                         ! will loop over the vertices
+    integer  :: jk                                         ! will loop over the vertices
     
     ! calculating the Cartesian coordinates of the vertices
     do ji=1,number_of_vertices
@@ -633,7 +632,7 @@ module mo_geodesy
       counter = 1
       do jk=1,number_of_vertices
         distance_candidate = calculate_distance_cart(lat_points(ji),lon_points(ji),lat_points(jk),lon_points(jk), &
-        1._wp,1._wp)
+                                                     1._wp,1._wp)
         if (distance_candidate/=0._wp) then
           index_array(counter) = jk
           distance_array(counter) = distance_candidate
@@ -659,8 +658,7 @@ module mo_geodesy
           counter = counter+1
         endif
       enddo
-      check = in_bool_checker(index_candidates(1),indices_resorted)
-      if (check==1) then
+      if (in_bool_checker(index_candidates(1),indices_resorted)==1) then
         indices_resorted(ji) = index_candidates(2)
       else
         indices_resorted(ji) = index_candidates(1)
@@ -719,11 +717,11 @@ module mo_geodesy
     real(wp) :: z_center                           ! z-coordinate of the center of the polygon in global coordinates
     real(wp) :: lat_center                         ! geographic latitude of the center of the polygon
     real(wp) :: lon_center                         ! geographic longitude of the center of the polygon
-    real(wp) :: triangle_surfaces(number_of_edges)
-    real(wp) :: lat_points_sorted(number_of_edges)
-    real(wp) :: lon_points_sorted(number_of_edges)
-    integer  :: ji
-    integer  :: indices_resorted(number_of_edges)
+    integer  :: ji                                 ! will loop over the vertices or edges
+    integer  :: indices_resorted(number_of_edges)  ! sorted vertex indices
+    real(wp) :: lat_points_sorted(number_of_edges) ! geographic latitudes of the sorted vertices
+    real(wp) :: lon_points_sorted(number_of_edges) ! geographic longitudes of the sorted vertices
+    real(wp) :: triangle_surfaces(number_of_edges) ! surfaces of the triangles which the polygon consists of
     
     ! calculating the normalized Cartesian coordinates of the vertex points
     do ji=1,number_of_edges
@@ -763,9 +761,9 @@ module mo_geodesy
     do ji=1,number_of_edges
       calc_spherical_polygon_area = calc_spherical_polygon_area + triangle_surfaces(ji)
     enddo
-
+    
   end function calc_spherical_polygon_area
-
+  
 end module mo_geodesy
 
 
