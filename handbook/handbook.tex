@@ -127,7 +127,7 @@ All other quantities, be it floating point numbers like grid box volumes or area
 \subsection{Creating a spherical geodesic grid}
 \label{sec:creating_a_spherical_geodesic_grid}
 
-By \textit{horizontal grid} we mean the grid on one single layer. Without loss of generality this layer can be assumed to coincide with the surface of the unity sphere.
+By \textit{horizontal grid} we mean the grid on one single layer. Without loss of generality this layer can be assumed to coincide with the surface of the unit sphere.
 
 \subsection{Numbering and orienting the vector points}
 \label{sec:numbering_and_orienting_the_vector_points}
@@ -162,7 +162,7 @@ The dual cells of a hexagonal grid are the triangular grid cells. Since we aim a
 \begin{figure}
 \begin{center}
 \includegraphics[width = 0.5\textwidth]{hexagonal_grid_1.pdf}
-\caption{A sample hexagon with a horizontal scalar index of 5381. The directions of the arrows indicate the directions of unit vectors at cell edges. The drawn orientations would lead to $\texttt{adjacent\_vector\_signs\_h}[6\cdot 5381 + 0] = 1$, $\texttt{adjacent\_vector\_signs\_h}[6\cdot 5381 + 1] = 1$, $\texttt{adjacent\_vector\_signs\_h}[6\cdot 5381 + 2] = 1$, $\texttt{adjacent\_vector\_signs\_h}[6\cdot 5381 + 3] = -1$, $\texttt{adjacent\_vector\_signs\_h}[6\cdot 5381 + 4] = 1$, $\texttt{adjacent\_vector\_signs\_h}[6\cdot 5381 + 5] = -1$.}
+\caption{A sample hexagon with a horizontal scalar index of 5381. The directions of the arrows indicate the directions of unit vectors at cell edges. The drawn orientations would lead to $\texttt{adjacent\_vector\_signs\_h}(1,5381) = 1$, $\texttt{adjacent\_vector\_signs\_h}(2,5381) = 1$, $\texttt{adjacent\_vector\_signs\_h}(3,5381) = -1$, $\texttt{adjacent\_vector\_signs\_h}(4,5381) = 1$, $\texttt{adjacent\_vector\_signs\_h}(5,5381) = -1$, $\texttt{adjacent\_vector\_signs\_h}(6,5381) = 1$.}
 \label{fig:hexagonal_grid_1}
 \end{center}
 \end{figure}
@@ -252,16 +252,18 @@ Use the bash script \texttt{grid\_generator/compile.sh} to compile the grid gene
 \centering
 \begin{tabular}{|>{\centering}p{5.0 cm}|>{\centering}p{3 cm}|>{\centering}p{7 cm}|}
 \hline \textbf{name} & \textbf{domain} & \textbf{meaning} \tabularnewline
-\hline\hline \texttt{\texttt{oro\_id}} & all value for which an orography is defined & orography ID \tabularnewline
-\hline\hline \texttt{n\_iterations} & integer $\geq$ 0 & number of iterations, 2000 is a reasonable value \tabularnewline
+\hline\hline \texttt{\texttt{res\_id}} & $\geq 4$ & resolution ID \tabularnewline
+\hline\hline \texttt{\texttt{oro\_id}} & 0,1 & orography ID \tabularnewline
+\hline\hline \texttt{n\_lloyd\_iterations} & integer $\geq$ 0 & number of iterations of the Lloyd algorithm, 2000 is a reasonable value \tabularnewline
 \hline\hline \texttt{luse\_scalar\_h\_file} & boolean & switch to determine wether fundamental horizontal grid properties shall be read from a previously generated file \tabularnewline
 \hline\hline \texttt{luse\_sfc\_file} & boolean & switch to determine wether physical surface properties shall be read from a file \tabularnewline
 \hline\hline \texttt{scalar\_h\_coords\_file} & string & input file for dual triangle vertices (only relevant if \texttt{use\_scalar\_h\_coords\_file} = 1) \tabularnewline
-\hline\hline \texttt{stretching\_parameter} & $\geq$ 1, real & defines the vertical stretching of the grid, one means no stretching \tabularnewline
+\hline\hline \texttt{stretching\_parameter} & $\geq 1$, real & defines the vertical stretching of the grid, one means no stretching \tabularnewline
 \hline\hline \texttt{toa} & $> 0$, real & height of the top of the atmosphere \tabularnewline
-\hline\hline \texttt{orography\_layers} & $\geq$ 1, natural & number of layers following orography (only relevant if \texttt{type\_of\_vertical\_grid} == 0) \tabularnewline
+\hline\hline \texttt{n\_oro\_layers} & $\geq$ 1, natural & number of layers following orography (only relevant if \texttt{type\_of\_vertical\_grid} == 0) \tabularnewline
 \hline\hline \texttt{radius\_rescale} & $> 0$, real & rescale factor for the radius of the grid, radius $r$ will be calculated according to $r = \texttt{radius\_rescale}\cdot a$, where $a$ is the Earth radius; angular velocity $\omega$ will be replaced according to $\omega \to \frac{\omega}{\texttt{radius\_rescale}}$ \tabularnewline
 \hline\hline \texttt{n\_avg\_points} & $\geq$ 1 & number of points used for smoothing the orography \tabularnewline
+\hline\hline \texttt{lsleve} & boolean & switch for the SLEVE vertical coordinate smoothing technique \tabularnewline
 \hline
 \end{tabular}
 \caption{Grid generator run script explanation.}

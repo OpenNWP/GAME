@@ -2,7 +2,7 @@
 ! Github repository: https://github.com/OpenNWP/GAME
 
 module mo_multiplications
-
+  
   ! In this module, algebraic multiplications of fields are collected.
   
   use mo_definitions, only: wp,t_grid
@@ -11,7 +11,7 @@ module mo_multiplications
   implicit none
   
   contains
-
+  
   subroutine scalar_times_vector_h(scalar_field,vector_field,out_field,grid)
     
     ! This subroutine multiplies a vector field by a scalar field at the horizontal gridpoints.
@@ -32,7 +32,7 @@ module mo_multiplications
     !$omp end parallel do
     
   end subroutine scalar_times_vector_h
-
+  
   subroutine scalar_times_vector_h2(scalar_field,vector_field,grid)
     
     ! This subroutine multiplies a vector field by a scalar field at the horizontal gridpoints and writes the result to the vector field.
@@ -52,7 +52,7 @@ module mo_multiplications
     !$omp end parallel do
     
   end subroutine scalar_times_vector_h2
-
+  
   subroutine scalar_times_vector_h_upstream(scalar_field,vector_field,out_field,grid)
     
     ! This subroutine multiplies a vector field by a scalar field.
@@ -82,7 +82,7 @@ module mo_multiplications
     !$omp end parallel do
     
   end subroutine scalar_times_vector_h_upstream
-
+  
   subroutine scalar_times_vector_v(scalar_field,vector_field,out_field)
     
     ! This subroutine multiplies a vector field by a scalar field at the vertical gridpoints.
@@ -104,7 +104,7 @@ module mo_multiplications
     !$omp end parallel do
     
   end subroutine scalar_times_vector_v
-
+  
   subroutine scalar_times_vector_v2(scalar_field,vector_field)
     
     ! This subroutine multiplies a vector field by a scalar field at the vertical gridpoints and writes the result to the vector field.
@@ -125,8 +125,13 @@ module mo_multiplications
     !$omp end parallel do
     
   end subroutine scalar_times_vector_v2
-
+  
 end module mo_multiplications
+
+
+
+
+
 
 
 
