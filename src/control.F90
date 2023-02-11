@@ -11,7 +11,7 @@ program control
                                        n_levels,grid_nml_setup
   use mo_constituents_nml,       only: n_constituents,n_condensed_constituents,constituents_nml_setup
   use mo_run_nml,                only: run_span_min,run_nml_setup,t_init
-  use mo_grid_setup,             only: eff_hor_res,radius_rescale,set_grid_properties,dtime,toa
+  use mo_grid_setup,             only: eff_hor_res,radius_rescale,set_grid_properties,set_background_state,dtime,toa
   use mo_io_nml,                 only: n_output_steps_10m_wind,lwrite_integrals,write_out_interval_min, &
                                        io_nml_setup,ideal_input_id
   use mo_surface_nml,            only: nsoillays,surface_nml_setup
@@ -373,6 +373,7 @@ program control
   ! reading the grid
   write(*,*) "Reading grid data ..."
   call set_grid_properties(grid)
+  call set_background_state(grid)
   
   ! initializing the diagnostic roughness length
   !$omp parallel workshare

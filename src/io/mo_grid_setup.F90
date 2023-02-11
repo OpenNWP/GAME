@@ -6,7 +6,8 @@ module mo_grid_setup
   ! This module reads the grid properties and sets some further grid quantities.
 
   use netcdf
-  use mo_constants,       only: t_0,r_e,M_PI,lapse_rate
+  use mo_constants,       only: t_0,r_e,M_PI,lapse_rate,surface_temp,tropo_height,inv_height,t_grad_inv,p_0, &
+                                p_0_standard,r_d,c_d_p,gravity
   use mo_definitions,     only: wp,t_grid
   use mo_grid_nml,        only: n_layers,n_cells,oro_id,res_id,n_levels
   use mo_diff_nml,        only: klemp_begin_rel
@@ -76,8 +77,6 @@ module mo_grid_setup
     integer            :: interpol_weights_id            ! netCDF ID of interpol_weights
     integer            :: lat_output_vector_id           ! netCDF IF of lat_output_vector
     integer            :: lon_output_vector_id           ! netCDF IF of lon_output_vector
-    integer            :: theta_v_bg_id                  ! netCDF ID of theta_v_bg
-    integer            :: exner_bg_id                    ! netCDF ID of exner_bg
     integer            :: sfc_rho_c_id                   ! netCDF ID of sfc_rho_c
     integer            :: sfc_albedo_id                  ! netCDF ID of sfc_albedo
     integer            :: roughness_length_id            ! netCDF ID of roughness_length
@@ -108,8 +107,6 @@ module mo_grid_setup
     call nc_check(nf90_inq_varid(ncid,"area_h",area_h_id))
     call nc_check(nf90_inq_varid(ncid,"area_v",area_v_id))
     call nc_check(nf90_inq_varid(ncid,"z_scalar",z_scalar_id))
-    call nc_check(nf90_inq_varid(ncid,"theta_v_bg",theta_v_bg_id))
-    call nc_check(nf90_inq_varid(ncid,"exner_bg",exner_bg_id))
     call nc_check(nf90_inq_varid(ncid,"gravity_potential",gravity_potential_id))
     call nc_check(nf90_inq_varid(ncid,"z_vector_h",z_vector_h_id))
     call nc_check(nf90_inq_varid(ncid,"z_vector_v",z_vector_v_id))
@@ -159,8 +156,6 @@ module mo_grid_setup
     call nc_check(nf90_get_var(ncid,area_h_id,grid%area_h))
     call nc_check(nf90_get_var(ncid,area_v_id,grid%area_v))
     call nc_check(nf90_get_var(ncid,z_scalar_id,grid%z_scalar))
-    call nc_check(nf90_get_var(ncid,theta_v_bg_id,grid%theta_v_bg))
-    call nc_check(nf90_get_var(ncid,exner_bg_id,grid%exner_bg))
     call nc_check(nf90_get_var(ncid,gravity_potential_id,grid%gravity_potential))
     call nc_check(nf90_get_var(ncid,z_vector_h_id,grid%z_vector_h))
     call nc_check(nf90_get_var(ncid,z_vector_v_id,grid%z_vector_v))
@@ -251,6 +246,96 @@ module mo_grid_setup
     enddo
     
   end subroutine set_grid_properties
+  
+  subroutine set_background_state(grid)
+
+    ! This subroutine sets the hydrostatic background state.
+    
+    type(t_grid), intent(inout) :: grid ! the grid properties
+  
+    ! local variables
+    integer  :: ji          ! cell index
+    integer  :: jl          ! layer index
+    real(wp) :: temperature ! individual temperature value
+    real(wp) :: pressure    ! individual pressure value
+    real(wp) :: b           ! helper variable for vertically integrating the hydrostatic equation
+    real(wp) :: c           ! helper variable for vertically integrating the hydrostatic equation
+  
+    !$omp parallel do private(ji,jl,temperature,pressure,b,c)
+    do ji=1,n_cells
+      ! integrating from bottom to top
+      do jl=n_layers,1,-1
+        temperature = standard_temp(grid%z_scalar(ji,jl))
+        ! lowest layer
+        if (jl==n_layers) then
+          pressure = standard_pres(grid%z_scalar(ji,jl))
+          grid%exner_bg(ji,jl) = (pressure/p_0)**(r_d/c_d_p)
+          grid%theta_v_bg(ji,jl) = temperature/grid%exner_bg(ji,jl)
+        ! other layers
+        else
+          ! solving a quadratic equation for the Exner pressure
+          b = -0.5_wp*grid%exner_bg(ji,jl+1)/standard_temp(grid%z_scalar(ji,jl+1)) &
+          *(temperature - standard_temp(grid%z_scalar(ji,jl+1)) &
+          + 2._wp/c_d_p*(grid%gravity_potential(ji,jl) - grid%gravity_potential(ji,jl+1)))
+          c = grid%exner_bg(ji,jl+1)**2*temperature/standard_temp(grid%z_scalar(ji,jl+1))
+          grid%exner_bg(ji,jl) = b + (b**2 + c)**0.5_wp
+          grid%theta_v_bg(ji,jl) = temperature/grid%exner_bg(ji,jl)
+        endif
+      enddo
+    enddo
+    !$omp end parallel do
+  
+  end subroutine set_background_state
+  
+  function standard_temp(z_height)
+    
+    ! This function returns the temperature in the standard atmosphere.
+    
+    real(wp), intent(in) :: z_height      ! height above MSL (m)
+    real(wp)             :: standard_temp ! result
+    
+    ! local variables
+    real(wp) :: tropo_temp_standard ! temperature at the tropopause in the ICAO standard atmosphere
+    
+    tropo_temp_standard = surface_temp-tropo_height*lapse_rate
+    
+    if (z_height<tropo_height) then
+      standard_temp = surface_temp-z_height*lapse_rate
+    elseif (z_height<inv_height) then
+      standard_temp = tropo_temp_standard
+    else
+      standard_temp = tropo_temp_standard+t_grad_inv*(z_height-inv_height)
+    endif
+    
+  end function standard_temp
+
+  function standard_pres(z_height)
+    
+    ! This function returns the pressure in the standard atmosphere.
+    
+    real(wp), intent(in) :: z_height      ! vertical height
+    real(wp)             :: standard_pres ! air pressure in the standard atmosphere (result)
+    
+    ! local variables
+    real(wp) :: tropo_temp_standard      ! temperature at the tropopause in the ICAO standard atmosphere
+    real(wp) :: pressure_at_inv_standard ! pressure at the inversion height (inv_height) in the ICAO standard atmosphere
+    
+    tropo_temp_standard = surface_temp-tropo_height*lapse_rate
+    
+    if (z_height<tropo_height) then
+      standard_pres = p_0_standard*(1._wp-lapse_rate*z_height/surface_temp)**(gravity/(r_d*lapse_rate))
+    else if (z_height<inv_height) then
+      standard_pres = p_0_standard*(1._wp-lapse_rate*tropo_height/surface_temp) &
+      **(gravity/(r_d*lapse_rate)) &
+      *exp(-gravity*(z_height-tropo_height)/(r_d*tropo_temp_standard))
+    else
+      pressure_at_inv_standard = p_0_standard*(1._wp-lapse_rate*tropo_height/surface_temp) &
+      **(gravity/(r_d*lapse_rate))*exp(-gravity*(inv_height-tropo_height)/(r_d*tropo_temp_standard))
+      standard_pres = pressure_at_inv_standard*(1._wp-lapse_rate*(z_height-inv_height)/surface_temp) &
+      **(gravity/(r_d*lapse_rate))
+    endif
+    
+  end function standard_pres
 
 end module mo_grid_setup
 

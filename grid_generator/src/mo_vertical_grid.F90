@@ -6,8 +6,7 @@ module mo_vertical_grid
   ! This file contains functions that compute properties of the vertical grid.
 
   use mo_definitions, only: wp
-  use mo_constants,   only: gravity,surface_temp,tropo_height,lapse_rate,inv_height,t_grad_inv,r_d, &
-                            p_0_standard,c_d_p,p_0
+  use mo_constants,   only: gravity
   use mo_grid_nml,    only: n_cells,n_layers,n_levels,n_triangles,n_edges,toa,n_oro_layers, &
                             stretching_parameter,radius,n_flat_layers,lsleve
   use mo_geodesy,     only: calculate_vertical_area,calculate_distance_h
@@ -133,56 +132,6 @@ module mo_vertical_grid
     
   end subroutine set_volume
   
-  function standard_temp(z_height)
-  
-    ! This function returns the temperature in the standard atmosphere.
-    
-    real(wp), intent(in) :: z_height      ! height above MSL (m)
-    real(wp)             :: standard_temp ! result
-    
-    ! local variables
-    real(wp) :: tropo_temp_standard ! temperature at the tropopause in the ICAO standard atmosphere
-    
-    tropo_temp_standard = surface_temp-tropo_height*lapse_rate
-    
-    if (z_height<tropo_height) then
-      standard_temp = surface_temp-z_height*lapse_rate
-    elseif (z_height<inv_height) then
-      standard_temp = tropo_temp_standard
-    else
-      standard_temp = tropo_temp_standard+t_grad_inv*(z_height-inv_height)
-    endif
-    
-  end function standard_temp
-
-  function standard_pres(z_height)
-    
-    ! This function returns the pressure in the standard atmosphere.
-    
-    real(wp), intent(in) :: z_height      ! vertical height
-    real(wp)             :: standard_pres ! air pressure in the standard atmosphere (result)
-    
-    ! local variables
-    real(wp) :: tropo_temp_standard      ! temperature at the tropopause in the ICAO standard atmosphere
-    real(wp) :: pressure_at_inv_standard ! pressure at the inversion height (inv_height) in the ICAO standard atmosphere
-    
-    tropo_temp_standard = surface_temp-tropo_height*lapse_rate
-    
-    if (z_height<tropo_height) then
-      standard_pres = p_0_standard*(1._wp-lapse_rate*z_height/surface_temp)**(gravity/(r_d*lapse_rate))
-    else if (z_height<inv_height) then
-      standard_pres = p_0_standard*(1._wp-lapse_rate*tropo_height/surface_temp) &
-      **(gravity/(r_d*lapse_rate)) &
-      *exp(-gravity*(z_height-tropo_height)/(r_d*tropo_temp_standard))
-    else
-      pressure_at_inv_standard = p_0_standard*(1._wp-lapse_rate*tropo_height/surface_temp) &
-      **(gravity/(r_d*lapse_rate))*exp(-gravity*(inv_height-tropo_height)/(r_d*tropo_temp_standard))
-      standard_pres = pressure_at_inv_standard*(1._wp-lapse_rate*(z_height-inv_height)/surface_temp) &
-      **(gravity/(r_d*lapse_rate))
-    endif
-    
-  end function standard_pres
-  
   subroutine set_z_scalar_dual(z_scalar_dual,z_vector_v,from_cell,to_cell,vorticity_indices_triangles)
   
     ! This subroutine sets the z coordinates of the dual scalar points.
@@ -265,49 +214,6 @@ module mo_vertical_grid
     !$omp end parallel do
     
   end subroutine set_area_dual
-  
-  subroutine set_background_state(z_scalar,gravity_potential,theta_v_bg,exner_bg)
-
-    ! This subroutine sets the hydrostatic background state.
-    
-    real(wp), intent(in)  :: z_scalar(n_cells,n_layers)          ! z-coordinates of scalar vector points
-    real(wp), intent(in)  :: gravity_potential(n_cells,n_layers) ! gravity potential
-    real(wp), intent(out) :: theta_v_bg(n_cells,n_layers)        ! background virtual potential temperature
-    real(wp), intent(out) :: exner_bg(n_cells,n_layers)          ! background Exner pressure
-  
-    ! local variables
-    integer  :: ji          ! cell index
-    integer  :: jl          ! layer index
-    real(wp) :: temperature ! individual temperature value
-    real(wp) :: pressure    ! individual pressure value
-    real(wp) :: b           ! helper variable for vertically integrating the hydrostatic equation
-    real(wp) :: c           ! helper variable for vertically integrating the hydrostatic equation
-  
-    !$omp parallel do private(ji,jl,temperature,pressure,b,c)
-    do ji=1,n_cells
-      ! integrating from bottom to top
-      do jl=n_layers,1,-1
-        temperature = standard_temp(z_scalar(ji,jl))
-        ! lowest layer
-        if (jl==n_layers) then
-          pressure = standard_pres(z_scalar(ji,jl))
-          exner_bg(ji,jl) = (pressure/p_0)**(r_d/c_d_p)
-          theta_v_bg(ji,jl) = temperature/exner_bg(ji,jl)
-        ! other layers
-        else
-          ! solving a quadratic equation for the Exner pressure
-          b = -0.5_wp*exner_bg(ji,jl+1)/standard_temp(z_scalar(ji,jl+1)) &
-          *(temperature - standard_temp(z_scalar(ji,jl+1)) &
-          + 2._wp/c_d_p*(gravity_potential(ji,jl) - gravity_potential(ji,jl+1)))
-          c = exner_bg(ji,jl+1)**2*temperature/standard_temp(z_scalar(ji,jl+1))
-          exner_bg(ji,jl) = b + (b**2 + c)**0.5_wp
-          theta_v_bg(ji,jl) = temperature/exner_bg(ji,jl)
-        endif
-      enddo
-    enddo
-    !$omp end parallel do
-  
-  end subroutine set_background_state
   
   subroutine set_area(area_h,area_v,z_vector_v,z_vector_dual_h,dy,pent_hex_face_unit_sphere)
 
@@ -474,7 +380,7 @@ module mo_vertical_grid
     !$omp end parallel do
     
   end subroutine set_z_vector_dual_and_normal_distance_dual
-
+  
 end module mo_vertical_grid
 
 

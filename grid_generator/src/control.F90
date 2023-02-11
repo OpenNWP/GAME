@@ -21,7 +21,7 @@ program control
   use mo_phys_sfc_properties,    only: set_sfc_properties
   use mo_vertical_grid,          only: set_z_scalar,set_z_vector_and_normal_distance,set_z_scalar_dual,set_volume, &
                                        set_z_vector_dual_and_normal_distance_dual,set_area,set_area_dual, &
-                                       set_gravity_potential,set_background_state
+                                       set_gravity_potential
   use mo_inner_product,          only: calc_inner_product
   use mo_rhombus_averaging,      only: rhombus_averaging
   use mo_interpolation_ll,       only: interpolate_ll
@@ -90,8 +90,6 @@ program control
   integer               :: single_int_dimid                 ! netCDF ID of a single integer
   integer               :: interpol_indices_id              ! netCDF ID of the interpolation indices of the latitude-longitude grid
   integer               :: interpol_weights_id              ! netCDF ID of the interpolation weights of the latitude-longitude grid
-  integer               :: theta_v_bg_id                    ! netCDF ID of the virtual potential temperature
-  integer               :: exner_bg_id                      ! netCDF ID of the background Exner pressure
   integer               :: sfc_albedo_id                    ! netCDF ID of the surface albedo
   integer               :: sfc_rho_c_id                     ! netCDF ID of the surface volumetric heat capacity
   integer               :: t_const_soil_id                  ! netCDF ID of the mean surface temperature
@@ -158,8 +156,6 @@ program control
   real(wp), allocatable :: density_to_rhombi_weights(:,:)   ! weights for interpolating the density to the rhombi
   real(wp), allocatable :: triangle_face_unit_sphere(:)     ! faces of the triangles on the unit sphere
   real(wp), allocatable :: interpol_weights(:,:,:)          ! interpolation weights to the latitude-longitude grid
-  real(wp), allocatable :: exner_bg(:,:)                    ! background Exner pressure
-  real(wp), allocatable :: theta_v_bg(:,:)                  ! background virtual potential temperature
   real(wp), allocatable :: oro(:)                           ! orography
   real(wp), allocatable :: oro_smoothed(:)                  ! smoothed orography
   real(wp), allocatable :: roughness_length(:)              ! surface roughness length
@@ -233,8 +229,6 @@ program control
   allocate(inner_product_weights(8,n_cells,n_layers))
   allocate(density_to_rhombi_weights(4,n_edges))
   allocate(interpol_weights(5,n_lat_io_points,n_lon_io_points))
-  allocate(exner_bg(n_cells,n_layers))
-  allocate(theta_v_bg(n_cells,n_layers))
   allocate(oro(n_cells))
   allocate(oro_smoothed(n_cells))
   allocate(roughness_length(n_cells))
@@ -298,8 +292,6 @@ program control
   inner_product_weights = 0._wp
   density_to_rhombi_weights = 0._wp
   interpol_weights = 0._wp
-  exner_bg = 0._wp
-  theta_v_bg = 0._wp
   oro = 0._wp
   oro_smoothed = 0._wp
   roughness_length = 0._wp
@@ -436,10 +428,6 @@ program control
   call set_gravity_potential(z_scalar,gravity_potential)
   write(*,*) "Finished."
   
-  write(*,*) "Setting the hydrostatic background state ..."
-  call set_background_state(z_scalar,gravity_potential,theta_v_bg,exner_bg)
-  write(*,*) "Finished."
-  
   write(*,*) "Calculating inner product weights ..."
   call calc_inner_product(inner_product_weights,dx,volume,area_h,area_v,z_scalar,z_vector_v,adjacent_edges)
   write(*,*) "Finished."
@@ -520,13 +508,6 @@ program control
   dimids_vector_2(2) = layer_dimid
   call nc_check(nf90_def_var(ncid_g_prop,"z_scalar",NF90_REAL,dimids_vector_2,z_scalar_id))
   call nc_check(nf90_put_att(ncid_g_prop,z_scalar_id,"units","m"))
-  
-  ! background virtual potential temperature
-  call nc_check(nf90_def_var(ncid_g_prop,"theta_v_bg",NF90_REAL,dimids_vector_2,theta_v_bg_id))
-  call nc_check(nf90_put_att(ncid_g_prop,theta_v_bg_id,"units","K"))
-  
-  ! background Exner pressure
-  call nc_check(nf90_def_var(ncid_g_prop,"exner_bg",NF90_REAL,dimids_vector_2,exner_bg_id))
   
   ! gravity potential
   dimids_vector_2(1) = cell_dimid
@@ -749,8 +730,6 @@ program control
   call nc_check(nf90_put_var(ncid_g_prop,lat_c_dual_id,lat_c_dual))
   call nc_check(nf90_put_var(ncid_g_prop,lon_c_dual_id,lon_c_dual))
   call nc_check(nf90_put_var(ncid_g_prop,z_scalar_id,z_scalar))
-  call nc_check(nf90_put_var(ncid_g_prop,theta_v_bg_id,theta_v_bg))
-  call nc_check(nf90_put_var(ncid_g_prop,exner_bg_id,exner_bg))
   call nc_check(nf90_put_var(ncid_g_prop,gravity_potential_id,gravity_potential))
   call nc_check(nf90_put_var(ncid_g_prop,z_vector_h_id,z_vector_h))
   call nc_check(nf90_put_var(ncid_g_prop,z_vector_v_id,z_vector_v))
@@ -844,8 +823,6 @@ program control
   deallocate(f_vec_v)
   deallocate(to_cell)
   deallocate(from_cell)
-  deallocate(exner_bg)
-  deallocate(theta_v_bg)
   deallocate(to_cell_dual)
   deallocate(from_cell_dual)
   deallocate(adjacent_edges)
