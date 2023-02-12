@@ -9,6 +9,7 @@ module mo_grid_setup
   use mo_constants,       only: t_0,r_e,M_PI,lapse_rate,surface_temp,tropo_height,inv_height,t_grad_inv,p_0, &
                                 p_0_standard,r_d,c_d_p,gravity
   use mo_definitions,     only: wp,t_grid
+  use mo_run_nml,         only: luse_bg_state
   use mo_grid_nml,        only: n_layers,n_cells,oro_id,res_id,n_levels
   use mo_diff_nml,        only: klemp_begin_rel
   use mo_surface_nml,     only: nsoillays
@@ -251,7 +252,7 @@ module mo_grid_setup
 
     ! This subroutine sets the hydrostatic background state.
     
-    type(t_grid), intent(inout) :: grid ! the grid properties
+    type(t_grid), intent(inout) :: grid ! grid properties
   
     ! local variables
     integer  :: ji          ! cell index
@@ -284,6 +285,15 @@ module mo_grid_setup
       enddo
     enddo
     !$omp end parallel do
+    
+    ! if the hydrostatic background state is switched off, the background quantities are set to zero here
+    if (.not. luse_bg_state) then
+      !$omp parallel workshare
+      grid%theta_v_bg = 0._wp
+      grid%exner_bg = 0._wp
+      !$omp end parallel workshare
+      
+    endif
   
   end subroutine set_background_state
   

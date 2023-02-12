@@ -34,6 +34,7 @@ start_year=2000
 start_month=1
 start_day=1
 start_hour=0
+luse_bg_state=.false.
 /
 
 &io

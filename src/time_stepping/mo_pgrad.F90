@@ -9,6 +9,7 @@ module mo_pgrad
   use mo_constants,          only: c_d_p
   use mo_gradient_operators, only: grad_hor,grad_vert
   use mo_multiplications,    only: scalar_times_vector_h,scalar_times_vector_h2,scalar_times_vector_v,scalar_times_vector_v2
+  use mo_run_nml,            only: luse_bg_state
   use mo_constituents_nml,   only: n_condensed_constituents
   
   implicit none
@@ -24,11 +25,19 @@ module mo_pgrad
     type(t_grid),  intent(inout) :: grid                ! grid quantities
     logical,       intent(in)    :: ltotally_first_step ! switch indicating the first step of the model run
     
+    ! local variables
+    integer :: use_bg_switch ! switch set to one when using the hydrostatic background state, zero otherwise
+    
+    use_bg_switch = 0
+    if (luse_bg_state) then
+      use_bg_switch = 1
+    endif
+    
     ! 1.) the nonlinear pressure gradient term
     ! Before calculating the pressure gradient acceleration, the old one must be saved for extrapolation.
     if (.not. ltotally_first_step) then
       !$omp parallel workshare
-      diag%pgrad_acc_old_h = -diag%pressure_gradient_acc_neg_nl_h - diag%pressure_gradient_acc_neg_l_h
+      diag%pgrad_acc_old_h = -diag%pressure_gradient_acc_neg_nl_h - use_bg_switch*diag%pressure_gradient_acc_neg_l_h
       !$omp end parallel workshare
     endif
     
@@ -43,11 +52,13 @@ module mo_pgrad
       
     ! 2.) the linear pressure gradient term
     ! -------------------------------------
-    !$omp parallel workshare
-    diag%scalar_placeholder = c_d_p*state%theta_v_pert
-    !$omp end parallel workshare
-    call scalar_times_vector_h(diag%scalar_placeholder,grid%exner_bg_grad_h,diag%pressure_gradient_acc_neg_l_h,grid)
-    call scalar_times_vector_v(diag%scalar_placeholder,grid%exner_bg_grad_v,diag%pressure_gradient_acc_neg_l_v)
+    if (luse_bg_state) then
+      !$omp parallel workshare
+      diag%scalar_placeholder = c_d_p*state%theta_v_pert
+      !$omp end parallel workshare
+      call scalar_times_vector_h(diag%scalar_placeholder,grid%exner_bg_grad_h,diag%pressure_gradient_acc_neg_l_h,grid)
+      call scalar_times_vector_v(diag%scalar_placeholder,grid%exner_bg_grad_v,diag%pressure_gradient_acc_neg_l_v)
+    endif
     
     ! 3.) The pressure gradient has to get a deceleration factor due to condensates.
     ! ------------------------------------------------------------------------------
@@ -57,13 +68,15 @@ module mo_pgrad
     !$omp end parallel workshare
     call scalar_times_vector_h2(diag%pressure_gradient_decel_factor,diag%pressure_gradient_acc_neg_nl_h,grid)
     call scalar_times_vector_v2(diag%pressure_gradient_decel_factor,diag%pressure_gradient_acc_neg_nl_v)
-    call scalar_times_vector_h2(diag%pressure_gradient_decel_factor,diag%pressure_gradient_acc_neg_l_h,grid)
-    call scalar_times_vector_v2(diag%pressure_gradient_decel_factor,diag%pressure_gradient_acc_neg_l_v)
+    if (luse_bg_state) then
+      call scalar_times_vector_h2(diag%pressure_gradient_decel_factor,diag%pressure_gradient_acc_neg_l_h,grid)
+      call scalar_times_vector_v2(diag%pressure_gradient_decel_factor,diag%pressure_gradient_acc_neg_l_v)
+    endif
     
     ! at the very fist step, the old time step pressure gradient acceleration must be saved here
     if (ltotally_first_step) then
       !$omp parallel workshare
-      diag%pgrad_acc_old_h = -diag%pressure_gradient_acc_neg_nl_h - diag%pressure_gradient_acc_neg_l_h
+      diag%pgrad_acc_old_h = -diag%pressure_gradient_acc_neg_nl_h - use_bg_switch*diag%pressure_gradient_acc_neg_l_h
       !$omp end parallel workshare
     endif
     

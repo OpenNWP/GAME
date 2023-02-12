@@ -18,8 +18,10 @@ module mo_run_nml
   integer           :: start_date     ! date of the model run beginning
   integer           :: start_hour     ! hour of the model run beginning
   integer           :: start_minute   ! minute of the model run beginning
+  logical           :: luse_bg_state  ! switch for using the hydrostatic background state
   
-  namelist /run/run_id,run_span_min,start_year,start_month,start_day,start_hour,start_minute
+  namelist /run/run_id,run_span_min,start_year,start_month,start_day,start_hour,start_minute, &
+                luse_bg_state
 
   contains
 
@@ -36,6 +38,7 @@ module mo_run_nml
     start_day = 1
     start_hour = 0
     start_minute = 0
+    luse_bg_state = .true.
     
     ! open and read namelist file
     open(action="read",file="namelist.nml",newunit=fileunit)

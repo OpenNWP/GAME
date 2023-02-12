@@ -10,7 +10,7 @@ program control
   use mo_grid_nml,               only: n_layers,n_cells,n_edges,n_triangles,n_lat_io_points,n_lon_io_points, &
                                        n_levels,grid_nml_setup
   use mo_constituents_nml,       only: n_constituents,n_condensed_constituents,constituents_nml_setup
-  use mo_run_nml,                only: run_span_min,run_nml_setup,t_init
+  use mo_run_nml,                only: run_span_min,run_nml_setup,t_init,luse_bg_state
   use mo_grid_setup,             only: eff_hor_res,radius_rescale,set_grid_properties,set_background_state,dtime,toa
   use mo_io_nml,                 only: n_output_steps_10m_wind,lwrite_integrals,write_out_interval_min, &
                                        io_nml_setup,ideal_input_id
@@ -383,8 +383,18 @@ program control
   call io_nml_setup()
   call rad_nml_setup(grid)
   
+  ! some gradients have to be computed here
   call grad_hor_cov(grid%z_scalar,grid%slope,grid)
   call grad_vert(grid%gravity_potential,grid%gravity_m_v,grid)
+  ! if we do not use a hydrostatic background state we write the negative acceleration due to gravity into the
+  ! negative "linear" pressure gradient acceleration
+  if (.not. luse_bg_state) then
+    call grad_hor_cov(grid%gravity_potential,diag%pressure_gradient_acc_neg_l_h,grid)
+    !$omp parallel workshare
+    diag%pressure_gradient_acc_neg_l_h = diag%pressure_gradient_acc_neg_l_h
+    diag%pressure_gradient_acc_neg_l_v = grid%gravity_m_v
+    !$omp end parallel workshare
+  endif
   call grad_vert(grid%exner_bg,grid%exner_bg_grad_v,grid)
   call grad_hor(grid%exner_bg,grid%exner_bg_grad_h,grid%exner_bg_grad_v,grid)
   write(*,*) "Grid loaded successfully."

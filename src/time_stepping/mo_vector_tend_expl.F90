@@ -11,6 +11,7 @@ module mo_vector_tend_expl
   use mo_constituents_nml,   only: n_condensed_constituents
   use mo_inner_product,      only: inner_product
   use mo_vorticity_flux,     only: vorticity_flux
+  use mo_run_nml,            only: luse_bg_state
   use mo_diff_nml,           only: lmom_diff_h,lmass_diff_h,ltemp_diff_h,lmom_diff_v,lklemp
   use mo_surface_nml,        only: pbl_scheme
   use mo_tke,                only: tke_update
@@ -38,9 +39,15 @@ module mo_vector_tend_expl
     ! local variables
     real(wp) :: old_weight               ! weight of the old predictor-corrector substep
     real(wp) :: new_weight               ! weight of the new predictor-corrector substep
+    integer  :: no_bg_switch             ! set to one if using no hydrostatic background state, zero otherwise
     real(wp) :: old_hor_pgrad_weight     ! old time step horizontal pressure gradient weight
     real(wp) :: current_hor_pgrad_weight ! current time step horizontal pressure gradient weight
     real(wp) :: current_ver_pgrad_weight ! current time step vertical pressure gradient weight
+    
+    no_bg_switch = 0
+    if (.not. luse_bg_state) then
+      no_bg_switch = 1
+    endif
     
     ! Managing momentum advection
     ! ---------------------------
@@ -122,7 +129,8 @@ module mo_vector_tend_expl
     state_tend%wind_v = old_weight*state_tend%wind_v + new_weight*( &
     ! explicit component of pressure gradient acceleration
     ! current time step component
-    -current_ver_pgrad_weight*(diag%pressure_gradient_acc_neg_nl_v + diag%pressure_gradient_acc_neg_l_v) &
+    - current_ver_pgrad_weight*(diag%pressure_gradient_acc_neg_nl_v + diag%pressure_gradient_acc_neg_l_v) &
+    - no_bg_switch*(1._wp-current_ver_pgrad_weight)*diag%pressure_gradient_acc_neg_l_v &
     ! generalized Coriolis term
     + diag%pot_vort_tend_v &
     ! kinetic energy term
