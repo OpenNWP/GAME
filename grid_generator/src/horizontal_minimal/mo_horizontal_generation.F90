@@ -25,7 +25,7 @@ module mo_horizontal_generation
   
   subroutine build_icosahedron(lat_ico,lon_ico,edge_vertices,face_vertices,face_edges,face_edges_reverse)
     
-    ! This subroutine sets the properties of the icosahedron the global grid is based on (angles and indices of faces,edges and vertices).
+    ! This subroutine sets the properties of the icosahedron the global grid is based on (angles and indices of faces, edges and vertices).
     
     real(wp), intent(out) :: lat_ico(12)                             ! latitudes of the vertices of the icosahedron
     real(wp), intent(out) :: lon_ico(12)                             ! longitudes of the vertices of the icosahedron
@@ -400,7 +400,7 @@ module mo_horizontal_generation
     enddo
     
   end subroutine generate_horizontal_generators
-
+  
   subroutine calc_triangle_areas_unit_sphere(triangle_face_unit_sphere,lat_c,lon_c,face_edges,face_edges_reverse,face_vertices)
     
     ! This subroutine computes the areas of the triangles on the unit sphere.

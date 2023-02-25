@@ -21,9 +21,9 @@ module mo_phys_sfc_properties
     
     ! This function calculates a latitude- and height-dependant idealized vegetation height.
     
-    real(wp), intent(in) :: latitude              ! latitude of the point (rad)
-    real(wp), intent(in) :: oro                 ! height above MSL of the point (m)
-    real(wp)           :: vegetation_height_ideal ! result (m)
+    real(wp), intent(in) :: latitude                ! latitude of the point (rad)
+    real(wp), intent(in) :: oro                     ! height above MSL of the point (m)
+    real(wp)             :: vegetation_height_ideal ! result (m)
     
     ! local variables
     real(wp) :: vegetation_height_equator ! height of the vegetation at the equator
@@ -41,74 +41,74 @@ module mo_phys_sfc_properties
     
     real(wp), intent(out)   :: land_fraction(n_cells)    ! land fraction (result)
     real(wp), intent(inout) :: lake_fraction(n_cells)    ! lake fraction
-    real(wp), intent(in)    :: lat_c(n_cells)          ! latitudes at cell centers
-    real(wp), intent(in)    :: lon_c(n_cells)          ! longitudes at cell centers
+    real(wp), intent(in)    :: lat_c(n_cells)            ! latitudes at cell centers
+    real(wp), intent(in)    :: lon_c(n_cells)            ! longitudes at cell centers
     real(wp), intent(out)   :: roughness_length(n_cells) ! roughness length of the surface (result)
     real(wp), intent(out)   :: sfc_albedo(n_cells)       ! surface albedo (result)
     real(wp), intent(out)   :: sfc_rho_c(n_cells)        ! surface volumetric heat capacity (result)
     real(wp), intent(out)   :: t_conductivity(n_cells)   ! temperature conductivity in the soil (m**2/s, result)
-    real(wp), intent(out)   :: oro(n_cells)            ! orography (result)
+    real(wp), intent(out)   :: oro(n_cells)              ! orography (result)
     real(wp), intent(out)   :: oro_smoothed(n_cells)     ! smoothed orography (result)
     real(wp), intent(out)   :: t_const_soil(n_cells)     ! mean surface temperature
     
     ! local variables
-    integer                   :: ji                         ! cell index
-    integer                   :: jk                         ! helper index
-    integer                   :: jm                         ! helper index
-    integer                   :: ncid                         ! netCDF file ID 
-    integer                   :: etopo_oro_id                 ! netCDF ID of the input orography (from ETOPO)
-    integer                   :: ghcn_cams_id                 ! netCDF ID of the input 2-m-temperature mean (from GHCN-CAMS)
-    integer                   :: oro_nc_id                    ! netCDF ID of the input orography (from a previously generated grid)
-    integer                   :: land_fraction_id               ! netCDF ID of the input land_fraction (from a previously generated grid)
-    integer                   :: lake_fraction_id               ! netCDF ID of the input lake_fraction (from a previously generated grid)
-    integer                   :: roughness_length_id            ! netCDF ID of the input roughness_length (from a previously generated grid)
-    integer                   :: sfc_albedo_id                ! netCDF ID of the input sfc_albedo (from a previously generated grid)
-    integer                   :: sfc_rho_c_id                 ! netCDF ID of the input sfc_rho_c (from a previously generated grid)
-    integer                   :: t_const_soil_id                ! netCDF ID of the input t_const_soil (from a previously generated grid)
-    integer                   :: t_conductivity_id              ! netCDF ID of the input t_conductivity (from a previously generated grid)
-    integer                   :: oro_smoothed_id                ! netCDF ID of the input smoothed orography (from a previously generated grid)
-    integer                   :: lsmask_id                    ! netCDF ID of the land-sea mask of the NCEP NSST grid
+    integer                   :: ji                               ! cell index
+    integer                   :: jk                               ! helper index
+    integer                   :: jm                               ! helper index
+    integer                   :: ncid                             ! netCDF file ID 
+    integer                   :: etopo_oro_id                     ! netCDF ID of the input orography (from ETOPO)
+    integer                   :: ghcn_cams_id                     ! netCDF ID of the input 2-m-temperature mean (from GHCN-CAMS)
+    integer                   :: oro_nc_id                        ! netCDF ID of the input orography (from a previously generated grid)
+    integer                   :: land_fraction_id                 ! netCDF ID of the input land_fraction (from a previously generated grid)
+    integer                   :: lake_fraction_id                 ! netCDF ID of the input lake_fraction (from a previously generated grid)
+    integer                   :: roughness_length_id              ! netCDF ID of the input roughness_length (from a previously generated grid)
+    integer                   :: sfc_albedo_id                    ! netCDF ID of the input sfc_albedo (from a previously generated grid)
+    integer                   :: sfc_rho_c_id                     ! netCDF ID of the input sfc_rho_c (from a previously generated grid)
+    integer                   :: t_const_soil_id                  ! netCDF ID of the input t_const_soil (from a previously generated grid)
+    integer                   :: t_conductivity_id                ! netCDF ID of the input t_conductivity (from a previously generated grid)
+    integer                   :: oro_smoothed_id                  ! netCDF ID of the input smoothed orography (from a previously generated grid)
+    integer                   :: lsmask_id                        ! netCDF ID of the land-sea mask of the NCEP NSST grid
     integer                   :: min_indices_vector(n_avg_points) ! vector of closest gridpoint indices
-    integer                   :: ext_fileunit                 ! file unit of an external data file
-    integer                   :: nlon_ext                     ! number of longitude points of the external data grid
-    integer                   :: nlat_ext                     ! number of latitude points of the external data grid
-    integer                   :: nlon_ext_sst                 ! number of longitude points of the SST grid
-    integer                   :: nlat_ext_sst                 ! number of latitude points of the SST grid
-    integer                   :: lat_index_ext                ! latitude index of a grid point of the external data
-    integer                   :: lon_index_ext                ! longitude index of a grid point of the external data
-    integer                   :: left_index_ext                 ! helper variable for interpolating external data to the GAME grid
-    integer                   :: right_index_ext                ! helper variable for interpolating external data to the GAME grid
-    integer                   :: lower_index_ext                ! helper variable for interpolating external data to the GAME grid
-    integer                   :: upper_index_ext                ! helper variable for interpolating external data to the GAME grid
-    integer                   :: n_points_ext_domain            ! helper variable for interpolating external data to the GAME grid
-    integer                   :: jk_used                      ! helper variable for interpolating external data to the GAME grid
-    integer                   :: jm_used                      ! helper variable for interpolating external data to the GAME grid
-    real(wp)                  :: c_p_water                    ! specific heat capacity at constant pressure of water
-    real(wp)                  :: c_p_soil                     ! specific heat capacity at constant pressure of soil
-    real(wp)                  :: albedo_water                 ! albedo of water
-    real(wp)                  :: albedo_soil                  ! albedo of soil
-    real(wp)                  :: albedo_ice                   ! albedo of ice
-    real(wp)                  :: density_soil                 ! density of soil
-    real(wp)                  :: t_conductivity_water           ! temperature conductivity of water
-    real(wp)                  :: t_conductivity_soil            ! temperature conductivity of soil
-    real(wp)                  :: lat_deg                      ! latitude value in degrees
-    real(wp)                  :: delta_lat_ext                ! latitude resolution of the external grid
-    real(wp)                  :: delta_lon_ext                ! longitude resolution of the external grid
-    real(wp)                  :: delta_lat_ext_sst              ! latitude resolution of the SST grid
-    real(wp)                  :: delta_lon_ext_sst              ! longitude resolution of the SST grid
-    real(wp)                  :: dq_value                     ! data quality value
+    integer                   :: ext_fileunit                     ! file unit of an external data file
+    integer                   :: nlon_ext                         ! number of longitude points of the external data grid
+    integer                   :: nlat_ext                         ! number of latitude points of the external data grid
+    integer                   :: nlon_ext_sst                     ! number of longitude points of the SST grid
+    integer                   :: nlat_ext_sst                     ! number of latitude points of the SST grid
+    integer                   :: lat_index_ext                    ! latitude index of a grid point of the external data
+    integer                   :: lon_index_ext                    ! longitude index of a grid point of the external data
+    integer                   :: left_index_ext                   ! helper variable for interpolating external data to the GAME grid
+    integer                   :: right_index_ext                  ! helper variable for interpolating external data to the GAME grid
+    integer                   :: lower_index_ext                  ! helper variable for interpolating external data to the GAME grid
+    integer                   :: upper_index_ext                  ! helper variable for interpolating external data to the GAME grid
+    integer                   :: n_points_ext_domain              ! helper variable for interpolating external data to the GAME grid
+    integer                   :: jk_used                          ! helper variable for interpolating external data to the GAME grid
+    integer                   :: jm_used                          ! helper variable for interpolating external data to the GAME grid
+    real(wp)                  :: c_p_water                        ! specific heat capacity at constant pressure of water
+    real(wp)                  :: c_p_soil                         ! specific heat capacity at constant pressure of soil
+    real(wp)                  :: albedo_water                     ! albedo of water
+    real(wp)                  :: albedo_soil                      ! albedo of soil
+    real(wp)                  :: albedo_ice                       ! albedo of ice
+    real(wp)                  :: density_soil                     ! density of soil
+    real(wp)                  :: t_conductivity_water             ! temperature conductivity of water
+    real(wp)                  :: t_conductivity_soil              ! temperature conductivity of soil
+    real(wp)                  :: lat_deg                          ! latitude value in degrees
+    real(wp)                  :: delta_lat_ext                    ! latitude resolution of the external grid
+    real(wp)                  :: delta_lon_ext                    ! longitude resolution of the external grid
+    real(wp)                  :: delta_lat_ext_sst                ! latitude resolution of the SST grid
+    real(wp)                  :: delta_lon_ext_sst                ! longitude resolution of the SST grid
+    real(wp)                  :: dq_value                         ! data quality value
     real(wp)                  :: distance_vector(n_cells)         ! vector containing geodetic distances to compute the interpolation
-    real(wp)                  :: fractions_sum                ! sum of land fraction and lake fraction
-    real(wp)                  :: lon_c_used                   ! helper variable for interpolating external data to the model grid
+    real(wp)                  :: fractions_sum                    ! sum of land fraction and lake fraction
+    real(wp)                  :: lon_c_used                       ! helper variable for interpolating external data to the model grid
     integer,        allocatable :: etopo_oro(:,:)                 ! input orography
     integer,        allocatable :: invalid_counter(:)             ! counts invalid values encountered in an interpolation
     integer,        allocatable :: ncep_nsst_lsmask(:,:)          ! NCEP NSST land-sea mask
-    real(wp),         allocatable :: ghcn_cams(:,:,:)               ! GHCN-CAMS data (2-m-temperature mean)
+    real(wp),         allocatable :: ghcn_cams(:,:,:)             ! GHCN-CAMS data (2-m-temperature mean)
     character(len=1), allocatable :: glcc_raw(:,:)                ! GLCC raw data
-    integer,        allocatable :: glcc(:,:)                    ! GLCC data
-    integer(2),       allocatable :: lake_depth_ext_raw(:,:)        ! GLDB lake depth data as read from file
-    real(wp),         allocatable :: lake_depth_ext(:,:)            ! GLDB lake depth data
-    character(len=64)           :: ext_file                     ! file to read external data from
+    integer,        allocatable :: glcc(:,:)                      ! GLCC data
+    integer(2),       allocatable :: lake_depth_ext_raw(:,:)      ! GLDB lake depth data as read from file
+    real(wp),         allocatable :: lake_depth_ext(:,:)          ! GLDB lake depth data
+    character(len=64)           :: ext_file                       ! file to read external data from
     
     if (luse_sfc_file) then
       
@@ -236,7 +236,9 @@ module mo_phys_sfc_properties
         delta_lon_ext = 2._wp*M_PI/nlon_ext
         
         ! reading the NCEP NSST land-sea mask
+        ! number of points on the latitude axis of the NSST grid
         nlat_ext_sst = 180
+        ! number of points on the longitude axis of the NSST grid
         nlon_ext_sst = 360
         allocate(ncep_nsst_lsmask(nlon_ext_sst,nlat_ext_sst))
         
@@ -326,7 +328,9 @@ module mo_phys_sfc_properties
         write(*,*) "Setting the orography ..."
         
         ! reading the ETOPO orography
+        ! number of points on the latitude axis of the ETOPO grid
         nlat_ext = 10801
+        ! number of points on the longitude axis of the ETOPO grid
         nlon_ext = 21601
         allocate(etopo_oro(nlon_ext,nlat_ext))
         
@@ -638,8 +642,8 @@ module mo_phys_sfc_properties
     
     ! This subroutine calculates which subset of the external dataset to use to interpolate to a grid cell.
     
-    integer,  intent(in)    :: nlat_ext          ! number of points on the latitude axis of the external data grid
-    integer,  intent(in)    :: nlon_ext          ! number of points on the longitude axis of the external data grid
+    integer,  intent(in)    :: nlat_ext            ! number of points on the latitude axis of the external data grid
+    integer,  intent(in)    :: nlon_ext            ! number of points on the longitude axis of the external data grid
     real(wp), intent(in)    :: lat_c_value         ! latitude of the center of the cell to which to interpolate
     integer,  intent(inout) :: lat_index_ext       ! closest latitude index of the external data
     integer,  intent(inout) :: lon_index_ext       ! closest longitude index of the external data

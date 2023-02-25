@@ -57,7 +57,7 @@ module mo_discrete_coordinate_trafos
     ! local variables
     integer :: points_per_edge       ! primal scalar points per edge of the final icosahedron
     integer :: coord_1_points_amount ! maximum amount of points in the coord_1-direction
-    integer :: ji                     ! loop variable (walks along the coord_2-axis)
+    integer :: ji                    ! loop variable (walks along the coord_2-axis)
     
     ji = 0
     coords2down_triangle_index = 0
