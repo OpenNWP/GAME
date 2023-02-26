@@ -135,7 +135,7 @@ module mo_definitions
     real(wp), allocatable :: mass_diffusion_coeff_numerical_v(:,:) ! vertical effective mass diffusion coefficient
     real(wp), allocatable :: temp_diffusion_coeff_numerical_h(:,:) ! horizontal effective temperature diffusion coefficient
     real(wp), allocatable :: temp_diffusion_coeff_numerical_v(:,:) ! vertical effective temperature diffusion coefficient
-    real(wp), allocatable :: pressure_gradient_decel_factor(:,:)   ! pressure gradient deceleration factor due to condensates
+    real(wp), allocatable :: p_grad_decel_factor(:,:)              ! pressure gradient deceleration factor due to condensates
     real(wp), allocatable :: condensates_sediment_heat(:,:)        ! heating rate due to falling condensates
     real(wp), allocatable :: mass_diff_tendency(:,:,:)             ! mass source rate due to mass diffusion
     real(wp), allocatable :: phase_trans_rates(:,:,:)              ! phase transition rates
@@ -146,12 +146,12 @@ module mo_definitions
     real(wp), allocatable :: vert_hor_viscosity(:,:)               ! effective visosity for vertical diffusion of horizontal velocity
     real(wp), allocatable :: tke(:,:)                              ! specific turbulent kinetic energy (J/kg)
     real(wp), allocatable :: sst(:)                                ! sea surface temperature
-    real(wp), allocatable :: pgrad_acc_old_h(:,:)                  ! old time step horizontal pressure gradient
-    real(wp), allocatable :: pressure_gradient_acc_neg_nl_h(:,:)   ! negative non-linear component of the horizontal pressure gradient
-    real(wp), allocatable :: pressure_gradient_acc_neg_nl_v(:,:)   ! vertical non-linear component of the horizontal pressure gradient
-    real(wp), allocatable :: pressure_gradient_acc_neg_l_h(:,:)    ! negative linear component of the horizontal pressure gradient
-    real(wp), allocatable :: pressure_gradient_acc_neg_l_v(:,:)    ! vertical linear component of the horizontal pressure gradient
-    real(wp), allocatable :: pressure_grad_condensates_v(:,:)      ! vertical pressure gradient component created by the condensates
+    real(wp), allocatable :: p_grad_acc_old_h(:,:)                 ! old time step horizontal pressure gradient
+    real(wp), allocatable :: p_grad_acc_neg_nl_h(:,:)              ! negative non-linear component of the horizontal pressure gradient
+    real(wp), allocatable :: p_grad_acc_neg_nl_v(:,:)              ! vertical non-linear component of the horizontal pressure gradient
+    real(wp), allocatable :: p_grad_acc_neg_l_h(:,:)               ! negative linear component of the horizontal pressure gradient
+    real(wp), allocatable :: p_grad_acc_neg_l_v(:,:)               ! vertical linear component of the horizontal pressure gradient
+    real(wp), allocatable :: p_grad_condensates_v(:,:)             ! vertical pressure gradient component created by the condensates
     real(wp), allocatable :: v_squared_grad_h(:,:)                 ! horizontal gradient of squared velocity
     real(wp), allocatable :: v_squared_grad_v(:,:)                 ! vertical gradient of squared velocity
     real(wp), allocatable :: pot_vort_tend_h(:,:)                  ! horizontal component of the vorticity flux term

@@ -192,7 +192,7 @@ program control
   allocate(diag%mass_diffusion_coeff_numerical_v(n_cells,n_layers))
   allocate(diag%temp_diffusion_coeff_numerical_h(n_cells,n_layers))
   allocate(diag%temp_diffusion_coeff_numerical_v(n_cells,n_layers))
-  allocate(diag%pressure_gradient_decel_factor(n_cells,n_layers))
+  allocate(diag%p_grad_decel_factor(n_cells,n_layers))
   allocate(diag%condensates_sediment_heat(n_cells,n_layers))
   allocate(diag%mass_diff_tendency(n_cells,n_layers,n_constituents))
   allocate(diag%phase_trans_rates(n_cells,n_layers,n_condensed_constituents+1))
@@ -203,12 +203,12 @@ program control
   allocate(diag%vert_hor_viscosity(n_edges,n_levels))
   allocate(diag%tke(n_cells,n_layers))
   allocate(diag%sst(n_cells))
-  allocate(diag%pgrad_acc_old_h(n_edges,n_layers))
-  allocate(diag%pressure_gradient_acc_neg_nl_h(n_edges,n_layers))
-  allocate(diag%pressure_gradient_acc_neg_nl_v(n_cells,n_levels))
-  allocate(diag%pressure_gradient_acc_neg_l_h(n_edges,n_layers))
-  allocate(diag%pressure_gradient_acc_neg_l_v(n_cells,n_levels))
-  allocate(diag%pressure_grad_condensates_v(n_cells,n_levels))
+  allocate(diag%p_grad_acc_old_h(n_edges,n_layers))
+  allocate(diag%p_grad_acc_neg_nl_h(n_edges,n_layers))
+  allocate(diag%p_grad_acc_neg_nl_v(n_cells,n_levels))
+  allocate(diag%p_grad_acc_neg_l_h(n_edges,n_layers))
+  allocate(diag%p_grad_acc_neg_l_v(n_cells,n_levels))
+  allocate(diag%p_grad_condensates_v(n_cells,n_levels))
   allocate(diag%v_squared_grad_h(n_edges,n_layers))
   allocate(diag%v_squared_grad_v(n_cells,n_levels))
   allocate(diag%pot_vort_tend_h(n_edges,n_layers))
@@ -336,7 +336,7 @@ program control
   diag%mass_diffusion_coeff_numerical_v = 0._wp
   diag%temp_diffusion_coeff_numerical_h = 0._wp
   diag%temp_diffusion_coeff_numerical_v = 0._wp
-  diag%pressure_gradient_decel_factor = 0._wp
+  diag%p_grad_decel_factor = 0._wp
   diag%condensates_sediment_heat = 0._wp
   diag%mass_diff_tendency = 0._wp
   diag%phase_trans_rates = 0._wp
@@ -347,12 +347,12 @@ program control
   diag%vert_hor_viscosity = 0._wp
   diag%tke = 0._wp
   diag%sst = 0._wp
-  diag%pgrad_acc_old_h = 0._wp
-  diag%pressure_gradient_acc_neg_nl_h = 0._wp
-  diag%pressure_gradient_acc_neg_nl_v = 0._wp
-  diag%pressure_gradient_acc_neg_l_h = 0._wp
-  diag%pressure_gradient_acc_neg_l_v = 0._wp
-  diag%pressure_grad_condensates_v = 0._wp
+  diag%p_grad_acc_old_h = 0._wp
+  diag%p_grad_acc_neg_nl_h = 0._wp
+  diag%p_grad_acc_neg_nl_v = 0._wp
+  diag%p_grad_acc_neg_l_h = 0._wp
+  diag%p_grad_acc_neg_l_v = 0._wp
+  diag%p_grad_condensates_v = 0._wp
   diag%v_squared_grad_h = 0._wp
   diag%v_squared_grad_v = 0._wp
   diag%pot_vort_tend_h = 0._wp
@@ -389,10 +389,10 @@ program control
   ! if we do not use a hydrostatic background state we write the negative acceleration due to gravity into the
   ! negative "linear" pressure gradient acceleration
   if (.not. luse_bg_state) then
-    call grad_hor_cov(grid%gravity_potential,diag%pressure_gradient_acc_neg_l_h,grid)
+    call grad_hor_cov(grid%gravity_potential,diag%p_grad_acc_neg_l_h,grid)
     !$omp parallel workshare
-    diag%pressure_gradient_acc_neg_l_h = diag%pressure_gradient_acc_neg_l_h
-    diag%pressure_gradient_acc_neg_l_v = grid%gravity_m_v
+    diag%p_grad_acc_neg_l_h = diag%p_grad_acc_neg_l_h
+    diag%p_grad_acc_neg_l_v = grid%gravity_m_v
     !$omp end parallel workshare
   endif
   call grad_vert(grid%exner_bg,grid%exner_bg_grad_v,grid)
@@ -707,7 +707,7 @@ program control
   deallocate(diag%mass_diffusion_coeff_numerical_v)
   deallocate(diag%temp_diffusion_coeff_numerical_h)
   deallocate(diag%temp_diffusion_coeff_numerical_v)
-  deallocate(diag%pressure_gradient_decel_factor)
+  deallocate(diag%p_grad_decel_factor)
   deallocate(diag%condensates_sediment_heat)
   deallocate(diag%mass_diff_tendency)
   deallocate(diag%phase_trans_rates)
@@ -718,12 +718,12 @@ program control
   deallocate(diag%vert_hor_viscosity)
   deallocate(diag%tke)
   deallocate(diag%sst)
-  deallocate(diag%pgrad_acc_old_h)
-  deallocate(diag%pressure_gradient_acc_neg_nl_h)
-  deallocate(diag%pressure_gradient_acc_neg_nl_v)
-  deallocate(diag%pressure_gradient_acc_neg_l_h)
-  deallocate(diag%pressure_gradient_acc_neg_l_v)
-  deallocate(diag%pressure_grad_condensates_v)
+  deallocate(diag%p_grad_acc_old_h)
+  deallocate(diag%p_grad_acc_neg_nl_h)
+  deallocate(diag%p_grad_acc_neg_nl_v)
+  deallocate(diag%p_grad_acc_neg_l_h)
+  deallocate(diag%p_grad_acc_neg_l_v)
+  deallocate(diag%p_grad_condensates_v)
   deallocate(diag%v_squared_grad_h)
   deallocate(diag%v_squared_grad_v)
   deallocate(diag%pot_vort_tend_h)

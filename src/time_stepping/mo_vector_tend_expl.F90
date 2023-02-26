@@ -37,12 +37,12 @@ module mo_vector_tend_expl
     logical,       intent(in)    :: ltotally_first_step ! switch for the very first step of the whole model run
     
     ! local variables
-    real(wp) :: old_weight               ! weight of the old predictor-corrector substep
-    real(wp) :: new_weight               ! weight of the new predictor-corrector substep
-    integer  :: no_bg_switch             ! set to one if using no hydrostatic background state, zero otherwise
-    real(wp) :: old_hor_pgrad_weight     ! old time step horizontal pressure gradient weight
-    real(wp) :: current_hor_pgrad_weight ! current time step horizontal pressure gradient weight
-    real(wp) :: current_ver_pgrad_weight ! current time step vertical pressure gradient weight
+    real(wp) :: old_weight                ! weight of the old predictor-corrector substep
+    real(wp) :: new_weight                ! weight of the new predictor-corrector substep
+    integer  :: no_bg_switch              ! set to one if using no hydrostatic background state, zero otherwise
+    real(wp) :: old_hor_p_grad_weight     ! old time step horizontal pressure gradient weight
+    real(wp) :: current_hor_p_grad_weight ! current time step horizontal pressure gradient weight
+    real(wp) :: current_ver_p_grad_weight ! current time step vertical pressure gradient weight
     
     no_bg_switch = 0
     if (.not. luse_bg_state) then
@@ -105,9 +105,9 @@ module mo_vector_tend_expl
     endif
     old_weight = 1._wp-new_weight
     ! the weights for the pressure gradient
-    current_hor_pgrad_weight = 0.5_wp + impl_thermo_weight
-    old_hor_pgrad_weight = 1._wp - current_hor_pgrad_weight
-    current_ver_pgrad_weight = 1._wp - impl_thermo_weight
+    current_hor_p_grad_weight = 0.5_wp + impl_thermo_weight
+    old_hor_p_grad_weight = 1._wp - current_hor_p_grad_weight
+    current_ver_p_grad_weight = 1._wp - impl_thermo_weight
     
     !$omp parallel workshare
     
@@ -115,9 +115,9 @@ module mo_vector_tend_expl
     state_tend%wind_h = old_weight*state_tend%wind_h + new_weight*( &
     ! explicit component of pressure gradient acceleration
     ! old time step component
-    old_hor_pgrad_weight*diag%pgrad_acc_old_h &
+    old_hor_p_grad_weight*diag%p_grad_acc_old_h &
     ! current time step component
-    - current_hor_pgrad_weight*(diag%pressure_gradient_acc_neg_nl_h + diag%pressure_gradient_acc_neg_l_h) &
+    - current_hor_p_grad_weight*(diag%p_grad_acc_neg_nl_h + diag%p_grad_acc_neg_l_h) &
     ! generalized Coriolis term
     + diag%pot_vort_tend_h &
     ! kinetic energy term
@@ -129,8 +129,8 @@ module mo_vector_tend_expl
     state_tend%wind_v = old_weight*state_tend%wind_v + new_weight*( &
     ! explicit component of pressure gradient acceleration
     ! current time step component
-    - current_ver_pgrad_weight*(diag%pressure_gradient_acc_neg_nl_v + diag%pressure_gradient_acc_neg_l_v) &
-    - no_bg_switch*(1._wp-current_ver_pgrad_weight)*diag%pressure_gradient_acc_neg_l_v &
+    - current_ver_p_grad_weight*(diag%p_grad_acc_neg_nl_v + diag%p_grad_acc_neg_l_v) &
+    - no_bg_switch*(1._wp-current_ver_p_grad_weight)*diag%p_grad_acc_neg_l_v &
     ! generalized Coriolis term
     + diag%pot_vort_tend_v &
     ! kinetic energy term
@@ -138,7 +138,7 @@ module mo_vector_tend_expl
     ! momentum diffusion
     + diag%friction_acc_v &
     ! effect of condensates on the pressure gradient acceleration
-    + diag%pressure_grad_condensates_v)
+    + diag%p_grad_condensates_v)
     !$omp end parallel workshare
   
   end subroutine vector_tend_expl
