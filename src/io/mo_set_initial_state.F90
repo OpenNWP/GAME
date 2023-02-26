@@ -2,9 +2,9 @@
 ! Github repository: https://github.com/OpenNWP/GAME
 
 module mo_set_initial_state
-
+  
   ! In this module the initial state of the simulation is set.
-
+  
   use netcdf
   use mo_definitions,      only: wp,t_grid,t_state,t_diag
   use mo_constants,        only: p_0,r_d,c_d_p,m_d,m_v
@@ -27,7 +27,7 @@ module mo_set_initial_state
   contains
   
   subroutine set_ideal_init(state,diag,grid)
-  
+    
     ! This subroutine sets the initial state of the model atmosphere for idealized test cases.
     
     type(t_state), intent(inout) :: state ! state to write the initial state to
