@@ -16,7 +16,7 @@ module mo_p_grad
   
   contains
   
-  subroutine manage_pressure_gradient(state,diag,grid,ltotally_first_step)
+  subroutine manage_p_grad(state,diag,grid,ltotally_first_step)
     
     ! This subroutine computes the pressure gradient acceleration.
     
@@ -80,7 +80,7 @@ module mo_p_grad
       !$omp end parallel workshare
     endif
     
-  end subroutine manage_pressure_gradient
+  end subroutine manage_p_grad
 
   subroutine calc_pressure_grad_condensates_v(state,diag,grid)
     
