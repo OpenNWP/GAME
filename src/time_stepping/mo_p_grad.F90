@@ -82,7 +82,7 @@ module mo_p_grad
     
   end subroutine manage_p_grad
 
-  subroutine calc_pressure_grad_condensates_v(state,diag,grid)
+  subroutine calc_p_grad_condensates_v(state,diag,grid)
     
     ! This subroutine computes the correction to the vertical pressure gradient acceleration due to condensates.
     
@@ -97,7 +97,7 @@ module mo_p_grad
     
     call scalar_times_vector_v(diag%p_grad_decel_factor,grid%gravity_m_v,diag%p_grad_condensates_v)
     
-  end subroutine calc_pressure_grad_condensates_v
+  end subroutine calc_p_grad_condensates_v
   
 end module mo_p_grad
 
