@@ -1,7 +1,7 @@
 ! This source file is part of the Geophysical Fluids Modeling Framework (GAME), which is released under the MIT license.
 ! Github repository: https://github.com/OpenNWP/GAME
 
-module mo_pgrad
+module mo_p_grad
 
   ! In this module, the explicit component of the pressure gradient acceleration is managed.
 
@@ -99,7 +99,7 @@ module mo_pgrad
     
   end subroutine calc_pressure_grad_condensates_v
   
-end module mo_pgrad
+end module mo_p_grad
 
 
 

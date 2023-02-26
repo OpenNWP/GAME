@@ -11,7 +11,7 @@ module mo_manage_pchevi
   use mo_column_solvers,         only: three_band_solver_ver_waves,three_band_solver_gen_densities
   use mo_surface_nml,            only: lsfc_sensible_heat_flux,lsfc_phase_trans,pbl_scheme
   use mo_rad_nml,                only: rad_config
-  use mo_pgrad,                  only: manage_pressure_gradient,calc_pressure_grad_condensates_v
+  use mo_p_grad,                 only: manage_pressure_gradient,calc_pressure_grad_condensates_v
   use mo_derived,                only: temperature_diagnostics
   use mo_pbl,                    only: update_sfc_turb_quantities
   use mo_scalar_tend_expl,       only: scalar_tend_expl
