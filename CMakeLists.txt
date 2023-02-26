@@ -25,7 +25,7 @@ src/namelists/mo_surface_nml.F90
 src/namelists/mo_io_nml.F90
 src/namelists/mo_grid_nml.F90
 src/time_stepping/mo_manage_pchevi.F90
-src/time_stepping/mo_pgrad.F90
+src/time_stepping/mo_p_grad.F90
 src/time_stepping/mo_vector_tend_expl.F90
 src/time_stepping/mo_scalar_tend_expl.F90
 src/time_stepping/mo_column_solvers.F90
