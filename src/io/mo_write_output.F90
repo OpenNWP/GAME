@@ -62,7 +62,7 @@ module mo_write_output
     integer               :: rel_hum_ids(n_layers)             ! vector containing netCDF IDs of the relative humidity on horizontal layers
     integer               :: wind_u_ids(n_layers)              ! vector containing netCDF IDs of the zonal wind on horizontal layers
     integer               :: wind_v_ids(n_layers)              ! vector containing netCDF IDs of the meridional wind on horizontal layers
-    integer               :: rel_vort_ids(n_layers)            ! vector containing netCDF IDs of the relative vorticity on horizontal layers
+    integer               :: zeta_ids(n_layers)            ! vector containing netCDF IDs of the relative vorticity on horizontal layers
     integer               :: div_h_ids(n_layers)               ! vector containing netCDF IDs of the horizontal divergence on horizontal layers
     integer               :: wind_w_ids(n_levels)              ! vector containing netCDF IDs of the vertical wind on horizontal layers
     integer               :: layer_dimid                       ! netCDF ID of the layer dimension
@@ -88,7 +88,7 @@ module mo_write_output
     integer               :: wind_u_p_ids(n_pressure_levels)   ! netCDF IDs of the zonal wind on pressure levels
     integer               :: wind_v_p_ids(n_pressure_levels)   ! netCDF IDs of the meridional wind on pressure levels
     integer               :: epv_p_ids(n_pressure_levels)      ! netCDF IDs of Ertel's potential vorticity on pressure levels
-    integer               :: rel_vort_p_ids(n_pressure_levels) ! netCDF IDs of the relative vorticity on pressure levels
+    integer               :: zeta_p_ids(n_pressure_levels) ! netCDF IDs of the relative vorticity on pressure levels
     integer               :: soil_layer_dimid                  ! netCDF ID of the soil layer dimension
     integer               :: edge_dimid                        ! netCDF ID of the edge dimension
     integer               :: constituent_dimid                 ! netCDF ID of the constituent dimension
@@ -157,7 +157,7 @@ module mo_write_output
     real(wp), allocatable :: wind_10_m_mean_v_at_cell(:)       ! meridional wind in 10 m at the cell centers to be written out
     real(wp), allocatable :: wind_10_m_gusts_speed_at_cell(:)  ! gust speed in 10 m at the cell centers to be written out
     real(wp), allocatable :: div_h_all_layers(:,:)             ! divergence of the horizontal wind to be written out
-    real(wp), allocatable :: rel_vort_scalar_field(:,:)        ! relative vorticity as a scalar field to be written out
+    real(wp), allocatable :: zeta_scalar_field(:,:)        ! relative vorticity as a scalar field to be written out
     real(wp), allocatable :: rh(:,:)                           ! relative humidity to be written out
     real(wp), allocatable :: epv(:,:)                          ! Ertel's potential vorticity to be written out
     real(wp), allocatable :: pressure(:,:)                     ! pressure to be written out
@@ -551,8 +551,8 @@ module mo_write_output
     allocate(div_h_all_layers(n_cells,n_layers))
     call div_h(state%wind_h,div_h_all_layers,grid)
     call calc_rel_vort(state,diag,grid)
-    allocate(rel_vort_scalar_field(n_cells,n_layers))
-    call edges_to_cells(diag%rel_vort_v,rel_vort_scalar_field,grid)
+    allocate(zeta_scalar_field(n_cells,n_layers))
+    call edges_to_cells(diag%zeta_v,zeta_scalar_field,grid)
     
     ! Diagnozing the u and v wind components at the vector points.
     allocate(u_at_edge(n_edges,n_layers))
@@ -646,8 +646,8 @@ module mo_write_output
             + (1._wp - closest_weight)*rh(ji,second_closest_index)
             epv_on_p_levels(ji,jl) = closest_weight*epv(ji,closest_index) &
             + (1._wp - closest_weight)*epv(ji,second_closest_index)
-            zeta_on_p_levels(ji,jl) = closest_weight*rel_vort_scalar_field(ji,closest_index) &
-            + (1._wp - closest_weight)*rel_vort_scalar_field(ji,second_closest_index)
+            zeta_on_p_levels(ji,jl) = closest_weight*zeta_scalar_field(ji,closest_index) &
+            + (1._wp - closest_weight)*zeta_scalar_field(ji,second_closest_index)
             u_on_p_levels(ji,jl) = closest_weight*u_at_cell(ji,closest_index) &
             + (1._wp - closest_weight)*u_at_cell(ji,second_closest_index)
             v_on_p_levels(ji,jl) = closest_weight*v_at_cell(ji,closest_index) &
@@ -697,9 +697,9 @@ module mo_write_output
         call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,wind_v_p_ids(jl)))
         call nc_check(nf90_put_att(ncid,wind_v_p_ids(jl),"units","m/s"))
         
-        varname = "rel_vort_layer_" // trim(int2string(pressure_level_hpa))
-        call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,rel_vort_p_ids(jl)))
-        call nc_check(nf90_put_att(ncid,rel_vort_p_ids(jl),"units","1/s"))
+        varname = "zeta_layer_" // trim(int2string(pressure_level_hpa))
+        call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,zeta_p_ids(jl)))
+        call nc_check(nf90_put_att(ncid,zeta_p_ids(jl),"units","1/s"))
         
         varname = "epv_layer_" // trim(int2string(pressure_level_hpa))
         call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,epv_p_ids(jl)))
@@ -733,7 +733,7 @@ module mo_write_output
         call nc_check(nf90_put_var(ncid,wind_v_p_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(zeta_on_p_levels(:,jl),lat_lon_output_field,grid)
-        call nc_check(nf90_put_var(ncid,rel_vort_p_ids(jl),lat_lon_output_field))
+        call nc_check(nf90_put_var(ncid,zeta_p_ids(jl),lat_lon_output_field))
         
         call interpolate_to_ll(epv_on_p_levels(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,epv_p_ids(jl),lat_lon_output_field))
@@ -793,9 +793,9 @@ module mo_write_output
         call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,wind_v_ids(jl)))
         call nc_check(nf90_put_att(ncid,wind_v_ids(jl),"units","m/s"))
         
-        varname = "rel_vort_layer_" // trim(int2string(jl))
-        call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,rel_vort_ids(jl)))
-        call nc_check(nf90_put_att(ncid,rel_vort_ids(jl),"units","1/s"))
+        varname = "zeta_layer_" // trim(int2string(jl))
+        call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,zeta_ids(jl)))
+        call nc_check(nf90_put_att(ncid,zeta_ids(jl),"units","1/s"))
         
         varname = "div_h_layer_" // trim(int2string(jl))
         call nc_check(nf90_def_var(ncid,varname,NF90_REAL,lat_lon_dimids,div_h_ids(jl)))
@@ -833,8 +833,8 @@ module mo_write_output
         call interpolate_to_ll(v_at_cell(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,wind_v_ids(jl),lat_lon_output_field))
         ! relative vorticity
-        call interpolate_to_ll(rel_vort_scalar_field(:,jl),lat_lon_output_field,grid)
-        call nc_check(nf90_put_var(ncid,rel_vort_ids(jl),lat_lon_output_field))
+        call interpolate_to_ll(zeta_scalar_field(:,jl),lat_lon_output_field,grid)
+        call nc_check(nf90_put_var(ncid,zeta_ids(jl),lat_lon_output_field))
         ! horizontal divergence
         call interpolate_to_ll(div_h_all_layers(:,jl),lat_lon_output_field,grid)
         call nc_check(nf90_put_var(ncid,div_h_ids(jl),lat_lon_output_field))
@@ -854,7 +854,7 @@ module mo_write_output
     deallocate(v_at_cell)
     deallocate(lat_lon_output_field)
     deallocate(div_h_all_layers)
-    deallocate(rel_vort_scalar_field)
+    deallocate(zeta_scalar_field)
     deallocate(rh)
     deallocate(epv)
     deallocate(pressure)

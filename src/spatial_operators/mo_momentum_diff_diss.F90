@@ -55,13 +55,13 @@ module mo_momentum_diff_diss
     ! off-diagonal component
     !$omp parallel workshare
     ! multiplying the diffusion coefficient by the relative vorticity
-    ! rel_vort_v is a misuse of name
-    diag%rel_vort_v = diag%viscosity_rhombi*diag%rel_vort_v
+    ! zeta_v is a misuse of name
+    diag%zeta_v = diag%viscosity_rhombi*diag%zeta_v
     !$omp end parallel workshare
     
-    ! rel_vort_on_triangles is a misuse of name
+    ! zeta_on_triangles is a misuse of name
     !$omp parallel workshare
-    diag%rel_vort_on_triangles = diag%viscosity_triangles*diag%rel_vort_on_triangles
+    diag%zeta_on_triangles = diag%viscosity_triangles*diag%zeta_on_triangles
     !$omp end parallel workshare
     
     call hor_calc_curl_of_vorticity(diag,grid)
@@ -217,10 +217,10 @@ module mo_momentum_diff_diss
         diag%curl_of_vorticity_h(ji,jl) = 0._wp
         delta_z = 0._wp
         checkerboard_damping_weight = &
-        abs(diag%rel_vort_on_triangles(grid%to_cell_dual(ji),jl) &
-        - diag%rel_vort_on_triangles(grid%from_cell_dual(ji),jl)) &
-        /(abs(diag%rel_vort_on_triangles(grid%to_cell_dual(ji),jl)) &
-        + abs(diag%rel_vort_on_triangles(grid%from_cell_dual(ji),jl)) + EPSILON_SECURITY)
+        abs(diag%zeta_on_triangles(grid%to_cell_dual(ji),jl) &
+        - diag%zeta_on_triangles(grid%from_cell_dual(ji),jl)) &
+        /(abs(diag%zeta_on_triangles(grid%to_cell_dual(ji),jl)) &
+        + abs(diag%zeta_on_triangles(grid%from_cell_dual(ji),jl)) + EPSILON_SECURITY)
         ! horizontal difference of vertical vorticity (dzeta_z*dz)
         ! An averaging over three rhombi must be done.
         do jm=1,3
@@ -230,11 +230,11 @@ module mo_momentum_diff_diss
           ! vertical length at the to_cell_dual point
           grid%dz_dual(grid%to_cell_dual(ji),jl) &
           ! vorticity at the to_cell_dual point
-          *diag%rel_vort_h(grid%vorticity_indices_triangles(jm,grid%to_cell_dual(ji)),jl) &
+          *diag%zeta_h(grid%vorticity_indices_triangles(jm,grid%to_cell_dual(ji)),jl) &
           ! vertical length at the from_cell_dual point
           - grid%dz_dual(grid%from_cell_dual(ji),jl) &
           ! vorticity at the from_cell_dual point
-          *diag%rel_vort_h(grid%vorticity_indices_triangles(jm,grid%from_cell_dual(ji)),jl))
+          *diag%zeta_h(grid%vorticity_indices_triangles(jm,grid%from_cell_dual(ji)),jl))
           ! preparation of the tangential slope
           delta_z = delta_z + 1._wp/3._wp*( &
           grid%z_vector_h(grid%vorticity_indices_triangles(jm,grid%to_cell_dual(ji)),jl) &
@@ -242,8 +242,8 @@ module mo_momentum_diff_diss
         enddo
         ! adding the term damping the checkerboard pattern
         diag%curl_of_vorticity_h(ji,jl) = diag%curl_of_vorticity_h(ji,jl) &
-        + checkerboard_damping_weight*(diag%rel_vort_on_triangles(grid%to_cell_dual(ji),jl)*grid%dz_dual(grid%to_cell_dual(ji),jl) &
-        - diag%rel_vort_on_triangles(grid%from_cell_dual(ji),jl)*grid%dz_dual(grid%from_cell_dual(ji),jl))
+        + checkerboard_damping_weight*(diag%zeta_on_triangles(grid%to_cell_dual(ji),jl)*grid%dz_dual(grid%to_cell_dual(ji),jl) &
+        - diag%zeta_on_triangles(grid%from_cell_dual(ji),jl)*grid%dz_dual(grid%from_cell_dual(ji),jl))
         ! dividing by the area
         diag%curl_of_vorticity_h(ji,jl) = diag%curl_of_vorticity_h(ji,jl)/grid%area_h(ji,jl)
         
@@ -264,7 +264,7 @@ module mo_momentum_diff_diss
             lower_index_zeta = jl
           endif
           
-          delta_zeta = diag%rel_vort_v(ji,upper_index_zeta) - diag%rel_vort_v(ji,lower_index_zeta)
+          delta_zeta = diag%zeta_v(ji,upper_index_zeta) - diag%zeta_v(ji,lower_index_zeta)
           delta_z = grid%z_vector_h(ji,upper_index_zeta) - grid%z_vector_h(ji,lower_index_zeta)
           
           ! the result

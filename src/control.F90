@@ -161,9 +161,9 @@ program control
   allocate(diag%flux_density_h(n_edges,n_layers))
   allocate(diag%flux_density_v(n_cells,n_levels))
   allocate(diag%flux_density_div(n_cells,n_layers))
-  allocate(diag%rel_vort_on_triangles(n_triangles,n_layers))
-  allocate(diag%rel_vort_h(n_edges,n_levels))
-  allocate(diag%rel_vort_v(n_edges,n_layers))
+  allocate(diag%zeta_on_triangles(n_triangles,n_layers))
+  allocate(diag%zeta_h(n_edges,n_levels))
+  allocate(diag%zeta_v(n_edges,n_layers))
   allocate(diag%pot_vort_h(n_edges,n_levels))
   allocate(diag%pot_vort_v(n_edges,n_layers))
   allocate(diag%temperature(n_cells,n_layers))
@@ -305,9 +305,9 @@ program control
   diag%flux_density_h = 0._wp
   diag%flux_density_v = 0._wp
   diag%flux_density_div = 0._wp
-  diag%rel_vort_on_triangles = 0._wp
-  diag%rel_vort_h = 0._wp
-  diag%rel_vort_v = 0._wp
+  diag%zeta_on_triangles = 0._wp
+  diag%zeta_h = 0._wp
+  diag%zeta_v = 0._wp
   diag%pot_vort_h = 0._wp
   diag%pot_vort_v = 0._wp
   diag%temperature = 0._wp
@@ -676,9 +676,9 @@ program control
   deallocate(diag%flux_density_h)
   deallocate(diag%flux_density_v)
   deallocate(diag%flux_density_div)
-  deallocate(diag%rel_vort_on_triangles)
-  deallocate(diag%rel_vort_h)
-  deallocate(diag%rel_vort_v)
+  deallocate(diag%zeta_on_triangles)
+  deallocate(diag%zeta_h)
+  deallocate(diag%zeta_v)
   deallocate(diag%pot_vort_h)
   deallocate(diag%pot_vort_v)
   deallocate(diag%temperature)

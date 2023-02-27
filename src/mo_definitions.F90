@@ -104,9 +104,9 @@ module mo_definitions
     real(wp), allocatable :: flux_density_h(:,:)                 ! arbitrary horizontal flux density
     real(wp), allocatable :: flux_density_v(:,:)                 ! arbitrary vertical flux density
     real(wp), allocatable :: flux_density_div(:,:)               ! divergence of the flux density
-    real(wp), allocatable :: rel_vort_on_triangles(:,:)          ! relative vorticity on triangles
-    real(wp), allocatable :: rel_vort_h(:,:)                     ! horizontal relative vorticity (at edges)
-    real(wp), allocatable :: rel_vort_v(:,:)                     ! vertical relative vorticity (at edges)
+    real(wp), allocatable :: zeta_on_triangles(:,:)              ! relative vorticity on triangles
+    real(wp), allocatable :: zeta_h(:,:)                         ! horizontal relative vorticity (at edges)
+    real(wp), allocatable :: zeta_v(:,:)                         ! vertical relative vorticity (at edges)
     real(wp), allocatable :: pot_vort_h(:,:)                     ! horizontal potential vorticity (at edges)
     real(wp), allocatable :: pot_vort_v(:,:)                     ! vertical potential vorticity (at edges)
     real(wp), allocatable :: temperature(:,:)                    ! air temperature

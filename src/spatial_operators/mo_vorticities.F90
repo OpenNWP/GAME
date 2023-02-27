@@ -92,7 +92,7 @@ module mo_vorticities
     
   end subroutine calc_pot_vort
   
-  subroutine calc_rel_vort_on_triangles(state,diag,grid)
+  subroutine calc_zeta_on_triangles(state,diag,grid)
     
     ! This subroutine calculates the vertical relative vorticity on triangles.
     
@@ -116,7 +116,7 @@ module mo_vorticities
     do jl=1,n_layers
       do ji=1,n_triangles
         ! clearing what has previously been here
-        diag%rel_vort_on_triangles(ji,jl) = 0._wp
+        diag%zeta_on_triangles(ji,jl) = 0._wp
         ! loop over the three edges of the triangle at hand
         do jm=1,3
           velocity_value = state%wind_h(grid%vorticity_indices_triangles(jm,ji),jl)
@@ -140,19 +140,19 @@ module mo_vorticities
             ! Here, the vertical interpolation is made.
             velocity_value = velocity_value+delta_z*vertical_gradient
           endif
-          diag%rel_vort_on_triangles(ji,jl) = diag%rel_vort_on_triangles(ji,jl) &
+          diag%zeta_on_triangles(ji,jl) = diag%zeta_on_triangles(ji,jl) &
                                               + length_rescale_factor*grid%dx(grid%vorticity_indices_triangles(jm,ji),jl) &
                                               *grid%vorticity_signs_triangles(jm,ji)*velocity_value
         enddo
         
         ! dividing by the area (Stokes' Theorem)
-        diag%rel_vort_on_triangles(ji,jl) = diag%rel_vort_on_triangles(ji,jl)/grid%area_dual_v(ji,jl)
+        diag%zeta_on_triangles(ji,jl) = diag%zeta_on_triangles(ji,jl)/grid%area_dual_v(ji,jl)
         
       enddo
     enddo
     !$omp end parallel do
     
-  end subroutine calc_rel_vort_on_triangles
+  end subroutine calc_zeta_on_triangles
   
   subroutine calc_rel_vort(state,diag,grid)
     
@@ -167,15 +167,15 @@ module mo_vorticities
     integer  :: jl ! level index
     
     ! calling the subroutine which computes the relative vorticity on triangles
-    call calc_rel_vort_on_triangles(state,diag,grid)
+    call calc_zeta_on_triangles(state,diag,grid)
     
     ! vertical vorticities
     !$omp parallel do private(ji,jl)
     do jl=1,n_layers
       do ji=1,n_edges
-        diag%rel_vort_v(ji,jl) = ( &
-        grid%area_dual_v(grid%from_cell_dual(ji),jl)*diag%rel_vort_on_triangles(grid%from_cell_dual(ji),jl) &
-        + grid%area_dual_v(grid%to_cell_dual(ji),jl)*diag%rel_vort_on_triangles(grid%to_cell_dual(ji),jl))/ &
+        diag%zeta_v(ji,jl) = ( &
+        grid%area_dual_v(grid%from_cell_dual(ji),jl)*diag%zeta_on_triangles(grid%from_cell_dual(ji),jl) &
+        + grid%area_dual_v(grid%to_cell_dual(ji),jl)*diag%zeta_on_triangles(grid%to_cell_dual(ji),jl))/ &
         (grid%area_dual_v(grid%from_cell_dual(ji),jl) + grid%area_dual_v(grid%to_cell_dual(ji),jl))
       enddo
     enddo
@@ -187,10 +187,10 @@ module mo_vorticities
       do ji=1,n_edges
         ! At the lower boundary, w vanishes. Furthermore, the covariant velocity below the surface is also zero.
         if (jl==n_levels) then
-          diag%rel_vort_h(ji,n_levels) = 1._wp/grid%area_dual_h(ji,n_levels) &
+          diag%zeta_h(ji,n_levels) = 1._wp/grid%area_dual_h(ji,n_levels) &
                                          *grid%dx(ji,n_layers)*horizontal_covariant(state%wind_h,state%wind_v,ji,n_layers,grid)
         else
-          diag%rel_vort_h(ji,jl) = 1._wp/grid%area_dual_h(ji,jl)*( &
+          diag%zeta_h(ji,jl) = 1._wp/grid%area_dual_h(ji,jl)*( &
           -grid%dx(ji,jl)*horizontal_covariant(state%wind_h,state%wind_v,ji,jl,grid) &
           + grid%dz(grid%from_cell(ji),jl)*state%wind_v(grid%from_cell(ji),jl) &
           + grid%dx(ji,jl-1)*horizontal_covariant(state%wind_h,state%wind_v,ji,jl-1,grid) &
@@ -202,7 +202,7 @@ module mo_vorticities
     
     ! At the upper boundary, the tangential vorticity is assumed to have no vertical shear.
     !$omp parallel workshare
-    diag%rel_vort_h(:,1) = diag%rel_vort_h(:,2)
+    diag%zeta_h(:,1) = diag%zeta_h(:,2)
     !$omp end parallel workshare
     
   end subroutine calc_rel_vort
@@ -220,14 +220,14 @@ module mo_vorticities
     ! horizontal
     !$omp parallel do private(jl)
     do jl=1,n_levels
-      diag%pot_vort_h(:,jl) = diag%rel_vort_h(:,jl) + grid%f_vec_h
+      diag%pot_vort_h(:,jl) = diag%zeta_h(:,jl) + grid%f_vec_h
     enddo
     !$omp end parallel do
     
     ! vertical
     !$omp parallel do private(jl)
     do jl=1,n_layers
-      diag%pot_vort_v(:,jl) = diag%rel_vort_v(:,jl) + grid%f_vec_v
+      diag%pot_vort_v(:,jl) = diag%zeta_v(:,jl) + grid%f_vec_v
     enddo
     !$omp end parallel do
     
