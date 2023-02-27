@@ -125,9 +125,9 @@ module mo_eff_diff_coeffs
         ! Computing the mass diffusion coefficient
         ! ----------------------------------------
         ! horizontal diffusion coefficient
-        diag%mass_diff_coeff_numerical_h(ji,jl) = diag%viscosity(ji,jl)/state%rho(ji,jl,n_condensed_constituents+1)
+        diag%mass_diff_coeff_eff_h(ji,jl) = diag%viscosity(ji,jl)/state%rho(ji,jl,n_condensed_constituents+1)
         ! vertical diffusion coefficient
-        diag%mass_diff_coeff_numerical_v(ji,jl) &
+        diag%mass_diff_coeff_eff_v(ji,jl) &
         ! molecular component
         = diag%molecular_diff_coeff(ji,jl) &
         ! turbulent component
@@ -135,10 +135,10 @@ module mo_eff_diff_coeffs
         
         ! Computing the temperature diffusion coefficient
         ! -----------------------------------------------
-        diag%temp_diff_coeff_numerical_h(ji,jl) = c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl) &
-                                                       *diag%mass_diff_coeff_numerical_h(ji,jl)
-        diag%temp_diff_coeff_numerical_v(ji,jl) = c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl) &
-                                                       *diag%mass_diff_coeff_numerical_v(ji,jl)
+        diag%temp_diff_coeff_eff_h(ji,jl) = c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl) &
+                                                       *diag%mass_diff_coeff_eff_h(ji,jl)
+        diag%temp_diff_coeff_eff_v(ji,jl) = c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl) &
+                                                       *diag%mass_diff_coeff_eff_v(ji,jl)
       enddo
     enddo
     !$omp end parallel do

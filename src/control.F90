@@ -188,10 +188,10 @@ program control
   allocate(diag%friction_acc_v(n_cells,n_levels))
   allocate(diag%heating_diss(n_cells,n_layers))
   allocate(diag%molecular_diff_coeff(n_cells,n_layers))
-  allocate(diag%mass_diff_coeff_numerical_h(n_cells,n_layers))
-  allocate(diag%mass_diff_coeff_numerical_v(n_cells,n_layers))
-  allocate(diag%temp_diff_coeff_numerical_h(n_cells,n_layers))
-  allocate(diag%temp_diff_coeff_numerical_v(n_cells,n_layers))
+  allocate(diag%mass_diff_coeff_eff_h(n_cells,n_layers))
+  allocate(diag%mass_diff_coeff_eff_v(n_cells,n_layers))
+  allocate(diag%temp_diff_coeff_eff_h(n_cells,n_layers))
+  allocate(diag%temp_diff_coeff_eff_v(n_cells,n_layers))
   allocate(diag%p_grad_decel_factor(n_cells,n_layers))
   allocate(diag%condensates_sediment_heat(n_cells,n_layers))
   allocate(diag%mass_diff_tendency(n_cells,n_layers,n_constituents))
@@ -332,10 +332,10 @@ program control
   diag%friction_acc_v = 0._wp
   diag%heating_diss = 0._wp
   diag%molecular_diff_coeff = 0._wp
-  diag%mass_diff_coeff_numerical_h = 0._wp
-  diag%mass_diff_coeff_numerical_v = 0._wp
-  diag%temp_diff_coeff_numerical_h = 0._wp
-  diag%temp_diff_coeff_numerical_v = 0._wp
+  diag%mass_diff_coeff_eff_h = 0._wp
+  diag%mass_diff_coeff_eff_v = 0._wp
+  diag%temp_diff_coeff_eff_h = 0._wp
+  diag%temp_diff_coeff_eff_v = 0._wp
   diag%p_grad_decel_factor = 0._wp
   diag%condensates_sediment_heat = 0._wp
   diag%mass_diff_tendency = 0._wp
@@ -703,10 +703,10 @@ program control
   deallocate(diag%friction_acc_v)
   deallocate(diag%heating_diss)
   deallocate(diag%molecular_diff_coeff)
-  deallocate(diag%mass_diff_coeff_numerical_h)
-  deallocate(diag%mass_diff_coeff_numerical_v)
-  deallocate(diag%temp_diff_coeff_numerical_h)
-  deallocate(diag%temp_diff_coeff_numerical_v)
+  deallocate(diag%mass_diff_coeff_eff_h)
+  deallocate(diag%mass_diff_coeff_eff_v)
+  deallocate(diag%temp_diff_coeff_eff_h)
+  deallocate(diag%temp_diff_coeff_eff_v)
   deallocate(diag%p_grad_decel_factor)
   deallocate(diag%condensates_sediment_heat)
   deallocate(diag%mass_diff_tendency)

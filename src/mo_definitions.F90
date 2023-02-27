@@ -131,10 +131,10 @@ module mo_definitions
     real(wp), allocatable :: friction_acc_v(:,:)                 ! vertical friction acceleration
     real(wp), allocatable :: heating_diss(:,:)                   ! dissipative heating rate (W/m**3)
     real(wp), allocatable :: molecular_diff_coeff(:,:)           ! molecular diffusion coefficient
-    real(wp), allocatable :: mass_diff_coeff_numerical_h(:,:)    ! horizontal effective mass diffusion coefficient
-    real(wp), allocatable :: mass_diff_coeff_numerical_v(:,:)    ! vertical effective mass diffusion coefficient
-    real(wp), allocatable :: temp_diff_coeff_numerical_h(:,:)    ! horizontal effective temperature diffusion coefficient
-    real(wp), allocatable :: temp_diff_coeff_numerical_v(:,:)    ! vertical effective temperature diffusion coefficient
+    real(wp), allocatable :: mass_diff_coeff_eff_h(:,:)          ! horizontal effective mass diffusion coefficient
+    real(wp), allocatable :: mass_diff_coeff_eff_v(:,:)          ! vertical effective mass diffusion coefficient
+    real(wp), allocatable :: temp_diff_coeff_eff_h(:,:)          ! horizontal effective temperature diffusion coefficient
+    real(wp), allocatable :: temp_diff_coeff_eff_v(:,:)          ! vertical effective temperature diffusion coefficient
     real(wp), allocatable :: p_grad_decel_factor(:,:)            ! pressure gradient deceleration factor due to condensates
     real(wp), allocatable :: condensates_sediment_heat(:,:)      ! heating rate due to falling condensates
     real(wp), allocatable :: mass_diff_tendency(:,:,:)           ! mass source rate due to mass diffusion
