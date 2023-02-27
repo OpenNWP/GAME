@@ -39,7 +39,7 @@ module mo_vorticity_flux
           do jm=1,5
             diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
             + grid%trsk_weights(jm,ji)*diag%flux_density_h(grid%trsk_indices(jm,ji),jl) &
-            *diag%pot_vort_v(grid%trsk_modified_curl_indices(jm,ji),jl)
+            *diag%eta_v(grid%trsk_modified_curl_indices(jm,ji),jl)
           enddo
         else
           do jm=1,5
@@ -47,11 +47,11 @@ module mo_vorticity_flux
               diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
               + grid%trsk_weights(jm,ji)*diag%flux_density_h(grid%trsk_indices(jm,ji),jl) &
               ! averaged vorticities of the target edge and the other edge
-              *0.5_wp*(diag%pot_vort_v(grid%trsk_modified_curl_indices(jm,ji),jl) + diag%pot_vort_v(ji,jl))
+              *0.5_wp*(diag%eta_v(grid%trsk_modified_curl_indices(jm,ji),jl) + diag%eta_v(ji,jl))
             else
               diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
               + grid%trsk_weights(jm,ji)*diag%flux_density_h(grid%trsk_indices(jm,ji),jl) &
-              *diag%pot_vort_v(grid%trsk_modified_curl_indices(jm,ji),jl)
+              *diag%eta_v(grid%trsk_modified_curl_indices(jm,ji),jl)
             endif
           enddo
         endif
@@ -59,7 +59,7 @@ module mo_vorticity_flux
           do jm=6,10
             diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
             + grid%trsk_weights(jm,ji)*diag%flux_density_h(grid%trsk_indices(jm,ji),jl) &
-            *diag%pot_vort_v(grid%trsk_modified_curl_indices(jm,ji),jl)
+            *diag%eta_v(grid%trsk_modified_curl_indices(jm,ji),jl)
           enddo
         else
           do jm=6,10
@@ -67,11 +67,11 @@ module mo_vorticity_flux
               diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
               + grid%trsk_weights(jm,ji)*diag%flux_density_h(grid%trsk_indices(jm,ji),jl) &
               ! averaged vorticities of the target edge and the other edge
-              *0.5_wp*(diag%pot_vort_v(grid%trsk_modified_curl_indices(jm,ji),jl) + diag%pot_vort_v(ji,jl))
+              *0.5_wp*(diag%eta_v(grid%trsk_modified_curl_indices(jm,ji),jl) + diag%eta_v(ji,jl))
             else
               diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
               + grid%trsk_weights(jm,ji)*diag%flux_density_h(grid%trsk_indices(jm,ji),jl) &
-              *diag%pot_vort_v(grid%trsk_modified_curl_indices(jm,ji),jl)
+              *diag%eta_v(grid%trsk_modified_curl_indices(jm,ji),jl)
             endif
           enddo
         endif
@@ -82,17 +82,17 @@ module mo_vorticity_flux
         ! effect of layer above
         diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
         - 0.5_wp*grid%inner_product_weights(7,grid%from_cell(ji),jl) &
-        *diag%flux_density_v(grid%from_cell(ji),jl)*diag%pot_vort_h(ji,jl)
+        *diag%flux_density_v(grid%from_cell(ji),jl)*diag%eta_h(ji,jl)
         diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
         - 0.5_wp*grid%inner_product_weights(7,grid%to_cell(ji),jl) &
-        *diag%flux_density_v(grid%to_cell(ji),jl)*diag%pot_vort_h(ji,jl)
+        *diag%flux_density_v(grid%to_cell(ji),jl)*diag%eta_h(ji,jl)
         ! effect of layer below
         diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
         - 0.5_wp*grid%inner_product_weights(8,grid%from_cell(ji),jl) &
-        *diag%flux_density_v(grid%from_cell(ji),jl+1)*diag%pot_vort_h(ji,jl+1)
+        *diag%flux_density_v(grid%from_cell(ji),jl+1)*diag%eta_h(ji,jl+1)
         diag%pot_vort_tend_h(ji,jl) = diag%pot_vort_tend_h(ji,jl) &
         - 0.5_wp*grid%inner_product_weights(8,grid%to_cell(ji),jl) &
-        *diag%flux_density_v(grid%to_cell(ji),jl+1)*diag%pot_vort_h(ji,jl+1)
+        *diag%flux_density_v(grid%to_cell(ji),jl+1)*diag%eta_h(ji,jl+1)
         
       enddo
     enddo
@@ -114,7 +114,7 @@ module mo_vorticity_flux
         endif
         do jm=1,n_edges_of_cell
           diag%pot_vort_tend_v(ji,jl) = diag%pot_vort_tend_v(ji,jl) &
-          + diag%pot_vort_h(grid%adjacent_edges(jm,ji),jl) &
+          + diag%eta_h(grid%adjacent_edges(jm,ji),jl) &
           *0.5_wp*(grid%inner_product_weights(jm,ji,jl-1)*diag%flux_density_h(grid%adjacent_edges(jm,ji),jl-1) &
           + grid%inner_product_weights(jm,ji,jl)*diag%flux_density_h(grid%adjacent_edges(jm,ji),jl))
         enddo

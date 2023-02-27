@@ -164,8 +164,8 @@ program control
   allocate(diag%zeta_on_triangles(n_triangles,n_layers))
   allocate(diag%zeta_h(n_edges,n_levels))
   allocate(diag%zeta_v(n_edges,n_layers))
-  allocate(diag%pot_vort_h(n_edges,n_levels))
-  allocate(diag%pot_vort_v(n_edges,n_layers))
+  allocate(diag%eta_h(n_edges,n_levels))
+  allocate(diag%eta_v(n_edges,n_layers))
   allocate(diag%temperature(n_cells,n_layers))
   allocate(diag%v_squared(n_cells,n_layers))
   allocate(diag%wind_div(n_cells,n_layers))
@@ -308,8 +308,8 @@ program control
   diag%zeta_on_triangles = 0._wp
   diag%zeta_h = 0._wp
   diag%zeta_v = 0._wp
-  diag%pot_vort_h = 0._wp
-  diag%pot_vort_v = 0._wp
+  diag%eta_h = 0._wp
+  diag%eta_v = 0._wp
   diag%temperature = 0._wp
   diag%v_squared = 0._wp
   diag%wind_div = 0._wp
@@ -679,8 +679,8 @@ program control
   deallocate(diag%zeta_on_triangles)
   deallocate(diag%zeta_h)
   deallocate(diag%zeta_v)
-  deallocate(diag%pot_vort_h)
-  deallocate(diag%pot_vort_v)
+  deallocate(diag%eta_h)
+  deallocate(diag%eta_v)
   deallocate(diag%temperature)
   deallocate(diag%v_squared)
   deallocate(diag%wind_div)

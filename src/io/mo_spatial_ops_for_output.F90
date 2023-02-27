@@ -76,20 +76,20 @@ module mo_spatial_ops_for_output
     real(wp), allocatable :: grad_pot_temp_h(:,:)                       ! horizontal gradient of the potential temperature
     real(wp), allocatable :: grad_pot_temp_v(:,:)                       ! vertical gradient of the potential temperature
     real(wp), allocatable :: pot_vort_as_tangential_vector_field_h(:,:) ! horizontal potential vorticity as tangential components at edges
-    real(wp), allocatable :: pot_vort_v_at_levels(:,:)                  ! vertical potential vorticity at the cell center level interfaces
+    real(wp), allocatable :: eta_v_at_levels(:,:)                  ! vertical potential vorticity at the cell center level interfaces
     
     ! allocating memory
     allocate(grad_pot_temp_h(n_edges,n_layers))
     allocate(grad_pot_temp_v(n_cells,n_levels))
     allocate(pot_vort_as_tangential_vector_field_h(n_edges,n_layers))
-    allocate(pot_vort_v_at_levels(n_cells,n_levels))
+    allocate(eta_v_at_levels(n_cells,n_levels))
     
     ! initializing the arrays with zeroes
     !$omp parallel workshare
     grad_pot_temp_h = 0._wp
     grad_pot_temp_v = 0._wp
     pot_vort_as_tangential_vector_field_h = 0._wp
-    pot_vort_v_at_levels = 0._wp
+    eta_v_at_levels = 0._wp
     !$omp end parallel workshare
     
     ! diagnozing the horizontal vorticity at the primal horizontal vector points (they are TANGENTIAL! so it is not a real vector field, but a modified one)
@@ -114,7 +114,7 @@ module mo_spatial_ops_for_output
            lower_weight = 0.5_wp*(grid%z_vector_h(ji,jl) - grid%z_vector_h(ji,jl+1))/layer_thickness
         endif
         ! determining the horizontal potential vorticity at the primal vector point
-        pot_vort_as_tangential_vector_field_h(ji,jl) = upper_weight*diag%pot_vort_h(ji,jl) + lower_weight*diag%pot_vort_h(ji,jl+1)
+        pot_vort_as_tangential_vector_field_h(ji,jl) = upper_weight*diag%eta_h(ji,jl) + lower_weight*diag%eta_h(ji,jl+1)
       enddo
     enddo
     !$omp end parallel do
@@ -124,7 +124,7 @@ module mo_spatial_ops_for_output
     do jl=2,n_layers
       do ji=1,n_cells
         ! initializing the value with zero
-        pot_vort_v_at_levels(ji,jl) = 0._wp
+        eta_v_at_levels(ji,jl) = 0._wp
         
         n_edges_of_cell = 6
         if (ji<=n_pentagons) then
@@ -132,17 +132,15 @@ module mo_spatial_ops_for_output
         endif
         ! contribution of upper cell
         do jm=1,n_edges_of_cell
-          pot_vort_v_at_levels(ji,jl) &
-          = pot_vort_v_at_levels(ji,jl-1) &
-          + 0.25_wp*grid%inner_product_weights(jm,ji,jl-1) &
-          *diag%pot_vort_v(grid%adjacent_edges(jm,ji),jl-1)
+          eta_v_at_levels(ji,jl) &
+          = eta_v_at_levels(ji,jl-1) &
+          + 0.25_wp*grid%inner_product_weights(jm,ji,jl-1)*diag%eta_v(grid%adjacent_edges(jm,ji),jl-1)
         enddo
         ! contribution of lower cell
         do jm=1,n_edges_of_cell
-          pot_vort_v_at_levels(ji,jl) &
-          = pot_vort_v_at_levels(ji,jl) &
-          + 0.25_wp*grid%inner_product_weights(jm,ji,jl) &
-          *diag%pot_vort_v(grid%adjacent_edges(jm,ji),jl)
+          eta_v_at_levels(ji,jl) &
+          = eta_v_at_levels(ji,jl) &
+          + 0.25_wp*grid%inner_product_weights(jm,ji,jl)*diag%eta_v(grid%adjacent_edges(jm,ji),jl)
         enddo
       enddo
     enddo
@@ -154,14 +152,14 @@ module mo_spatial_ops_for_output
     !$omp end parallel workshare
     call grad_vert(diag%scalar_placeholder,grad_pot_temp_v,grid)
     call grad_hor(diag%scalar_placeholder,grad_pot_temp_h,grad_pot_temp_v,grid)
-    call inner_product_tangential(pot_vort_as_tangential_vector_field_h,pot_vort_v_at_levels, &
+    call inner_product_tangential(pot_vort_as_tangential_vector_field_h,eta_v_at_levels, &
                                   grad_pot_temp_h,grad_pot_temp_v,epv,grid)
     
     ! freeing the memory
     deallocate(grad_pot_temp_h)
     deallocate(grad_pot_temp_v)
     deallocate(pot_vort_as_tangential_vector_field_h)
-    deallocate(pot_vort_v_at_levels)
+    deallocate(eta_v_at_levels)
     
   end subroutine epv_diagnostics
   

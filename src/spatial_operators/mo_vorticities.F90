@@ -47,7 +47,7 @@ module mo_vorticities
         enddo
         
         ! division by the density to obtain the "potential vorticity"
-        diag%pot_vort_v(ji,jl) = diag%pot_vort_v(ji,jl)/density_value
+        diag%eta_v(ji,jl) = diag%eta_v(ji,jl)/density_value
       enddo
     enddo
     !$omp end parallel do
@@ -84,7 +84,7 @@ module mo_vorticities
         endif
         
         ! division by the density to obtain the "potential vorticity"
-        diag%pot_vort_h(ji,jl) = diag%pot_vort_h(ji,jl)/density_value
+        diag%eta_h(ji,jl) = diag%eta_h(ji,jl)/density_value
         
       enddo
     enddo
@@ -220,14 +220,14 @@ module mo_vorticities
     ! horizontal
     !$omp parallel do private(jl)
     do jl=1,n_levels
-      diag%pot_vort_h(:,jl) = diag%zeta_h(:,jl) + grid%f_vec_h
+      diag%eta_h(:,jl) = diag%zeta_h(:,jl) + grid%f_vec_h
     enddo
     !$omp end parallel do
     
     ! vertical
     !$omp parallel do private(jl)
     do jl=1,n_layers
-      diag%pot_vort_v(:,jl) = diag%zeta_v(:,jl) + grid%f_vec_v
+      diag%eta_v(:,jl) = diag%zeta_v(:,jl) + grid%f_vec_v
     enddo
     !$omp end parallel do
     

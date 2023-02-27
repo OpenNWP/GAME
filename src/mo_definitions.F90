@@ -107,8 +107,8 @@ module mo_definitions
     real(wp), allocatable :: zeta_on_triangles(:,:)              ! relative vorticity on triangles
     real(wp), allocatable :: zeta_h(:,:)                         ! horizontal relative vorticity (at edges)
     real(wp), allocatable :: zeta_v(:,:)                         ! vertical relative vorticity (at edges)
-    real(wp), allocatable :: pot_vort_h(:,:)                     ! horizontal potential vorticity (at edges)
-    real(wp), allocatable :: pot_vort_v(:,:)                     ! vertical potential vorticity (at edges)
+    real(wp), allocatable :: eta_h(:,:)                          ! horizontal potential vorticity (at edges)
+    real(wp), allocatable :: eta_v(:,:)                          ! vertical potential vorticity (at edges)
     real(wp), allocatable :: temperature(:,:)                    ! air temperature
     real(wp), allocatable :: v_squared(:,:)                      ! squared velocity
     real(wp), allocatable :: wind_div(:,:)                       ! divergence of the wind field
