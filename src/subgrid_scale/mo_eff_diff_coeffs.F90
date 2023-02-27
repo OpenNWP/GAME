@@ -36,9 +36,9 @@ module mo_eff_diff_coeffs
     do jl=1,n_layers
       do ji=1,n_cells
         ! molecular component
-        diag%molecular_diffusion_coeff(ji,jl) = calc_diffusion_coeff(diag%temperature(ji,jl), &
+        diag%molecular_diff_coeff(ji,jl) = calc_diffusion_coeff(diag%temperature(ji,jl), &
                                                                      state%rho(ji,jl,n_condensed_constituents+1))
-        diag%viscosity(ji,jl) = diag%molecular_diffusion_coeff(ji,jl)
+        diag%viscosity(ji,jl) = diag%molecular_diff_coeff(ji,jl)
         ! computing and adding the turbulent component
         diag%viscosity(ji,jl) = diag%viscosity(ji,jl) + tke2hor_diff_coeff(diag%tke(ji,jl))
       enddo
@@ -103,7 +103,7 @@ module mo_eff_diff_coeffs
     
   end subroutine hor_viscosity
 
-  subroutine scalar_diffusion_coeffs(state,diag,grid)
+  subroutine scalar_diff_coeffs(state,diag,grid)
     
     ! This subroutine computes the scalar diffusion coefficients (including eddies).
     
@@ -130,7 +130,7 @@ module mo_eff_diff_coeffs
         ! vertical diffusion coefficient
         diag%mass_diff_coeff_numerical_v(ji,jl) &
         ! molecular component
-        = diag%molecular_diffusion_coeff(ji,jl) &
+        = diag%molecular_diff_coeff(ji,jl) &
         ! turbulent component
         + tke2vert_diff_coeff(diag%tke(ji,jl),diag%n_squared(ji,jl),grid%layer_thickness(ji,jl))
         
@@ -144,16 +144,18 @@ module mo_eff_diff_coeffs
     enddo
     !$omp end parallel do
     
-  end subroutine
+  end subroutine scalar_diff_coeffs
 
   subroutine vert_vert_mom_viscosity(rho,tke,n_squared,layer_thickness,scalar_placeholder,molecular_diff_coeff)
   
     ! This subroutine multiplies scalar_placeholder (containing dw/dz) by the diffusion coefficient acting on w because of w.
     
-    real(wp), intent(in)    :: rho(n_cells,n_layers,n_constituents),tke(n_cells,n_layers), &
-                               n_squared(n_cells,n_layers),layer_thickness(n_cells,n_layers), &
-                               molecular_diff_coeff(n_cells,n_layers)
-    real(wp), intent(inout) :: scalar_placeholder(n_cells,n_layers)
+    real(wp), intent(in)    :: rho(n_cells,n_layers,n_constituents), & ! mass density field
+                               tke(n_cells,n_layers), &                ! specific turbulent kinetic energy
+                               n_squared(n_cells,n_layers), &          ! squared Brunt-Väisälä frequency
+                               layer_thickness(n_cells,n_layers), &    ! layer thicknesses of the model grid
+                               molecular_diff_coeff(n_cells,n_layers)  ! molecular diffusion coefficient
+    real(wp), intent(inout) :: scalar_placeholder(n_cells,n_layers)    ! the result (containing dw/dz in the beginning)
     
     ! local variables
     integer  :: ji             ! cell index
@@ -210,10 +212,10 @@ module mo_eff_diff_coeffs
                               grid%layer_thickness(grid%to_cell(ji),jl)))
         ! computing and adding the molecular viscosity
         ! the scalar variables need to be averaged to the vector points at half levels
-        molecular_viscosity = 0.25_wp*(diag%molecular_diffusion_coeff(grid%from_cell(ji),jl-1) &
-                                     + diag%molecular_diffusion_coeff(grid%to_cell(ji),jl-1) &
-                                     + diag%molecular_diffusion_coeff(grid%from_cell(ji),jl) &
-                                     + diag%molecular_diffusion_coeff(grid%to_cell(ji),jl))
+        molecular_viscosity = 0.25_wp*(diag%molecular_diff_coeff(grid%from_cell(ji),jl-1) &
+                                     + diag%molecular_diff_coeff(grid%to_cell(ji),jl-1) &
+                                     + diag%molecular_diff_coeff(grid%from_cell(ji),jl) &
+                                     + diag%molecular_diff_coeff(grid%to_cell(ji),jl))
         mom_diff_coeff = mom_diff_coeff+molecular_viscosity
         
         ! multiplying by the density (averaged to the half level edge)

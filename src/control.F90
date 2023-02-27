@@ -183,11 +183,11 @@ program control
   allocate(diag%roughness_length(n_cells))
   allocate(diag%roughness_velocity(n_cells))
   allocate(diag%monin_obukhov_length(n_cells))
-  allocate(diag%temperature_diffusion_heating(n_cells,n_layers))
+  allocate(diag%temperature_diff_heating(n_cells,n_layers))
   allocate(diag%friction_acc_h(n_edges,n_layers))
   allocate(diag%friction_acc_v(n_cells,n_levels))
   allocate(diag%heating_diss(n_cells,n_layers))
-  allocate(diag%molecular_diffusion_coeff(n_cells,n_layers))
+  allocate(diag%molecular_diff_coeff(n_cells,n_layers))
   allocate(diag%mass_diff_coeff_numerical_h(n_cells,n_layers))
   allocate(diag%mass_diff_coeff_numerical_v(n_cells,n_layers))
   allocate(diag%temp_diff_coeff_numerical_h(n_cells,n_layers))
@@ -327,11 +327,11 @@ program control
   diag%roughness_length = 0._wp
   diag%roughness_velocity = 0._wp
   diag%monin_obukhov_length = 0._wp
-  diag%temperature_diffusion_heating = 0._wp
+  diag%temperature_diff_heating = 0._wp
   diag%friction_acc_h = 0._wp
   diag%friction_acc_v = 0._wp
   diag%heating_diss = 0._wp
-  diag%molecular_diffusion_coeff = 0._wp
+  diag%molecular_diff_coeff = 0._wp
   diag%mass_diff_coeff_numerical_h = 0._wp
   diag%mass_diff_coeff_numerical_v = 0._wp
   diag%temp_diff_coeff_numerical_h = 0._wp
@@ -698,11 +698,11 @@ program control
   deallocate(diag%roughness_length)
   deallocate(diag%roughness_velocity)
   deallocate(diag%monin_obukhov_length)
-  deallocate(diag%temperature_diffusion_heating)
+  deallocate(diag%temperature_diff_heating)
   deallocate(diag%friction_acc_h)
   deallocate(diag%friction_acc_v)
   deallocate(diag%heating_diss)
-  deallocate(diag%molecular_diffusion_coeff)
+  deallocate(diag%molecular_diff_coeff)
   deallocate(diag%mass_diff_coeff_numerical_h)
   deallocate(diag%mass_diff_coeff_numerical_v)
   deallocate(diag%temp_diff_coeff_numerical_h)

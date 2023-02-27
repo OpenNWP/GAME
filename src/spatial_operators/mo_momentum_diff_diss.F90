@@ -145,7 +145,7 @@ module mo_momentum_diff_diss
     call add_vertical_div(state%wind_v,diag%scalar_placeholder,grid)
     ! computing and multiplying by the respective diffusion coefficient
     call vert_vert_mom_viscosity(state%rho,diag%tke,diag%n_squared,grid%layer_thickness,diag%scalar_placeholder, &
-                                 diag%molecular_diffusion_coeff)
+                                 diag%molecular_diff_coeff)
     ! taking the second derivative to compute the diffusive tendency
     call grad_vert(diag%scalar_placeholder,diag%friction_acc_v,grid)
     

@@ -14,7 +14,7 @@ module mo_scalar_tend_expl
   use mo_multiplications,    only: scalar_times_vector_h,scalar_times_vector_v,scalar_times_vector_h_upstream
   use mo_divergences,        only: div_h_tracer,div_h,add_vertical_div
   use mo_gradient_operators, only: grad_hor,grad_vert
-  use mo_eff_diff_coeffs,    only: scalar_diffusion_coeffs
+  use mo_eff_diff_coeffs,    only: scalar_diff_coeffs
   
   implicit none
   
@@ -60,7 +60,7 @@ module mo_scalar_tend_expl
     
     ! updating the scalar diffusion coefficient if required
     if (rk_step==1 .and. (lmass_diff_h .or. ltemp_diff_h)) then
-      call scalar_diffusion_coeffs(state_scalar,diag,grid)
+      call scalar_diff_coeffs(state_scalar,diag,grid)
     endif
     
     ! Temperature diffusion gets updated at the first RK step if required.
@@ -71,11 +71,11 @@ module mo_scalar_tend_expl
       ! Now the diffusive temperature flux density can be obtained.
       call scalar_times_vector_h(diag%temp_diff_coeff_numerical_h,diag%vector_placeholder_h,diag%flux_density_h,grid)
       ! The divergence of the diffusive temperature flux density is the diffusive temperature heating.
-      call div_h(diag%flux_density_h,diag%temperature_diffusion_heating,grid)
+      call div_h(diag%flux_density_h,diag%temperature_diff_heating,grid)
       ! vertical temperature diffusion
       if (ltemp_diff_v) then
         call scalar_times_vector_v(diag%temp_diff_coeff_numerical_v,diag%vector_placeholder_v,diag%flux_density_v)
-        call add_vertical_div(diag%flux_density_v,diag%temperature_diffusion_heating,grid)
+        call add_vertical_div(diag%flux_density_v,diag%temperature_diff_heating,grid)
       endif
     endif
     
@@ -155,7 +155,7 @@ module mo_scalar_tend_expl
             ! dissipation through molecular + turbulent momentum diffusion
             diag%heating_diss(ji,jl) &
             ! molecular + turbulent heat transport
-            + diag%temperature_diffusion_heating(ji,jl) &
+            + diag%temperature_diff_heating(ji,jl) &
             ! radiation
             + diag%radiation_tendency(ji,jl) &
             ! phase transitions

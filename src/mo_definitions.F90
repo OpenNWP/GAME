@@ -126,11 +126,11 @@ module mo_definitions
     real(wp), allocatable :: roughness_length(:)                 ! actual roughness length
     real(wp), allocatable :: roughness_velocity(:)               ! roughness velocity at the surface
     real(wp), allocatable :: monin_obukhov_length(:)             ! Monin-Obukhov length (m)
-    real(wp), allocatable :: temperature_diffusion_heating(:,:)  ! power density resulting from temperature diffusion (W/m**3)
+    real(wp), allocatable :: temperature_diff_heating(:,:)       ! power density resulting from temperature diffusion (W/m**3)
     real(wp), allocatable :: friction_acc_h(:,:)                 ! horizontal friction acceleration
     real(wp), allocatable :: friction_acc_v(:,:)                 ! vertical friction acceleration
     real(wp), allocatable :: heating_diss(:,:)                   ! dissipative heating rate (W/m**3)
-    real(wp), allocatable :: molecular_diffusion_coeff(:,:)      ! molecular diffusion coefficient
+    real(wp), allocatable :: molecular_diff_coeff(:,:)           ! molecular diffusion coefficient
     real(wp), allocatable :: mass_diff_coeff_numerical_h(:,:)    ! horizontal effective mass diffusion coefficient
     real(wp), allocatable :: mass_diff_coeff_numerical_v(:,:)    ! vertical effective mass diffusion coefficient
     real(wp), allocatable :: temp_diff_coeff_numerical_h(:,:)    ! horizontal effective temperature diffusion coefficient
