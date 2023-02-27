@@ -11,7 +11,7 @@ module mo_eff_diff_coeffs
   use mo_multiplications,    only: scalar_times_vector_v2
   use mo_grid_nml,           only: n_cells,n_layers,n_edges,n_triangles,n_levels
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
-  use mo_derived,            only: c_v_mass_weighted_air,calc_diffusion_coeff
+  use mo_derived,            only: c_v_mass_weighted_air,calc_diff_coeff
   use mo_diff_nml,           only: lmom_diff_h
   use mo_grid_setup,         only: eff_hor_res
   
@@ -36,8 +36,7 @@ module mo_eff_diff_coeffs
     do jl=1,n_layers
       do ji=1,n_cells
         ! molecular component
-        diag%molecular_diff_coeff(ji,jl) = calc_diffusion_coeff(diag%temperature(ji,jl), &
-                                                                     state%rho(ji,jl,n_condensed_constituents+1))
+        diag%molecular_diff_coeff(ji,jl) = calc_diff_coeff(diag%temperature(ji,jl),state%rho(ji,jl,n_condensed_constituents+1))
         diag%viscosity(ji,jl) = diag%molecular_diff_coeff(ji,jl)
         ! computing and adding the turbulent component
         diag%viscosity(ji,jl) = diag%viscosity(ji,jl) + tke2hor_diff_coeff(diag%tke(ji,jl))

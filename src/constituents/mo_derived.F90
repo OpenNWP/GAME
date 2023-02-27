@@ -117,13 +117,13 @@ module mo_derived
     
   end function c_v_mass_weighted_air
   
-  function calc_diffusion_coeff(temperature,density)
+  function calc_diff_coeff(temperature,density)
     
     ! This function calculates the molecular diffusion coefficient.
     
-    real(wp), intent(in) :: temperature          ! temperature
-    real(wp), intent(in) :: density              ! mass density
-    real(wp)             :: calc_diffusion_coeff ! result
+    real(wp), intent(in) :: temperature     ! temperature
+    real(wp), intent(in) :: density         ! mass density
+    real(wp)             :: calc_diff_coeff ! result
     
     ! local variables
     real(wp) :: particle_radius  ! radius of the particles
@@ -142,9 +142,9 @@ module mo_derived
     particle_density = density/particle_mass
     cross_section = 4._wp*M_PI*particle_radius**2
     mean_free_path = 1._wp/(sqrt(2._wp)*particle_density*cross_section)
-    calc_diffusion_coeff = 1._wp/3._wp*thermal_velocity*mean_free_path
+    calc_diff_coeff = 1._wp/3._wp*thermal_velocity*mean_free_path
     
-  end function calc_diffusion_coeff
+  end function calc_diff_coeff
   
   function v_fall_liquid(state,diag,grid,radius,ji,jl)
     
@@ -178,7 +178,7 @@ module mo_derived
       + grid%inner_product_weights(8,ji,jl)*grid%gravity_m_v(ji,jl+1)
     endif
     
-    kinematic_viscosity = calc_diffusion_coeff(diag%temperature(ji,jl),state%rho(ji,jl,n_condensed_constituents+1))
+    kinematic_viscosity = calc_diff_coeff(diag%temperature(ji,jl),state%rho(ji,jl,n_condensed_constituents+1))
     
     v_fall_liquid = 2._wp*radius**2*(rho_h2o-state%rho(ji,jl,n_condensed_constituents+1))*gravity_local &
                     /(9._wp*state%rho(ji,jl,n_condensed_constituents+1)*kinematic_viscosity)
