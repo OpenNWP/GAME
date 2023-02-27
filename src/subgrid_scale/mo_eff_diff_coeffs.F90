@@ -126,9 +126,9 @@ module mo_eff_diff_coeffs
         ! Computing the mass diffusion coefficient
         ! ----------------------------------------
         ! horizontal diffusion coefficient
-        diag%mass_diffusion_coeff_numerical_h(ji,jl) = diag%viscosity(ji,jl)/state%rho(ji,jl,n_condensed_constituents+1)
+        diag%mass_diff_coeff_numerical_h(ji,jl) = diag%viscosity(ji,jl)/state%rho(ji,jl,n_condensed_constituents+1)
         ! vertical diffusion coefficient
-        diag%mass_diffusion_coeff_numerical_v(ji,jl) &
+        diag%mass_diff_coeff_numerical_v(ji,jl) &
         ! molecular component
         = diag%molecular_diffusion_coeff(ji,jl) &
         ! turbulent component
@@ -136,23 +136,23 @@ module mo_eff_diff_coeffs
         
         ! Computing the temperature diffusion coefficient
         ! -----------------------------------------------
-        diag%temp_diffusion_coeff_numerical_h(ji,jl) = c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl) &
-                                                       *diag%mass_diffusion_coeff_numerical_h(ji,jl)
-        diag%temp_diffusion_coeff_numerical_v(ji,jl) = c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl) &
-                                                       *diag%mass_diffusion_coeff_numerical_v(ji,jl)
+        diag%temp_diff_coeff_numerical_h(ji,jl) = c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl) &
+                                                       *diag%mass_diff_coeff_numerical_h(ji,jl)
+        diag%temp_diff_coeff_numerical_v(ji,jl) = c_v_mass_weighted_air(state%rho,diag%temperature,ji,jl) &
+                                                       *diag%mass_diff_coeff_numerical_v(ji,jl)
       enddo
     enddo
     !$omp end parallel do
     
   end subroutine
 
-  subroutine vert_vert_mom_viscosity(rho,tke,n_squared,layer_thickness,scalar_placeholder,molecular_diffusion_coeff)
+  subroutine vert_vert_mom_viscosity(rho,tke,n_squared,layer_thickness,scalar_placeholder,molecular_diff_coeff)
   
     ! This subroutine multiplies scalar_placeholder (containing dw/dz) by the diffusion coefficient acting on w because of w.
     
     real(wp), intent(in)    :: rho(n_cells,n_layers,n_constituents),tke(n_cells,n_layers), &
                                n_squared(n_cells,n_layers),layer_thickness(n_cells,n_layers), &
-                               molecular_diffusion_coeff(n_cells,n_layers)
+                               molecular_diff_coeff(n_cells,n_layers)
     real(wp), intent(inout) :: scalar_placeholder(n_cells,n_layers)
     
     ! local variables
@@ -165,7 +165,7 @@ module mo_eff_diff_coeffs
       do ji=1,n_cells
         mom_diff_coeff &
         ! molecular viscosity
-        = molecular_diffusion_coeff(ji,jl) &
+        = molecular_diff_coeff(ji,jl) &
         ! turbulent component
         + tke2vert_diff_coeff(tke(ji,jl),n_squared(ji,jl),layer_thickness(ji,jl))
         
