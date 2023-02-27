@@ -107,12 +107,12 @@ module mo_column_solvers
         endif
         
         ! the sensible power flux density
-        diag%power_flux_density_sensible_soil(ji) = (grid%land_fraction(ji)+grid%lake_fraction(ji)) &
+        diag%power_flux_density_sens_soil(ji) = (grid%land_fraction(ji)+grid%lake_fraction(ji)) &
         *0.5_wp*c_d_v*(state_new_used%rho(ji,n_layers,n_condensed_constituents+1) &
         *(t_gas_lowest_layer_old - state_old%temperature_soil(ji,1)) &
         + state_old%rho(ji,n_layers,n_condensed_constituents+1) &
         *(t_gas_lowest_layer_new - state_new_used%temperature_soil(ji,1)))/diag%scalar_flux_resistance(ji)
-        diag%power_flux_density_sensible_sea(ji) = (1._wp-grid%land_fraction(ji)-grid%lake_fraction(ji)) &
+        diag%power_flux_density_sens_sea(ji) = (1._wp-grid%land_fraction(ji)-grid%lake_fraction(ji)) &
         *0.5_wp*c_d_v*(state_new_used%rho(ji,n_layers,n_condensed_constituents+1) &
         *(t_gas_lowest_layer_old - diag%sst(ji)) &
         + state_old%rho(ji,n_layers,n_condensed_constituents+1) &
@@ -120,7 +120,7 @@ module mo_column_solvers
         
         ! contribution of sensible heat to rhotheta_v
         state_tend%rhotheta_v(ji,n_layers) = state_tend%rhotheta_v(ji,n_layers) &
-        - grid%area_v(ji,n_levels)*(diag%power_flux_density_sensible_soil(ji)+diag%power_flux_density_sensible_sea(ji)) &
+        - grid%area_v(ji,n_levels)*(diag%power_flux_density_sens_soil(ji)+diag%power_flux_density_sens_sea(ji)) &
         /((grid%exner_bg(ji,n_layers) + state_new_used%exner_pert(ji,n_layers))*c_d_p)/grid%volume(ji,n_layers)
       enddo
       !$omp end parallel do
@@ -253,9 +253,9 @@ module mo_column_solvers
         ! old temperature
         = state_old%temperature_soil(ji,1) &
         ! sensible heat flux
-        + (diag%power_flux_density_sensible_soil(ji) &
+        + (diag%power_flux_density_sens_soil(ji) &
         ! latent heat flux
-        + diag%power_flux_density_latent_lake(ji) &
+        + diag%power_flux_density_lat_lake(ji) &
         ! radiation
         + radiation_flux_density &
         ! heat conduction from below
