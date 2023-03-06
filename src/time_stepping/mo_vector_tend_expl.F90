@@ -12,7 +12,8 @@ module mo_vector_tend_expl
   use mo_inner_product,      only: inner_product
   use mo_vorticity_flux,     only: vorticity_flux
   use mo_run_nml,            only: luse_bg_state
-  use mo_diff_nml,           only: lmom_diff_h,lmass_diff_h,ltemp_diff_h,lmom_diff_v,lklemp
+  use mo_diff_nml,           only: lmom_diff_h,lmass_diff_h,ltemp_diff_h,lmom_diff_v,lklemp,diff_coeff_scheme_h, &
+                                   diff_coeff_scheme_v
   use mo_surface_nml,        only: pbl_scheme
   use mo_tke,                only: tke_update
   use mo_momentum_diff_diss, only: mom_diff_h,mom_diff_v,simple_dissipation_rate
@@ -75,7 +76,9 @@ module mo_vector_tend_expl
       ! updating the Brunt-Väisälä frequency and the TKE if any diffusion is switched on because it is required for computing the diffusion coefficients
       if (lmom_diff_h .or. lmass_diff_h .or. ltemp_diff_h) then
         call update_n_squared(state,diag,grid)
-        call tke_update(state,diag,grid)
+        if (diff_coeff_scheme_h=="tke" .or. diff_coeff_scheme_v=="tke") then
+          call tke_update(state,diag,grid)
+        endif
       endif
       
       ! momentum diffusion and dissipation (only updated at the first RK step)
