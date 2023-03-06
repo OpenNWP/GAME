@@ -84,6 +84,14 @@ module mo_diff_nml
     else
       write(*,*) "Vertical mass diffusion is turned off."
     endif
+    if (diff_coeff_scheme_h/="smag" .and. diff_coeff_scheme_h/="tke") then
+      write(*,*) "diff_coeff_scheme_h must be either smag or tke."
+      call exit(1)
+    endif
+    if (diff_coeff_scheme_v/="tke") then
+      write(*,*) "diff_coeff_scheme_v must be tke."
+      call exit(1)
+    endif
   
   end subroutine diff_nml_setup
   
