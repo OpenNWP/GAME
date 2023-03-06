@@ -9,11 +9,11 @@ module mo_eff_diff_coeffs
   use mo_definitions,        only: wp,t_grid,t_state,t_diag
   use mo_gradient_operators, only: grad_vert
   use mo_multiplications,    only: scalar_times_vector_v2
-  use mo_grid_nml,           only: n_cells,n_layers,n_edges,n_triangles,n_levels
+  use mo_grid_nml,           only: n_cells,n_layers,n_edges,n_triangles,n_levels,n_pentagons
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
   use mo_derived,            only: c_v_mass_weighted_air,calc_diff_coeff
-  use mo_diff_nml,           only: lmom_diff_h,diff_coeff_scheme_h,diff_coeff_scheme_v
-  use mo_grid_setup,         only: eff_hor_res
+  use mo_diff_nml,           only: lmom_diff_h,diff_coeff_scheme_h,diff_coeff_scheme_v,bg_shear
+  use mo_grid_setup,         only: eff_hor_res,mean_velocity_area
   
   implicit none
   
@@ -46,18 +46,34 @@ module mo_eff_diff_coeffs
     type(t_grid),  intent(in)    :: grid  ! grid quantities
     
     ! local variables
-    integer  :: ji            ! horizontal loop index
-    integer  :: jl            ! vertical loop index
-    real(wp) :: density_value ! mass density value
+    integer  :: ji                ! horizontal loop index
+    integer  :: jl                ! vertical loop index
+    integer  :: jm                ! edge loop index
+    integer  :: n_edges_of_cell   ! number of edges a cell has (five or six)
+    real(wp) :: density_value     ! mass density value
+    real(wp) :: vorticity_at_cell ! vorticity value in a cell center
     
-    !$omp parallel do private(ji,jl)
+    !$omp parallel do private(ji,jl,jm,n_edges_of_cell,vorticity_at_cell)
     do jl=1,n_layers
       do ji=1,n_cells
         ! molecular component
         diag%molecular_diff_coeff(ji,jl) = calc_diff_coeff(diag%temperature(ji,jl),state%rho(ji,jl,n_condensed_constituents+1))
         diag%viscosity(ji,jl) = diag%molecular_diff_coeff(ji,jl)
+        
+        n_edges_of_cell = 6
+        if (ji<=n_pentagons) then
+          n_edges_of_cell = 5
+        endif
+        vorticity_at_cell = 0._wp
+        do jm=1,n_edges_of_cell
+          vorticity_at_cell = vorticity_at_cell &
+                              + 0.5_wp*grid%inner_product_weights(jm,ji,jl)*diag%zeta_v(grid%adjacent_edges(jm,ji),jl)
+        enddo
+        
         ! computing and adding the turbulent component
-        diag%viscosity(ji,jl) = diag%viscosity(ji,jl) + tke2hor_diff_coeff(diag%tke(ji,jl))
+        diag%viscosity(ji,jl) = diag%viscosity(ji,jl) + 0.2_wp*mean_velocity_area &
+                                *sqrt(max(vorticity_at_cell**2 + diag%wind_div(ji,jl)**2,bg_shear**2))
+        
       enddo
     enddo
     !$omp end parallel do
