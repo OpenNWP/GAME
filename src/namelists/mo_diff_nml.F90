@@ -92,6 +92,17 @@ module mo_diff_nml
       write(*,*) "diff_coeff_scheme_v must be tke."
       call exit(1)
     endif
+    if (diff_coeff_scheme_h=="smag") then
+      write(*,*) "It is diff_coeff_scheme_h = smag"
+    endif
+    if (diff_coeff_scheme_h=="tke") then
+      write(*,*) "It is diff_coeff_scheme_h = tke"
+    endif
+    write(*,*) "(only relevant if any horizontal diffusion is switched on)."
+    if (diff_coeff_scheme_v=="tke") then
+      write(*,*) "It is diff_coeff_scheme_v = tke"
+    endif
+    write(*,*) "(only relevant if any vertical diffusion is switched on)."
   
   end subroutine diff_nml_setup
   
