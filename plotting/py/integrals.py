@@ -10,10 +10,10 @@ from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
 
 output_dir = "/home/max/code/GAME/output"
+run_id = "ullrich"
 write_out_dry_mass_integral = 1
 write_out_rhotheta_integral = 1
 write_out_energy_integral = 1
-run_id = "ullrich"
 
 # end of usual input section
 
