@@ -20,10 +20,10 @@ module mo_diff_nml
   logical          :: lklemp              ! turns the Klemp damping layer on or off
   real(wp)         :: klemp_damp_max      ! the maximum Klemp damping coefficient
   real(wp)         :: klemp_begin_rel     ! lower boundary of the Klemp damping layer in relation to the TOA
-  real(wp)         :: bg_shear            ! minimum background shear
-  real(wp)         :: c_s                 ! Smagorinsky parameter
   character(len=8) :: diff_coeff_scheme_h ! scheme for computing the horizontal diffusion coefficient
   character(len=8) :: diff_coeff_scheme_v ! scheme for computing the vertical diffusion coefficient
+  real(wp)         :: bg_shear            ! minimum background shear
+  real(wp)         :: c_s                 ! Smagorinsky parameter
   
   namelist /diff/lmom_diff_h,lmom_diff_v,ltemp_diff_h,ltemp_diff_v,lmass_diff_h,lmass_diff_v,h_prandtl,karman, &
                  lklemp,klemp_damp_max,klemp_begin_rel,diff_coeff_scheme_h,diff_coeff_scheme_v,bg_shear,c_s
