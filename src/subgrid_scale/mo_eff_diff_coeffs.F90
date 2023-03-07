@@ -12,7 +12,7 @@ module mo_eff_diff_coeffs
   use mo_grid_nml,           only: n_cells,n_layers,n_edges,n_triangles,n_levels,n_pentagons
   use mo_constituents_nml,   only: n_condensed_constituents,n_constituents
   use mo_derived,            only: c_v_mass_weighted_air,calc_diff_coeff
-  use mo_diff_nml,           only: lmom_diff_h,diff_coeff_scheme_h,diff_coeff_scheme_v,bg_shear
+  use mo_diff_nml,           only: lmom_diff_h,diff_coeff_scheme_h,diff_coeff_scheme_v,bg_shear,c_s
   use mo_grid_setup,         only: eff_hor_res,mean_velocity_area
   
   implicit none
@@ -71,7 +71,7 @@ module mo_eff_diff_coeffs
         enddo
         
         ! computing and adding the turbulent component
-        diag%viscosity(ji,jl) = diag%viscosity(ji,jl) + 0.2_wp*mean_velocity_area &
+        diag%viscosity(ji,jl) = diag%viscosity(ji,jl) + c_s*mean_velocity_area &
                                 *sqrt(max(vorticity_at_cell**2 + diag%wind_div(ji,jl)**2,bg_shear**2))
         
       enddo
