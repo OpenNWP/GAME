@@ -50,7 +50,6 @@ module mo_eff_diff_coeffs
     integer  :: jl                ! vertical loop index
     integer  :: jm                ! edge loop index
     integer  :: n_edges_of_cell   ! number of edges a cell has (five or six)
-    real(wp) :: density_value     ! mass density value
     real(wp) :: vorticity_at_cell ! vorticity value in a cell center
     
     !$omp parallel do private(ji,jl,jm,n_edges_of_cell,vorticity_at_cell)
@@ -78,61 +77,7 @@ module mo_eff_diff_coeffs
     enddo
     !$omp end parallel do
     
-    ! Averaging the viscosity to rhombi
-    ! ---------------------------------
-    !$omp parallel do private(ji,jl)
-    do jl=1,n_layers
-      do ji=1,n_edges
-      
-        ! preliminary result
-        diag%viscosity_rhombi(ji,jl) = 0.5_wp*(diag%viscosity(grid%from_cell(ji),jl) &
-                                             + diag%viscosity(grid%to_cell(ji),jl))
-        
-        ! multiplying by the mass density of the gas phase
-        diag%viscosity_rhombi(ji,jl) = 0.5_wp*(state%rho(grid%from_cell(ji),jl,n_condensed_constituents+1) &
-                       + state%rho(grid%to_cell(ji),jl,n_condensed_constituents+1))*diag%viscosity_rhombi(ji,jl)
-        
-      enddo
-    enddo
-    !$omp end parallel do
-    
-    ! Averaging the viscosity to triangles
-    ! ------------------------------------
-    !$omp parallel do private(ji,jl,density_value)
-    do jl=1,n_layers
-      do ji=1,n_triangles
-      
-        ! preliminary result
-        diag%viscosity_triangles(ji,jl) = 1._wp/6._wp*( &
-        diag%viscosity(grid%from_cell(grid%vorticity_indices_triangles(1,ji)),jl) &
-        + diag%viscosity(grid%to_cell(grid%vorticity_indices_triangles(1,ji)),jl) &
-        + diag%viscosity(grid%from_cell(grid%vorticity_indices_triangles(2,ji)),jl) &
-        + diag%viscosity(grid%to_cell(grid%vorticity_indices_triangles(2,ji)),jl) &
-        + diag%viscosity(grid%from_cell(grid%vorticity_indices_triangles(3,ji)),jl) &
-        + diag%viscosity(grid%to_cell(grid%vorticity_indices_triangles(3,ji)),jl))
-        
-        ! calculating and adding the molecular viscosity
-        density_value = &
-        1._wp/6._wp*( &
-        state%rho(grid%from_cell(grid%vorticity_indices_triangles(1,ji)),jl,n_condensed_constituents+1) &
-        + state%rho(grid%to_cell(grid%vorticity_indices_triangles(1,ji)),jl,n_condensed_constituents+1) &
-        + state%rho(grid%from_cell(grid%vorticity_indices_triangles(2,ji)),jl,n_condensed_constituents+1) &
-        + state%rho(grid%to_cell(grid%vorticity_indices_triangles(2,ji)),jl,n_condensed_constituents+1) &
-        + state%rho(grid%from_cell(grid%vorticity_indices_triangles(3,ji)),jl,n_condensed_constituents+1) &
-        + state%rho(grid%to_cell(grid%vorticity_indices_triangles(3,ji)),jl,n_condensed_constituents+1))
-        
-        ! multiplying by the mass density of the gas phase
-        diag%viscosity_triangles(ji,jl) = density_value*diag%viscosity_triangles(ji,jl)
-        
-      enddo
-    enddo
-    !$omp end parallel do
-    
-    ! Multiplying the viscosity in the cell centers by the gas density
-    ! ----------------------------------------------------------------
-    !$omp parallel workshare
-    diag%viscosity = state%rho(:,:,n_condensed_constituents+1)*diag%viscosity
-    !$omp end parallel workshare
+    call hor_diff_coeff_postprocessing(state,diag,grid)
     
   end subroutine hor_viscosity_smag
   
@@ -148,7 +93,6 @@ module mo_eff_diff_coeffs
     ! local variables
     integer  :: ji            ! horizontal loop index
     integer  :: jl            ! vertical loop index
-    real(wp) :: density_value ! mass density value
     
     !$omp parallel do private(ji,jl)
     do jl=1,n_layers
@@ -161,6 +105,23 @@ module mo_eff_diff_coeffs
       enddo
     enddo
     !$omp end parallel do
+    
+    call hor_diff_coeff_postprocessing(state,diag,grid)
+    
+  end subroutine hor_viscosity_tke
+  
+  subroutine hor_diff_coeff_postprocessing(state,diag,grid)
+    
+    ! This subroutine averages the diffusion coefficient at cells to edges and triangles.
+    
+    type(t_state), intent(in)    :: state ! state variables
+    type(t_diag),  intent(inout) :: diag  ! diagnostic quantities
+    type(t_grid),  intent(in)    :: grid  ! grid quantities
+    
+    ! local variables
+    integer  :: ji            ! horizontal loop index
+    integer  :: jl            ! vertical loop index
+    real(wp) :: density_value ! mass density value
     
     ! Averaging the viscosity to rhombi
     ! ---------------------------------
@@ -217,8 +178,8 @@ module mo_eff_diff_coeffs
     !$omp parallel workshare
     diag%viscosity = state%rho(:,:,n_condensed_constituents+1)*diag%viscosity
     !$omp end parallel workshare
-    
-  end subroutine hor_viscosity_tke
+  
+  end subroutine
 
   subroutine scalar_diff_coeffs(state,diag,grid)
     
