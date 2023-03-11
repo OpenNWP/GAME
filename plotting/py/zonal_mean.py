@@ -11,7 +11,6 @@ import math as mat
 
 game_output_dir = "/home/max/code/GAME/output"
 run_id = "held_suarez"
-save_directory = "/home/max/code/GAME/figs"
 var_name = "wind_u"
 no_of_layers = 26
 run_span_min = 1200*1440 # run length in minutes
@@ -21,6 +20,8 @@ grid_filename = "/home/max/code/GAME/grid_generator/grids/RES6_L26_ORO0.nc" # gr
 toa = 41152.0 # top of atmosphere
 
 # end of usual input section
+
+save_directory = game_output_dir + "/" + run_id
 
 # 1.) bureaucracy
 
