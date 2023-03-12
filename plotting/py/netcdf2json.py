@@ -38,8 +38,10 @@ for time_index in range(ntime):
 	lat_vector, lon_vector, t2[:, :, time_index] = rmo.fetch_model_output(netcdf_file, "t2")
 	lat_vector, lon_vector, gusts10[:, :, time_index] = rmo.fetch_model_output(netcdf_file, "gusts10")
 	lat_vector, lon_vector, tcc[:, :, time_index] = rmo.fetch_model_output(netcdf_file, "tcc")
-	lat_vector, lon_vector, rprate[:, :, time_index] = conv.kgm_2s_12mmh_1(1)*rmo.fetch_model_output(netcdf_file, "rprate")
-	lat_vector, lon_vector, sprate[:, :, time_index] = conv.kgm_2s_12mmh_1(1)*rmo.fetch_model_output(netcdf_file, "sprate")
+	lat_vector, lon_vector, rprate[:, :, time_index] = rmo.fetch_model_output(netcdf_file, "rprate")
+	rprate[:, :, time_index] = conv.kgm_2s_12mmh_1(1)*rprate[:, :, time_index]
+	lat_vector, lon_vector, sprate[:, :, time_index] = rmo.fetch_model_output(netcdf_file, "sprate")
+	sprate[:, :, time_index] = conv.kgm_2s_12mmh_1(1)*sprate[:, :, time_index]
 
 for i in range(nlat):
 	for j in range(nlon):
