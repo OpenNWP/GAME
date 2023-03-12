@@ -62,7 +62,7 @@ for i in range(nlat):
 		}
 		
 		json_file = save_directory + "/" + str(i+1) + "_" + str(j+1) + ".json"
-		json.dump(json_data, json_file, separators = (",", ":"))
+		json.dump(json_data, json_file, indent=2)
 		json_file.close()
 
 
