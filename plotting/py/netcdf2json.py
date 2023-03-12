@@ -19,7 +19,7 @@ ntime = len(time_hour_vector)
 
 # reading one variable to obtain the dimensions of the arrays
 netcdf_file = netcdf_dir + "/" + run_id + "+" + str(0) + "min_surface.nc"
-lat_vector, lon_vector, t2 = rmo.fetch_model_output(netcdf_file, 0, "t2")
+lat_vector, lon_vector, t2 = rmo.fetch_model_output(netcdf_file, "t2")
 
 nlat = len(lat_vector)
 nlon = len(lon_vector)
@@ -35,11 +35,11 @@ sprate = np.zeros([nlat, nlon, ntime])
 for time_index in range(ntime):
 	start_time_since_init_min = 60*time_hour_vector[time_index]
 	netcdf_file = netcdf_dir + "/" + run_id + "+" + str(start_time_since_init_min) + "min_surface.nc"
-	lat_vector, lon_vector, t2[:, :, time_index] = rmo.fetch_model_output(netcdf_file, start_time_since_init_min, "t2")
-	lat_vector, lon_vector, gusts10[:, :, time_index] = rmo.fetch_model_output(netcdf_file, start_time_since_init_min, "gusts10")
-	lat_vector, lon_vector, tcc[:, :, time_index] = rmo.fetch_model_output(netcdf_file, start_time_since_init_min, "tcc")
-	lat_vector, lon_vector, rprate[:, :, time_index] = conv.kgm_2s_12mmh_1(1)*rmo.fetch_model_output(netcdf_file, start_time_since_init_min, "rprate")
-	lat_vector, lon_vector, sprate[:, :, time_index] = conv.kgm_2s_12mmh_1(1)*rmo.fetch_model_output(netcdf_file, start_time_since_init_min, "sprate")
+	lat_vector, lon_vector, t2[:, :, time_index] = rmo.fetch_model_output(netcdf_file, "t2")
+	lat_vector, lon_vector, gusts10[:, :, time_index] = rmo.fetch_model_output(netcdf_file, "gusts10")
+	lat_vector, lon_vector, tcc[:, :, time_index] = rmo.fetch_model_output(netcdf_file, "tcc")
+	lat_vector, lon_vector, rprate[:, :, time_index] = conv.kgm_2s_12mmh_1(1)*rmo.fetch_model_output(netcdf_file, "rprate")
+	lat_vector, lon_vector, sprate[:, :, time_index] = conv.kgm_2s_12mmh_1(1)*rmo.fetch_model_output(netcdf_file, "sprate")
 
 for i in range(nlat):
 	for j in range(nlon):
