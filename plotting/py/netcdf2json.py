@@ -54,7 +54,7 @@ for i in range(nlat):
 		rprate_vector = rprate[i, j, :]
 		sprate_vector = sprate[i, j, :]
 		
-		json_data = {
+		json_data = [{
 		"model_name": "OpenNWP.org - GAME global model experimental run",
 		"run_id": run_id,
 		"lat_deg": np.rad2deg(lat_vector[i]), "lon_deg": np.rad2deg(lon_vector[j]),
@@ -64,7 +64,7 @@ for i in range(nlat):
 		"tcc": {"unit": "%", "data": tcc_vector.tolist()},
 		"rprate": {"unit": "mm/hr", "values": rprate_vector.tolist()},
 		"sprate": {"unit": "mm/hr", "values": sprate_vector.tolist()}
-		}
+		}]
 		
 		json_filename = save_directory + "/" + str(i+1) + "_" + str(j+1) + ".json"
 		json_file = open(json_filename, "w")
