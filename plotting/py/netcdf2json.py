@@ -13,6 +13,8 @@ netcdf_dir = sys.argv[1]
 run_id = sys.argv[2]
 save_directory = sys.argv[3]
 
+print("Creating JSON files ...")
+
 # defining the time vector in hours since initialization
 time_hour_vector = np.concatenate([np.arange(0,72,3),np.arange(72,168+6,6)])
 ntime = len(time_hour_vector)
@@ -54,6 +56,7 @@ for i in range(nlat):
 		
 		json_data = {
 		"model_name": "OpenNWP.org - GAME global model experimental run",
+		"run_id": run_id,
 		"lat_deg": np.rad2deg(lat_vector[i]), "lon_deg": np.rad2deg(lon_vector[j]),
 		"time": {"unit": "hours", "values": time_hour_vector.tolist()},
 		"t2": {"unit": "degrees Celsius", "values": t2_vector.tolist()},
@@ -67,7 +70,7 @@ for i in range(nlat):
 		json.dump(json_data, json_file, indent=2)
 		json_file.close()
 
-
+print("JSON files created.")
 
 
 

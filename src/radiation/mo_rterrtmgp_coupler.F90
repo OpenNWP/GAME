@@ -498,9 +498,9 @@ module mo_rrtmgp_coupler
     call free_fluxes(fluxes)
     
   end subroutine calc_radiative_flux_convergence
-    
-  subroutine calc_power_density(day_only,n_day_points,day_indices,fluxes,z_vector,n_cells_rad,radiation_tendency)
   
+  subroutine calc_power_density(day_only,n_day_points,day_indices,fluxes,z_vector,n_cells_rad,radiation_tendency)
+    
     ! This subroutine is essentially the negative vertical divergence operator.
     
     integer,                   intent(in)    :: n_cells_rad                              ! number of columns of the radiation domain
@@ -510,7 +510,7 @@ module mo_rrtmgp_coupler
     type(ty_fluxes_broadband), intent(in)    :: fluxes                                   ! the fluxes object based on which to compute the power density
     real(wp),                  intent(in)    :: z_vector(n_cells_rad,n_levels)           ! as usual
     real(wp),                  intent(inout) :: radiation_tendency(n_cells_rad,n_layers) ! the result (in W/m**3)
-  
+    
     ! local variables
     integer :: j_column           ! the index of the relevant column
     integer :: ji                 ! the horizontal index
@@ -522,7 +522,7 @@ module mo_rrtmgp_coupler
     else
       n_relevant_columns = n_cells_rad
     endif
-  
+    
     ! loop over all layers
     do jl=1,n_layers
       ! loop over all columns
