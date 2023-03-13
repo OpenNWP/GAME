@@ -60,7 +60,7 @@ for i in range(nlat):
 		"lat_deg": np.rad2deg(lat_vector[i]), "lon_deg": np.rad2deg(lon_vector[j]),
 		"time": {"unit": "hours", "values": time_hour_vector.tolist()},
 		"t2": {"unit": "degrees Celsius", "values": t2_vector.tolist()},
-		"gusts10": {"unit": "m/s", "values": gust_vector.tolist()},
+		"gusts10": {"unit": "m/s", "values": gusts10_vector.tolist()},
 		"tcc": {"unit": "%", "data": tcc_vector.tolist()},
 		"rprate": {"unit": "mm/hr", "values": rprate_vector.tolist()},
 		"sprate": {"unit": "mm/hr", "values": sprate_vector.tolist()}
