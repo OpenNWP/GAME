@@ -66,7 +66,8 @@ for i in range(nlat):
 		"sprate": {"unit": "mm/hr", "values": sprate_vector.tolist()}
 		}
 		
-		json_file = save_directory + "/" + str(i+1) + "_" + str(j+1) + ".json"
+		json_filename = save_directory + "/" + str(i+1) + "_" + str(j+1) + ".json"
+		json_file = open(json_filename, "w")
 		json.dump(json_data, json_file, indent=2)
 		json_file.close()
 
