@@ -45,6 +45,28 @@ for time_index in range(ntime):
 	lat_vector, lon_vector, sprate[:, :, time_index] = rmo.fetch_model_output(netcdf_file, "sprate")
 	sprate[:, :, time_index] = conv.kgm_2s_12mmh_1(1)*sprate[:, :, time_index]
 
+# writing the grid properties
+
+json_data = {
+"run_id": run_id,
+"lat": {"unit": "degrees", "values": float(np.rad2deg(lat_vector))}
+}
+
+json_filename = save_directory + "/lat.json"
+json_file = open(json_filename, "w")
+json.dump(json_data, json_file, indent=2)
+json_file.close()
+
+json_data = {
+"run_id": run_id,
+"lon": {"unit": "degrees", "values": float(np.rad2deg(lon_vector))}
+}
+
+json_filename = save_directory + "/lon.json"
+json_file = open(json_filename, "w")
+json.dump(json_data, json_file, indent=2)
+json_file.close()
+
 for i in range(nlat):
 	for j in range(nlon):
 		
