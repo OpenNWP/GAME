@@ -70,7 +70,7 @@ json_file.close()
 for i in range(nlat):
 	for j in range(nlon):
 		
-		t2_vector = t2[i, j, :]
+		t2_vector = t2[i, j, :] - 273.15
 		gusts10_vector = gusts10[i, j, :]
 		tcc_vector = tcc[i, j, :]
 		rprate_vector = rprate[i, j, :]
