@@ -70,11 +70,11 @@ json_file.close()
 for i in range(nlat):
 	for j in range(nlon):
 		
-		t2_vector = t2[i, j, :] - 273.15
-		gusts10_vector = gusts10[i, j, :]
-		tcc_vector = tcc[i, j, :]
-		rprate_vector = rprate[i, j, :]
-		sprate_vector = sprate[i, j, :]
+		t2_vector = np.round(t2[i, j, :] - 273.15, 2)
+		gusts10_vector = np.round(gusts10[i, j, :], 2)
+		tcc_vector = np.round(tcc[i, j, :])
+		rprate_vector = np.round(rprate[i, j, :], 2)
+		sprate_vector = np.round(sprate[i, j, :], 2)
 		
 		json_data = {
 		"model_name": "OpenNWP.org - GAME global model experimental run",
