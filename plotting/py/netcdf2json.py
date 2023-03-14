@@ -49,7 +49,7 @@ for time_index in range(ntime):
 
 json_data = {
 "run_id": run_id,
-"lat": {"unit": "degrees", "values": float(np.rad2deg(lat_vector))}
+"lat": {"unit": "degrees", "values": np.rad2deg(lat_vector).tolist()}
 }
 
 json_filename = save_directory + "/lat.json"
@@ -59,7 +59,7 @@ json_file.close()
 
 json_data = {
 "run_id": run_id,
-"lon": {"unit": "degrees", "values": float(np.rad2deg(lon_vector))}
+"lon": {"unit": "degrees", "values": np.rad2deg(lon_vector).tolist()}
 }
 
 json_filename = save_directory + "/lon.json"
@@ -83,7 +83,7 @@ for i in range(nlat):
 		"time": {"unit": "hr", "values": time_hour_vector.tolist()},
 		"t2": {"unit": "°C", "values": t2_vector.tolist()},
 		"gusts10": {"unit": "m/s", "values": gusts10_vector.tolist()},
-		"tcc": {"unit": "%", "data": tcc_vector.tolist()},
+		"tcc": {"unit": "%", "values": tcc_vector.tolist()},
 		"rprate": {"unit": "mm/hr", "values": rprate_vector.tolist()},
 		"sprate": {"unit": "mm/hr", "values": sprate_vector.tolist()}
 		}
