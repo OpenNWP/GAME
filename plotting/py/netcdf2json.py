@@ -28,6 +28,8 @@ nlon = len(lon_vector)
 
 # declaring output arrays
 t2 = np.zeros([nlat, nlon, ntime])
+u10 = np.zeros([nlat, nlon, ntime])
+v10 = np.zeros([nlat, nlon, ntime])
 gusts10 = np.zeros([nlat, nlon, ntime])
 tcc = np.zeros([nlat, nlon, ntime])
 rprate = np.zeros([nlat, nlon, ntime])
@@ -38,6 +40,8 @@ for time_index in range(ntime):
 	start_time_since_init_min = 60*time_hour_vector[time_index]
 	netcdf_file = netcdf_dir + "/" + run_id + "+" + str(start_time_since_init_min) + "min_surface.nc"
 	lat_vector, lon_vector, t2[:, :, time_index] = rmo.fetch_model_output(netcdf_file, "t2")
+	lat_vector, lon_vector, u10[:, :, time_index] = rmo.fetch_model_output(netcdf_file, "u10")
+	lat_vector, lon_vector, v10[:, :, time_index] = rmo.fetch_model_output(netcdf_file, "v10")
 	lat_vector, lon_vector, gusts10[:, :, time_index] = rmo.fetch_model_output(netcdf_file, "gusts10")
 	lat_vector, lon_vector, tcc[:, :, time_index] = rmo.fetch_model_output(netcdf_file, "tcc")
 	lat_vector, lon_vector, rprate[:, :, time_index] = rmo.fetch_model_output(netcdf_file, "rprate")
@@ -71,6 +75,8 @@ for i in range(nlat):
 	for j in range(nlon):
 		
 		t2_vector = np.round(t2[i, j, :] - 273.15, 2)
+		u10_vector = np.round(u10[i, j, :], 2)
+		v10_vector = np.round(v10[i, j, :], 2)
 		gusts10_vector = np.round(gusts10[i, j, :], 2)
 		tcc_vector = np.round(tcc[i, j, :])
 		rprate_vector = np.round(rprate[i, j, :], 2)
@@ -82,6 +88,8 @@ for i in range(nlat):
 		"lat_deg": float(np.rad2deg(lat_vector[i])), "lon_deg": float(np.rad2deg(lon_vector[j])),
 		"time": {"unit": "hr", "values": time_hour_vector.tolist()},
 		"t2": {"unit": "°C", "values": t2_vector.tolist()},
+		"u10": {"unit": "m/s", "values": u10_vector.tolist()},
+		"v10": {"unit": "m/s", "values": v10_vector.tolist()},
 		"gusts10": {"unit": "m/s", "values": gusts10_vector.tolist()},
 		"tcc": {"unit": "%", "values": tcc_vector.tolist()},
 		"rprate": {"unit": "mm/hr", "values": rprate_vector.tolist()},
