@@ -1066,6 +1066,7 @@ module mo_write_output
     integer  :: max_iterations  ! maximum number of iterations
     
     max_iterations = 10
+    dewpoint = diag%temperature(ji,jl) ! avoid compiler warning
     
     temp = diag%temperature(ji,jl)
     vapour_pressure = state%rho(ji,jl,n_condensed_constituents+2)*r_v*temp
