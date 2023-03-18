@@ -15,7 +15,8 @@ module mo_write_output
   use mo_constituents_nml,       only: n_constituents,n_condensed_constituents,lmoist
   use mo_io_nml,                 only: n_pressure_levels,pressure_levels,time_to_next_analysis_min,lmodel_level_output, &
                                        lsurface_output,lpressure_level_output,n_output_steps_10m_wind,ideal_input_id
-  use mo_dictionary,             only: saturation_pressure_over_ice,saturation_pressure_over_water,snow_particles_radius
+  use mo_dictionary,             only: saturation_pressure_over_ice,saturation_pressure_over_water,snow_particles_radius, &
+                                       dsaturation_pressure_over_ice_dT,dsaturation_pressure_over_water_dT
   use mo_surface_nml,            only: nsoillays,lprog_soil_temp,pbl_scheme,lsfc_sensible_heat_flux,lsfc_phase_trans
   use mo_derived,                only: rel_humidity,gas_constant_diagnostics,temperature_diagnostics,v_fall_solid,v_fall_liquid
   use mo_run_nml,                only: run_id,start_date,start_hour
@@ -42,135 +43,138 @@ module mo_write_output
     logical,       intent(in)    :: ltotally_first_step                                        ! switch indicating the very first step of the model run
     
     ! local variables
-    logical               :: lcontains_nan                     ! boolean indicating the presence of NaNs in the output, leading to a model crash
-    integer               :: ji                                ! cell or edge index
-    integer               :: jl                                ! layer or level index
-    integer               :: jm                                ! interpolation index
-    integer               :: lat_lon_dimids(2)                 ! vector conatining the two netCDF dimension IDs of a latitude-longitude field
-    integer               :: ncid                              ! netCDF file ID
-    integer               :: single_int_dimid                  ! netCDF single integer dimension ID
-    integer               :: lat_dimid                         ! netCDF latitude dimension ID
-    integer               :: lon_dimid                         ! netCDF longitude dimension ID
-    integer               :: start_date_id                     ! netCDF ID of the start date
-    integer               :: start_hour_id                     ! netCDF ID of the start hour
-    integer               :: lat_id                            ! netCDF ID of the latitude vector
-    integer               :: lon_id                            ! netCDF ID of the longitude vector
-    integer               :: closest_index                     ! index needed for vertical interpolations
-    integer               :: second_closest_index              ! index needed for vertical interpolations
-    integer               :: temperature_ids(n_layers)         ! vector containing netCDF IDs of the temperature on horizontal layers
-    integer               :: pressure_ids(n_layers)            ! vector containing netCDF IDs of the pressure on horizontal layers
-    integer               :: rel_hum_ids(n_layers)             ! vector containing netCDF IDs of the relative humidity on horizontal layers
-    integer               :: wind_u_ids(n_layers)              ! vector containing netCDF IDs of the zonal wind on horizontal layers
-    integer               :: wind_v_ids(n_layers)              ! vector containing netCDF IDs of the meridional wind on horizontal layers
-    integer               :: zeta_ids(n_layers)                ! vector containing netCDF IDs of the relative vorticity on horizontal layers
-    integer               :: div_h_ids(n_layers)               ! vector containing netCDF IDs of the horizontal divergence on horizontal layers
-    integer               :: wind_w_ids(n_levels)              ! vector containing netCDF IDs of the vertical wind on horizontal layers
-    integer               :: layer_dimid                       ! netCDF ID of the layer dimension
-    integer               :: level_dimid                       ! netCDF ID of the level dimension
-    integer               :: time_since_init_min               ! time since model initialization in minutes
-    integer               :: mslp_id                           ! netCDF ID of the mean sea level pressure
-    integer               :: sp_id                             ! netCDF ID of the surface pressure
-    integer               :: rprate_id                         ! netCDF ID of the liquid precipitation rate
-    integer               :: sprate_id                         ! netCDF ID of the solid precipitation rate
-    integer               :: dimids_vector_2(2)                ! vector containing two netCDF dimension IDs
-    integer               :: wind_v_id                         ! netCDF ID of the vertical wind
-    integer               :: cape_id                           ! netCDF ID of CAPE
-    integer               :: tcc_id                            ! netCDF ID of the total cloud cover
-    integer               :: t2_id                             ! netCDF ID of the 2 m temperature
-    integer               :: t2d_id                            ! netCDF ID of the 2 m dewpoint
-    integer               :: u10_id                            ! netCDF ID of the 10 m zonal wind
-    integer               :: v10_id                            ! netCDF ID of the 10 m meridional wind
-    integer               :: gusts_id                          ! netCDF ID of the 10 m gust speed
-    integer               :: sfc_sw_down_id                    ! netCDF ID of the surface shortwave downward radiation
-    integer               :: sst_id                            ! netCDF ID of the SST
-    integer               :: gh_ids(n_pressure_levels)         ! netCDF IDs of the geopotential height on pressure levels
-    integer               :: temp_p_ids(n_pressure_levels)     ! netCDF IDs of the temperature on pressure levels
-    integer               :: rh_p_ids(n_pressure_levels)       ! netCDF IDs of the relative humidity on pressure levels
-    integer               :: wind_u_p_ids(n_pressure_levels)   ! netCDF IDs of the zonal wind on pressure levels
-    integer               :: wind_v_p_ids(n_pressure_levels)   ! netCDF IDs of the meridional wind on pressure levels
-    integer               :: epv_p_ids(n_pressure_levels)      ! netCDF IDs of Ertel's potential vorticity on pressure levels
-    integer               :: zeta_p_ids(n_pressure_levels)     ! netCDF IDs of the relative vorticity on pressure levels
-    integer               :: soil_layer_dimid                  ! netCDF ID of the soil layer dimension
-    integer               :: edge_dimid                        ! netCDF ID of the edge dimension
-    integer               :: constituent_dimid                 ! netCDF ID of the constituent dimension
-    integer               :: densities_id                      ! netCDF ID of the mass densities
-    integer               :: temperature_id                    ! netCDF ID of the temperature
-    integer               :: wind_h_id                         ! netCDF ID of the horizontal wind
-    integer               :: tke_id                            ! netCDF ID of the specific turbulent kinetic energy
-    integer               :: soil_id                           ! netCDF ID of the soil temperature
-    integer               :: time_step_10_m_wind               ! time step within the 10 m wind averaging interval
-    integer               :: pressure_level_hpa                ! output pressure level in hPa
-    integer               :: cell_dimid                        ! netCDF ID of the cell dimension
-    integer               :: dimids_vector_3(3)                ! vector containing three netCDF dimension IDs
-    real(wp)              :: min_precip_rate                   ! the precitpiation rate below which values will be written out as zeroes
-    real(wp)              :: min_precip_rate_mmh               ! the precitpiation rate below which values will be written out as zeroes in mm/h
-    real(wp)              :: cloud_water2cloudiness            ! the factor that converts cloud water content to total cloud cover
-    real(wp)              :: temp_lowest_layer                 ! temperature in the lowest layer (helper variable)
-    real(wp)              :: pressure_value                    ! pressure value (helper variable)
-    real(wp)              :: mslp_factor                       ! fractor needed for computing the mean sea level pressure
-    real(wp)              :: sp_factor                         ! fractor needed for computing the surface pressure
-    real(wp)              :: temp_mslp                         ! temperature at mean sea level (helper variable)
-    real(wp)              :: temp_surface                      ! temperature at the surface (helper variable)
-    real(wp)              :: z_height                          ! geometrical height of a gridpoint
-    real(wp)              :: theta_v                           ! virtual potential temperature
-    real(wp)              :: cape_integrand                    ! integrand of the CAPE integral
-    real(wp)              :: delta_z                           ! vertical gridpoint distance needed for vertical extrapolations
-    real(wp)              :: temp_closest                      ! temperature needed for computing the 2 m temperature
-    real(wp)              :: temp_second_closest               ! temperature needed for computing the 2 m temperature
-    real(wp)              :: delta_z_temp                      ! vertical distance needed for computing the 2 m temperature
-    real(wp)              :: temperature_gradient              ! temperature gradient needed for computing the 2 m temperature
-    real(wp)              :: theta_e                           ! pseudopotential temperature
-    real(wp)              :: u_850_surrogate                   ! wind speed in 850 hPa (helper variable)
-    real(wp)              :: u_950_surrogate                   ! wind speed in 950 hPa (helper variable)
-    real(wp)              :: u_850_proxy_height                ! geometrical height in 850 hPa
-    real(wp)              :: u_950_proxy_height                ! geometrical height in 950 hPa
-    real(wp)              :: wind_tangential                   ! tangential wind value
-    real(wp)              :: wind_u_value                      ! zonal wind value
-    real(wp)              :: wind_v_value                      ! meridional wind value
-    real(wp)              :: roughness_length_extrapolation    ! roughness length used for calculating the wind in 10 m height
-    real(wp)              :: actual_roughness_length           ! roughness length at a gridpoint
-    real(wp)              :: z_sfc                             ! surface height at a cell center
-    real(wp)              :: z_agl                             ! height above ground level of a gridpoint
-    real(wp)              :: rescale_factor                    ! factor used for calculating the wind in 10 m height
-    real(wp)              :: cloud_water_content               ! cloud water content in a column (kg/m**2)
-    real(wp)              :: vector_to_minimize(n_layers)      ! vector used for calculating the vertical interpolation
-    real(wp)              :: closest_weight                    ! vertical interpolation weight
-    real(wp)              :: z_tropopause                      ! height of the tropopause
-    real(wp), allocatable :: wind_10_m_mean_u(:)               ! 10 m zonal wind to be written out
-    real(wp), allocatable :: wind_10_m_mean_v(:)               ! 10 m meridional wind to be written out
-    real(wp), allocatable :: mslp(:)                           ! mean sea level pressure to be written out
-    real(wp), allocatable :: sp(:)                             ! surface pressure to be written out
-    real(wp), allocatable :: t2(:)                             ! 2 m temperature to be written out
-    real(wp), allocatable :: t2d(:)                            ! 2 m dewpoint to be written out
-    real(wp), allocatable :: tcc(:)                            ! total cloud cover to be written out
-    real(wp), allocatable :: rprate(:)                         ! liquid precipitation rate to be written out
-    real(wp), allocatable :: sprate(:)                         ! solid precipitation rate to be written out
-    real(wp), allocatable :: cape(:)                           ! CAPE to be written out
-    real(wp), allocatable :: sfc_sw_down(:)                    ! surface downward shortwave radiation power flux density (W/m**2) to be written out
-    real(wp), allocatable :: sst(:)                            ! sea surface temperature
-    real(wp), allocatable :: geopotential_height(:,:)          ! gepotential height on pressure levels to be written out
-    real(wp), allocatable :: t_on_p_levels(:,:)                ! temperature on pressure levels to be written out
-    real(wp), allocatable :: rh_on_p_levels(:,:)               ! relative humidity on pressure levels to be written out
-    real(wp), allocatable :: epv_on_p_levels(:,:)              ! Ertel's potential vorticity on pressure levels to be written out
-    real(wp), allocatable :: u_on_p_levels(:,:)                ! zonal wind on pressure levels to be written out
-    real(wp), allocatable :: v_on_p_levels(:,:)                ! meridional wind on pressure levels to be written out
-    real(wp), allocatable :: zeta_on_p_levels(:,:)             ! relative vorticity on pressure levels to be written out
-    real(wp), allocatable :: wind_10_m_mean_u_at_cell(:)       ! zonal wind in 10 m at the cell centers to be written out
-    real(wp), allocatable :: wind_10_m_mean_v_at_cell(:)       ! meridional wind in 10 m at the cell centers to be written out
-    real(wp), allocatable :: wind_10_m_gusts_speed_at_cell(:)  ! gust speed in 10 m at the cell centers to be written out
-    real(wp), allocatable :: div_h_all_layers(:,:)             ! divergence of the horizontal wind to be written out
-    real(wp), allocatable :: zeta_scalar_field(:,:)        ! relative vorticity as a scalar field to be written out
-    real(wp), allocatable :: rh(:,:)                           ! relative humidity to be written out
-    real(wp), allocatable :: epv(:,:)                          ! Ertel's potential vorticity to be written out
-    real(wp), allocatable :: pressure(:,:)                     ! pressure to be written out
-    real(wp), allocatable :: lat_lon_output_field(:,:)         ! placeholder for output on the latitude-longitude grid
-    real(wp), allocatable :: u_at_cell(:,:)                    ! zonal wind at cell centers to be written out
-    real(wp), allocatable :: v_at_cell(:,:)                    ! meridional wind at cell centers to be written out
-    real(wp), allocatable :: u_at_edge(:,:)                    ! zonal wind at the edges
-    real(wp), allocatable :: v_at_edge(:,:)                    ! merdional wind at the edges
-    character(len=64)     :: output_file                       ! name of the output file
-    character(len=64)     :: output_file_p_level               ! name of the file for output on pressure levels
-    character(len=64)     :: varname                           ! placeholder for variable names
+    logical               :: lcontains_nan                    ! boolean indicating the presence of NaNs in the output, leading to a model crash
+    integer               :: ji                               ! cell or edge index
+    integer               :: jl                               ! layer or level index
+    integer               :: jm                               ! interpolation index
+    integer               :: lat_lon_dimids(2)                ! vector conatining the two netCDF dimension IDs of a latitude-longitude field
+    integer               :: ncid                             ! netCDF file ID
+    integer               :: single_int_dimid                 ! netCDF single integer dimension ID
+    integer               :: lat_dimid                        ! netCDF latitude dimension ID
+    integer               :: lon_dimid                        ! netCDF longitude dimension ID
+    integer               :: start_date_id                    ! netCDF ID of the start date
+    integer               :: start_hour_id                    ! netCDF ID of the start hour
+    integer               :: lat_id                           ! netCDF ID of the latitude vector
+    integer               :: lon_id                           ! netCDF ID of the longitude vector
+    integer               :: closest_index                    ! index needed for vertical interpolations
+    integer               :: second_closest_index             ! index needed for vertical interpolations
+    integer               :: temperature_ids(n_layers)        ! vector containing netCDF IDs of the temperature on horizontal layers
+    integer               :: pressure_ids(n_layers)           ! vector containing netCDF IDs of the pressure on horizontal layers
+    integer               :: rel_hum_ids(n_layers)            ! vector containing netCDF IDs of the relative humidity on horizontal layers
+    integer               :: wind_u_ids(n_layers)             ! vector containing netCDF IDs of the zonal wind on horizontal layers
+    integer               :: wind_v_ids(n_layers)             ! vector containing netCDF IDs of the meridional wind on horizontal layers
+    integer               :: zeta_ids(n_layers)               ! vector containing netCDF IDs of the relative vorticity on horizontal layers
+    integer               :: div_h_ids(n_layers)              ! vector containing netCDF IDs of the horizontal divergence on horizontal layers
+    integer               :: wind_w_ids(n_levels)             ! vector containing netCDF IDs of the vertical wind on horizontal layers
+    integer               :: layer_dimid                      ! netCDF ID of the layer dimension
+    integer               :: level_dimid                      ! netCDF ID of the level dimension
+    integer               :: time_since_init_min              ! time since model initialization in minutes
+    integer               :: mslp_id                          ! netCDF ID of the mean sea level pressure
+    integer               :: sp_id                            ! netCDF ID of the surface pressure
+    integer               :: rprate_id                        ! netCDF ID of the liquid precipitation rate
+    integer               :: sprate_id                        ! netCDF ID of the solid precipitation rate
+    integer               :: dimids_vector_2(2)               ! vector containing two netCDF dimension IDs
+    integer               :: wind_v_id                        ! netCDF ID of the vertical wind
+    integer               :: cape_id                          ! netCDF ID of CAPE
+    integer               :: tcc_id                           ! netCDF ID of the total cloud cover
+    integer               :: t2_id                            ! netCDF ID of the 2 m temperature
+    integer               :: t2d_id                           ! netCDF ID of the 2 m dewpoint
+    integer               :: u10_id                           ! netCDF ID of the 10 m zonal wind
+    integer               :: v10_id                           ! netCDF ID of the 10 m meridional wind
+    integer               :: gusts_id                         ! netCDF ID of the 10 m gust speed
+    integer               :: sfc_sw_down_id                   ! netCDF ID of the surface shortwave downward radiation
+    integer               :: sst_id                           ! netCDF ID of the SST
+    integer               :: gh_ids(n_pressure_levels)        ! netCDF IDs of the geopotential height on pressure levels
+    integer               :: temp_p_ids(n_pressure_levels)    ! netCDF IDs of the temperature on pressure levels
+    integer               :: rh_p_ids(n_pressure_levels)      ! netCDF IDs of the relative humidity on pressure levels
+    integer               :: wind_u_p_ids(n_pressure_levels)  ! netCDF IDs of the zonal wind on pressure levels
+    integer               :: wind_v_p_ids(n_pressure_levels)  ! netCDF IDs of the meridional wind on pressure levels
+    integer               :: epv_p_ids(n_pressure_levels)     ! netCDF IDs of Ertel's potential vorticity on pressure levels
+    integer               :: zeta_p_ids(n_pressure_levels)    ! netCDF IDs of the relative vorticity on pressure levels
+    integer               :: soil_layer_dimid                 ! netCDF ID of the soil layer dimension
+    integer               :: edge_dimid                       ! netCDF ID of the edge dimension
+    integer               :: constituent_dimid                ! netCDF ID of the constituent dimension
+    integer               :: densities_id                     ! netCDF ID of the mass densities
+    integer               :: temperature_id                   ! netCDF ID of the temperature
+    integer               :: wind_h_id                        ! netCDF ID of the horizontal wind
+    integer               :: tke_id                           ! netCDF ID of the specific turbulent kinetic energy
+    integer               :: soil_id                          ! netCDF ID of the soil temperature
+    integer               :: time_step_10_m_wind              ! time step within the 10 m wind averaging interval
+    integer               :: pressure_level_hpa               ! output pressure level in hPa
+    integer               :: cell_dimid                       ! netCDF ID of the cell dimension
+    integer               :: dimids_vector_3(3)               ! vector containing three netCDF dimension IDs
+    real(wp)              :: min_precip_rate                  ! the precitpiation rate below which values will be written out as zeroes
+    real(wp)              :: min_precip_rate_mmh              ! the precitpiation rate below which values will be written out as zeroes in mm/h
+    real(wp)              :: cloud_water2cloudiness           ! the factor that converts cloud water content to total cloud cover
+    real(wp)              :: temp_lowest_layer                ! temperature in the lowest layer (helper variable)
+    real(wp)              :: pressure_value                   ! pressure value (helper variable)
+    real(wp)              :: mslp_factor                      ! fractor needed for computing the mean sea level pressure
+    real(wp)              :: sp_factor                        ! fractor needed for computing the surface pressure
+    real(wp)              :: temp_mslp                        ! temperature at mean sea level (helper variable)
+    real(wp)              :: temp_surface                     ! temperature at the surface (helper variable)
+    real(wp)              :: z_height                         ! geometrical height of a gridpoint
+    real(wp)              :: theta_v                          ! virtual potential temperature
+    real(wp)              :: cape_integrand                   ! integrand of the CAPE integral
+    real(wp)              :: delta_z                          ! vertical gridpoint distance needed for vertical extrapolations
+    real(wp)              :: temp_closest                     ! temperature needed for computing the 2 m temperature
+    real(wp)              :: temp_second_closest              ! temperature needed for computing the 2 m temperature
+    real(wp)              :: delta_z_temp                     ! vertical distance needed for computing the 2 m temperature
+    real(wp)              :: temperature_gradient             ! temperature gradient needed for computing the 2 m temperature
+    real(wp)              :: dew_closest                      ! dewpoint needed for computing the 2 m dewpoint
+    real(wp)              :: dew_second_closest               ! dewpoint needed for computing the 2 m dewpoint
+    real(wp)              :: dewpoint_gradient                ! dewpoint gradient needed for computing the 2 m dewpoint
+    real(wp)              :: theta_e                          ! pseudopotential temperature
+    real(wp)              :: u_850_surrogate                  ! wind speed in 850 hPa (helper variable)
+    real(wp)              :: u_950_surrogate                  ! wind speed in 950 hPa (helper variable)
+    real(wp)              :: u_850_proxy_height               ! geometrical height in 850 hPa
+    real(wp)              :: u_950_proxy_height               ! geometrical height in 950 hPa
+    real(wp)              :: wind_tangential                  ! tangential wind value
+    real(wp)              :: wind_u_value                     ! zonal wind value
+    real(wp)              :: wind_v_value                     ! meridional wind value
+    real(wp)              :: roughness_length_extrapolation   ! roughness length used for calculating the wind in 10 m height
+    real(wp)              :: actual_roughness_length          ! roughness length at a gridpoint
+    real(wp)              :: z_sfc                            ! surface height at a cell center
+    real(wp)              :: z_agl                            ! height above ground level of a gridpoint
+    real(wp)              :: rescale_factor                   ! factor used for calculating the wind in 10 m height
+    real(wp)              :: cloud_water_content              ! cloud water content in a column (kg/m**2)
+    real(wp)              :: vector_to_minimize(n_layers)     ! vector used for calculating the vertical interpolation
+    real(wp)              :: closest_weight                   ! vertical interpolation weight
+    real(wp)              :: z_tropopause                     ! height of the tropopause
+    real(wp), allocatable :: wind_10_m_mean_u(:)              ! 10 m zonal wind to be written out
+    real(wp), allocatable :: wind_10_m_mean_v(:)              ! 10 m meridional wind to be written out
+    real(wp), allocatable :: mslp(:)                          ! mean sea level pressure to be written out
+    real(wp), allocatable :: sp(:)                            ! surface pressure to be written out
+    real(wp), allocatable :: t2(:)                            ! 2 m temperature to be written out
+    real(wp), allocatable :: t2d(:)                           ! 2 m dewpoint to be written out
+    real(wp), allocatable :: tcc(:)                           ! total cloud cover to be written out
+    real(wp), allocatable :: rprate(:)                        ! liquid precipitation rate to be written out
+    real(wp), allocatable :: sprate(:)                        ! solid precipitation rate to be written out
+    real(wp), allocatable :: cape(:)                          ! CAPE to be written out
+    real(wp), allocatable :: sfc_sw_down(:)                   ! surface downward shortwave radiation power flux density (W/m**2) to be written out
+    real(wp), allocatable :: sst(:)                           ! sea surface temperature
+    real(wp), allocatable :: geopotential_height(:,:)         ! gepotential height on pressure levels to be written out
+    real(wp), allocatable :: t_on_p_levels(:,:)               ! temperature on pressure levels to be written out
+    real(wp), allocatable :: rh_on_p_levels(:,:)              ! relative humidity on pressure levels to be written out
+    real(wp), allocatable :: epv_on_p_levels(:,:)             ! Ertel's potential vorticity on pressure levels to be written out
+    real(wp), allocatable :: u_on_p_levels(:,:)               ! zonal wind on pressure levels to be written out
+    real(wp), allocatable :: v_on_p_levels(:,:)               ! meridional wind on pressure levels to be written out
+    real(wp), allocatable :: zeta_on_p_levels(:,:)            ! relative vorticity on pressure levels to be written out
+    real(wp), allocatable :: wind_10_m_mean_u_at_cell(:)      ! zonal wind in 10 m at the cell centers to be written out
+    real(wp), allocatable :: wind_10_m_mean_v_at_cell(:)      ! meridional wind in 10 m at the cell centers to be written out
+    real(wp), allocatable :: wind_10_m_gusts_speed_at_cell(:) ! gust speed in 10 m at the cell centers to be written out
+    real(wp), allocatable :: div_h_all_layers(:,:)            ! divergence of the horizontal wind to be written out
+    real(wp), allocatable :: zeta_scalar_field(:,:)           ! relative vorticity as a scalar field to be written out
+    real(wp), allocatable :: rh(:,:)                          ! relative humidity to be written out
+    real(wp), allocatable :: epv(:,:)                         ! Ertel's potential vorticity to be written out
+    real(wp), allocatable :: pressure(:,:)                    ! pressure to be written out
+    real(wp), allocatable :: lat_lon_output_field(:,:)        ! placeholder for output on the latitude-longitude grid
+    real(wp), allocatable :: u_at_cell(:,:)                   ! zonal wind at cell centers to be written out
+    real(wp), allocatable :: v_at_cell(:,:)                   ! meridional wind at cell centers to be written out
+    real(wp), allocatable :: u_at_edge(:,:)                   ! zonal wind at the edges
+    real(wp), allocatable :: v_at_edge(:,:)                   ! merdional wind at the edges
+    character(len=64)     :: output_file                      ! name of the output file
+    character(len=64)     :: output_file_p_level              ! name of the file for output on pressure levels
+    character(len=64)     :: varname                          ! placeholder for variable names
     
     write(*,*) "Writing output ..."
     
@@ -223,8 +227,10 @@ module mo_write_output
       z_tropopause = 12e3_wp
       !$omp parallel do private(ji,jl,temp_lowest_layer,pressure_value,mslp_factor,sp_factor,temp_mslp,temp_surface, &
       !$omp z_height,theta_v,cape_integrand,delta_z,temp_closest,temp_second_closest,delta_z_temp,temperature_gradient, &
-      !$omp theta_e,closest_index,second_closest_index,cloud_water_content,vector_to_minimize)
+      !$omp theta_e,closest_index,second_closest_index,cloud_water_content,vector_to_minimize,dew_closest, &
+      !$omp dew_second_closest,dewpoint_gradient)
       do ji=1,n_cells
+        
         ! Now the aim is to determine the value of the mslp.
         temp_lowest_layer = diag%temperature(ji,n_layers)
         pressure_value = state%rho(ji,n_layers,n_condensed_constituents+1) &
@@ -240,31 +246,50 @@ module mo_write_output
                      **(grid%gravity_m_v(ji,n_layers)/(gas_constant_diagnostics(state%rho,ji,n_layers)*lapse_rate))
         sp(ji) = pressure_value/sp_factor
         
-        ! Now the aim is to calculate the 2 m temperature.
+        ! Now the aim is to calculate the 2 m temperature and dewpoint.
+        ! calculating the closest point (usually the lowest layer)
         do jl=1,n_layers
-          vector_to_minimize(jl) = abs(grid%z_vector_v(ji,n_levels)+2._wp - grid%z_scalar(ji,jl))
+          vector_to_minimize(jl) = abs(grid%z_vector_v(ji,n_levels) + 2._wp - grid%z_scalar(ji,jl))
         enddo
         closest_index = find_min_index(vector_to_minimize)
+        
+        ! temperature and dewpoint at the closest point
         temp_closest = diag%temperature(ji,closest_index)
-        delta_z_temp = grid%z_vector_v(ji,n_levels)+2._wp - grid%z_scalar(ji,closest_index)
-        ! real radiation
+        dew_closest = dewpoint(state,diag,ji,closest_index)
+        
+        second_closest_index = closest_index-1
+        if (grid%z_scalar(ji,closest_index)>grid%z_vector_v(ji,n_levels) + 2._wp .and. closest_index<n_layers) then
+          second_closest_index = closest_index+1
+        endif
+        
+        delta_z_temp = grid%z_vector_v(ji,n_levels) + 2._wp - grid%z_scalar(ji,closest_index)
+        dew_second_closest = dewpoint(state,diag,ji,second_closest_index)
+        
+        ! computing the temperature gradient
+        ! prognostic soil temperature
         if (lprog_soil_temp) then
           temperature_gradient = (temp_closest - state%temperature_soil(ji,1))/ &
                                  (grid%z_scalar(ji,closest_index) - grid%z_vector_v(ji,n_levels))
-        ! no real radiation
+        ! no prognostic soil temperature
         else
-          second_closest_index = closest_index-1
-          if (grid%z_scalar(ji,closest_index)>grid%z_vector_v(ji,n_levels)+2._wp .and. closest_index<n_layers) then
-            second_closest_index = closest_index+1
-          endif
           temp_second_closest = diag%temperature(ji,second_closest_index)
           ! calculating the vertical temperature gradient that will be used for the extrapolation
           temperature_gradient = (temp_closest - temp_second_closest) &
                                  /(grid%z_scalar(ji,closest_index) - grid%z_scalar(ji,second_closest_index))
         endif
+        
+        ! calculating the vertical dewpoint gradient that will be used for the extrapolation
+        dewpoint_gradient = (dew_closest - dew_second_closest) &
+                            /(grid%z_scalar(ji,closest_index) - grid%z_scalar(ji,second_closest_index))
+        
         ! performing the interpolation / extrapolation to two meters above the surface
         t2(ji) = temp_closest + delta_z_temp*temperature_gradient
-        t2d(ji) = temp_closest + delta_z_temp*temperature_gradient - 1.0_wp
+        t2d(ji) = dew_closest + delta_z_temp*dewpoint_gradient
+        
+        ! ensuring the dewpoint is not larger than the temperature (which could theoretically happen through the extrapolation)
+        if (t2d(ji)>t2(ji)) then
+          t2d(ji) = t2(ji)
+        endif
         
         ! sea surface temperature
         if (grid%land_fraction(ji)+grid%lake_fraction(ji)<0.5_wp) then
@@ -1022,6 +1047,44 @@ module mo_write_output
     close(1)
     
   end subroutine write_out_integrals
+  
+  function dewpoint(state,diag,ji,jl)
+    
+    ! This function returns the dewpoint.
+    
+    type(t_state), intent(in) :: state    ! state variables
+    type(t_diag),  intent(in) :: diag     ! diagnostic quantities
+    integer,       intent(in) :: ji,jl    ! indices of gridpoint at which to compute the dewpoint
+    real(wp)                  :: dewpoint ! the result
+    
+    ! local variables
+    real(wp) :: temp            ! air temperature at the gridpoint
+    real(wp) :: vapour_pressure ! water vapour pressure at the gridpoint
+    real(wp) :: sat_pressure    ! saturation vapour pressure
+    real(wp) :: dps_dT          ! derivative of the saturation vapour pressure with respect to temperature
+    
+    temp = diag%temperature(ji,jl)
+    vapour_pressure = state%rho(ji,jl,n_condensed_constituents+2)*r_v*temp
+    if (temp<t_0) then
+      sat_pressure = saturation_pressure_over_ice(temp)
+      dps_dT = dsaturation_pressure_over_ice_dT(temp)
+    else
+      sat_pressure = saturation_pressure_over_water(temp)
+      dps_dT = dsaturation_pressure_over_water_dT(temp)
+    endif
+    
+    ! dealing with special cases first
+    if (vapour_pressure<=saturation_pressure_over_ice(110._wp)) then
+      dewpoint = 110._wp
+      return
+    elseif (temp>t_0+100._wp) then
+      dewpoint = t_0+100._wp
+      return
+    else
+      dewpoint = temp - (sat_pressure-vapour_pressure)/dps_dT
+    endif
+    
+  end function dewpoint
   
   function pseudopotential_temperature(state,diag,ji,jl,grid)
     
