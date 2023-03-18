@@ -157,6 +157,12 @@ def var_properties(var_id):
 		shift = -conv.c2k(0)
 		show_level_on = 0
 		surface_bool = 1
+	if var_id == "t2d":
+		variable_name = "2 m dewpoint"
+		unit_string = "°C"
+		shift = -conv.c2k(0)
+		show_level_on = 0
+		surface_bool = 1
 	if var_id == "rel_vort":
 		variable_name = "Relative vorticity"
 		unit_string = "10^-5/s"

@@ -62,7 +62,7 @@ module mo_write_output
     integer               :: rel_hum_ids(n_layers)             ! vector containing netCDF IDs of the relative humidity on horizontal layers
     integer               :: wind_u_ids(n_layers)              ! vector containing netCDF IDs of the zonal wind on horizontal layers
     integer               :: wind_v_ids(n_layers)              ! vector containing netCDF IDs of the meridional wind on horizontal layers
-    integer               :: zeta_ids(n_layers)            ! vector containing netCDF IDs of the relative vorticity on horizontal layers
+    integer               :: zeta_ids(n_layers)                ! vector containing netCDF IDs of the relative vorticity on horizontal layers
     integer               :: div_h_ids(n_layers)               ! vector containing netCDF IDs of the horizontal divergence on horizontal layers
     integer               :: wind_w_ids(n_levels)              ! vector containing netCDF IDs of the vertical wind on horizontal layers
     integer               :: layer_dimid                       ! netCDF ID of the layer dimension
@@ -77,6 +77,7 @@ module mo_write_output
     integer               :: cape_id                           ! netCDF ID of CAPE
     integer               :: tcc_id                            ! netCDF ID of the total cloud cover
     integer               :: t2_id                             ! netCDF ID of the 2 m temperature
+    integer               :: t2d_id                            ! netCDF ID of the 2 m dewpoint
     integer               :: u10_id                            ! netCDF ID of the 10 m zonal wind
     integer               :: v10_id                            ! netCDF ID of the 10 m meridional wind
     integer               :: gusts_id                          ! netCDF ID of the 10 m gust speed
@@ -88,7 +89,7 @@ module mo_write_output
     integer               :: wind_u_p_ids(n_pressure_levels)   ! netCDF IDs of the zonal wind on pressure levels
     integer               :: wind_v_p_ids(n_pressure_levels)   ! netCDF IDs of the meridional wind on pressure levels
     integer               :: epv_p_ids(n_pressure_levels)      ! netCDF IDs of Ertel's potential vorticity on pressure levels
-    integer               :: zeta_p_ids(n_pressure_levels) ! netCDF IDs of the relative vorticity on pressure levels
+    integer               :: zeta_p_ids(n_pressure_levels)     ! netCDF IDs of the relative vorticity on pressure levels
     integer               :: soil_layer_dimid                  ! netCDF ID of the soil layer dimension
     integer               :: edge_dimid                        ! netCDF ID of the edge dimension
     integer               :: constituent_dimid                 ! netCDF ID of the constituent dimension
@@ -140,6 +141,7 @@ module mo_write_output
     real(wp), allocatable :: mslp(:)                           ! mean sea level pressure to be written out
     real(wp), allocatable :: sp(:)                             ! surface pressure to be written out
     real(wp), allocatable :: t2(:)                             ! 2 m temperature to be written out
+    real(wp), allocatable :: t2d(:)                            ! 2 m dewpoint to be written out
     real(wp), allocatable :: tcc(:)                            ! total cloud cover to be written out
     real(wp), allocatable :: rprate(:)                         ! liquid precipitation rate to be written out
     real(wp), allocatable :: sprate(:)                         ! solid precipitation rate to be written out
@@ -201,6 +203,7 @@ module mo_write_output
       allocate(mslp(n_cells))
       allocate(sp(n_cells))
       allocate(t2(n_cells))
+      allocate(t2d(n_cells))
       allocate(tcc(n_cells))
       allocate(rprate(n_cells))
       allocate(sprate(n_cells))
@@ -261,6 +264,7 @@ module mo_write_output
         endif
         ! performing the interpolation / extrapolation to two meters above the surface
         t2(ji) = temp_closest + delta_z_temp*temperature_gradient
+        t2d(ji) = temp_closest + delta_z_temp*temperature_gradient - 1.0_wp
         
         ! sea surface temperature
         if (grid%land_fraction(ji)+grid%lake_fraction(ji)<0.5_wp) then
@@ -466,6 +470,8 @@ module mo_write_output
       call nc_check(nf90_put_att(ncid,sp_id,"units","Pa"))
       call nc_check(nf90_def_var(ncid,"t2",NF90_REAL,lat_lon_dimids,t2_id))
       call nc_check(nf90_put_att(ncid,t2_id,"units","K"))
+      call nc_check(nf90_def_var(ncid,"t2d",NF90_REAL,lat_lon_dimids,t2d_id))
+      call nc_check(nf90_put_att(ncid,t2d_id,"units","K"))
       call nc_check(nf90_def_var(ncid,"tcc",NF90_REAL,lat_lon_dimids,tcc_id))
       call nc_check(nf90_put_att(ncid,tcc_id,"units","%"))
       call nc_check(nf90_def_var(ncid,"rprate",NF90_REAL,lat_lon_dimids,rprate_id))
@@ -502,6 +508,9 @@ module mo_write_output
       call interpolate_to_ll(t2,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,t2_id,lat_lon_output_field))
       
+      call interpolate_to_ll(t2d,lat_lon_output_field,grid)
+      call nc_check(nf90_put_var(ncid,t2d_id,lat_lon_output_field))
+      
       call interpolate_to_ll(tcc,lat_lon_output_field,grid)
       call nc_check(nf90_put_var(ncid,tcc_id,lat_lon_output_field))
       
@@ -536,6 +545,7 @@ module mo_write_output
       deallocate(wind_10_m_mean_v_at_cell)
       deallocate(wind_10_m_gusts_speed_at_cell)
       deallocate(t2)
+      deallocate(t2d)
       deallocate(mslp)
       deallocate(sp)
       deallocate(rprate)
