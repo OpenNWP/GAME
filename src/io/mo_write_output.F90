@@ -1062,6 +1062,10 @@ module mo_write_output
     real(wp) :: vapour_pressure ! water vapour pressure at the gridpoint
     real(wp) :: sat_pressure    ! saturation vapour pressure
     real(wp) :: dps_dT          ! derivative of the saturation vapour pressure with respect to temperature
+    integer  :: it_counter      ! counter of iterations
+    integer  :: max_iterations  ! maximum number of iterations
+    
+    max_iterations = 10
     
     temp = diag%temperature(ji,jl)
     vapour_pressure = state%rho(ji,jl,n_condensed_constituents+2)*r_v*temp
@@ -1080,8 +1084,28 @@ module mo_write_output
     elseif (temp>t_0+100._wp) then
       dewpoint = t_0+100._wp
       return
+    ! iterative method
     else
-      dewpoint = temp - (sat_pressure-vapour_pressure)/dps_dT
+      it_counter = 0
+      do while (it_counter<max_iterations .and. abs(vapour_pressure/sat_pressure-1._wp)>1e-5_wp)
+        
+        ! updated dewpoint value
+        dewpoint = temp - (sat_pressure-vapour_pressure)/dps_dT
+        
+        ! the previously calculated dewpoint serves as the new temperature now
+        temp = dewpoint
+        if (temp<t_0) then
+          sat_pressure = saturation_pressure_over_ice(temp)
+          dps_dT = dsaturation_pressure_over_ice_dT(temp)
+        else
+          sat_pressure = saturation_pressure_over_water(temp)
+          dps_dT = dsaturation_pressure_over_water_dT(temp)
+        endif
+        
+        ! incrementing the iterations counter
+        it_counter = it_counter + 1
+        
+      enddo
     endif
     
   end function dewpoint
