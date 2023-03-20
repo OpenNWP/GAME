@@ -16,7 +16,7 @@ save_directory = sys.argv[3]
 print("Creating JSON files ...")
 
 # defining the time vector in hours since initialization
-time_hour_vector = np.concatenate([np.arange(0,72,3),np.arange(72,168+6,6)])
+time_hour_vector = np.arange(0,168+3,3)
 ntime = len(time_hour_vector)
 
 # reading one variable to obtain the dimensions of the arrays
