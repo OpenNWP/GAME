@@ -423,16 +423,18 @@ module mo_write_output
       u_850_proxy_height = 8000._wp*log(1000._wp/850._wp)
       u_950_proxy_height = 8000._wp*log(1000._wp/950._wp)
       allocate(wind_10_m_gusts_speed_at_cell(n_cells))
+      
       !$omp parallel do private(ji,jl,vector_to_minimize,closest_index,second_closest_index,u_850_surrogate,u_950_surrogate)
       do ji=1,n_cells
-      
+        
         ! This is the normal case.
         if ((lsfc_sensible_heat_flux .or. lsfc_phase_trans .or. pbl_scheme==1) &
             .and. abs(diag%monin_obukhov_length(ji))>EPSILON_SECURITY) then
+          
           ! This follows IFS DOCUMENTATION – Cy43r1 - Operational implementation 22 Nov 2016 - PART IV: PHYSICAL PROCESSES.
           wind_10_m_gusts_speed_at_cell(ji) = sqrt(wind_10_m_mean_u_at_cell(ji)**2 + wind_10_m_mean_v_at_cell(ji)**2) &
           + 7.71_wp*diag%roughness_velocity(ji)* &
-          (max(1._wp - 0.5_wp/12._wp*1000._wp/diag%monin_obukhov_length(ji),0._wp))**(1._wp/3._wp)
+          max(1._wp - 0.5_wp/12._wp*1000._wp/diag%monin_obukhov_length(ji),1._wp)**(1._wp/3._wp)
           
           ! calculating the wind speed in a height representing 850 hPa
           do jl=1,n_layers
@@ -448,6 +450,7 @@ module mo_write_output
           + (sqrt(diag%v_squared(ji,closest_index))-sqrt(diag%v_squared(ji,second_closest_index))) &
           /(grid%z_scalar(ji,closest_index) - grid%z_scalar(ji,second_closest_index)) &
           *(grid%z_vector_v(ji,n_levels) + u_850_proxy_height - grid%z_scalar(ji,closest_index))
+          
           ! calculating the wind speed in a height representing 950 hPa
           do jl=1,n_layers
             vector_to_minimize(jl) = abs(grid%z_scalar(ji,jl) - (grid%z_vector_v(ji,n_levels) + u_950_proxy_height))
@@ -461,16 +464,20 @@ module mo_write_output
           + (sqrt(diag%v_squared(ji,closest_index))-sqrt(diag%v_squared(ji,second_closest_index))) &
           /(grid%z_scalar(ji,closest_index) - grid%z_scalar(ji,second_closest_index)) &
           *(grid%z_vector_v(ji,n_levels) + u_950_proxy_height - grid%z_scalar(ji,closest_index))
+          
           ! adding the baroclinic and convective component to the gusts
           wind_10_m_gusts_speed_at_cell(ji) = wind_10_m_gusts_speed_at_cell(ji) &
                                               + 0.6_wp*max(0._wp,u_850_surrogate - u_950_surrogate)
+          
+          ! capping too extreme gust values
           wind_10_m_gusts_speed_at_cell(ji) = min(wind_10_m_gusts_speed_at_cell(ji), &
                                                   3._wp*sqrt(wind_10_m_mean_u_at_cell(ji)**2 + wind_10_m_mean_v_at_cell(ji)**2))
+          
         ! This is used if the turbulence quantities are not populated.
         else
           wind_10_m_gusts_speed_at_cell(ji) = 1.67_wp*sqrt(wind_10_m_mean_u_at_cell(ji)**2 + wind_10_m_mean_v_at_cell(ji)**2)
         endif
-
+        
       enddo
       !$omp end parallel do
       
