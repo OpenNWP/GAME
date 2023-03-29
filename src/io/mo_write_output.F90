@@ -2,7 +2,7 @@
 ! Github repository: https://github.com/OpenNWP/GAME
 
 module mo_write_output
-
+  
   ! In this module the output is written to netCDF files and integrals are written to text files if configured that way.
   ! In addition to that, some postprocessing diagnostics are also calculated here.
   

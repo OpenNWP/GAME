@@ -15,9 +15,11 @@ disp_shortname_list=(
 t2 gusts10 rprate sprate tcc
 t2 gusts10 rprate sprate tcc
 t2 gusts10 rprate sprate tcc
+t2 gusts10 rprate sprate tcc
 sst
 ) # short names according to grib as an array 
 disp_level_list=(
+2 10 0 0 0
 2 10 0 0 0
 2 10 0 0 0
 2 10 0 0 0
@@ -27,9 +29,11 @@ on_pressure_level_list=(
 0 0 0 0 0
 0 0 0 0 0
 0 0 0 0 0
+0 0 0 0 0
 0
 ) # set this to 1 for each plot individually if the variable resides on pressure levels
 plot_intervals_list_min=(
+$plot_interval_min $plot_interval_min $plot_interval_min $plot_interval_min $plot_interval_min
 $plot_interval_min $plot_interval_min $plot_interval_min $plot_interval_min $plot_interval_min
 $plot_interval_min $plot_interval_min $plot_interval_min $plot_interval_min $plot_interval_min
 $plot_interval_min $plot_interval_min $plot_interval_min $plot_interval_min $plot_interval_min
@@ -39,21 +43,25 @@ uniform_colormap_list=(
 0 0 0 0 0
 0 0 0 0 0
 0 0 0 0 0
+0 0 0 0 0
 0
 ) # set this to 1 for each plot individually if you want to enforce a uniform colormap for all the time steps
 scope_list=(
 CEU CEU CEU CEU CEU
 CONUS CONUS CONUS CONUS CONUS
 CHINA CHINA CHINA CHINA CHINA
+INDIA INDIA INDIA INDIA INDIA
 WORLD
 ) # the areas of the plots
 projections_list=(
 Gnomonic Gnomonic Gnomonic Gnomonic Gnomonic
 Gnomonic Gnomonic Gnomonic Gnomonic Gnomonic
 Gnomonic Gnomonic Gnomonic Gnomonic Gnomonic
+Gnomonic Gnomonic Gnomonic Gnomonic Gnomonic
 EckertIII
 ) # the projections of the plots
 synoptical_time_mode=(
+1 1 1 1 1
 1 1 1 1 1
 1 1 1 1 1
 1 1 1 1 1
