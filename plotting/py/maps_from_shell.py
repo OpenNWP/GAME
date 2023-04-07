@@ -184,7 +184,7 @@ if uniform_range == 1:
 	color_bar_dist = values_range_for_plot/10
 	cmap = plt.get_cmap(colormap)
 
-fig_size = 7
+fig_size = 5
 for i in range(number_of_times):
 	if uniform_range == 0:
 		if projection == "Gnomonic":
