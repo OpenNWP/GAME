@@ -126,7 +126,7 @@ bounds = np.arange(total_min, total_max + color_plot_dist, color_plot_dist)
 color_bar_dist = values_range_for_plot/10
 cmap = plt.get_cmap(colormap)
 
-fig_size = 5
+fig_size = 7
 if surface_bool == 0:
 	print("plotting " + var_id + " at level " + str(level) + " for t - t_init = " + str(time_since_init_min) + " min ...")
 if surface_bool == 1:
