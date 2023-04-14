@@ -49,8 +49,8 @@ module mo_interpolation_ll
           write(*,*) "An error occured during the interpolation to the lat lon grid, position 0."
           call exit(1)
         endif
-        lon_vector(jk) = (jk-1)*delta_longitude
-        if (lon_vector(jk)<0._wp .or. lon_vector(jk)>=2._wp*M_PI) then
+        lon_vector(jk) = (jk-1)*delta_longitude - M_PI + 0.5_wp*delta_longitude
+        if (lon_vector(jk)<-M_PI .or. lon_vector(jk)>=M_PI) then
           write(*,*) "An error occured during the interpolation to the lat lon grid, position 1."
           call exit(1)
         endif

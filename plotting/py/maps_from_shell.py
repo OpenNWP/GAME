@@ -69,9 +69,9 @@ init_year, init_month, init_day, init_hour = rmo.return_analysis_time(input_file
 start_timestamp = tcs.find_time_coord(init_year, init_month, init_day, init_hour, 0, 0, 0)
 
 if var_id == "surface_wind":
-	lat, lon, values_pre = rmo.fetch_model_output(input_file, start_time_since_init_min, "gust")
-	lat, lon, values_pre_u10 = rmo.fetch_model_output(input_file, start_time_since_init_min, "u10")
-	lat, lon, values_pre_v10 = rmo.fetch_model_output(input_file, start_time_since_init_min, "v10")
+	lat, lon, values_pre = rmo.fetch_model_output(input_file, "gust")
+	lat, lon, values_pre_u10 = rmo.fetch_model_output(input_file, "u10")
+	lat, lon, values_pre_v10 = rmo.fetch_model_output(input_file, "v10")
 else:
 	if surface_bool == 1:
 		lat, lon, values_pre = rmo.fetch_model_output(input_file, var_id)
