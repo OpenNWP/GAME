@@ -7,7 +7,7 @@ game_home_dir=~/code/GAME # the home directory of GAME
 run_id=ullrich # the run ID which you want to plot
 run_span_min=$((100*24*60)) # the length of the run
 output_dir=$game_home_dir/output/$run_id # the directory where the netcdf files are stored
-fig_save_path=$game_home_dir/$run_id # the directory in which the figures will be saved
+fig_save_path=$output_dir # the directory in which the figures will be saved
 start_time_since_init=0 # when to begin plotting reative to the model initialization
 disp_shortname_list=(
 sp) # netcdf variable names to bet plotted
