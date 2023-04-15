@@ -69,7 +69,7 @@ init_year, init_month, init_day, init_hour = rmo.return_analysis_time(input_file
 start_timestamp = tcs.find_time_coord(init_year, init_month, init_day, init_hour, 0, 0, 0)
 
 if var_id == "surface_wind":
-	lat, lon, values_pre = rmo.fetch_model_output(input_file, "gust")
+	lat, lon, values_pre = rmo.fetch_model_output(input_file, "gusts10")
 	lat, lon, values_pre_u10 = rmo.fetch_model_output(input_file, "u10")
 	lat, lon, values_pre_v10 = rmo.fetch_model_output(input_file, "v10")
 else:
@@ -109,7 +109,7 @@ for i in np.arange(1, number_of_times):
 	else:
 		input_file = netcdf_dir + "/" + run_id + "+" + str(time_after_init_min) + "min_pressure_levels.nc"
 	if var_id == "surface_wind":
-		lat, lon, values[:, :, i] = rmo.fetch_model_output(input_file, "gust")
+		lat, lon, values[:, :, i] = rmo.fetch_model_output(input_file, "gusts10")
 		values[:, :, i] = rescale*values[:, :, i] + shift
 		lat, lon, values_u10[:, :, i] = rmo.fetch_model_output(input_file, "u10")
 		values_u10[:, :, i] = rescale*values_u10[:, :, i] + shift
