@@ -125,35 +125,6 @@ for i in np.arange(1, number_of_times):
 			lat, lon, values[:, :, i] = rmo.fetch_model_output(input_file, var_id + "_layer_" + str(level))
 		values[:, :, i] = rescale*values[:, :, i] + shift
 
-# correcting the problem when plotting across lon = 0
-lat_plot_deg = np.rad2deg(lat)
-lon_plot_deg = np.rad2deg(lon)
-shift_index = -1
-for j in range(len(lon_plot_deg)):
-	if lon_plot_deg[j] >= 180:
-		lon_plot_deg[j] = lon_plot_deg[j] - 360
-		if shift_index == -1:
-			shift_index = j
-lon_plot_deg_new = lon_plot_deg.copy()
-lon_new = lon.copy()
-values_new = values.copy()
-if var_id == "surface_wind":
-	values_u10_new = values_u10.copy()
-	values_v10_new = values_u10.copy()
-for j in range(len(lon_plot_deg)):
-	lon_plot_deg_new[j] = lon_plot_deg[(j + shift_index)%len(lon_plot_deg)]
-	lon_new[j] = lon[(j + shift_index)%len(lon_plot_deg)]
-	values_new[:, j, :] = values[:, (j + shift_index)%len(lon_plot_deg), :]
-	if var_id == "surface_wind":
-		values_u10_new[:, j, :] = values_u10[:, (j + shift_index)%len(lon_plot_deg), :]
-		values_v10_new[:, j, :] = values_v10[:, (j + shift_index)%len(lon_plot_deg), :]
-lon_plot_deg = lon_plot_deg_new.copy()
-lon = lon_new.copy()
-values = values_new.copy()
-if var_id == "surface_wind":
-	values_u10 = values_u10_new.copy()
-	values_v10 = values_v10_new.copy()
-
 scope_bool_array = np.zeros([len(values[:, 0]), len(values[0, :])], dtype = bool)
 if projection == "Gnomonic":
 	desired_lat_deg, desired_lon_deg, height_map, width_map = mp.return_central_point(scope)
