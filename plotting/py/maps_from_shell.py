@@ -125,6 +125,9 @@ for i in np.arange(1, number_of_times):
 			lat, lon, values[:, :, i] = rmo.fetch_model_output(input_file, var_id + "_layer_" + str(level))
 		values[:, :, i] = rescale*values[:, :, i] + shift
 
+lat_plot_deg = np.rad2deg(lat)
+lon_plot_deg = np.rad2deg(lon)
+
 scope_bool_array = np.zeros([len(values[:, 0]), len(values[0, :])], dtype = bool)
 if projection == "Gnomonic":
 	desired_lat_deg, desired_lon_deg, height_map, width_map = mp.return_central_point(scope)
