@@ -224,6 +224,7 @@ def var_properties(var_id):
 		unit_string = "kn"
 		rescale = conv.ms2kn(1)
 		surface_bool = 1
+		show_level_on = 0
 	if var_id == "oro":
 		variable_name = "Orography"
 		unit_string = "m"
