@@ -78,9 +78,9 @@ for i in range(nlat):
 		
 		t2_vector = np.round(t2[i, j, :] - 273.15, 1)
 		t2d_vector = np.round(t2d[i, j, :] - 273.15, 1)
-		u10_vector = np.round(u10[i, j, :], 1)
-		v10_vector = np.round(v10[i, j, :], 1)
-		gusts10_vector = np.round(gusts10[i, j, :], 1)
+		u10_vector = np.round(u10[i, j, :], 2)
+		v10_vector = np.round(v10[i, j, :], 2)
+		gusts10_vector = np.round(gusts10[i, j, :], 2)
 		tcc_vector = np.int32(np.round(tcc[i, j, :]))
 		rprate_vector = np.round(rprate[i, j, :], 2)
 		sprate_vector = np.round(sprate[i, j, :], 2)
