@@ -60,7 +60,7 @@ json_data = {
 
 json_filename = save_directory + "/lat.json"
 json_file = open(json_filename, "w")
-json.dump(json_data, json_file, indent=2)
+json.dump(json_data, json_file, separators = (',', ':'))
 json_file.close()
 
 json_data = {
@@ -70,7 +70,7 @@ json_data = {
 
 json_filename = save_directory + "/lon.json"
 json_file = open(json_filename, "w")
-json.dump(json_data, json_file, indent=2)
+json.dump(json_data, json_file, separators = (',', ':'))
 json_file.close()
 
 for i in range(nlat):
@@ -106,7 +106,7 @@ for i in range(nlat):
 		
 		json_filename = save_directory + "/" + str(i+1) + "_" + str(j+1) + ".json"
 		json_file = open(json_filename, "w")
-		json.dump(json_data, json_file, indent=2)
+		json.dump(json_data, json_file, separators = (',', ':'))
 		json_file.close()
 
 print("JSON files created.")
