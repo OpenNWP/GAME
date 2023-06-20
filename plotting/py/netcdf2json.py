@@ -12,6 +12,7 @@ import toolbox.conversions as conv
 netcdf_dir = sys.argv[1]
 run_id = sys.argv[2]
 save_directory = sys.argv[3]
+n_points_per_file_axis = 10
 
 print("Creating JSON files ...")
 
@@ -73,38 +74,49 @@ json_file = open(json_filename, "w")
 json.dump(json_data, json_file, separators = (',', ':'))
 json_file.close()
 
-for i in range(nlat):
-	for j in range(nlon):
-		
-		t2_vector = np.round(t2[i, j, :] - 273.15, 1)
-		t2d_vector = np.round(t2d[i, j, :] - 273.15, 1)
-		u10_vector = np.round(u10[i, j, :], 2)
-		v10_vector = np.round(v10[i, j, :], 2)
-		gusts10_vector = np.round(gusts10[i, j, :], 2)
-		tcc_vector = np.int32(np.round(tcc[i, j, :]))
-		rprate_vector = np.round(rprate[i, j, :], 2)
-		sprate_vector = np.round(sprate[i, j, :], 2)
-		
+nlat_files = int(np.ceil(nlat/n_points_per_file_axis))
+nlon_files = int(np.ceil(nlon/n_points_per_file_axis))
+
+for i_file in range(nlat_files):
+	for j_file in range(nlon_files):
+			
+		# metadata
 		json_data = {
 		"model_name": "OpenNWP.org - GAME global model experimental run",
 		"run_id": run_id,
 		"init_year": run_id[4:8],
 		"init_month": run_id[8:10],
 		"init_day": run_id[10:12],
-		"init_hour": run_id[12:14],
-		"lat_deg": float(np.rad2deg(lat_vector[i])), "lon_deg": float(np.rad2deg(lon_vector[j])),
-		"time": {"unit": "hr", "values": time_hour_vector.tolist()},
-		"t2": {"unit": "° C", "values": t2_vector.tolist()},
-		"t2d": {"unit": "° C", "values": t2d_vector.tolist()},
-		"u10": {"unit": "m/s", "values": u10_vector.tolist()},
-		"v10": {"unit": "m/s", "values": v10_vector.tolist()},
-		"gusts10": {"unit": "m/s", "values": gusts10_vector.tolist()},
-		"tcc": {"unit": "%", "values": tcc_vector.tolist()},
-		"rprate": {"unit": "mm/hr", "values": rprate_vector.tolist()},
-		"sprate": {"unit": "mm/hr", "values": sprate_vector.tolist()}
+		"init_hour": run_id[12:14]
 		}
-		
-		json_filename = save_directory + "/" + str(i+1) + "_" + str(j+1) + ".json"
+			
+		for i in range(i_file*n_points_per_file_axis, min((i_file+1)*n_points_per_file_axis, nlat)):
+			for j in range(j_file*n_points_per_file_axis, min((j_file+1)*n_points_per_file_axis, nlon)):
+				
+				t2_vector = np.round(t2[i, j, :] - 273.15, 1)
+				t2d_vector = np.round(t2d[i, j, :] - 273.15, 1)
+				u10_vector = np.round(u10[i, j, :], 2)
+				v10_vector = np.round(v10[i, j, :], 2)
+				gusts10_vector = np.round(gusts10[i, j, :], 2)
+				tcc_vector = np.int32(np.round(tcc[i, j, :]))
+				rprate_vector = np.round(rprate[i, j, :], 2)
+				sprate_vector = np.round(sprate[i, j, :], 2)
+				
+				json_data_this_point = {
+				"lat_deg": float(np.rad2deg(lat_vector[i])), "lon_deg": float(np.rad2deg(lon_vector[j])),
+				"time": {"unit": "hr", "values": time_hour_vector.tolist()},
+				"t2": {"unit": "° C", "values": t2_vector.tolist()},
+				"t2d": {"unit": "° C", "values": t2d_vector.tolist()},
+				"u10": {"unit": "m/s", "values": u10_vector.tolist()},
+				"v10": {"unit": "m/s", "values": v10_vector.tolist()},
+				"gusts10": {"unit": "m/s", "values": gusts10_vector.tolist()},
+				"tcc": {"unit": "%", "values": tcc_vector.tolist()},
+				"rprate": {"unit": "mm/hr", "values": rprate_vector.tolist()},
+				"sprate": {"unit": "mm/hr", "values": sprate_vector.tolist()}
+				}
+				json_data[str(i+1) + "x" + str(j+1)] = json_data_this_point
+				
+		json_filename = save_directory + "/" + str(i_file+1) + "_" + str(j_file+1) + ".json"
 		json_file = open(json_filename, "w")
 		json.dump(json_data, json_file, separators = (',', ':'))
 		json_file.close()
