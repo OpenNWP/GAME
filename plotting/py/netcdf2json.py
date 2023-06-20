@@ -115,9 +115,9 @@ for i_file in range(nlat_files):
 				"rprate": {"unit": "mm/hr", "values": rprate_vector.tolist()},
 				"sprate": {"unit": "mm/hr", "values": sprate_vector.tolist()}
 				}
-				json_data[str(i+1) + "x" + str(j+1)] = json_data_this_point
+				json_data[str(i) + "x" + str(j)] = json_data_this_point
 				
-		json_filename = save_directory + "/" + str(i_file+1) + "_" + str(j_file+1) + ".json"
+		json_filename = save_directory + "/" + str(i_file) + "_" + str(j_file) + ".json"
 		json_file = open(json_filename, "w")
 		json.dump(json_data, json_file, separators = (',', ':'))
 		json_file.close()
