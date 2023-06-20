@@ -87,7 +87,8 @@ for i_file in range(nlat_files):
 		"init_year": run_id[4:8],
 		"init_month": run_id[8:10],
 		"init_day": run_id[10:12],
-		"init_hour": run_id[12:14]
+		"init_hour": run_id[12:14],
+		"time": {"unit": "hr", "values": time_hour_vector.tolist()}
 		}
 			
 		for i in range(i_file*n_points_per_file_axis, min((i_file+1)*n_points_per_file_axis, nlat)):
@@ -103,8 +104,8 @@ for i_file in range(nlat_files):
 				sprate_vector = np.round(sprate[i, j, :], 2)
 				
 				json_data_this_point = {
-				"lat_deg": float(np.rad2deg(lat_vector[i])), "lon_deg": float(np.rad2deg(lon_vector[j])),
-				"time": {"unit": "hr", "values": time_hour_vector.tolist()},
+				"lat_deg": float(np.rad2deg(lat_vector[i])),
+				"lon_deg": float(np.rad2deg(lon_vector[j])),
 				"t2": {"unit": "° C", "values": t2_vector.tolist()},
 				"t2d": {"unit": "° C", "values": t2d_vector.tolist()},
 				"u10": {"unit": "m/s", "values": u10_vector.tolist()},
